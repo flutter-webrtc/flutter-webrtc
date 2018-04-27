@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 
 class MediaStream {
-  int _textureId;
+  int _streamId;
   MethodChannel _channel;
   StreamSubscription<dynamic> _eventSubscription;
   List<MediaStreamTrack> _audioTracks;
   List<MediaStreamTrack> _videoTracks;
-  MediaStream(this._channel, this._textureId);
-  int textureId() => _textureId;
+  MediaStream(this._channel, this._streamId);
+  int streamId() => _streamId;
 
     /*
      * MediaStream 事件监听器
@@ -29,7 +29,7 @@ class MediaStream {
     }
 
     void initialize(){
-      _eventSubscription = _eventChannelFor(_textureId)
+      _eventSubscription = _eventChannelFor(_streamId)
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
     }
@@ -39,11 +39,11 @@ class MediaStream {
     await _eventSubscription?.cancel();
     await _channel.invokeMethod(
           'dispose',
-          <String, dynamic>{'textureId': _textureId},);
+          <String, dynamic>{'mediaStreamId': _streamId},);
   }
 
-    EventChannel _eventChannelFor(int textureId) {
-      return new EventChannel('cloudwebrtc.com/WebRTC/peerConnectoinEvent$textureId');
+    EventChannel _eventChannelFor(int mediaStreamId) {
+      return new EventChannel('cloudwebrtc.com/WebRTC/peerConnectoinEvent$mediaStreamId');
     }
 
   addTrack(MediaStreamTrack track){
