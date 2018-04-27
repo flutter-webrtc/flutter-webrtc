@@ -25,7 +25,7 @@ class RTCVideoView {
         'mute',
         <String, dynamic>{
           'textureId': _textureId,
-          'streamId': _stream.textureId() ,
+          'streamId': _stream.streamId() ,
           'muted' : muted
           }
         );
@@ -35,7 +35,7 @@ class RTCVideoView {
         'mirror',
         <String, dynamic>{
           'textureId': _textureId,
-          'streamId': _stream.textureId() ,
+          'streamId': _stream.streamId() ,
           'mirror' : mirror}
         );
 
@@ -46,7 +46,7 @@ class RTCVideoView {
         'setSrcObject',
         <String, dynamic>{
           'textureId': _textureId,
-          'streamId': _stream.textureId()
+          'streamId': _stream.streamId()
           }
         );
     }
