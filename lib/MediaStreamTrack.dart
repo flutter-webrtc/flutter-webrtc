@@ -3,13 +3,13 @@ import 'package:webrtc/WebRTC.dart';
 
 class MediaStreamTrack {
     MethodChannel _channel;
-    int _textureId;
+    int _trackId;
     MediaStreamTrack() {
         _channel = WebRTC.methodChannel();
     }
    set enabled(bool enabled){
        _channel.invokeMethod('mediaStreamTrackEnabled',
-        <String, dynamic>{'textureId':_textureId,'enabled': enabled });
+        <String, dynamic>{'trackId':_trackId,'enabled': enabled });
    }
    bool get enabled => false;
    String get label => '';

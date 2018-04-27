@@ -10,8 +10,8 @@ dynamic getUserMedia(MediaConstraints mediaConstraints) async {
         'getUserMedia',
         <String, dynamic>{ 'constraints': mediaConstraints },
         );
-        int textureId = response['textureId'];
-        return new MediaStream(channel,textureId);
+        int mediaStreamId = response['mediaStreamId'];
+        return new MediaStream(channel,mediaStreamId);
     } on PlatformException catch (e) {
         throw 'Unable to getUserMedia: ${e.message}';
     }
