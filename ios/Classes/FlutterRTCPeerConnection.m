@@ -17,24 +17,26 @@
 
 @implementation RTCPeerConnection (Flutter)
 
-- (NSMutableDictionary<NSNumber *, RTCDataChannel *> *)dataChannels
+@dynamic eventSink;
+
+- (NSString *)flutterId
 {
     return objc_getAssociatedObject(self, _cmd);
 }
 
-- (void)setDataChannels:(NSMutableDictionary<NSNumber *, RTCDataChannel *> *)dataChannels
+- (void)setFlutterId:(NSString *)flutterId
+{
+    objc_setAssociatedObject(self, @selector(flutterId), flutterId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (NSMutableDictionary<NSString *, RTCDataChannel *> *)dataChannels
+{
+    return objc_getAssociatedObject(self, _cmd);
+}
+
+- (void)setDataChannels:(NSMutableDictionary<NSString *, RTCDataChannel *> *)dataChannels
 {
     objc_setAssociatedObject(self, @selector(dataChannels), dataChannels, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-- (NSNumber *)reactTag
-{
-    return objc_getAssociatedObject(self, _cmd);
-}
-
-- (void)setReactTag:(NSNumber *)reactTag
-{
-    objc_setAssociatedObject(self, @selector(reactTag), reactTag, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (NSMutableDictionary<NSString *, RTCMediaStream *> *)remoteStreams
@@ -146,13 +148,13 @@
   [peerConnection close];
 
   // Clean up peerConnection's streams and tracks
-  [self.remoteStreams removeAllObjects];
-  [self.remoteTracks removeAllObjects];
+  [peerConnection.remoteStreams removeAllObjects];
+  [peerConnection.remoteTracks removeAllObjects];
 
   // Clean up peerConnection's dataChannels.
-  NSMutableDictionary<NSNumber *, RTCDataChannel *> *dataChannels
-    = self.dataChannels;
-  for (NSNumber *dataChannelId in dataChannels) {
+  NSMutableDictionary<NSString *, RTCDataChannel *> *dataChannels
+    = peerConnection.dataChannels;
+  for (NSString *dataChannelId in dataChannels) {
     dataChannels[dataChannelId].delegate = nil;
     // There is no need to close the RTCDataChannel because it is owned by the
     // RTCPeerConnection and the latter will close the former.
@@ -161,14 +163,14 @@
 }
 
 -(void) peerConnectionGetStats:(nonnull NSString *)trackID
-                peerConnection:(RTCPeerConnection *)peerConnection
-                        result:(FlutterResult)result
+                peerConnection:(nonnull RTCPeerConnection *)peerConnection
+                        result:(nonnull FlutterResult)result
 {
   RTCMediaStreamTrack *track = nil;
   if (!trackID
       || !trackID.length
       || (track = self.localTracks[trackID])
-      || (track = self.remoteTracks[trackID])) {
+      || (track = peerConnection.remoteTracks[trackID])) {
     [peerConnection statsForTrack:track
                  statsOutputLevel:RTCStatsOutputLevelStandard
                 completionHandler:^(NSArray<RTCLegacyStatsReport *> *stats) {
@@ -351,9 +353,9 @@
 -(void)peerConnection:(RTCPeerConnection *)peerConnection
           mediaStream:(RTCMediaStream *)stream didAddTrack:(RTCVideoTrack*)track{
 
-    self.remoteTracks[track.trackId] = track;
+    peerConnection.remoteTracks[track.trackId] = track;
     NSString *streamId = stream.streamId;
-    self.remoteStreams[streamId] = stream;
+    peerConnection.remoteStreams[streamId] = stream;
 
     _eventSink(@{
       @"event" : @"addTrack",
@@ -464,13 +466,13 @@
   }
 
   NSNumber *dataChannelId = [NSNumber numberWithInteger:dataChannel.channelId];
-  dataChannel.peerConnectionId = peerConnection.reactTag;
+  dataChannel.peerConnectionId = peerConnection.flutterId;
   peerConnection.dataChannels[dataChannelId] = dataChannel;
   // WebRTCModule implements the category RTCDataChannel i.e. the protocol
   // RTCDataChannelDelegate.
   dataChannel.delegate = self;
 
-  NSDictionary *body = @{@"id": peerConnection.reactTag,
+  NSDictionary *body = @{@"id": peerConnection.flutterId,
                         @"dataChannel": @{@"id": dataChannelId,
                                           @"label": dataChannel.label}};
   if(_eventSink){

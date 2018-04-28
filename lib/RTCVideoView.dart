@@ -3,7 +3,7 @@ import 'package:webrtc/WebRTC.dart';
 import 'package:flutter/services.dart';
 
 class RTCVideoView {
-    int _textureId;
+    int _videoViewId;
     MediaStream _stream;
     MethodChannel _channel;
 
@@ -17,14 +17,14 @@ class RTCVideoView {
         'createVideoView',
         <String, dynamic>{}
         );
-      _textureId = response['textureId'];
+      _videoViewId = response['videoViewId'];
     }
 
     set muted(bool muted) =>
       _channel.invokeMethod(
         'mute',
         <String, dynamic>{
-          'textureId': _textureId,
+          '_videoViewId': _videoViewId,
           'streamId': _stream.streamId() ,
           'muted' : muted
           }
@@ -34,7 +34,7 @@ class RTCVideoView {
      _channel.invokeMethod(
         'mirror',
         <String, dynamic>{
-          'textureId': _textureId,
+          'videoViewId': _videoViewId,
           'streamId': _stream.streamId() ,
           'mirror' : mirror}
         );
@@ -45,7 +45,7 @@ class RTCVideoView {
       _channel.invokeMethod(
         'setSrcObject',
         <String, dynamic>{
-          'textureId': _textureId,
+          'videoViewId': _videoViewId,
           'streamId': _stream.streamId()
           }
         );
