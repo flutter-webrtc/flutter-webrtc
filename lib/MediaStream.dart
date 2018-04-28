@@ -1,15 +1,16 @@
 import 'package:webrtc/MediaStreamTrack.dart';
+import 'package:webrtc/WebRTC.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 
 class MediaStream {
-  int _streamId;
-  MethodChannel _channel;
+  String _streamId;
+ MethodChannel _channel = WebRTC.methodChannel();
   StreamSubscription<dynamic> _eventSubscription;
   List<MediaStreamTrack> _audioTracks;
   List<MediaStreamTrack> _videoTracks;
-  MediaStream(this._channel, this._streamId);
-  int streamId() => _streamId;
+  MediaStream(this._streamId);
+  String streamId() => _streamId;
 
     /*
      * MediaStream 事件监听器
@@ -42,7 +43,7 @@ class MediaStream {
           <String, dynamic>{'mediaStreamId': _streamId},);
   }
 
-    EventChannel _eventChannelFor(int mediaStreamId) {
+    EventChannel _eventChannelFor(String mediaStreamId) {
       return new EventChannel('cloudwebrtc.com/WebRTC/peerConnectoinEvent$mediaStreamId');
     }
 
