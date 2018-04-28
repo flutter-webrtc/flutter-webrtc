@@ -7,6 +7,8 @@
 #import <WebRTC/RTCAudioTrack.h>
 #import <WebRTC/RTCVideoTrack.h>
 #import <WebRTC/RTCConfiguration.h>
+#import <WebRTC/RTCIceCandidate.h>
+#import <WebRTC/RTCSessionDescription.h>
 
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCMediaStream.h"
@@ -26,7 +28,7 @@
                                      methodChannelWithName:@"cloudwebrtc.com/WebRTC.Method"
                                      binaryMessenger:[registrar messenger]];
     FlutterWebRTCPlugin* instance = [[FlutterWebRTCPlugin alloc] initWithChannel:channel
-                                                                       registrar:registrar
+                                                            registrar:registrar
                                                                        messenger:[registrar messenger]];
     [registrar addMethodCallDelegate:instance channel:channel];
 }
@@ -73,52 +75,45 @@
     self.peerConnections = [NSMutableDictionary new];
     self.localStreams = [NSMutableDictionary new];
     self.localTracks = [NSMutableDictionary new];
-    self.dataChannels = [NSMutableDictionary new];
-    self.remoteStreams = [NSMutableDictionary new];
-    self.remoteTracks = [NSMutableDictionary new];
     return self;
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult) result {
     if ([@"createPeerConnection" isEqualToString:call.method]) {
-        //TODO: 使用call.arguments 构造RTCConfiguration和constraints 参数
+
         NSDictionary* argsMap = call.arguments;
-        NSString* configurationArgs = argsMap[@"configuration"];
-        NSString* constraintsArgs = argsMap[@"options"];
+        NSDictionary* constraints = argsMap[@"configuration"];
+        NSDictionary* options = argsMap[@"options"];
         
         RTCConfiguration* configuration = [[RTCConfiguration alloc] init];
-        NSDictionary* constraints = nil;
-    
         RTCPeerConnection *peerConnection
         = [self.peerConnectionFactory
            peerConnectionWithConfiguration:configuration
            constraints:[self parseMediaConstraints:constraints]
            delegate:self];
-        int64_t textureId = [_registry registerTexture:peerConnection];
-        self.peerConnections[@(textureId)] = peerConnection;
-        result(@{ @"textureId" : @(textureId)});
-        
+        NSString *peerConnectionId = [[NSUUID UUID] UUIDString];
+        peerConnection.flutterId  = peerConnectionId;
+        self.peerConnections[peerConnectionId] = peerConnection;
+        result(@{ @"peerConnectionId" : peerConnectionId});
     } else if ([@"getUserMedia" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
-        NSString* constraintsArgs = argsMap[@"constraints"];
-        NSDictionary* constraints = nil;
-        //return MediaStreamId or Error
+        NSDictionary* constraints = argsMap[@"constraints"];
         [self getUserMedia:constraints result:result];
     }  else if ([@"createOffer" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
-        int64_t textureId = ((NSNumber*)argsMap[@"textureId"]).integerValue;
-        NSDictionary * constraints = (NSDictionary*)argsMap[@"constraints"];
-        RTCPeerConnection *peerConnection = self.peerConnections[@(textureId)];
+        NSDictionary* constraints = argsMap[@"constraints"];
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection)
         {
             [self peerConnectionCreateOffer:constraints peerConnection:peerConnection result:result ];
         }
     }  else if ([@"createAnswer" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
-        int64_t textureId = ((NSNumber*)argsMap[@"textureId"]).integerValue;
         NSDictionary * constraints = (NSDictionary*)argsMap[@"constraints"];
         
-        RTCPeerConnection *peerConnection = self.peerConnections[@(textureId)];
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection)
         {
             [self peerConnectionCreateAnswer:constraints
@@ -127,24 +122,27 @@
         }
     }  else if ([@"addStream" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
-        int64_t textureId = ((NSNumber*)argsMap[@"textureId"]).integerValue;
-        RTCPeerConnection *peerConnection = self.peerConnections[@(textureId)];
+       
+        NSString* streamId = ((NSString*)argsMap[@"streamId"]);
+        RTCMediaStream *stream = self.localStreams[streamId];
         
-        int64_t streamId = ((NSNumber*)argsMap[@"streamId"]).integerValue;
-        RTCMediaStream *stream = self.localStreams[@(streamId)];
-        if(peerConnection)
-        {
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        
+        if(peerConnection && stream){
             [peerConnection addStream:stream];
             result(@"");
         }
     }  else if ([@"removeStream" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
-        int64_t textureId = ((NSNumber*)argsMap[@"textureId"]).integerValue;
-        RTCPeerConnection *peerConnection = self.peerConnections[@(textureId)];
-        int64_t streamId = ((NSNumber*)argsMap[@"streamId"]).integerValue;
-        RTCMediaStream *stream = self.localStreams[@(streamId)];
-        if(stream && peerConnection)
-        {
+        
+        NSString* streamId = ((NSString*)argsMap[@"streamId"]);
+        RTCMediaStream *stream = self.localStreams[streamId];
+        
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        
+        if(peerConnection && stream){
             [peerConnection removeStream:stream];
             result(nil);
         }else{
@@ -155,11 +153,16 @@
         
     }  else if ([@"setLocalDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
-        int64_t textureId = ((NSNumber*)argsMap[@"textureId"]).integerValue;
-        RTCPeerConnection *peerConnection = self.peerConnections[@(textureId)];
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        
+        NSString* sdp = argsMap[@"sdp"];
+        RTCSdpType sdpType = [RTCSessionDescription typeForString:argsMap[@"type"]];
+        RTCSessionDescription* description = [[RTCSessionDescription alloc] initWithType:sdpType sdp:sdp];
+        
         if(peerConnection)
         {
-           [self peerConnectionSetLocalDescription:nil peerConnection:peerConnection result:result];
+           [self peerConnectionSetLocalDescription:description peerConnection:peerConnection result:result];
         }else{
             result([FlutterError errorWithCode:@"SetLocalDescriptionFailed"
                                        message:[NSString stringWithFormat:@"Error: pc not found!"]
@@ -167,17 +170,43 @@
         }
     }  else if ([@"setRemoteDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
-        int64_t textureId = ((NSNumber*)argsMap[@"textureId"]).integerValue;
-        RTCPeerConnection *peerConnection = self.peerConnections[@(textureId)];
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        
+        NSString* sdp = argsMap[@"sdp"];
+        RTCSdpType sdpType = [RTCSessionDescription typeForString:argsMap[@"type"]];
+        RTCSessionDescription* description = [[RTCSessionDescription alloc] initWithType:sdpType sdp:sdp];
+        
         if(peerConnection)
         {
-            [self peerConnectionSetRemoteDescription:nil peerConnection:peerConnection result:result];
+            [self peerConnectionSetRemoteDescription:description peerConnection:peerConnection result:result];
         }else{
             result([FlutterError errorWithCode:@"SetRemoteDescriptionFailed"
                                        message:[NSString stringWithFormat:@"Error: pc not found!"]
                                        details:nil]);
         }
-    }  else {
+    }  else if ([@"addIceCandidate" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+       
+        NSString *sdp = argsMap[@"candidate"];
+        int sdpMLineIndex = ((NSNumber*)argsMap[@"sdpMLineIndex"]).integerValue;
+        NSString *sdpMid = argsMap[@"sdpMid"];
+        
+        RTCIceCandidate* candidate = [[RTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:sdpMLineIndex sdpMid:sdpMid];
+        
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        
+        if(peerConnection)
+        {
+            [self peerConnectionAddICECandidate:candidate peerConnection:peerConnection result:result];
+        }else{
+            result([FlutterError errorWithCode:@"addIceCandidate"
+                                       message:[NSString stringWithFormat:@"Error: pc not found!"]
+                                       details:nil]);
+        }
+    }
+    else {
         result(FlutterMethodNotImplemented);
     }
 }
@@ -189,7 +218,7 @@
   [_localStreams removeAllObjects];
   _localStreams = nil;
 
-  for (NSNumber *peerConnectionId in _peerConnections) {
+  for (NSString *peerConnectionId in _peerConnections) {
     RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
     peerConnection.delegate = nil;
     [peerConnection close];
@@ -198,13 +227,13 @@
   _peerConnectionFactory = nil;
 }
 
-- (RTCMediaStream*)streamForTextureId:(NSNumber*)textureId
+- (RTCMediaStream*)streamForId:(NSString*)streamId
 {
-  RTCMediaStream *stream = _localStreams[textureId];
+  RTCMediaStream *stream = _localStreams[streamId];
   if (!stream) {
-    for (NSNumber *peerConnectionId in _peerConnections) {
+    for (NSString *peerConnectionId in _peerConnections) {
       RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
-      stream = peerConnection.remoteStreams[textureId];
+      stream = peerConnection.remoteStreams[streamId];
       if (stream) {
         break;
       }

@@ -3,7 +3,7 @@
 
 @interface RTCDataChannel (Flutter)
 
-@property (nonatomic, strong) NSNumber *peerConnectionId;
+@property (nonatomic, strong) NSString *peerConnectionId;
 
 @end
 

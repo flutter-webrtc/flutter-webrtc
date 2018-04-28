@@ -5,12 +5,12 @@
 
 @implementation RTCDataChannel (Flutter)
 
-- (NSNumber *)peerConnectionId
+- (NSString *)peerConnectionId
 {
     return objc_getAssociatedObject(self, _cmd);
 }
 
-- (void)setPeerConnectionId:(NSNumber *)peerConnectionId
+- (void)setPeerConnectionId:(NSString *)peerConnectionId
 {
     objc_setAssociatedObject(self, @selector(peerConnectionId), peerConnectionId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
@@ -19,40 +19,38 @@
 
 @implementation FlutterWebRTCPlugin (RTCDataChannel)
 
--(void)createDataChannel:(nonnull NSNumber *)peerConnectionId
+-(void)createDataChannel:(nonnull NSString *)peerConnectionId
                               label:(NSString *)label
                              config:(RTCDataChannelConfiguration *)config
 {
   RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
   RTCDataChannel *dataChannel = [peerConnection dataChannelForLabel:label configuration:config];
-  // XXX RTP data channels are not defined by the WebRTC standard, have been
-  // deprecated in Chromium, and Google have decided (in 2015) to no longer
-  // support them (in the face of multiple reported issues of breakages).
+    
   if (-1 != dataChannel.channelId) {
-    //dataChannel.peerConnectionId = peerConnectionId;
+    dataChannel.peerConnectionId = peerConnectionId;
     NSNumber *dataChannelId = [NSNumber numberWithInteger:dataChannel.channelId];
-    self.dataChannels[dataChannelId] = dataChannel;
+    peerConnection.dataChannels[dataChannelId] = dataChannel;
     dataChannel.delegate = self;
   }
 }
 
--(void)dataChannelClose:(nonnull NSNumber *)peerConnectionId
-                     dataChannelId:(nonnull NSNumber *)dataChannelId
+-(void)dataChannelClose:(nonnull NSString *)peerConnectionId
+                     dataChannelId:(nonnull NSString *)dataChannelId
 {
   RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
-  NSMutableDictionary *dataChannels = self.dataChannels;
+  NSMutableDictionary *dataChannels = peerConnection.dataChannels;
   RTCDataChannel *dataChannel = dataChannels[dataChannelId];
   [dataChannel close];
   [dataChannels removeObjectForKey:dataChannelId];
 }
 
--(void)dataChannelSend:(nonnull NSNumber *)peerConnectionId
-                    dataChannelId:(nonnull NSNumber *)dataChannelId
+-(void)dataChannelSend:(nonnull NSString *)peerConnectionId
+                    dataChannelId:(nonnull NSString *)dataChannelId
                              data:(NSString *)data
                              type:(NSString *)type
 {
   RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
-  RTCDataChannel *dataChannel = self.dataChannels[dataChannelId];
+    RTCDataChannel *dataChannel = peerConnection.dataChannels[dataChannelId];
   NSData *bytes = [type isEqualToString:@"binary"] ?
     [[NSData alloc] initWithBase64EncodedString:data options:0] :
     [data dataUsingEncoding:NSUTF8StringEncoding];

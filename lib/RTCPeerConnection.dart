@@ -1,4 +1,4 @@
-import 'package:webrtc/WebRTC.dart';
+import 'package:webrtc/WebRTC.dart' show WebRTC;
 import 'package:webrtc/RTCDataChannel.dart';
 import 'package:webrtc/RTCSessionDescrption.dart';
 import 'package:webrtc/MediaStream.dart';
@@ -74,16 +74,16 @@ class RTCOfferAnswerOptions {
 /*
  *  PeerConnection
  */
-class PeerConnection {
-    int _textureId;
-    MethodChannel _channel;
+class RTCPeerConnection {
+    int _peerConnectionId;
+    MethodChannel _channel = WebRTC.methodChannel();
     StreamSubscription<dynamic> _eventSubscription;
     RTCConfiguration _configuration;
     List<MediaStream> localStreams;
     List<MediaStream> remoteStreams;
     RTCDataChannel dataChannel;
 
-    PeerConnection(this._configuration){
+    RTCPeerConnection(this._configuration){
       initialize();
     }
 
@@ -126,8 +126,8 @@ class PeerConnection {
         'constraints': mediaConstraints
         },
       );
-      _textureId = response['textureId'];
-      _eventSubscription = _eventChannelFor(_textureId)
+      _peerConnectionId = response['peerConnectionId'];
+      _eventSubscription = _eventChannelFor(_peerConnectionId)
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
     }
@@ -136,16 +136,16 @@ class PeerConnection {
       await _eventSubscription?.cancel();
       await _channel.invokeMethod(
             'dispose',
-            <String, dynamic>{'textureId': _textureId},);
+            <String, dynamic>{'peerConnectionId': _peerConnectionId},);
     }
 
-    EventChannel _eventChannelFor(int textureId) {
-      return new EventChannel('cloudwebrtc.com/WebRTC/peerConnectoinEvent$textureId');
+    EventChannel _eventChannelFor(int peerConnectionId) {
+      return new EventChannel('cloudwebrtc.com/WebRTC/peerConnectoinEvent$peerConnectionId');
     }
 
     dynamic createOffer(MediaConstraints options) async {
       final Map<dynamic, dynamic> response = await _channel.invokeMethod('createOffer',<String, dynamic>{
-        'textureId': this._textureId,
+        'peerConnectionId': this._peerConnectionId,
         'options': options,
         });
          if(response['error']) {
@@ -158,7 +158,7 @@ class PeerConnection {
 
     dynamic createAnswer(MediaConstraints options) async {
         final Map<dynamic, dynamic> response = await _channel.invokeMethod('createAnswer',<String, dynamic>{
-        'textureId': this._textureId,
+        'peerConnectionId': this._peerConnectionId,
         'options': options,
         });
         if(response['error']) {
@@ -171,28 +171,28 @@ class PeerConnection {
 
     void addStream(MediaStream stream){
       _channel.invokeMethod('addStream',<String, dynamic>{
-        'textureId': this._textureId,
-        'streamId': stream.textureId(),
+        'peerConnectionId': this._peerConnectionId,
+        'streamId': stream.streamId(),
         });
     }
 
     void removeStream(MediaStream stream){
       _channel.invokeMethod('removeStream',<String, dynamic>{
-        'textureId': this._textureId,
-        'streamId': stream.textureId(),
+        'peerConnectionId': this._peerConnectionId,
+        'streamId': stream.streamId(),
         });
     }
 
     void setLocalDescription(RTCSessionDescrption description){
       _channel.invokeMethod('setLocalDescription',<String, dynamic>{
-        'textureId': this._textureId,
+        'peerConnectionId': this._peerConnectionId,
         'description': description.toJSON(),
         });
     }
 
     void setRemoteDescription(RTCSessionDescrption description){
       _channel.invokeMethod('setRemoteDescription',<String, dynamic>{
-        'textureId': this._textureId,
+        'peerConnectionId': this._peerConnectionId,
         'description': description.toJSON(),
         });
     }

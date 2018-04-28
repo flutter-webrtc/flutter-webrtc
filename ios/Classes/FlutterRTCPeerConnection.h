@@ -1,12 +1,11 @@
 #import "FlutterWebRTCPlugin.h"
 
 @interface RTCPeerConnection (Flutter)
-
-@property (nonatomic, strong) NSMutableDictionary<NSNumber *, RTCDataChannel *> *dataChannels;
-@property (nonatomic, strong) NSNumber *reactTag;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, RTCDataChannel *> *dataChannels;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStream *> *remoteStreams;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *remoteTracks;
-
+@property (nonatomic, strong) NSString *flutterId;
+@property (nonatomic, strong) FlutterEventSink eventSink;
 @end
 
 @interface FlutterWebRTCPlugin (RTCPeerConnection)
@@ -32,9 +31,9 @@
                                result:(FlutterResult)result;
 
 -(void) peerConnectionGetStats:(nonnull NSString *)trackID
-                peerConnection:(RTCPeerConnection *)peerConnection
-                        result:(FlutterResult)result;
+                peerConnection:(nonnull RTCPeerConnection *)peerConnection
+                        result:(nonnull FlutterResult)result;
 
-- (RTCMediaConstraints *)parseMediaConstraints:(NSDictionary *)constraints;
+- (RTCMediaConstraints *)parseMediaConstraints:(nonnull NSDictionary *)constraints;
 
 @end

@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
 
-@interface FlutterRTCVideoViewManager
+@interface FlutterRTCVideoViewManager : NSObject
 
 @end

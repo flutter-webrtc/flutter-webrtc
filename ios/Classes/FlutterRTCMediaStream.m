@@ -113,7 +113,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
              }
          }
          self.localStreams[mediaStreamId] = mediaStream;
-         result(@[ mediaStreamId, tracks ]);
+         result(@{@"streamId": mediaStreamId, @"tracks" : tracks });
      }
      errorCallback:^ (NSString *errorType, NSString *errorMessage) {
          result([FlutterError errorWithCode:[NSString stringWithFormat:@"Error %@", errorType]
