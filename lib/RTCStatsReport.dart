@@ -1,13 +1,11 @@
 
 
 class StatsReport {
-    List<String> stats;
+    Map<String,dynamic> _stats;
 
-    StatsReport(){
+    StatsReport(this._stats);
 
-    }
-
-    List<String> getStats(){
-      return stats;
+    Map<String,dynamic> getStats(){
+      return _stats;
     }
 }
