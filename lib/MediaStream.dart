@@ -4,69 +4,59 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 
 class MediaStream {
+  MethodChannel _channel = WebRTC.methodChannel();
   String _streamId;
- MethodChannel _channel = WebRTC.methodChannel();
-  StreamSubscription<dynamic> _eventSubscription;
   List<MediaStreamTrack> _audioTracks;
   List<MediaStreamTrack> _videoTracks;
-  MediaStream(this._streamId);
-  String streamId() => _streamId;
+  MediaStream(this._streamId) {
+    initialize();
+  }
 
-    /*
-     * MediaStream 事件监听器
-    */
-    void eventListener(dynamic event) {
-      final Map<dynamic, dynamic> map = event;
-      switch (map['event']) {
-        case 'addtrack':
-          break;
-        case 'removetrack':
-          break;
-      }
-    }
+  void initialize() async {
+    _channel = WebRTC.methodChannel();
+    final Map<dynamic, dynamic> response = await _channel.invokeMethod(
+      'mediaStreamGetTracks',
+      <String, dynamic>{'streamId': _streamId},
+    );
+    //dynamic audioTracks = response['audioTracks'];
+    //dynamic videoTracks = response['videoTracks'];
+  }
 
-    void errorListener(Object obj) {
-      final PlatformException e = obj;
-    }
-
-    void initialize(){
-      _eventSubscription = _eventChannelFor(_streamId)
-        .receiveBroadcastStream()
-        .listen(eventListener, onError: errorListener);
-    }
+  String get id => _streamId;
 
   @override
   Future<Null> dispose() async {
-    await _eventSubscription?.cancel();
     await _channel.invokeMethod(
-          'dispose',
-          <String, dynamic>{'mediaStreamId': _streamId},);
+      'dispose',
+      <String, dynamic>{'streamId': _streamId},
+    );
   }
 
-    EventChannel _eventChannelFor(String mediaStreamId) {
-      return new EventChannel('cloudwebrtc.com/WebRTC/peerConnectoinEvent$mediaStreamId');
-    }
-
-  addTrack(MediaStreamTrack track){
-    if(track.kind == 'audio')
+  addTrack(MediaStreamTrack track) {
+    if (track.kind == 'audio')
       _audioTracks.add(track);
     else
       _videoTracks.add(track);
+
+    _channel.invokeMethod('mediaStreamAddTrack',
+        <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
   }
 
-  removeTrack(MediaStreamTrack track){
-    if(track.kind == 'audio')
+  removeTrack(MediaStreamTrack track) {
+    if (track.kind == 'audio')
       _audioTracks.remove(track);
     else
-     _videoTracks.remove(track);
+      _videoTracks.remove(track);
+
+    _channel.invokeMethod('mediaStreamRemoveTrack',
+        <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
   }
 
-  List<MediaStreamTrack> getAudioTracks(){
-      return _audioTracks;
+  List<MediaStreamTrack> getAudioTracks() {
+    return _audioTracks;
   }
 
-  List<MediaStreamTrack> getVideoTracks(){
-      return _videoTracks;
+  List<MediaStreamTrack> getVideoTracks() {
+    return _videoTracks;
   }
-
 }

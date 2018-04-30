@@ -6,10 +6,7 @@
 #import <WebRTC/RTCDataChannelConfiguration.h>
 #import <WebRTC/RTCMediaStreamTrack.h>
 
-@interface FlutterWebRTCPlugin : NSObject<FlutterPlugin, FlutterStreamHandler, RTCPeerConnectionDelegate>
-{
-    FlutterEventSink _eventSink;
-}
+@interface FlutterWebRTCPlugin : NSObject<FlutterPlugin, RTCPeerConnectionDelegate>
 
 @property (nonatomic, strong) RTCPeerConnectionFactory *peerConnectionFactory;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCPeerConnection *> *peerConnections;

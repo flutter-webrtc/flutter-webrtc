@@ -17,7 +17,6 @@
 
 @implementation FlutterWebRTCPlugin {
     FlutterMethodChannel *_methodChannel;
-    FlutterEventChannel* _eventChannel;
     id _registry;
     id _messenger;
 }
@@ -33,19 +32,6 @@
     [registrar addMethodCallDelegate:instance channel:channel];
 }
 
-#pragma mark - FlutterStreamHandler methods
-
-- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
-    _eventSink = nil;
-    return nil;
-}
-
-- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
-                                       eventSink:(nonnull FlutterEventSink)sink {
-    _eventSink = sink;
-    return nil;
-}
-
 - (instancetype)initWithChannel:(FlutterMethodChannel *)channel
                       registrar:(NSObject<FlutterPluginRegistrar>*)registrar
                       messenger:(NSObject<FlutterBinaryMessenger>*)messenger {
@@ -56,12 +42,6 @@
         _registry = registrar;
         _messenger = messenger;
     }
-    /*Create Event Channel.*/
-    FlutterEventChannel* eventChannel = [FlutterEventChannel
-                                         eventChannelWithName:[NSString stringWithFormat:@"cloudwebrtc.com/WebRTC.Event"]
-                                         binaryMessenger:messenger];
-    [eventChannel setStreamHandler:self];
-    _eventChannel = eventChannel;
 
     ARDVideoDecoderFactory *decoderFactory = [[ARDVideoDecoderFactory alloc] init];
     ARDVideoEncoderFactory *encoderFactory = [[ARDVideoEncoderFactory alloc] init];
@@ -80,7 +60,6 @@
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult) result {
     if ([@"createPeerConnection" isEqualToString:call.method]) {
-
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"configuration"];
         NSDictionary* options = argsMap[@"options"];
@@ -93,13 +72,25 @@
            delegate:self];
         NSString *peerConnectionId = [[NSUUID UUID] UUIDString];
         peerConnection.flutterId  = peerConnectionId;
+        
+        /*Create Event Channel.*/
+        peerConnection.eventChannel = [FlutterEventChannel
+                                             eventChannelWithName:[NSString stringWithFormat:@"cloudwebrtc.com/WebRTC/peerConnectoinEvent%@", peerConnectionId]
+                                             binaryMessenger:_messenger];
+        [peerConnection.eventChannel setStreamHandler:peerConnection];
+
         self.peerConnections[peerConnectionId] = peerConnection;
         result(@{ @"peerConnectionId" : peerConnectionId});
     } else if ([@"getUserMedia" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getUserMedia:constraints result:result];
-    }  else if ([@"createOffer" isEqualToString:call.method]) {
+    } else if ([@"mediaStreamGetTracks" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* streamId = argsMap[@"streamId"];
+        [self mediaStreamGetTracks:streamId result:result];
+        result(nil);
+    } else if ([@"createOffer" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -111,7 +102,6 @@
     }  else if ([@"createAnswer" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSDictionary * constraints = (NSDictionary*)argsMap[@"constraints"];
-        
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection)
@@ -155,7 +145,6 @@
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
-        
         NSString* sdp = argsMap[@"sdp"];
         RTCSdpType sdpType = [RTCSessionDescription typeForString:argsMap[@"type"]];
         RTCSessionDescription* description = [[RTCSessionDescription alloc] initWithType:sdpType sdp:sdp];
@@ -172,7 +161,6 @@
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
-        
         NSString* sdp = argsMap[@"sdp"];
         RTCSdpType sdpType = [RTCSessionDescription typeForString:argsMap[@"type"]];
         RTCSessionDescription* description = [[RTCSessionDescription alloc] initWithType:sdpType sdp:sdp];
@@ -188,13 +176,11 @@
     }  else if ([@"addIceCandidate" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-       
         NSString *sdp = argsMap[@"candidate"];
         int sdpMLineIndex = ((NSNumber*)argsMap[@"sdpMLineIndex"]).integerValue;
         NSString *sdpMid = argsMap[@"sdpMid"];
         
         RTCIceCandidate* candidate = [[RTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:sdpMLineIndex sdpMid:sdpMid];
-        
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         
         if(peerConnection)
@@ -205,6 +191,15 @@
                                        message:[NSString stringWithFormat:@"Error: pc not found!"]
                                        details:nil]);
         }
+    } else if ([@"getStats" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        NSString* trackId = argsMap[@"trackId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        if(peerConnection)
+            return [self peerConnectionGetStats:trackId peerConnection:peerConnection result:result];
+        
+        result(nil);
     }
     else {
         result(FlutterMethodNotImplemented);
@@ -225,6 +220,44 @@
   }
   [_peerConnections removeAllObjects];
   _peerConnectionFactory = nil;
+}
+
+
+-(void)mediaStreamGetTracks:(NSString*)streamId
+                      result:(FlutterResult)result {
+    RTCMediaStream* stream = [self streamForId:streamId];
+    if(stream){
+        NSMutableArray *audioTracks = [NSMutableArray array];
+        NSMutableArray *videoTracks = [NSMutableArray array];
+
+        for (RTCMediaStreamTrack *track in stream.audioTracks) {
+            NSString *trackId = track.trackId;
+            [audioTracks addObject:@{
+                                     @"enabled": @(track.isEnabled),
+                                     @"id": trackId,
+                                     @"kind": track.kind,
+                                     @"label": trackId,
+                                     @"readyState": @"live",
+                                     @"remote": @(NO)
+                                     }];
+        }
+        
+        for (RTCMediaStreamTrack *track in stream.videoTracks) {
+            NSString *trackId = track.trackId;
+            [videoTracks addObject:@{
+                                     @"enabled": @(track.isEnabled),
+                                     @"id": trackId,
+                                     @"kind": track.kind,
+                                     @"label": trackId,
+                                     @"readyState": @"live",
+                                     @"remote": @(NO)
+                                     }];
+        }
+
+        result(@{@"audioTracks": audioTracks, @"videoTracks" : videoTracks });
+    }else{
+        result(nil);
+    }
 }
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId

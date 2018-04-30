@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:webrtc/RTCPeerConnection.dart';
 import 'package:webrtc/MediaStream.dart';
 import 'package:webrtc/getUserMedia.dart';
 
@@ -12,12 +12,22 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   MediaStream _localStream;
+  RTCPeerConnection _peerConnection;
   String _version = "0.0.1";
 
   @override
   initState() {
     super.initState();
     initPlatformState();
+  }
+
+  _onAddStream(MediaStream stream)
+  {
+
+  }
+
+  _onRemoveStream(MediaStream stream){
+
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -43,7 +53,10 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       _localStream = await getUserMedia(mediaConstraints);
-      platformVersion = _localStream.streamId();
+      platformVersion = _localStream.id;
+      _peerConnection = new RTCPeerConnection({"iceservers":[]});
+      _peerConnection.onAddStream = _onAddStream;
+      _peerConnection.onRemoveStream = _onRemoveStream;
     } catch(e) {
       platformVersion = 'Failed to get platform version.';
     }
