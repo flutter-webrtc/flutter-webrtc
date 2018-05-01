@@ -12,8 +12,8 @@ enum RTCSignalingState {
   RTCSignalingStateStable,
   RTCSignalingStateHaveLocalOffer,
   RTCSignalingStateHaveRemoteOffer,
-  RTCSignalingStateHaveLocalPranswer,
-  RTCSignalingStateHaveRemotePranswer,
+  RTCSignalingStateHaveLocalPrAnswer,
+  RTCSignalingStateHaveRemotePrAnswer,
   RTCSignalingStateClosed
 }
 
@@ -27,9 +27,11 @@ enum RTCIceConnectionState {
   RTCIceConnectionStateNew,
   RTCIceConnectionStateChecking,
   RTCIceConnectionStateCompleted,
+  RTCIceConnectionStateConnected,
+  RTCIceConnectionStateCount,
   RTCIceConnectionStateFailed,
   RTCIceConnectionStateDisconnected,
-  RTCIceConnectionStateClosed
+  RTCIceConnectionStateClosed,
 }
 
 class Constraints {
@@ -180,7 +182,7 @@ class RTCPeerConnection {
   Future<Null> dispose() async {
     await _eventSubscription?.cancel();
     await _channel.invokeMethod(
-      'dispose',
+      'peerConnectionDispose',
       <String, dynamic>{'peerConnectionId': _peerConnectionId},
     );
   }

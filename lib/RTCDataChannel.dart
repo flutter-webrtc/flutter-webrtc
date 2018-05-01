@@ -23,8 +23,7 @@ class RTCDataChannel {
   String _dataChannelId;
   MethodChannel _channel = WebRTC.methodChannel();
 
-  RTCDataChannel(this._peerConnectionId, this._label,
-      RTCDataChannelInit dataChannelDict) {}
+  RTCDataChannel(this._peerConnectionId, this._label,this._dataChannelId);
 
   void send(dynamic data) {
     //"dataChannelSendMessage"
