@@ -20,4 +20,11 @@ class MediaStreamTrack {
   String get label => _label;
   String get kind => _kind;
   String get id => _trackId;
+
+  void dispose() async {
+    await _channel.invokeMethod(
+      'trackDispose',
+      <String, dynamic>{'trackId': _trackId},
+    );
+  }
 }

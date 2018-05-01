@@ -6,8 +6,8 @@ import 'dart:async';
 class MediaStream {
   MethodChannel _channel = WebRTC.methodChannel();
   String _streamId;
-  List<MediaStreamTrack> _audioTracks;
-  List<MediaStreamTrack> _videoTracks;
+  List<MediaStreamTrack> _audioTracks = new List<MediaStreamTrack>();
+  List<MediaStreamTrack> _videoTracks = new List<MediaStreamTrack>();
   MediaStream(this._streamId) {
     initialize();
   }
@@ -18,19 +18,19 @@ class MediaStream {
       'mediaStreamGetTracks',
       <String, dynamic>{'streamId': _streamId},
     );
-    //dynamic audioTracks = response['audioTracks'];
-    //dynamic videoTracks = response['videoTracks'];
+
+    List<dynamic> audioTracks = response['audioTracks'];
+    audioTracks.forEach((v){ 
+      _audioTracks.add(new MediaStreamTrack(v["id"], v["label"], v["kind"], v["enabled"]));
+    });
+
+    List<dynamic> videoTracks = response['videoTracks'];
+    videoTracks.forEach((v){
+        _videoTracks.add(new MediaStreamTrack(v["id"], v["label"], v["kind"], v["enabled"]));
+    });
   }
 
   String get id => _streamId;
-
-  @override
-  Future<Null> dispose() async {
-    await _channel.invokeMethod(
-      'dispose',
-      <String, dynamic>{'streamId': _streamId},
-    );
-  }
 
   addTrack(MediaStreamTrack track) {
     if (track.kind == 'audio')
@@ -58,5 +58,13 @@ class MediaStream {
 
   List<MediaStreamTrack> getVideoTracks() {
     return _videoTracks;
+  }
+
+  @override
+  Future<Null> dispose() async {
+    await _channel.invokeMethod(
+      'streamDispose',
+      <String, dynamic>{'streamId': _streamId},
+    );
   }
 }
