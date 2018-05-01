@@ -508,28 +508,20 @@
 }
 
 - (void)peerConnection:(RTCPeerConnection*)peerConnection didOpenDataChannel:(RTCDataChannel*)dataChannel {
-    // XXX RTP data channels are not defined by the WebRTC standard, have been
-    // deprecated in Chromium, and Google have decided (in 2015) to no longer
-    // support them (in the face of multiple reported issues of breakages).
     if (-1 == dataChannel.channelId) {
         return;
     }
-    
+
     NSNumber *dataChannelId = [NSNumber numberWithInteger:dataChannel.channelId];
     dataChannel.peerConnectionId = peerConnection.flutterId;
-    peerConnection.dataChannels[dataChannelId] = dataChannel;
-    // WebRTCModule implements the category RTCDataChannel i.e. the protocol
-    // RTCDataChannelDelegate.
     dataChannel.delegate = self;
+    peerConnection.dataChannels[dataChannelId] = dataChannel;
     
-    NSDictionary *body = @{@"id": peerConnection.flutterId,
-                           @"dataChannel": @{@"id": dataChannelId,
-                                             @"label": dataChannel.label}};
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"didOpenDataChannel",
-                    @"body" : body
+                    @"dataChannel": @{@"id": dataChannelId, @"label": dataChannel.label}
                     });
     }
 }
