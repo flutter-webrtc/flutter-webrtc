@@ -418,6 +418,13 @@
                     @"event" : @"removeTrack",
                     @"streamId": streamId,
                     @"trackId": track.trackId,
+                    @"track": @{
+                            @"id": track.trackId,
+                            @"kind": track.kind,
+                            @"label": track.trackId,
+                            @"enabled": @(track.isEnabled),
+                            @"remote": @(YES),
+                            @"readyState": @"live"}
                     });
     }
 }
@@ -521,7 +528,8 @@
     if(eventSink){
         eventSink(@{
                     @"event" : @"didOpenDataChannel",
-                    @"dataChannel": @{@"id": dataChannelId, @"label": dataChannel.label}
+                    @"id": dataChannelId,
+                    @"label": dataChannel.label
                     });
     }
 }
