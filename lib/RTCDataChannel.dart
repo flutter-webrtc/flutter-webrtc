@@ -7,7 +7,17 @@ class RTCDataChannelInit {
   int maxRetransmits;
   String protocol;
   bool negotiated;
-  int id;
+  int id = 0;
+  Map<String, dynamic> toMap() {
+    return {
+      'ordered': ordered,
+      'maxPacketLifeTime': maxPacketLifeTime,
+      'maxRetransmits': maxRetransmits,
+      'protocol': protocol,
+      'negotiated': negotiated,
+      'id': id
+    };
+  }
 }
 
 enum RTCDataChannelState {
@@ -20,10 +30,10 @@ enum RTCDataChannelState {
 class RTCDataChannel {
   String _peerConnectionId;
   String _label;
-  String _dataChannelId;
+  int _dataChannelId;
   MethodChannel _channel = WebRTC.methodChannel();
 
-  RTCDataChannel(this._peerConnectionId, this._label,this._dataChannelId);
+  RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId);
 
   void send(dynamic data) {
     //"dataChannelSendMessage"
