@@ -20,18 +20,17 @@ class MediaStream {
     );
 
     List<dynamic> audioTracks = response['audioTracks'];
-    audioTracks.forEach((v){ 
-      _audioTracks.add(new MediaStreamTrack(v["id"], v["label"], v["kind"], v["enabled"]));
+    audioTracks.forEach((track){ 
+      _audioTracks.add(new MediaStreamTrack(track["id"], track["label"], track["kind"], track["enabled"]));
     });
 
     List<dynamic> videoTracks = response['videoTracks'];
-    videoTracks.forEach((v){
-        _videoTracks.add(new MediaStreamTrack(v["id"], v["label"], v["kind"], v["enabled"]));
+    videoTracks.forEach((track){
+        _videoTracks.add(new MediaStreamTrack(track["id"], track["label"], track["kind"], track["enabled"]));
     });
   }
 
   String get id => _streamId;
-
   addTrack(MediaStreamTrack track) {
     if (track.kind == 'audio')
       _audioTracks.add(track);

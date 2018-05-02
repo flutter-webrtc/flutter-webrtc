@@ -99,7 +99,7 @@
         {
             [self peerConnectionCreateOffer:constraints peerConnection:peerConnection result:result ];
         }else{
-            result([FlutterError errorWithCode:call.method
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: pc not found!"]
                                        details:nil]);
         }
@@ -114,7 +114,7 @@
                               peerConnection:peerConnection
                                       result:result];
         }else{
-            result([FlutterError errorWithCode:call.method
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: pc not found!"]
                                        details:nil]);
         }
@@ -131,7 +131,7 @@
             [peerConnection addStream:stream];
             result(@"");
         }else{
-            result([FlutterError errorWithCode:call.method
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: pc or stream not found!"]
                                        details:nil]);
         }
@@ -148,7 +148,7 @@
             [peerConnection removeStream:stream];
             result(nil);
         }else{
-            result([FlutterError errorWithCode:call.method
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: pc or stream not found!"]
                                        details:nil]);
         }
@@ -156,14 +156,15 @@
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
-        NSString* sdp = argsMap[@"sdp"];
-        RTCSdpType sdpType = [RTCSessionDescription typeForString:argsMap[@"type"]];
+        NSDictionary *descriptionMap = argsMap[@"description"];
+        NSString* sdp = descriptionMap[@"sdp"];
+        RTCSdpType sdpType = [RTCSessionDescription typeForString:descriptionMap[@"type"]];
         RTCSessionDescription* description = [[RTCSessionDescription alloc] initWithType:sdpType sdp:sdp];
         if(peerConnection)
         {
            [self peerConnectionSetLocalDescription:description peerConnection:peerConnection result:result];
         }else{
-            result([FlutterError errorWithCode:call.method
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: pc not found!"]
                                        details:nil]);
         }
@@ -171,15 +172,16 @@
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
-        NSString* sdp = argsMap[@"sdp"];
-        RTCSdpType sdpType = [RTCSessionDescription typeForString:argsMap[@"type"]];
+        NSDictionary *descriptionMap = argsMap[@"description"];
+        NSString* sdp = descriptionMap[@"sdp"];
+        RTCSdpType sdpType = [RTCSessionDescription typeForString:descriptionMap[@"type"]];
         RTCSessionDescription* description = [[RTCSessionDescription alloc] initWithType:sdpType sdp:sdp];
         
         if(peerConnection)
         {
             [self peerConnectionSetRemoteDescription:description peerConnection:peerConnection result:result];
         }else{
-            result([FlutterError errorWithCode:call.method
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: pc not found!"]
                                        details:nil]);
         }
@@ -197,7 +199,7 @@
         {
             [self peerConnectionAddICECandidate:candidate peerConnection:peerConnection result:result];
         }else{
-            result([FlutterError errorWithCode:call.method
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: pc not found!"]
                                        details:nil]);
         }
