@@ -80,6 +80,8 @@ RTC_EXPORT
  */
 - (RTCVideoFrame *)newI420VideoFrame;
 
+- (void)CopyI420BufferToCVPixelBuffer:(CVPixelBufferRef)outputPixelBuffer;
+
 @end
 
 NS_ASSUME_NONNULL_END
