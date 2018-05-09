@@ -14,6 +14,7 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCDataChannel.h"
+#import "FlutterRTCVideoViewManager.h"
 #import "ARDVideoDecoderFactory.h"
 #import "ARDVideoEncoderFactory.h"
 
@@ -21,65 +22,76 @@
     FlutterMethodChannel *_methodChannel;
     id _registry;
     id _messenger;
+    id _textures;
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-
+    
     FlutterMethodChannel* channel = [FlutterMethodChannel
                                      methodChannelWithName:@"cloudwebrtc.com/WebRTC.Method"
                                      binaryMessenger:[registrar messenger]];
+    UIViewController *viewController = (UIViewController *)registrar.messenger;
     FlutterWebRTCPlugin* instance = [[FlutterWebRTCPlugin alloc] initWithChannel:channel
-                                                            registrar:registrar
-                                                                       messenger:[registrar messenger]];
+                                                                       registrar:registrar
+                                                                       messenger:[registrar messenger]
+                                                                  viewController:viewController
+                                                                    withTextures:[registrar textures]];
     [registrar addMethodCallDelegate:instance channel:channel];
 }
 
 - (instancetype)initWithChannel:(FlutterMethodChannel *)channel
                       registrar:(NSObject<FlutterPluginRegistrar>*)registrar
-                      messenger:(NSObject<FlutterBinaryMessenger>*)messenger {
+                      messenger:(NSObject<FlutterBinaryMessenger>*)messenger
+                 viewController:(UIViewController *)viewController
+                   withTextures:(NSObject<FlutterTextureRegistry> *)textures{
+
     self = [super init];
     
     if (self) {
         _methodChannel = channel;
         _registry = registrar;
+        _textures = textures;
         _messenger = messenger;
+        self.viewController = viewController;
     }
-
+    
     ARDVideoDecoderFactory *decoderFactory = [[ARDVideoDecoderFactory alloc] init];
     ARDVideoEncoderFactory *encoderFactory = [[ARDVideoEncoderFactory alloc] init];
     
     _peerConnectionFactory = [[RTCPeerConnectionFactory alloc]
                               initWithEncoderFactory:encoderFactory
                               decoderFactory:decoderFactory];
-
+    
     //[RTCPeerConnectionFactory initializeSSL];
     
     self.peerConnections = [NSMutableDictionary new];
     self.localStreams = [NSMutableDictionary new];
     self.localTracks = [NSMutableDictionary new];
+    self.renders = [[NSMutableDictionary alloc] init];
     return self;
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult) result {
+    
     if ([@"createPeerConnection" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSDictionary* configuration = argsMap[@"configuration"];
         NSDictionary* constraints = argsMap[@"constraints"];
-
+        
         RTCPeerConnection *peerConnection = [self.peerConnectionFactory
                                              peerConnectionWithConfiguration:[self RTCConfiguration:configuration]
                                              constraints:[self parseMediaConstraints:constraints]
                                              delegate:self];
-    
+        
         NSString *peerConnectionId = [[NSUUID UUID] UUIDString];
         peerConnection.flutterId  = peerConnectionId;
         
         /*Create Event Channel.*/
         peerConnection.eventChannel = [FlutterEventChannel
-                                             eventChannelWithName:[NSString stringWithFormat:@"cloudwebrtc.com/WebRTC/peerConnectoinEvent%@", peerConnectionId]
-                                             binaryMessenger:_messenger];
+                                       eventChannelWithName:[NSString stringWithFormat:@"cloudwebrtc.com/WebRTC/peerConnectoinEvent%@", peerConnectionId]
+                                       binaryMessenger:_messenger];
         [peerConnection.eventChannel setStreamHandler:peerConnection];
-
+        
         self.peerConnections[peerConnectionId] = peerConnection;
         result(@{ @"peerConnectionId" : peerConnectionId});
     } else if ([@"getUserMedia" isEqualToString:call.method]) {
@@ -120,7 +132,7 @@
         }
     }  else if ([@"addStream" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
-       
+        
         NSString* streamId = ((NSString*)argsMap[@"streamId"]);
         RTCMediaStream *stream = self.localStreams[streamId];
         
@@ -162,7 +174,7 @@
         RTCSessionDescription* description = [[RTCSessionDescription alloc] initWithType:sdpType sdp:sdp];
         if(peerConnection)
         {
-           [self peerConnectionSetLocalDescription:description peerConnection:peerConnection result:result];
+            [self peerConnectionSetLocalDescription:description peerConnection:peerConnection result:result];
         }else{
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: pc not found!"]
@@ -228,9 +240,9 @@
         NSString* data = argsMap[@"data"];
         NSString* type = argsMap[@"type"];
         [self dataChannelSend:peerConnectionId
-                          dataChannelId:dataChannelId
-                          data:data
-                          type:type];
+                dataChannelId:dataChannelId
+                         data:data
+                         type:type];
         result(nil);
     }else if([@"dataChannelClose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
@@ -245,6 +257,35 @@
         
     }else if([@"peerConnectionDispose" isEqualToString:call.method]){
         
+    }else if([@"createVideoView" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        CGFloat width = [argsMap[@"width"] floatValue];
+        CGFloat height = [argsMap[@"height"] floatValue];
+        NSInteger __block textureId;
+        id<FlutterTextureRegistry> __weak registry = _textures;
+        RTCVideoView* render = [self createWithSize:CGSizeMake(width, height) onNewFrame:^{
+            [registry textureFrameAvailable:textureId];
+        }];
+        textureId = [_textures registerTexture:render];
+        self.renders[@(textureId)] = render;
+        result(@{@"textureId": @(textureId)});
+    }else if([@"videoViewDispose" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSNumber *textureId = argsMap[@"textureId"];
+        RTCVideoView *render = self.renders[textureId];
+        render.videoTrack = nil;
+        [render dispose];
+        [self.renders removeObjectForKey:textureId];
+        result(nil);
+    }else if([@"videoViewSetSrcObject" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSNumber *textureId = argsMap[@"textureId"];
+        RTCVideoView *render = self.renders[textureId];
+        NSString *streamId = argsMap[@"streamId"];
+        if(render){
+            [self setStreamId:streamId view:render];
+        }
+        result(nil);
     }else{
         result(FlutterMethodNotImplemented);
     }
@@ -252,28 +293,28 @@
 
 - (void)dealloc
 {
-  [_localTracks removeAllObjects];
-  _localTracks = nil;
-  [_localStreams removeAllObjects];
-  _localStreams = nil;
-
-  for (NSString *peerConnectionId in _peerConnections) {
-    RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
-    peerConnection.delegate = nil;
-    [peerConnection close];
-  }
-  [_peerConnections removeAllObjects];
-  _peerConnectionFactory = nil;
+    [_localTracks removeAllObjects];
+    _localTracks = nil;
+    [_localStreams removeAllObjects];
+    _localStreams = nil;
+    
+    for (NSString *peerConnectionId in _peerConnections) {
+        RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
+        peerConnection.delegate = nil;
+        [peerConnection close];
+    }
+    [_peerConnections removeAllObjects];
+    _peerConnectionFactory = nil;
 }
 
 
 -(void)mediaStreamGetTracks:(NSString*)streamId
-                      result:(FlutterResult)result {
+                     result:(FlutterResult)result {
     RTCMediaStream* stream = [self streamForId:streamId];
     if(stream){
         NSMutableArray *audioTracks = [NSMutableArray array];
         NSMutableArray *videoTracks = [NSMutableArray array];
-
+        
         for (RTCMediaStreamTrack *track in stream.audioTracks) {
             NSString *trackId = track.trackId;
             [audioTracks addObject:@{
@@ -297,7 +338,7 @@
                                      @"remote": @(NO)
                                      }];
         }
-
+        
         result(@{@"audioTracks": audioTracks, @"videoTracks" : videoTracks });
     }else{
         result(nil);
@@ -306,17 +347,17 @@
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId
 {
-  RTCMediaStream *stream = _localStreams[streamId];
-  if (!stream) {
-    for (NSString *peerConnectionId in _peerConnections) {
-      RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
-      stream = peerConnection.remoteStreams[streamId];
-      if (stream) {
-        break;
-      }
+    RTCMediaStream *stream = _localStreams[streamId];
+    if (!stream) {
+        for (NSString *peerConnectionId in _peerConnections) {
+            RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
+            stream = peerConnection.remoteStreams[streamId];
+            if (stream) {
+                break;
+            }
+        }
     }
-  }
-  return stream;
+    return stream;
 }
 
 - (RTCIceServer *)RTCIceServer:(id)json
@@ -409,4 +450,12 @@
     return nil;
 }
 
+- (CGRect)parseRect:(NSDictionary *)rect {
+    return CGRectMake([[rect valueForKey:@"left"] doubleValue],
+                      [[rect valueForKey:@"top"] doubleValue],
+                      [[rect valueForKey:@"width"] doubleValue],
+                      [[rect valueForKey:@"height"] doubleValue]);
+}
+
 @end
+
