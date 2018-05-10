@@ -8,11 +8,18 @@ class MediaStream {
   String _streamId;
   List<MediaStreamTrack> _audioTracks = new List<MediaStreamTrack>();
   List<MediaStreamTrack> _videoTracks = new List<MediaStreamTrack>();
-  MediaStream(this._streamId) {
-    initialize();
+  MediaStream(this._streamId);
+
+  void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks){
+    audioTracks.forEach((track){
+      _audioTracks.add(new MediaStreamTrack(track["id"], track["label"], track["kind"], track["enabled"]));
+    });
+    videoTracks.forEach((track){
+        _videoTracks.add(new MediaStreamTrack(track["id"], track["label"], track["kind"], track["enabled"]));
+    });
   }
 
-  void initialize() async {
+  Future<void> getMediaTracks() async {
     _channel = WebRTC.methodChannel();
     final Map<dynamic, dynamic> response = await _channel.invokeMethod(
       'mediaStreamGetTracks',
@@ -20,7 +27,7 @@ class MediaStream {
     );
 
     List<dynamic> audioTracks = response['audioTracks'];
-    audioTracks.forEach((track){ 
+    audioTracks.forEach((track){
       _audioTracks.add(new MediaStreamTrack(track["id"], track["label"], track["kind"], track["enabled"]));
     });
 

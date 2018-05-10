@@ -173,7 +173,8 @@
                                result:(FlutterResult)result
 {
     [peerConnection addIceCandidate:candidate];
-    NSLog(@"addICECandidateresult: %@", candidate);
+    result(nil);
+    //NSLog(@"addICECandidateresult: %@", candidate);
 }
 
 -(void) peerConnectionClose:(RTCPeerConnection *)peerConnection
@@ -394,7 +395,7 @@
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
-                    @"event" : @"addTrack",
+                    @"event" : @"onAddTrack",
                     @"streamId": streamId,
                     @"trackId": track.trackId,
                     @"track": @{
@@ -415,7 +416,7 @@
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
-                    @"event" : @"removeTrack",
+                    @"event" : @"onRemoveTrack",
                     @"streamId": streamId,
                     @"trackId": track.trackId,
                     @"track": @{
@@ -430,24 +431,29 @@
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didAddStream:(RTCMediaStream *)stream {
-    NSMutableArray *tracks = [NSMutableArray array];
-    for (RTCVideoTrack *track in stream.videoTracks) {
-        peerConnection.remoteTracks[track.trackId] = track;
-        [tracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
-    }
+    NSMutableArray *audioTracks = [NSMutableArray array];
+    NSMutableArray *videoTracks = [NSMutableArray array];
+
     for (RTCAudioTrack *track in stream.audioTracks) {
         peerConnection.remoteTracks[track.trackId] = track;
-        [tracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
+        [audioTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
     }
+    
+    for (RTCVideoTrack *track in stream.videoTracks) {
+        peerConnection.remoteTracks[track.trackId] = track;
+        [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
+    }
+    
     NSString *streamId = stream.streamId;
     peerConnection.remoteStreams[streamId] = stream;
     
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
-                    @"event" : @"addStream",
+                    @"event" : @"onAddStream",
                     @"streamId": streamId,
-                    @"tracks": tracks,
+                    @"audioTracks": audioTracks,
+                    @"videoTracks": videoTracks,
                     });
     }
 }
@@ -471,7 +477,7 @@
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
-                    @"event" : @"removeStream",
+                    @"event" : @"onRemoveStream",
                     @"streamId": streamId,
                     });
     }
