@@ -7,8 +7,8 @@
 
 @implementation RTCVideoView {
     CGSize _renderSize;
-    RTCVideoFrame *_frame;
-    CVPixelBufferRef pixelBufferRef;
+    CGSize _frameSize;
+    CVPixelBufferRef _pixelBufferRef;
 }
 
 - (instancetype)initWithSize:(CGSize)renderSize
@@ -17,48 +17,20 @@
     if (self){
         _renderSize = renderSize;
         _onNewFrame = onNewFrame;
+        _pixelBufferRef = nil;
     }
     return self;
 }
 
-- (CVPixelBufferRef)copyPixelBuffer {
-    CVBufferRetain(pixelBufferRef);
-    return pixelBufferRef;
+-(void)dealloc {
+    if(_pixelBufferRef){
+        CVBufferRelease(_pixelBufferRef);
+    }
 }
 
-void DrawGradientInRGBPixelBuffer(CVPixelBufferRef pixelBuffer) {
-    CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-    void* baseAddr = CVPixelBufferGetBaseAddress(pixelBuffer);
-    size_t width = CVPixelBufferGetWidth(pixelBuffer);
-    size_t height = CVPixelBufferGetHeight(pixelBuffer);
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    int byteOrder = CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_32ARGB ?
-    kCGBitmapByteOrder32Little :
-    0;
-    CGContextRef cgContext = CGBitmapContextCreate(baseAddr,
-                                                   width,
-                                                   height,
-                                                   8,
-                                                   CVPixelBufferGetBytesPerRow(pixelBuffer),
-                                                   colorSpace,
-                                                   byteOrder | kCGImageAlphaNoneSkipLast);
-    
-    // Create a gradient
-    CGFloat colors[] = {
-        1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0,
-    };
-    CGGradientRef gradient = CGGradientCreateWithColorComponents(colorSpace, colors, NULL, 4);
-    
-    CGContextDrawLinearGradient(
-                                cgContext, gradient, CGPointMake(0, 0), CGPointMake(width, height), 0);
-    CGGradientRelease(gradient);
-    
-    CGImageRef cgImage = CGBitmapContextCreateImage(cgContext);
-    CGContextRelease(cgContext);
-    CGImageRelease(cgImage);
-    CGColorSpaceRelease(colorSpace);
-    
-    CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+- (CVPixelBufferRef)copyPixelBuffer {
+    CVBufferRetain(_pixelBufferRef);
+    return _pixelBufferRef;
 }
 
 /**
@@ -109,18 +81,13 @@ void DrawGradientInRGBPixelBuffer(CVPixelBufferRef pixelBuffer) {
 }
 
 #pragma mark - RTCVideoRenderer methods
-
-/**
- * Renders a specific video frame. Delegates to the subview of this instance
- * which implements the actual {@link RTCVideoRenderer}.
- *
- * @param frame The video frame to render.
- */
 - (void)renderFrame:(RTCVideoFrame *)frame {
-    if(pixelBufferRef == nil){
-        CVPixelBufferCreate(kCFAllocatorDefault, frame.width, frame.height, kCVPixelFormatType_32BGRA, NULL, &pixelBufferRef);
-    }
-    [frame CopyI420BufferToCVPixelBuffer:pixelBufferRef];
+    
+    //TODO: got a frame => scale to _renderSize => correct rotation => convert to BGRA32 pixelBufferRef
+    
+    [frame CopyI420BufferToCVPixelBuffer:_pixelBufferRef];
+    
+    //Notify the Flutter new pixelBufferRef to be ready.
     dispatch_async(dispatch_get_main_queue(), self.onNewFrame);
 }
 
@@ -130,12 +97,14 @@ void DrawGradientInRGBPixelBuffer(CVPixelBufferRef pixelBuffer) {
  * @param size The size of the video frame to render.
  */
 - (void)setSize:(CGSize)size {
-    /*
-    id<RTCVideoRenderer> videoRenderer = self;
-    if (videoRenderer) {
-        [videoRenderer setSize:size];
+    if(_pixelBufferRef == nil || (size.width != _frameSize.width || size.height != _frameSize.height))
+    {
+        CVPixelBufferCreate(kCFAllocatorDefault,
+                            size.width, size.height,
+                            kCVPixelFormatType_32BGRA,
+                            NULL, &_pixelBufferRef);
     }
-    */
+    _frameSize = size;
 }
 
 @end

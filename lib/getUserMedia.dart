@@ -9,8 +9,10 @@ dynamic getUserMedia(Map<String, dynamic> mediaConstraints) async {
       'getUserMedia',
       <String, dynamic>{'constraints': mediaConstraints},
     );
-    String mediaStreamId = response["streamId"];
-    return new MediaStream(mediaStreamId);
+    String streamId = response["streamId"];
+    MediaStream stream =  new MediaStream(streamId);
+    stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
+    return stream;
   } on PlatformException catch (e) {
     throw 'Unable to getUserMedia: ${e.message}';
   }

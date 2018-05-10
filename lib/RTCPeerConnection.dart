@@ -147,12 +147,13 @@ class RTCPeerConnection {
       case 'onCandidate':
         Map<dynamic, dynamic> cand = map['candidate'];
         RTCIceCandidate candidate = new RTCIceCandidate(
-            cand['candidate'], cand['sdpMid'], cand['sdpMlineIndex']);
+            cand['candidate'], cand['sdpMid'], cand['sdpMLineIndex']);
         if (this.onIceCandidate != null) this.onIceCandidate(candidate);
         break;
       case 'onAddStream':
         String streamId = map['streamId'];
-        MediaStream stream = new MediaStream(streamId);
+        MediaStream stream =  new MediaStream(streamId);
+        stream.setMediaTracks(map['audioTracks'], map['videoTracks']);
         if (this.onAddStream != null) this.onAddStream(stream);
         break;
       case 'onRemoveStream':
@@ -282,6 +283,13 @@ class RTCPeerConnection {
     } on PlatformException catch (e) {
       throw 'Unable to setRemoteDescription: ${e.message}';
     }
+  }
+
+  void addCandidate(RTCIceCandidate candidate) {
+    _channel.invokeMethod('addCandidate', <String, dynamic>{
+      'peerConnectionId': this._peerConnectionId,
+      'candidate': candidate.toMap(),
+    });
   }
 
   Future<StatsReport> getStats(MediaStreamTrack track) async {

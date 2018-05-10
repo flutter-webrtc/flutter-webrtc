@@ -197,13 +197,14 @@
                                        message:[NSString stringWithFormat:@"Error: pc not found!"]
                                        details:nil]);
         }
-    }  else if ([@"addIceCandidate" isEqualToString:call.method]) {
+    }  else if ([@"addCandidate" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-        NSString *sdp = argsMap[@"candidate"];
-        int sdpMLineIndex = ((NSNumber*)argsMap[@"sdpMLineIndex"]).intValue;
-        NSString *sdpMid = argsMap[@"sdpMid"];
-        
+        NSDictionary* candMap = argsMap[@"candidate"];
+        NSString *sdp = candMap[@"candidate"];
+        int sdpMLineIndex = ((NSNumber*)candMap[@"sdpMLineIndex"]).intValue;
+        NSString *sdpMid = candMap[@"sdpMid"];
+    
         RTCIceCandidate* candidate = [[RTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:sdpMLineIndex sdpMid:sdpMid];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         
