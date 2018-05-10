@@ -32,7 +32,7 @@ typedef NS_ENUM(NSInteger, RTCVideoViewObjectFit) {
  * Implements an equivalent of {@code HTMLVideoElement} i.e. Web's video
  * element.
  */
-@interface RTCVideoView : NSObject <FlutterTexture, RTCVideoRenderer, RTCEAGLVideoViewDelegate>
+@interface RTCVideoView : NSObject <FlutterTexture, RTCVideoRenderer>
 
 /**
  * The indicator which determines whether this {@code RTCVideoView} is to mirror

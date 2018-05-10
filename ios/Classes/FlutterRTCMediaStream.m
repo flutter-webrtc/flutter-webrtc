@@ -94,26 +94,20 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
      getUserMedia:constraints
      successCallback:^ (RTCMediaStream *mediaStream) {
          NSString *mediaStreamId = mediaStream.streamId;
-         NSMutableArray *tracks = [NSMutableArray array];
          
-         for (NSString *propertyName in @[ @"audioTracks", @"videoTracks" ]) {
-             SEL sel = NSSelectorFromString(propertyName);
-             for (RTCMediaStreamTrack *track in [mediaStream performSelector:sel]) {
-                 NSString *trackId = track.trackId;
-                 
-                 self.localTracks[trackId] = track;
-                 [tracks addObject:@{
-                                     @"enabled": @(track.isEnabled),
-                                     @"id": trackId,
-                                     @"kind": track.kind,
-                                     @"label": trackId,
-                                     @"readyState": @"live",
-                                     @"remote": @(NO)
-                                     }];
-             }
+         NSMutableArray *audioTracks = [NSMutableArray array];
+         NSMutableArray *videoTracks = [NSMutableArray array];
+         
+         for (RTCAudioTrack *track in mediaStream.audioTracks) {
+             [audioTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
          }
+         
+         for (RTCVideoTrack *track in mediaStream.videoTracks) {
+             [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
+         }
+
          self.localStreams[mediaStreamId] = mediaStream;
-         result(@{@"streamId": mediaStreamId, @"tracks" : tracks });
+         result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
      }
      errorCallback:^ (NSString *errorType, NSString *errorMessage) {
          result([FlutterError errorWithCode:[NSString stringWithFormat:@"Error %@", errorType]
@@ -268,8 +262,8 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     }
     
     if (videoDevice) {
-        // TODO: Actually use constraints...
-        RTCAVFoundationVideoSource *videoSource = [self.peerConnectionFactory avFoundationVideoSourceWithConstraints:[self defaultMediaStreamConstraints]];
+        RTCMediaConstraints* finalConstraints = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:videoConstraints[@"mandatory"] optionalConstraints:nil];
+        RTCAVFoundationVideoSource *videoSource = [self.peerConnectionFactory avFoundationVideoSourceWithConstraints:finalConstraints];
         // FIXME The effort above to find a videoDevice value which satisfies the
         // specified constraints was pretty much wasted. Salvage facingMode for
         // starters because it is kind of a common and hence important feature on
