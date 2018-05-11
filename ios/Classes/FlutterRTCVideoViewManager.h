@@ -1,59 +1,27 @@
 #import "FlutterWebRTCPlugin.h"
 
-#import <WebRTC/RTCEAGLVideoView.h>
+#import <WebRTC/RTCVideoRenderer.h>
 #import <WebRTC/RTCMediaStream.h>
 #import <WebRTC/RTCVideoFrame.h>
 #import <WebRTC/RTCVideoTrack.h>
 
-/**
- * In the fashion of
- * https://www.w3.org/TR/html5/embedded-content-0.html#dom-video-videowidth
- * and https://www.w3.org/TR/html5/rendering.html#video-object-fit, resembles
- * the CSS style {@code object-fit}.
- */
-typedef NS_ENUM(NSInteger, RTCVideoViewObjectFit) {
-    /**
-     * The contain value defined by https://www.w3.org/TR/css3-images/#object-fit:
-     *
-     * The replaced content is sized to maintain its aspect ratio while fitting
-     * within the element's content box.
-     */
-    RTCVideoViewObjectFitContain,
-    /**
-     * The cover value defined by https://www.w3.org/TR/css3-images/#object-fit:
-     *
-     * The replaced content is sized to maintain its aspect ratio while filling
-     * the element's entire content box.
-     */
-    RTCVideoViewObjectFitCover
-};
+
+typedef void(^onChangeVideoSizeCallback)(int width, int height);
+typedef void(^onRotationChangeCallback)(int rotation);
 
 /**
  * Implements an equivalent of {@code HTMLVideoElement} i.e. Web's video
  * element.
  */
-@interface RTCVideoView : NSObject <FlutterTexture, RTCVideoRenderer>
-
-/**
- * The indicator which determines whether this {@code RTCVideoView} is to mirror
- * the video specified by {@link #videoTrack} during its rendering. Typically,
- * applications choose to mirror the front/user-facing camera.
- */
-@property (nonatomic) BOOL mirror;
-
-/**
- * In the fashion of
- * https://www.w3.org/TR/html5/embedded-content-0.html#dom-video-videowidth
- * and https://www.w3.org/TR/html5/rendering.html#video-object-fit, resembles
- * the CSS style {@code object-fit}.
- */
-@property (nonatomic) RTCVideoViewObjectFit objectFit;
+@interface RTCVideoView : NSObject <FlutterTexture, RTCVideoRenderer, FlutterStreamHandler>
 
 /**
  * The {@link RTCVideoTrack}, if any, which this instance renders.
  */
 @property (nonatomic, strong) RTCVideoTrack *videoTrack;
-@property (copy, nonatomic) void(^onNewFrame)(void);
+@property (nonatomic) int64_t textureId;
+@property (nonatomic, weak) id<FlutterTextureRegistry> registry;
+@property (nonatomic, strong) FlutterEventSink eventSink;
 
 - (instancetype)initWithSize:(CGSize)renderSize;
 
@@ -64,7 +32,9 @@ typedef NS_ENUM(NSInteger, RTCVideoViewObjectFit) {
 
 @interface FlutterWebRTCPlugin (RTCVideoViewManager)
 
-- (RTCVideoView *)createWithSize:(CGSize)size onNewFrame:(void(^)(void))onNewFrame;
+- (RTCVideoView *)createWithSize:(CGSize)size
+             withTextureRegistry:(id<FlutterTextureRegistry>)registry
+                       messenger:(NSObject<FlutterBinaryMessenger>*)messenger;
 
 -(void)setStreamId:(NSString*)streamId view:(RTCVideoView*)view;
 

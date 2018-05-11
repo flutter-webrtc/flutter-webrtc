@@ -19,28 +19,58 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   MediaStream _localStream;
   RTCPeerConnection _peerConnection;
-  final _localVideoView = new RTCVideoViewController();
-  final _remoteVideoView = new RTCVideoViewController();
-  final _width = 200.0;
-  final _height = 200.0;
+  var _width = 240.0;
+  var _height = 180.0;
+  var _rotation = 0;
+  final _localVideoRenderer = new RTCVideoRenderer();
+  final _remoteVideoRenderer = new RTCVideoRenderer();
 
   @override
   initState() {
     super.initState();
     initPlatformState();
+    _localVideoRenderer.onVideoRotationChange = _onVideoRotationChange;
   }
 
-  _onAddStream(MediaStream stream)
+  _onVideoRotationChange(int textureId, int rotation)
   {
-      _remoteVideoView.srcObject = stream;
+     setState((){
+       _rotation = rotation;
+     });
   }
 
-  _onRemoveStream(MediaStream stream){
-     _remoteVideoView.srcObject = null;
+  _onVideoSizeChange(int textureId, double width, double height){
+
   }
 
-  _onCandidate(RTCIceCandidate candidate){
+  _onSignalingState(RTCSignalingState state) {
+    print(state);
+  }
+
+  _onIceGatheringState(RTCIceGatheringState state) {
+    print(state);
+  }
+
+  _onIceConnectionState(RTCIceConnectionState state) {
+    print(state);
+  }
+
+  _onAddStream(MediaStream stream) {
+    print('addStream: ' + stream.id);
+    _remoteVideoRenderer.srcObject = stream;
+  }
+
+  _onRemoveStream(MediaStream stream) {
+    _remoteVideoRenderer.srcObject = null;
+  }
+
+  _onCandidate(RTCIceCandidate candidate) {
+    print('onCandidate: ' + candidate.candidate);
     _peerConnection.addCandidate(candidate);
+  }
+
+  _onRenegotiationNeeded() {
+    print('RenegotiationNeeded');
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -49,8 +79,9 @@ class _MyAppState extends State<MyApp> {
       "audio": true,
       "video": {
         "mandatory": {
-          "minWidth": '640', // Provide your own width, height and frame rate here
-          "minHeight": '360',
+          "minWidth":
+              '640', // Provide your own width, height and frame rate here
+          "minHeight": '480',
           "minFrameRate": '30',
         },
         "facingMode": "user",
@@ -62,13 +93,13 @@ class _MyAppState extends State<MyApp> {
       "audio": true,
       "video": true,
     };*/
-    Map<String, dynamic> configuration = { 
+    Map<String, dynamic> configuration = {
       "iceServers": [
-          { "url" : "stun:stun.l.google.com:19302"},
-          ]
-      };
+        {"url": "stun:stun.l.google.com:19302"},
+      ]
+    };
 
-  final Map<String, dynamic> OFFER_SDP_CONSTRAINTS = {
+    final Map<String, dynamic> OFFER_SDP_CONSTRAINTS = {
       "mandatory": {
         "OfferToReceiveAudio": true,
         "OfferToReceiveVideo": true,
@@ -76,38 +107,45 @@ class _MyAppState extends State<MyApp> {
       "optional": [],
     };
 
-  final Map<String, dynamic> LOOPBACK_CONSTRAINTS = {
+    final Map<String, dynamic> LOOPBACK_CONSTRAINTS = {
       "mandatory": {},
       "optional": [
-        {"DtlsSrtpKeyAgreement": false },
+        {"DtlsSrtpKeyAgreement": false},
       ],
     };
 
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       _localStream = await getUserMedia(mediaConstraints);
-      await _localVideoView.initialize(_width, _height);
-      await _remoteVideoView.initialize(_width, _height);
+      await _localVideoRenderer.initialize(_width, _height);
+      await _remoteVideoRenderer.initialize(_width, _height);
+      _localVideoRenderer.srcObject = _localStream;
 
-      _peerConnection = await createPeerConnection(configuration, LOOPBACK_CONSTRAINTS);
+      _peerConnection =
+          await createPeerConnection(configuration, LOOPBACK_CONSTRAINTS);
+
+      _peerConnection.onSignalingState = _onSignalingState;
+      _peerConnection.onIceGatheringState = _onIceGatheringState;
+      _peerConnection.onIceConnectionState = _onIceConnectionState;
       _peerConnection.onAddStream = _onAddStream;
       _peerConnection.onRemoveStream = _onRemoveStream;
       _peerConnection.onIceCandidate = _onCandidate;
+      _peerConnection.onRenegotiationNeeded = _onRenegotiationNeeded;
+
       _peerConnection.addStream(_localStream);
-      RTCSessionDescrption description = await _peerConnection.createOffer(OFFER_SDP_CONSTRAINTS);
+      RTCSessionDescrption description =
+          await _peerConnection.createOffer(OFFER_SDP_CONSTRAINTS);
+      print(description.sdp);
       _peerConnection.setLocalDescription(description);
       //change for loopback.
       description.type = 'answer';
       _peerConnection.setRemoteDescription(description);
-    } catch(e) {
-       //'Failed to get platform version.';
+    } catch (e) {
+      //'Failed to get platform version.';
     }
-    if (!mounted)
-      return;
+    if (!mounted) return;
 
-    setState(() {
-      _localVideoView.srcObject = _localStream;
-    });
+    setState(() {});
   }
 
   @override
@@ -117,28 +155,38 @@ class _MyAppState extends State<MyApp> {
         appBar: new AppBar(
           title: new Text('Flutter-WebRTC example'),
         ),
-        body: new Center( child: new Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        new Text('WebRTC loopback demo.'),
-                        new Container(
-                            width: _width,
-                            height: _height,
-                            child: _localVideoView.isInitialized
-                                ? new Texture(textureId: _localVideoView.renderId)
-                                : null,
-                        ),
-                        new Text('Local video'),
-                        new Container(
-                            width: _width,
-                            height: _height,
-                            child: _remoteVideoView.isInitialized
-                                ? new Texture(textureId: _remoteVideoView.renderId)
-                                : null,
-                        ),
-                        new Text('Remote video'),
-        ])
-        ),
+        body: new Center(
+            child: new Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              new Text('Loopback demo.'),
+              new Transform(
+                child: new Container(
+                  width: _width,
+                  height: _height,
+                  child: _remoteVideoRenderer.isInitialized
+                      ? new Texture(textureId: _remoteVideoRenderer.renderId)
+                      : null,
+                ),
+                alignment: FractionalOffset.center, // set transform origin
+                transform: new Matrix4.identity()
+                  ..rotateZ(_rotation * 3.1415927 / 180),
+              ),
+              new Text('Local video'),
+              new Transform(
+                child: new Container(
+                  width: _width,
+                  height: _height,
+                  child: _remoteVideoRenderer.isInitialized
+                      ? new Texture(textureId: _remoteVideoRenderer.renderId)
+                      : null,
+                ),
+                alignment: FractionalOffset.center, // set transform origin
+                transform: new Matrix4.identity()
+                  ..rotateZ(90 * 3.1415927 / 180),
+              ),
+              new Text('Remote video'),
+            ])),
       ),
     );
   }
