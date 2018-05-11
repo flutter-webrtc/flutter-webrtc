@@ -62,8 +62,6 @@
                               initWithEncoderFactory:encoderFactory
                               decoderFactory:decoderFactory];
     
-    //[RTCPeerConnectionFactory initializeSSL];
-    
     self.peerConnections = [NSMutableDictionary new];
     self.localStreams = [NSMutableDictionary new];
     self.localTracks = [NSMutableDictionary new];
@@ -223,7 +221,6 @@
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection)
             return [self peerConnectionGetStats:trackId peerConnection:peerConnection result:result];
-        
         result(nil);
     } else if([@"createDataChannel" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
@@ -262,14 +259,11 @@
         NSDictionary* argsMap = call.arguments;
         CGFloat width = [argsMap[@"width"] floatValue];
         CGFloat height = [argsMap[@"height"] floatValue];
-        NSInteger __block textureId;
-        id<FlutterTextureRegistry> __weak registry = _textures;
-        RTCVideoView* render = [self createWithSize:CGSizeMake(width, height) onNewFrame:^{
-            [registry textureFrameAvailable:textureId];
-        }];
-        textureId = [_textures registerTexture:render];
-        self.renders[@(textureId)] = render;
-        result(@{@"textureId": @(textureId)});
+        RTCVideoView* render = [self createWithSize:CGSizeMake(width, height)
+                                withTextureRegistry:_textures
+                                          messenger:_messenger];
+        self.renders[@(render.textureId)] = render;
+        result(@{@"textureId": @(render.textureId)});
     }else if([@"videoViewDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSNumber *textureId = argsMap[@"textureId"];

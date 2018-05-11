@@ -8,28 +8,37 @@ enum RTCVideoViewObjectFit {
   RTCVideoViewObjectFitCover,
 }
 
-class RTCVideoViewController {
+typedef void VideoRotationChangeCallback(int textureId, int rotation);
+typedef void VideoSizeChangeCallback(int textureId, double width, double height);
+
+class RTCVideoRenderer {
   MethodChannel _channel = WebRTC.methodChannel();
   int _textureId;
-  RTCVideoViewController();
+  int _rotation = 0;
+  double _width, _height;
+  StreamSubscription<dynamic> _eventSubscription;
+
+  VideoSizeChangeCallback onVideoSizeChange;
+  VideoRotationChangeCallback onVideoRotationChange;
+
+  RTCVideoRenderer();
 
   initialize(double width, double height) async {
     final Map<dynamic, dynamic> response =
-        await _channel.invokeMethod('createVideoView', {
-      'width': width,
-      'height': height,
-    });
+        await _channel.invokeMethod('createVideoView', {});
     _textureId = response['textureId'];
-  }
-
-  Future<Null> dispose() async {
-    await _channel.invokeMethod(
-      'videoViewDispose',
-      <String, dynamic>{'textureId': _textureId},
-    );
+    _eventSubscription = _eventChannelFor(_textureId)
+        .receiveBroadcastStream()
+        .listen(eventListener, onError: errorListener);
   }
 
   int get renderId => _textureId;
+
+  int get rotation => _rotation;
+
+  double get width => _width;
+
+  double get height => _height;
 
   bool get isInitialized => _textureId != null;
 
@@ -48,4 +57,37 @@ class RTCVideoViewController {
     _channel.invokeMethod('videoViewSetObjectFit',
         <String, dynamic>{'textureId': _textureId, 'objectFit': objectFit});
   }
+
+  EventChannel _eventChannelFor(int textureId) {
+    return new EventChannel('cloudwebrtc.com/WebRTC/Texture$textureId');
+  }
+
+  Future<Null> dispose() async {
+    await _channel.invokeMethod(
+      'videoViewDispose',
+      <String, dynamic>{'textureId': _textureId},
+    );
+  }
+
+  void eventListener(dynamic event) {
+    final Map<dynamic, dynamic> map = event;
+    switch (map['event']) {
+      case 'didTextureChangeRotation':
+        _rotation = map['rotation'];
+        if (this.onVideoRotationChange != null)
+          this.onVideoRotationChange(_textureId, _rotation);
+        break;
+      case 'didTextureChangeVideoSize':
+        _width = map['width'];
+        _height = map['height'];
+        if (this.onVideoSizeChange != null)
+          this.onVideoSizeChange(_textureId, _width, _height);
+        break;
+    }
+  }
+
+  void errorListener(Object obj) {
+    final PlatformException e = obj;
+  }
+
 }
