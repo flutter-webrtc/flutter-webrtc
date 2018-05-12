@@ -7,7 +7,7 @@
 #import <WebRTC/RTCDataChannelConfiguration.h>
 #import <WebRTC/RTCMediaStreamTrack.h>
 
-@class RTCVideoView;
+@class FlutterRTCVideoRenderer;
 
 @interface FlutterWebRTCPlugin : NSObject<FlutterPlugin, RTCPeerConnectionDelegate>
 
@@ -15,7 +15,7 @@
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCPeerConnection *> *peerConnections;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStream *> *localStreams;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *localTracks;
-@property (nonatomic, strong) NSMutableDictionary<NSNumber *, RTCVideoView *> *renders;
+@property (nonatomic, strong) NSMutableDictionary<NSNumber *, FlutterRTCVideoRenderer *> *renders;
 @property (nonatomic, retain) UIViewController *viewController;
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId;

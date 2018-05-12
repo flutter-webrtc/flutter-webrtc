@@ -1,11 +1,13 @@
+#import "FlutterRTCVideoRenderer.h"
+
 #import <AVFoundation/AVFoundation.h>
-#import <objc/runtime.h>
 #import <CoreGraphics/CGImage.h>
 #import <WebRTC/RTCVideoFrameBuffer.h>
-#import "FlutterRTCVideoViewManager.h"
+#import <objc/runtime.h>
+
 #import "FlutterWebRTCPlugin.h"
 
-@implementation RTCVideoView {
+@implementation FlutterRTCVideoRenderer {
     CGSize _renderSize;
     CGSize _frameSize;
     CVPixelBufferRef _pixelBufferRef;
@@ -55,13 +57,6 @@
     [_registry unregisterTexture:_textureId];
 }
 
-/**
- * Implements the setter of the {@link #videoTrack} property of this
- * {@code RTCVideoView}.
- *
- * @param videoTrack The value to set on the {@code videoTrack} property of this
- * {@code RTCVideoView}.
- */
 - (void)setVideoTrack:(RTCVideoTrack *)videoTrack {
     RTCVideoTrack *oldValue = self.videoTrack;
     
@@ -83,11 +78,11 @@
     
     [frame CopyI420BufferToCVPixelBuffer:_pixelBufferRef];
     
-    __weak RTCVideoView *weakSelf = self;
+    __weak FlutterRTCVideoRenderer *weakSelf = self;
     
     if(frame.rotation != _rotation){
         dispatch_async(dispatch_get_main_queue(), ^{
-            RTCVideoView *strongSelf = weakSelf;
+            FlutterRTCVideoRenderer *strongSelf = weakSelf;
             if(strongSelf.eventSink){
                 strongSelf.eventSink(@{
                                    @"event" : @"didTextureChangeRotation",
@@ -102,7 +97,7 @@
     
     //Notify the Flutter new pixelBufferRef to be ready.
     dispatch_async(dispatch_get_main_queue(), ^{
-        RTCVideoView *strongSelf = weakSelf;
+        FlutterRTCVideoRenderer *strongSelf = weakSelf;
         [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
     });
 }
@@ -124,9 +119,9 @@
                             NULL, &_pixelBufferRef);
     }
     
-    __weak RTCVideoView *weakSelf = self;
+    __weak FlutterRTCVideoRenderer *weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
-        RTCVideoView *strongSelf = weakSelf;
+        FlutterRTCVideoRenderer *strongSelf = weakSelf;
         if(strongSelf.eventSink){
             strongSelf.eventSink(@{
                     @"event" : @"didTextureChangeVideoSize",
@@ -153,15 +148,15 @@
 }
 @end
 
-@implementation FlutterWebRTCPlugin (RTCVideoViewManager)
+@implementation FlutterWebRTCPlugin (FlutterVideoRendererManager)
 
-- (RTCVideoView *)createWithSize:(CGSize)size
+- (FlutterRTCVideoRenderer *)createWithSize:(CGSize)size
                     withTextureRegistry:(id<FlutterTextureRegistry>)registry
                        messenger:(NSObject<FlutterBinaryMessenger>*)messenger{
-    return [[RTCVideoView alloc] initWithSize:size withTextureRegistry:registry messenger:messenger];
+    return [[FlutterRTCVideoRenderer alloc] initWithSize:size withTextureRegistry:registry messenger:messenger];
 }
 
--(void)setStreamId:(NSString*)streamId view:(RTCVideoView*)view {
+-(void)setStreamId:(NSString*)streamId view:(FlutterRTCVideoRenderer*)view {
     
     RTCVideoTrack *videoTrack;
     RTCMediaStream *stream = [self streamForId:streamId];
