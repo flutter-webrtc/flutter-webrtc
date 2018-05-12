@@ -1,0 +1,6 @@
+.DS_Store
+.packages
+.vscode/.DS_Store
+example/pubspec.lock
+pubspec.lock
+example/ios/Podfile.lock

@@ -19,29 +19,13 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   MediaStream _localStream;
   RTCPeerConnection _peerConnection;
-  var _width = 240.0;
-  var _height = 180.0;
-  var _rotation = 0;
-  final _localVideoRenderer = new RTCVideoRenderer();
-  final _remoteVideoRenderer = new RTCVideoRenderer();
+  final _localRenderer = new RTCVideoRenderer();
+  final _remoteRenderer = new RTCVideoRenderer();
 
   @override
   initState() {
     super.initState();
     initPlatformState();
-    _localVideoRenderer.onVideoRotationChange = _onVideoRotationChange;
-    _localVideoRenderer.onVideoSizeChange = _onVideoSizeChange;
-  }
-
-  _onVideoRotationChange(int textureId, int rotation)
-  {
-     setState((){
-       _rotation = rotation;
-     });
-  }
-
-  _onVideoSizeChange(int textureId, double width, double height){
-
   }
 
   _onSignalingState(RTCSignalingState state) {
@@ -58,11 +42,11 @@ class _MyAppState extends State<MyApp> {
 
   _onAddStream(MediaStream stream) {
     print('addStream: ' + stream.id);
-    _remoteVideoRenderer.srcObject = stream;
+    _remoteRenderer.srcObject = stream;
   }
 
   _onRemoveStream(MediaStream stream) {
-    _remoteVideoRenderer.srcObject = null;
+    _remoteRenderer.srcObject = null;
   }
 
   _onCandidate(RTCIceCandidate candidate) {
@@ -89,11 +73,7 @@ class _MyAppState extends State<MyApp> {
         "optional": [],
       }
     };
-    /*
-    final Map<String, dynamic> mediaConstraints = {
-      "audio": true,
-      "video": true,
-    };*/
+
     Map<String, dynamic> configuration = {
       "iceServers": [
         {"url": "stun:stun.l.google.com:19302"},
@@ -118,9 +98,9 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       _localStream = await getUserMedia(mediaConstraints);
-      await _localVideoRenderer.initialize();
-      await _remoteVideoRenderer.initialize();
-      _localVideoRenderer.srcObject = _localStream;
+      await _localRenderer.initialize();
+      await _remoteRenderer.initialize();
+      _localRenderer.srcObject = _localStream;
 
       _peerConnection =
           await createPeerConnection(configuration, LOOPBACK_CONSTRAINTS);
@@ -161,30 +141,16 @@ class _MyAppState extends State<MyApp> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
               new Text('Loopback demo.'),
-              new Transform(
-                child: new Container(
-                  width: _width,
-                  height: _height,
-                  child: _remoteVideoRenderer.isInitialized
-                      ? new Texture(textureId: _remoteVideoRenderer.renderId)
-                      : null,
-                ),
-                alignment: FractionalOffset.center, // set transform origin
-                transform: new Matrix4.identity()
-                  ..rotateZ(_rotation * 3.1415927 / 180),
+              new Container(
+                      width: 320.0,
+                      height: 240.0,
+                      child: new RTCVideoView(_localRenderer),
               ),
               new Text('Local video'),
-              new Transform(
-                child: new Container(
-                  width: _width,
-                  height: _height,
-                  child: _remoteVideoRenderer.isInitialized
-                      ? new Texture(textureId: _remoteVideoRenderer.renderId)
-                      : null,
-                ),
-                alignment: FractionalOffset.center, // set transform origin
-                transform: new Matrix4.identity()
-                  ..rotateZ(90 * 3.1415927 / 180),
+              new Container(
+                      width: 320.0,
+                      height: 240.0,
+                      child: new RTCVideoView(_remoteRenderer),
               ),
               new Text('Remote video'),
             ])),
