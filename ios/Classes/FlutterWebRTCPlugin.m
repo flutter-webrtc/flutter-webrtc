@@ -14,7 +14,7 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCDataChannel.h"
-#import "FlutterRTCVideoViewManager.h"
+#import "FlutterRTCVideoRenderer.h"
 #import "ARDVideoDecoderFactory.h"
 #import "ARDVideoEncoderFactory.h"
 
@@ -255,27 +255,27 @@
         
     }else if([@"peerConnectionDispose" isEqualToString:call.method]){
         
-    }else if([@"createVideoView" isEqualToString:call.method]){
+    }else if([@"createVideoRenderer" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         CGFloat width = [argsMap[@"width"] floatValue];
         CGFloat height = [argsMap[@"height"] floatValue];
-        RTCVideoView* render = [self createWithSize:CGSizeMake(width, height)
+        FlutterRTCVideoRenderer* render = [self createWithSize:CGSizeMake(width, height)
                                 withTextureRegistry:_textures
                                           messenger:_messenger];
         self.renders[@(render.textureId)] = render;
         result(@{@"textureId": @(render.textureId)});
-    }else if([@"videoViewDispose" isEqualToString:call.method]){
+    }else if([@"videoRendererDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSNumber *textureId = argsMap[@"textureId"];
-        RTCVideoView *render = self.renders[textureId];
+        FlutterRTCVideoRenderer *render = self.renders[textureId];
         render.videoTrack = nil;
         [render dispose];
         [self.renders removeObjectForKey:textureId];
         result(nil);
-    }else if([@"videoViewSetSrcObject" isEqualToString:call.method]){
+    }else if([@"videoRendererSetSrcObject" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSNumber *textureId = argsMap[@"textureId"];
-        RTCVideoView *render = self.renders[textureId];
+        FlutterRTCVideoRenderer *render = self.renders[textureId];
         NSString *streamId = argsMap[@"streamId"];
         if(render){
             [self setStreamId:streamId view:render];

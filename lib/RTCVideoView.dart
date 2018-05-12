@@ -9,23 +9,25 @@ enum RTCVideoViewObjectFit {
 }
 
 typedef void VideoRotationChangeCallback(int textureId, int rotation);
-typedef void VideoSizeChangeCallback(int textureId, double width, double height);
+typedef void VideoSizeChangeCallback(
+    int textureId, double width, double height);
 
 class RTCVideoRenderer {
   MethodChannel _channel = WebRTC.methodChannel();
   int _textureId;
   int _rotation = 0;
   double _width, _height;
+  bool _mirror = false;
+  bool _muted = false;
+  RTCVideoViewObjectFit _objectFit =
+      RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
   StreamSubscription<dynamic> _eventSubscription;
-
   VideoSizeChangeCallback onVideoSizeChange;
   VideoRotationChangeCallback onVideoRotationChange;
 
-  RTCVideoRenderer();
-
-  initialize(double width, double height) async {
+  initialize() async {
     final Map<dynamic, dynamic> response =
-        await _channel.invokeMethod('createVideoView', {});
+        await _channel.invokeMethod('createVideoRenderer', {});
     _textureId = response['textureId'];
     _eventSubscription = _eventChannelFor(_textureId)
         .receiveBroadcastStream()
@@ -42,31 +44,32 @@ class RTCVideoRenderer {
 
   bool get isInitialized => _textureId != null;
 
-  set muted(bool muted) => _channel.invokeMethod('videoViewMuted',
-      <String, dynamic>{'textureId': _textureId, 'mute': muted});
+  set muted(bool muted) {
+    _muted = muted;
+  }
 
-  set mirror(bool mirror) => _channel.invokeMethod('videoViewSetMirror',
-      <String, dynamic>{'textureId': _textureId, 'mirror': mirror});
-
-  set srcObject(MediaStream stream) {
-    _channel.invokeMethod('videoViewSetSrcObject',
-        <String, dynamic>{'textureId': _textureId, 'streamId': stream.id});
+  set mirror(bool mirror) {
+    _mirror = mirror;
   }
 
   set objectFit(RTCVideoViewObjectFit objectFit) {
-    _channel.invokeMethod('videoViewSetObjectFit',
-        <String, dynamic>{'textureId': _textureId, 'objectFit': objectFit});
+    _objectFit = objectFit;
   }
 
-  EventChannel _eventChannelFor(int textureId) {
-    return new EventChannel('cloudwebrtc.com/WebRTC/Texture$textureId');
+  set srcObject(MediaStream stream) {
+    _channel.invokeMethod('videoRendererSetSrcObject',
+        <String, dynamic>{'textureId': _textureId, 'streamId': stream.id});
   }
 
   Future<Null> dispose() async {
     await _channel.invokeMethod(
-      'videoViewDispose',
+      'videoRendererDispose',
       <String, dynamic>{'textureId': _textureId},
     );
+  }
+
+  EventChannel _eventChannelFor(int textureId) {
+    return new EventChannel('cloudwebrtc.com/WebRTC/Texture$textureId');
   }
 
   void eventListener(dynamic event) {
@@ -89,5 +92,4 @@ class RTCVideoRenderer {
   void errorListener(Object obj) {
     final PlatformException e = obj;
   }
-
 }
