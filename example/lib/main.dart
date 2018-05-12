@@ -30,6 +30,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     initPlatformState();
     _localVideoRenderer.onVideoRotationChange = _onVideoRotationChange;
+    _localVideoRenderer.onVideoSizeChange = _onVideoSizeChange;
   }
 
   _onVideoRotationChange(int textureId, int rotation)
@@ -117,8 +118,8 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       _localStream = await getUserMedia(mediaConstraints);
-      await _localVideoRenderer.initialize(_width, _height);
-      await _remoteVideoRenderer.initialize(_width, _height);
+      await _localVideoRenderer.initialize();
+      await _remoteVideoRenderer.initialize();
       _localVideoRenderer.srcObject = _localStream;
 
       _peerConnection =

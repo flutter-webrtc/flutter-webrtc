@@ -5,15 +5,7 @@
 #import <WebRTC/RTCVideoFrame.h>
 #import <WebRTC/RTCVideoTrack.h>
 
-
-typedef void(^onChangeVideoSizeCallback)(int width, int height);
-typedef void(^onRotationChangeCallback)(int rotation);
-
-/**
- * Implements an equivalent of {@code HTMLVideoElement} i.e. Web's video
- * element.
- */
-@interface RTCVideoView : NSObject <FlutterTexture, RTCVideoRenderer, FlutterStreamHandler>
+@interface FlutterRTCVideoRenderer : NSObject <FlutterTexture, RTCVideoRenderer, FlutterStreamHandler>
 
 /**
  * The {@link RTCVideoTrack}, if any, which this instance renders.
@@ -30,12 +22,12 @@ typedef void(^onRotationChangeCallback)(int rotation);
 @end
 
 
-@interface FlutterWebRTCPlugin (RTCVideoViewManager)
+@interface FlutterWebRTCPlugin (FlutterVideoRendererManager)
 
-- (RTCVideoView *)createWithSize:(CGSize)size
+- (FlutterRTCVideoRenderer *)createWithSize:(CGSize)size
              withTextureRegistry:(id<FlutterTextureRegistry>)registry
                        messenger:(NSObject<FlutterBinaryMessenger>*)messenger;
 
--(void)setStreamId:(NSString*)streamId view:(RTCVideoView*)view;
+-(void)setStreamId:(NSString*)streamId view:(FlutterRTCVideoRenderer*)view;
 
 @end
