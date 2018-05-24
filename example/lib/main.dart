@@ -140,19 +140,19 @@ class _MyAppState extends State<MyApp> {
             child: new Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-              new Text('Loopback demo.'),
-              new Container(
-                      width: 320.0,
-                      height: 240.0,
-                      child: new RTCVideoView(_localRenderer),
-              ),
-              new Text('Local video'),
-              new Container(
-                      width: 320.0,
-                      height: 240.0,
-                      child: new RTCVideoView(_remoteRenderer),
-              ),
-              new Text('Remote video'),
+                  new Text('Local video:'),
+                  new Container(
+                    width: 320.0,
+                    height: 240.0,
+                    child: new RTCVideoView(_localRenderer),
+                  ),
+
+                  new Text('Remote video:'),
+                  new Container(
+                    width: 320.0,
+                    height: 240.0,
+                    child: new RTCVideoView(_remoteRenderer),
+                  ),
             ])),
       ),
     );
