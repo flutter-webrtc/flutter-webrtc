@@ -145,10 +145,10 @@ class _RTCVideoViewState extends State<RTCVideoView> {
           child: (this.renderer._textureId == null || this.renderer._srcObject == null)
               ? new Container()
               : new Container(
-            width: width,
-            height: height,
-            child: new Texture(textureId: this.renderer._textureId),
-          )
-      );
+                      width: width,
+                      height: height,
+                      child: new Texture(textureId: this.renderer._textureId),
+                    )
+          );
   }
 }
