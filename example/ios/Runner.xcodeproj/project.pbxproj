@@ -8,10 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		0B2E52A1193C475CC824D4E23320D30B /* flutter_assets in Resources */ = {isa = PBXBuildFile; fileRef = 127FE0431EC071958D67B4152ABE0141 /* flutter_assets */; };
-		20D64D35A2A20226B995BD7DE3CC03A5 /* libPods-Runner.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C5CCD4E6461D1D83886AE2E0CB510AF0 /* libPods-Runner.a */; };
 		229CB39F2D80040AEE1ED23F285ACA94 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A79A511C028ADC462437FA86E6F91AFF /* LaunchScreen.storyboard */; };
 		5AFE2FDDDEBDE94ED82B40DC8B153987 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 9428FFA3DA242B0B23CE49085F8A8C98 /* GeneratedPluginRegistrant.m */; };
 		6354C7FECC33A60C0696301773D78092 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 49096491DEF677A67E9C9D1D2F642FB2 /* AppFrameworkInfo.plist */; };
+		724F1D62234235348CFA527B /* libPods-Runner.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C63925257EB631DA64C78EFD /* libPods-Runner.a */; };
 		970259CB2284F35CC747F170CC0DF853 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FF4B47BE30BEAD46325791691A899103 /* Main.storyboard */; };
 		9D577FED5514C03E7AB7E66F98D7A053 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 33D01B15D123D484F5CECECF4955185C /* main.m */; };
 		9D7F825691A20481792F11A568AD8FAD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A333CF75606D18C461DFF9ABF7427251 /* Assets.xcassets */; };
@@ -55,7 +55,7 @@
 		9428FFA3DA242B0B23CE49085F8A8C98 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		A333CF75606D18C461DFF9ABF7427251 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B4035E976C526A3EEB983C311F82E74E /* Flutter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Flutter.framework; path = Flutter/Flutter.framework; sourceTree = "<group>"; };
-		C5CCD4E6461D1D83886AE2E0CB510AF0 /* libPods-Runner.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Runner.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C63925257EB631DA64C78EFD /* libPods-Runner.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Runner.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4B25E6138001208114FB8F975774109 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F6B369AAD73AF22F43C5033650E3A5E7 /* App.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = App.framework; path = Flutter/App.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -67,7 +67,7 @@
 			files = (
 				CE5D87634A0A12EE98C9DC1D9D5BFFDE /* App.framework in Frameworks */,
 				DFD15F91EC1333E9C1F771E4E93987B1 /* Flutter.framework in Frameworks */,
-				20D64D35A2A20226B995BD7DE3CC03A5 /* libPods-Runner.a in Frameworks */,
+				724F1D62234235348CFA527B /* libPods-Runner.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,17 +90,17 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6FF1D9148056243A2D8A6D36BFA80D89 /* Pods */ = {
+		4AAEB042555170F933166EF6 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
 			);
 			name = Pods;
 			sourceTree = "<group>";
 		};
-		776D035819192312F762635C3CC86C98 /* Frameworks */ = {
+		7533C2DA49EB7DB513E5B7EE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				C5CCD4E6461D1D83886AE2E0CB510AF0 /* libPods-Runner.a */,
+				C63925257EB631DA64C78EFD /* libPods-Runner.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -109,10 +109,10 @@
 			isa = PBXGroup;
 			children = (
 				D200E37E3AAFC3BCF315E1D381844A67 /* Flutter */,
-				776D035819192312F762635C3CC86C98 /* Frameworks */,
-				6FF1D9148056243A2D8A6D36BFA80D89 /* Pods */,
 				43EB847F420AC177D9B217DF4AF4DD93 /* Products */,
 				E63CF9E523D767D2740E40098133A381 /* Runner */,
+				4AAEB042555170F933166EF6 /* Pods */,
+				7533C2DA49EB7DB513E5B7EE /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -153,14 +153,14 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 92578F7B9E3F6AC8F17192C290223DCF /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
-				AC0061BF939EE938EA540EE9D04BF3B3 /* [CP] Check Pods Manifest.lock */,
+				E550E15CC3C61725E6821A4E /* [CP] Check Pods Manifest.lock */,
 				7E9D2C9174A80CAA4BFDFDCB4F72C7A8 /* Run Script */,
 				FBC56BB6E87C12DAFB6BB5C3C53DF533 /* Sources */,
 				00C27919A6B50DC1DE2CD3F64D33BCCA /* Frameworks */,
 				8CF819BBBFB9AE05A1821B127DF85DF8 /* Resources */,
 				E55F38183CFB6C120953C92EF0C091F4 /* Embed Frameworks */,
 				3F42640EB4246C17D4CDE846C95B84D3 /* Thin Binary */,
-				77B83F427A96D66384A2D5A974F60E05 /* [CP] Embed Pods Frameworks */,
+				440B41726F72B87580837854 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -183,6 +183,11 @@
 					E30F7D64842177B99FDDF63DCA10BCDE = {
 						CreatedOnToolsVersion = 7.3.1;
 						DevelopmentTeam = 5J859T6AE8;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -236,17 +241,19 @@
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" thin";
 		};
-		77B83F427A96D66384A2D5A974F60E05 /* [CP] Embed Pods Frameworks */ = {
+		440B41726F72B87580837854 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh",
-				"${PODS_ROOT}/.symlinks/plugins/flutter/ios/WebRTC.framework",
+				"${PODS_ROOT}/.symlinks/flutter/ios/Flutter.framework",
+				"${PODS_ROOT}/.symlinks/plugins/webrtc/ios/WebRTC.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Flutter.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WebRTC.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -268,7 +275,7 @@
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
 		};
-		AC0061BF939EE938EA540EE9D04BF3B3 /* [CP] Check Pods Manifest.lock */ = {
+		E550E15CC3C61725E6821A4E /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -373,6 +380,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5E401A09567E49F31CDA639224D64C9B /* Release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 5J859T6AE8;
@@ -388,7 +397,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cloudwebrtc.webrtcExample;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cloudwebrtc.flutter-example";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -451,6 +460,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5F00C8B4B6548724073C4AAF93AD0795 /* Debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 5J859T6AE8;
@@ -466,7 +477,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cloudwebrtc.webrtcExample;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.cloudwebrtc.flutter-example";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
