@@ -25,7 +25,6 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 
@@ -51,8 +50,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
    * in order to reduce complexity and to (somewhat) separate concerns.
    */
   private GetUserMediaImpl getUserMediaImpl;
-
-  EventChannel.EventSink nativeToDartEventSink;
   final PeerConnectionFactory mFactory;
 
 
@@ -72,6 +69,10 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     channel.setMethodCallHandler(new FlutterWebRTCPlugin(registrar,channel));
   }
 
+  public Registrar registrar(){
+    return this.registrar;
+  }
+
   private FlutterWebRTCPlugin(Registrar registrar, MethodChannel channel) {
     this.registrar = registrar;
     this.channel = channel;
@@ -79,6 +80,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     mPeerConnectionObservers = new SparseArray<PeerConnectionObserver>();
     localStreams = new HashMap<String, MediaStream>();
     localTracks = new HashMap<String, MediaStreamTrack>();
+    peerConnectionMap = new HashMap<String, PeerConnection>();
 
     //PeerConnectionFactory.initializeAndroidGlobals(reactContext, true, true, true);
 
@@ -94,34 +96,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     if (eglContext != null) {
       mFactory.setVideoHwAccelerationOptions(eglContext, eglContext);
     }
-
     getUserMediaImpl = new GetUserMediaImpl(this, registrar.context());
-    /*
-    String peerConnectionId = "xxxxx";
-    EventChannel eventChannel =
-            new EventChannel(
-                    registrar.messenger(), "cloudwebrtc.com/WebRTC/peerConnectoinEvent" + peerConnectionId);
-
-    eventChannel.setStreamHandler(
-            new EventChannel.StreamHandler() {
-              @Override
-              public void onListen(Object o, EventChannel.EventSink sink) {
-                nativeToDartEventSink = sink;
-              }
-
-              @Override
-              public void onCancel(Object o) {
-                nativeToDartEventSink = null;
-              }
-            });
-
-    Map<String, Object> event = new HashMap<>();
-    event.put("event", "onInit");
-    event.put("duration", 111);
-    event.put("width", 222);
-    event.put("height", 333);
-    nativeToDartEventSink.success(event);
-    */
   }
 
   @Override
@@ -145,13 +120,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
   private PeerConnection getPeerConnection(int id) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
     return (pco == null) ? null : pco.getPeerConnection();
-  }
-
-  void sendEvent(String eventName,  ConstraintsMap params) {
-    Map<String, Object> event = new HashMap<>();
-    event.put("event", eventName);
-    event.put("body", params.toMap());
-    nativeToDartEventSink.success(event);
   }
 
   private List<PeerConnection.IceServer> createIceServers(ConstraintsArray iceServersArray) {
@@ -396,8 +364,12 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             parseMediaConstraints(constraints),
             observer);
 
-    observer.setPeerConnection(peerConnection);
+    String peerConnectionId = getNextStreamUUID();
+
+    observer.setPeerConnection(peerConnectionId, peerConnection);
+
     mPeerConnectionObservers.put(id, observer);
+    peerConnectionMap.put(peerConnectionId, peerConnection);
   }
 
   String getNextStreamUUID() {
@@ -405,7 +377,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
     do {
       uuid = UUID.randomUUID().toString();
-    } while (getStreamForReactTag(uuid) != null);
+    } while (getStreamForId(uuid) != null);
 
     return uuid;
   }
@@ -420,8 +392,8 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     return uuid;
   }
 
-  MediaStream getStreamForReactTag(String streamReactTag) {
-    MediaStream stream = localStreams.get(streamReactTag);
+  MediaStream getStreamForId(String id) {
+    MediaStream stream = localStreams.get(id);
 
     if (stream == null) {
       for (int i = 0, size = mPeerConnectionObservers.size();
@@ -429,7 +401,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
            i++) {
         PeerConnectionObserver pco
                 = mPeerConnectionObservers.valueAt(i);
-        stream = pco.remoteStreams.get(streamReactTag);
+        stream = pco.remoteStreams.get(id);
         if (stream != null) {
           break;
         }
@@ -844,7 +816,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
   }
 
   public void peerConnectionAddICECandidate(ConstraintsMap candidateMap, final int id, final Result result) {
-    boolean result = false;
+    boolean res = false;
     PeerConnection peerConnection = getPeerConnection(id);
     Log.d(TAG, "peerConnectionAddICECandidate() start");
     if (peerConnection != null) {
@@ -853,11 +825,11 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
               candidateMap.getInt("sdpMLineIndex"),
               candidateMap.getString("candidate")
       );
-      result = peerConnection.addIceCandidate(candidate);
+      res = peerConnection.addIceCandidate(candidate);
     } else {
       Log.d(TAG, "peerConnectionAddICECandidate() peerConnection is null");
     }
-    result.success(result);
+    result.success(res);
     Log.d(TAG, "peerConnectionAddICECandidate() end");
   }
 
