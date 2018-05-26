@@ -65,7 +65,7 @@ public class ConstraintsArray {
         } else if (object instanceof Map) {
             return ObjectType.Map;
         }
-        return null;
+        return ObjectType.Null;
     }
 
     ArrayList<Object> toArrayList(){
