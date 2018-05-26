@@ -12,8 +12,6 @@ import android.view.SurfaceView;
 
 import java.util.concurrent.CountDownLatch;
 
-import javax.microedition.khronos.egl.EGLContext;
-
 import org.webrtc.EglBase;
 import org.webrtc.GlRectDrawer;
 import org.webrtc.GlUtil;
