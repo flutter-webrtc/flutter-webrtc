@@ -3,10 +3,6 @@ package com.cloudwebrtc.webrtc;
 import java.nio.charset.Charset;
 import android.util.Base64;
 
-import com.cloudwebrtc.webrtc.utils.WritableMap;
-import com.cloudwebrtc.webrtc.utils.ReadableType;
-import com.cloudwebrtc.webrtc.utils.JavaOnlyMap;
-
 import org.webrtc.DataChannel;
 
 class DataChannelObserver implements DataChannel.Observer {
@@ -43,7 +39,7 @@ class DataChannelObserver implements DataChannel.Observer {
 
     @Override
     public void onStateChange() {
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", mId);
         params.putInt("peerConnectionId", peerConnectionId);
         params.putString("state", dataChannelStateString(mDataChannel.state()));
@@ -52,7 +48,7 @@ class DataChannelObserver implements DataChannel.Observer {
 
     @Override
     public void onMessage(DataChannel.Buffer buffer) {
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", mId);
         params.putInt("peerConnectionId", peerConnectionId);
 

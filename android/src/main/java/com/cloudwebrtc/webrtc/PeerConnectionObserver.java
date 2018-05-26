@@ -10,14 +10,7 @@ import java.util.Map;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-
-import com.cloudwebrtc.webrtc.utils.JavaOnlyArray;
-import com.cloudwebrtc.webrtc.utils.JavaOnlyMap;
-import com.cloudwebrtc.webrtc.utils.ReadableMap;
-import com.cloudwebrtc.webrtc.utils.WritableMap;
-import com.cloudwebrtc.webrtc.utils.WritableArray;
 
 import org.webrtc.AudioTrack;
 import org.webrtc.DataChannel;
@@ -78,7 +71,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
          dataChannels.clear();
     }
 
-    void createDataChannel(String label, ReadableMap config) {
+    void createDataChannel(String label, ConstraintsMap config) {
         DataChannel.Init init = new DataChannel.Init();
         if (config != null) {
             if (config.hasKey("id")) {
@@ -227,13 +220,13 @@ class PeerConnectionObserver implements PeerConnection.Observer {
     @Override
     public void onIceCandidate(final IceCandidate candidate) {
         Log.d(TAG, "onIceCandidate");
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
-        WritableMap candidateParams = new JavaOnlyMap();
+        ConstraintsMap candidateParams = new ConstraintsMap();
         candidateParams.putInt("sdpMLineIndex", candidate.sdpMLineIndex);
         candidateParams.putString("sdpMid", candidate.sdpMid);
         candidateParams.putString("candidate", candidate.sdp);
-        params.putMap("candidate", candidateParams);
+        params.putMap("candidate", candidateParams.toMap());
 
         plugin.sendEvent("peerConnectionGotICECandidate", params);
     }
@@ -245,7 +238,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
 
     @Override
     public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         params.putString("iceConnectionState", iceConnectionStateString(iceConnectionState));
 
@@ -259,7 +252,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
     @Override
     public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
         Log.d(TAG, "onIceGatheringChange" + iceGatheringState.name());
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         params.putString("iceGatheringState", iceGatheringStateString(iceGatheringState));
         plugin.sendEvent("peerConnectionIceGatheringChanged", params);
@@ -299,12 +292,12 @@ class PeerConnectionObserver implements PeerConnection.Observer {
             remoteStreams.put(streamReactTag, mediaStream);
         }
 
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         params.putString("streamId", streamId);
         params.putString("streamReactTag", streamReactTag);
 
-        WritableArray tracks = new JavaOnlyArray();
+        ConstraintsArray tracks = new ConstraintsArray();
 
         for (int i = 0; i < mediaStream.videoTracks.size(); i++) {
             VideoTrack track = mediaStream.videoTracks.get(i);
@@ -312,7 +305,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
 
             remoteTracks.put(trackId, track);
 
-            WritableMap trackInfo = new JavaOnlyMap();
+            ConstraintsMap trackInfo = new ConstraintsMap();
             trackInfo.putString("id", trackId);
             trackInfo.putString("label", "Video");
             trackInfo.putString("kind", track.kind());
@@ -327,7 +320,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
 
             remoteTracks.put(trackId, track);
 
-            WritableMap trackInfo = new JavaOnlyMap();
+            ConstraintsMap trackInfo = new ConstraintsMap();
             trackInfo.putString("id", trackId);
             trackInfo.putString("label", "Audio");
             trackInfo.putString("kind", track.kind());
@@ -336,7 +329,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
             trackInfo.putBoolean("remote", true);
             tracks.pushMap(trackInfo);
         }
-        params.putArray("tracks", tracks);
+        params.putArray("tracks", tracks.toArrayList());
 
         plugin.sendEvent("peerConnectionAddedStream", params);
     }
@@ -360,7 +353,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
 
         this.remoteStreams.remove(streamReactTag);
 
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         params.putString("streamId", streamReactTag);
         plugin.sendEvent("peerConnectionRemovedStream", params);
@@ -373,13 +366,13 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         String streamId = mediaStream.label();
         String streamReactTag = streamId;
 
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         params.putString("streamId", streamId);
         params.putString("streamReactTag", streamReactTag);
 
         String trackId = track.id();
-        WritableMap trackInfo = new JavaOnlyMap();
+        ConstraintsMap trackInfo = new ConstraintsMap();
         trackInfo.putString("id", trackId);
         trackInfo.putString("label", track.kind());
         trackInfo.putString("kind", track.kind());
@@ -387,7 +380,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         trackInfo.putString("readyState", track.state().toString());
         trackInfo.putBoolean("remote", true);
 
-        params.putMap("track", trackInfo);
+        params.putMap("track", trackInfo.toMap());
 
         plugin.sendEvent("peerConnectionAddedTrack", params);
     }
@@ -397,13 +390,13 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         Log.d(TAG, "onRemoveTrack");
         String streamId = mediaStream.label();
         String streamReactTag = streamId;
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         params.putString("streamId", streamId);
         params.putString("streamReactTag", streamReactTag);
 
         String trackId = track.id();
-        WritableMap trackInfo = new JavaOnlyMap();
+        ConstraintsMap trackInfo = new ConstraintsMap();
         trackInfo.putString("id", trackId);
         trackInfo.putString("label", track.kind());
         trackInfo.putString("kind", track.kind());
@@ -411,7 +404,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         trackInfo.putString("readyState", track.state().toString());
         trackInfo.putBoolean("remote", true);
 
-        params.putMap("track", trackInfo);
+        params.putMap("track", trackInfo.toMap());
 
         plugin.sendEvent("peerConnectionRemovedTrack", params);
     }
@@ -443,12 +436,12 @@ class PeerConnectionObserver implements PeerConnection.Observer {
           return;
         }
 
-        WritableMap dataChannelParams = new JavaOnlyMap();
+        ConstraintsMap dataChannelParams = new ConstraintsMap();
         dataChannelParams.putInt("id", dataChannelId);
         dataChannelParams.putString("label", dataChannel.label());
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
-        params.putMap("dataChannel", dataChannelParams);
+        params.putMap("dataChannel", dataChannelParams.toMap());
 
         dataChannels.put(dataChannelId, dataChannel);
         registerDataChannelObserver(dataChannelId, dataChannel);
@@ -466,14 +459,14 @@ class PeerConnectionObserver implements PeerConnection.Observer {
 
     @Override
     public void onRenegotiationNeeded() {
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         plugin.sendEvent("peerConnectionOnRenegotiationNeeded", params);
     }
 
     @Override
     public void onSignalingChange(PeerConnection.SignalingState signalingState) {
-        WritableMap params = new JavaOnlyMap();
+        ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         params.putString("signalingState", signalingStateString(signalingState));
         plugin.sendEvent("peerConnectionSignalingStateChanged", params);

@@ -1,6 +1,5 @@
 package com.cloudwebrtc.webrtc;
 
-import java.util.ArrayList;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -11,6 +10,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import android.support.v4.content.ContextCompat;
+
+import java.util.ArrayList;
 
 /**
  * Helper module for dealing with dynamic permissions, introduced in Android M
