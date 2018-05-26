@@ -23,18 +23,23 @@ import org.webrtc.StatsObserver;
 import org.webrtc.StatsReport;
 import org.webrtc.VideoTrack;
 
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
 
-class PeerConnectionObserver implements PeerConnection.Observer {
+class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.StreamHandler {
     private final static String TAG = FlutterWebRTCPlugin.TAG;
 
     private final SparseArray<DataChannel> dataChannels
         = new SparseArray<DataChannel>();
     private final int id;
     private PeerConnection peerConnection;
+    private String peerConnectionId;
     final Map<String, MediaStream> remoteStreams;
     final Map<String, MediaStreamTrack> remoteTracks;
     private final FlutterWebRTCPlugin plugin;
+
+    EventChannel eventChannel;
+    EventChannel.EventSink eventSink;
 
     /**
      * The <tt>StringBuilder</tt> cache utilized by {@link #statsToJSON} in
@@ -52,23 +57,48 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         this.remoteTracks = new HashMap<String, MediaStreamTrack>();
     }
 
+    @Override
+    public void onListen(Object o, EventChannel.EventSink sink) {
+        eventSink = sink;
+    }
+
+    @Override
+    public void onCancel(Object o) {
+        eventSink = null;
+    }
+
     PeerConnection getPeerConnection() {
         return peerConnection;
     }
 
-    void setPeerConnection(PeerConnection peerConnection) {
+    void setPeerConnection(String id, PeerConnection peerConnection) {
         this.peerConnection = peerConnection;
+        this.peerConnectionId = id;
+        this.eventChannel =
+                new EventChannel(
+                        plugin.registrar().messenger(),
+                        "cloudwebrtc.com/WebRTC/peerConnectoinEvent" + peerConnectionId);
+        eventChannel.setStreamHandler(this);
+        /*
+        Map<String, Object> event = new HashMap<>();
+        event.put("event", "onSomeEvent");
+        event.put("param1", 111);
+        event.put("width", 222);
+        event.put("height", 333);
+        nativeToDartEventSink.success(event);
+        */
     }
 
     void close() {
-         peerConnection.close();
+        eventChannel.setStreamHandler(null);
+        peerConnection.close();
 
-         remoteStreams.clear();
-         remoteTracks.clear();
+        remoteStreams.clear();
+        remoteTracks.clear();
 
-         // Unlike on iOS, we cannot unregister the DataChannel.Observer
-         // instance on Android. At least do whatever else we do on iOS.
-         dataChannels.clear();
+        // Unlike on iOS, we cannot unregister the DataChannel.Observer
+        // instance on Android. At least do whatever else we do on iOS.
+        dataChannels.clear();
     }
 
     void createDataChannel(String label, ConstraintsMap config) {
@@ -228,7 +258,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         candidateParams.putString("candidate", candidate.sdp);
         params.putMap("candidate", candidateParams.toMap());
 
-        plugin.sendEvent("peerConnectionGotICECandidate", params);
+        sendEvent("peerConnectionGotICECandidate", params);
     }
 
     @Override
@@ -242,7 +272,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         params.putInt("id", id);
         params.putString("iceConnectionState", iceConnectionStateString(iceConnectionState));
 
-        plugin.sendEvent("peerConnectionIceConnectionChanged", params);
+        sendEvent("peerConnectionIceConnectionChanged", params);
     }
 
     @Override
@@ -255,7 +285,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         params.putString("iceGatheringState", iceGatheringStateString(iceGatheringState));
-        plugin.sendEvent("peerConnectionIceGatheringChanged", params);
+        sendEvent("peerConnectionIceGatheringChanged", params);
     }
 
     private String getReactTagForStream(MediaStream mediaStream) {
@@ -331,7 +361,15 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         }
         params.putArray("tracks", tracks.toArrayList());
 
-        plugin.sendEvent("peerConnectionAddedStream", params);
+        sendEvent("peerConnectionAddedStream", params);
+    }
+
+
+    void sendEvent(String eventName,  ConstraintsMap params) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("event", eventName);
+        event.put("body", params.toMap());
+        eventSink.success(event);
     }
 
     @Override
@@ -356,7 +394,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         params.putString("streamId", streamReactTag);
-        plugin.sendEvent("peerConnectionRemovedStream", params);
+        sendEvent("peerConnectionRemovedStream", params);
     }
 
     @Override
@@ -382,7 +420,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
 
         params.putMap("track", trackInfo.toMap());
 
-        plugin.sendEvent("peerConnectionAddedTrack", params);
+        sendEvent("peerConnectionAddedTrack", params);
     }
 
     @Override
@@ -406,7 +444,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
 
         params.putMap("track", trackInfo.toMap());
 
-        plugin.sendEvent("peerConnectionRemovedTrack", params);
+        sendEvent("peerConnectionRemovedTrack", params);
     }
 
 
@@ -446,7 +484,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         dataChannels.put(dataChannelId, dataChannel);
         registerDataChannelObserver(dataChannelId, dataChannel);
 
-        plugin.sendEvent("peerConnectionDidOpenDataChannel", params);
+        sendEvent("peerConnectionDidOpenDataChannel", params);
     }
 
     private void registerDataChannelObserver(int dcId, DataChannel dataChannel) {
@@ -461,7 +499,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
     public void onRenegotiationNeeded() {
         ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
-        plugin.sendEvent("peerConnectionOnRenegotiationNeeded", params);
+        sendEvent("peerConnectionOnRenegotiationNeeded", params);
     }
 
     @Override
@@ -469,7 +507,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", id);
         params.putString("signalingState", signalingStateString(signalingState));
-        plugin.sendEvent("peerConnectionSignalingStateChanged", params);
+        sendEvent("peerConnectionSignalingStateChanged", params);
     }
 
     @Override

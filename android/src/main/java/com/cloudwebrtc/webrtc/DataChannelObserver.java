@@ -1,22 +1,34 @@
 package com.cloudwebrtc.webrtc;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
+
 import android.util.Base64;
 
 import org.webrtc.DataChannel;
 
-class DataChannelObserver implements DataChannel.Observer {
+import io.flutter.plugin.common.EventChannel;
 
+class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHandler {
     private final int mId;
     private final DataChannel mDataChannel;
     private final int peerConnectionId;
     private final FlutterWebRTCPlugin plugin;
+    private EventChannel eventChannel;
+    private EventChannel.EventSink eventSink;
 
     DataChannelObserver(FlutterWebRTCPlugin plugin, int peerConnectionId, int id, DataChannel dataChannel) {
         this.peerConnectionId = peerConnectionId;
         mId = id;
         mDataChannel = dataChannel;
         this.plugin = plugin;
+
+        this.eventChannel =
+                new EventChannel(
+                        plugin.registrar().messenger(),
+                        "cloudwebrtc.com/WebRTC/peerDataChannelEvent" + dataChannel);
+        eventChannel.setStreamHandler(this);
     }
 
     private String dataChannelStateString(DataChannel.State dataChannelState) {
@@ -34,6 +46,16 @@ class DataChannelObserver implements DataChannel.Observer {
     }
 
     @Override
+    public void onListen(Object o, EventChannel.EventSink sink) {
+        eventSink = sink;
+    }
+
+    @Override
+    public void onCancel(Object o) {
+        eventSink = null;
+    }
+
+    @Override
     public void onBufferedAmountChange(long amount) {
     }
 
@@ -43,7 +65,7 @@ class DataChannelObserver implements DataChannel.Observer {
         params.putInt("id", mId);
         params.putInt("peerConnectionId", peerConnectionId);
         params.putString("state", dataChannelStateString(mDataChannel.state()));
-        plugin.sendEvent("dataChannelStateChanged", params);
+        sendEvent("dataChannelStateChanged", params);
     }
 
     @Override
@@ -68,6 +90,13 @@ class DataChannelObserver implements DataChannel.Observer {
             params.putString("data", new String(bytes, Charset.forName("UTF-8")));
         }
 
-        plugin.sendEvent("dataChannelReceiveMessage", params);
+        sendEvent("dataChannelReceiveMessage", params);
+    }
+
+    void sendEvent(String eventName,  ConstraintsMap params) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("event", eventName);
+        event.put("body", params.toMap());
+        eventSink.success(event);
     }
 }
