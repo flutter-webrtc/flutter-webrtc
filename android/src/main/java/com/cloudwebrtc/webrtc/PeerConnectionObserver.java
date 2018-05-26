@@ -140,7 +140,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         }
     }
 
-    void getStats(String trackId, final Result promise) {
+    void getStats(String trackId, final Result result) {
         MediaStreamTrack track = null;
         if (trackId == null
                 || trackId.isEmpty()
@@ -150,7 +150,7 @@ class PeerConnectionObserver implements PeerConnection.Observer {
                     new StatsObserver() {
                         @Override
                         public void onComplete(StatsReport[] reports) {
-                            promise.success(statsToJSON(reports));
+                            result.success(statsToJSON(reports));
                         }
                     },
                     track);

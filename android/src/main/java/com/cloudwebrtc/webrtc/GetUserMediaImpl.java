@@ -292,7 +292,7 @@ class GetUserMediaImpl{
 
     void getImageMedia(
             final ConstraintsMap constraints,
-            final Result promise,
+            final Result result,
             final MediaStream mediaStream) {
 
         ConstraintsArray tracks_ =  new ConstraintsArray();
@@ -342,7 +342,7 @@ class GetUserMediaImpl{
 
         successResult.pushString(streamId);
         successResult.pushArray(tracks_);
-        promise.success(successResult.toArrayList());
+        result.success(successResult.toArrayList());
     }
 
     /**
@@ -352,7 +352,7 @@ class GetUserMediaImpl{
      */
     void getUserMedia(
             final ConstraintsMap constraints,
-            final Result promise,
+            final Result result,
             final MediaStream mediaStream) {
         // TODO: change getUserMedia constraints format to support new syntax
         //   constraint format seems changed, and there is no mandatory any more.
@@ -392,7 +392,7 @@ class GetUserMediaImpl{
                     Intent mediaProjectionData = resultData.getParcelable(PROJECTION_DATA);
 
                     if (resultCode != Activity.RESULT_OK) {
-                        promise.error( null,
+                        result.error( null,
                                 "User didn't give permission to capture the screen.", null);
                         return;
                     }
@@ -406,7 +406,7 @@ class GetUserMediaImpl{
                         @Override
                         public void onStop() {
                             Log.e(TAG, "User revoked permission to capture the screen.");
-                            promise.error(  null,
+                            result.error(  null,
                                     "User revoked permission to capture the screen.", null);
                         }
                     });
@@ -474,7 +474,7 @@ class GetUserMediaImpl{
 
                         successResult.pushString(streamId);
                         successResult.pushArray(tracks_);
-                        promise.success(successResult);
+                        result.success(successResult);
                     }
 
                 }
@@ -519,7 +519,7 @@ class GetUserMediaImpl{
         // requestedMediaTypes is the empty set, the method invocation fails
         // with a TypeError.
         if (requestPermissions.isEmpty()) {
-            promise.error(
+            result.error(
                 "TypeError",
                 "constraints requests no media types", null);
             return;
@@ -534,7 +534,7 @@ class GetUserMediaImpl{
 
                     getUserMedia(
                         constraints,
-                        promise,
+                        result,
                         mediaStream,
                         grantedPermissions);
                 }
@@ -546,7 +546,7 @@ class GetUserMediaImpl{
                     // getUserMedia() algorithm, if the user has denied
                     // permission, fail "with a new DOMException object whose
                     // name attribute has the value NotAllowedError."
-                    promise.error("DOMException", "NotAllowedError", null);
+                    result.error("DOMException", "NotAllowedError", null);
                 }
             }
         );
@@ -559,7 +559,7 @@ class GetUserMediaImpl{
      */
     private void getUserMedia(
             ConstraintsMap constraints,
-            Result promise,
+            Result result,
             MediaStream mediaStream,
             List<String> grantedPermissions) {
         MediaStreamTrack[] tracks = new MediaStreamTrack[2];
@@ -579,7 +579,7 @@ class GetUserMediaImpl{
             // specified by
             // https://www.w3.org/TR/mediacapture-streams/#dom-mediadevices-getusermedia
             // with respect to distinguishing the various causes of failure.
-            promise.error(
+            result.error(
                  /* type */ null,
                     "Failed to create new track", null);
             return;
@@ -621,7 +621,7 @@ class GetUserMediaImpl{
 
         successResult.pushString(streamId);
         successResult.pushArray(tracks_);
-        promise.success(successResult);
+        result.success(successResult);
     }
 
 

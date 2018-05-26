@@ -554,7 +554,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     getUserMediaImpl.getImageMedia(constraints, result, mediaStream);
   }
 
-  public void mediaStreamTrackGetSources(Result promise){
+  public void mediaStreamTrackGetSources(Result result){
     ConstraintsArray array = new ConstraintsArray();
     String[] names = new String[Camera.getNumberOfCameras()];
 
@@ -572,7 +572,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     audio.putString("kind", "audioinput");
 
     array.pushMap(audio);
-    promise.success(array);
+    result.success(array);
   }
 
   public void mediaStreamTrackStop(final String id) {
@@ -707,14 +707,14 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
   public void peerConnectionCreateOffer(
           int id,
           ConstraintsMap constraints,
-          final Result promise) {
+          final Result result) {
     PeerConnection peerConnection = getPeerConnection(id);
 
     if (peerConnection != null) {
       peerConnection.createOffer(new SdpObserver() {
         @Override
         public void onCreateFailure(String s) {
-          promise.error("WEBRTC_CREATE_OFFER_ERROR", s, null);
+          result.error("WEBRTC_CREATE_OFFER_ERROR", s, null);
         }
 
         @Override
@@ -722,7 +722,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
           ConstraintsMap params =  new ConstraintsMap();
           params.putString("sdp", sdp.description);
           params.putString("type", sdp.type.canonicalForm());
-          promise.success(params);
+          result.success(params);
         }
 
         @Override
@@ -733,21 +733,21 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
       }, parseMediaConstraints(constraints));
     } else {
       Log.d(TAG, "peerConnectionCreateOffer() peerConnection is null");
-      promise.error("WEBRTC_CREATE_OFFER_ERROR", "peerConnection is null", null);
+      result.error("WEBRTC_CREATE_OFFER_ERROR", "peerConnection is null", null);
     }
   }
 
   public void peerConnectionCreateAnswer(
           int id,
           ConstraintsMap constraints,
-          final Result promise) {
+          final Result result) {
     PeerConnection peerConnection = getPeerConnection(id);
 
     if (peerConnection != null) {
       peerConnection.createAnswer(new SdpObserver() {
         @Override
         public void onCreateFailure(String s) {
-          promise.error("WEBRTC_CREATE_ANSWER_ERROR", s, null);
+          result.error("WEBRTC_CREATE_ANSWER_ERROR", s, null);
         }
 
         @Override
@@ -755,7 +755,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
           ConstraintsMap params = new ConstraintsMap();
           params.putString("sdp", sdp.description);
           params.putString("type", sdp.type.canonicalForm());
-          promise.success(params);
+          result.success(params);
         }
 
         @Override
@@ -766,11 +766,11 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
       }, parseMediaConstraints(constraints));
     } else {
       Log.d(TAG, "peerConnectionCreateAnswer() peerConnection is null");
-      promise.error("WEBRTC_CREATE_ANSWER_ERROR", "peerConnection is null", null);
+      result.error("WEBRTC_CREATE_ANSWER_ERROR", "peerConnection is null", null);
     }
   }
 
-  public void peerConnectionSetLocalDescription(ConstraintsMap sdpMap, final int id, final Result promise) {
+  public void peerConnectionSetLocalDescription(ConstraintsMap sdpMap, final int id, final Result result) {
     PeerConnection peerConnection = getPeerConnection(id);
 
     Log.d(TAG, "peerConnectionSetLocalDescription() start");
@@ -787,7 +787,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         @Override
         public void onSetSuccess() {
-          promise.success(null);
+          result.success(null);
         }
 
         @Override
@@ -796,17 +796,17 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         @Override
         public void onSetFailure(String s) {
-          promise.error("WEBRTC_SET_LOCAL_DESCRIPTION_ERROR", s, null);
+          result.error("WEBRTC_SET_LOCAL_DESCRIPTION_ERROR", s, null);
         }
       }, sdp);
     } else {
       Log.d(TAG, "peerConnectionSetLocalDescription() peerConnection is null");
-      promise.error("WEBRTC_SET_LOCAL_DESCRIPTION_ERROR", "peerConnection is null", null);
+      result.error("WEBRTC_SET_LOCAL_DESCRIPTION_ERROR", "peerConnection is null", null);
     }
     Log.d(TAG, "peerConnectionSetLocalDescription() end");
   }
 
-  public void peerConnectionSetRemoteDescription(final ConstraintsMap sdpMap, final int id, final Result promise) {
+  public void peerConnectionSetRemoteDescription(final ConstraintsMap sdpMap, final int id, final Result result) {
     PeerConnection peerConnection = getPeerConnection(id);
     // final String d = sdpMap.getString("type");
 
@@ -824,7 +824,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         @Override
         public void onSetSuccess() {
-          promise.success(null);
+          result.success(null);
         }
 
         @Override
@@ -833,17 +833,17 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         @Override
         public void onSetFailure(String s) {
-          promise.error("WEBRTC_SET_REMOTE_DESCRIPTION_ERROR", s, null);
+          result.error("WEBRTC_SET_REMOTE_DESCRIPTION_ERROR", s, null);
         }
       }, sdp);
     } else {
       Log.d(TAG, "peerConnectionSetRemoteDescription() peerConnection is null");
-      promise.error("WEBRTC_SET_REMOTE_DESCRIPTION_ERROR", "peerConnection is null", null);
+      result.error("WEBRTC_SET_REMOTE_DESCRIPTION_ERROR", "peerConnection is null", null);
     }
     Log.d(TAG, "peerConnectionSetRemoteDescription() end");
   }
 
-  public void peerConnectionAddICECandidate(ConstraintsMap candidateMap, final int id, final Result promise) {
+  public void peerConnectionAddICECandidate(ConstraintsMap candidateMap, final int id, final Result result) {
     boolean result = false;
     PeerConnection peerConnection = getPeerConnection(id);
     Log.d(TAG, "peerConnectionAddICECandidate() start");
@@ -857,16 +857,16 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     } else {
       Log.d(TAG, "peerConnectionAddICECandidate() peerConnection is null");
     }
-    promise.success(result);
+    result.success(result);
     Log.d(TAG, "peerConnectionAddICECandidate() end");
   }
 
-  public void peerConnectionGetStats(String trackId, int id, final Result promise) {
+  public void peerConnectionGetStats(String trackId, int id, final Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
     if (pco == null || pco.getPeerConnection() == null) {
       Log.d(TAG, "peerConnectionGetStats() peerConnection is null");
     } else {
-      pco.getStats(trackId, promise);
+      pco.getStats(trackId, result);
     }
   }
 
