@@ -17,16 +17,6 @@ import android.app.Activity;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 
-import com.cloudwebrtc.webrtc.utils.JavaOnlyArray;
-import com.cloudwebrtc.webrtc.utils.JavaOnlyMap;
-import com.cloudwebrtc.webrtc.utils.ReadableMapUtil;
-import com.cloudwebrtc.webrtc.utils.ReadableMap;
-import com.cloudwebrtc.webrtc.utils.WritableMap;
-import com.cloudwebrtc.webrtc.utils.ReadableType;
-import com.cloudwebrtc.webrtc.utils.ReadableArray;
-import com.cloudwebrtc.webrtc.utils.WritableArray;
-import com.cloudwebrtc.webrtc.utils.Callback;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -238,39 +228,39 @@ class GetUserMediaImpl{
     /**
      * Retrieves "facingMode" constraint value.
      *
-     * @param mediaConstraints a <tt>ReadableMap</tt> which represents "GUM"
+     * @param mediaConstraints a <tt>ConstraintsMap</tt> which represents "GUM"
      * constraints argument.
      * @return String value of "facingMode" constraints in "GUM" or
      * <tt>null</tt> if not specified.
      */
-    private String getFacingMode(ReadableMap mediaConstraints) {
+    private String getFacingMode(ConstraintsMap mediaConstraints) {
         return
             mediaConstraints == null
                 ? null
-                : ReadableMapUtil.getMapStrValue(mediaConstraints, "facingMode");
+                : mediaConstraints.getString("facingMode");
     }
 
     /**
      * Retrieves "sourceId" constraint value.
      *
-     * @param mediaConstraints a <tt>ReadableMap</tt> which represents "GUM"
+     * @param mediaConstraints a <tt>ConstraintsMap</tt> which represents "GUM"
      * constraints argument
      * @return String value of "sourceId" optional "GUM" constraint or
      * <tt>null</tt> if not specified.
      */
-    private String getSourceIdConstraint(ReadableMap mediaConstraints) {
+    private String getSourceIdConstraint(ConstraintsMap mediaConstraints) {
         if (mediaConstraints != null
                 && mediaConstraints.hasKey("optional")
-                && mediaConstraints.getType("optional") == ReadableType.Array) {
-            ReadableArray optional = mediaConstraints.getArray("optional");
+                && mediaConstraints.getType("optional") == ObjectType.Array) {
+            ConstraintsArray optional = mediaConstraints.getArray("optional");
 
             for (int i = 0, size = optional.size(); i < size; i++) {
-                if (optional.getType(i) == ReadableType.Map) {
-                    ReadableMap option = optional.getMap(i);
+                if (optional.getType(i) == ObjectType.Map) {
+                    ConstraintsMap option = optional.getMap(i);
 
                     if (option.hasKey("sourceId")
                             && option.getType("sourceId")
-                                == ReadableType.String) {
+                                == ObjectType.String) {
                         return option.getString("sourceId");
                     }
                 }
@@ -280,9 +270,9 @@ class GetUserMediaImpl{
         return null;
     }
 
-    private AudioTrack getUserAudio(ReadableMap constraints) {
+    private AudioTrack getUserAudio(ConstraintsMap constraints) {
         MediaConstraints audioConstraints;
-        if (constraints.getType("audio") == ReadableType.Boolean) {
+        if (constraints.getType("audio") == ObjectType.Boolean) {
             audioConstraints = new MediaConstraints();
             addDefaultAudioConstraints(audioConstraints);
         } else {
@@ -301,12 +291,12 @@ class GetUserMediaImpl{
     }
 
     void getImageMedia(
-            final ReadableMap constraints,
+            final ConstraintsMap constraints,
             final Result promise,
             final MediaStream mediaStream) {
 
-        WritableArray tracks_ =  new JavaOnlyArray();
-        WritableArray successResult = new JavaOnlyArray();
+        ConstraintsArray tracks_ =  new ConstraintsArray();
+        ConstraintsArray successResult = new ConstraintsArray();
         MediaStreamTrack[] tracks = new MediaStreamTrack[1];
 
 
@@ -333,7 +323,7 @@ class GetUserMediaImpl{
             }
             plugin.localTracks.put(id, track);
 
-            WritableMap track_ = new JavaOnlyMap();
+            ConstraintsMap track_ = new ConstraintsMap();
             String kind = track.kind();
 
             track_.putBoolean("enabled", track.enabled());
@@ -361,7 +351,7 @@ class GetUserMediaImpl{
      * not been granted yet, they will be requested.
      */
     void getUserMedia(
-            final ReadableMap constraints,
+            final ConstraintsMap constraints,
             final Result promise,
             final MediaStream mediaStream) {
         // TODO: change getUserMedia constraints format to support new syntax
@@ -370,26 +360,27 @@ class GetUserMediaImpl{
         //   should change `parseConstraints()` according
         //   see: https://www.w3.org/TR/mediacapture-streams/#idl-def-MediaTrackConstraints
 
-        ReadableMap videoConstraintsMap = null;
-        ReadableMap videoConstraintsMandatory = null;
-        if (constraints.getType("video") == ReadableType.Map) {
+        ConstraintsMap  videoConstraintsMap = null;
+        ConstraintsMap  videoConstraintsMandatory = null;
+
+        if (constraints.getType("video") == ObjectType.Map) {
             videoConstraintsMap = constraints.getMap("video");
             if (videoConstraintsMap.hasKey("mandatory")
                     && videoConstraintsMap.getType("mandatory")
-                    == ReadableType.Map) {
+                    == ObjectType.Map) {
                 videoConstraintsMandatory
                         = videoConstraintsMap.getMap("mandatory");
             }
         }
 
         boolean requestScreenCapturer =  videoConstraintsMandatory.hasKey("chromeMediaSource") &&
-                ReadableMapUtil.getMapStrValue(videoConstraintsMandatory, "chromeMediaSource").equals("desktop");
+                videoConstraintsMandatory.getString("chromeMediaSource").equals("desktop");
 
         final ArrayList<String> requestPermissions = new ArrayList<>();
 
         if(requestScreenCapturer)
         {
-            final  ReadableMap videoConstraintsMandatory2 =  videoConstraintsMandatory;
+            final  ConstraintsMap videoConstraintsMandatory2 =  videoConstraintsMandatory;
             screenRequestPremissions(new ResultReceiver(new Handler(Looper.getMainLooper())) {
                 @Override
                 protected void onReceiveResult(
@@ -406,8 +397,8 @@ class GetUserMediaImpl{
                         return;
                     }
 
-                    WritableArray tracks_ = new JavaOnlyArray();
-                    WritableArray successResult = new JavaOnlyArray();
+                    ConstraintsArray tracks_ = new ConstraintsArray();
+                    ConstraintsArray successResult = new ConstraintsArray();
                     MediaStreamTrack[] tracks = new MediaStreamTrack[1];
                     VideoCapturer videoCapturer = null;
                     videoCapturer = new ScreenCapturerAndroid(
@@ -464,7 +455,7 @@ class GetUserMediaImpl{
                             }
                             plugin.localTracks.put(id, track);
 
-                            WritableMap track_ = new JavaOnlyMap();
+                            ConstraintsMap track_ = new ConstraintsMap();
                             String kind = track.kind();
 
                             track_.putBoolean("enabled", track.enabled());
@@ -567,7 +558,7 @@ class GetUserMediaImpl{
      * not been granted yet, they will NOT be requested.
      */
     private void getUserMedia(
-            ReadableMap constraints,
+            ConstraintsMap constraints,
             Result promise,
             MediaStream mediaStream,
             List<String> grantedPermissions) {
@@ -594,8 +585,8 @@ class GetUserMediaImpl{
             return;
         }
 
-        WritableArray tracks_ = new JavaOnlyArray();
-        WritableArray successResult = new JavaOnlyArray();
+        ConstraintsArray tracks_ = new ConstraintsArray();
+        ConstraintsArray successResult = new ConstraintsArray();
 
         for (MediaStreamTrack track : tracks) {
             if (track == null) {
@@ -611,7 +602,7 @@ class GetUserMediaImpl{
             }
             plugin.localTracks.put(id, track);
 
-            WritableMap track_ = new JavaOnlyMap();
+            ConstraintsMap track_ = new ConstraintsMap();
             String kind = track.kind();
 
             track_.putBoolean("enabled", track.enabled());
@@ -634,14 +625,14 @@ class GetUserMediaImpl{
     }
 
 
-    private VideoTrack getUserVideo(ReadableMap constraints) {
-        ReadableMap videoConstraintsMap = null;
-        ReadableMap videoConstraintsMandatory = null;
-        if (constraints.getType("video") == ReadableType.Map) {
+    private VideoTrack getUserVideo(ConstraintsMap constraints) {
+        ConstraintsMap videoConstraintsMap = null;
+        ConstraintsMap videoConstraintsMandatory = null;
+        if (constraints.getType("video") == ObjectType.Map) {
             videoConstraintsMap = constraints.getMap("video");
             if (videoConstraintsMap.hasKey("mandatory")
                     && videoConstraintsMap.getType("mandatory")
-                        == ReadableType.Map) {
+                        == ObjectType.Map) {
                 videoConstraintsMandatory
                     = videoConstraintsMap.getMap("mandatory");
             }
