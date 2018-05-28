@@ -13,12 +13,12 @@ import io.flutter.plugin.common.EventChannel;
 class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHandler {
     private final int mId;
     private final DataChannel mDataChannel;
-    private final int peerConnectionId;
+    private final String peerConnectionId;
     private final FlutterWebRTCPlugin plugin;
     private EventChannel eventChannel;
     private EventChannel.EventSink eventSink;
 
-    DataChannelObserver(FlutterWebRTCPlugin plugin, int peerConnectionId, int id, DataChannel dataChannel) {
+    DataChannelObserver(FlutterWebRTCPlugin plugin, String peerConnectionId, int id, DataChannel dataChannel) {
         this.peerConnectionId = peerConnectionId;
         mId = id;
         mDataChannel = dataChannel;
@@ -63,7 +63,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     public void onStateChange() {
         ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", mId);
-        params.putInt("peerConnectionId", peerConnectionId);
+        params.putString("peerConnectionId", peerConnectionId);
         params.putString("state", dataChannelStateString(mDataChannel.state()));
         sendEvent("dataChannelStateChanged", params);
     }
@@ -72,7 +72,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     public void onMessage(DataChannel.Buffer buffer) {
         ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", mId);
-        params.putInt("peerConnectionId", peerConnectionId);
+        params.putString("peerConnectionId", peerConnectionId);
 
         byte[] bytes;
         if (buffer.data.hasArray()) {
