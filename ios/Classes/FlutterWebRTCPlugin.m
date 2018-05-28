@@ -250,11 +250,49 @@
                  dataChannelId:dataChannelId];
         result(nil);
     }else if([@"streamDispose" isEqualToString:call.method]){
-        
+        NSDictionary* argsMap = call.arguments;
+        NSString* streamId = argsMap[@"streamId"];
+        RTCMediaStream *stream = self.localStreams[streamId];
+        if (stream) {
+            for (RTCVideoTrack *track in stream.videoTracks) {
+                [self.localTracks removeObjectForKey:track.trackId];
+            }
+            for (RTCAudioTrack *track in stream.audioTracks) {
+                [self.localTracks removeObjectForKey:track.trackId];
+            }
+            [self.localStreams removeObjectForKey:streamId];
+        }
+        result(nil);
     }else if([@"trackDispose" isEqualToString:call.method]){
-        
+        NSDictionary* argsMap = call.arguments;
+        NSString* trackId = argsMap[@"trackId"];
+        [self.localTracks removeObjectForKey:trackId];
+        result(nil);
     }else if([@"peerConnectionDispose" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        if (!peerConnection) {
+            return;
+        }
+        [peerConnection close];
+        [self.peerConnections removeObjectForKey:peerConnectionId];
+        
+        // Clean up peerConnection's streams and tracks
+        [peerConnection.remoteStreams removeAllObjects];
+        [peerConnection.remoteTracks removeAllObjects];
+        
+        // Clean up peerConnection's dataChannels.
+        NSMutableDictionary<NSNumber *, RTCDataChannel *> *dataChannels
+        = peerConnection.dataChannels;
+        for (NSNumber *dataChannelId in dataChannels) {
+            dataChannels[dataChannelId].delegate = nil;
+            // There is no need to close the RTCDataChannel because it is owned by the
+            // RTCPeerConnection and the latter will close the former.
+        }
+        [dataChannels removeAllObjects];
+        result(nil);
     }else if([@"createVideoRenderer" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         CGFloat width = [argsMap[@"width"] floatValue];
