@@ -3,7 +3,9 @@ package com.cloudwebrtc.webrtc;
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
+import android.graphics.SurfaceTexture;
 import android.util.Log;
+import android.util.LongSparseArray;
 
 import java.util.*;
 
@@ -26,7 +28,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
-
+import io.flutter.view.TextureRegistry;
 
 /**
  * WebrtcPlugin
@@ -40,9 +42,10 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
     public Map<String, MediaStream> localStreams;
     public Map<String, MediaStreamTrack> localTracks;
-    private Map<String, VideoRenderer> renders;
-
     private final Map<String, PeerConnectionObserver> mPeerConnectionObservers;
+
+    private final TextureRegistry textures;
+    private LongSparseArray<FlutterRTCVideoRenderer> renders = new LongSparseArray<>();
 
     /**
      * The implementation of {@code getUserMedia} extracted into a separate file
@@ -75,7 +78,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     private FlutterWebRTCPlugin(Registrar registrar, MethodChannel channel) {
         this.registrar = registrar;
         this.channel = channel;
-
+        this.textures = registrar.textures();
         mPeerConnectionObservers = new HashMap<String, PeerConnectionObserver>();
         localStreams = new HashMap<String, MediaStream>();
         localTracks = new HashMap<String, MediaStreamTrack>();
@@ -99,18 +102,16 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     public void onMethodCall(MethodCall call, Result result) {
         if (call.method.equals("createPeerConnection")) {
             Map<String, Object> constraints = call.argument("constraints");
-            Map<String, Object> configuration = call.argument("constraints");
+            Map<String, Object> configuration = call.argument("configuration");
             String peerConnectionId = peerConnectionInit(new ConstraintsMap(configuration), new ConstraintsMap((constraints)));
             ConstraintsMap res = new ConstraintsMap();
             res.putString("peerConnectionId", peerConnectionId);
             result.success(res.toMap());
         } else if (call.method.equals("getUserMedia")) {
             Map<String, Object> constraints = call.argument("constraints");
-            MediaStream mediaStream = null;
             ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
-            getUserMediaImpl.getUserMedia(constraintsMap, result, mediaStream);
-        }
-        if (call.method.equals("createOffer")) {
+            getUserMedia(constraintsMap, result);
+        }else if (call.method.equals("createOffer")) {
             String peerConnectionId = call.argument("peerConnectionId");
             Map<String, Object> constraints = call.argument("constraints");
             peerConnectionCreateOffer(peerConnectionId, new ConstraintsMap(constraints), result);
@@ -119,7 +120,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             Map<String, Object> constraints = call.argument("constraints");
             peerConnectionCreateAnswer(peerConnectionId, new ConstraintsMap(constraints), result);
         } else if (call.method.equals("mediaStreamGetTracks")) {
-
+            String streamId = call.argument("streamId");
+            MediaStream stream = getStreamForId(streamId);
+            //TODO: build tracks map.
         } else if (call.method.equals("addStream")) {
             String streamId = call.argument("streamId");
             String peerConnectionId = call.argument("peerConnectionId");
@@ -165,17 +168,25 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             result.success(null);
         } else if (call.method.equals("trackDispose")) {
             String trackId = call.argument("trackId");
+            localTracks.remove(trackId);
+            result.success(null);
         } else if (call.method.equals("peerConnectionDispose")) {
             String peerConnectionId = call.argument("peerConnectionId");
             peerConnectionClose(peerConnectionId);
             result.success(null);
         } else if (call.method.equals("createVideoRenderer")) {
-
+            TextureRegistry.SurfaceTextureEntry entry = textures.createSurfaceTexture();
+            SurfaceTexture surfaceTexture = entry.surfaceTexture();
+            FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, getContext());
+            renders.put(entry.id(), render);
+            result.success(entry.id());
         } else if (call.method.equals("videoRendererDispose")) {
-
+            //TODO:
         } else if (call.method.equals("videoRendererSetSrcObject")) {
-            int textureId = call.argument("textureId");
-            String streamId = call.argument("streamId");
+            //int textureId = call.argument("textureId");
+            //String streamId = call.argument("streamId");
+            //TODO:
+            result.success(null);
         } else {
             result.notImplemented();
         }
@@ -428,7 +439,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 parseRTCConfiguration(configuration),
                 parseMediaConstraints(constraints),
                 observer);
-        observer.setPeerConnection(peerConnectionId, peerConnection);
+        observer.setPeerConnection(peerConnection);
         mPeerConnectionObservers.put(peerConnectionId, observer);
         return peerConnectionId;
     }
@@ -499,8 +510,30 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             List<MediaConstraints.KeyValuePair> dst) {
 
         for (Map.Entry<String, Object> entry : src.toMap().entrySet()) {
-            dst.add(new MediaConstraints.KeyValuePair(entry.getKey(), (String) entry.getValue()));
-            System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+            String key = entry.getKey();
+            String value = getMapStrValue(src, entry.getKey());
+            dst.add(new MediaConstraints.KeyValuePair(key, value));
+        }
+    }
+
+    private String getMapStrValue(ConstraintsMap map, String key) {
+        if(!map.hasKey(key)){
+            return null;
+        }
+        ObjectType type = map.getType(key);
+        switch (type) {
+            case Boolean:
+                return String.valueOf(map.getBoolean(key));
+            case Number:
+                // Don't know how to distinguish between Int and Double from
+                // ReadableType.Number. 'getInt' will fail on double value,
+                // while 'getDouble' works for both.
+                // return String.valueOf(map.getInt(key));
+                return String.valueOf(map.getDouble(key));
+            case String:
+                return map.getString(key);
+            default:
+                return null;
         }
     }
 
@@ -753,7 +786,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                     ConstraintsMap params = new ConstraintsMap();
                     params.putString("sdp", sdp.description);
                     params.putString("type", sdp.type.canonicalForm());
-                    result.success(params);
+                    result.success(params.toMap());
                 }
 
                 @Override
@@ -788,7 +821,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                     ConstraintsMap params = new ConstraintsMap();
                     params.putString("sdp", sdp.description);
                     params.putString("type", sdp.type.canonicalForm());
-                    result.success(params);
+                    result.success(params.toMap());
                 }
 
                 @Override

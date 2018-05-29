@@ -2,6 +2,7 @@ package com.cloudwebrtc.webrtc;
 
 import android.content.Context;
 import android.util.Log;
+import android.graphics.SurfaceTexture;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -15,7 +16,7 @@ import org.webrtc.VideoTrack;
 public class FlutterRTCVideoRenderer {
 
     private static final String TAG = FlutterWebRTCPlugin.TAG;
-
+    private final SurfaceTexture texture;
     static {
         // IS_IN_LAYOUT
         Method isInLayout = null;
@@ -69,7 +70,7 @@ public class FlutterRTCVideoRenderer {
             }
         };
 
-    private final SurfaceViewRenderer surfaceViewRenderer;
+    private final SurfaceTextureRenderer surfaceViewRenderer;
 
     /**
      * The {@code VideoRenderer}, if any, which renders {@link #videoTrack} on
@@ -82,11 +83,12 @@ public class FlutterRTCVideoRenderer {
      */
     private VideoTrack videoTrack;
 
-    public FlutterRTCVideoRenderer(Context context) {
-        surfaceViewRenderer = new SurfaceViewRenderer(context);
+    public FlutterRTCVideoRenderer(SurfaceTexture texture, Context context) {
+        this.surfaceViewRenderer = new SurfaceTextureRenderer(context, texture);
+        this.texture = texture;
     }
 
-    private final SurfaceViewRenderer getSurfaceViewRenderer() {
+    private final SurfaceTextureRenderer getSurfaceViewRenderer() {
         return surfaceViewRenderer;
     }
 
@@ -194,30 +196,6 @@ public class FlutterRTCVideoRenderer {
     }
 
     /**
-     * Sets the z-order of this {@link FlutterRTCVideoRenderer} in the stacking space of all
-     * {@code FlutterRTCVideoRenderer}s. For more details, refer to the documentation of the
-     * {@code zOrder} property of the JavaScript counterpart of
-     * {@code FlutterRTCVideoRenderer} i.e. {@code RTCView}.
-     *
-     * @param zOrder The z-order to set on this {@code FlutterRTCVideoRenderer}.
-     */
-    public void setZOrder(int zOrder) {
-        SurfaceViewRenderer surfaceViewRenderer = getSurfaceViewRenderer();
-
-        switch (zOrder) {
-        case 0:
-            surfaceViewRenderer.setZOrderMediaOverlay(false);
-            break;
-        case 1:
-            surfaceViewRenderer.setZOrderMediaOverlay(true);
-            break;
-        case 2:
-            surfaceViewRenderer.setZOrderOnTop(true);
-            break;
-        }
-    }
-
-    /**
      * Starts rendering {@link #videoTrack} if rendering is not in progress and
      * all preconditions for the start of rendering are met.
      */
@@ -233,7 +211,7 @@ public class FlutterRTCVideoRenderer {
                 return;
             }
 
-            SurfaceViewRenderer surfaceViewRenderer = getSurfaceViewRenderer();
+            SurfaceTextureRenderer surfaceViewRenderer = getSurfaceViewRenderer();
             surfaceViewRenderer.init(sharedContext, rendererEvents);
 
             videoRenderer = new VideoRenderer(surfaceViewRenderer);

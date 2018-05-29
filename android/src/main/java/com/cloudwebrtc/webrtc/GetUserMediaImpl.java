@@ -295,8 +295,6 @@ class GetUserMediaImpl{
             final Result result,
             final MediaStream mediaStream) {
 
-        ConstraintsArray tracks_ =  new ConstraintsArray();
-        ConstraintsArray successResult = new ConstraintsArray();
         MediaStreamTrack[] tracks = new MediaStreamTrack[1];
 
 
@@ -308,6 +306,10 @@ class GetUserMediaImpl{
         mVideoCapturers.put(trackId, videoCapturer);
 
         tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
+
+        ConstraintsArray audioTracks = new ConstraintsArray();
+        ConstraintsArray videoTracks = new ConstraintsArray();
+        ConstraintsMap successResult = new ConstraintsMap();
 
         for (MediaStreamTrack track : tracks) {
             if (track == null) {
@@ -332,7 +334,12 @@ class GetUserMediaImpl{
             track_.putString("label", kind);
             track_.putString("readyState", track.state().toString());
             track_.putBoolean("remote", false);
-            tracks_.pushMap(track_);
+
+            if (track instanceof AudioTrack) {
+                audioTracks.pushMap(track_);
+            } else {
+                videoTracks.pushMap(track_);
+            }
         }
 
         String streamId = mediaStream.label();
@@ -340,9 +347,10 @@ class GetUserMediaImpl{
         Log.d(TAG, "MediaStream id: " + streamId);
         plugin.localStreams.put(streamId, mediaStream);
 
-        successResult.pushString(streamId);
-        successResult.pushArray(tracks_);
-        result.success(successResult.toArrayList());
+        successResult.putString("streamId", streamId);
+        successResult.putArray("audioTracks", audioTracks.toArrayList());
+        successResult.putArray("videoTracks", audioTracks.toArrayList());
+        result.success(successResult.toMap());
     }
 
     /**
@@ -397,8 +405,6 @@ class GetUserMediaImpl{
                         return;
                     }
 
-                    ConstraintsArray tracks_ = new ConstraintsArray();
-                    ConstraintsArray successResult = new ConstraintsArray();
                     MediaStreamTrack[] tracks = new MediaStreamTrack[1];
                     VideoCapturer videoCapturer = null;
                     videoCapturer = new ScreenCapturerAndroid(
@@ -441,6 +447,10 @@ class GetUserMediaImpl{
 
                         tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
 
+                        ConstraintsArray audioTracks = new ConstraintsArray();
+                        ConstraintsArray videoTracks = new ConstraintsArray();
+                        ConstraintsMap successResult = new ConstraintsMap();
+
                         for (MediaStreamTrack track : tracks) {
                             if (track == null) {
                                 continue;
@@ -464,7 +474,12 @@ class GetUserMediaImpl{
                             track_.putString("label", kind);
                             track_.putString("readyState", track.state().toString());
                             track_.putBoolean("remote", false);
-                            tracks_.pushMap(track_);
+
+                            if (track instanceof AudioTrack) {
+                                audioTracks.pushMap(track_);
+                            } else {
+                                videoTracks.pushMap(track_);
+                            }
                         }
 
                         String streamId = mediaStream.label();
@@ -472,9 +487,10 @@ class GetUserMediaImpl{
                         Log.d(TAG, "MediaStream id: " + streamId);
                         plugin.localStreams.put(streamId, mediaStream);
 
-                        successResult.pushString(streamId);
-                        successResult.pushArray(tracks_);
-                        result.success(successResult);
+                        successResult.putString("streamId", streamId);
+                        successResult.putArray("audioTracks", audioTracks.toArrayList());
+                        successResult.putArray("videoTracks", audioTracks.toArrayList());
+                        result.success(successResult.toMap());
                     }
 
                 }
@@ -585,8 +601,9 @@ class GetUserMediaImpl{
             return;
         }
 
-        ConstraintsArray tracks_ = new ConstraintsArray();
-        ConstraintsArray successResult = new ConstraintsArray();
+        ConstraintsArray audioTracks = new ConstraintsArray();
+        ConstraintsArray videoTracks = new ConstraintsArray();
+        ConstraintsMap successResult = new ConstraintsMap();
 
         for (MediaStreamTrack track : tracks) {
             if (track == null) {
@@ -611,7 +628,12 @@ class GetUserMediaImpl{
             track_.putString("label", kind);
             track_.putString("readyState", track.state().toString());
             track_.putBoolean("remote", false);
-            tracks_.pushMap(track_);
+
+            if (track instanceof AudioTrack) {
+                audioTracks.pushMap(track_);
+            } else {
+                videoTracks.pushMap(track_);
+            }
         }
 
         String streamId = mediaStream.label();
@@ -619,9 +641,10 @@ class GetUserMediaImpl{
         Log.d(TAG, "MediaStream id: " + streamId);
         plugin.localStreams.put(streamId, mediaStream);
 
-        successResult.pushString(streamId);
-        successResult.pushArray(tracks_);
-        result.success(successResult);
+        successResult.putString("streamId", streamId);
+        successResult.putArray("audioTracks", audioTracks.toArrayList());
+        successResult.putArray("videoTracks", audioTracks.toArrayList());
+        result.success(successResult.toMap());
     }
 
 
