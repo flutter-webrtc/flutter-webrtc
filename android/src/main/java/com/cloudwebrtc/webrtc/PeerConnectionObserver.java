@@ -40,6 +40,15 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     EventChannel eventChannel;
     EventChannel.EventSink eventSink;
 
+    /*
+        Map<String, Object> event = new HashMap<>();
+        event.put("event", "onSomeEvent");
+        event.put("param1", 111);
+        event.put("width", 176);
+        event.put("height", 144);
+        nativeToDartEventSink.success(event);
+     */
+
     /**
      * The <tt>StringBuilder</tt> cache utilized by {@link #statsToJSON} in
      * order to minimize the number of allocations of <tt>StringBuilder</tt>
@@ -61,14 +70,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
                         plugin.registrar().messenger(),
                         "cloudwebrtc.com/WebRTC/peerConnectoinEvent" + id);
         eventChannel.setStreamHandler(this);
-        /*
-        Map<String, Object> event = new HashMap<>();
-        event.put("event", "onSomeEvent");
-        event.put("param1", 111);
-        event.put("width", 222);
-        event.put("height", 333);
-        nativeToDartEventSink.success(event);
-        */
+        this.eventSink = null;
     }
 
     @Override
@@ -85,7 +87,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         return peerConnection;
     }
 
-    void setPeerConnection(String id, PeerConnection peerConnection) {
+    void setPeerConnection(PeerConnection peerConnection) {
         this.peerConnection = peerConnection;
     }
 
@@ -253,14 +255,13 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     public void onIceCandidate(final IceCandidate candidate) {
         Log.d(TAG, "onIceCandidate");
         ConstraintsMap params = new ConstraintsMap();
-        params.putString("id", id);
+        params.putString("event", "onCandidate");
         ConstraintsMap candidateParams = new ConstraintsMap();
         candidateParams.putInt("sdpMLineIndex", candidate.sdpMLineIndex);
         candidateParams.putString("sdpMid", candidate.sdpMid);
         candidateParams.putString("candidate", candidate.sdp);
         params.putMap("candidate", candidateParams.toMap());
-
-        sendEvent("peerConnectionGotICECandidate", params);
+        sendEvent(params);
     }
 
     @Override
@@ -271,10 +272,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     @Override
     public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {
         ConstraintsMap params = new ConstraintsMap();
-        params.putString("id", id);
-        params.putString("iceConnectionState", iceConnectionStateString(iceConnectionState));
-
-        sendEvent("peerConnectionIceConnectionChanged", params);
+        params.putString("event", "iceConnectionState");
+        params.putString("state", iceConnectionStateString(iceConnectionState));
+        sendEvent(params);
     }
 
     @Override
@@ -285,9 +285,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
         Log.d(TAG, "onIceGatheringChange" + iceGatheringState.name());
         ConstraintsMap params = new ConstraintsMap();
-        params.putString("id", id);
-        params.putString("iceGatheringState", iceGatheringStateString(iceGatheringState));
-        sendEvent("peerConnectionIceGatheringChanged", params);
+        params.putString("event", "iceGatheringState");
+        params.putString("state", iceGatheringStateString(iceGatheringState));
+        sendEvent(params);
     }
 
     private String getReactTagForStream(MediaStream mediaStream) {
@@ -321,15 +321,15 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
         if (streamReactTag == null){
             streamReactTag = plugin.getNextStreamUUID();
-            remoteStreams.put(streamReactTag, mediaStream);
+            remoteStreams.put(streamId, mediaStream);
         }
 
         ConstraintsMap params = new ConstraintsMap();
-        params.putString("id", id);
+        params.putString("event", "onAddStream");
         params.putString("streamId", streamId);
-        params.putString("streamReactTag", streamReactTag);
 
-        ConstraintsArray tracks = new ConstraintsArray();
+        ConstraintsArray audioTracks = new ConstraintsArray();
+        ConstraintsArray videoTracks = new ConstraintsArray();
 
         for (int i = 0; i < mediaStream.videoTracks.size(); i++) {
             VideoTrack track = mediaStream.videoTracks.get(i);
@@ -344,7 +344,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             trackInfo.putBoolean("enabled", track.enabled());
             trackInfo.putString("readyState", track.state().toString());
             trackInfo.putBoolean("remote", true);
-            tracks.pushMap(trackInfo);
+            videoTracks.pushMap(trackInfo);
         }
         for (int i = 0; i < mediaStream.audioTracks.size(); i++) {
             AudioTrack track = mediaStream.audioTracks.get(i);
@@ -359,19 +359,18 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             trackInfo.putBoolean("enabled", track.enabled());
             trackInfo.putString("readyState", track.state().toString());
             trackInfo.putBoolean("remote", true);
-            tracks.pushMap(trackInfo);
+            audioTracks.pushMap(trackInfo);
         }
-        params.putArray("tracks", tracks.toArrayList());
+        params.putArray("audioTracks", audioTracks.toArrayList());
+        params.putArray("videoTracks", videoTracks.toArrayList());
 
-        sendEvent("peerConnectionAddedStream", params);
+        sendEvent(params);
     }
 
 
-    void sendEvent(String eventName,  ConstraintsMap params) {
-        Map<String, Object> event = new HashMap<>();
-        event.put("event", eventName);
-        event.put("body", params.toMap());
-        eventSink.success(event);
+    void sendEvent(ConstraintsMap event) {
+        if(eventSink != null )
+            eventSink.success(event.toMap());
     }
 
     @Override
@@ -394,9 +393,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         this.remoteStreams.remove(streamReactTag);
 
         ConstraintsMap params = new ConstraintsMap();
-        params.putString("id", id);
+        params.putString("event", "onRemoveStream");
         params.putString("streamId", streamReactTag);
-        sendEvent("peerConnectionRemovedStream", params);
+        sendEvent(params);
     }
 
     @Override
@@ -407,9 +406,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         String streamReactTag = streamId;
 
         ConstraintsMap params = new ConstraintsMap();
-        params.putString("id", id);
+        params.putString("event", "onAddTrack");
         params.putString("streamId", streamId);
-        params.putString("streamReactTag", streamReactTag);
+        params.putString("trackId", track.id());
 
         String trackId = track.id();
         ConstraintsMap trackInfo = new ConstraintsMap();
@@ -422,7 +421,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
         params.putMap("track", trackInfo.toMap());
 
-        sendEvent("peerConnectionAddedTrack", params);
+        sendEvent(params);
     }
 
     @Override
@@ -431,9 +430,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         String streamId = mediaStream.label();
         String streamReactTag = streamId;
         ConstraintsMap params = new ConstraintsMap();
-        params.putString("id", id);
+        params.putString("event", "onRemoveTrack");
         params.putString("streamId", streamId);
-        params.putString("streamReactTag", streamReactTag);
+        params.putString("trackId", track.id());
 
         String trackId = track.id();
         ConstraintsMap trackInfo = new ConstraintsMap();
@@ -446,7 +445,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
         params.putMap("track", trackInfo.toMap());
 
-        sendEvent("peerConnectionRemovedTrack", params);
+        sendEvent(params);
     }
 
 
@@ -475,18 +474,15 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         if (-1 == dataChannelId) {
           return;
         }
-
-        ConstraintsMap dataChannelParams = new ConstraintsMap();
-        dataChannelParams.putInt("id", dataChannelId);
-        dataChannelParams.putString("label", dataChannel.label());
         ConstraintsMap params = new ConstraintsMap();
-        params.putString("id", id);
-        params.putMap("dataChannel", dataChannelParams.toMap());
+        params.putString("event", "didOpenDataChannel");
+        params.putInt("id", dataChannelId);
+        params.putString("label", dataChannel.label());
 
         dataChannels.put(dataChannelId, dataChannel);
         registerDataChannelObserver(dataChannelId, dataChannel);
 
-        sendEvent("peerConnectionDidOpenDataChannel", params);
+        sendEvent(params);
     }
 
     private void registerDataChannelObserver(int dcId, DataChannel dataChannel) {
@@ -500,16 +496,16 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     @Override
     public void onRenegotiationNeeded() {
         ConstraintsMap params = new ConstraintsMap();
-        params.putString("id", id);
-        sendEvent("peerConnectionOnRenegotiationNeeded", params);
+        params.putString("event", "onRenegotiationNeeded");
+        sendEvent(params);
     }
 
     @Override
     public void onSignalingChange(PeerConnection.SignalingState signalingState) {
         ConstraintsMap params = new ConstraintsMap();
-        params.putString("id", id);
-        params.putString("signalingState", signalingStateString(signalingState));
-        sendEvent("peerConnectionSignalingStateChanged", params);
+        params.putString("event", "signalingState");
+        params.putString("state", signalingStateString(signalingState));
+        sendEvent(params);
     }
 
     @Override

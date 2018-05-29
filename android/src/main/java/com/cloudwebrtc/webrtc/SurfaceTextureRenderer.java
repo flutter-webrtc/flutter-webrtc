@@ -3,12 +3,10 @@ package com.cloudwebrtc.webrtc;
 import android.content.Context;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Point;
+import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.util.AttributeSet;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -30,10 +28,10 @@ import java.nio.ByteBuffer;
  * Interaction from the Activity lifecycle in surfaceCreated, surfaceChanged, and surfaceDestroyed.
  * Interaction with the layout framework in onMeasure and onSizeChanged.
  */
-public class SurfaceViewRenderer extends SurfaceView
-    implements SurfaceHolder.Callback, VideoRenderer.Callbacks {
+public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
   private static final String TAG = "SurfaceViewRenderer";
 
+  private final SurfaceTexture texture;
   // Dedicated render thread.
   private HandlerThread renderThread;
   // |renderThreadHandler| is a handler for communicating with |renderThread|, and is synchronized
@@ -183,20 +181,12 @@ public class SurfaceViewRenderer extends SurfaceView
     }
   };
 
-  /**
-   * Standard View constructor. In order to render something, you must first call init().
-   */
-  public SurfaceViewRenderer(Context context) {
-    super(context);
-    getHolder().addCallback(this);
-  }
-
-  /**
-   * Standard View constructor. In order to render something, you must first call init().
-   */
-  public SurfaceViewRenderer(Context context, AttributeSet attrs) {
-    super(context, attrs);
-    getHolder().addCallback(this);
+  public SurfaceTextureRenderer(Context context, SurfaceTexture texture) {
+    this.texture = texture;
+    synchronized (layoutLock) {
+      isSurfaceCreated = true;
+    }
+    tryCreateEglSurface();
   }
 
   /**
@@ -250,8 +240,8 @@ public class SurfaceViewRenderer extends SurfaceView
       @Override
       public void run() {
         synchronized (layoutLock) {
-          if (eglBase != null && isSurfaceCreated && !eglBase.hasSurface()) {
-            eglBase.createSurface(getHolder().getSurface());
+          if (texture != null && eglBase != null && isSurfaceCreated && !eglBase.hasSurface()) {
+            eglBase.createSurface(texture);
             eglBase.makeCurrent();
             // Necessary for YUV frames with odd width.
             GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1);
@@ -382,71 +372,7 @@ public class SurfaceViewRenderer extends SurfaceView
     }
   }
 
-  // Returns desired layout size given current measure specification and video aspect ratio.
-  private Point getDesiredLayoutSize(int widthSpec, int heightSpec) {
-    synchronized (layoutLock) {
-      final int maxWidth = getDefaultSize(Integer.MAX_VALUE, widthSpec);
-      final int maxHeight = getDefaultSize(Integer.MAX_VALUE, heightSpec);
-      final Point size =
-          RendererCommon.getDisplaySize(scalingType, frameAspectRatio(), maxWidth, maxHeight);
-      if (MeasureSpec.getMode(widthSpec) == MeasureSpec.EXACTLY) {
-        size.x = maxWidth;
-      }
-      if (MeasureSpec.getMode(heightSpec) == MeasureSpec.EXACTLY) {
-        size.y = maxHeight;
-      }
-      return size;
-    }
-  }
-
-  // View layout interface.
-  @Override
-  protected void onMeasure(int widthSpec, int heightSpec) {
-    final boolean isNewSize;
-    synchronized (layoutLock) {
-      if (frameWidth == 0 || frameHeight == 0) {
-        super.onMeasure(widthSpec, heightSpec);
-        return;
-      }
-      desiredLayoutSize = getDesiredLayoutSize(widthSpec, heightSpec);
-      isNewSize = (desiredLayoutSize.x != getMeasuredWidth()
-          || desiredLayoutSize.y != getMeasuredHeight());
-      setMeasuredDimension(desiredLayoutSize.x, desiredLayoutSize.y);
-    }
-    if (isNewSize) {
-      // Clear the surface asap before the layout change to avoid stretched video and other
-      // render artifacs. Don't wait for it to finish because the IO thread should never be
-      // blocked, so it's a best-effort attempt.
-      synchronized (handlerLock) {
-        if (renderThreadHandler != null) {
-          renderThreadHandler.postAtFrontOfQueue(makeBlackRunnable);
-        }
-      }
-    }
-  }
-
-  @Override
-  protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-    synchronized (layoutLock) {
-      layoutSize.x = right - left;
-      layoutSize.y = bottom - top;
-    }
-    // Might have a pending frame waiting for a layout of correct size.
-    runOnRenderThread(renderFrameRunnable);
-  }
-
-  // SurfaceHolder.Callback interface.
-  @Override
-  public void surfaceCreated(final SurfaceHolder holder) {
-    Logging.d(TAG, getResourceName() + "Surface created.");
-    synchronized (layoutLock) {
-      isSurfaceCreated = true;
-    }
-    tryCreateEglSurface();
-  }
-
-  @Override
-  public void surfaceDestroyed(SurfaceHolder holder) {
+  public void surfaceDestroyed() {
     Logging.d(TAG, getResourceName() + "Surface destroyed.");
     synchronized (layoutLock) {
       isSurfaceCreated = false;
@@ -464,8 +390,7 @@ public class SurfaceViewRenderer extends SurfaceView
     });
   }
 
-  @Override
-  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+  public void surfaceChanged(int width, int height) {
     Logging.d(TAG, getResourceName() + "Surface changed: " + width + "x" + height);
     synchronized (layoutLock) {
       surfaceSize.x = width;
@@ -488,7 +413,7 @@ public class SurfaceViewRenderer extends SurfaceView
 
   private String getResourceName() {
     try {
-      return getResources().getResourceEntryName(getId()) + ": ";
+      return "SurfaceTextureRenderer: ";
     } catch (NotFoundException e) {
       return "";
     }
@@ -637,11 +562,8 @@ public class SurfaceViewRenderer extends SurfaceView
         frameWidth = frame.width;
         frameHeight = frame.height;
         frameRotation = frame.rotationDegree;
-        post(new Runnable() {
-          @Override public void run() {
-            requestLayout();
-          }
-        });
+
+        texture.setDefaultBufferSize(frameWidth, frameHeight);
       }
     }
   }

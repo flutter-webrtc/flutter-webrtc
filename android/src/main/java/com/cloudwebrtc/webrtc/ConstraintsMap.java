@@ -36,7 +36,10 @@ public class ConstraintsMap {
         return (double) mMap.get(name);
     }
 
-    int getInt(String name){
+    int getInt(String name) {
+        if(getType(name) == ObjectType.String) {
+            return Integer.parseInt(((String)mMap.get(name)));
+        }
         return (int) mMap.get(name);
     }
 
