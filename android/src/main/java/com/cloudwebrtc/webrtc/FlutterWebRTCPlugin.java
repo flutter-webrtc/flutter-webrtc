@@ -192,6 +192,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
             eventChannel.setStreamHandler(render);
             render.setEventChannel(eventChannel);
+            render.setId((int)entry.id());
 
             ConstraintsMap params = new ConstraintsMap();
             params.putInt("textureId", (int)entry.id());
