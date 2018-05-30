@@ -12,6 +12,9 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.support.annotation.Nullable;
 
+import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
+import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
+
 import org.webrtc.AudioTrack;
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
