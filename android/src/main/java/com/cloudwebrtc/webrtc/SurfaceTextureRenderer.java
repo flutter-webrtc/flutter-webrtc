@@ -395,6 +395,8 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
     synchronized (layoutLock) {
       surfaceSize.x = width;
       surfaceSize.y = height;
+      layoutSize.x = width;
+      layoutSize.y = height;
     }
     // Might have a pending frame waiting for a surface of correct size.
     runOnRenderThread(renderFrameRunnable);
@@ -562,8 +564,8 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
         frameWidth = frame.width;
         frameHeight = frame.height;
         frameRotation = frame.rotationDegree;
-
         texture.setDefaultBufferSize(frameWidth, frameHeight);
+        surfaceChanged(frameWidth, frameHeight);
       }
     }
   }

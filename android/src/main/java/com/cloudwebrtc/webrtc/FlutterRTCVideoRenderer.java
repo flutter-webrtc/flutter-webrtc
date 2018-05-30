@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import android.graphics.SurfaceTexture;
 
+import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
     private static final String TAG = FlutterWebRTCPlugin.TAG;
     private final SurfaceTexture texture;
+    private int id = -1;
 
     public void Dispose(){
         //destroy
@@ -44,6 +46,22 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
                 FlutterRTCVideoRenderer.this.onFrameResolutionChanged(
                         videoWidth, videoHeight,
                         rotation);
+
+                if(eventSink != null)
+                {
+                    ConstraintsMap params = new ConstraintsMap();
+                    params.putString("event", "didTextureChangeVideoSize");
+                    params.putInt("id", id);
+                    params.putDouble("width", (double) videoWidth);
+                    params.putDouble("height", (double) videoHeight);
+                    eventSink.success(params.toMap());
+
+                    ConstraintsMap params2 = new ConstraintsMap();
+                    params2.putString("event", "didTextureChangeRotation");
+                    params2.putInt("id", id);
+                    params2.putInt("rotation", rotation);
+                    eventSink.success(params2.toMap());
+                }
             }
         };
 
@@ -71,6 +89,10 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
     public void setEventChannel(EventChannel eventChannel){
         this.eventChannel = eventChannel;
+    }
+
+    public void setId(int id){
+        this.id = id;
     }
 
     @Override
