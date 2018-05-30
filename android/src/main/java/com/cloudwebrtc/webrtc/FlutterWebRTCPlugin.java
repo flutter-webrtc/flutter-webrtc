@@ -7,6 +7,11 @@ import android.graphics.SurfaceTexture;
 import android.util.Log;
 import android.util.LongSparseArray;
 
+import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
+import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
+import com.cloudwebrtc.webrtc.utils.EglUtils;
+import com.cloudwebrtc.webrtc.utils.ObjectType;
+
 import java.util.*;
 
 import org.webrtc.AudioTrack;
@@ -20,9 +25,9 @@ import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
-import org.webrtc.VideoRenderer;
 import org.webrtc.VideoTrack;
 
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
@@ -179,13 +184,40 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             SurfaceTexture surfaceTexture = entry.surfaceTexture();
             FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, getContext());
             renders.put(entry.id(), render);
-            result.success(entry.id());
+
+            EventChannel eventChannel =
+                    new EventChannel(
+                            registrar.messenger(),
+                            "cloudwebrtc.com/WebRTC/Texture" + entry.id());
+
+            eventChannel.setStreamHandler(render);
+            render.setEventChannel(eventChannel);
+
+            ConstraintsMap params = new ConstraintsMap();
+            params.putInt("textureId", (int)entry.id());
+            result.success(params.toMap());
         } else if (call.method.equals("videoRendererDispose")) {
-            //TODO:
+            int textureId = call.argument("textureId");
+            FlutterRTCVideoRenderer render = renders.get(textureId);
+            render.Dispose();
+            renders.delete(textureId);
         } else if (call.method.equals("videoRendererSetSrcObject")) {
-            //int textureId = call.argument("textureId");
-            //String streamId = call.argument("streamId");
-            //TODO:
+            int textureId = call.argument("textureId");
+            String streamId = call.argument("streamId");
+
+            FlutterRTCVideoRenderer render = renders.get(textureId);
+
+            if(render == null ){
+                result.error("FlutterRTCVideoRendererNotFound", "render [" + textureId + "] not found !", null);
+                return;
+            }
+
+            MediaStream stream = getStreamForId(streamId);
+            if(stream == null ){
+                result.error("MediaStreamNotFound", "media stream [" + streamId + "] not found !", null);
+                return;
+            }
+            render.setStream(stream);
             result.success(null);
         } else {
             result.notImplemented();
@@ -595,25 +627,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         getUserMediaImpl.getUserMedia(constraints, result, mediaStream);
     }
 
-    public void getImageMedia(ConstraintsMap constraints, Result result) {
-        String streamId = getNextStreamUUID();
-        MediaStream mediaStream = mFactory.createLocalMediaStream(streamId);
-
-        if (mediaStream == null) {
-            // XXX The following does not follow the getUserMedia() algorithm
-            // specified by
-            // https://www.w3.org/TR/mediacapture-streams/#dom-mediadevices-getusermedia
-            // with respect to distinguishing the various causes of failure.
-
-            result.error(
-                    /* type */ "getImageMedia",
-                    "Failed to create new media stream", null);
-            return;
-        }
-
-        getUserMediaImpl.getImageMedia(constraints, result, mediaStream);
-    }
-
     public void mediaStreamTrackGetSources(Result result) {
         ConstraintsArray array = new ConstraintsArray();
         String[] names = new String[Camera.getNumberOfCameras()];
@@ -667,13 +680,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         MediaStreamTrack track = localTracks.get(id);
         if (track != null) {
             getUserMediaImpl.switchCamera(id);
-        }
-    }
-
-    public void mediaStreamTrackPutImage(final String id, final String base64_image) {
-        MediaStreamTrack track = localTracks.get(id);
-        if (track != null) {
-            getUserMediaImpl.putImage(id, base64_image);
         }
     }
 

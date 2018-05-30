@@ -1,4 +1,4 @@
-package com.cloudwebrtc.webrtc;
+package com.cloudwebrtc.webrtc.utils;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -10,6 +10,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import android.support.v4.content.ContextCompat;
+
+import com.cloudwebrtc.webrtc.FlutterWebRTCPlugin;
 
 import java.util.ArrayList;
 
