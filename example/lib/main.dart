@@ -136,24 +136,40 @@ class _MyAppState extends State<MyApp> {
         appBar: new AppBar(
           title: new Text('Flutter-WebRTC example'),
         ),
-        body: new Center(
-            child: new Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  new Text('Local video:'),
-                  new Container(
-                    width: 320.0,
-                    height: 240.0,
-                    child: new RTCVideoView(_localRenderer),
-                  ),
+        body: new OrientationBuilder(
+          builder: (context, orientation) {
+            return new Center(
 
-                  new Text('Remote video:'),
-                  new Container(
-                    width: 320.0,
-                    height: 240.0,
-                    child: new RTCVideoView(_remoteRenderer),
-                  ),
-            ])),
+              child: new Container(
+                decoration: new BoxDecoration(color: Colors.black),
+
+                child: new Stack(
+                  children: <Widget>[
+                    new Align(
+                      alignment: orientation == Orientation.portrait ? const FractionalOffset(0.5, 0.1):const FractionalOffset(0.0, 0.5),
+                      child: new Container(
+                        width: 320.0,
+                        height: 240.0,
+                        child: new RTCVideoView(_localRenderer),
+                        decoration: new BoxDecoration(color: Colors.black54),
+                      ),
+                    ),
+                    new Align(
+                      alignment: orientation == Orientation.portrait ? const FractionalOffset(0.5, 0.9):const FractionalOffset(1.0, 0.5),
+                      child: new Container(
+                        width: 320.0,
+                        height: 240.0,
+                        child: new RTCVideoView(_remoteRenderer),
+                        decoration: new BoxDecoration(color: Colors.black54),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            );
+          },
+        ),
       ),
     );
   }
