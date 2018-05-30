@@ -1,5 +1,5 @@
-import 'package:webrtc/MediaStreamTrack.dart';
-import 'package:webrtc/WebRTC.dart';
+import 'package:webrtc/media_stream_track.dart';
+import 'package:webrtc/webrtc.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 
