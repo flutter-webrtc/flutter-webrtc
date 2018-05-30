@@ -36,7 +36,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.view.TextureRegistry;
 
 /**
- * WebrtcPlugin
+ * FlutterWebRTCPlugin
  */
 public class FlutterWebRTCPlugin implements MethodCallHandler {
 
