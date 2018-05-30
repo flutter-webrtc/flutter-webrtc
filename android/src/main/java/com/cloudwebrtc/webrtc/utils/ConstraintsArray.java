@@ -1,4 +1,4 @@
-package com.cloudwebrtc.webrtc;
+package com.cloudwebrtc.webrtc.utils;
 
 import java.util.ArrayList;
 import java.util.Map;

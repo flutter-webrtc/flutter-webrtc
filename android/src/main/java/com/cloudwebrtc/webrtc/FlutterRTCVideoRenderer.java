@@ -4,7 +4,8 @@ import android.content.Context;
 import android.util.Log;
 import android.graphics.SurfaceTexture;
 
-import java.lang.reflect.Method;
+import com.cloudwebrtc.webrtc.utils.EglUtils;
+
 import java.util.List;
 
 import org.webrtc.EglBase;
@@ -13,42 +14,18 @@ import org.webrtc.RendererCommon.RendererEvents;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoTrack;
 
-public class FlutterRTCVideoRenderer {
+import io.flutter.plugin.common.EventChannel;
+
+public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
     private static final String TAG = FlutterWebRTCPlugin.TAG;
     private final SurfaceTexture texture;
-    static {
-        // IS_IN_LAYOUT
-        Method isInLayout = null;
 
-        try {
-            Method m = FlutterRTCVideoRenderer.class.getMethod("isInLayout");
-
-            if (boolean.class.isAssignableFrom(m.getReturnType())) {
-                isInLayout = m;
-            }
-        } catch (NoSuchMethodException e) {
-            // Fall back to the behavior of ViewCompat#isInLayout(View).
-        }
+    public void Dispose(){
+        //destroy
+        eventChannel.setStreamHandler(null);
+        eventSink = null;
     }
-
-    /**
-     * The height of the last video frame rendered by
-     * {@link #surfaceViewRenderer}.
-     */
-    private int frameHeight;
-
-    /**
-     * The rotation (degree) of the last video frame rendered by
-     * {@link #surfaceViewRenderer}.
-     */
-    private int frameRotation;
-
-    /**
-     * The width of the last video frame rendered by
-     * {@link #surfaceViewRenderer}.
-     */
-    private int frameWidth;
 
     /**
      * The {@code RendererEvents} which listens to rendering events reported by
@@ -83,9 +60,27 @@ public class FlutterRTCVideoRenderer {
      */
     private VideoTrack videoTrack;
 
+    EventChannel eventChannel;
+    EventChannel.EventSink eventSink;
+
     public FlutterRTCVideoRenderer(SurfaceTexture texture, Context context) {
         this.surfaceViewRenderer = new SurfaceTextureRenderer(context, texture);
         this.texture = texture;
+        this.eventSink = null;
+    }
+
+    public void setEventChannel(EventChannel eventChannel){
+        this.eventChannel = eventChannel;
+    }
+
+    @Override
+    public void onListen(Object o, EventChannel.EventSink sink) {
+        eventSink = sink;
+    }
+
+    @Override
+    public void onCancel(Object o) {
+        eventSink = null;
     }
 
     private final SurfaceTextureRenderer getSurfaceViewRenderer() {
@@ -125,15 +120,6 @@ public class FlutterRTCVideoRenderer {
             videoRenderer = null;
 
             getSurfaceViewRenderer().release();
-            /*
-            // Since this FlutterRTCVideoRenderer is no longer rendering anything, make sure
-            // surfaceViewRenderer displays nothing as well.
-            synchronized (layoutSyncRoot) {
-                frameHeight = 0;
-                frameRotation = 0;
-                frameWidth = 0;
-            }
-            */
         }
     }
 
@@ -179,20 +165,6 @@ public class FlutterRTCVideoRenderer {
                 tryAddRendererToVideoTrack();
             }
         }
-    }
-
-    //@ReactProp(name = "streamURL")
-    public void setStreamURL(FlutterRTCVideoRenderer view, String streamURL) {
-        MediaStream mediaStream;
-        if (streamURL == null) {
-            mediaStream = null;
-        } else {
-            //TODO:
-            //ReactContext reactContext = (ReactContext) view.getContext();
-            //WebRTCModule module = reactContext.getNativeModule(WebRTCModule.class);
-            //mediaStream = module.getStreamForReactTag(streamURL);
-        }
-        //view.setStream(mediaStream);
     }
 
     /**
