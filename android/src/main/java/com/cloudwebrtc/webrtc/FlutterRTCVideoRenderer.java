@@ -52,8 +52,15 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
                     ConstraintsMap params = new ConstraintsMap();
                     params.putString("event", "didTextureChangeVideoSize");
                     params.putInt("id", id);
-                    params.putDouble("width", (double) videoWidth);
-                    params.putDouble("height", (double) videoHeight);
+
+                    if(rotation == 90 || rotation == 270){
+                        params.putDouble("width", (double) videoHeight);
+                        params.putDouble("height", (double) videoWidth);
+                    }else {
+                        params.putDouble("width", (double) videoWidth);
+                        params.putDouble("height", (double) videoHeight);
+                    }
+
                     eventSink.success(params.toMap());
 
                     ConstraintsMap params2 = new ConstraintsMap();
