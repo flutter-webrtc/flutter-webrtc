@@ -15,35 +15,35 @@ public class ConstraintsArray {
      this.mArray = array;
     }
 
-    int size(){
+    public int size(){
         return mArray.size();
     }
 
-    boolean isNull(int index){
+    public boolean isNull(int index){
         return mArray.get(index) == null;
     }
 
-    boolean getBoolean(int index){
+    public boolean getBoolean(int index){
         return (Boolean) mArray.get(index);
     }
 
-    double getDouble(int index){
+    public double getDouble(int index){
         return (double) mArray.get(index);
     }
 
-    int getInt(int index){
+    public int getInt(int index){
         return (int) mArray.get(index);
     }
 
-    String getString(int index){
+    public String getString(int index){
         return (String) mArray.get(index);
     }
 
-    ConstraintsArray getArray(int index){
+    public ConstraintsArray getArray(int index){
         return new ConstraintsArray((ArrayList<Object>)mArray.get(index));
     }
 
-    ConstraintsMap getMap(int index){
+    public ConstraintsMap getMap(int index){
         return new ConstraintsMap((Map<String, Object>) mArray.get(index));
     }
 
@@ -68,35 +68,35 @@ public class ConstraintsArray {
         return ObjectType.Null;
     }
 
-    ArrayList<Object> toArrayList(){
+    public ArrayList<Object> toArrayList(){
         return mArray;
     }
 
-    void pushNull(){
+    public void pushNull(){
         mArray.add(null);
     }
 
-    void pushBoolean(boolean value){
+    public void pushBoolean(boolean value){
         mArray.add(value);
     }
 
-    void pushDouble(double value){
+    public void pushDouble(double value){
         mArray.add(value);
     }
 
-    void pushInt(int value){
+    public void pushInt(int value){
         mArray.add(value);
     }
 
-    void pushString(String value){
+    public void pushString(String value){
         mArray.add(value);
     }
 
-    void pushArray(ConstraintsArray array){
+    public void pushArray(ConstraintsArray array){
         mArray.add(array.toArrayList());
     }
 
-    void pushMap(ConstraintsMap map){
+    public void pushMap(ConstraintsMap map){
         mArray.add(map.toMap());
     }
 
