@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:webrtc/RTCPeerConnection.dart';
-import 'package:webrtc/RTCPeerConnectionFactory.dart';
-import 'package:webrtc/MediaStream.dart';
-import 'package:webrtc/getUserMedia.dart';
-import 'package:webrtc/RTCSessionDescrption.dart';
-import 'package:webrtc/RTCVideoView.dart';
-import 'package:webrtc/RTCIceCandidate.dart';
+import 'package:webrtc/rtc_peerconnection.dart';
+import 'package:webrtc/rtc_peerconnection_factory.dart';
+import 'package:webrtc/media_stream.dart';
+import 'package:webrtc/get_user_media.dart';
+import 'package:webrtc/rtc_session_descrption.dart';
+import 'package:webrtc/rtc_video_view.dart';
+import 'package:webrtc/rtc_ice_candidate.dart';
 import 'dart:async';
 import 'dart:core';
 

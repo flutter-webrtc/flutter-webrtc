@@ -1,5 +1,5 @@
-import 'package:webrtc/WebRTC.dart';
-import 'package:webrtc/RTCPeerConnection.dart';
+import 'package:webrtc/webrtc.dart';
+import 'package:webrtc/rtc_peerconnection.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 

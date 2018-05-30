@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:webrtc/WebRTC.dart';
+import 'package:webrtc/webrtc.dart';
 
 class MediaStreamTrack {
   MethodChannel _channel = WebRTC.methodChannel();
