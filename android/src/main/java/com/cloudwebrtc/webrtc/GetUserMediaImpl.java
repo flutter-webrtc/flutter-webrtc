@@ -305,6 +305,7 @@ class GetUserMediaImpl{
             final ConstraintsMap constraints,
             final Result result,
             final MediaStream mediaStream) {
+
         // TODO: change getUserMedia constraints format to support new syntax
         //   constraint format seems changed, and there is no mandatory any more.
         //   and has a new syntax/attrs to specify resolution
@@ -361,8 +362,7 @@ class GetUserMediaImpl{
                     });
 
                     if (videoCapturer != null) {
-
-
+                        
                         PeerConnectionFactory pcFactory = plugin.mFactory;
                         VideoSource videoSource = pcFactory.createVideoSource(videoCapturer);
 
@@ -539,7 +539,7 @@ class GetUserMediaImpl{
             // https://www.w3.org/TR/mediacapture-streams/#dom-mediadevices-getusermedia
             // with respect to distinguishing the various causes of failure.
             result.error(
-                 /* type */ null,
+                 /* type */ "GetUserMediaFailed",
                     "Failed to create new track", null);
             return;
         }

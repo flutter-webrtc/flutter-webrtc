@@ -31,7 +31,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
     /**
      * The {@code RendererEvents} which listens to rendering events reported by
-     * {@link #surfaceViewRenderer}.
+     * {@link #surfaceTextureRenderer}.
      */
     private final RendererEvents rendererEvents
         = new RendererEvents() {
@@ -43,9 +43,6 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
             public void onFrameResolutionChanged(
                     int videoWidth, int videoHeight,
                     int rotation) {
-                FlutterRTCVideoRenderer.this.onFrameResolutionChanged(
-                        videoWidth, videoHeight,
-                        rotation);
 
                 if(eventSink != null)
                 {
@@ -72,7 +69,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
             }
         };
 
-    private final SurfaceTextureRenderer surfaceViewRenderer;
+    private final SurfaceTextureRenderer surfaceTextureRenderer;
 
     /**
      * The {@code VideoRenderer}, if any, which renders {@link #videoTrack} on
@@ -89,7 +86,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
     EventChannel.EventSink eventSink;
 
     public FlutterRTCVideoRenderer(SurfaceTexture texture, Context context) {
-        this.surfaceViewRenderer = new SurfaceTextureRenderer(context, texture);
+        this.surfaceTextureRenderer = new SurfaceTextureRenderer(context, texture);
         this.texture = texture;
         this.eventSink = null;
     }
@@ -112,30 +109,8 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
         eventSink = null;
     }
 
-    private final SurfaceTextureRenderer getSurfaceViewRenderer() {
-        return surfaceViewRenderer;
-    }
-
-    private void onFrameResolutionChanged(
-            int videoWidth, int videoHeight,
-            int rotation) {
-        boolean changed = false;
-        /*
-        synchronized (layoutSyncRoot) {
-            if (this.frameHeight != videoHeight) {
-                this.frameHeight = videoHeight;
-                changed = true;
-            }
-            if (this.frameRotation != rotation) {
-                this.frameRotation = rotation;
-                changed = true;
-            }
-            if (this.frameWidth != videoWidth) {
-                this.frameWidth = videoWidth;
-                changed = true;
-            }
-        }
-        */
+    private final SurfaceTextureRenderer getSurfaceTextureRenderer() {
+        return surfaceTextureRenderer;
     }
 
     /**
@@ -148,7 +123,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
             videoRenderer.dispose();
             videoRenderer = null;
 
-            getSurfaceViewRenderer().release();
+            getSurfaceTextureRenderer().release();
         }
     }
 
@@ -212,7 +187,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
                 return;
             }
 
-            SurfaceTextureRenderer surfaceViewRenderer = getSurfaceViewRenderer();
+            SurfaceTextureRenderer surfaceViewRenderer = getSurfaceTextureRenderer();
             surfaceViewRenderer.init(sharedContext, rendererEvents);
 
             videoRenderer = new VideoRenderer(surfaceViewRenderer);
