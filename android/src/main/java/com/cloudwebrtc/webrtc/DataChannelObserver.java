@@ -1,16 +1,11 @@
 package com.cloudwebrtc.webrtc;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-
 import android.util.Base64;
 
-import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
-
 import org.webrtc.DataChannel;
-
 import io.flutter.plugin.common.EventChannel;
+import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 
 class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHandler {
     private final int mId;
@@ -25,7 +20,6 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
         mId = id;
         mDataChannel = dataChannel;
         this.plugin = plugin;
-
         this.eventChannel =
                 new EventChannel(
                         plugin.registrar().messenger(),
@@ -64,17 +58,17 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     @Override
     public void onStateChange() {
         ConstraintsMap params = new ConstraintsMap();
-        params.putInt("id", mId);
-        params.putString("peerConnectionId", peerConnectionId);
+        params.putString("event", "dataChannelStateChanged");
+        params.putInt("id", mDataChannel.id());
         params.putString("state", dataChannelStateString(mDataChannel.state()));
-        sendEvent("dataChannelStateChanged", params);
+        sendEvent(params);
     }
 
     @Override
     public void onMessage(DataChannel.Buffer buffer) {
         ConstraintsMap params = new ConstraintsMap();
-        params.putInt("id", mId);
-        params.putString("peerConnectionId", peerConnectionId);
+        params.putString("event", "dataChannelReceiveMessage");
+        params.putInt("id", mDataChannel.id());
 
         byte[] bytes;
         if (buffer.data.hasArray()) {
@@ -92,13 +86,11 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
             params.putString("data", new String(bytes, Charset.forName("UTF-8")));
         }
 
-        sendEvent("dataChannelReceiveMessage", params);
+        sendEvent(params);
     }
 
-    void sendEvent(String eventName,  ConstraintsMap params) {
-        Map<String, Object> event = new HashMap<>();
-        event.put("event", eventName);
-        event.put("body", params.toMap());
-        eventSink.success(event);
+    void sendEvent(ConstraintsMap params) {
+        if(eventSink != null)
+            eventSink.success(params.toMap());
     }
 }
