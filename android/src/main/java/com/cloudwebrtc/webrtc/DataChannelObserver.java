@@ -52,8 +52,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     }
 
     @Override
-    public void onBufferedAmountChange(long amount) {
-    }
+    public void onBufferedAmountChange(long amount) { }
 
     @Override
     public void onStateChange() {

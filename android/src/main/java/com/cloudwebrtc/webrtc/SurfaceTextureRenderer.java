@@ -20,7 +20,7 @@ import org.webrtc.VideoRenderer;
 
 import java.nio.ByteBuffer;
 /**
- * Implements org.webrtc.VideoRenderer.Callbacks by displaying the video stream on a SurfaceView.
+ * Implements org.webrtc.VideoRenderer.Callbacks by displaying the video stream on a SurfaceTexture.
  * renderFrame() is asynchronous to avoid blocking the calling thread.
  * This class is thread safe and handles access from potentially four different threads:
  * Interaction from the main app in init, release, setMirror, and setScalingtype.
@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
  * Interaction with the layout framework in onMeasure and onSizeChanged.
  */
 public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
-  private static final String TAG = "SurfaceViewRenderer";
+  private static final String TAG = "SurfaceTextureRenderer";
 
   private final SurfaceTexture texture;
   // Dedicated render thread.
@@ -53,16 +53,7 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
 
   // These variables are synchronized on |layoutLock|.
   private final Object layoutLock = new Object();
-  // These dimension values are used to keep track of the state in these functions: onMeasure(),
-  // onLayout(), and surfaceChanged(). A new layout is triggered with requestLayout(). This happens
-  // internally when the incoming frame size changes. requestLayout() can also be triggered
-  // externally. The layout change is a two pass process: first onMeasure() is called in a top-down
-  // traversal of the View tree, followed by an onLayout() pass that is also top-down. During the
-  // onLayout() pass, each parent is responsible for positioning its children using the sizes
-  // computed in the measure pass.
-  // |desiredLayoutsize| is the layout size we have requested in onMeasure() and are waiting for to
-  // take effect.
-  private Point desiredLayoutSize = new Point();
+
   // |layoutSize|/|surfaceSize| is the actual current layout/surface size. They are updated in
   // onLayout() and surfaceChanged() respectively.
   private final Point layoutSize = new Point();
@@ -75,8 +66,7 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
   private int frameWidth;
   private int frameHeight;
   private int frameRotation;
-  // |scalingType| determines how the video will fill the allowed layout area in onMeasure().
-  private RendererCommon.ScalingType scalingType = RendererCommon.ScalingType.SCALE_ASPECT_BALANCED;
+
   // If true, mirrors the video stream horizontally.
   private boolean mirror;
   // Callback for reporting renderer events.
@@ -336,15 +326,6 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
     }
   }
 
-  /**
-   * Set how the video will fill the allowed layout area.
-   */
-  public void setScalingType(RendererCommon.ScalingType scalingType) {
-    synchronized (layoutLock) {
-      this.scalingType = scalingType;
-    }
-  }
-
   // VideoRenderer.Callbacks interface.
   @Override
   public void renderFrame(VideoRenderer.I420Frame frame) {
@@ -440,16 +421,7 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
       throw new IllegalStateException(getResourceName() + "Wrong thread.");
     }
     synchronized (layoutLock) {
-      // Return false while we are in the middle of a layout change.
-      // XXX by Lyubomir Marinov <lyubomir.marinov@jitsi.org>: Do not wait for
-      // layoutSize to become equal to desiredLayoutSize because that may never
-      // happen: desiredLayoutSize expresses the desire of this View computed
-      // during onMeasure but the final decision on layoutSize belongs to the
-      // ViewParent of this View taken around the execution time of onLayout. If
-      // this instance waits for the condition and its ViewParent does not
-      // satisfy the request for desiredLayoutSize, this SurfaceViewRenderer
-      // will render black.
-      return /* layoutSize.equals(desiredLayoutSize) && */ surfaceSize.equals(layoutSize);
+      return surfaceSize.equals(layoutSize);
     }
   }
 
