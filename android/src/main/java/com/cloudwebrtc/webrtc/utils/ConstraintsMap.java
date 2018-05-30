@@ -20,34 +20,34 @@ public class ConstraintsMap {
         return mMap;
     }
 
-    boolean hasKey(String name){
+    public boolean hasKey(String name){
         return this.mMap.containsKey(name);
     }
 
-    boolean isNull(String name){
+    public boolean isNull(String name){
         return mMap.get(name) == null;
     }
 
-    boolean getBoolean(String name){
+    public boolean getBoolean(String name){
         return (boolean) mMap.get(name);
     }
 
-    double getDouble(String name){
+    public double getDouble(String name){
         return (double) mMap.get(name);
     }
 
-    int getInt(String name) {
+    public int getInt(String name) {
         if(getType(name) == ObjectType.String) {
             return Integer.parseInt(((String)mMap.get(name)));
         }
         return (int) mMap.get(name);
     }
 
-    String getString(String name){
+    public String getString(String name){
         return (String) mMap.get(name);
     }
 
-    ConstraintsMap getMap(String name){
+    public ConstraintsMap getMap(String name){
         return new ConstraintsMap((Map<String, Object>)mMap.get(name));
     }
 
@@ -103,11 +103,11 @@ public class ConstraintsMap {
         mMap.put(key, value);
     }
 
-    ConstraintsArray getArray(String name){
+    public ConstraintsArray getArray(String name){
         return new ConstraintsArray((ArrayList<Object>)mMap.get(name));
     }
 
-    ArrayList<Object> getListArray(String name){
+    public ArrayList<Object> getListArray(String name){
         return (ArrayList<Object>) mMap.get(name);
     }
 }
