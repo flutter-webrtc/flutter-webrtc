@@ -564,8 +564,13 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
         frameWidth = frame.width;
         frameHeight = frame.height;
         frameRotation = frame.rotationDegree;
-        texture.setDefaultBufferSize(frameWidth, frameHeight);
-        surfaceChanged(frameWidth, frameHeight);
+        if(frameRotation == 90 || frameRotation == 270) {
+          texture.setDefaultBufferSize(frameHeight, frameWidth);
+          surfaceChanged(frameHeight, frameWidth);
+        }else {
+          texture.setDefaultBufferSize(frameWidth, frameHeight);
+          surfaceChanged(frameWidth, frameHeight);
+        }
       }
     }
   }
