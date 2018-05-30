@@ -362,7 +362,7 @@ class GetUserMediaImpl{
                     });
 
                     if (videoCapturer != null) {
-                        
+
                         PeerConnectionFactory pcFactory = plugin.mFactory;
                         VideoSource videoSource = pcFactory.createVideoSource(videoCapturer);
 

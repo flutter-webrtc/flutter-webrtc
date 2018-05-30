@@ -1,5 +1,5 @@
-import 'package:webrtc/WebRTC.dart';
-import 'package:webrtc/MediaStream.dart';
+import 'package:webrtc/webrtc.dart';
+import 'package:webrtc/media_stream.dart';
 import 'package:flutter/services.dart';
 
 dynamic getUserMedia(Map<String, dynamic> mediaConstraints) async {

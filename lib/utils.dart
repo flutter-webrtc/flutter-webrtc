@@ -1,5 +1,5 @@
-import 'package:webrtc/RTCPeerConnection.dart';
-import 'package:webrtc/RTCDataChannel.dart';
+import 'package:webrtc/rtc_peerconnection.dart';
+import 'package:webrtc/rtc_data_channel.dart';
 
 RTCIceConnectionState iceConnectionStateForString(String state) {
   switch (state) {

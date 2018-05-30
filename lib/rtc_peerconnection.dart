@@ -1,12 +1,12 @@
-import 'package:webrtc/WebRTC.dart' show WebRTC;
-import 'package:webrtc/RTCDataChannel.dart';
-import 'package:webrtc/RTCSessionDescrption.dart';
-import 'package:webrtc/RTCIceCandidate.dart';
-import 'package:webrtc/MediaStream.dart';
-import 'package:webrtc/MediaStreamTrack.dart';
-import 'package:webrtc/RTCStatsReport.dart';
+import 'package:webrtc/webrtc.dart' show WebRTC;
+import 'package:webrtc/rtc_data_channel.dart';
+import 'package:webrtc/rtc_session_descrption.dart';
+import 'package:webrtc/rtc_ice_candidate.dart';
+import 'package:webrtc/media_stream.dart';
+import 'package:webrtc/media_stream_track.dart';
+import 'package:webrtc/rtc_stats_report.dart';
 import 'package:flutter/services.dart';
-import 'package:webrtc/Utils.dart';
+import 'package:webrtc/utils.dart';
 import 'dart:async';
 
 enum RTCSignalingState {

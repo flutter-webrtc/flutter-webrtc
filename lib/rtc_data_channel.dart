@@ -1,4 +1,4 @@
-import 'package:webrtc/WebRTC.dart';
+import 'package:webrtc/webrtc.dart';
 import 'package:flutter/services.dart';
 
 class RTCDataChannelInit {
