@@ -1,6 +1,6 @@
 import 'package:webrtc/webrtc.dart' show WebRTC;
 import 'package:webrtc/rtc_data_channel.dart';
-import 'package:webrtc/rtc_session_descrption.dart';
+import 'package:webrtc/rtc_session_description.dart';
 import 'package:webrtc/rtc_ice_candidate.dart';
 import 'package:webrtc/media_stream.dart';
 import 'package:webrtc/media_stream_track.dart';
@@ -224,7 +224,7 @@ class RTCPeerConnection {
 
       String sdp = response['sdp'];
       String type = response['type'];
-      return new RTCSessionDescrption(sdp, type);
+      return new RTCSessionDescription(sdp, type);
     } on PlatformException catch (e) {
       throw 'Unable to createOffer: ${e.message}';
     }
@@ -243,7 +243,7 @@ class RTCPeerConnection {
       }
       String sdp = response['sdp'];
       String type = response['type'];
-      return new RTCSessionDescrption(sdp, type);
+      return new RTCSessionDescription(sdp, type);
     } on PlatformException catch (e) {
       throw 'Unable to createAnswer: ${e.message}';
     }
@@ -263,7 +263,7 @@ class RTCPeerConnection {
     });
   }
 
-  void setLocalDescription(RTCSessionDescrption description) {
+  void setLocalDescription(RTCSessionDescription description) {
     try {
       _channel.invokeMethod('setLocalDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
@@ -274,7 +274,7 @@ class RTCPeerConnection {
     }
   }
 
-  void setRemoteDescription(RTCSessionDescrption description) {
+  void setRemoteDescription(RTCSessionDescription description) {
     try {
       _channel.invokeMethod('setRemoteDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
