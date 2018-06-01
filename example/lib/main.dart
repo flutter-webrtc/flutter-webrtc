@@ -3,7 +3,7 @@ import 'package:webrtc/rtc_peerconnection.dart';
 import 'package:webrtc/rtc_peerconnection_factory.dart';
 import 'package:webrtc/media_stream.dart';
 import 'package:webrtc/get_user_media.dart';
-import 'package:webrtc/rtc_session_descrption.dart';
+import 'package:webrtc/rtc_session_description.dart';
 import 'package:webrtc/rtc_video_view.dart';
 import 'package:webrtc/rtc_ice_candidate.dart';
 import 'dart:async';
@@ -114,7 +114,7 @@ class _MyAppState extends State<MyApp> {
       _peerConnection.onRenegotiationNeeded = _onRenegotiationNeeded;
 
       _peerConnection.addStream(_localStream);
-      RTCSessionDescrption description =
+      RTCSessionDescription description =
           await _peerConnection.createOffer(OFFER_SDP_CONSTRAINTS);
       print(description.sdp);
       _peerConnection.setLocalDescription(description);
