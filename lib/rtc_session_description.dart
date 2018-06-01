@@ -1,9 +1,9 @@
 
 
-class RTCSessionDescrption {
+class RTCSessionDescription {
     String sdp;
     String type;
-    RTCSessionDescrption(this.sdp,this.type);
+    RTCSessionDescription(this.sdp,this.type);
 
     dynamic toMap() {
       return { "sdp": this.sdp, "type": this.type};
