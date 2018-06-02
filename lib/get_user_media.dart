@@ -1,8 +1,9 @@
 import 'package:webrtc/webrtc.dart';
 import 'package:webrtc/media_stream.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
 
-dynamic getUserMedia(Map<String, dynamic> mediaConstraints) async {
+Future<MediaStream> getUserMedia(Map<String, dynamic> mediaConstraints) async {
   MethodChannel channel = WebRTC.methodChannel();
   try {
     final Map<dynamic, dynamic> response = await channel.invokeMethod(
@@ -15,5 +16,18 @@ dynamic getUserMedia(Map<String, dynamic> mediaConstraints) async {
     return stream;
   } on PlatformException catch (e) {
     throw 'Unable to getUserMedia: ${e.message}';
+  }
+}
+
+Future<List<dynamic>> getSources() async{
+MethodChannel channel = WebRTC.methodChannel();
+  try {
+    final Map<dynamic, dynamic> response = await channel.invokeMethod(
+      'getSources',<String, dynamic>{},
+    );
+    List<dynamic> sources = response["sources"];
+    return sources;
+  } on PlatformException catch (e) {
+    throw 'Unable to getSources: ${e.message}';
   }
 }
