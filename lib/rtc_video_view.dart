@@ -56,8 +56,10 @@ class RTCVideoRenderer {
   }
 
   set srcObject(MediaStream stream) {
-    _channel.invokeMethod('videoRendererSetSrcObject',
-        <String, dynamic>{'textureId': _textureId, 'streamId': stream.id});
+    _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
+      'textureId': _textureId,
+      'streamId': stream != null ? stream.id : ''
+    });
     _srcObject = stream;
   }
 
@@ -91,27 +93,37 @@ class RTCVideoRenderer {
 
   void errorListener(Object obj) {
     final PlatformException e = obj;
+    throw e;
   }
 }
 
 class RTCVideoView extends StatefulWidget {
   final RTCVideoRenderer renderer;
-  RTCVideoView(this.renderer) {}
+  RTCVideoView(this.renderer);
   @override
   _RTCVideoViewState createState() => new _RTCVideoViewState(renderer);
 }
 
 class _RTCVideoViewState extends State<RTCVideoView> {
   final RTCVideoRenderer renderer;
-  _RTCVideoViewState(this.renderer);
+  double textureWidth = 0.0;
+  double textureHeight = 0.0;
+  _RTCVideoViewState(this.renderer){
+    this.textureHeight = 0.0;
+    this.textureWidth = 0.0;
+  }
   @override
   void initState() {
     super.initState();
     renderer.onVideoRotationChange = (int textureId, int rotation) {
-      setState(() {});
+      setState(() {
+        _updateContainerSize();
+      });
     };
     renderer.onVideoSizeChange = (int textureId, double width, double height) {
-      setState(() {});
+      setState(() {
+        _updateContainerSize();
+      });
     };
   }
 
@@ -120,35 +132,38 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     super.deactivate();
   }
 
+  void _updateContainerSize() {
+    if (context.findRenderObject() != null) {
+      final BoxConstraints constraints = context.findRenderObject().constraints;
+      if (constraints is BoxConstraints) {
+        double scale = 1.0;
+        if (renderer.rotation == 90 || renderer.rotation == 270) {
+          textureWidth = min(renderer.width, renderer.height);
+          textureHeight = max(renderer.width, renderer.height);
+          scale = min(constraints.minWidth / textureWidth,
+              constraints.minHeight / textureHeight);
+        } else {
+          textureWidth = max(renderer.width, renderer.height);
+          textureHeight = min(renderer.width, renderer.height);
+          scale = max(constraints.minWidth / textureWidth,
+              constraints.minHeight / textureHeight);
+        }
+        textureWidth *= scale;
+        textureHeight *= scale;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    var width = 0.0;
-    var height = 0.0;
-    if(context.findRenderObject() != null){
-      final BoxConstraints constraints = context.findRenderObject().constraints;
-      double scale = 1.0;
-      if(renderer.rotation == 90 || renderer.rotation == 270){
-        width = min(renderer.width, renderer.height);
-        height = max(renderer.width, renderer.height);
-        scale = min(constraints.minWidth / width, constraints.minHeight / height);
-      }else {
-        width = max(renderer.width, renderer.height);
-        height = min(renderer.width, renderer.height);
-        scale = max(constraints.minWidth / width, constraints.minHeight / height);
-      }
-      width *= scale;
-      height *= scale;
-    }
-
-    return
-      new Center(
-          child: (this.renderer._textureId == null || this.renderer._srcObject == null)
-              ? new Container()
-              : new Container(
-                      width: width,
-                      height: height,
-                      child: new Texture(textureId: this.renderer._textureId),
-                    )
-          );
+    return new Center(
+        child: (this.renderer._textureId == null ||
+                this.renderer._srcObject == null)
+            ? new Container()
+            : new Container(
+                width: this.textureWidth,
+                height: this.textureHeight,
+                child: new Texture(textureId: this.renderer._textureId),
+              ));
   }
 }

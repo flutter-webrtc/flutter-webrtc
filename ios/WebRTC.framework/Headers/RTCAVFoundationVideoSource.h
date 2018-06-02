@@ -31,6 +31,10 @@ RTC_EXPORT
 
 - (instancetype)init NS_UNAVAILABLE;
 
+- (BOOL)IsRunning;
+
+- (void)Stop;
+
 /**
  * Calling this function will cause frames to be scaled down to the
  * requested resolution. Also, frames will be cropped to match the

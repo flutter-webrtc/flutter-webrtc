@@ -5,6 +5,8 @@
 
 -(void)getUserMedia:(NSDictionary *)constraints
              result:(FlutterResult)result;
+
+-(void)getSources:(FlutterResult)result;
 @end
 
 

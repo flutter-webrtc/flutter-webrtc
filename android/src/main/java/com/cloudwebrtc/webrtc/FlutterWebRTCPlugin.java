@@ -116,6 +116,8 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             Map<String, Object> constraints = call.argument("constraints");
             ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
             getUserMedia(constraintsMap, result);
+        }else if (call.method.equals("getSources")) {
+            getSources(result);
         }else if (call.method.equals("createOffer")) {
             String peerConnectionId = call.argument("peerConnectionId");
             Map<String, Object> constraints = call.argument("constraints");
@@ -175,7 +177,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String trackId = call.argument("trackId");
             localTracks.remove(trackId);
             result.success(null);
-        } else if (call.method.equals("peerConnectionDispose")) {
+        } else if (call.method.equals("peerConnectionClose")) {
             String peerConnectionId = call.argument("peerConnectionId");
             peerConnectionClose(peerConnectionId);
             result.success(null);
@@ -214,10 +216,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             }
 
             MediaStream stream = getStreamForId(streamId);
-            if(stream == null ){
-                result.error("MediaStreamNotFound", "media stream [" + streamId + "] not found !", null);
-                return;
-            }
             render.setStream(stream);
             result.success(null);
         } else {
@@ -628,7 +626,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         getUserMediaImpl.getUserMedia(constraints, result, mediaStream);
     }
 
-    public void mediaStreamTrackGetSources(Result result) {
+    public void getSources(Result result) {
         ConstraintsArray array = new ConstraintsArray();
         String[] names = new String[Camera.getNumberOfCameras()];
 
@@ -644,7 +642,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         audio.putString("deviceId", "audio-1");
         audio.putString("facing", "");
         audio.putString("kind", "audioinput");
-
         array.pushMap(audio);
         result.success(array);
     }
@@ -720,7 +717,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         params.putString("deviceId", "" + index);
         params.putString("facing", facing);
         params.putString("kind", "videoinput");
-
         return params;
     }
 

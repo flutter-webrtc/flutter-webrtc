@@ -35,44 +35,7 @@ enum RTCIceConnectionState {
   RTCIceConnectionStateClosed,
 }
 
-class Constraints {
-  String key;
-  String value;
-  Constraints(String key, String value) {
-    this.key = key;
-    this.value = value;
-  }
-}
-
-class MediaConstraints {
-  List<Constraints> mandatorys;
-  List<Constraints> constraints;
-}
-
-enum IceTransportsType { kNone, kRelay, kNoHost, kAll }
-
-class IceServer {
-  String uri;
-  List<String> urls;
-  String username;
-  String password;
-  String hostname;
-}
-
-class RTCConfiguration {
-  List<IceServer> servers;
-  IceTransportsType type;
-  String toString() {
-    return '';
-  }
-}
-
-class RTCOfferAnswerOptions {
-  bool offerToReceiveVideo;
-  bool offerToReceiveAudio;
-}
-
-/**
+/*
  * 回调类型定义.
  */
 typedef void SignalingStateCallback(RTCSignalingState state);
@@ -106,8 +69,6 @@ class RTCPeerConnection {
   AddTrackCallback onAddTrack;
   RemoveTrackCallback onRemoveTrack;
   dynamic onRenegotiationNeeded;
-
-  dynamic _configuration;
   final Map<String, dynamic> DEFAULT_SDP_CONSTRAINTS = {
     "mandatory": {
       "OfferToReceiveAudio": true,
@@ -152,7 +113,7 @@ class RTCPeerConnection {
         break;
       case 'onAddStream':
         String streamId = map['streamId'];
-        MediaStream stream =  new MediaStream(streamId);
+        MediaStream stream = new MediaStream(streamId);
         stream.setMediaTracks(map['audioTracks'], map['videoTracks']);
         if (this.onAddStream != null) this.onAddStream(stream);
         break;
@@ -198,6 +159,7 @@ class RTCPeerConnection {
 
   void errorListener(Object obj) {
     final PlatformException e = obj;
+    throw e;
   }
 
   Future<Null> dispose() async {
@@ -314,16 +276,28 @@ class RTCPeerConnection {
     return remoteStreams;
   }
 
-  Future<RTCDataChannel> createDataChannel(String label, RTCDataChannelInit dataChannelDict) async {
+  Future<RTCDataChannel> createDataChannel(
+      String label, RTCDataChannelInit dataChannelDict) async {
     try {
-      final Map<dynamic, dynamic> response = await _channel.invokeMethod(
-          'createDataChannel', <String, dynamic>{
+      final Map<dynamic, dynamic> response =
+          await _channel.invokeMethod('createDataChannel', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'label': label,
         'dataChannelDict': dataChannelDict.toMap()
       });
-      _dataChannel = new RTCDataChannel(this._peerConnectionId, label, dataChannelDict.id);
+      _dataChannel =
+          new RTCDataChannel(this._peerConnectionId, label, dataChannelDict.id);
       return _dataChannel;
+    } on PlatformException catch (e) {
+      throw 'Unable to getStats: ${e.message}';
+    }
+  }
+
+  Future<Null> close() async {
+    try {
+      await _channel.invokeMethod('peerConnectionClose', <String, dynamic>{
+        'peerConnectionId': this._peerConnectionId,
+      });
     } on PlatformException catch (e) {
       throw 'Unable to getStats: ${e.message}';
     }
