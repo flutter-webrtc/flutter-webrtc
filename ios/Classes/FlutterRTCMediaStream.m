@@ -378,7 +378,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
      }];
 }
 
--(void)mediaStreamTrackGetSources{
+-(void)getSources:(FlutterResult)result{
   NSMutableArray *sources = [NSMutableArray array];
   NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
   for (AVCaptureDevice *device in videoDevices) {
@@ -398,7 +398,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                          @"kind": @"audioinput",
                          }];
   }
-  //TODO: resolve(sources);
+    result(@{@"sources": sources});
 }
 
 -(void)mediaStreamTrackRelease:(RTCMediaStream *)mediaStream  track:(RTCMediaStreamTrack *)track

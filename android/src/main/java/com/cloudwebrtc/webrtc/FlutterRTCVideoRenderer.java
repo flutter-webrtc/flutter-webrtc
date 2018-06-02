@@ -21,10 +21,12 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
     private static final String TAG = FlutterWebRTCPlugin.TAG;
     private final SurfaceTexture texture;
+    private final Context context;
     private int id = -1;
 
     public void Dispose(){
         //destroy
+        this.surfaceTextureRenderer.release();
         eventChannel.setStreamHandler(null);
         eventSink = null;
     }
@@ -69,7 +71,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
             }
         };
 
-    private final SurfaceTextureRenderer surfaceTextureRenderer;
+    private SurfaceTextureRenderer surfaceTextureRenderer;
 
     /**
      * The {@code VideoRenderer}, if any, which renders {@link #videoTrack} on
@@ -88,6 +90,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
     public FlutterRTCVideoRenderer(SurfaceTexture texture, Context context) {
         this.surfaceTextureRenderer = new SurfaceTextureRenderer(context, texture);
         this.texture = texture;
+        this.context = context;
         this.eventSink = null;
     }
 
@@ -167,6 +170,9 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
             if (videoTrack != null) {
                 tryAddRendererToVideoTrack();
+            }else{
+                this.surfaceTextureRenderer.release();
+                this.surfaceTextureRenderer = new SurfaceTextureRenderer(context, texture);
             }
         }
     }

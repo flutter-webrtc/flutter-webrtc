@@ -6,7 +6,6 @@ import 'package:webrtc/get_user_media.dart';
 import 'package:webrtc/rtc_session_description.dart';
 import 'package:webrtc/rtc_video_view.dart';
 import 'package:webrtc/rtc_ice_candidate.dart';
-import 'dart:async';
 import 'dart:core';
 
 void main() => runApp(new MyApp());
@@ -21,11 +20,17 @@ class _MyAppState extends State<MyApp> {
   RTCPeerConnection _peerConnection;
   final _localRenderer = new RTCVideoRenderer();
   final _remoteRenderer = new RTCVideoRenderer();
+  bool incalling = false;
 
   @override
   initState() {
     super.initState();
-    initPlatformState();
+    initRenderers();
+  }
+
+  initRenderers() async {
+    await _localRenderer.initialize();
+    await _remoteRenderer.initialize();
   }
 
   _onSignalingState(RTCSignalingState state) {
@@ -59,7 +64,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
-  initPlatformState() async {
+  _makeCall() async {
     final Map<String, dynamic> mediaConstraints = {
       "audio": true,
       "video": {
@@ -80,7 +85,7 @@ class _MyAppState extends State<MyApp> {
       ]
     };
 
-    final Map<String, dynamic> OFFER_SDP_CONSTRAINTS = {
+    final Map<String, dynamic> offer_sdp_constraints = {
       "mandatory": {
         "OfferToReceiveAudio": true,
         "OfferToReceiveVideo": true,
@@ -88,22 +93,21 @@ class _MyAppState extends State<MyApp> {
       "optional": [],
     };
 
-    final Map<String, dynamic> LOOPBACK_CONSTRAINTS = {
+    final Map<String, dynamic> loopback_constraints = {
       "mandatory": {},
       "optional": [
         {"DtlsSrtpKeyAgreement": false},
       ],
     };
 
-    // Platform messages may fail, so we use a try/catch PlatformException.
+    if (_peerConnection != null) return;
+
     try {
       _localStream = await getUserMedia(mediaConstraints);
-      await _localRenderer.initialize();
-      await _remoteRenderer.initialize();
       _localRenderer.srcObject = _localStream;
 
       _peerConnection =
-          await createPeerConnection(configuration, LOOPBACK_CONSTRAINTS);
+          await createPeerConnection(configuration, loopback_constraints);
 
       _peerConnection.onSignalingState = _onSignalingState;
       _peerConnection.onIceGatheringState = _onIceGatheringState;
@@ -115,18 +119,35 @@ class _MyAppState extends State<MyApp> {
 
       _peerConnection.addStream(_localStream);
       RTCSessionDescription description =
-          await _peerConnection.createOffer(OFFER_SDP_CONSTRAINTS);
+          await _peerConnection.createOffer(offer_sdp_constraints);
       print(description.sdp);
       _peerConnection.setLocalDescription(description);
       //change for loopback.
       description.type = 'answer';
       _peerConnection.setRemoteDescription(description);
     } catch (e) {
-      //'Failed to get platform version.';
+      print(e.toString());
     }
     if (!mounted) return;
 
-    setState(() {});
+    setState(() {
+      incalling = true;
+    });
+  }
+
+  _hangUp() async {
+    try {
+      await _peerConnection.close();
+      _peerConnection = null;
+      await _localStream.dispose();
+      _localRenderer.srcObject = null;
+      _remoteRenderer.srcObject = null;
+    } catch (e) {
+      print(e.toString());
+    }
+    setState(() {
+      incalling = false;
+    });
   }
 
   @override
@@ -139,14 +160,14 @@ class _MyAppState extends State<MyApp> {
         body: new OrientationBuilder(
           builder: (context, orientation) {
             return new Center(
-
               child: new Container(
-                decoration: new BoxDecoration(color: Colors.black),
-
+                decoration: new BoxDecoration(color: Colors.white),
                 child: new Stack(
                   children: <Widget>[
                     new Align(
-                      alignment: orientation == Orientation.portrait ? const FractionalOffset(0.5, 0.1):const FractionalOffset(0.0, 0.5),
+                      alignment: orientation == Orientation.portrait
+                          ? const FractionalOffset(0.5, 0.1)
+                          : const FractionalOffset(0.0, 0.5),
                       child: new Container(
                         width: 320.0,
                         height: 240.0,
@@ -155,7 +176,9 @@ class _MyAppState extends State<MyApp> {
                       ),
                     ),
                     new Align(
-                      alignment: orientation == Orientation.portrait ? const FractionalOffset(0.5, 0.9):const FractionalOffset(1.0, 0.5),
+                      alignment: orientation == Orientation.portrait
+                          ? const FractionalOffset(0.5, 0.9)
+                          : const FractionalOffset(1.0, 0.5),
                       child: new Container(
                         width: 320.0,
                         height: 240.0,
@@ -166,9 +189,13 @@ class _MyAppState extends State<MyApp> {
                   ],
                 ),
               ),
-
             );
           },
+        ),
+        floatingActionButton: new FloatingActionButton(
+          onPressed: incalling ? _hangUp : _makeCall,
+          tooltip: incalling ? 'Hangup' : 'Call',
+          child: new Icon(incalling ? Icons.call_end : Icons.phone),
         ),
       ),
     );

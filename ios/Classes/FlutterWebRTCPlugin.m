@@ -10,6 +10,7 @@
 #import <WebRTC/RTCIceCandidate.h>
 #import <WebRTC/RTCSessionDescription.h>
 #import <WebRTC/RTCIceServer.h>
+#import <WebRTC/RTCAVFoundationVideoSource.h>
 
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCMediaStream.h"
@@ -96,7 +97,9 @@
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getUserMedia:constraints result:result];
-    } else if ([@"mediaStreamGetTracks" isEqualToString:call.method]) {
+    } else if ([@"getSources" isEqualToString:call.method]) {
+        [self getSources:result];
+    }else if ([@"mediaStreamGetTracks" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* streamId = argsMap[@"streamId"];
         [self mediaStreamGetTracks:streamId result:result];
@@ -256,6 +259,12 @@
         if (stream) {
             for (RTCVideoTrack *track in stream.videoTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
+                RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
+                RTCVideoSource *source = videoTrack.source;
+                if ([source isKindOfClass:[RTCAVFoundationVideoSource class]]) {
+                    RTCAVFoundationVideoSource *avSource = (RTCAVFoundationVideoSource *)source;
+                    [avSource Stop];
+                }
             }
             for (RTCAudioTrack *track in stream.audioTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
@@ -268,7 +277,7 @@
         NSString* trackId = argsMap[@"trackId"];
         [self.localTracks removeObjectForKey:trackId];
         result(nil);
-    }else if([@"peerConnectionDispose" isEqualToString:call.method]){
+    }else if([@"peerConnectionClose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         
