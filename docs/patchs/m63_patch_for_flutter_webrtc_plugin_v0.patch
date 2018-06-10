@@ -1,0 +1,582 @@
+diff --git a/sdk/android/BUILD.gn b/sdk/android/BUILD.gn
+index 5b7ffb738..42c09f1be 100644
+--- a/sdk/android/BUILD.gn
++++ b/sdk/android/BUILD.gn
+@@ -346,7 +346,6 @@ rtc_shared_library("libjingle_peerconnection_so") {
+ 
+   suppressed_configs += [ "//build/config/android:hide_all_but_jni_onload" ]
+   configs += [ "//build/config/android:hide_all_but_jni" ]
+-
+   deps = [
+     ":libjingle_peerconnection_jni",
+     ":libjingle_peerconnection_metrics_default_jni",
+diff --git a/sdk/android/api/org/webrtc/PeerConnection.java b/sdk/android/api/org/webrtc/PeerConnection.java
+index 881255d9a..38a21a176 100644
+--- a/sdk/android/api/org/webrtc/PeerConnection.java
++++ b/sdk/android/api/org/webrtc/PeerConnection.java
+@@ -81,6 +81,12 @@ public class PeerConnection {
+     /** Triggered when a remote peer close a stream. */
+     public void onRemoveStream(MediaStream stream);
+ 
++    /** Triggered when media is received on a new track from remote stream. */
++    public void onAddTrack(MediaStream stream, MediaStreamTrack track);
++
++    /** Triggered when a remote stream close a track. */
++    public void onRemoveTrack(MediaStream stream, MediaStreamTrack track);
++
+     /** Triggered when a remote peer opens a DataChannel. */
+     public void onDataChannel(DataChannel dataChannel);
+ 
+@@ -91,7 +97,7 @@ public class PeerConnection {
+      * Triggered when a new track is signaled by the remote peer, as a result of
+      * setRemoteDescription.
+      */
+-    public void onAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams);
++    public void onAddRtpReceiver(RtpReceiver receiver, MediaStream[] mediaStreams);
+   }
+ 
+   /** Java version of PeerConnectionInterface.IceServer. */
+diff --git a/sdk/android/src/java/org/webrtc/EglBase10.java b/sdk/android/src/java/org/webrtc/EglBase10.java
+index 8cbe0c022..8e48fedec 100644
+--- a/sdk/android/src/java/org/webrtc/EglBase10.java
++++ b/sdk/android/src/java/org/webrtc/EglBase10.java
+@@ -25,7 +25,7 @@ import javax.microedition.khronos.egl.EGLSurface;
+  * Holds EGL state and utility methods for handling an egl 1.0 EGLContext, an EGLDisplay,
+  * and an EGLSurface.
+  */
+-class EglBase10 extends EglBase {
++public class EglBase10 extends EglBase {
+   // This constant is taken from EGL14.EGL_CONTEXT_CLIENT_VERSION.
+   private static final int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
+ 
+diff --git a/sdk/android/src/java/org/webrtc/EglBase14.java b/sdk/android/src/java/org/webrtc/EglBase14.java
+index 8c3305664..b7d6bff48 100644
+--- a/sdk/android/src/java/org/webrtc/EglBase14.java
++++ b/sdk/android/src/java/org/webrtc/EglBase14.java
+@@ -25,7 +25,7 @@ import android.view.Surface;
+  * and an EGLSurface.
+  */
+ @TargetApi(18)
+-class EglBase14 extends EglBase {
++public class EglBase14 extends EglBase {
+   private static final String TAG = "EglBase14";
+   private static final int EGLExt_SDK_VERSION = android.os.Build.VERSION_CODES.JELLY_BEAN_MR2;
+   private static final int CURRENT_SDK_VERSION = android.os.Build.VERSION.SDK_INT;
+diff --git a/sdk/android/src/jni/pc/peerconnectionobserver_jni.cc b/sdk/android/src/jni/pc/peerconnectionobserver_jni.cc
+index 4160f5ace..69ac6a72d 100644
+--- a/sdk/android/src/jni/pc/peerconnectionobserver_jni.cc
++++ b/sdk/android/src/jni/pc/peerconnectionobserver_jni.cc
+@@ -167,6 +167,18 @@ void PeerConnectionObserverJni::OnAddStream(
+   stream_observers_.push_back(std::move(observer));
+ }
+ 
++void PeerConnectionObserverJni::OnAddMediaStreamTrackToJavaObject(jobject j_stream, jobject j_track)
++{
++  // Notify PeerConnection.Observer.onAddTrack
++    ScopedLocalRefFrame local_ref_frame(jni());
++    jmethodID m =
++        GetMethodID(jni(), *j_observer_class_, "onAddTrack",
++                    "(Lorg/webrtc/MediaStream;Lorg/webrtc/MediaStreamTrack;)V");
++    jni()->CallVoidMethod(*j_observer_global_, m, j_stream,
++                          j_track);
++    CHECK_EXCEPTION(jni()) << "error during CallVoidMethod";
++}
++
+ void PeerConnectionObserverJni::AddNativeAudioTrackToJavaStream(
+     rtc::scoped_refptr<AudioTrackInterface> track,
+     jobject j_stream) {
+@@ -187,6 +199,8 @@ void PeerConnectionObserverJni::AddNativeAudioTrackToJavaStream(
+   jboolean added = jni()->CallBooleanMethod(audio_tracks, add, j_track);
+   CHECK_EXCEPTION(jni()) << "error during CallBooleanMethod";
+   RTC_CHECK(added);
++
++  OnAddMediaStreamTrackToJavaObject(j_stream, j_track);
+ }
+ 
+ void PeerConnectionObserverJni::AddNativeVideoTrackToJavaStream(
+@@ -209,11 +223,14 @@ void PeerConnectionObserverJni::AddNativeVideoTrackToJavaStream(
+   jboolean added = jni()->CallBooleanMethod(video_tracks, add, j_track);
+   CHECK_EXCEPTION(jni()) << "error during CallBooleanMethod";
+   RTC_CHECK(added);
++
++  OnAddMediaStreamTrackToJavaObject(j_stream, j_track);
+ }
+ 
+ void PeerConnectionObserverJni::RemoveAndDisposeNativeTrackFromJavaTrackList(
+     MediaStreamTrackInterface* track,
+-    jobject j_tracks) {
++    jobject j_tracks,
++    jobject j_stream) {
+   Iterable iterable_tracks(jni(), j_tracks);
+   for (auto it = iterable_tracks.begin(); it != iterable_tracks.end(); ++it) {
+     MediaStreamTrackInterface* native_track =
+@@ -221,6 +238,13 @@ void PeerConnectionObserverJni::RemoveAndDisposeNativeTrackFromJavaTrackList(
+             jni()->GetLongField(*it, j_native_track_id_));
+     CHECK_EXCEPTION(jni()) << "error during GetLongField";
+     if (native_track == track) {
++      {
++        jmethodID m =
++            GetMethodID(jni(), *j_observer_class_, "onRemoveTrack",
++                        "(Lorg/webrtc/MediaStream;Lorg/webrtc/MediaStreamTrack;)V");
++        jni()->CallVoidMethod(*j_observer_global_, m, j_stream, *it);
++        CHECK_EXCEPTION(jni()) << "error during CallVoidMethod";
++      }
+       jni()->CallVoidMethod(*it, j_track_dispose_id_);
+       it.Remove();
+       return;
+@@ -256,7 +280,7 @@ void PeerConnectionObserverJni::OnAudioTrackRemovedFromStream(
+   jfieldID audio_tracks_id = GetFieldID(
+       jni(), *j_media_stream_class_, "audioTracks", "Ljava/util/LinkedList;");
+   jobject audio_tracks = GetObjectField(jni(), j_stream, audio_tracks_id);
+-  RemoveAndDisposeNativeTrackFromJavaTrackList(track, audio_tracks);
++  RemoveAndDisposeNativeTrackFromJavaTrackList(track, audio_tracks, j_stream);
+ }
+ 
+ void PeerConnectionObserverJni::OnVideoTrackRemovedFromStream(
+@@ -267,7 +291,7 @@ void PeerConnectionObserverJni::OnVideoTrackRemovedFromStream(
+   jfieldID video_tracks_id = GetFieldID(
+       jni(), *j_media_stream_class_, "videoTracks", "Ljava/util/LinkedList;");
+   jobject video_tracks = GetObjectField(jni(), j_stream, video_tracks_id);
+-  RemoveAndDisposeNativeTrackFromJavaTrackList(track, video_tracks);
++  RemoveAndDisposeNativeTrackFromJavaTrackList(track, video_tracks, j_stream);
+ }
+ 
+ void PeerConnectionObserverJni::OnRemoveStream(
+@@ -331,7 +355,7 @@ void PeerConnectionObserverJni::OnAddTrack(
+ 
+   jobjectArray j_stream_array = NativeToJavaMediaStreamArray(jni(), streams);
+   jmethodID m =
+-      GetMethodID(jni(), *j_observer_class_, "onAddTrack",
++      GetMethodID(jni(), *j_observer_class_, "onAddRtpReceiver",
+                   "(Lorg/webrtc/RtpReceiver;[Lorg/webrtc/MediaStream;)V");
+   jni()->CallVoidMethod(*j_observer_global_, m, j_rtp_receiver, j_stream_array);
+   CHECK_EXCEPTION(jni()) << "Error during CallVoidMethod";
+diff --git a/sdk/android/src/jni/pc/peerconnectionobserver_jni.h b/sdk/android/src/jni/pc/peerconnectionobserver_jni.h
+index a48828b20..492ca43b9 100644
+--- a/sdk/android/src/jni/pc/peerconnectionobserver_jni.h
++++ b/sdk/android/src/jni/pc/peerconnectionobserver_jni.h
+@@ -94,7 +94,10 @@ class PeerConnectionObserverJni : public PeerConnectionObserver,
+   // DCHECKs if the track isn't found.
+   void RemoveAndDisposeNativeTrackFromJavaTrackList(
+       MediaStreamTrackInterface* track,
+-      jobject j_tracks);
++      jobject j_tracks,
++      jobject j_stream);
++
++  void OnAddMediaStreamTrackToJavaObject(jobject j_stream, jobject j_track);
+ 
+   // Callbacks invoked when a native stream changes, and the Java stream needs
+   // to be updated; MediaStreamObserver is used to make this simpler.
+diff --git a/sdk/objc/Framework/Classes/PeerConnection/RTCAVFoundationVideoSource.mm b/sdk/objc/Framework/Classes/PeerConnection/RTCAVFoundationVideoSource.mm
+index b004191f8..fbd6083a7 100644
+--- a/sdk/objc/Framework/Classes/PeerConnection/RTCAVFoundationVideoSource.mm
++++ b/sdk/objc/Framework/Classes/PeerConnection/RTCAVFoundationVideoSource.mm
+@@ -39,6 +39,14 @@ - (void)adaptOutputFormatToWidth:(int)width
+   self.capturer->AdaptOutputFormat(width, height, fps);
+ }
+ 
++- (BOOL)IsRunning{
++    return _capturer->IsRunning();
++}
++
++- (void)Stop{
++    _capturer->Stop();
++}
++
+ - (BOOL)canUseBackCamera {
+   return self.capturer->CanUseBackCamera();
+ }
+diff --git a/sdk/objc/Framework/Classes/PeerConnection/RTCPeerConnection+Private.h b/sdk/objc/Framework/Classes/PeerConnection/RTCPeerConnection+Private.h
+index e1017f5e8..879f3e1dc 100644
+--- a/sdk/objc/Framework/Classes/PeerConnection/RTCPeerConnection+Private.h
++++ b/sdk/objc/Framework/Classes/PeerConnection/RTCPeerConnection+Private.h
+@@ -11,6 +11,7 @@
+ #import "WebRTC/RTCPeerConnection.h"
+ 
+ #include "api/peerconnectioninterface.h"
++#include "pc/mediastreamobserver.h"
+ 
+ NS_ASSUME_NONNULL_BEGIN
+ 
+@@ -20,7 +21,9 @@ namespace webrtc {
+  * These objects are created by RTCPeerConnectionFactory to wrap an
+  * id<RTCPeerConnectionDelegate> and call methods on that interface.
+  */
+-class PeerConnectionDelegateAdapter : public PeerConnectionObserver {
++typedef std::map<MediaStreamInterface*, RTCMediaStream *> NativeToObjcStreamsMap;
++class PeerConnectionDelegateAdapter : public PeerConnectionObserver,
++    public sigslot::has_slots<>  {
+ 
+  public:
+   PeerConnectionDelegateAdapter(RTCPeerConnection *peerConnection);
+@@ -48,9 +51,25 @@ class PeerConnectionDelegateAdapter : public PeerConnectionObserver {
+ 
+   void OnIceCandidatesRemoved(
+       const std::vector<cricket::Candidate>& candidates) override;
++    
++  // Callbacks invoked when a native stream changes, and the Java stream needs
++  // to be updated; MediaStreamObserver is used to make this simpler.
++  void OnAudioTrackAddedToStream(AudioTrackInterface* track,
++                                   MediaStreamInterface* stream);
++
++  void OnVideoTrackAddedToStream(VideoTrackInterface* track,
++                                   MediaStreamInterface* stream);
++
++  void OnAudioTrackRemovedFromStream(AudioTrackInterface* track,
++                                       MediaStreamInterface* stream);
++
++  void OnVideoTrackRemovedFromStream(VideoTrackInterface* track,
++                                       MediaStreamInterface* stream);
+ 
+  private:
+   __weak RTCPeerConnection *peer_connection_;
++  std::vector<std::unique_ptr<MediaStreamObserver>> stream_observers_;
++  NativeToObjcStreamsMap remote_streams_;
+ };
+ 
+ } // namespace webrtc
+diff --git a/sdk/objc/Framework/Classes/PeerConnection/RTCPeerConnection.mm b/sdk/objc/Framework/Classes/PeerConnection/RTCPeerConnection.mm
+index e443e850d..abdaf34c5 100644
+--- a/sdk/objc/Framework/Classes/PeerConnection/RTCPeerConnection.mm
++++ b/sdk/objc/Framework/Classes/PeerConnection/RTCPeerConnection.mm
+@@ -17,9 +17,11 @@
+ #import "RTCLegacyStatsReport+Private.h"
+ #import "RTCMediaConstraints+Private.h"
+ #import "RTCMediaStream+Private.h"
++#import "RTCMediaStreamTrack+Private.h"
+ #import "RTCPeerConnectionFactory+Private.h"
+ #import "RTCRtpReceiver+Private.h"
+ #import "RTCRtpSender+Private.h"
++#import "RTCVideoTrack+Private.h"
+ #import "RTCSessionDescription+Private.h"
+ #import "WebRTC/RTCLogging.h"
+ 
+@@ -27,6 +29,7 @@
+ 
+ #include "api/jsepicecandidate.h"
+ #include "rtc_base/checks.h"
++#include "rtc_base/ptr_util.h"
+ 
+ NSString * const kRTCPeerConnectionErrorDomain =
+     @"org.webrtc.RTCPeerConnection";
+@@ -127,21 +130,120 @@ void OnFailure(const std::string& error) override {
+ 
+ void PeerConnectionDelegateAdapter::OnAddStream(
+     rtc::scoped_refptr<MediaStreamInterface> stream) {
++    
++    // Create an observer to update the Java stream when the native stream's set
++    // of tracks changes.
++    auto observer = rtc::MakeUnique<MediaStreamObserver>(stream);
++    observer->SignalAudioTrackRemoved.connect(
++            this, &PeerConnectionDelegateAdapter::OnAudioTrackRemovedFromStream);
++    observer->SignalVideoTrackRemoved.connect(
++            this, &PeerConnectionDelegateAdapter::OnVideoTrackRemovedFromStream);
++    observer->SignalAudioTrackAdded.connect(
++            this, &PeerConnectionDelegateAdapter::OnAudioTrackAddedToStream);
++    observer->SignalVideoTrackAdded.connect(
++            this, &PeerConnectionDelegateAdapter::OnVideoTrackAddedToStream);
++    
++    stream_observers_.push_back(std::move(observer));
++
+   RTCMediaStream *mediaStream =
+       [[RTCMediaStream alloc] initWithNativeMediaStream:stream];
++
+   RTCPeerConnection *peer_connection = peer_connection_;
+   [peer_connection.delegate peerConnection:peer_connection
+                               didAddStream:mediaStream];
++  for (NSUInteger i = 0; i < mediaStream.audioTracks.count; i++) {
++      RTCMediaStreamTrack *mediaStreamTrack = (RTCMediaStreamTrack *)mediaStream.audioTracks[i];
++      [peer_connection.delegate peerConnection:peer_connection
++                                   mediaStream:mediaStream
++                                   didAddTrack:mediaStreamTrack];
++  }
++    
++  for (NSUInteger i = 0; i < mediaStream.videoTracks.count; i++) {
++      RTCMediaStreamTrack *mediaStreamTrack = (RTCMediaStreamTrack *)mediaStream.videoTracks[i];
++      [peer_connection.delegate peerConnection:peer_connection
++                                   mediaStream:mediaStream
++                              didAddTrack:mediaStreamTrack];
++  }
+ }
+ 
+ void PeerConnectionDelegateAdapter::OnRemoveStream(
+     rtc::scoped_refptr<MediaStreamInterface> stream) {
++    
++    // Remove the observer first, so it doesn't react to events during deletion.
++    stream_observers_.erase(
++    std::remove_if(stream_observers_.begin(),
++                   stream_observers_.end(),
++                   [stream](const std::unique_ptr<MediaStreamObserver>& observer) {
++                       return observer->stream() == stream;
++                   }),
++                  stream_observers_.end());
+   RTCMediaStream *mediaStream =
+       [[RTCMediaStream alloc] initWithNativeMediaStream:stream];
+   RTCPeerConnection *peer_connection = peer_connection_;
+   [peer_connection.delegate peerConnection:peer_connection
+                            didRemoveStream:mediaStream];
+ }
++    
++void PeerConnectionDelegateAdapter::OnAudioTrackAddedToStream(AudioTrackInterface* track,
++                                                              MediaStreamInterface* stream) {
++    RTCMediaStream *mediaStream =
++    [[RTCMediaStream alloc] initWithNativeMediaStream:stream];
++    
++    RTCMediaStreamTrackType type = RTCMediaStreamTrackTypeAudio;
++    RTCMediaStreamTrack *mediaStreamTrack =
++    [[RTCMediaStreamTrack alloc] initWithNativeTrack:track type:type];
++    
++    RTCPeerConnection *peer_connection = peer_connection_;
++    [peer_connection.delegate peerConnection:peer_connection
++                                 mediaStream:mediaStream
++                            didAddTrack:mediaStreamTrack];
++}
++    
++void PeerConnectionDelegateAdapter::OnVideoTrackAddedToStream(VideoTrackInterface* track,
++                                                              MediaStreamInterface* stream){
++
++    RTCMediaStream *mediaStream =
++    [[RTCMediaStream alloc] initWithNativeMediaStream:stream];
++    
++    RTCMediaStreamTrackType type = RTCMediaStreamTrackTypeVideo;
++    RTCMediaStreamTrack *mediaStreamTrack =
++    [[RTCMediaStreamTrack alloc] initWithNativeTrack:track type:type];
++    
++    RTCPeerConnection *peer_connection = peer_connection_;
++    [peer_connection.delegate peerConnection:peer_connection
++                                 mediaStream:mediaStream
++                         didAddTrack:mediaStreamTrack];
++}
++    
++void PeerConnectionDelegateAdapter::OnAudioTrackRemovedFromStream(AudioTrackInterface* track,
++                                                                  MediaStreamInterface* stream){
++    RTCMediaStream *mediaStream =
++    [[RTCMediaStream alloc] initWithNativeMediaStream:stream];
++    
++    RTCMediaStreamTrackType type = RTCMediaStreamTrackTypeAudio;
++    RTCMediaStreamTrack *mediaStreamTrack =
++    [[RTCMediaStreamTrack alloc] initWithNativeTrack:track type:type];
++    
++    RTCPeerConnection *peer_connection = peer_connection_;
++    [peer_connection.delegate peerConnection:peer_connection
++                                 mediaStream:mediaStream
++                         didRemoveTrack:mediaStreamTrack];
++}
++    
++void PeerConnectionDelegateAdapter::OnVideoTrackRemovedFromStream(VideoTrackInterface* track,
++                                                                  MediaStreamInterface* stream){
++    RTCMediaStream *mediaStream =
++    [[RTCMediaStream alloc] initWithNativeMediaStream:stream];
++    
++    RTCMediaStreamTrackType type = RTCMediaStreamTrackTypeVideo;
++    RTCMediaStreamTrack *mediaStreamTrack =
++    [[RTCMediaStreamTrack alloc] initWithNativeTrack:track type:type];
++    
++    RTCPeerConnection *peer_connection = peer_connection_;
++    [peer_connection.delegate peerConnection:peer_connection
++                                 mediaStream:mediaStream
++                            didRemoveTrack:mediaStreamTrack];
++}
+ 
+ void PeerConnectionDelegateAdapter::OnDataChannel(
+     rtc::scoped_refptr<DataChannelInterface> data_channel) {
+diff --git a/sdk/objc/Framework/Classes/PeerConnection/RTCVideoFrame.mm b/sdk/objc/Framework/Classes/PeerConnection/RTCVideoFrame.mm
+index 19dd2452c..77282f9a9 100644
+--- a/sdk/objc/Framework/Classes/PeerConnection/RTCVideoFrame.mm
++++ b/sdk/objc/Framework/Classes/PeerConnection/RTCVideoFrame.mm
+@@ -9,12 +9,43 @@
+  */
+ 
+ #import "RTCVideoFrame+Private.h"
++#import "RTCI420Buffer+Private.h"
+ 
+ #import "WebRTC/RTCVideoFrame.h"
+ #import "WebRTC/RTCVideoFrameBuffer.h"
+ 
+ #include "api/video/video_frame.h"
+ #include "rtc_base/timeutils.h"
++#include "libyuv.h"
++
++
++// static
++rtc::scoped_refptr<webrtc::I420Buffer> I420BufferRotate(const id<RTCMutableI420Buffer> src, webrtc::VideoRotation rotation) {
++    RTC_CHECK(src.dataY);
++    RTC_CHECK(src.dataU);
++    RTC_CHECK(src.dataV);
++    
++    int rotated_width = src.width;
++    int rotated_height = src.height;
++    if (rotation == webrtc::kVideoRotation_90 ||
++        rotation == webrtc::kVideoRotation_270) {
++        std::swap(rotated_width, rotated_height);
++    }
++    
++    rtc::scoped_refptr<webrtc::I420Buffer> buffer =
++    webrtc::I420Buffer::Create(rotated_width, rotated_height);
++    
++    RTC_CHECK_EQ(0, libyuv::I420Rotate(
++                                       src.dataY, src.strideY,
++                                       src.dataU, src.strideU,
++                                       src.dataV, src.strideV,
++                                       buffer->MutableDataY(), buffer->StrideY(), buffer->MutableDataU(),
++                                       buffer->StrideU(), buffer->MutableDataV(), buffer->StrideV(),
++                                       src.width, src.height,
++                                       static_cast<libyuv::RotationMode>(rotation)));
++    
++    return buffer;
++}
+ 
+ id<RTCVideoFrameBuffer> nativeToRtcFrameBuffer(
+     const rtc::scoped_refptr<webrtc::VideoFrameBuffer> &buffer) {
+@@ -112,4 +143,67 @@ - (instancetype)initWithNativeVideoFrame:(const webrtc::VideoFrame &)frame {
+   return videoFrame;
+ }
+ 
++
++-(void)CopyI420BufferToCVPixelBuffer:(CVPixelBufferRef)outputPixelBuffer;
++{
++    id<RTCMutableI420Buffer> src = [self.buffer toI420];
++    CVPixelBufferLockBaseAddress(outputPixelBuffer, 0);
++    rtc::scoped_refptr<webrtc::I420Buffer> buffer = I420BufferRotate(src, (webrtc::VideoRotation)self.rotation);
++    RTCI420Buffer *i420Buffer = [[RTCI420Buffer alloc] initWithFrameBuffer:buffer];
++    
++    const OSType pixelFormat = CVPixelBufferGetPixelFormatType(outputPixelBuffer);
++    if (pixelFormat == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange ||
++        pixelFormat == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
++        // NV12
++        uint8_t* dstY = static_cast<uint8_t*>(CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 0));
++        const int dstYStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 0);
++        uint8_t* dstUV = static_cast<uint8_t*>(CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 1));
++        const int dstUVStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 1);
++        
++        libyuv::I420ToNV12(i420Buffer.dataY,
++                           i420Buffer.strideY,
++                           i420Buffer.dataU,
++                           i420Buffer.strideU,
++                           i420Buffer.dataV,
++                           i420Buffer.strideV,
++                           dstY,
++                           dstYStride,
++                           dstUV,
++                           dstUVStride,
++                           i420Buffer.width,
++                           i420Buffer.height);
++    } else {
++        uint8_t* dst = static_cast<uint8_t*>(CVPixelBufferGetBaseAddress(outputPixelBuffer));
++        const int bytesPerRow = CVPixelBufferGetBytesPerRow(outputPixelBuffer);
++        
++        if (pixelFormat == kCVPixelFormatType_32BGRA) {
++            // Corresponds to libyuv::FOURCC_ARGB
++            libyuv::I420ToARGB(i420Buffer.dataY,
++                               i420Buffer.strideY,
++                               i420Buffer.dataU,
++                               i420Buffer.strideU,
++                               i420Buffer.dataV,
++                               i420Buffer.strideV,
++                               dst,
++                               bytesPerRow,
++                               i420Buffer.width,
++                               i420Buffer.height);
++        } else if (pixelFormat == kCVPixelFormatType_32ARGB) {
++            // Corresponds to libyuv::FOURCC_BGRA
++            libyuv::I420ToBGRA(i420Buffer.dataY,
++                               i420Buffer.strideY,
++                               i420Buffer.dataU,
++                               i420Buffer.strideU,
++                               i420Buffer.dataV,
++                               i420Buffer.strideV,
++                               dst,
++                               bytesPerRow,
++                               i420Buffer.width,
++                               i420Buffer.height);
++        }
++    }
++    
++    CVPixelBufferUnlockBaseAddress(outputPixelBuffer, 0);
++}
++
+ @end
+diff --git a/sdk/objc/Framework/Classes/Video/RTCNV12TextureCache.m b/sdk/objc/Framework/Classes/Video/RTCNV12TextureCache.m
+index 20a6082a7..de28bc2d1 100644
+--- a/sdk/objc/Framework/Classes/Video/RTCNV12TextureCache.m
++++ b/sdk/objc/Framework/Classes/Video/RTCNV12TextureCache.m
+@@ -59,7 +59,8 @@ - (BOOL)loadTexture:(CVOpenGLESTextureRef *)textureOut
+       kCFAllocatorDefault, _textureCache, pixelBuffer, NULL, GL_TEXTURE_2D, pixelFormat, width,
+       height, pixelFormat, GL_UNSIGNED_BYTE, planeIndex, textureOut);
+   if (ret != kCVReturnSuccess) {
+-    CFRelease(*textureOut);
++    if(*textureOut)
++        CFRelease(*textureOut);
+     *textureOut = nil;
+     return NO;
+   }
+diff --git a/sdk/objc/Framework/Classes/Video/objcvideotracksource.h b/sdk/objc/Framework/Classes/Video/objcvideotracksource.h
+index 27c7295dd..7c46582fc 100644
+--- a/sdk/objc/Framework/Classes/Video/objcvideotracksource.h
++++ b/sdk/objc/Framework/Classes/Video/objcvideotracksource.h
+@@ -25,7 +25,7 @@ class ObjcVideoTrackSource : public rtc::AdaptedVideoTrackSource {
+ 
+   // This class can not be used for implementing screen casting. Hopefully, this
+   // function will be removed before we add that to iOS/Mac.
+-  bool is_screencast() const override { return false; }
++  bool is_screencast() const override { return true; }
+ 
+   // Indicates that the encoder should denoise video before encoding it.
+   // If it is not set, the default configuration is used which is different
+diff --git a/sdk/objc/Framework/Headers/WebRTC/RTCAVFoundationVideoSource.h b/sdk/objc/Framework/Headers/WebRTC/RTCAVFoundationVideoSource.h
+index 6d369b340..f2f0b154f 100644
+--- a/sdk/objc/Framework/Headers/WebRTC/RTCAVFoundationVideoSource.h
++++ b/sdk/objc/Framework/Headers/WebRTC/RTCAVFoundationVideoSource.h
+@@ -31,6 +31,10 @@ RTC_EXPORT
+ 
+ - (instancetype)init NS_UNAVAILABLE;
+ 
++- (BOOL)IsRunning;
++
++- (void)Stop;
++
+ /**
+  * Calling this function will cause frames to be scaled down to the
+  * requested resolution. Also, frames will be cropped to match the
+diff --git a/sdk/objc/Framework/Headers/WebRTC/RTCPeerConnection.h b/sdk/objc/Framework/Headers/WebRTC/RTCPeerConnection.h
+index 7b0c4492f..8c7782c54 100644
+--- a/sdk/objc/Framework/Headers/WebRTC/RTCPeerConnection.h
++++ b/sdk/objc/Framework/Headers/WebRTC/RTCPeerConnection.h
+@@ -22,6 +22,7 @@
+ @class RTCPeerConnectionFactory;
+ @class RTCRtpReceiver;
+ @class RTCRtpSender;
++@class RTCVideoTrack;
+ @class RTCSessionDescription;
+ @class RTCLegacyStatsReport;
+ 
+@@ -83,6 +84,16 @@ RTC_EXPORT
+ - (void)peerConnection:(RTCPeerConnection *)peerConnection
+        didRemoveStream:(RTCMediaStream *)stream;
+ 
++/** Called when media is received on a new track from remote stream. */
++- (void)peerConnection:(RTCPeerConnection *)peerConnection
++          mediaStream:(RTCMediaStream *)stream
++          didAddTrack:(RTCMediaStreamTrack*)track;
++
++/** Called when a remote stream closes a track. */
++- (void)peerConnection:(RTCPeerConnection *)peerConnection
++           mediaStream:(RTCMediaStream *)stream
++      didRemoveTrack:(RTCMediaStreamTrack*)track;
++
+ /** Called when negotiation is needed, for example ICE has restarted. */
+ - (void)peerConnectionShouldNegotiate:(RTCPeerConnection *)peerConnection;
+ 
+diff --git a/sdk/objc/Framework/Headers/WebRTC/RTCVideoFrame.h b/sdk/objc/Framework/Headers/WebRTC/RTCVideoFrame.h
+index dcc4c6e7b..aaf62abc9 100644
+--- a/sdk/objc/Framework/Headers/WebRTC/RTCVideoFrame.h
++++ b/sdk/objc/Framework/Headers/WebRTC/RTCVideoFrame.h
+@@ -80,6 +80,8 @@ RTC_EXPORT
+  */
+ - (RTCVideoFrame *)newI420VideoFrame;
+ 
++- (void)CopyI420BufferToCVPixelBuffer:(CVPixelBufferRef)outputPixelBuffer;
++
+ @end
+ 
+ NS_ASSUME_NONNULL_END
