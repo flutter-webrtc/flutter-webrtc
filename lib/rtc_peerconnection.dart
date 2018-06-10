@@ -46,6 +46,7 @@ typedef void AddStreamCallback(MediaStream stream);
 typedef void RemoveStreamCallback(MediaStream stream);
 typedef void AddTrackCallback(MediaStream stream, MediaStreamTrack track);
 typedef void RemoveTrackCallback(MediaStream stream, MediaStreamTrack track);
+typedef void RTCDataChannelCallback(RTCDataChannel channel);
 
 /*
  *  PeerConnection
@@ -55,8 +56,8 @@ class RTCPeerConnection {
   String _peerConnectionId;
   MethodChannel _channel = WebRTC.methodChannel();
   StreamSubscription<dynamic> _eventSubscription;
-  List<MediaStream> localStreams;
-  List<MediaStream> remoteStreams;
+  List<MediaStream> _localStreams;
+  List<MediaStream> _remoteStreams;
   RTCDataChannel _dataChannel;
 
   // public: delegate
@@ -68,8 +69,10 @@ class RTCPeerConnection {
   RemoveStreamCallback onRemoveStream;
   AddTrackCallback onAddTrack;
   RemoveTrackCallback onRemoveTrack;
+  RTCDataChannelCallback onDataChannel;
   dynamic onRenegotiationNeeded;
-  final Map<String, dynamic> DEFAULT_SDP_CONSTRAINTS = {
+
+  final Map<String, dynamic> defaultSdpConstraints = {
     "mandatory": {
       "OfferToReceiveAudio": true,
       "OfferToReceiveVideo": true,
@@ -84,8 +87,8 @@ class RTCPeerConnection {
   }
 
   /*
-     * PeerConnection 事件监听器
-     */
+   * PeerConnection event listener.
+   */
   void eventListener(dynamic event) {
     final Map<dynamic, dynamic> map = event;
 
@@ -143,13 +146,22 @@ class RTCPeerConnection {
         String label = map['label'];
         _dataChannel =
             new RTCDataChannel(this._peerConnectionId, label, dataChannelId);
-        //TODO:
+        if (this.onDataChannel != null) this.onDataChannel(_dataChannel);
         break;
       case 'dataChannelStateChanged':
-        //TODO:
+        int dataChannelId = map['id'];
+        String state = map['state'];
+        if (this.onDataChannel != null &&
+            _dataChannel.onDataChannelState != null)
+          _dataChannel.onDataChannelState(rtcDataChannelStateForString(state));
         break;
       case 'dataChannelReceiveMessage':
-        //TODO:
+        int dataChannelId = map['id'];
+        String type = map['type'];
+        String data = map['data'];
+        if (this.onDataChannel != null &&
+            _dataChannel.onMessage != null)
+          _dataChannel.onMessage(data);
         break;
       case 'onRenegotiationNeeded':
         if (this.onRenegotiationNeeded != null) this.onRenegotiationNeeded();
@@ -175,30 +187,32 @@ class RTCPeerConnection {
         'cloudwebrtc.com/WebRTC/peerConnectoinEvent$peerConnectionId');
   }
 
-  dynamic createOffer(Map<String, dynamic> constraints) async {
+  Future<RTCSessionDescription> createOffer(
+      Map<String, dynamic> constraints) async {
     try {
       final Map<dynamic, dynamic> response =
           await _channel.invokeMethod('createOffer', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'constraints':
-            constraints.length == 0 ? DEFAULT_SDP_CONSTRAINTS : constraints,
+            constraints.length == 0 ? defaultSdpConstraints : constraints,
       });
 
       String sdp = response['sdp'];
       String type = response['type'];
       return new RTCSessionDescription(sdp, type);
     } on PlatformException catch (e) {
-      throw 'Unable to createOffer: ${e.message}';
+      throw 'Unable to RTCPeerConnection::createOffer: ${e.message}';
     }
   }
 
-  dynamic createAnswer(Map<String, dynamic> constraints) async {
+  Future<RTCSessionDescription> createAnswer(
+      Map<String, dynamic> constraints) async {
     try {
       final Map<dynamic, dynamic> response =
           await _channel.invokeMethod('createAnswer', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'constraints':
-            constraints.length == 0 ? DEFAULT_SDP_CONSTRAINTS : constraints,
+            constraints.length == 0 ? defaultSdpConstraints : constraints,
       });
       if (response['error']) {
         throw response['error'];
@@ -207,7 +221,7 @@ class RTCPeerConnection {
       String type = response['type'];
       return new RTCSessionDescription(sdp, type);
     } on PlatformException catch (e) {
-      throw 'Unable to createAnswer: ${e.message}';
+      throw 'Unable to RTCPeerConnection::createAnswer: ${e.message}';
     }
   }
 
@@ -232,7 +246,7 @@ class RTCPeerConnection {
         'description': description.toMap(),
       });
     } on PlatformException catch (e) {
-      throw 'Unable to setLocalDescription: ${e.message}';
+      throw 'Unable to RTCPeerConnection::setLocalDescription: ${e.message}';
     }
   }
 
@@ -243,7 +257,7 @@ class RTCPeerConnection {
         'description': description.toMap(),
       });
     } on PlatformException catch (e) {
-      throw 'Unable to setRemoteDescription: ${e.message}';
+      throw 'Unable to RTCPeerConnection::setRemoteDescription: ${e.message}';
     }
   }
 
@@ -264,16 +278,16 @@ class RTCPeerConnection {
       Map<String, dynamic> stats = response["stats"];
       return new StatsReport(stats);
     } on PlatformException catch (e) {
-      throw 'Unable to getStats: ${e.message}';
+      throw 'Unable to RTCPeerConnection::getStats: ${e.message}';
     }
   }
 
   List<MediaStream> getLocalStreams() {
-    return localStreams;
+    return _localStreams;
   }
 
   List<MediaStream> getRemoteStreams() {
-    return remoteStreams;
+    return _remoteStreams;
   }
 
   Future<RTCDataChannel> createDataChannel(
@@ -289,7 +303,7 @@ class RTCPeerConnection {
           new RTCDataChannel(this._peerConnectionId, label, dataChannelDict.id);
       return _dataChannel;
     } on PlatformException catch (e) {
-      throw 'Unable to getStats: ${e.message}';
+      throw 'Unable to RTCPeerConnection::createDataChannel: ${e.message}';
     }
   }
 
@@ -299,7 +313,7 @@ class RTCPeerConnection {
         'peerConnectionId': this._peerConnectionId,
       });
     } on PlatformException catch (e) {
-      throw 'Unable to getStats: ${e.message}';
+      throw 'Unable to RTCPeerConnection::close: ${e.message}';
     }
   }
 }

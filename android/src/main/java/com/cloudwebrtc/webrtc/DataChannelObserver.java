@@ -56,6 +56,13 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
 
     @Override
     public void onStateChange() {
+        if(mDataChannel.state() == DataChannel.State.OPEN){
+            ConstraintsMap params = new ConstraintsMap();
+            params.putString("event", "didOpenDataChannel");
+            params.putInt("id", mDataChannel.id());
+            params.putString("label", mDataChannel.label());
+            sendEvent(params);
+        }
         ConstraintsMap params = new ConstraintsMap();
         params.putString("event", "dataChannelStateChanged");
         params.putInt("id", mDataChannel.id());
