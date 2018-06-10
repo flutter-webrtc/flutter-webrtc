@@ -113,7 +113,7 @@
             [self peerConnectionCreateOffer:constraints peerConnection:peerConnection result:result ];
         }else{
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: pc not found!"]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
     }  else if ([@"createAnswer" isEqualToString:call.method]) {
@@ -128,7 +128,7 @@
                                       result:result];
         }else{
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: pc not found!"]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
     }  else if ([@"addStream" isEqualToString:call.method]) {
@@ -145,7 +145,7 @@
             result(@"");
         }else{
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: pc or stream not found!"]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection or mediaStream not found!"]
                                        details:nil]);
         }
     }  else if ([@"removeStream" isEqualToString:call.method]) {
@@ -162,7 +162,7 @@
             result(nil);
         }else{
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: pc or stream not found!"]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection or mediaStream not found!"]
                                        details:nil]);
         }
     }  else if ([@"setLocalDescription" isEqualToString:call.method]) {
@@ -178,7 +178,7 @@
             [self peerConnectionSetLocalDescription:description peerConnection:peerConnection result:result];
         }else{
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: pc not found!"]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
     }  else if ([@"setRemoteDescription" isEqualToString:call.method]) {
@@ -195,7 +195,7 @@
             [self peerConnectionSetRemoteDescription:description peerConnection:peerConnection result:result];
         }else{
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: pc not found!"]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
     }  else if ([@"addCandidate" isEqualToString:call.method]) {
@@ -214,7 +214,7 @@
             [self peerConnectionAddICECandidate:candidate peerConnection:peerConnection result:result];
         }else{
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: pc not found!"]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
     } else if ([@"getStats" isEqualToString:call.method]) {
