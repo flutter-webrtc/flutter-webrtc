@@ -148,21 +148,6 @@ class RTCPeerConnection {
             new RTCDataChannel(this._peerConnectionId, label, dataChannelId);
         if (this.onDataChannel != null) this.onDataChannel(_dataChannel);
         break;
-      case 'dataChannelStateChanged':
-        int dataChannelId = map['id'];
-        String state = map['state'];
-        if (this.onDataChannel != null &&
-            _dataChannel.onDataChannelState != null)
-          _dataChannel.onDataChannelState(rtcDataChannelStateForString(state));
-        break;
-      case 'dataChannelReceiveMessage':
-        int dataChannelId = map['id'];
-        String type = map['type'];
-        String data = map['data'];
-        if (this.onDataChannel != null &&
-            _dataChannel.onMessage != null)
-          _dataChannel.onMessage(data);
-        break;
       case 'onRenegotiationNeeded':
         if (this.onRenegotiationNeeded != null) this.onRenegotiationNeeded();
         break;

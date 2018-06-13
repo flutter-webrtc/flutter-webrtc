@@ -37,6 +37,9 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
      */
     private final RendererEvents rendererEvents
         = new RendererEvents() {
+            private int _rotation = 0;
+            private  int _width = 0, _height = 0;
+
             @Override
             public void onFirstFrameRendered() {
             }
@@ -48,25 +51,31 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
                 if(eventSink != null)
                 {
-                    ConstraintsMap params = new ConstraintsMap();
-                    params.putString("event", "didTextureChangeVideoSize");
-                    params.putInt("id", id);
+                    if(_width != videoWidth || _height != videoHeight){
+                        ConstraintsMap params = new ConstraintsMap();
+                        params.putString("event", "didTextureChangeVideoSize");
+                        params.putInt("id", id);
 
-                    if(rotation == 90 || rotation == 270){
-                        params.putDouble("width", (double) videoHeight);
-                        params.putDouble("height", (double) videoWidth);
-                    }else {
-                        params.putDouble("width", (double) videoWidth);
-                        params.putDouble("height", (double) videoHeight);
+                        if(rotation == 90 || rotation == 270){
+                            params.putDouble("width", (double) videoHeight);
+                            params.putDouble("height", (double) videoWidth);
+                        }else {
+                            params.putDouble("width", (double) videoWidth);
+                            params.putDouble("height", (double) videoHeight);
+                        }
+                        _width = videoWidth;
+                        _height = videoHeight;
+                        eventSink.success(params.toMap());
                     }
 
-                    eventSink.success(params.toMap());
-
-                    ConstraintsMap params2 = new ConstraintsMap();
-                    params2.putString("event", "didTextureChangeRotation");
-                    params2.putInt("id", id);
-                    params2.putInt("rotation", rotation);
-                    eventSink.success(params2.toMap());
+                    if(_rotation != rotation){
+                        ConstraintsMap params2 = new ConstraintsMap();
+                        params2.putString("event", "didTextureChangeRotation");
+                        params2.putInt("id", id);
+                        params2.putInt("rotation", rotation);
+                        _rotation = rotation;
+                        eventSink.success(params2.toMap());
+                    }
                 }
             }
         };

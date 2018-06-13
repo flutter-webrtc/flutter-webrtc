@@ -1,6 +1,9 @@
-import 'package:webrtc/webrtc.dart';
-import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
+
+import 'package:webrtc/webrtc.dart';
+import 'package:webrtc/utils.dart';
+
 
 class RTCDataChannelInit {
   bool ordered;
@@ -52,6 +55,19 @@ class RTCDataChannel {
   void eventListener(dynamic event) {
     final Map<dynamic, dynamic> map = event;
     switch (map['event']) {
+      case 'dataChannelStateChanged':
+        int dataChannelId = map['id'];
+        String state = map['state'];
+        if (this.onDataChannelState != null)
+          this.onDataChannelState(rtcDataChannelStateForString(state));
+        break;
+      case 'dataChannelReceiveMessage':
+        int dataChannelId = map['id'];
+        String type = map['type'];
+        String data = map['data'];
+        if (this.onMessage != null)
+          this.onMessage(data);
+        break;
     }
   }
 
