@@ -187,71 +187,42 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
                     new StatsObserver() {
                         @Override
                         public void onComplete(StatsReport[] reports) {
-                            result.success(statsToJSON(reports));
+
+                            final int reportCount = reports.length;
+                            ConstraintsMap params = new ConstraintsMap();
+                            ConstraintsArray stats = new ConstraintsArray();
+
+                            for (int i = 0; i < reportCount; ++i) {
+                                StatsReport report = reports[i];
+                                ConstraintsMap report_map = new ConstraintsMap();
+
+                                report_map.putString("id", report.id);
+                                report_map.putString("type", report.type);
+                                report_map.putDouble("timestamp", report.timestamp);
+
+                                StatsReport.Value[] values = report.values;
+                                ConstraintsMap v_map = new ConstraintsMap();
+                                final int valueCount = values.length;
+                                for (int j = 0; j < valueCount; ++j) {
+                                    StatsReport.Value v = values[j];
+                                    v_map.putString(v.name, v.value);
+                                }
+
+                                report_map.putMap("values", v_map.toMap());
+                                stats.pushMap(report_map);
+                            }
+
+                            params.putArray("stats", stats.toArrayList());
+                            result.success(params.toMap());
                         }
                     },
                     track);
         } else {
             Log.e(TAG, "peerConnectionGetStats() MediaStreamTrack not found for id: " + trackId);
+            result.error("peerConnectionGetStats",
+                    "peerConnectionGetStats() MediaStreamTrack not found for id: " + trackId,
+                    null);
         }
-    }
-
-    /**
-     * Constructs a JSON <tt>String</tt> representation of a specific array of
-     * <tt>StatsReport</tt>s (produced by {@link PeerConnection#getStats}).
-     * <p>
-     * On Android it is faster to (1) construct a single JSON <tt>String</tt>
-     * representation of an array of <tt>StatsReport</tt>s and (2) have it pass
-     * through the React Native bridge rather than the array of
-     * <tt>StatsReport</tt>s.
-     *
-     * @param reports the array of <tt>StatsReport</tt>s to represent in JSON
-     * format
-     * @return a <tt>String</tt> which represents the specified <tt>reports</tt>
-     * in JSON format
-     */
-    private String statsToJSON(StatsReport[] reports) {
-        // If possible, reuse a single StringBuilder instance across multiple
-        // getStats method calls in order to reduce the total number of
-        // allocations.
-        StringBuilder s = statsToJSONStringBuilder.get();
-        if (s == null) {
-            s = new StringBuilder();
-            statsToJSONStringBuilder = new SoftReference(s);
-        }
-
-        s.append('[');
-        final int reportCount = reports.length;
-        for (int i = 0; i < reportCount; ++i) {
-            StatsReport report = reports[i];
-            if (i != 0) {
-                s.append(',');
-            }
-            s.append("{\"id\":\"").append(report.id)
-                .append("\",\"type\":\"").append(report.type)
-                .append("\",\"timestamp\":").append(report.timestamp)
-                .append(",\"values\":[");
-            StatsReport.Value[] values = report.values;
-            final int valueCount = values.length;
-            for (int j = 0; j < valueCount; ++j) {
-                StatsReport.Value v = values[j];
-                if (j != 0) {
-                    s.append(',');
-                }
-                s.append("{\"").append(v.name).append("\":\"").append(v.value)
-                    .append("\"}");
-            }
-            s.append("]}");
-        }
-        s.append("]");
-
-        String r = s.toString();
-        // Prepare the StringBuilder instance for reuse (in order to reduce the
-        // total number of allocations performed during multiple getStats method
-        // calls).
-        s.setLength(0);
-
-        return r;
     }
 
     @Override
