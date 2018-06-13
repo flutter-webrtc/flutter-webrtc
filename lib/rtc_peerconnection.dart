@@ -253,15 +253,19 @@ class RTCPeerConnection {
     });
   }
 
-  Future<StatsReport> getStats(MediaStreamTrack track) async {
+  Future<List<StatsReport>> getStats(MediaStreamTrack track) async {
     try {
-      final Map<dynamic, dynamic> response = await _channel.invokeMethod(
-          'getStats', <String, dynamic>{
+      final Map<dynamic, dynamic> response =
+          await _channel.invokeMethod('getStats', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
-        'track': track.id
+        'track': track != null ? track.id : null
       });
-      Map<String, dynamic> stats = response["stats"];
-      return new StatsReport(stats);
+      List<dynamic> reports = response['stats'];
+      List<StatsReport> stats = new List<StatsReport>();
+       reports.forEach((report){
+         stats.add(new StatsReport(report['id'], report['type'], report['timestamp'], report['values']));
+       });
+      return stats;
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::getStats: ${e.message}';
     }

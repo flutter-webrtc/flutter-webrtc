@@ -6,7 +6,9 @@ import 'package:webrtc/get_user_media.dart';
 import 'package:webrtc/rtc_session_description.dart';
 import 'package:webrtc/rtc_video_view.dart';
 import 'package:webrtc/rtc_ice_candidate.dart';
+import 'package:webrtc/rtc_stats_report.dart';
 import 'dart:core';
+import 'dart:async';
 
 void main() => runApp(new MyApp());
 
@@ -21,6 +23,7 @@ class _MyAppState extends State<MyApp> {
   final _localRenderer = new RTCVideoRenderer();
   final _remoteRenderer = new RTCVideoRenderer();
   bool incalling = false;
+  Timer _timer;
 
   @override
   initState() {
@@ -31,6 +34,24 @@ class _MyAppState extends State<MyApp> {
   initRenderers() async {
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
+  }
+
+  void handleStatsReport(Timer timer) async {
+    if (_peerConnection != null) {
+      List<StatsReport> reports = await _peerConnection.getStats(null);
+      reports.forEach((report) {
+        print("report => { ");
+        print("    id: " + report.id + ",");
+        print("    type: " + report.type + ",");
+        print("    timestamp: ${report.timestamp},");
+        print("    values => {");
+        report.values.forEach((key, value) {
+          print("        " + key + " : " + value + ", ");
+        });
+        print("    }");
+        print("}");
+      });
+    }
   }
 
   _onSignalingState(RTCSignalingState state) {
@@ -129,6 +150,8 @@ class _MyAppState extends State<MyApp> {
       print(e.toString());
     }
     if (!mounted) return;
+
+    _timer = new Timer.periodic(Duration(seconds: 1), handleStatsReport);
 
     setState(() {
       incalling = true;
