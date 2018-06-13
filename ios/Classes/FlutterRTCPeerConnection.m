@@ -530,6 +530,13 @@
     dataChannel.delegate = self;
     peerConnection.dataChannels[dataChannelId] = dataChannel;
     
+    FlutterEventChannel *eventChannel = [FlutterEventChannel
+                                         eventChannelWithName:[NSString stringWithFormat:@"cloudwebrtc.com/WebRTC/dataChannelEvent%d", dataChannel.channelId]
+                                         binaryMessenger:self.messenger];
+    
+    dataChannel.eventChannel = eventChannel;
+    [eventChannel setStreamHandler:dataChannel];
+    
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{

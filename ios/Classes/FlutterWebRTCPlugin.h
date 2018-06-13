@@ -17,6 +17,7 @@
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *localTracks;
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, FlutterRTCVideoRenderer *> *renders;
 @property (nonatomic, retain) UIViewController *viewController;/*for broadcast or ReplayKit */
+@property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId;
 
