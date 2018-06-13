@@ -1,8 +1,8 @@
 
 class StatsReport {
-    Map<String,dynamic> _stats;
-    StatsReport(this._stats);
-    Map<String,dynamic> getStats(){
-      return _stats;
-    }
+    String id;
+    String type;
+    double timestamp;
+    Map<dynamic,dynamic> values;
+    StatsReport(this.id, this.type, this.timestamp, this.values);
 }
