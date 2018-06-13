@@ -26,6 +26,8 @@
     id _textures;
 }
 
+@synthesize messenger = _messenger;
+
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     
     FlutterMethodChannel* channel = [FlutterMethodChannel
@@ -232,7 +234,8 @@
         NSDictionary * dataChannelDict = (NSDictionary*)argsMap[@"dataChannelDict"];
         [self createDataChannel:peerConnectionId
                           label:label
-                         config:[self RTCDataChannelConfiguration:dataChannelDict]];
+                         config:[self RTCDataChannelConfiguration:dataChannelDict]
+                      messenger:_messenger];
         result(nil);
     }else if([@"dataChannelSend" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;

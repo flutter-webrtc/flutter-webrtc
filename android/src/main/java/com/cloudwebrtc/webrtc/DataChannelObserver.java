@@ -23,7 +23,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
         this.eventChannel =
                 new EventChannel(
                         plugin.registrar().messenger(),
-                        "cloudwebrtc.com/WebRTC/peerDataChannelEvent" + dataChannel);
+                        "cloudwebrtc.com/WebRTC/dataChannelEvent" + dataChannel);
         eventChannel.setStreamHandler(this);
     }
 
@@ -56,13 +56,6 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
 
     @Override
     public void onStateChange() {
-        if(mDataChannel.state() == DataChannel.State.OPEN){
-            ConstraintsMap params = new ConstraintsMap();
-            params.putString("event", "didOpenDataChannel");
-            params.putInt("id", mDataChannel.id());
-            params.putString("label", mDataChannel.label());
-            sendEvent(params);
-        }
         ConstraintsMap params = new ConstraintsMap();
         params.putString("event", "dataChannelStateChanged");
         params.putInt("id", mDataChannel.id());
