@@ -6,11 +6,12 @@ import 'package:webrtc/utils.dart';
 
 
 class RTCDataChannelInit {
-  bool ordered;
-  int maxPacketLifeTime;
-  int maxRetransmits;
-  String protocol;
-  bool negotiated;
+  bool ordered = true;
+  int maxPacketLifeTime = 600;
+  int maxRetransmits = 120;
+  String protocol = 'sctp'; //sctp | quic
+  String binaryType = 'arraybuffer';
+  bool negotiated = false;
   int id = 0;
   Map<String, dynamic> toMap() {
     return {
