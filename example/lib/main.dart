@@ -23,7 +23,7 @@ class _MyAppState extends State<MyApp> {
   final _localRenderer = new RTCVideoRenderer();
   final _remoteRenderer = new RTCVideoRenderer();
   bool incalling = false;
-  Timer _timer;
+  Timer _timer = null;
 
   @override
   initState() {
