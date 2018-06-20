@@ -1,5 +1,11 @@
+import 'package:flutter/services.dart';
 import 'package:webrtc/rtc_peerconnection.dart';
 import 'package:webrtc/rtc_data_channel.dart';
+
+class WebRTC {
+  static const MethodChannel _channel = const MethodChannel('cloudwebrtc.com/WebRTC.Method');
+  static MethodChannel methodChannel() => _channel;
+}
 
 RTCIceConnectionState iceConnectionStateForString(String state) {
   switch (state) {

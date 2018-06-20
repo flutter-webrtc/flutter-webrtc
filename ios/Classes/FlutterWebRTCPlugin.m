@@ -488,7 +488,7 @@
             init.isNegotiated = [json[@"negotiated"] boolValue];
         }
         if (json[@"protocol"]) {
-            init.protocol = [json[@"protocol"] string];
+            init.protocol = json[@"protocol"];
         }
         return init;
     }

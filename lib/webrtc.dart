@@ -1,6 +1,10 @@
-import 'package:flutter/services.dart';
-
-class WebRTC {
-  static const MethodChannel _channel = const MethodChannel('cloudwebrtc.com/WebRTC.Method');
-  static MethodChannel methodChannel() => _channel;
-}
+export 'get_user_media.dart';
+export 'media_stream_track.dart';
+export 'media_stream.dart';
+export 'rtc_data_channel.dart';
+export 'rtc_video_view.dart';
+export 'rtc_ice_candidate.dart';
+export 'rtc_session_description.dart';
+export 'rtc_peerconnection.dart';
+export 'rtc_peerconnection_factory.dart';
+export 'rtc_stats_report.dart';
