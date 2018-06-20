@@ -1,5 +1,4 @@
 
-
 class RTCSessionDescription {
     String sdp;
     String type;

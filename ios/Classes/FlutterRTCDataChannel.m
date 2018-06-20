@@ -59,7 +59,7 @@
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     RTCDataChannel *dataChannel = [peerConnection dataChannelForLabel:label configuration:config];
     
-    if (-1 != dataChannel.channelId) {
+    if (nil != dataChannel && -1 != dataChannel.channelId) {
         dataChannel.peerConnectionId = peerConnectionId;
         NSNumber *dataChannelId = [NSNumber numberWithInteger:dataChannel.channelId];
         peerConnection.dataChannels[dataChannelId] = dataChannel;

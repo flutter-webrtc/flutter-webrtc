@@ -1,13 +1,13 @@
-import 'package:webrtc/webrtc.dart' show WebRTC;
-import 'package:webrtc/rtc_data_channel.dart';
-import 'package:webrtc/rtc_session_description.dart';
-import 'package:webrtc/rtc_ice_candidate.dart';
+import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:webrtc/media_stream.dart';
 import 'package:webrtc/media_stream_track.dart';
+import 'package:webrtc/rtc_data_channel.dart';
+import 'package:webrtc/rtc_ice_candidate.dart';
+import 'package:webrtc/rtc_session_description.dart';
 import 'package:webrtc/rtc_stats_report.dart';
-import 'package:flutter/services.dart';
 import 'package:webrtc/utils.dart';
-import 'dart:async';
+
 
 enum RTCSignalingState {
   RTCSignalingStateStable,
@@ -224,9 +224,9 @@ class RTCPeerConnection {
     });
   }
 
-  void setLocalDescription(RTCSessionDescription description) {
+  Future<void> setLocalDescription(RTCSessionDescription description) async {
     try {
-      _channel.invokeMethod('setLocalDescription', <String, dynamic>{
+      await _channel.invokeMethod('setLocalDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'description': description.toMap(),
       });
@@ -235,9 +235,9 @@ class RTCPeerConnection {
     }
   }
 
-  void setRemoteDescription(RTCSessionDescription description) {
+  Future<void> setRemoteDescription(RTCSessionDescription description) async {
     try {
-      _channel.invokeMethod('setRemoteDescription', <String, dynamic>{
+      await _channel.invokeMethod('setRemoteDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'description': description.toMap(),
       });

@@ -1,22 +1,19 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
-
-import 'package:webrtc/webrtc.dart';
 import 'package:webrtc/utils.dart';
-
 
 class RTCDataChannelInit {
   bool ordered = true;
-  int maxPacketLifeTime = 600;
-  int maxRetransmits = 120;
+  int maxRetransmitTime = 500;
+  int maxRetransmits = 3;
   String protocol = 'sctp'; //sctp | quic
-  String binaryType = 'arraybuffer';
+  String binaryType = 'text'; // "binary" || text
   bool negotiated = false;
   int id = 0;
   Map<String, dynamic> toMap() {
     return {
       'ordered': ordered,
-      'maxPacketLifeTime': maxPacketLifeTime,
+      'maxRetransmitTime': maxRetransmitTime,
       'maxRetransmits': maxRetransmits,
       'protocol': protocol,
       'negotiated': negotiated,
