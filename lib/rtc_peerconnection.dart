@@ -260,11 +260,13 @@ class RTCPeerConnection {
         'peerConnectionId': this._peerConnectionId,
         'track': track != null ? track.id : null
       });
-      List<dynamic> reports = response['stats'];
       List<StatsReport> stats = new List<StatsReport>();
-       reports.forEach((report){
+      if(response != null){
+        List<dynamic> reports = response['stats'];
+        reports.forEach((report){
          stats.add(new StatsReport(report['id'], report['type'], report['timestamp'], report['values']));
        });
+      }
       return stats;
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::getStats: ${e.message}';
