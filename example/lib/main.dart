@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:webrtc/rtc_peerconnection.dart';
-import 'package:webrtc/rtc_peerconnection_factory.dart';
-import 'package:webrtc/media_stream.dart';
-import 'package:webrtc/get_user_media.dart';
-import 'package:webrtc/rtc_session_description.dart';
-import 'package:webrtc/rtc_video_view.dart';
-import 'package:webrtc/rtc_ice_candidate.dart';
-import 'package:webrtc/rtc_stats_report.dart';
+import 'package:webrtc/webrtc.dart';
 import 'dart:core';
 import 'dart:async';
 
@@ -142,10 +135,10 @@ class _MyAppState extends State<MyApp> {
       RTCSessionDescription description =
           await _peerConnection.createOffer(offer_sdp_constraints);
       print(description.sdp);
-      _peerConnection.setLocalDescription(description);
+      await _peerConnection.setLocalDescription(description);
       //change for loopback.
       description.type = 'answer';
-      _peerConnection.setRemoteDescription(description);
+      await _peerConnection.setRemoteDescription(description);
     } catch (e) {
       print(e.toString());
     }

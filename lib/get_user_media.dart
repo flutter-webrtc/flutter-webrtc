@@ -1,7 +1,7 @@
-import 'package:webrtc/webrtc.dart';
-import 'package:webrtc/media_stream.dart';
-import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
+import 'package:webrtc/media_stream.dart';
+import 'package:webrtc/utils.dart';
 
 Future<MediaStream> getUserMedia(Map<String, dynamic> mediaConstraints) async {
   MethodChannel channel = WebRTC.methodChannel();
