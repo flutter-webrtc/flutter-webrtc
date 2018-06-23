@@ -159,6 +159,13 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
         }
 
         setVideoTrack(videoTrack);
+
+        boolean enabled = (videoTrack != null && mediaStream != null);
+        ConstraintsMap params = new ConstraintsMap();
+        params.putString("event", "videoState");
+        params.putInt("id", id);
+        params.putInt("enabled", enabled);
+        eventSink.success(params.toMap());
     }
 
     /**

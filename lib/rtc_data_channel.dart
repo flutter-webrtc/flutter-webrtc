@@ -4,8 +4,8 @@ import 'package:webrtc/utils.dart';
 
 class RTCDataChannelInit {
   bool ordered = true;
-  int maxRetransmitTime = 500;
-  int maxRetransmits = 3;
+  int maxRetransmitTime = -1;
+  int maxRetransmits = -1;
   String protocol = 'sctp'; //sctp | quic
   String binaryType = 'text'; // "binary" || text
   bool negotiated = false;
@@ -87,7 +87,7 @@ class RTCDataChannel {
         'data': data});
   }
 
-  void close() async {
+  Future<void> close() async {
     await _eventSubscription?.cancel();
     await _channel.invokeMethod('dataChannelClose',
         <String, dynamic>{'peerConnectionId': _peerConnectionId, 'dataChannelId': _dataChannelId});
