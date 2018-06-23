@@ -25,8 +25,9 @@ class RTCVideoRenderer {
   RTCVideoViewObjectFit _objectFit =
       RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
   StreamSubscription<dynamic> _eventSubscription;
-  VideoSizeChangeCallback onVideoSizeChange;
-  VideoRotationChangeCallback onVideoRotationChange;
+  VideoSizeChangeCallback onVideoSizeChanged;
+  VideoRotationChangeCallback onVideoRotationChanged;
+  dynamic onVideoStateChanged;
 
   initialize() async {
     final Map<dynamic, dynamic> response =
@@ -79,15 +80,20 @@ class RTCVideoRenderer {
     switch (map['event']) {
       case 'didTextureChangeRotation':
         _rotation = map['rotation'];
-        if (this.onVideoRotationChange != null)
-          this.onVideoRotationChange(_textureId, _rotation);
+        if (this.onVideoRotationChanged != null)
+          this.onVideoRotationChanged(_textureId, _rotation);
         break;
       case 'didTextureChangeVideoSize':
         _width = map['width'];
         _height = map['height'];
-        if (this.onVideoSizeChange != null)
-          this.onVideoSizeChange(_textureId, _width, _height);
+        if (this.onVideoSizeChanged != null)
+          this.onVideoSizeChanged(_textureId, _width, _height);
         break;
+      case 'videoState':
+        _muted = !map['enabled'];
+        if(this.onVideoStateChanged != null)
+          this.onVideoStateChanged();
+      break;
     }
   }
 
@@ -115,14 +121,20 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   @override
   void initState() {
     super.initState();
-    renderer.onVideoRotationChange = (int textureId, int rotation) {
+    renderer.onVideoRotationChanged = (int textureId, int rotation) {
       setState(() {
         _updateContainerSize();
       });
     };
-    renderer.onVideoSizeChange = (int textureId, double width, double height) {
+    renderer.onVideoSizeChanged = (int textureId, double width, double height) {
       setState(() {
         _updateContainerSize();
+      });
+    };
+
+    renderer.onVideoStateChanged = () {
+      setState(() {
+
       });
     };
   }
@@ -159,7 +171,10 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     return new Center(
         child: (this.renderer._textureId == null ||
                 this.renderer._srcObject == null)
-            ? new Container()
+            ? new Container() :
+            this.renderer._muted ? new Center(
+              child:  new Text('No Video!'),
+            )
             : new Container(
                 width: this.textureWidth,
                 height: this.textureHeight,
