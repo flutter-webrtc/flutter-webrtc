@@ -172,7 +172,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             = [videoConstraints isKindOfClass:[NSNumber class]]
             ? [videoConstraints boolValue]
             : [videoConstraints isKindOfClass:[NSDictionary class]];
-            
+#if !TARGET_IPHONE_SIMULATOR
             if (requestAccessForVideo) {
                 [self requestAccessForMediaType:AVMediaTypeVideo
                                     constraints:constraints
@@ -181,6 +181,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                                     mediaStream:mediaStream];
                 return;
             }
+#endif
         }
     }
     

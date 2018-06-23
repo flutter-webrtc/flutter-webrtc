@@ -162,7 +162,6 @@
     RTCMediaStream *stream = [self streamForId:streamId];
     if(stream){
         NSArray *videoTracks = stream ? stream.videoTracks : nil;
-        
         videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
         if (!videoTrack) {
             NSLog(@"No video stream for react tag: %@", streamId);
@@ -172,6 +171,17 @@
     }
     
     view.videoTrack = videoTrack;
+
+    BOOL enabled = (stream && videoTrack);
+    __weak FlutterRTCVideoRenderer *weakSelf = view;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        FlutterRTCVideoRenderer *strongSelf = weakSelf;
+        if(strongSelf.eventSink){
+            strongSelf.eventSink(@{@"event" : @"videoState",
+                                   @"id": @(strongSelf.textureId),
+                                   @"enabled":@(enabled)});
+        }
+    });
 }
 
 @end
