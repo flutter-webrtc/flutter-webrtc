@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:core';
-import 'loopback_sample.dart';
-import 'get_user_media_sample.dart';
-import 'data_channel_sample.dart';
+import 'src/basic_sample/basic_sample.dart';
+import 'src/call_sample/call_sample.dart';
+import 'src/route_item.dart';
 
 void main() => runApp(new MyApp());
 
@@ -11,68 +11,58 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => new _MyAppState();
 }
 
-class Item {
-  Item({
-    @required this.title,
-    @required this.subtitle,
-    @required this.route,
-  });
-
-  final String title;
-  final String subtitle;
-  final String route;
-}
-
-final List<Item> items = <Item>[
-  Item(
-    title: 'getUserMedia',
-    subtitle: 'GetUserMedia.',
-    route: GetUserMediaSample.tag,
-  ),
-  Item(
-    title: 'Loopback Sample',
-    subtitle: 'Loopback Sample.',
-    route: LoopBackSample.tag,
-  ),
-  Item(
-    title: 'Data Channel Sample',
-    subtitle: 'Data Channel Sample.',
-    route: DataChannelSample.tag,
-  ),
+final List<RouteItem> items = <RouteItem>[
+  RouteItem(
+      title: 'Basic Sample',
+      subtitle: 'Basic Sample.',
+      push: (BuildContext context) {
+        Navigator.push(
+            context,
+            new MaterialPageRoute(
+                builder: (BuildContext context) => new BasicSample()));
+      }),
+  RouteItem(
+      title: 'P2P Call Sample',
+      subtitle: 'P2P Call Sample.',
+      push: (BuildContext context) {
+        Navigator.push(
+            context,
+            new MaterialPageRoute(
+                builder: (BuildContext context) => new CallSample()));
+      }),
 ];
 
 class _MyAppState extends State<MyApp> {
-  final routes = <String, WidgetBuilder>{
-    LoopBackSample.tag: (context) => new LoopBackSample(),
-    GetUserMediaSample.tag: (context) => new GetUserMediaSample(),
-    DataChannelSample.tag: (context) => new DataChannelSample(),
-  };
-
   @override
   initState() {
     super.initState();
+  }
+
+  _buildRow(context, item) {
+    return ListBody(children: <Widget>[
+      ListTile(
+        title: Text(item.title),
+        onTap: () => item.push(context),
+        trailing: Icon(Icons.arrow_right),
+      ),
+      Divider()
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
       home: new Scaffold(
-        appBar: new AppBar(
-          title: new Text('Flutter-WebRTC example'),
-        ),
-        body: new OrientationBuilder(builder: (context, orientation) {
-          return ListView(
-              children: items.map((item) {
-            return ListTile(
-              title: Text(item.title),
-              onTap: () {
-                Navigator.of(context).pushNamed(item.route);
-              },
-            );
-          }).toList());
-        }),
-      ),
-      routes: routes,
+          appBar: new AppBar(
+            title: new Text('Flutter-WebRTC example'),
+          ),
+          body: new ListView.builder(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(0.0),
+              itemCount: items.length,
+              itemBuilder: (context, i) {
+                return _buildRow(context, items[i]);
+              })),
     );
   }
 }

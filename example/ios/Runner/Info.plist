@@ -23,13 +23,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
     <key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME)需要访问您的摄像头!</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>$(PRODUCT_NAME)需要使用定位服务!</string>
+	<string>$(PRODUCT_NAME) Camera Usage!</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>$(PRODUCT_NAME)需要访问您的麦克风!</string>
+	<string>$(PRODUCT_NAME) Microphone Usage!</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>$(PRODUCT_NAME)需要访问您的相册!</string>
+	<string>$(PRODUCT_NAME) PhotoLibrary Usage!</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
