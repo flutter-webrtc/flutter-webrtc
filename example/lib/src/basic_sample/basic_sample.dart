@@ -9,7 +9,7 @@ typedef void RouteCallback(BuildContext context);
 
 final List<RouteItem> items = <RouteItem>[
   RouteItem(
-      title: 'GetUserMediaSample',
+      title: 'GetUserMedia Test',
       push: (BuildContext context) {
         Navigator.push(
             context,
@@ -17,7 +17,7 @@ final List<RouteItem> items = <RouteItem>[
                 builder: (BuildContext context) => new GetUserMediaSample()));
       }),
   RouteItem(
-      title: 'LoopBackSample',
+      title: 'LoopBack Sample',
       push: (BuildContext context) {
         Navigator.push(
             context,
@@ -25,7 +25,7 @@ final List<RouteItem> items = <RouteItem>[
                 builder: (BuildContext context) => new LoopBackSample()));
       }),
   RouteItem(
-      title: 'DataChannelSample',
+      title: 'DataChannel Test',
       push: (BuildContext context) {
         Navigator.push(
             context,
@@ -67,7 +67,7 @@ class _BasicSampleState extends State<BasicSample> {
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text('Basic Sample'),
+          title: new Text('Basic API Tests'),
         ),
         body: new ListView.builder(
             shrinkWrap: true,

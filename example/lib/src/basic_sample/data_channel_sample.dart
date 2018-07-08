@@ -137,7 +137,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     return
       new Scaffold(
         appBar: new AppBar(
-          title: new Text('Data Channel Sample'),
+          title: new Text('Data Channel Test'),
         ),
         body: new OrientationBuilder(
           builder: (context, orientation) {
