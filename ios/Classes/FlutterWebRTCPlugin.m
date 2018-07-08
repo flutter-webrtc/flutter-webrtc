@@ -1,4 +1,10 @@
 #import "FlutterWebRTCPlugin.h"
+#import "FlutterRTCPeerConnection.h"
+#import "FlutterRTCMediaStream.h"
+#import "FlutterRTCDataChannel.h"
+#import "FlutterRTCVideoRenderer.h"
+#import "ARDVideoDecoderFactory.h"
+#import "ARDVideoEncoderFactory.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/RTCMediaStream.h>
@@ -12,12 +18,7 @@
 #import <WebRTC/RTCIceServer.h>
 #import <WebRTC/RTCAVFoundationVideoSource.h>
 
-#import "FlutterRTCPeerConnection.h"
-#import "FlutterRTCMediaStream.h"
-#import "FlutterRTCDataChannel.h"
-#import "FlutterRTCVideoRenderer.h"
-#import "ARDVideoDecoderFactory.h"
-#import "ARDVideoEncoderFactory.h"
+
 
 @implementation FlutterWebRTCPlugin {
     FlutterMethodChannel *_methodChannel;
@@ -84,6 +85,10 @@
                                              constraints:[self parseMediaConstraints:constraints]
                                              delegate:self];
         
+        peerConnection.remoteStreams = [NSMutableDictionary new];
+        peerConnection.remoteTracks = [NSMutableDictionary new];
+        peerConnection.dataChannels = [NSMutableDictionary new];
+        
         NSString *peerConnectionId = [[NSUUID UUID] UUIDString];
         peerConnection.flutterId  = peerConnectionId;
         
@@ -120,7 +125,7 @@
         }
     }  else if ([@"createAnswer" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
-        NSDictionary * constraints = (NSDictionary*)argsMap[@"constraints"];
+        NSDictionary * constraints = argsMap[@"constraints"];
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection)

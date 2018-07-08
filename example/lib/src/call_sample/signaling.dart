@@ -1,130 +1,253 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:math';
 import 'dart:io';
 import 'package:webrtc/webrtc.dart';
 
+const ASCII_START = 33;
+const ASCII_END = 126;
+const NUMERIC_START = 48;
+const NUMERIC_END = 57;
+
+/// Generates a random integer where [from] <= [to].
+int randomBetween(int from, int to) {
+  if (from > to) throw new Exception('$from cannot be > $to');
+  var rand = new Random();
+  return ((to - from) * rand.nextDouble()).toInt() + from;
+}
+
+/// Generates a random string of [length] with characters
+/// between ascii [from] to [to].
+/// Defaults to characters of ascii '!' to '~'.
+String randomString(int length, {int from: ASCII_START, int to: ASCII_END}) {
+  return new String.fromCharCodes(
+      new List.generate(length, (index) => randomBetween(from, to)));
+}
+
+/// Generates a random string of [length] with only numeric characters.
+String randomNumeric(int length) =>
+    randomString(length, from: NUMERIC_START, to: NUMERIC_END);
+
 class Signaling {
+  String _self_id = randomNumeric(6);
   var _socket;
-  List<int> _sockets;
-  int _self;
-
-  var _connections = new Map<int, RTCPeerConnection>();
+  var _peerConnections = new Map<String, RTCPeerConnection>();
   var _data = new Map<int, RTCDataChannel>();
-  var _streams = new List<MediaStream>();
-
   var _messageController = new StreamController();
-  Stream _messages;
   Stream _messageStream;
+  var _session_id;
 
-  var _iceServers = {
+  MediaStream _localStream;
+
+  Map<String, dynamic> _iceServers = {
     'iceServers': [
-      {'url': 'stun:stun.l.google.com:19302'}
+      {'url': 'stun:stun.l.google.com:19302'},
     ]
   };
 
-  var _dataConfig = {
+  final Map<String, dynamic> _config = {
+    'mandatory': {},
     'optional': [
-      {'RtpDataChannels': true},
-      {'DtlsSrtpKeyAgreement': true}
-    ]
+      {'DtlsSrtpKeyAgreement': true},
+    ],
   };
 
-  var _constraints = {};
+  close() {
+    if (_socket != null) _socket.close();
+  }
 
-  Signaling(url, name) {
-    _socket = WebSocket.connect(url);
+  final Map<String, dynamic> _constraints = {
+    'mandatory': {
+      'OfferToReceiveAudio': true,
+      'OfferToReceiveVideo': true,
+    },
+    'optional': [],
+  };
+
+  var _url;
+  var _name;
+  Signaling(this._url, this._name);
+
+  void invite(String peer_id, String media) {
+    String sessionId = this._self_id + '-' + peer_id;
+    _send('invite', {
+      'session_id': sessionId,
+      'id': _self_id,
+      'to': peer_id,
+      'media': media,
+    });
+    this._session_id = sessionId;
+  }
+
+  void leave() {
+    _send('bye', {
+      'session_id': this._session_id,
+      'from': this._self_id,
+    });
+  }
+
+  void connect() async {
     _messageStream = _messageController.stream.asBroadcastStream();
-    _socket.onOpen.listen((e) {
-      _send('join', {'name': name});
+    _socket = await WebSocket.connect(_url);
+    _socket.listen((data) {
+      print('Recivied data: ' + data);
+      _messageController.add(JSON.decode(data));
+    }, onDone: () {
+      print('Closed by server!');
+      _messageController.add({
+        'type': 'close',
+        'id': _self_id,
+      });
     });
 
-    _socket.onClose.listen((e) {});
+    _send('new', {
+      'name': _name,
+      'id': _self_id,
+      'user_agent': 'flutter-webrtc/ios-plugin 0.0.1'
+    });
 
-    _messages = _socket.onMessage.map((e) => JSON.decode(e.data));
+    onRinging.listen((message) {
+      Map<String, dynamic> mapData = message;
+      var data = mapData['data'];
+      var id = data['id'];
+      var media = data['media'];
+      _createPeerConnection(id, media).then((pc) {
+        _peerConnections[id] = pc;
+        _createOffer(id, pc);
+      });
+    });
 
-    onPeers.listen((message) {
-      _self = message['you'];
-      _sockets = message['connections'];
+    onBye.listen((message) {
+      Map<String, dynamic> mapData = message;
+      var data = mapData['data'];
+      var from = data['from'];
+      var to = data['to'];
+      var session_id = data['session_id'];
+      print('bye: ' + session_id);
+
+      if (_localStream != null) {
+        _localStream.dispose();
+        _localStream = null;
+      }
+
+      var pc = _peerConnections[to];
+      if (pc != null) {
+        pc.close();
+        _peerConnections.remove(to);
+      }
+      this._session_id = null;
     });
 
     onCandidate.listen((message) {
-      var candidate = new RTCIceCandidate(
-          message['candidate'], message['sdpMid'], message['sdpMLineIndex']);
-      _connections[message['id']].addCandidate(candidate);
+      Map<String, dynamic> mapData = message;
+      var data = mapData['data'];
+      var id = data['from'];
+      var candidateMap = data['candidate'];
+      var pc = _peerConnections[id];
+
+      if (pc != null) {
+        RTCIceCandidate candidate = new RTCIceCandidate(
+            candidateMap['candidate'],
+            candidateMap['sdpMid'],
+            candidateMap['sdpMLineIndex']);
+        pc.addCandidate(candidate);
+      }
     });
 
-    onNew.listen((message) {
-      var id = message['id'];
-      var pc = _createPeerConnection(message['id']);
-      _sockets.add(id);
-      _connections[id] = pc;
-      _streams.forEach((s) {
-        pc.addStream(s);
+    onInvite.listen((message) async {
+      /*Create stream and pc for called side*/
+      Map<String, dynamic> mapData = message;
+      var data = mapData['data'];
+      var id = data['from'];
+      var media = data['media'];
+      var session_id = data['session_id'];
+      this._session_id = session_id;
+
+      _createPeerConnection(id, media).then((pc) {
+        _peerConnections[id] = pc;
       });
     });
 
     onLeave.listen((message) {
-      var id = message['id'];
-      _connections.remove(id);
+      Map<String, dynamic> data = message;
+      var id = data['data'];
+      _peerConnections.remove(id);
       _data.remove(id);
-      _sockets.remove(id);
     });
 
-    onOffer.listen((message) {
-      var pc = _connections[message['id']];
-      pc.setRemoteDescription(new RTCSessionDescription(
-          message['description']['sdp'], message['description']['type']));
-      _createAnswer(message['id'], pc);
+    onOffer.listen((message) async {
+      Map<String, dynamic> mapData = message;
+      var data = mapData['data'];
+      var id = data['from'];
+      var description = data['description'];
+
+      RTCPeerConnection pc = _peerConnections[id];
+      if (pc != null) {
+        await pc.setRemoteDescription(
+            new RTCSessionDescription(description['sdp'], description['type']));
+        _createAnswer(id, pc);
+      }
     });
 
     onAnswer.listen((message) {
-      var pc = _connections[message['id']];
-      pc.setRemoteDescription(new RTCSessionDescription(
-          message['description']['sdp'], message['description']['type']));
+      Map<String, dynamic> mapData = message;
+      var data = mapData['data'];
+      var id = data['from'];
+      var description = data['description'];
+
+      var pc = _peerConnections[id];
+      if (pc != null) {
+        pc.setRemoteDescription(
+            new RTCSessionDescription(description['sdp'], description['type']));
+      }
     });
   }
 
-  get onOffer => _messages.where((m) => m['type'] == 'offer');
+  get onRinging => _messageStream.where((m) => m['type'] == 'ringing');
 
-  get onAnswer => _messages.where((m) => m['type'] == 'answer');
+  get onInvite => _messageStream.where((m) => m['type'] == 'invite');
 
-  get onCandidate => _messages.where((m) => m['type'] == 'candidate');
+  get onOffer => _messageStream.where((m) => m['type'] == 'offer');
 
-  get onNew => _messages.where((m) => m['type'] == 'new');
+  get onAnswer => _messageStream.where((m) => m['type'] == 'answer');
 
-  get onPeers => _messages.where((m) => m['type'] == 'peers');
+  get onCandidate => _messageStream.where((m) => m['type'] == 'candidate');
 
-  get onLeave => _messages.where((m) => m['type'] == 'leave');
+  get onPeers => _messageStream.where((m) => m['type'] == 'peers');
 
-  get onAdd => _messageStream.where((m) => m['type'] == 'add');
+  get onLeave => _messageStream.where((m) => m['type'] == 'leave');
 
-  get onRemove => _messageStream.where((m) => m['type'] == 'remove');
+  get onBye => _messageStream.where((m) => m['type'] == 'bye');
+
+  get onRemoteStreamAdd => _messageStream.where((m) => m['type'] == 'add');
+
+  get onRemoteStreamRemoved =>
+      _messageStream.where((m) => m['type'] == 'remove');
 
   get onData => _messageStream.where((m) => m['type'] == 'data');
 
-  createStream({audio: false, video: false}) {
-    var completer = new Completer<MediaStream>();
+  get onClose => _messageStream.where((m) => m['type'] == 'close');
 
-    navigator.getUserMedia({audio: audio, video: video}).then((stream) {
-      /*TODO: */
-      _streams.add(stream);
+  get onLocalStream => _messageStream.where((m) => m['type'] == 'localstream');
 
-      _sockets.forEach((s) {
-        _connections[s] = _createPeerConnection(s);
-      });
+  Future<MediaStream> createStream() async {
+    final Map<String, dynamic> mediaConstraints = {
+      'audio': true,
+      'video': {
+        'mandatory': {
+          'minWidth':
+              '640', // Provide your own width, height and frame rate here
+          'minHeight': '480',
+          'minFrameRate': '30',
+        },
+        'facingMode': 'user',
+        'optional': [],
+      }
+    };
 
-      _streams.forEach((s) {
-        _connections.forEach((k, c) => c.addStream(s));
-      });
-
-      _connections.forEach((s, c) => _createDataChannel(s, c));
-
-      _connections.forEach((s, c) => _createOffer(s, c));
-
-      completer.complete(stream);
-    });
-
-    return completer.future;
+    MediaStream stream = await navigator.getUserMedia(mediaConstraints);
+    _messageController.add({'type': 'localstream', 'stream': stream});
+    return stream;
   }
 
   send(data) {
@@ -133,15 +256,19 @@ class Signaling {
     });
   }
 
-  _createPeerConnection(id) async  {
-    RTCPeerConnection pc = await createPeerConnection(_iceServers, _dataConfig);
-
+  _createPeerConnection(id, media) async {
+    _localStream = await createStream();
+    RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
+    pc.addStream(_localStream);
     pc.onIceCandidate = (candidate) {
       _send('candidate', {
-        'id': id,
-        'sdpMLineIndex': candidate.sdpMlineIndex,
-        'sdpMid': candidate.sdpMid,
-        'candidate': candidate.candidate,
+        'to': id,
+        'candidate': {
+          'sdpMLineIndex': candidate.sdpMlineIndex,
+          'sdpMid': candidate.sdpMid,
+          'candidate': candidate.candidate,
+        },
+        'session_id': this._session_id,
       });
     };
 
@@ -174,28 +301,37 @@ class Signaling {
     _addDataChannel(id, channel);
   }
 
-  _createOffer(int socket, RTCPeerConnection pc) {
-    pc.createOffer(_constraints).then((RTCSessionDescription s) {
+  _createOffer(String id, RTCPeerConnection pc) async {
+    try {
+      RTCSessionDescription s = await pc.createOffer(_constraints);
       pc.setLocalDescription(s);
       _send('offer', {
-        'id': socket,
-        'description': {'sdp': s.sdp, 'type': s.type}
+        'to': id,
+        'description': {'sdp': s.sdp, 'type': s.type},
+        'session_id': this._session_id,
       });
-    });
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
-  _createAnswer(int socket, RTCPeerConnection pc) {
-    pc.createAnswer(_constraints).then((RTCSessionDescription s) {
+  _createAnswer(String id, RTCPeerConnection pc) async {
+    try {
+      RTCSessionDescription s = await pc.createAnswer(_constraints);
       pc.setLocalDescription(s);
       _send('answer', {
-        'id': socket,
-        'description': {'sdp': s.sdp, 'type': s.type}
+        'to': id,
+        'description': {'sdp': s.sdp, 'type': s.type},
+        'session_id': this._session_id,
       });
-    });
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
   _send(event, data) {
     data['type'] = event;
-    _socket.send(JSON.encode(data));
+    if (_socket != null) _socket.add(JSON.encode(data));
+    print('send: ' + JSON.encode(data));
   }
 }

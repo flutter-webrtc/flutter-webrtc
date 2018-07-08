@@ -51,8 +51,10 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      _localStream = await navigator.getUserMedia(mediaConstraints);
-      _localRenderer.srcObject = _localStream;
+      navigator.getUserMedia(mediaConstraints).then((stream){
+        _localStream = stream;
+        _localRenderer.srcObject = _localStream;
+      });
     } catch (e) {
       print(e.toString());
     }
@@ -79,7 +81,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text('getUserMedia example'),
+        title: new Text('GetUserMedia API Test'),
       ),
       body: new OrientationBuilder(
         builder: (context, orientation) {
