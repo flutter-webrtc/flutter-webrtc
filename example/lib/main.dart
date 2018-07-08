@@ -13,8 +13,8 @@ class MyApp extends StatefulWidget {
 
 final List<RouteItem> items = <RouteItem>[
   RouteItem(
-      title: 'Basic Sample',
-      subtitle: 'Basic Sample.',
+      title: 'Basic API Tests',
+      subtitle: 'Basic API Tests.',
       push: (BuildContext context) {
         Navigator.push(
             context,

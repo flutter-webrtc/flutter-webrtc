@@ -199,9 +199,6 @@ class RTCPeerConnection {
         'constraints':
             constraints.length == 0 ? defaultSdpConstraints : constraints,
       });
-      if (response['error']) {
-        throw response['error'];
-      }
       String sdp = response['sdp'];
       String type = response['type'];
       return new RTCSessionDescription(sdp, type);
