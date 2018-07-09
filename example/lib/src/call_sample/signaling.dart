@@ -64,7 +64,15 @@ class Signaling {
   Signaling(this._url, this._name);
 
   close() {
-    if (_socket != null) _socket.close();
+    if (_localStream != null) {
+      _localStream.dispose();
+      _localStream = null;
+    }
+    _peerConnections.forEach((key, pc){
+      pc.close();
+    });
+    if (_socket != null)
+      _socket.close();
   }
 
   void invite(String peer_id, String media) {
