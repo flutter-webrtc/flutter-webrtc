@@ -1,34 +1,8 @@
 import 'dart:convert';
 import 'dart:async';
-import 'dart:math';
 import 'dart:io';
 import 'package:webrtc/webrtc.dart';
-
-const ASCII_START = 33;
-const ASCII_END = 126;
-const NUMERIC_START = 48;
-const NUMERIC_END = 57;
-
-/// Generates a random integer where [from] <= [to].
-int randomBetween(int from, int to) {
-  if (from > to) throw new Exception('$from cannot be > $to');
-  var rand = new Random();
-  return ((to - from) * rand.nextDouble()).toInt() + from;
-}
-
-/// Generates a random string of [length] with characters
-/// between ascii [from] to [to].
-/// Defaults to characters of ascii '!' to '~'.
-String randomString(int length, {int from: ASCII_START, int to: ASCII_END}) {
-  return new String.fromCharCodes(
-      new List.generate(length, (index) => randomBetween(from, to)));
-}
-
-/// Generates a random string of [length] with only numeric characters.
-String randomNumeric(int length) =>
-    randomString(length, from: NUMERIC_START, to: NUMERIC_END);
-
-
+import 'random_string.dart';
 
 enum SignalingState {
   CallStateNew,
