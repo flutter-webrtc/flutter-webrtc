@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:core';
-import 'dart:async';
 import 'signaling.dart';
 import 'package:webrtc/webrtc.dart';
 
