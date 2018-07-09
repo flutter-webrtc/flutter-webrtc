@@ -87,7 +87,7 @@ class _CallSampleState extends State<CallSample> {
   }
 
   _invitePeer(context, peerId) {
-    if (_signaling != null) {
+    if (_signaling != null && peerId != _self_id) {
       _signaling.invite(peerId, 'video');
     }
   }
@@ -99,13 +99,13 @@ class _CallSampleState extends State<CallSample> {
   }
 
   _buildRow(context, peer) {
-    if(peer['id'] == _self_id)
-      return null;
+    var self = (peer['id'] == _self_id);
     return ListBody(children: <Widget>[
       ListTile(
-        title: Text(peer['name']),
+        title: Text(self? peer['name'] + '[Your self]' : peer['name']+'['+peer['user_agent']+']'),
         onTap: () => _invitePeer(context, peer['id']),
         trailing: Icon(Icons.videocam),
+        subtitle: Text('id: '+  peer['id']),
       ),
       Divider()
     ]);
