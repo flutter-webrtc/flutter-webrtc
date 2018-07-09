@@ -68,14 +68,16 @@ class Signaling {
   }
 
   void invite(String peer_id, String media) {
-    String sessionId = this._self_id + '-' + peer_id;
-    _send('invite', {
-      'session_id': sessionId,
-      'id': _self_id,
-      'to': peer_id,
-      'media': media,
+    this._session_id = this._self_id + '-' + peer_id;
+
+    if (this.onStateChange != null) {
+      this.onStateChange(SignalingState.CallStateNew);
+    }
+
+    _createPeerConnection(peer_id, media).then((pc) {
+      _peerConnections[peer_id] = pc;
+      _createOffer(peer_id, pc, media);
     });
-    this._session_id = sessionId;
   }
 
   void bye() {
@@ -102,24 +104,10 @@ class Signaling {
           }
         }
         break;
-      case 'ringing':
-        {
-          var id = data['id'];
-          var media = data['media'];
-
-          if (this.onStateChange != null) {
-            this.onStateChange(SignalingState.CallStateNew);
-          }
-
-          _createPeerConnection(id, media).then((pc) {
-            _peerConnections[id] = pc;
-            _createOffer(id, pc);
-          });
-        }
-        break;
-      case 'invite':
+      case 'offer':
         {
           var id = data['from'];
+          var description = data['description'];
           var media = data['media'];
           var session_id = data['session_id'];
           this._session_id = session_id;
@@ -130,20 +118,10 @@ class Signaling {
 
           _createPeerConnection(id, media).then((pc) {
             _peerConnections[id] = pc;
-          });
-        }
-        break;
-      case 'offer':
-        {
-          var id = data['from'];
-          var description = data['description'];
-
-          RTCPeerConnection pc = _peerConnections[id];
-          if (pc != null) {
-            await pc.setRemoteDescription(
+            pc.setRemoteDescription(
                 new RTCSessionDescription(description['sdp'], description['type']));
             _createAnswer(id, pc);
-          }
+          });
         }
         break;
       case 'answer':
@@ -327,7 +305,7 @@ class Signaling {
     _addDataChannel(id, channel);
   }
 
-  _createOffer(String id, RTCPeerConnection pc) async {
+  _createOffer(String id, RTCPeerConnection pc, String media) async {
     try {
       RTCSessionDescription s = await pc.createOffer(_constraints);
       pc.setLocalDescription(s);
@@ -335,6 +313,7 @@ class Signaling {
         'to': id,
         'description': {'sdp': s.sdp, 'type': s.type},
         'session_id': this._session_id,
+        'media': media,
       });
     } catch (e) {
       print(e.toString());
