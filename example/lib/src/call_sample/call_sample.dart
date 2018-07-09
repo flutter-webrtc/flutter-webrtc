@@ -17,7 +17,7 @@ class CallSample extends StatefulWidget {
 
 class _CallSampleState extends State<CallSample> {
   Signaling _signaling;
-  String _displayName = Platform.operatingSystem + "_flutter";
+  String _displayName = Platform.localHostname + '(' + Platform.operatingSystem + ")";
   List<dynamic> _peers;
   var _self_id;
   final _localRenderer = new RTCVideoRenderer();
