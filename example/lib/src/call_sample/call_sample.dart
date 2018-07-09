@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:core';
 import 'dart:async';
 import 'signaling.dart';
-import 'calling_screen.dart';
 import 'package:webrtc/webrtc.dart';
 
 class CallSample extends StatefulWidget {
@@ -96,7 +95,7 @@ class _CallSampleState extends State<CallSample> {
       _inCalling = false;
     });
     if (_signaling != null) {
-      _signaling.leave();
+      _signaling.bye();
     }
   }
 

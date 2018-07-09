@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   List<RouteItem> items;
-  String _ip = '192.168.2.168';
+  String _ip = '192.168.31.152';
 
   _initItems(){
 

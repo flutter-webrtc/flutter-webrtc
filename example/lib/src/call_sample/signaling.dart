@@ -29,14 +29,13 @@ String randomNumeric(int length) =>
     randomString(length, from: NUMERIC_START, to: NUMERIC_END);
 
 class Signaling {
-  String _self_id = randomNumeric(6);
+  String _self_id = randomString(6, from: NUMERIC_START, to: NUMERIC_END);
   var _socket;
+  var _session_id;
   var _peerConnections = new Map<String, RTCPeerConnection>();
-  var _data = new Map<int, RTCDataChannel>();
+  var _daChannels = new Map<int, RTCDataChannel>();
   var _messageController = new StreamController();
   Stream _messageStream;
-  var _session_id;
-
   MediaStream _localStream;
 
   Map<String, dynamic> _iceServers = {
@@ -79,7 +78,7 @@ class Signaling {
     this._session_id = sessionId;
   }
 
-  void leave() {
+  void bye() {
     _send('bye', {
       'session_id': this._session_id,
       'from': this._self_id,
@@ -172,7 +171,7 @@ class Signaling {
       Map<String, dynamic> data = message;
       var id = data['data'];
       _peerConnections.remove(id);
-      _data.remove(id);
+      _daChannels.remove(id);
     });
 
     onOffer.listen((message) async {
@@ -250,12 +249,6 @@ class Signaling {
     return stream;
   }
 
-  send(data) {
-    _data.forEach((k, d) {
-      d.send('text', data);
-    });
-  }
-
   _createPeerConnection(id, media) async {
     _localStream = await createStream();
     RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
@@ -292,7 +285,7 @@ class Signaling {
     channel.onMessage = (data) {
       _messageController.add({'type': 'data', 'id': id, 'data': data});
     };
-    _data[id] = channel;
+    _daChannels[id] = channel;
   }
 
   _createDataChannel(id, RTCPeerConnection pc, {label: 'fileTransfer'}) async {
@@ -333,5 +326,23 @@ class Signaling {
     data['type'] = event;
     if (_socket != null) _socket.add(JSON.encode(data));
     print('send: ' + JSON.encode(data));
+  }
+
+  _handleStatsReport(Timer timer, pc) async {
+    if (pc != null) {
+      List<StatsReport> reports = await pc.getStats(null);
+      reports.forEach((report) {
+        print("report => { ");
+        print("    id: " + report.id + ",");
+        print("    type: " + report.type + ",");
+        print("    timestamp: ${report.timestamp},");
+        print("    values => {");
+        report.values.forEach((key, value) {
+          print("        " + key + " : " + value + ", ");
+        });
+        print("    }");
+        print("}");
+      });
+    }
   }
 }
