@@ -12,10 +12,7 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => new _MyAppState();
 }
 
-
-
 class _MyAppState extends State<MyApp> {
-
   List<RouteItem> items;
   String _ip = '192.168.31.152';
   SharedPreferences prefs;
@@ -23,11 +20,8 @@ class _MyAppState extends State<MyApp> {
   @override
   initState() {
     super.initState();
-
     _initData();
-
     _initItems();
-
   }
 
   _buildRow(context, item) {
@@ -58,16 +52,14 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-
-  _initData() async{
+  _initData() async {
     prefs = await SharedPreferences.getInstance();
     setState(() {
       _ip = prefs.getString('ip') ?? '';
     });
   }
 
-  _initItems(){
-
+  _initItems() {
     items = <RouteItem>[
       RouteItem(
           title: 'Basic API Tests',
@@ -82,7 +74,6 @@ class _MyAppState extends State<MyApp> {
           title: 'P2P Call Sample',
           subtitle: 'P2P Call Sample.',
           push: (BuildContext context) {
-
             showDialog<Null>(
                 context: context,
                 builder: (BuildContext context) {
@@ -90,7 +81,7 @@ class _MyAppState extends State<MyApp> {
                     title: const Text('Please input server ip'),
                     children: <Widget>[
                       TextField(
-                        onChanged: (String text){
+                        onChanged: (String text) {
                           setState(() {
                             _ip = text;
                           });
@@ -100,19 +91,16 @@ class _MyAppState extends State<MyApp> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-
                       SimpleDialogOption(
                         onPressed: () {},
                         child: RaisedButton(
                           onPressed: () {
-
                             prefs.setString('ip', _ip);
-
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (BuildContext context) => CallSample(ip:_ip)
-                                ));
+                                    builder: (BuildContext context) =>
+                                        CallSample(ip: _ip)));
                           },
                           child: const Text('connect server'),
                         ),
@@ -122,10 +110,5 @@ class _MyAppState extends State<MyApp> {
                 });
           }),
     ];
-
   }
-
-
-
-
 }
