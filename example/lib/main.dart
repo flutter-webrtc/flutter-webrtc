@@ -3,6 +3,7 @@ import 'dart:core';
 import 'src/basic_sample/basic_sample.dart';
 import 'src/call_sample/call_sample.dart';
 import 'src/route_item.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(new MyApp());
 
@@ -14,9 +15,16 @@ class MyApp extends StatefulWidget {
 
 
 class _MyAppState extends State<MyApp> {
+
+  List<RouteItem> items;
+  String _ip = '192.168.31.152';
+  SharedPreferences prefs;
+
   @override
   initState() {
     super.initState();
+
+    _initData();
 
     _initItems();
 
@@ -50,8 +58,13 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  List<RouteItem> items;
-  String _ip = '192.168.31.152';
+
+  _initData() async{
+    prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _ip = prefs.getString('ip') ?? '';
+    });
+  }
 
   _initItems(){
 
@@ -92,6 +105,9 @@ class _MyAppState extends State<MyApp> {
                         onPressed: () {},
                         child: RaisedButton(
                           onPressed: () {
+
+                            prefs.setString('ip', _ip);
+
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
