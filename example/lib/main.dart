@@ -14,7 +14,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   List<RouteItem> items;
-  String _ip = '192.168.31.152';
+  String _serverAddress = '192.168.31.152';
   SharedPreferences prefs;
 
   @override
@@ -55,7 +55,7 @@ class _MyAppState extends State<MyApp> {
   _initData() async {
     prefs = await SharedPreferences.getInstance();
     setState(() {
-      _ip = prefs.getString('ip') ?? '';
+      _serverAddress = prefs.getString('server') ?? '';
     });
   }
 
@@ -78,16 +78,16 @@ class _MyAppState extends State<MyApp> {
                 context: context,
                 builder: (BuildContext context) {
                   return SimpleDialog(
-                    title: const Text('Please input server ip'),
+                    title: const Text('Please input server address.'),
                     children: <Widget>[
                       TextField(
                         onChanged: (String text) {
                           setState(() {
-                            _ip = text;
+                            _serverAddress = text;
                           });
                         },
                         decoration: InputDecoration(
-                          hintText: _ip,
+                          hintText: _serverAddress,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -95,14 +95,14 @@ class _MyAppState extends State<MyApp> {
                         onPressed: () {},
                         child: RaisedButton(
                           onPressed: () {
-                            prefs.setString('ip', _ip);
+                            prefs.setString('server', _serverAddress);
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (BuildContext context) =>
-                                        CallSample(ip: _ip)));
+                                        CallSample(ip: _serverAddress)));
                           },
-                          child: const Text('connect server'),
+                          child: const Text('Connect Server'),
                         ),
                       ),
                     ],
