@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'dart:core';
 import 'dart:async';
 import 'signaling.dart';
@@ -19,7 +20,7 @@ class _CallSampleState extends State<CallSample> {
   GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   Signaling _signaling;
   String _roomId;
-  String _displayName = "flutter";
+  String _displayName = Platform.operatingSystem + "_flutter";
   List<dynamic> _peers;
 
   final _localRenderer = new RTCVideoRenderer();
@@ -118,7 +119,7 @@ class _CallSampleState extends State<CallSample> {
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: _connect,
+            onPressed: null,
             tooltip: 'setup',
           ),
         ],
