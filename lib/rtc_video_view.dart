@@ -114,6 +114,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   final RTCVideoRenderer renderer;
   double textureWidth = 0.0;
   double textureHeight = 0.0;
+  double scale = 1.0;
   _RTCVideoViewState(this.renderer){
     this.textureHeight = 0.0;
     this.textureWidth = 0.0;
@@ -148,7 +149,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     if (context.findRenderObject() != null) {
       final BoxConstraints constraints = context.findRenderObject().constraints;
       if (constraints is BoxConstraints) {
-        double scale = 1.0;
+
         if (renderer.rotation == 90 || renderer.rotation == 270) {
           textureWidth = min(renderer.width, renderer.height);
           textureHeight = max(renderer.width, renderer.height);
@@ -157,9 +158,10 @@ class _RTCVideoViewState extends State<RTCVideoView> {
         } else {
           textureWidth = max(renderer.width, renderer.height);
           textureHeight = min(renderer.width, renderer.height);
-          scale = max(constraints.minWidth / textureWidth,
+          scale = min(constraints.minWidth / textureWidth,
               constraints.minHeight / textureHeight);
         }
+
         textureWidth *= scale;
         textureHeight *= scale;
       }
