@@ -12,12 +12,13 @@ class CallSample extends StatefulWidget {
   CallSample({Key key, @required this.ip}) : super(key: key);
 
   @override
-  _CallSampleState createState() => new _CallSampleState(serverIP:ip);
+  _CallSampleState createState() => new _CallSampleState(serverIP: ip);
 }
 
 class _CallSampleState extends State<CallSample> {
   Signaling _signaling;
-  String _displayName = Platform.localHostname + '(' + Platform.operatingSystem + ")";
+  String _displayName =
+      Platform.localHostname + '(' + Platform.operatingSystem + ")";
   List<dynamic> _peers;
   var _self_id;
   final _localRenderer = new RTCVideoRenderer();
@@ -51,18 +52,22 @@ class _CallSampleState extends State<CallSample> {
         ..connect();
 
       _signaling.onStateChange = (SignalingState state) {
-        switch(state){
+        switch (state) {
           case SignalingState.CallStateNew:
-            this.setState((){ _inCalling = true; });
+            this.setState(() {
+              _inCalling = true;
+            });
             break;
           case SignalingState.CallStateBye:
-            this.setState((){ _inCalling = false; });
+            this.setState(() {
+              _inCalling = false;
+            });
             break;
         }
       };
 
-      _signaling.onPeersUpdate = ((event){
-        this.setState((){
+      _signaling.onPeersUpdate = ((event) {
+        this.setState(() {
           _self_id = event['self'];
           _peers = event['peers'];
         });
@@ -102,10 +107,12 @@ class _CallSampleState extends State<CallSample> {
     var self = (peer['id'] == _self_id);
     return ListBody(children: <Widget>[
       ListTile(
-        title: Text(self? peer['name'] + '[Your self]' : peer['name']+'['+peer['user_agent']+']'),
+        title: Text(self
+            ? peer['name'] + '[Your self]'
+            : peer['name'] + '[' + peer['user_agent'] + ']'),
         onTap: () => _invitePeer(context, peer['id']),
         trailing: Icon(Icons.videocam),
-        subtitle: Text('id: '+  peer['id']),
+        subtitle: Text('id: ' + peer['id']),
       ),
       Divider()
     ]);
@@ -124,49 +131,43 @@ class _CallSampleState extends State<CallSample> {
           ),
         ],
       ),
-      floatingActionButton: _inCalling? FloatingActionButton(
-        onPressed: _hangUp,
-        tooltip: 'Hangup',
-        child: new Icon(Icons.call_end),
-      ) : null,
+      floatingActionButton: _inCalling
+          ? FloatingActionButton(
+              onPressed: _hangUp,
+              tooltip: 'Hangup',
+              child: new Icon(Icons.call_end),
+            )
+          : null,
       body: _inCalling
-          ? new OrientationBuilder(
-              builder: (context, orientation) {
-                return new Center(
-                  child: new Container(
-                    decoration: new BoxDecoration(color: Colors.white),
-                    child: new Stack(
-                      children: <Widget>[
-                        new Align(
-                          alignment: orientation == Orientation.portrait
-                              ? const FractionalOffset(0.5, 0.1)
-                              : const FractionalOffset(0.0, 0.5),
-                          child: new Container(
-                            width: 320.0,
-                            height: 240.0,
-                            child: new RTCVideoView(_localRenderer),
-                            decoration:
-                                new BoxDecoration(color: Colors.black54),
-                          ),
-                        ),
-                        new Align(
-                          alignment: orientation == Orientation.portrait
-                              ? const FractionalOffset(0.5, 0.9)
-                              : const FractionalOffset(1.0, 0.5),
-                          child: new Container(
-                            width: 320.0,
-                            height: 240.0,
-                            child: new RTCVideoView(_remoteRenderer),
-                            decoration:
-                                new BoxDecoration(color: Colors.black54),
-                          ),
-                        ),
-                      ],
+          ? OrientationBuilder(builder: (context, orientation) {
+              return new Container(
+                child: new Stack(children: <Widget>[
+                  new Positioned(
+                      left: 0.0,
+                      right: 0.0,
+                      top: 0.0,
+                      bottom: 0.0,
+                      child: new Container(
+                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height,
+                        child: new RTCVideoView(_remoteRenderer),
+                        decoration: new BoxDecoration(color: Colors.black54),
+                      )),
+                  new Positioned(
+                    left: 20.0,
+                    top: 20.0,
+                    child: new Container(
+                      width: orientation == Orientation.portrait ? 90.0 : 120.0,
+                      height:
+                          orientation == Orientation.portrait ? 120.0 : 90.0,
+                      child: new RTCVideoView(_localRenderer),
+                      decoration: new BoxDecoration(color: Colors.black54),
                     ),
                   ),
-                );
-              },
-            )
+                ]),
+              );
+            })
           : new ListView.builder(
               shrinkWrap: true,
               padding: const EdgeInsets.all(0.0),
