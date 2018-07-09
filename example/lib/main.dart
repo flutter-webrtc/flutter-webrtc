@@ -11,31 +11,15 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => new _MyAppState();
 }
 
-final List<RouteItem> items = <RouteItem>[
-  RouteItem(
-      title: 'Basic API Tests',
-      subtitle: 'Basic API Tests.',
-      push: (BuildContext context) {
-        Navigator.push(
-            context,
-            new MaterialPageRoute(
-                builder: (BuildContext context) => new BasicSample()));
-      }),
-  RouteItem(
-      title: 'P2P Call Sample',
-      subtitle: 'P2P Call Sample.',
-      push: (BuildContext context) {
-        Navigator.push(
-            context,
-            new MaterialPageRoute(
-                builder: (BuildContext context) => new CallSample()));
-      }),
-];
+
 
 class _MyAppState extends State<MyApp> {
   @override
   initState() {
     super.initState();
+
+    _initItems();
+
   }
 
   _buildRow(context, item) {
@@ -65,4 +49,67 @@ class _MyAppState extends State<MyApp> {
               })),
     );
   }
+
+  List<RouteItem> items;
+  String _ip = '192.168.2.168';
+
+  _initItems(){
+
+    items = <RouteItem>[
+      RouteItem(
+          title: 'Basic API Tests',
+          subtitle: 'Basic API Tests.',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                new MaterialPageRoute(
+                    builder: (BuildContext context) => new BasicSample()));
+          }),
+      RouteItem(
+          title: 'P2P Call Sample',
+          subtitle: 'P2P Call Sample.',
+          push: (BuildContext context) {
+
+            showDialog<Null>(
+                context: context,
+                builder: (BuildContext context) {
+                  return SimpleDialog(
+                    title: const Text('Please input server ip'),
+                    children: <Widget>[
+                      TextField(
+                        onChanged: (String text){
+                          setState(() {
+                            _ip = text;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: _ip,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+
+                      SimpleDialogOption(
+                        onPressed: () {},
+                        child: RaisedButton(
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) => CallSample(ip:_ip)
+                                ));
+                          },
+                          child: const Text('connect server'),
+                        ),
+                      ),
+                    ],
+                  );
+                });
+          }),
+    ];
+
+  }
+
+
+
+
 }
