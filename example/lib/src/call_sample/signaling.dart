@@ -28,15 +28,43 @@ String randomString(int length, {int from: ASCII_START, int to: ASCII_END}) {
 String randomNumeric(int length) =>
     randomString(length, from: NUMERIC_START, to: NUMERIC_END);
 
+
+
+enum SignalingState {
+  CallStateNew,
+  CallStateRinging,
+  CallStateInvite,
+  CallStateConnected,
+  CallStateBye,
+  ConnectionOpen,
+  ConnectionClosed,
+  ConnectionError,
+}
+
+/*
+ * 回调类型定义.
+ */
+typedef void SignalingStateCallback(SignalingState state);
+typedef void StreamStateCallback(MediaStream stream);
+typedef void OtherEventCallback(dynamic event);
+typedef void DataChannelMessageCallback(RTCDataChannel dc, data);
+
 class Signaling {
-  String _self_id = randomString(6, from: NUMERIC_START, to: NUMERIC_END);
+  String _self_id = randomNumeric(6);
   var _socket;
   var _session_id;
+  var _url;
+  var _name;
   var _peerConnections = new Map<String, RTCPeerConnection>();
   var _daChannels = new Map<int, RTCDataChannel>();
-  var _messageController = new StreamController();
-  Stream _messageStream;
+  Timer _timer;
   MediaStream _localStream;
+  SignalingStateCallback onStateChange;
+  StreamStateCallback onLocalStream;
+  StreamStateCallback onAddRemoteStream;
+  StreamStateCallback onRemoveRemoteStream;
+  OtherEventCallback onPeersUpdate;
+  DataChannelMessageCallback onDataChannel;
 
   Map<String, dynamic> _iceServers = {
     'iceServers': [
@@ -51,10 +79,6 @@ class Signaling {
     ],
   };
 
-  close() {
-    if (_socket != null) _socket.close();
-  }
-
   final Map<String, dynamic> _constraints = {
     'mandatory': {
       'OfferToReceiveAudio': true,
@@ -63,9 +87,11 @@ class Signaling {
     'optional': [],
   };
 
-  var _url;
-  var _name;
   Signaling(this._url, this._name);
+
+  close() {
+    if (_socket != null) _socket.close();
+  }
 
   void invite(String peer_id, String media) {
     String sessionId = this._self_id + '-' + peer_id;
@@ -85,149 +111,177 @@ class Signaling {
     });
   }
 
-  void connect() async {
-    _messageStream = _messageController.stream.asBroadcastStream();
-    _socket = await WebSocket.connect(_url);
-    _socket.listen((data) {
-      print('Recivied data: ' + data);
-      _messageController.add(JSON.decode(data));
-    }, onDone: () {
-      print('Closed by server!');
-      _messageController.add({
-        'type': 'close',
-        'id': _self_id,
-      });
-    });
+  void onMessage(message) async {
+    Map<String, dynamic> mapData = message;
+    var data = mapData['data'];
 
-    _send('new', {
-      'name': _name,
-      'id': _self_id,
-      'user_agent': 'flutter-webrtc/ios-plugin 0.0.1'
-    });
+    switch(mapData['type']){
 
-    onRinging.listen((message) {
-      Map<String, dynamic> mapData = message;
-      var data = mapData['data'];
-      var id = data['id'];
-      var media = data['media'];
-      _createPeerConnection(id, media).then((pc) {
-        _peerConnections[id] = pc;
-        _createOffer(id, pc);
-      });
-    });
+      case 'peers':
+        {
+          List<dynamic> peers = data;
+          if(this.onPeersUpdate != null) {
+            Map<String, dynamic> event = new  Map<String, dynamic>();
+            event['self'] = _self_id;
+            event['peers'] = peers;
+            this.onPeersUpdate(event);
+          }
+        }
+        break;
+      case 'ringing':
+        {
+          var id = data['id'];
+          var media = data['media'];
 
-    onBye.listen((message) {
-      Map<String, dynamic> mapData = message;
-      var data = mapData['data'];
-      var from = data['from'];
-      var to = data['to'];
-      var session_id = data['session_id'];
-      print('bye: ' + session_id);
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateNew);
+          }
 
-      if (_localStream != null) {
-        _localStream.dispose();
-        _localStream = null;
-      }
+          _createPeerConnection(id, media).then((pc) {
+            _peerConnections[id] = pc;
+            _createOffer(id, pc);
+          });
+        }
+        break;
+      case 'invite':
+        {
+          var id = data['from'];
+          var media = data['media'];
+          var session_id = data['session_id'];
+          this._session_id = session_id;
 
-      var pc = _peerConnections[to];
-      if (pc != null) {
-        pc.close();
-        _peerConnections.remove(to);
-      }
-      this._session_id = null;
-    });
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateNew);
+          }
 
-    onCandidate.listen((message) {
-      Map<String, dynamic> mapData = message;
-      var data = mapData['data'];
-      var id = data['from'];
-      var candidateMap = data['candidate'];
-      var pc = _peerConnections[id];
+          _createPeerConnection(id, media).then((pc) {
+            _peerConnections[id] = pc;
+          });
+        }
+        break;
+      case 'offer':
+        {
+          var id = data['from'];
+          var description = data['description'];
 
-      if (pc != null) {
-        RTCIceCandidate candidate = new RTCIceCandidate(
-            candidateMap['candidate'],
-            candidateMap['sdpMid'],
-            candidateMap['sdpMLineIndex']);
-        pc.addCandidate(candidate);
-      }
-    });
+          RTCPeerConnection pc = _peerConnections[id];
+          if (pc != null) {
+            await pc.setRemoteDescription(
+                new RTCSessionDescription(description['sdp'], description['type']));
+            _createAnswer(id, pc);
+          }
+        }
+        break;
+      case 'answer':
+        {
+          var id = data['from'];
+          var description = data['description'];
 
-    onInvite.listen((message) async {
-      /*Create stream and pc for called side*/
-      Map<String, dynamic> mapData = message;
-      var data = mapData['data'];
-      var id = data['from'];
-      var media = data['media'];
-      var session_id = data['session_id'];
-      this._session_id = session_id;
+          var pc = _peerConnections[id];
+          if (pc != null) {
+            pc.setRemoteDescription(
+                new RTCSessionDescription(description['sdp'], description['type']));
+          }
+        }
+        break;
+      case 'candidate':
+        {
+          var id = data['from'];
+          var candidateMap = data['candidate'];
+          var pc = _peerConnections[id];
 
-      _createPeerConnection(id, media).then((pc) {
-        _peerConnections[id] = pc;
-      });
-    });
+          if (pc != null) {
+            RTCIceCandidate candidate = new RTCIceCandidate(
+                candidateMap['candidate'],
+                candidateMap['sdpMid'],
+                candidateMap['sdpMLineIndex']);
+            pc.addCandidate(candidate);
+          }
+        }
+        break;
+      case 'leave':
+        {
+          var id = data;
+          _peerConnections.remove(id);
+          _daChannels.remove(id);
 
-    onLeave.listen((message) {
-      Map<String, dynamic> data = message;
-      var id = data['data'];
-      _peerConnections.remove(id);
-      _daChannels.remove(id);
-    });
+          if (_localStream != null) {
+            _localStream.dispose();
+            _localStream = null;
+          }
+          var pc = _peerConnections[id];
+          if (pc != null) {
+            pc.close();
+            _peerConnections.remove(id);
+          }
+          this._session_id = null;
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateBye);
+          }
+        }
+        break;
+      case 'bye':
+        {
+          var from = data['from'];
+          var to = data['to'];
+          var session_id = data['session_id'];
+          print('bye: ' + session_id);
 
-    onOffer.listen((message) async {
-      Map<String, dynamic> mapData = message;
-      var data = mapData['data'];
-      var id = data['from'];
-      var description = data['description'];
+          if (_localStream != null) {
+            _localStream.dispose();
+            _localStream = null;
+          }
 
-      RTCPeerConnection pc = _peerConnections[id];
-      if (pc != null) {
-        await pc.setRemoteDescription(
-            new RTCSessionDescription(description['sdp'], description['type']));
-        _createAnswer(id, pc);
-      }
-    });
-
-    onAnswer.listen((message) {
-      Map<String, dynamic> mapData = message;
-      var data = mapData['data'];
-      var id = data['from'];
-      var description = data['description'];
-
-      var pc = _peerConnections[id];
-      if (pc != null) {
-        pc.setRemoteDescription(
-            new RTCSessionDescription(description['sdp'], description['type']));
-      }
-    });
+          var pc = _peerConnections[to];
+          if (pc != null) {
+            pc.close();
+            _peerConnections.remove(to);
+          }
+          this._session_id = null;
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateBye);
+          }
+        }
+        break;
+      case 'keepalive':
+        {
+          print('keepalive response!');
+        }
+        break;
+      default:
+        break;
+    }
   }
 
-  get onRinging => _messageStream.where((m) => m['type'] == 'ringing');
+  void connect() async {
+    try {
+      _socket = await WebSocket.connect(_url);
 
-  get onInvite => _messageStream.where((m) => m['type'] == 'invite');
+      if (this.onStateChange != null) {
+        this.onStateChange(SignalingState.ConnectionOpen);
+      }
 
-  get onOffer => _messageStream.where((m) => m['type'] == 'offer');
+      _socket.listen((data) {
+        print('Recivied data: ' + data);
+        this.onMessage(JSON.decode(data));
+      }, onDone: () {
+        print('Closed by server!');
+        if (this.onStateChange != null) {
+          this.onStateChange(SignalingState.ConnectionClosed);
+        }
+      });
 
-  get onAnswer => _messageStream.where((m) => m['type'] == 'answer');
-
-  get onCandidate => _messageStream.where((m) => m['type'] == 'candidate');
-
-  get onPeers => _messageStream.where((m) => m['type'] == 'peers');
-
-  get onLeave => _messageStream.where((m) => m['type'] == 'leave');
-
-  get onBye => _messageStream.where((m) => m['type'] == 'bye');
-
-  get onRemoteStreamAdd => _messageStream.where((m) => m['type'] == 'add');
-
-  get onRemoteStreamRemoved =>
-      _messageStream.where((m) => m['type'] == 'remove');
-
-  get onData => _messageStream.where((m) => m['type'] == 'data');
-
-  get onClose => _messageStream.where((m) => m['type'] == 'close');
-
-  get onLocalStream => _messageStream.where((m) => m['type'] == 'localstream');
+      _send('new', {
+        'name': _name,
+        'id': _self_id,
+        'user_agent': 'flutter-webrtc/ios-plugin 0.0.1'
+      });
+    }catch(e){
+      if(this.onStateChange != null){
+        this.onStateChange(SignalingState.ConnectionError);
+      }
+    }
+  }
 
   Future<MediaStream> createStream() async {
     final Map<String, dynamic> mediaConstraints = {
@@ -245,7 +299,9 @@ class Signaling {
     };
 
     MediaStream stream = await navigator.getUserMedia(mediaConstraints);
-    _messageController.add({'type': 'localstream', 'stream': stream});
+    if(this.onLocalStream != null){
+      this.onLocalStream(stream);
+    }
     return stream;
   }
 
@@ -266,11 +322,13 @@ class Signaling {
     };
 
     pc.onAddStream = ((stream) {
-      _messageController.add({'type': 'add', 'id': id, 'stream': stream});
+      if(this.onAddRemoteStream != null)
+        this.onAddRemoteStream(stream);
     });
 
     pc.onRemoveStream = (stream) {
-      _messageController.add({'type': 'remove', 'id': id, 'stream': stream});
+      if(this.onRemoveRemoteStream != null)
+        this.onRemoveRemoteStream(stream);
     };
 
     pc.onDataChannel = (channel) {
@@ -283,7 +341,8 @@ class Signaling {
   _addDataChannel(id, RTCDataChannel channel) {
     channel.onDataChannelState = (e) {};
     channel.onMessage = (data) {
-      _messageController.add({'type': 'data', 'id': id, 'data': data});
+      if(this.onDataChannel != null)
+        this.onDataChannel(channel, data);
     };
     _daChannels[id] = channel;
   }

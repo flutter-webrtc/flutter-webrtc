@@ -17,17 +17,13 @@ class CallSample extends StatefulWidget {
 }
 
 class _CallSampleState extends State<CallSample> {
-  GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   Signaling _signaling;
-  String _roomId;
   String _displayName = Platform.operatingSystem + "_flutter";
   List<dynamic> _peers;
-
+  var _self_id;
   final _localRenderer = new RTCVideoRenderer();
   final _remoteRenderer = new RTCVideoRenderer();
   bool _inCalling = false;
-  Timer _timer;
-
   final String serverIP;
 
   _CallSampleState({Key key, @required this.serverIP});
@@ -52,30 +48,39 @@ class _CallSampleState extends State<CallSample> {
 
   void _connect() async {
     if (_signaling == null) {
-      _signaling = new Signaling('ws://' + serverIP + ':4442', _displayName);
-      await _signaling.connect();
+      _signaling = new Signaling('ws://' + serverIP + ':4442', _displayName)
+        ..connect();
 
-      _signaling.onPeers.listen((message) {
-        Map<String, dynamic> mapData = message;
-        List<dynamic> peers = mapData['data'];
-        this.setState(() {
-          _peers = peers;
+      _signaling.onStateChange = (SignalingState state) {
+        switch(state){
+          case SignalingState.CallStateNew:
+            this.setState((){ _inCalling = true; });
+            break;
+          case SignalingState.CallStateBye:
+            this.setState((){ _inCalling = false; });
+            break;
+        }
+      };
+
+      _signaling.onPeersUpdate = ((event){
+        this.setState((){
+          _self_id = event['self'];
+          _peers = event['peers'];
         });
       });
 
-      _signaling.onLocalStream.listen((message) {
-        Map<String, dynamic> mapData = message;
-        _localRenderer.srcObject = mapData['stream'];
-      });
-
-      _signaling.onRemoteStreamAdd.listen((message) {
-        Map<String, dynamic> mapData = message;
-        _remoteRenderer.srcObject = mapData['stream'];
-      });
-
-      _signaling.onRemoteStreamRemoved.listen((message) {
+      _signaling.onLocalStream = ((stream) {
         this.setState(() {
-          _inCalling = false;
+          _localRenderer.srcObject = stream;
+        });
+      });
+
+      _signaling.onAddRemoteStream = ((stream) {
+        _remoteRenderer.srcObject = stream;
+      });
+
+      _signaling.onRemoveRemoteStream = ((stream) {
+        this.setState(() {
           _remoteRenderer.srcObject = null;
         });
       });
@@ -83,29 +88,25 @@ class _CallSampleState extends State<CallSample> {
   }
 
   _invitePeer(context, peerId) {
-    this.setState(() {
-      _inCalling = true;
-    });
     if (_signaling != null) {
       _signaling.invite(peerId, 'video');
     }
   }
 
   _hangUp() {
-    this.setState(() {
-      _inCalling = false;
-    });
     if (_signaling != null) {
       _signaling.bye();
     }
   }
 
   _buildRow(context, peer) {
+    if(peer['id'] == _self_id)
+      return null;
     return ListBody(children: <Widget>[
       ListTile(
         title: Text(peer['name']),
         onTap: () => _invitePeer(context, peer['id']),
-        trailing: Icon(Icons.video_call),
+        trailing: Icon(Icons.videocam),
       ),
       Divider()
     ]);
@@ -124,11 +125,11 @@ class _CallSampleState extends State<CallSample> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _inCalling? FloatingActionButton(
         onPressed: _hangUp,
         tooltip: 'Hangup',
-        child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
-      ),
+        child: new Icon(Icons.call_end),
+      ) : null,
       body: _inCalling
           ? new OrientationBuilder(
               builder: (context, orientation) {
