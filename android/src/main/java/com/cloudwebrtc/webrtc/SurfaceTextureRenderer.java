@@ -449,8 +449,8 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
     }
     if (!checkConsistentLayout()) {
       // Output intermediate black frames while the layout is updated.
-      makeBlack();
-      VideoRenderer.renderFrameDone(frame);
+      //makeBlack();
+      //VideoRenderer.renderFrameDone(frame);
       return;
     }
     // After a surface size change, the EGLSurface might still have a buffer of the old size in the
