@@ -88,8 +88,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
           return new Center(
             child: new Container(
               margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-              height: 600.0,
-              width: 400.0,
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
               child: RTCVideoView(_localRenderer),
               decoration: new BoxDecoration(color: Colors.black54),
             ),
