@@ -12,6 +12,11 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => new _MyAppState();
 }
 
+enum DialogDemoAction {
+  cancel,
+  connect,
+}
+
 class _MyAppState extends State<MyApp> {
   List<RouteItem> items;
   String _serverAddress = '192.168.31.152';
@@ -59,6 +64,55 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void showDemoDialog<T>({BuildContext context, Widget child}) {
+    showDialog<T>(
+      context: context,
+      builder: (BuildContext context) => child,
+    ).then<void>((T value) {
+      // The value passed to Navigator.pop() or null.
+      if (value != null) {
+        if (value == DialogDemoAction.connect) {
+          prefs.setString('server', _serverAddress);
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (BuildContext context) =>
+                      CallSample(ip: _serverAddress)));
+        }
+      }
+    });
+  }
+
+  _showAddressDialog(context) {
+    showDemoDialog<DialogDemoAction>(
+        context: context,
+        child: new AlertDialog(
+            title: const Text('Enter server address:'),
+            content: TextField(
+              onChanged: (String text) {
+                setState(() {
+                  _serverAddress = text;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: _serverAddress,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                  child: const Text('CANCEL'),
+                  onPressed: () {
+                    Navigator.pop(context, DialogDemoAction.cancel);
+                  }),
+              new FlatButton(
+                  child: const Text('CONNECT'),
+                  onPressed: () {
+                    Navigator.pop(context, DialogDemoAction.connect);
+                  })
+            ]));
+  }
+
   _initItems() {
     items = <RouteItem>[
       RouteItem(
@@ -74,40 +128,7 @@ class _MyAppState extends State<MyApp> {
           title: 'P2P Call Sample',
           subtitle: 'P2P Call Sample.',
           push: (BuildContext context) {
-            showDialog<Null>(
-                context: context,
-                builder: (BuildContext context) {
-                  return SimpleDialog(
-                    title: const Text('Please input server address.'),
-                    children: <Widget>[
-                      TextField(
-                        onChanged: (String text) {
-                          setState(() {
-                            _serverAddress = text;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          hintText: _serverAddress,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SimpleDialogOption(
-                        onPressed: () {},
-                        child: RaisedButton(
-                          onPressed: () {
-                            prefs.setString('server', _serverAddress);
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (BuildContext context) =>
-                                        CallSample(ip: _serverAddress)));
-                          },
-                          child: const Text('Connect Server'),
-                        ),
-                      ),
-                    ],
-                  );
-                });
+            _showAddressDialog(context);
           }),
     ];
   }
