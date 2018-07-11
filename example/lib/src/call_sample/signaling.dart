@@ -33,6 +33,7 @@ class Signaling {
   var _daChannels = new Map<int, RTCDataChannel>();
   Timer _timer;
   MediaStream _localStream;
+  List<MediaStream> _remoteStreams;
   SignalingStateCallback onStateChange;
   StreamStateCallback onLocalStream;
   StreamStateCallback onAddRemoteStream;
@@ -64,10 +65,12 @@ class Signaling {
   Signaling(this._url, this._name);
 
   close() {
+
     if (_localStream != null) {
       _localStream.dispose();
       _localStream = null;
     }
+
     _peerConnections.forEach((key, pc){
       pc.close();
     });
@@ -169,6 +172,7 @@ class Signaling {
             _localStream.dispose();
             _localStream = null;
           }
+
           var pc = _peerConnections[id];
           if (pc != null) {
             pc.close();
@@ -181,16 +185,16 @@ class Signaling {
         }
         break;
       case 'bye':
-        {
-          var from = data['from'];
-          var to = data['to'];
-          var session_id = data['session_id'];
-          print('bye: ' + session_id);
+        {          var from = data['from'];
+        var to = data['to'];
+        var session_id = data['session_id'];
+        print('bye: ' + session_id);
 
-          if (_localStream != null) {
-            _localStream.dispose();
-            _localStream = null;
-          }
+        if (_localStream != null) {
+          _localStream.dispose();
+          _localStream = null;
+        }
+
 
           var pc = _peerConnections[to];
           if (pc != null) {
@@ -234,7 +238,7 @@ class Signaling {
       _send('new', {
         'name': _name,
         'id': _self_id,
-        'user_agent': 'flutter-webrtc/ios-plugin 0.0.1'
+        'user_agent': 'flutter-webrtc/'+ Platform.operatingSystem +'-plugin 0.0.1'
       });
     }catch(e){
       if(this.onStateChange != null){
@@ -284,11 +288,15 @@ class Signaling {
     pc.onAddStream = ((stream) {
       if(this.onAddRemoteStream != null)
         this.onAddRemoteStream(stream);
+      //_remoteStreams.add(stream);
     });
 
     pc.onRemoveStream = (stream) {
       if(this.onRemoveRemoteStream != null)
         this.onRemoveRemoteStream(stream);
+      _remoteStreams.removeWhere((it) {
+        return (it.id == stream.id);
+      });
     };
 
     pc.onDataChannel = (channel) {

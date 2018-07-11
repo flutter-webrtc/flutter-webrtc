@@ -20,14 +20,13 @@ class RTCVideoRenderer {
   int _rotation = 0;
   double _width = 0.0, _height = 0.0;
   bool _mirror = false;
-  bool _muted = false;
   MediaStream _srcObject;
   RTCVideoViewObjectFit _objectFit =
       RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
   StreamSubscription<dynamic> _eventSubscription;
   VideoSizeChangeCallback onVideoSizeChanged;
   VideoRotationChangeCallback onVideoRotationChanged;
-  dynamic onVideoStateChanged;
+  dynamic onFirstFrameRendered;
 
   initialize() async {
     final Map<dynamic, dynamic> response =
@@ -44,10 +43,6 @@ class RTCVideoRenderer {
 
   double get height => _height;
 
-  set muted(bool muted) {
-    _muted = muted;
-  }
-
   set mirror(bool mirror) {
     _mirror = mirror;
   }
@@ -57,11 +52,11 @@ class RTCVideoRenderer {
   }
 
   set srcObject(MediaStream stream) {
+    _srcObject = stream;
     _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
       'textureId': _textureId,
       'streamId': stream != null ? stream.id : ''
     });
-    _srcObject = stream;
   }
 
   Future<Null> dispose() async {
@@ -89,11 +84,9 @@ class RTCVideoRenderer {
         if (this.onVideoSizeChanged != null)
           this.onVideoSizeChanged(_textureId, _width, _height);
         break;
-      case 'videoState':
-        _muted = !map['enabled'];
-        if(this.onVideoStateChanged != null)
-          this.onVideoStateChanged();
-      break;
+      case 'didFirstFrameRendered':
+        if (this.onFirstFrameRendered != null) this.onFirstFrameRendered();
+        break;
     }
   }
 
@@ -115,13 +108,25 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   double textureWidth = 0.0;
   double textureHeight = 0.0;
   double scale = 1.0;
-  _RTCVideoViewState(this.renderer){
+  _RTCVideoViewState(this.renderer) {
     this.textureHeight = 0.0;
     this.textureWidth = 0.0;
   }
   @override
   void initState() {
     super.initState();
+    _setCallbacks();
+  }
+
+  @override
+  void deactivate() {
+    super.deactivate();
+    renderer.onVideoRotationChanged = null;
+    renderer.onVideoSizeChanged = null;
+    renderer.onFirstFrameRendered = null;
+  }
+
+  void _setCallbacks() {
     renderer.onVideoRotationChanged = (int textureId, int rotation) {
       setState(() {
         _updateContainerSize();
@@ -132,24 +137,17 @@ class _RTCVideoViewState extends State<RTCVideoView> {
         _updateContainerSize();
       });
     };
-
-    renderer.onVideoStateChanged = () {
+    renderer.onFirstFrameRendered = () {
       setState(() {
-
+        _updateContainerSize();
       });
     };
-  }
-
-  @override
-  void deactivate() {
-    super.deactivate();
   }
 
   void _updateContainerSize() {
     if (context.findRenderObject() != null) {
       final BoxConstraints constraints = context.findRenderObject().constraints;
       if (constraints is BoxConstraints) {
-
         if (renderer.rotation == 90 || renderer.rotation == 270) {
           textureWidth = min(renderer.width, renderer.height);
           textureHeight = max(renderer.width, renderer.height);
@@ -173,14 +171,11 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     return new Center(
         child: (this.renderer._textureId == null ||
                 this.renderer._srcObject == null)
-            ? new Container() :
-            this.renderer._muted ? new Center(
-              child:  new Text('No Video!'),
-            )
+            ? new Container()
             : new Container(
-                width: this.textureWidth,
-                height: this.textureHeight,
-                child: new Texture(textureId: this.renderer._textureId),
-              ));
+                    width: this.textureWidth,
+                    height: this.textureHeight,
+                    child: new Texture(textureId: this.renderer._textureId),
+                  ));
   }
 }
