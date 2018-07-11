@@ -105,13 +105,10 @@ class RTCVideoView extends StatefulWidget {
 
 class _RTCVideoViewState extends State<RTCVideoView> {
   final RTCVideoRenderer renderer;
-  double textureWidth = 0.0;
-  double textureHeight = 0.0;
-  double scale = 1.0;
-  _RTCVideoViewState(this.renderer) {
-    this.textureHeight = 0.0;
-    this.textureWidth = 0.0;
-  }
+  var aspectRatio = 1.0;
+
+  _RTCVideoViewState(this.renderer);
+
   @override
   void initState() {
     super.initState();
@@ -145,37 +142,25 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   }
 
   void _updateContainerSize() {
-    if (context.findRenderObject() != null) {
-      final BoxConstraints constraints = context.findRenderObject().constraints;
-      if (constraints is BoxConstraints) {
-        if (renderer.rotation == 90 || renderer.rotation == 270) {
-          textureWidth = min(renderer.width, renderer.height);
-          textureHeight = max(renderer.width, renderer.height);
-          scale = min(constraints.minWidth / textureWidth,
-              constraints.minHeight / textureHeight);
-        } else {
-          textureWidth = max(renderer.width, renderer.height);
-          textureHeight = min(renderer.width, renderer.height);
-          scale = min(constraints.minWidth / textureWidth,
-              constraints.minHeight / textureHeight);
-        }
-
-        textureWidth *= scale;
-        textureHeight *= scale;
-      }
+    double textureWidth = 0.0, textureHeight = 0.0;
+    if (renderer.rotation == 90 || renderer.rotation == 270) {
+      textureWidth = min(renderer.width, renderer.height);
+      textureHeight = max(renderer.width, renderer.height);
+      aspectRatio = textureWidth / textureHeight;
+    } else {
+      textureWidth = max(renderer.width, renderer.height);
+      textureHeight = min(renderer.width, renderer.height);
+      aspectRatio = textureWidth / textureHeight;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return new Center(
-        child: (this.renderer._textureId == null ||
-                this.renderer._srcObject == null)
+        child: (this.renderer._textureId == null || this.renderer._srcObject == null)
             ? new Container()
-            : new Container(
-                    width: this.textureWidth,
-                    height: this.textureHeight,
-                    child: new Texture(textureId: this.renderer._textureId),
-                  ));
+            : new AspectRatio(
+                aspectRatio: aspectRatio,
+                child: new Texture(textureId: this.renderer._textureId)));
   }
 }

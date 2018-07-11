@@ -195,6 +195,7 @@ class _MyAppState extends State<LoopBackSample> {
                           ? const FractionalOffset(0.5, 0.1)
                           : const FractionalOffset(0.0, 0.5),
                       child: new Container(
+                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
                         width: 320.0,
                         height: 240.0,
                         child: new RTCVideoView(_localRenderer),
@@ -206,6 +207,7 @@ class _MyAppState extends State<LoopBackSample> {
                           ? const FractionalOffset(0.5, 0.9)
                           : const FractionalOffset(1.0, 0.5),
                       child: new Container(
+                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
                         width: 320.0,
                         height: 240.0,
                         child: new RTCVideoView(_remoteRenderer),
