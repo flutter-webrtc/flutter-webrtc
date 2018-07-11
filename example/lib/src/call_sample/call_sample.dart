@@ -21,8 +21,8 @@ class _CallSampleState extends State<CallSample> {
       Platform.localHostname + '(' + Platform.operatingSystem + ")";
   List<dynamic> _peers;
   var _self_id;
-  final _localRenderer = new RTCVideoRenderer();
-  final _remoteRenderer = new RTCVideoRenderer();
+  RTCVideoRenderer _localRenderer = new RTCVideoRenderer();
+  RTCVideoRenderer _remoteRenderer = new RTCVideoRenderer();
   bool _inCalling = false;
   final String serverIP;
 
@@ -60,6 +60,8 @@ class _CallSampleState extends State<CallSample> {
             break;
           case SignalingState.CallStateBye:
             this.setState(() {
+              _localRenderer.srcObject = null;
+              _remoteRenderer.srcObject = null;
               _inCalling = false;
             });
             break;
@@ -74,9 +76,7 @@ class _CallSampleState extends State<CallSample> {
       });
 
       _signaling.onLocalStream = ((stream) {
-        this.setState(() {
-          _localRenderer.srcObject = stream;
-        });
+        _localRenderer.srcObject = stream;
       });
 
       _signaling.onAddRemoteStream = ((stream) {
@@ -84,14 +84,12 @@ class _CallSampleState extends State<CallSample> {
       });
 
       _signaling.onRemoveRemoteStream = ((stream) {
-        this.setState(() {
-          _remoteRenderer.srcObject = null;
-        });
+        _remoteRenderer.srcObject = null;
       });
     }
   }
 
-  _invitePeer(context, peerId) {
+  _invitePeer(context, peerId) async {
     if (_signaling != null && peerId != _self_id) {
       _signaling.invite(peerId, 'video');
     }

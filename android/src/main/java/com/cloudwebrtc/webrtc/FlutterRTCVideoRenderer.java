@@ -26,8 +26,12 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
     public void Dispose(){
         //destroy
-        this.surfaceTextureRenderer.release();
-        eventChannel.setStreamHandler(null);
+        if(surfaceTextureRenderer != null) {
+            surfaceTextureRenderer.release();
+        }
+        if(eventChannel != null)
+            eventChannel.setStreamHandler(null);
+
         eventSink = null;
     }
 
@@ -42,6 +46,10 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
             @Override
             public void onFirstFrameRendered() {
+                ConstraintsMap params = new ConstraintsMap();
+                params.putString("event", "didFirstFrameRendered");
+                params.putInt("id", id);
+                eventSink.success(params.toMap());
             }
 
             @Override
@@ -121,10 +129,6 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
         eventSink = null;
     }
 
-    private final SurfaceTextureRenderer getSurfaceTextureRenderer() {
-        return surfaceTextureRenderer;
-    }
-
     /**
      * Stops rendering {@link #videoTrack} and releases the associated acquired
      * resources (if rendering is in progress).
@@ -134,8 +138,6 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
             videoTrack.removeRenderer(videoRenderer);
             videoRenderer.dispose();
             videoRenderer = null;
-
-            getSurfaceTextureRenderer().release();
         }
     }
 
@@ -159,13 +161,6 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
         }
 
         setVideoTrack(videoTrack);
-
-        boolean enabled = (videoTrack != null && mediaStream != null);
-        ConstraintsMap params = new ConstraintsMap();
-        params.putString("event", "videoState");
-        params.putInt("id", id);
-        params.putBoolean("enabled", enabled);
-        eventSink.success(params.toMap());
     }
 
     /**
@@ -187,8 +182,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
             if (videoTrack != null) {
                 tryAddRendererToVideoTrack();
             }else{
-                this.surfaceTextureRenderer.release();
-                this.surfaceTextureRenderer = new SurfaceTextureRenderer(context, texture);
+
             }
         }
     }
@@ -209,10 +203,11 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
                 return;
             }
 
-            SurfaceTextureRenderer surfaceViewRenderer = getSurfaceTextureRenderer();
-            surfaceViewRenderer.init(sharedContext, rendererEvents);
+            surfaceTextureRenderer.release();
+            surfaceTextureRenderer = new SurfaceTextureRenderer(context, texture);
+            surfaceTextureRenderer.init(sharedContext, rendererEvents);
 
-            videoRenderer = new VideoRenderer(surfaceViewRenderer);
+            videoRenderer = new VideoRenderer(surfaceTextureRenderer);
             videoTrack.addRenderer(videoRenderer);
         }
     }

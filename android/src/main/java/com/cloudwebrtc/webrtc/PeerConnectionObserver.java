@@ -97,12 +97,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     void close() {
         eventChannel.setStreamHandler(null);
         peerConnection.close();
-
+        peerConnection.dispose();
         remoteStreams.clear();
         remoteTracks.clear();
-
-        // Unlike on iOS, we cannot unregister the DataChannel.Observer
-        // instance on Android. At least do whatever else we do on iOS.
         dataChannels.clear();
     }
 
@@ -349,13 +346,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
     @Override
     public void onRemoveStream(MediaStream mediaStream) {
-        String streamReactTag = getReactTagForStream(mediaStream);
-        if (streamReactTag == null) {
-            Log.w(TAG,
-                "onRemoveStream - no remote stream for id: "
-                    + mediaStream.label());
-            return;
-        }
+
+        String streamId = mediaStream.label();
 
         for (VideoTrack track : mediaStream.videoTracks) {
             this.remoteTracks.remove(track.id());
@@ -364,11 +356,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             this.remoteTracks.remove(track.id());
         }
 
-        this.remoteStreams.remove(streamReactTag);
-
+        this.remoteStreams.remove(streamId);
         ConstraintsMap params = new ConstraintsMap();
         params.putString("event", "onRemoveStream");
-        params.putString("streamId", streamReactTag);
+        params.putString("streamId", streamId);
         sendEvent(params);
     }
 

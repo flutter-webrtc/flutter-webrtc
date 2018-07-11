@@ -163,9 +163,9 @@ class _MyAppState extends State<LoopBackSample> {
 
   _hangUp() async {
     try {
+      await _localStream.dispose();
       await _peerConnection.close();
       _peerConnection = null;
-      await _localStream.dispose();
       _localRenderer.srcObject = null;
       _remoteRenderer.srcObject = null;
     } catch (e) {

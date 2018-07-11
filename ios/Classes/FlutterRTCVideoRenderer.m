@@ -171,17 +171,6 @@
     }
     
     view.videoTrack = videoTrack;
-
-    BOOL enabled = (stream && videoTrack);
-    __weak FlutterRTCVideoRenderer *weakSelf = view;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        FlutterRTCVideoRenderer *strongSelf = weakSelf;
-        if(strongSelf.eventSink){
-            strongSelf.eventSink(@{@"event" : @"videoState",
-                                   @"id": @(strongSelf.textureId),
-                                   @"enabled":@(enabled)});
-        }
-    });
 }
 
 @end
