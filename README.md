@@ -1,7 +1,6 @@
 # flutter-webrtc
 Flutter WebRTC plugin for iOS/Android
 
-
 ## Usage
 - `git clone https://github.com/cloudwebrtc/flutter-webrtc`
 - `cd flutter-webrtc/example`
