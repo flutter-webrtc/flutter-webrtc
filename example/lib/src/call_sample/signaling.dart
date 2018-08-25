@@ -227,7 +227,8 @@ class Signaling {
 
       _socket.listen((data) {
         print('Recivied data: ' + data);
-        this.onMessage(JSON.decode(data));
+        JsonDecoder decoder = new JsonDecoder();
+        this.onMessage(decoder.convert(data));
       }, onDone: () {
         print('Closed by server!');
         if (this.onStateChange != null) {
@@ -352,8 +353,9 @@ class Signaling {
 
   _send(event, data) {
     data['type'] = event;
-    if (_socket != null) _socket.add(JSON.encode(data));
-    print('send: ' + JSON.encode(data));
+    JsonEncoder encoder = new JsonEncoder();
+    if (_socket != null) _socket.add(encoder.convert(data));
+    print('send: ' + encoder.convert(data));
   }
 
   _handleStatsReport(Timer timer, pc) async {
