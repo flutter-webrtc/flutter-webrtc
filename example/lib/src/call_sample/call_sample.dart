@@ -65,6 +65,14 @@ class _CallSampleState extends State<CallSample> {
               _inCalling = false;
             });
             break;
+          case SignalingState.CallStateInvite:
+          case SignalingState.CallStateConnected:
+          case SignalingState.CallStateInvite:
+          case SignalingState.CallStateRinging:
+          case SignalingState.ConnectionClosed:
+          case SignalingState.ConnectionError:
+          case SignalingState.ConnectionOpen:
+            break;
         }
       };
 
