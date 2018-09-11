@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:webrtc/media_stream.dart';
-import 'package:webrtc/media_stream_track.dart';
-import 'package:webrtc/rtc_data_channel.dart';
-import 'package:webrtc/rtc_ice_candidate.dart';
-import 'package:webrtc/rtc_session_description.dart';
-import 'package:webrtc/rtc_stats_report.dart';
-import 'package:webrtc/utils.dart';
+import 'media_stream.dart';
+import 'media_stream_track.dart';
+import 'rtc_data_channel.dart';
+import 'rtc_ice_candidate.dart';
+import 'rtc_session_description.dart';
+import 'rtc_stats_report.dart';
+import 'utils.dart';
 
 
 enum RTCSignalingState {

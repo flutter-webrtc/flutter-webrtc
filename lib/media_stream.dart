@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:webrtc/media_stream_track.dart';
-import 'package:webrtc/utils.dart';
+import 'media_stream_track.dart';
+import 'utils.dart';
 
 
 

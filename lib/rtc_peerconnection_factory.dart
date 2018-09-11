@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:webrtc/rtc_peerconnection.dart';
-import 'package:webrtc/utils.dart';
+import 'rtc_peerconnection.dart';
+import 'utils.dart';
 
 Future<RTCPeerConnection> createPeerConnection(Map<String,dynamic> configuration, Map<String,dynamic> constraints) async {
   MethodChannel channel = WebRTC.methodChannel();
