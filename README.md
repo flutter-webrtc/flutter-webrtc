@@ -17,7 +17,7 @@ Add the following entry to your _Info.plist_ file, located in `<project root>/io
 <key>NSPhotoLibraryUsageDescription</key>
 ```
 
-This entry allows your app to access video files by URL.
+This entry allows your app to access camera and microphone.
 
 ### Android
 
