@@ -1,4 +1,4 @@
-name: webrtc 
+name: flutter_webrtc
 description: Flutter WebRTC plugin for iOS/Android.
 version: 0.0.1
 author: cloudwebrtc <duanweiwei1982@gmail.com>

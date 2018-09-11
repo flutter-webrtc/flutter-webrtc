@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:core';
 import 'src/basic_sample/basic_sample.dart';
 import 'src/call_sample/call_sample.dart';
 import 'src/route_item.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(new MyApp());
 

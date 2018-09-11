@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:webrtc/utils.dart';
+import 'utils.dart';
 
 class RTCDataChannelInit {
   bool ordered = true;

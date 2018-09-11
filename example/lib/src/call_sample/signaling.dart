@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
-import 'package:webrtc/webrtc.dart';
+import 'package:flutter_webrtc/webrtc.dart';
 import 'random_string.dart';
 
 enum SignalingState {

@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:webrtc/media_stream.dart';
-import 'package:webrtc/utils.dart';
+import 'media_stream.dart';
+import 'utils.dart';
 
 enum RTCVideoViewObjectFit {
   RTCVideoViewObjectFitContain,
