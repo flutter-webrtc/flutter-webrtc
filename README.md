@@ -35,6 +35,14 @@ Ensure the following permission is present in your Android Manifest file, locate
 
 The Flutter project template adds it, so it may already be there.
 
+## Functionality
+We intend to implement support the following features:
+
+- [ ] Data Channel
+- [ ] [Flutter-Desktop-Embedding](https://github.com/google/flutter-desktop-embedding) Support
+- [ ] Screen Capture
+- [ ] ORTC
+
 ### Example
 
 ```dart
