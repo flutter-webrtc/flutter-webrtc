@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:webrtc/webrtc.dart';
+import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
 
 class DataChannelSample extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:core';
 import 'signaling.dart';
-import 'package:webrtc/webrtc.dart';
+import 'package:flutter_webrtc/webrtc.dart';
 
 class CallSample extends StatefulWidget {
   static String tag = 'call_sample';
