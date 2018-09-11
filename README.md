@@ -39,9 +39,10 @@ The Flutter project template adds it, so it may already be there.
 We intend to implement support the following features:
 
 - [ ] Data Channel
-- [ ] [Flutter-Desktop-Embedding](https://github.com/google/flutter-desktop-embedding) Support
+- [ ] [Flutter-Desktop-Embedding](https://github.com/google/flutter-desktop-embedding)
 - [ ] Screen Capture
-- [ ] ORTC
+- [ ] ORTC API
+- [ ] Fuchsia
 
 ### Example
 
