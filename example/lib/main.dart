@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:core';
-import 'src/basic_sample/basic_sample.dart';
+import 'src/loopback_sample.dart';
+import 'src/get_user_media_sample.dart';
+import 'src/data_channel_sample.dart';
 import 'src/route_item.dart';
 
 void main() => runApp(new MyApp());
@@ -55,13 +57,30 @@ class _MyAppState extends State<MyApp> {
   _initItems() {
     items = <RouteItem>[
       RouteItem(
-          title: 'Basic API Tests',
-          subtitle: 'Basic API Tests.',
+          title: 'GetUserMedia',
           push: (BuildContext context) {
             Navigator.push(
                 context,
                 new MaterialPageRoute(
-                    builder: (BuildContext context) => new BasicSample()));
+                    builder: (BuildContext context) =>
+                        new GetUserMediaSample()));
+          }),
+      RouteItem(
+          title: 'LoopBack Sample',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                new MaterialPageRoute(
+                    builder: (BuildContext context) => new LoopBackSample()));
+          }),
+      RouteItem(
+          title: 'DataChannel',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                new MaterialPageRoute(
+                    builder: (BuildContext context) =>
+                        new DataChannelSample()));
           }),
     ];
   }
