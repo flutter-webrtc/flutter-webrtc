@@ -11,7 +11,7 @@ class MediaStreamTrack {
   MediaStreamTrack(this._trackId, this._label, this._kind, this._enabled);
 
   set enabled(bool enabled) {
-    _channel.invokeMethod('mediaStreamTrackEnabled',
+    _channel.invokeMethod('mediaStreamTrackSetEnable',
         <String, dynamic>{'trackId': _trackId, 'enabled': enabled});
     _enabled = enabled;
   }

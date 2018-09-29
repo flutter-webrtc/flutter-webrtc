@@ -173,7 +173,15 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String streamId = call.argument("streamId");
             mediaStreamRelease(streamId);
             result.success(null);
-        } else if (call.method.equals("trackDispose")) {
+        }else if (call.method.equals("mediaStreamTrackSetEnable")) {
+            String trackId = call.argument("trackId");
+            Boolean enabled = call.argument("enabled");
+            MediaStreamTrack track = getTrackForId(trackId);
+            if(track != null){
+                track.setEnabled(enabled);
+            }
+            result.success(null);
+        }else if (call.method.equals("trackDispose")) {
             String trackId = call.argument("trackId");
             localTracks.remove(trackId);
             result.success(null);

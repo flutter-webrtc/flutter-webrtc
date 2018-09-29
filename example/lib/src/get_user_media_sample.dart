@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
 
-/**
+/*
  * getUserMedia sample
  */
 class GetUserMediaSample extends StatefulWidget {

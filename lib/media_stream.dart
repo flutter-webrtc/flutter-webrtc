@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'media_stream_track.dart';
 import 'utils.dart';
 
-
-
 class MediaStream {
   MethodChannel _channel = WebRTC.methodChannel();
   String _streamId;
@@ -68,7 +66,6 @@ class MediaStream {
     return _videoTracks;
   }
 
-  @override
   Future<Null> dispose() async {
     await _channel.invokeMethod(
       'streamDispose',

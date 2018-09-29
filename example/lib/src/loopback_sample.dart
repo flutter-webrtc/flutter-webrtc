@@ -109,7 +109,7 @@ class _MyAppState extends State<LoopBackSample> {
       ]
     };
 
-    final Map<String, dynamic> offer_sdp_constraints = {
+    final Map<String, dynamic> offerSdpConstraints = {
       "mandatory": {
         "OfferToReceiveAudio": true,
         "OfferToReceiveVideo": true,
@@ -117,7 +117,7 @@ class _MyAppState extends State<LoopBackSample> {
       "optional": [],
     };
 
-    final Map<String, dynamic> loopback_constraints = {
+    final Map<String, dynamic> loopbackConstraints = {
       "mandatory": {},
       "optional": [
         {"DtlsSrtpKeyAgreement": false},
@@ -131,7 +131,7 @@ class _MyAppState extends State<LoopBackSample> {
       _localRenderer.srcObject = _localStream;
 
       _peerConnection =
-      await createPeerConnection(configuration, loopback_constraints);
+      await createPeerConnection(configuration, loopbackConstraints);
 
       _peerConnection.onSignalingState = _onSignalingState;
       _peerConnection.onIceGatheringState = _onIceGatheringState;
@@ -143,7 +143,7 @@ class _MyAppState extends State<LoopBackSample> {
 
       _peerConnection.addStream(_localStream);
       RTCSessionDescription description =
-      await _peerConnection.createOffer(offer_sdp_constraints);
+      await _peerConnection.createOffer(offerSdpConstraints);
       print(description.sdp);
       _peerConnection.setLocalDescription(description);
       //change for loopback.
@@ -174,6 +174,7 @@ class _MyAppState extends State<LoopBackSample> {
     setState(() {
       _inCalling = false;
     });
+    _timer.cancel();
   }
 
   @override
