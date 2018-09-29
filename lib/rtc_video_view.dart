@@ -19,7 +19,7 @@ class RTCVideoRenderer {
   int _textureId;
   int _rotation = 0;
   double _width = 0.0, _height = 0.0;
-  bool _mirror = false;
+  bool _mirror;
   MediaStream _srcObject;
   RTCVideoViewObjectFit _objectFit =
       RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
