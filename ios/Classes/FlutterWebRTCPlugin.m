@@ -283,7 +283,7 @@
     }else if([@"mediaStreamTrackSetEnable" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
-        NSNumber *enabled = argsMap[@"enabled"];
+        BOOL enabled = argsMap[@"enabled"];
         RTCMediaStreamTrack *track = self.localTracks[trackId];
         if(track != nil){
             track.isEnabled = enabled;
