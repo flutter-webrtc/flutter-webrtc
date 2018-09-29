@@ -280,6 +280,15 @@
             [self.localStreams removeObjectForKey:streamId];
         }
         result(nil);
+    }else if([@"mediaStreamTrackSetEnable" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* trackId = argsMap[@"trackId"];
+        NSNumber *enabled = argsMap[@"enabled"];
+        RTCMediaStreamTrack *track = self.localTracks[trackId];
+        if(track != nil){
+            track.isEnabled = enabled;
+        }
+        result(nil);
     }else if([@"trackDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
