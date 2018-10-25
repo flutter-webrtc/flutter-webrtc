@@ -255,6 +255,10 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             MediaStream stream = getStreamForId(streamId);
             render.setStream(stream);
             result.success(null);
+        } else if (call.method.equals("mediaStreamTrackSwitchCamera")) {
+            String trackId = call.argument("trackId");
+            mediaStreamTrackSwitchCamera(trackId);
+            result.success(null);
         } else {
             result.notImplemented();
         }
