@@ -21,6 +21,13 @@ class MediaStreamTrack {
   String get kind => _kind;
   String get id => _trackId;
 
+  void switchCamera() async {
+    await _channel.invokeMethod(
+      'mediaStreamTrackSwitchCamera',
+      <String, dynamic>{'trackId': _trackId},
+    );
+  }
+
   void dispose() async {
     await _channel.invokeMethod(
       'trackDispose',
