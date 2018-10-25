@@ -129,7 +129,36 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else if (call.method.equals("mediaStreamGetTracks")) {
             String streamId = call.argument("streamId");
             MediaStream stream = getStreamForId(streamId);
-            //TODO: build tracks map.
+                        String streamId = call.argument("streamId");
+            MediaStream stream = getStreamForId(streamId);
+            Map<String, Object> resultMap = new HashMap<>();
+            List<Object> audioTracks = new ArrayList<>();
+            List<Object> videoTracks = new ArrayList<>();
+            for (AudioTrack track : stream.audioTracks) {
+                localTracks.put(track.id(), track);
+                Map<String, Object> trackMap = new HashMap<>();
+                trackMap.put("enabled", track.enabled());
+                trackMap.put("id", track.id());
+                trackMap.put("kind", track.kind());
+                trackMap.put("label", track.id());
+                trackMap.put("readyState", "live");
+                trackMap.put("remote", false);
+                audioTracks.add(trackMap);
+            }
+            for (VideoTrack track : stream.videoTracks) {
+                localTracks.put(track.id(), track);
+                Map<String, Object> trackMap = new HashMap<>();
+                trackMap.put("enabled", track.enabled());
+                trackMap.put("id", track.id());
+                trackMap.put("kind", track.kind());
+                trackMap.put("label", track.id());
+                trackMap.put("readyState", "live");
+                trackMap.put("remote", false);
+                videoTracks.add(trackMap);
+            }
+            resultMap.put("audioTracks", audioTracks);
+            resultMap.put("videoTracks", videoTracks);
+            result.success(resultMap);
         } else if (call.method.equals("addStream")) {
             String streamId = call.argument("streamId");
             String peerConnectionId = call.argument("peerConnectionId");
