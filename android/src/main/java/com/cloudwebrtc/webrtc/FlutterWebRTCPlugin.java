@@ -129,8 +129,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else if (call.method.equals("mediaStreamGetTracks")) {
             String streamId = call.argument("streamId");
             MediaStream stream = getStreamForId(streamId);
-                        String streamId = call.argument("streamId");
-            MediaStream stream = getStreamForId(streamId);
             Map<String, Object> resultMap = new HashMap<>();
             List<Object> audioTracks = new ArrayList<>();
             List<Object> videoTracks = new ArrayList<>();
