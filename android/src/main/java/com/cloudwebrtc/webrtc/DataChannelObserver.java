@@ -23,7 +23,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
         this.eventChannel =
                 new EventChannel(
                         plugin.registrar().messenger(),
-                        "cloudwebrtc.com/WebRTC/dataChannelEvent" + dataChannel);
+                        "cloudwebrtc.com/WebRTC/dataChannelEvent" + String.valueOf(id));
         eventChannel.setStreamHandler(this);
     }
 
