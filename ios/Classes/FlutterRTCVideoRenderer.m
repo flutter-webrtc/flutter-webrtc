@@ -164,7 +164,7 @@
         NSArray *videoTracks = stream ? stream.videoTracks : nil;
         videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
         if (!videoTrack) {
-            NSLog(@"No video stream for react tag: %@", streamId);
+            NSLog(@"No video track for RTCMediaStream: %@", streamId);
         }
     } else {
         videoTrack = nil;

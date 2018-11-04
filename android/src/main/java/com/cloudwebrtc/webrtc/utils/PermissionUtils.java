@@ -36,41 +36,6 @@ public class PermissionUtils {
      */
     private static int requestCode;
 
-
-    private static void maybeRequestPermissionsOnHostResume(
-            final FlutterWebRTCPlugin plugin,
-            final String[] permissions,
-            int[] grantResults,
-            final ResultReceiver resultReceiver,
-            int requestCode) {
-
-        /*
-        if (!(context instanceof ReactContext)) {
-            // I do not know how to wait for an Activity here.
-            send(resultReceiver, requestCode, permissions, grantResults);
-            return;
-        }
-
-        final Context reactContext = (Context) context;
-        reactContext.addLifecycleEventListener(
-            new LifecycleEventListener() {
-                @Override
-                public void onHostDestroy() {
-                }
-
-                @Override
-                public void onHostPause() {
-                }
-
-                @Override
-                public void onHostResume() {
-                    reactContext.removeLifecycleEventListener(this);
-                    requestPermissions(context, permissions, resultReceiver);
-                }
-            });
-        */
-    }
-
     private static void requestPermissions(
             FlutterWebRTCPlugin plugin,
             String[] permissions,
@@ -115,19 +80,9 @@ public class PermissionUtils {
 
         Activity activity = plugin.getActivity();
 
-        // If a ReactContext does not have a current Activity, then wait for
-        // it to get a current Activity; otherwise, the user will not be asked
-        // about the denied permissions and getUserMedia will fail.
         if (activity == null) {
-            maybeRequestPermissionsOnHostResume(
-                plugin,
-                permissions,
-                grantResults,
-                resultReceiver,
-                requestCode);
             return;
         }
-
 
         Bundle args = new Bundle();
         args.putInt(REQUEST_CODE, requestCode);
