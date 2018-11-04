@@ -261,7 +261,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         sendEvent(params);
     }
 
-    private String getReactTagForStream(MediaStream mediaStream) {
+    private String getUIDForStream(MediaStream mediaStream) {
         for (Iterator<Map.Entry<String, MediaStream>> i
                     = remoteStreams.entrySet().iterator();
                 i.hasNext();) {
@@ -275,7 +275,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
     @Override
     public void onAddStream(MediaStream mediaStream) {
-        String streamReactTag = null;
+        String streamUID = null;
         String streamId = mediaStream.label();
         // The native WebRTC implementation has a special concept of a default
         // MediaStream instance with the label default that the implementation
@@ -284,14 +284,14 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             for (Map.Entry<String, MediaStream> e
                     : remoteStreams.entrySet()) {
                 if (e.getValue().equals(mediaStream)) {
-                    streamReactTag = e.getKey();
+                    streamUID = e.getKey();
                     break;
                 }
             }
         }
 
-        if (streamReactTag == null){
-            streamReactTag = plugin.getNextStreamUUID();
+        if (streamUID == null){
+            streamUID = plugin.getNextStreamUUID();
             remoteStreams.put(streamId, mediaStream);
         }
 
@@ -368,7 +368,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         Log.d(TAG, "onAddTrack");
 
         String streamId = mediaStream.label();
-        String streamReactTag = streamId;
 
         ConstraintsMap params = new ConstraintsMap();
         params.putString("event", "onAddTrack");
@@ -393,7 +392,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     public void onRemoveTrack(MediaStream mediaStream,MediaStreamTrack track){
         Log.d(TAG, "onRemoveTrack");
         String streamId = mediaStream.label();
-        String streamReactTag = streamId;
+
         ConstraintsMap params = new ConstraintsMap();
         params.putString("event", "onRemoveTrack");
         params.putString("streamId", streamId);
