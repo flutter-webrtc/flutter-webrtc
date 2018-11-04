@@ -14,7 +14,6 @@ Add the following entry to your _Info.plist_ file, located in `<project root>/io
 <string>$(PRODUCT_NAME) Camera Usage!</string>
 <key>NSMicrophoneUsageDescription</key>
 <string>$(PRODUCT_NAME) Microphone Usage!</string>
-<key>NSPhotoLibraryUsageDescription</key>
 ```
 
 This entry allows your app to access camera and microphone.
