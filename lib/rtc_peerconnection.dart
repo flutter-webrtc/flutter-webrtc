@@ -100,12 +100,12 @@ class RTCPeerConnection {
         break;
       case 'iceGatheringState':
         String state = map['state'];
-        if (this.onSignalingState != null)
+        if (this.onIceGatheringState != null)
           this.onIceGatheringState(iceGatheringStateforString(state));
         break;
       case 'iceConnectionState':
         String state = map['state'];
-        if (this.onSignalingState != null)
+        if (this.onIceConnectionState != null)
           this.onIceConnectionState(iceConnectionStateForString(state));
         break;
       case 'onCandidate':
