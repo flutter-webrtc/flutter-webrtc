@@ -101,13 +101,8 @@ public class PermissionUtils {
         try {
             transaction.commit();
         } catch (IllegalStateException ise) {
-            // The Activity has likely already saved its state.
-            maybeRequestPermissionsOnHostResume(
-                plugin,
-                permissions,
-                grantResults,
-                resultReceiver,
-                requestCode);
+            // Context is a Plugin, just send result back.
+            send(resultReceiver, requestCode, permissions, grantResults);
         }
     }
 
