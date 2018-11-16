@@ -42,6 +42,8 @@ class RTCVideoRenderer {
   double get width => _width;
 
   double get height => _height;
+  
+  int get textureId => _textureId;
 
   set mirror(bool mirror) {
     _mirror = mirror;
