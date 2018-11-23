@@ -325,7 +325,8 @@ class GetUserMediaImpl{
             }
         }
 
-        boolean requestScreenCapturer =  videoConstraintsMandatory.hasKey("chromeMediaSource") &&
+        boolean requestScreenCapturer = videoConstraintsMandatory != null &&
+                videoConstraintsMandatory.hasKey("chromeMediaSource") &&
                 videoConstraintsMandatory.getString("chromeMediaSource").equals("desktop");
 
         final ArrayList<String> requestPermissions = new ArrayList<>();
