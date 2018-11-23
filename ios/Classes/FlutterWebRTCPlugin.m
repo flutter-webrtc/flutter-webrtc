@@ -3,20 +3,9 @@
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCDataChannel.h"
 #import "FlutterRTCVideoRenderer.h"
-#import "ARDVideoDecoderFactory.h"
-#import "ARDVideoEncoderFactory.h"
 
 #import <AVFoundation/AVFoundation.h>
-#import <WebRTC/RTCMediaStream.h>
-#import <WebRTC/RTCPeerConnectionFactory.h>
-#import <WebRTC/RTCPeerConnection.h>
-#import <WebRTC/RTCAudioTrack.h>
-#import <WebRTC/RTCVideoTrack.h>
-#import <WebRTC/RTCConfiguration.h>
-#import <WebRTC/RTCIceCandidate.h>
-#import <WebRTC/RTCSessionDescription.h>
-#import <WebRTC/RTCIceServer.h>
-#import <WebRTC/RTCAVFoundationVideoSource.h>
+#import <WebRTC/WebRTC.h>
 
 
 
@@ -59,8 +48,8 @@
         self.viewController = viewController;
     }
     
-    ARDVideoDecoderFactory *decoderFactory = [[ARDVideoDecoderFactory alloc] init];
-    ARDVideoEncoderFactory *encoderFactory = [[ARDVideoEncoderFactory alloc] init];
+    RTCDefaultVideoDecoderFactory *decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
+    RTCDefaultVideoEncoderFactory *encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
     
     _peerConnectionFactory = [[RTCPeerConnectionFactory alloc]
                               initWithEncoderFactory:encoderFactory
@@ -268,11 +257,7 @@
             for (RTCVideoTrack *track in stream.videoTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-                RTCVideoSource *source = videoTrack.source;
-                if ([source isKindOfClass:[RTCAVFoundationVideoSource class]]) {
-                    RTCAVFoundationVideoSource *avSource = (RTCAVFoundationVideoSource *)source;
-                    [avSource Stop];
-                }
+                //TODO(rostopira)
             }
             for (RTCAudioTrack *track in stream.audioTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
@@ -351,11 +336,7 @@
         RTCMediaStreamTrack *track = self.localTracks[trackId];
         if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
             RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-            RTCVideoSource *source = videoTrack.source;
-            if ([source isKindOfClass:[RTCAVFoundationVideoSource class]]) {
-                RTCAVFoundationVideoSource *avSource = (RTCAVFoundationVideoSource *)source;
-                avSource.useBackCamera = !avSource.useBackCamera;
-            }
+            //TODO(rostopira)
         } else {
             if (track == nil) {
                 NSLog(@"Track is nil");
