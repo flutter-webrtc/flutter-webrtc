@@ -1,12 +1,6 @@
 #import <objc/runtime.h>
 
-#import <WebRTC/RTCAVFoundationVideoSource.h>
-#import <WebRTC/RTCAudioTrack.h>
-#import <WebRTC/RTCVideoTrack.h>
-#import <WebRTC/RTCMediaConstraints.h>
-#import <WebRTC/RTCMediaStream.h>
-#import <WebRTC/RTCMediaStreamTrack.h>
-#import <WebRTC/RTCPeerConnectionFactory.h>
+#import <WebRTC/WebRTC.h>
 
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
@@ -263,22 +257,34 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     }
     
     if (videoDevice) {
-        RTCMediaConstraints* finalConstraints = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:videoConstraints[@"mandatory"] optionalConstraints:nil];
-        RTCAVFoundationVideoSource *videoSource = [self.peerConnectionFactory avFoundationVideoSourceWithConstraints:finalConstraints];
-        // FIXME The effort above to find a videoDevice value which satisfies the
-        // specified constraints was pretty much wasted. Salvage facingMode for
-        // starters because it is kind of a common and hence important feature on
-        // a mobile device.
-        switch (videoDevice.position) {
-            case AVCaptureDevicePositionBack:
-                if (videoSource.canUseBackCamera) {
-                    videoSource.useBackCamera = YES;
-                }
-                break;
-            case AVCaptureDevicePositionFront:
-                videoSource.useBackCamera = NO;
-                break;
+        RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+        // FIXME: Video capturer shouldn't be local to be able to stop
+        RTCCameraVideoCapturer *capt = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
+        AVCaptureDeviceFormat *selectedFormat = nil;
+        int currentDiff = INT_MAX;
+        // TODO: use values from constraints map
+        int targetWidth = 1280;
+        int targetHeight = 720;
+        for (AVCaptureDeviceFormat *format in [RTCCameraVideoCapturer supportedFormatsForDevice:videoDevice]) {
+            CMVideoDimensions dimension = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
+            FourCharCode pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription);
+            int diff = abs(targetWidth - dimension.width) + abs(targetHeight - dimension.height);
+            if (diff < currentDiff) {
+                selectedFormat = format;
+                currentDiff = diff;
+            } else if (diff == currentDiff && pixelFormat == [capt preferredOutputPixelFormat]) {
+                selectedFormat = format;
+            }
         }
+        if (selectedFormat == nil) {
+            NSLog(@"Capture format is nil. Fallback");
+            selectedFormat = [RTCCameraVideoCapturer supportedFormatsForDevice:videoDevice].firstObject;
+        }
+        [capt startCaptureWithDevice:videoDevice format:selectedFormat fps:30 completionHandler:^(NSError *error) {
+            if (error) {
+                NSLog(@"Start capture error: %@", [error localizedDescription]);
+            }
+        }];
         
         NSString *trackUUID = [[NSUUID UUID] UUIDString];
         RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
@@ -428,12 +434,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 -(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track
 {
   if (track) {
-    RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-    RTCVideoSource *source = videoTrack.source;
-    if ([source isKindOfClass:[RTCAVFoundationVideoSource class]]) {
-      RTCAVFoundationVideoSource *avSource = (RTCAVFoundationVideoSource *)source;
-      avSource.useBackCamera = !avSource.useBackCamera;
-    }
+    //TODO(rostopira): I will handle it, if will work at least
   }
 }
 
