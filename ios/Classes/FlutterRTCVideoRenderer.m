@@ -2,7 +2,7 @@
 
 #import <AVFoundation/AVFoundation.h>
 #import <CoreGraphics/CGImage.h>
-#import <WebRTC/RTCVideoFrameBuffer.h>
+#import <WebRTC/WebRTC.h>
 #import <objc/runtime.h>
 
 #import "FlutterWebRTCPlugin.h"
@@ -75,8 +75,11 @@
 - (void)renderFrame:(RTCVideoFrame *)frame {
     
     //TODO: got a frame => scale to _renderSize => convert to BGRA32 pixelBufferRef
-    
-    [frame CopyI420BufferToCVPixelBuffer:_pixelBufferRef];
+    RTCI420Buffer *buffer = [[frame buffer] toI420];
+    buffer.dataY;
+    buffer.dataU;
+    buffer.dataV;
+    //TODO: copy it somehow, I dunno what to do with this data
     
     __weak FlutterRTCVideoRenderer *weakSelf = self;
     
