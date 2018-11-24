@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
-import android.support.v4.content.ContextCompat;
 
 import com.cloudwebrtc.webrtc.FlutterWebRTCPlugin;
 
@@ -40,6 +39,9 @@ public class PermissionUtils {
             FlutterWebRTCPlugin plugin,
             String[] permissions,
             ResultReceiver resultReceiver) {
+        // No need to ask for permission on pre-Marshmallow
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+            return;
         // Ask the Context whether we have already been granted the requested
         // permissions.
         int size = permissions.length;
@@ -48,9 +50,7 @@ public class PermissionUtils {
 
         for (int i = 0; i < size; ++i) {
             int grantResult
-                = ContextCompat.checkSelfPermission(
-                    plugin.getContext(),
-                    permissions[i]);
+                = plugin.getContext().checkSelfPermission(permissions[i]);
 
             grantResults[i] = grantResult;
             if (grantResult != PackageManager.PERMISSION_GRANTED) {
@@ -155,6 +155,9 @@ public class PermissionUtils {
             this.plugin = plugin;
         }
         private void checkSelfPermissions(boolean requestPermissions) {
+            // No need to ask for permission on pre-Marshmallow
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+                return;
             // Figure out which of the requested permissions are actually denied
             // because we do not want to ask about the granted permissions
             // (which Android supports).
