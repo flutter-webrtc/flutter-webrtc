@@ -292,6 +292,7 @@ public class SurfaceTextureRenderer implements VideoSink {
     renderThread.quit();
     synchronized (frameLock) {
       if (pendingFrame != null) {
+        pendingFrame.release();
         pendingFrame = null;
       }
     }
@@ -350,7 +351,7 @@ public class SurfaceTextureRenderer implements VideoSink {
           synchronized (statisticsLock) {
             ++framesDropped;
           }
-          frame.release();
+          pendingFrame.release();
         }
         pendingFrame = frame;
         renderThreadHandler.post(renderFrameRunnable);
@@ -468,6 +469,7 @@ public class SurfaceTextureRenderer implements VideoSink {
     }
 
     final long startTimeNs = System.nanoTime();
+    //FIXME
     final float[] texMatrix = {
         1.0f , 0.0f , 0.0f , 0.0f,
         0.0f, 1.0f, 0.0f , 0.0f ,
@@ -561,7 +563,7 @@ public class SurfaceTextureRenderer implements VideoSink {
     synchronized (layoutLock) {
       if (frameWidth != frame.getRotatedWidth() || frameHeight != frame.getRotatedHeight() || frameRotation != frame.getRotation()) {
         Logging.d(TAG, getResourceName() + "Reporting frame resolution changed to "
-            + frame.getRotatedWidth() + "x" + frame.getRotatedHeight() + " with rotation " + frameRotation);
+            + frame.getRotatedWidth() + "x" + frame.getRotatedHeight() + " with rotation " + frame.getRotation());
         if (rendererEvents != null) {
           rendererEvents.onFrameResolutionChanged(frame.getRotatedWidth(), frame.getRotatedHeight(), frame.getRotation());
         }
