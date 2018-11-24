@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.graphics.SurfaceTexture;
+import android.os.Process;
 import android.util.Log;
 import android.util.LongSparseArray;
 
@@ -26,6 +27,8 @@ import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.VideoTrack;
+import org.webrtc.audio.AudioDeviceModule;
+import org.webrtc.audio.JavaAudioDeviceModule;
 
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
@@ -91,15 +94,21 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         PeerConnectionFactory.initialize(
                 PeerConnectionFactory.InitializationOptions.builder(registrar.context())
                         .setEnableInternalTracer(false)
-                        .setEnableVideoHwAcceleration(true)
                         .createInitializationOptions());
 
-        mFactory = new PeerConnectionFactory(null);
+        final AudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(registrar.context())
+                .setUseHardwareAcousticEchoCanceler(true)
+                .setUseHardwareNoiseSuppressor(true)
+                .createAudioDeviceModule();
+
         // Initialize EGL contexts required for HW acceleration.
-        EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
-        if (eglContext != null) {
-            mFactory.setVideoHwAccelerationOptions(eglContext, eglContext);
-        }
+        EglUtils.getRootEglBaseContext();
+
+        mFactory = PeerConnectionFactory.builder()
+                .setOptions(new PeerConnectionFactory.Options())
+                .setAudioDeviceModule(audioDeviceModule)
+                .createPeerConnectionFactory();
+
         getUserMediaImpl = new GetUserMediaImpl(this, registrar.context());
     }
 
@@ -1042,4 +1051,5 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             pco.dataChannelClose(dataChannelId);
         }
     }
+
 }

@@ -2,11 +2,13 @@ package com.cloudwebrtc.webrtc;
 
 import android.content.Context;
 import android.content.res.Resources.NotFoundException;
+import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -16,9 +18,14 @@ import org.webrtc.GlUtil;
 import org.webrtc.Logging;
 import org.webrtc.RendererCommon;
 import org.webrtc.ThreadUtils;
-import org.webrtc.VideoRenderer;
+import org.webrtc.VideoFrame;
+import org.webrtc.VideoFrameDrawer;
+import org.webrtc.VideoSink;
 
 import java.nio.ByteBuffer;
+
+import static org.webrtc.VideoFrame.TextureBuffer.Type.OES;
+
 /**
  * Implements org.webrtc.VideoRenderer.Callbacks by displaying the video stream on a SurfaceTexture.
  * renderFrame() is asynchronous to avoid blocking the calling thread.
@@ -28,7 +35,7 @@ import java.nio.ByteBuffer;
  * Interaction from the Activity lifecycle in surfaceCreated, surfaceChanged, and surfaceDestroyed.
  * Interaction with the layout framework in onMeasure and onSizeChanged.
  */
-public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
+public class SurfaceTextureRenderer implements VideoSink {
   private static final String TAG = "SurfaceTextureRenderer";
 
   private final SurfaceTexture texture;
@@ -49,7 +56,7 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
 
   // Pending frame to render. Serves as a queue with size 1. Synchronized on |frameLock|.
   private final Object frameLock = new Object();
-  private VideoRenderer.I420Frame pendingFrame;
+  private VideoFrame pendingFrame;
 
   // These variables are synchronized on |layoutLock|.
   private final Object layoutLock = new Object();
@@ -134,9 +141,8 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
           // Input is packed already.
           packedByteBuffer = planes[i];
         } else {
-          VideoRenderer.nativeCopyPlane(
-              planes[i], planeWidths[i], planeHeights[i], strides[i], copyBuffer, planeWidths[i]);
-          packedByteBuffer = copyBuffer;
+          Log.e(TAG, "Unpacked YUV buffer found");
+          throw new RuntimeException();
         }
         GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_LUMINANCE, planeWidths[i],
             planeHeights[i], 0, GLES20.GL_LUMINANCE, GLES20.GL_UNSIGNED_BYTE, packedByteBuffer);
@@ -286,7 +292,6 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
     renderThread.quit();
     synchronized (frameLock) {
       if (pendingFrame != null) {
-        VideoRenderer.renderFrameDone(pendingFrame);
         pendingFrame = null;
       }
     }
@@ -326,9 +331,9 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
     }
   }
 
-  // VideoRenderer.Callbacks interface.
+  // VideoSink interface.
   @Override
-  public void renderFrame(VideoRenderer.I420Frame frame) {
+  public void onFrame(VideoFrame frame) {
     synchronized (statisticsLock) {
       ++framesReceived;
     }
@@ -336,7 +341,7 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
       if (renderThreadHandler == null) {
         Logging.d(TAG, getResourceName()
             + "Dropping frame - Not initialized or already released.");
-        VideoRenderer.renderFrameDone(frame);
+        frame.release();
         return;
       }
       synchronized (frameLock) {
@@ -345,7 +350,7 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
           synchronized (statisticsLock) {
             ++framesDropped;
           }
-          VideoRenderer.renderFrameDone(pendingFrame);
+          frame.release();
         }
         pendingFrame = frame;
         renderThreadHandler.post(renderFrameRunnable);
@@ -433,7 +438,7 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
       throw new IllegalStateException(getResourceName() + "Wrong thread.");
     }
     // Fetch and render |pendingFrame|.
-    final VideoRenderer.I420Frame frame;
+    final VideoFrame frame;
     synchronized (frameLock) {
       if (pendingFrame == null) {
         return;
@@ -444,7 +449,7 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
     updateFrameDimensionsAndReportEvents(frame);
     if (eglBase == null || !eglBase.hasSurface()) {
       Logging.d(TAG, getResourceName() + "No surface to draw on");
-      VideoRenderer.renderFrameDone(frame);
+      frame.release();
       return;
     }
     if (!checkConsistentLayout()) {
@@ -463,19 +468,23 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
     }
 
     final long startTimeNs = System.nanoTime();
-    final float[] texMatrix;
-    synchronized (layoutLock) {
-      final float[] rotatedSamplingMatrix =
-          RendererCommon.rotateTextureMatrix(frame.samplingMatrix, frame.rotationDegree);
-      final float[] layoutMatrix = RendererCommon.getLayoutMatrix(
-          mirror, frameAspectRatio(), (float) layoutSize.x / layoutSize.y);
-      texMatrix = RendererCommon.multiplyMatrices(rotatedSamplingMatrix, layoutMatrix);
-    }
+    final float[] texMatrix = {
+        1.0f , 0.0f , 0.0f , 0.0f,
+        0.0f, 1.0f, 0.0f , 0.0f ,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
+//    synchronized (layoutLock) {
+//      final float[] rotatedSamplingMatrix =
+//          RendererCommon.rotateTextureMatrix(frame.samplingMatrix, frame.rotationDegree);
+//      final float[] layoutMatrix = RendererCommon.getLayoutMatrix(
+//          mirror, frameAspectRatio(), (float) layoutSize.x / layoutSize.y);
+//      texMatrix = RendererCommon.multiplyMatrices(rotatedSamplingMatrix, layoutMatrix);
+//    }
 
-    // TODO(magjed): glClear() shouldn't be necessary since every pixel is covered anyway, but it's
-    // a workaround for bug 5147. Performance will be slightly worse.
-    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-    if (frame.yuvFrame) {
+    VideoFrame.Buffer buffer = frame.getBuffer();
+    if (buffer instanceof VideoFrame.I420Buffer) {
+      VideoFrame.I420Buffer yuvBuffer = (VideoFrame.I420Buffer) buffer;
       // Make sure YUV textures are allocated.
       if (yuvTextures == null) {
         yuvTextures = new int[3];
@@ -483,17 +492,41 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
           yuvTextures[i] = GlUtil.generateTexture(GLES20.GL_TEXTURE_2D);
         }
       }
+      final int[] yuvStrides = new int[] {
+        yuvBuffer.getStrideY(),
+        yuvBuffer.getStrideU(),
+        yuvBuffer.getStrideV(),
+      };
+      final ByteBuffer[] yuvPlanes = new ByteBuffer[] {
+        yuvBuffer.getDataY(),
+        yuvBuffer.getDataU(),
+        yuvBuffer.getDataV()
+      };
       yuvTextures = yuvUploader.uploadYuvData(
-          frame.width, frame.height, frame.yuvStrides, frame.yuvPlanes);
-      drawer.drawYuv(yuvTextures, texMatrix, frame.rotatedWidth(), frame.rotatedHeight(),
+          frame.getRotatedWidth(), frame.getRotatedHeight(), yuvStrides, yuvPlanes);
+      drawer.drawYuv(yuvTextures, texMatrix, frame.getRotatedWidth(), frame.getRotatedHeight(),
           0, 0, surfaceSize.x, surfaceSize.y);
+    } else if (buffer instanceof VideoFrame.TextureBuffer) {
+      VideoFrame.TextureBuffer textureBuffer = (VideoFrame.TextureBuffer) buffer;
+      Matrix finalMatrix = new Matrix(textureBuffer.getTransformMatrix());
+//      finalMatrix.preConcat(texMatrix);
+      float[] finalGlMatrix = RendererCommon.convertMatrixFromAndroidGraphicsMatrix(finalMatrix);
+      switch(textureBuffer.getType()) {
+        case OES:
+          drawer.drawOes(textureBuffer.getTextureId(), finalGlMatrix, frameWidth, frameHeight, 0, 0, frameWidth, frameHeight);
+          break;
+        case RGB:
+          drawer.drawRgb(textureBuffer.getTextureId(), finalGlMatrix, frameWidth, frameHeight, 0, 0, frameWidth, frameHeight);
+          break;
+        default:
+          throw new RuntimeException("Unknown texture type.");
+      }
     } else {
-      drawer.drawOes(frame.textureId, texMatrix, frame.rotatedWidth(), frame.rotatedHeight(),
-          0, 0, surfaceSize.x, surfaceSize.y);
+      throw new RuntimeException("Received unknown buffer type");
     }
 
     eglBase.swapBuffers();
-    VideoRenderer.renderFrameDone(frame);
+    frame.release();
     synchronized (statisticsLock) {
       if (framesRendered == 0) {
         firstFrameTimeNs = startTimeNs;
@@ -524,25 +557,19 @@ public class SurfaceTextureRenderer implements VideoRenderer.Callbacks {
   }
 
   // Update frame dimensions and report any changes to |rendererEvents|.
-  private void updateFrameDimensionsAndReportEvents(VideoRenderer.I420Frame frame) {
+  private void updateFrameDimensionsAndReportEvents(VideoFrame frame) {
     synchronized (layoutLock) {
-      if (frameWidth != frame.width || frameHeight != frame.height
-          || frameRotation != frame.rotationDegree) {
+      if (frameWidth != frame.getRotatedWidth() || frameHeight != frame.getRotatedHeight() || frameRotation != frame.getRotation()) {
         Logging.d(TAG, getResourceName() + "Reporting frame resolution changed to "
-            + frame.width + "x" + frame.height + " with rotation " + frame.rotationDegree);
+            + frame.getRotatedWidth() + "x" + frame.getRotatedHeight() + " with rotation " + frameRotation);
         if (rendererEvents != null) {
-          rendererEvents.onFrameResolutionChanged(frame.width, frame.height, frame.rotationDegree);
+          rendererEvents.onFrameResolutionChanged(frame.getRotatedWidth(), frame.getRotatedHeight(), frame.getRotation());
         }
-        frameWidth = frame.width;
-        frameHeight = frame.height;
-        frameRotation = frame.rotationDegree;
-        if(frameRotation == 90 || frameRotation == 270) {
-          texture.setDefaultBufferSize(frameHeight, frameWidth);
-          surfaceChanged(frameHeight, frameWidth);
-        }else {
-          texture.setDefaultBufferSize(frameWidth, frameHeight);
-          surfaceChanged(frameWidth, frameHeight);
-        }
+        frameWidth = frame.getRotatedWidth();
+        frameHeight = frame.getRotatedHeight();
+        frameRotation = frame.getRotation();
+        texture.setDefaultBufferSize(frameWidth, frameHeight);
+        surfaceChanged(frameWidth, frameHeight);
       }
     }
   }
