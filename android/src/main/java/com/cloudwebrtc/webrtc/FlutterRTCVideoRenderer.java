@@ -12,12 +12,12 @@ import java.util.List;
 import org.webrtc.EglBase;
 import org.webrtc.MediaStream;
 import org.webrtc.RendererCommon.RendererEvents;
-import org.webrtc.VideoRenderer;
+import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoTrack;
 
 import io.flutter.plugin.common.EventChannel;
 
-public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
+public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
 
     private static final String TAG = FlutterWebRTCPlugin.TAG;
     private final SurfaceTexture texture;
@@ -91,12 +91,6 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
     private SurfaceTextureRenderer surfaceTextureRenderer;
 
     /**
-     * The {@code VideoRenderer}, if any, which renders {@link #videoTrack} on
-     * this {@code View}.
-     */
-    private VideoRenderer videoRenderer;
-
-    /**
      * The {@code VideoTrack}, if any, rendered by this {@code FlutterRTCVideoRenderer}.
      */
     private VideoTrack videoTrack;
@@ -106,6 +100,8 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
     public FlutterRTCVideoRenderer(SurfaceTexture texture, Context context) {
         this.surfaceTextureRenderer = new SurfaceTextureRenderer(context, texture);
+        SurfaceViewRenderer svr = new SurfaceViewRenderer(context);
+
         this.texture = texture;
         this.context = context;
         this.eventSink = null;
@@ -134,11 +130,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
      * resources (if rendering is in progress).
      */
     private void removeRendererFromVideoTrack() {
-        if (videoRenderer != null) {
-            videoTrack.removeRenderer(videoRenderer);
-            videoRenderer.dispose();
-            videoRenderer = null;
-        }
+        videoTrack.removeSink(surfaceTextureRenderer);
     }
 
     /**
@@ -181,8 +173,8 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
 
             if (videoTrack != null) {
                 tryAddRendererToVideoTrack();
-            }else{
-
+            } else {
+                Log.w(TAG, "VideoTrack is null");
             }
         }
     }
@@ -192,8 +184,7 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
      * all preconditions for the start of rendering are met.
      */
     private void tryAddRendererToVideoTrack() {
-        if (videoRenderer == null
-                && videoTrack != null) {
+        if (videoTrack != null) {
             EglBase.Context sharedContext = EglUtils.getRootEglBaseContext();
 
             if (sharedContext == null) {
@@ -207,8 +198,8 @@ public class FlutterRTCVideoRenderer implements  EventChannel.StreamHandler {
             surfaceTextureRenderer = new SurfaceTextureRenderer(context, texture);
             surfaceTextureRenderer.init(sharedContext, rendererEvents);
 
-            videoRenderer = new VideoRenderer(surfaceTextureRenderer);
-            videoTrack.addRenderer(videoRenderer);
+            videoTrack.addSink(surfaceTextureRenderer);
         }
     }
+
 }
