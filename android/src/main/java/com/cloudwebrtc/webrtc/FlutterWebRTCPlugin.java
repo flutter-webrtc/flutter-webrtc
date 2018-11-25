@@ -16,6 +16,8 @@ import com.cloudwebrtc.webrtc.utils.ObjectType;
 import java.util.*;
 
 import org.webrtc.AudioTrack;
+import org.webrtc.DefaultVideoDecoderFactory;
+import org.webrtc.DefaultVideoEncoderFactory;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
@@ -93,7 +95,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         PeerConnectionFactory.initialize(
                 PeerConnectionFactory.InitializationOptions.builder(registrar.context())
-                        .setEnableInternalTracer(false)
+                        .setEnableInternalTracer(true)
                         .createInitializationOptions());
 
         final AudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(registrar.context())
@@ -102,10 +104,12 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 .createAudioDeviceModule();
 
         // Initialize EGL contexts required for HW acceleration.
-        EglUtils.getRootEglBaseContext();
+        EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
 
         mFactory = PeerConnectionFactory.builder()
                 .setOptions(new PeerConnectionFactory.Options())
+                .setVideoEncoderFactory(new DefaultVideoEncoderFactory(eglContext, true, true))
+                .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
                 .setAudioDeviceModule(audioDeviceModule)
                 .createPeerConnectionFactory();
 
