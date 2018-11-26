@@ -39,9 +39,6 @@ public class PermissionUtils {
             FlutterWebRTCPlugin plugin,
             String[] permissions,
             ResultReceiver resultReceiver) {
-        // No need to ask for permission on pre-Marshmallow
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-            return;
         // Ask the Context whether we have already been granted the requested
         // permissions.
         int size = permissions.length;
@@ -49,8 +46,12 @@ public class PermissionUtils {
         boolean permissionsGranted = true;
 
         for (int i = 0; i < size; ++i) {
-            int grantResult
-                = plugin.getContext().checkSelfPermission(permissions[i]);
+            int grantResult;
+            // No need to ask for permission on pre-Marshmallow
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+                grantResult = PackageManager.PERMISSION_GRANTED;
+            else
+                grantResult = plugin.getContext().checkSelfPermission(permissions[i]);
 
             grantResults[i] = grantResult;
             if (grantResult != PackageManager.PERMISSION_GRANTED) {
@@ -155,9 +156,6 @@ public class PermissionUtils {
             this.plugin = plugin;
         }
         private void checkSelfPermissions(boolean requestPermissions) {
-            // No need to ask for permission on pre-Marshmallow
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-                return;
             // Figure out which of the requested permissions are actually denied
             // because we do not want to ask about the granted permissions
             // (which Android supports).
@@ -170,7 +168,12 @@ public class PermissionUtils {
 
             for (int i = 0; i < size; ++i) {
                 String permission = permissions[i];
-                int grantResult = activity.checkSelfPermission(permission);
+                int grantResult;
+                // No need to ask for permission on pre-Marshmallow
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+                    grantResult = PackageManager.PERMISSION_GRANTED;
+                else
+                    grantResult = activity.checkSelfPermission(permission);
 
                 grantResults[i] = grantResult;
                 if (grantResult != PackageManager.PERMISSION_GRANTED) {
