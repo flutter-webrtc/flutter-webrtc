@@ -21,6 +21,7 @@ import org.webrtc.ThreadUtils;
 import org.webrtc.VideoFrame;
 import org.webrtc.VideoFrameDrawer;
 import org.webrtc.VideoSink;
+import org.webrtc.YuvHelper;
 
 import java.nio.ByteBuffer;
 
@@ -121,7 +122,7 @@ public class SurfaceTextureRenderer implements VideoSink {
       }
       // Allocate copy buffer if necessary.
       if (copyCapacityNeeded > 0
-          && (copyBuffer == null || copyBuffer.capacity() < copyCapacityNeeded)) {
+              && (copyBuffer == null || copyBuffer.capacity() < copyCapacityNeeded)) {
         copyBuffer = ByteBuffer.allocateDirect(copyCapacityNeeded);
       }
       // Make sure YUV textures are allocated.
@@ -141,11 +142,12 @@ public class SurfaceTextureRenderer implements VideoSink {
           // Input is packed already.
           packedByteBuffer = planes[i];
         } else {
-          Log.e(TAG, "Unpacked YUV buffer found");
-          throw new RuntimeException();
+          YuvHelper.copyPlane(
+                  planes[i], strides[i], copyBuffer, planeWidths[i], planeWidths[i], planeHeights[i]);
+          packedByteBuffer = copyBuffer;
         }
         GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_LUMINANCE, planeWidths[i],
-            planeHeights[i], 0, GLES20.GL_LUMINANCE, GLES20.GL_UNSIGNED_BYTE, packedByteBuffer);
+                planeHeights[i], 0, GLES20.GL_LUMINANCE, GLES20.GL_UNSIGNED_BYTE, packedByteBuffer);
       }
       return yuvTextures;
     }
