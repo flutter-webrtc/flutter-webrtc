@@ -259,7 +259,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     if (videoDevice) {
         RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
         // FIXME: Video capturer shouldn't be local to be able to stop
-        RTCCameraVideoCapturer *capt = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
+        self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
         AVCaptureDeviceFormat *selectedFormat = nil;
         int currentDiff = INT_MAX;
         // TODO: use values from constraints map
@@ -272,7 +272,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             if (diff < currentDiff) {
                 selectedFormat = format;
                 currentDiff = diff;
-            } else if (diff == currentDiff && pixelFormat == [capt preferredOutputPixelFormat]) {
+            } else if (diff == currentDiff && pixelFormat == [self.videoCapturer preferredOutputPixelFormat]) {
                 selectedFormat = format;
             }
         }
@@ -280,7 +280,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             NSLog(@"Capture format is nil. Fallback");
             selectedFormat = [RTCCameraVideoCapturer supportedFormatsForDevice:videoDevice].firstObject;
         }
-        [capt startCaptureWithDevice:videoDevice format:selectedFormat fps:30 completionHandler:^(NSError *error) {
+        [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:30 completionHandler:^(NSError *error) {
             if (error) {
                 NSLog(@"Start capture error: %@", [error localizedDescription]);
             }
