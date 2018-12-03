@@ -257,7 +257,11 @@
             for (RTCVideoTrack *track in stream.videoTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-                //TODO(rostopira)
+                RTCVideoSource *source = videoTrack.source;
+                if(source){
+                    [self.videoCapturer stopCapture];
+                    self.videoCapturer = nil;
+                }
             }
             for (RTCAudioTrack *track in stream.audioTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
