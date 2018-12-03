@@ -3,7 +3,10 @@
 #import <AVFoundation/AVFoundation.h>
 #import <CoreGraphics/CGImage.h>
 #import <WebRTC/WebRTC.h>
+#import <WebRTC/RTCYUVPlanarBuffer.h>
+
 #import <objc/runtime.h>
+#include "libyuv.h"
 
 #import "FlutterWebRTCPlugin.h"
 
@@ -71,15 +74,99 @@
     }
 }
 
+
+-(id<RTCI420Buffer>) correctRotation:(const id<RTCI420Buffer>) src
+                                withRotation:(RTCVideoRotation) rotation
+{
+    
+    int rotated_width = src.width;
+    int rotated_height = src.height;
+
+    if (rotation ==  RTCVideoRotation_90 ||
+        rotation == RTCVideoRotation_270) {
+        int temp = rotated_width;
+        rotated_width = rotated_height;
+        rotated_height = temp;
+    }
+    
+    id<RTCI420Buffer> buffer = [[RTCI420Buffer alloc] initWithWidth:rotated_width height:rotated_height];
+    
+    I420Rotate(src.dataY, src.strideY,
+               src.dataU, src.strideU,
+               src.dataV, src.strideV,
+               (uint8_t*)buffer.dataY, buffer.strideY,
+               (uint8_t*)buffer.dataU,buffer.strideU,
+               (uint8_t*)buffer.dataV, buffer.strideV,
+               src.width, src.height,
+               (RotationModeEnum)rotation);
+    
+    return buffer;
+}
+
+-(void)copyI420ToCVPixelBuffer:(CVPixelBufferRef)outputPixelBuffer withFrame:(RTCVideoFrame *) frame
+{
+    id<RTCI420Buffer> i420Buffer = [self correctRotation:[frame.buffer toI420] withRotation:frame.rotation];
+    CVPixelBufferLockBaseAddress(outputPixelBuffer, 0);
+
+    const OSType pixelFormat = CVPixelBufferGetPixelFormatType(outputPixelBuffer);
+    if (pixelFormat == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange ||
+        pixelFormat == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+        // NV12
+        uint8_t* dstY = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 0);
+        const size_t dstYStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 0);
+        uint8_t* dstUV = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 1);
+        const size_t dstUVStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 1);
+        
+        I420ToNV12(i420Buffer.dataY,
+                           i420Buffer.strideY,
+                           i420Buffer.dataU,
+                           i420Buffer.strideU,
+                           i420Buffer.dataV,
+                           i420Buffer.strideV,
+                           dstY,
+                           (int)dstYStride,
+                           dstUV,
+                           (int)dstUVStride,
+                           i420Buffer.width,
+                           i420Buffer.height);
+    } else {
+        uint8_t* dst = CVPixelBufferGetBaseAddress(outputPixelBuffer);
+        const size_t bytesPerRow = CVPixelBufferGetBytesPerRow(outputPixelBuffer);
+        
+        if (pixelFormat == kCVPixelFormatType_32BGRA) {
+            // Corresponds to libyuv::FOURCC_ARGB
+            I420ToARGB(i420Buffer.dataY,
+                               i420Buffer.strideY,
+                               i420Buffer.dataU,
+                               i420Buffer.strideU,
+                               i420Buffer.dataV,
+                               i420Buffer.strideV,
+                               dst,
+                               (int)bytesPerRow,
+                               i420Buffer.width,
+                               i420Buffer.height);
+        } else if (pixelFormat == kCVPixelFormatType_32ARGB) {
+            // Corresponds to libyuv::FOURCC_BGRA
+            I420ToBGRA(i420Buffer.dataY,
+                               i420Buffer.strideY,
+                               i420Buffer.dataU,
+                               i420Buffer.strideU,
+                               i420Buffer.dataV,
+                               i420Buffer.strideV,
+                               dst,
+                               (int)bytesPerRow,
+                               i420Buffer.width,
+                               i420Buffer.height);
+        }
+    }
+    
+    CVPixelBufferUnlockBaseAddress(outputPixelBuffer, 0);
+}
+
 #pragma mark - RTCVideoRenderer methods
 - (void)renderFrame:(RTCVideoFrame *)frame {
-    
-    //TODO: got a frame => scale to _renderSize => convert to BGRA32 pixelBufferRef
-    RTCI420Buffer *buffer = [[frame buffer] toI420];
-    buffer.dataY;
-    buffer.dataU;
-    buffer.dataV;
-    //TODO: copy it somehow, I dunno what to do with this data
+
+    [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
     
     __weak FlutterRTCVideoRenderer *weakSelf = self;
     

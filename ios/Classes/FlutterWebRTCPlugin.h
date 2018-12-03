@@ -6,6 +6,7 @@
 #import <WebRTC/RTCDataChannel.h>
 #import <WebRTC/RTCDataChannelConfiguration.h>
 #import <WebRTC/RTCMediaStreamTrack.h>
+#import <WebRTC/RTCCameraVideoCapturer.h>
 
 @class FlutterRTCVideoRenderer;
 
@@ -18,6 +19,7 @@
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, FlutterRTCVideoRenderer *> *renders;
 @property (nonatomic, retain) UIViewController *viewController;/*for broadcast or ReplayKit */
 @property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
+@property (nonatomic, strong) RTCCameraVideoCapturer *videoCapturer;
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId;
 
