@@ -340,7 +340,7 @@
         RTCMediaStreamTrack *track = self.localTracks[trackId];
         if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
             RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-            //TODO(rostopira)
+            [self mediaStreamTrackSwitchCamera:videoTrack];
         } else {
             if (track == nil) {
                 NSLog(@"Track is nil");
