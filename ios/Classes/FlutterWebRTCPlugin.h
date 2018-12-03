@@ -21,6 +21,9 @@
 @property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
 @property (nonatomic, strong) RTCCameraVideoCapturer *videoCapturer;
 @property (nonatomic) BOOL _usingFrontCamera;
+@property (nonatomic) int _targetWidth;
+@property (nonatomic) int _targetHeight;
+@property (nonatomic) int _targetFps;
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId;
 
