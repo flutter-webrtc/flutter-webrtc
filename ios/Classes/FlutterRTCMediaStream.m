@@ -233,8 +233,10 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             if (facingMode && [facingMode isKindOfClass:[NSString class]]) {
                 AVCaptureDevicePosition position;
                 if ([facingMode isEqualToString:@"environment"]) {
+                    self._usingFrontCamera = NO;
                     position = AVCaptureDevicePositionBack;
                 } else if ([facingMode isEqualToString:@"user"]) {
+                    self._usingFrontCamera = YES;
                     position = AVCaptureDevicePositionFront;
                 } else {
                     // If the specified facingMode value is not supported, fall back to
@@ -433,9 +435,26 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 -(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track
 {
-  if (track) {
-    //TODO(rostopira): I will handle it, if will work at least
+  if (!self.videoCapturer) {
+    NSLog(@"Video capturer is null. Can't switch camera");
+    return;
   }
+  self._usingFrontCamera = !self._usingFrontCamera;
+  AVCaptureDevicePosition position = self._usingFrontCamera ? AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
+  AVCaptureDevice *videoDevice;
+  if (AVCaptureDevicePositionUnspecified != position) {
+    for (AVCaptureDevice *aVideoDevice in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
+      if (aVideoDevice.position == position) {
+        videoDevice = aVideoDevice;
+        break;
+      }
+    }
+  }
+  if (!videoDevice) {
+    videoDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+  }
+  AVCaptureDeviceFormat *selectedFormat = [RTCCameraVideoCapturer supportedFormatsForDevice:videoDevice].firstObject;
+  [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:30];
 }
 
 -(void)mediaStreamTrackStop:(RTCMediaStreamTrack *)track
