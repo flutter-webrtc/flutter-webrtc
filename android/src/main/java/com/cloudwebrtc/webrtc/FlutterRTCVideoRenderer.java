@@ -12,7 +12,6 @@ import java.util.List;
 import org.webrtc.EglBase;
 import org.webrtc.MediaStream;
 import org.webrtc.RendererCommon.RendererEvents;
-import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoTrack;
 
 import io.flutter.plugin.common.EventChannel;
@@ -21,7 +20,6 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
 
     private static final String TAG = FlutterWebRTCPlugin.TAG;
     private final SurfaceTexture texture;
-    private final Context context;
     private int id = -1;
 
     public void Dispose(){
@@ -98,12 +96,12 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
     EventChannel eventChannel;
     EventChannel.EventSink eventSink;
 
-    public FlutterRTCVideoRenderer(SurfaceTexture texture, Context context) {
-        this.surfaceTextureRenderer = new SurfaceTextureRenderer(context, texture);
-        SurfaceViewRenderer svr = new SurfaceViewRenderer(context);
+    public FlutterRTCVideoRenderer(SurfaceTexture texture) {
+        this.surfaceTextureRenderer = new SurfaceTextureRenderer("");
+        surfaceTextureRenderer.init(EglUtils.getRootEglBaseContext(), rendererEvents);
+        surfaceTextureRenderer.surfaceCreated(texture);
 
         this.texture = texture;
-        this.context = context;
         this.eventSink = null;
     }
 
@@ -195,8 +193,8 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             }
 
             surfaceTextureRenderer.release();
-            surfaceTextureRenderer = new SurfaceTextureRenderer(context, texture);
             surfaceTextureRenderer.init(sharedContext, rendererEvents);
+            surfaceTextureRenderer.surfaceCreated(texture);
 
             videoTrack.addSink(surfaceTextureRenderer);
         }
