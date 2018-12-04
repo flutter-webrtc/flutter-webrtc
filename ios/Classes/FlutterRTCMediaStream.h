@@ -7,6 +7,8 @@
              result:(FlutterResult)result;
 
 -(void)getSources:(FlutterResult)result;
+
+-(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track;
 @end
 
 
