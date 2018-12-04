@@ -15,6 +15,8 @@ import com.cloudwebrtc.webrtc.utils.ObjectType;
 import java.util.*;
 
 import org.webrtc.AudioTrack;
+import org.webrtc.DefaultVideoDecoderFactory;
+import org.webrtc.DefaultVideoEncoderFactory;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
@@ -26,6 +28,8 @@ import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.VideoTrack;
+import org.webrtc.audio.AudioDeviceModule;
+import org.webrtc.audio.JavaAudioDeviceModule;
 
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
@@ -90,16 +94,24 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         PeerConnectionFactory.initialize(
                 PeerConnectionFactory.InitializationOptions.builder(registrar.context())
-                        .setEnableInternalTracer(false)
-                        .setEnableVideoHwAcceleration(true)
+                        .setEnableInternalTracer(true)
                         .createInitializationOptions());
 
-        mFactory = new PeerConnectionFactory(null);
+        final AudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(registrar.context())
+                .setUseHardwareAcousticEchoCanceler(true)
+                .setUseHardwareNoiseSuppressor(true)
+                .createAudioDeviceModule();
+
         // Initialize EGL contexts required for HW acceleration.
         EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
-        if (eglContext != null) {
-            mFactory.setVideoHwAccelerationOptions(eglContext, eglContext);
-        }
+
+        mFactory = PeerConnectionFactory.builder()
+                .setOptions(new PeerConnectionFactory.Options())
+                .setVideoEncoderFactory(new DefaultVideoEncoderFactory(eglContext, true, true))
+                .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
+                .setAudioDeviceModule(audioDeviceModule)
+                .createPeerConnectionFactory();
+
         getUserMediaImpl = new GetUserMediaImpl(this, registrar.context());
     }
 
@@ -219,7 +231,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else if (call.method.equals("createVideoRenderer")) {
             TextureRegistry.SurfaceTextureEntry entry = textures.createSurfaceTexture();
             SurfaceTexture surfaceTexture = entry.surfaceTexture();
-            FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, getContext());
+            FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture);
             renders.put(entry.id(), render);
 
             EventChannel eventChannel =
@@ -1042,4 +1054,5 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             pco.dataChannelClose(dataChannelId);
         }
     }
+
 }
