@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.graphics.SurfaceTexture;
-import android.os.Process;
 import android.util.Log;
 import android.util.LongSparseArray;
 
@@ -232,7 +231,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else if (call.method.equals("createVideoRenderer")) {
             TextureRegistry.SurfaceTextureEntry entry = textures.createSurfaceTexture();
             SurfaceTexture surfaceTexture = entry.surfaceTexture();
-            FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, getContext());
+            FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture);
             renders.put(entry.id(), render);
 
             EventChannel eventChannel =
