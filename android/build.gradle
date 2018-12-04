@@ -25,7 +25,7 @@ android {
     compileSdkVersion 28
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 17
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -40,6 +40,6 @@ android {
 }
 
 dependencies {
-    api 'org.webrtc:google-webrtc:1.0.25331'
+    api 'org.webrtc:google-webrtc:1.0.25821'
     implementation "com.android.support:support-annotations:22.0.0"
 }
