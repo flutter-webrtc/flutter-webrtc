@@ -1,12 +1,6 @@
 #import <objc/runtime.h>
 
-#import <WebRTC/RTCAVFoundationVideoSource.h>
-#import <WebRTC/RTCAudioTrack.h>
-#import <WebRTC/RTCVideoTrack.h>
-#import <WebRTC/RTCMediaConstraints.h>
-#import <WebRTC/RTCMediaStream.h>
-#import <WebRTC/RTCMediaStreamTrack.h>
-#import <WebRTC/RTCPeerConnectionFactory.h>
+#import <WebRTC/WebRTC.h>
 
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
@@ -239,22 +233,18 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             if (facingMode && [facingMode isKindOfClass:[NSString class]]) {
                 AVCaptureDevicePosition position;
                 if ([facingMode isEqualToString:@"environment"]) {
+                    self._usingFrontCamera = NO;
                     position = AVCaptureDevicePositionBack;
                 } else if ([facingMode isEqualToString:@"user"]) {
+                    self._usingFrontCamera = YES;
                     position = AVCaptureDevicePositionFront;
                 } else {
                     // If the specified facingMode value is not supported, fall back to
                     // the default video device.
+                    self._usingFrontCamera = NO;
                     position = AVCaptureDevicePositionUnspecified;
                 }
-                if (AVCaptureDevicePositionUnspecified != position) {
-                    for (AVCaptureDevice *aVideoDevice in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
-                        if (aVideoDevice.position == position) {
-                            videoDevice = aVideoDevice;
-                            break;
-                        }
-                    }
-                }
+                videoDevice = [self findDeviceForPosition:position];
             }
         }
         if (!videoDevice) {
@@ -262,23 +252,42 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
         }
     }
     
-    if (videoDevice) {
-        RTCMediaConstraints* finalConstraints = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:videoConstraints[@"mandatory"] optionalConstraints:nil];
-        RTCAVFoundationVideoSource *videoSource = [self.peerConnectionFactory avFoundationVideoSourceWithConstraints:finalConstraints];
-        // FIXME The effort above to find a videoDevice value which satisfies the
-        // specified constraints was pretty much wasted. Salvage facingMode for
-        // starters because it is kind of a common and hence important feature on
-        // a mobile device.
-        switch (videoDevice.position) {
-            case AVCaptureDevicePositionBack:
-                if (videoSource.canUseBackCamera) {
-                    videoSource.useBackCamera = YES;
-                }
-                break;
-            case AVCaptureDevicePositionFront:
-                videoSource.useBackCamera = NO;
-                break;
+    //TODO(rostopira): refactor to separate function and add support for max
+    self._targetWidth = 1280;
+    self._targetHeight = 720;
+    self._targetFps = 30;
+    id widthConstraint = videoConstraints[kRTCMediaConstraintsMinWidth];
+    if ([widthConstraint isKindOfClass:[NSString class]]) {
+        int possibleWidth = [widthConstraint intValue];
+        if (possibleWidth != 0) {
+            self._targetWidth = possibleWidth;
         }
+    }
+    id heightConstraint = videoConstraints[kRTCMediaConstraintsMinHeight];
+    if ([heightConstraint isKindOfClass:[NSString class]]) {
+        int possibleHeight = [heightConstraint intValue];
+        if (possibleHeight != 0) {
+            self._targetHeight = possibleHeight;
+        }
+    }
+    id fpsConstraint = videoConstraints[kRTCMediaConstraintsMinFrameRate];
+    if ([fpsConstraint isKindOfClass:[NSString class]]) {
+        int possibleFps = [fpsConstraint intValue];
+        if (possibleFps != 0) {
+            self._targetFps = possibleFps;
+        }
+    }
+    
+    if (videoDevice) {
+        RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+        self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
+        AVCaptureDeviceFormat *selectedFormat = [self selectFormatForDevice:videoDevice];
+        NSInteger selectedFps = [self selectFpsForFormat:selectedFormat];
+        [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:selectedFps completionHandler:^(NSError *error) {
+            if (error) {
+                NSLog(@"Start capture error: %@", [error localizedDescription]);
+            }
+        }];
         
         NSString *trackUUID = [[NSUUID UUID] UUIDString];
         RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
@@ -427,22 +436,63 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 -(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track
 {
-  if (track) {
-    RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-    RTCVideoSource *source = videoTrack.source;
-    if ([source isKindOfClass:[RTCAVFoundationVideoSource class]]) {
-      RTCAVFoundationVideoSource *avSource = (RTCAVFoundationVideoSource *)source;
-      avSource.useBackCamera = !avSource.useBackCamera;
+    if (!self.videoCapturer) {
+        NSLog(@"Video capturer is null. Can't switch camera");
+        return;
     }
-  }
+    self._usingFrontCamera = !self._usingFrontCamera;
+    AVCaptureDevicePosition position = self._usingFrontCamera ? AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
+    AVCaptureDevice *videoDevice = [self findDeviceForPosition:position];
+    AVCaptureDeviceFormat *selectedFormat = [self selectFormatForDevice:videoDevice];
+    [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:[self selectFpsForFormat:selectedFormat]];
 }
 
 -(void)mediaStreamTrackStop:(RTCMediaStreamTrack *)track
 {
-  if (track) {
-    track.isEnabled = NO;
-    [self.localTracks removeObjectForKey:track.trackId];
-  }
+    if (track) {
+        track.isEnabled = NO;
+        [self.localTracks removeObjectForKey:track.trackId];
+    }
+}
+
+- (AVCaptureDevice *)findDeviceForPosition:(AVCaptureDevicePosition)position {
+    if (position == AVCaptureDevicePositionUnspecified) {
+        return [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    }
+    NSArray<AVCaptureDevice *> *captureDevices = [RTCCameraVideoCapturer captureDevices];
+    for (AVCaptureDevice *device in captureDevices) {
+        if (device.position == position) {
+            return device;
+        }
+    }
+    return captureDevices[0];
+}
+
+- (AVCaptureDeviceFormat *)selectFormatForDevice:(AVCaptureDevice *)device {
+    NSArray<AVCaptureDeviceFormat *> *formats =
+    [RTCCameraVideoCapturer supportedFormatsForDevice:device];
+    AVCaptureDeviceFormat *selectedFormat = nil;
+    int currentDiff = INT_MAX;
+    for (AVCaptureDeviceFormat *format in formats) {
+        CMVideoDimensions dimension = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
+        FourCharCode pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription);
+        int diff = abs(self._targetWidth - dimension.width) + abs(self._targetHeight - dimension.height);
+        if (diff < currentDiff) {
+            selectedFormat = format;
+            currentDiff = diff;
+        } else if (diff == currentDiff && pixelFormat == [self.videoCapturer preferredOutputPixelFormat]) {
+            selectedFormat = format;
+        }
+    }
+    return selectedFormat;
+}
+
+- (NSInteger)selectFpsForFormat:(AVCaptureDeviceFormat *)format {
+    Float64 maxSupportedFramerate = 0;
+    for (AVFrameRateRange *fpsRange in format.videoSupportedFrameRateRanges) {
+        maxSupportedFramerate = fmax(maxSupportedFramerate, fpsRange.maxFrameRate);
+    }
+    return fmin(maxSupportedFramerate, self._targetFps);
 }
 
 @end

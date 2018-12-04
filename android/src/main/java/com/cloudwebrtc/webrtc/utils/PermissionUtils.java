@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
-import android.support.v4.content.ContextCompat;
 
 import com.cloudwebrtc.webrtc.FlutterWebRTCPlugin;
 
@@ -47,10 +46,12 @@ public class PermissionUtils {
         boolean permissionsGranted = true;
 
         for (int i = 0; i < size; ++i) {
-            int grantResult
-                = ContextCompat.checkSelfPermission(
-                    plugin.getContext(),
-                    permissions[i]);
+            int grantResult;
+            // No need to ask for permission on pre-Marshmallow
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+                grantResult = PackageManager.PERMISSION_GRANTED;
+            else
+                grantResult = plugin.getContext().checkSelfPermission(permissions[i]);
 
             grantResults[i] = grantResult;
             if (grantResult != PackageManager.PERMISSION_GRANTED) {
@@ -167,7 +168,12 @@ public class PermissionUtils {
 
             for (int i = 0; i < size; ++i) {
                 String permission = permissions[i];
-                int grantResult = activity.checkSelfPermission(permission);
+                int grantResult;
+                // No need to ask for permission on pre-Marshmallow
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+                    grantResult = PackageManager.PERMISSION_GRANTED;
+                else
+                    grantResult = activity.checkSelfPermission(permission);
 
                 grantResults[i] = grantResult;
                 if (grantResult != PackageManager.PERMISSION_GRANTED) {
