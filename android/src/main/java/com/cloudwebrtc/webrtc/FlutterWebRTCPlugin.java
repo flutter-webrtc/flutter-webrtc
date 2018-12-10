@@ -740,14 +740,14 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     public void mediaStreamTrackSetVolume(final String id, final double volume) {
         MediaStreamTrack track = localTracks.get(id);
         if (track != null && track instanceof AudioTrack) {
-            Log.i(TAG, "setVolume: " + id + "," + volume);
+            Log.d(TAG, "setVolume(): " + id + "," + volume);
             try {
                 ((AudioTrack)track).setVolume(volume);
             } catch (Exception e) {
-                Log.w(TAG, "setVolume: error");
+                Log.e(TAG, "setVolume(): error", e);
             }
         } else {
-            Log.w(TAG, "setVolume: track not found: " + id);
+            Log.w(TAG, "setVolume(): track not found: " + id);
         }
     }
 
