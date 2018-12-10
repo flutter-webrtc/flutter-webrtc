@@ -93,10 +93,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
          NSMutableArray *videoTracks = [NSMutableArray array];
          
          for (RTCAudioTrack *track in mediaStream.audioTracks) {
+             self.localTracks[track.trackId] = track;
              [audioTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
          }
          
          for (RTCVideoTrack *track in mediaStream.videoTracks) {
+             self.localTracks[track.trackId] = track;
              [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
          }
 
