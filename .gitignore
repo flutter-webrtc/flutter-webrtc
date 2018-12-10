@@ -1,6 +1,15 @@
+*.iml
+.idea
 .DS_Store
 .packages
 .vscode/.DS_Store
 example/pubspec.lock
 pubspec.lock
 example/ios/Podfile.lock
+build
+GeneratedPluginRegistrant.java
+example/android/.gradle
+example/android/gradle*
+WorkspaceSettings.xcsettings
+example/.flutter-plugins
+example/android/local.properties

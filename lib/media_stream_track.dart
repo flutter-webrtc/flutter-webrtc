@@ -28,6 +28,13 @@ class MediaStreamTrack {
     );
   }
 
+  void setVolume(double volume) async {
+    await _channel.invokeMethod(
+      'setVolume',
+      <String, dynamic>{'trackId': _trackId, 'volume': volume},
+    );
+  }
+
   void dispose() async {
     await _channel.invokeMethod(
       'trackDispose',
