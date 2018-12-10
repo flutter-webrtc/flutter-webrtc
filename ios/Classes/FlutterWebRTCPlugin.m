@@ -349,6 +349,17 @@
             }
         }
         result(nil);
+    }else if ([@"setVolume" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* trackId = argsMap[@"trackId"];
+        NSNumber* volume = argsMap[@"volume"];
+        RTCMediaStreamTrack *track = self.localTracks[trackId];
+        if (track != nil && [track isKindOfClass:[RTCAudioTrack class]]) {
+            RTCAudioTrack *audioTrack = (RTCAudioTrack *)track;
+            RTCAudioSource *audioSource = audioTrack.source;
+            audioSource.volume = [volume doubleValue];
+        }
+        result(nil);
     }else{
         result(FlutterMethodNotImplemented);
     }
