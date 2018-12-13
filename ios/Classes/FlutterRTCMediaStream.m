@@ -253,28 +253,35 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     }
     
     //TODO(rostopira): refactor to separate function and add support for max
+
     self._targetWidth = 1280;
     self._targetHeight = 720;
     self._targetFps = 30;
-    id widthConstraint = videoConstraints[kRTCMediaConstraintsMinWidth];
-    if ([widthConstraint isKindOfClass:[NSString class]]) {
-        int possibleWidth = [widthConstraint intValue];
-        if (possibleWidth != 0) {
-            self._targetWidth = possibleWidth;
+    
+    id mandatory = videoConstraints[@"mandatory"];
+    // constraints.video.mandatory
+    if(mandatory && [mandatory isKindOfClass:[NSDictionary class]])
+    {
+        id widthConstraint = mandatory[kRTCMediaConstraintsMinWidth];
+        if ([widthConstraint isKindOfClass:[NSString class]]) {
+            int possibleWidth = [widthConstraint intValue];
+            if (possibleWidth != 0) {
+                self._targetWidth = possibleWidth;
+            }
         }
-    }
-    id heightConstraint = videoConstraints[kRTCMediaConstraintsMinHeight];
-    if ([heightConstraint isKindOfClass:[NSString class]]) {
-        int possibleHeight = [heightConstraint intValue];
-        if (possibleHeight != 0) {
-            self._targetHeight = possibleHeight;
+        id heightConstraint = mandatory[kRTCMediaConstraintsMinHeight];
+        if ([heightConstraint isKindOfClass:[NSString class]]) {
+            int possibleHeight = [heightConstraint intValue];
+            if (possibleHeight != 0) {
+                self._targetHeight = possibleHeight;
+            }
         }
-    }
-    id fpsConstraint = videoConstraints[kRTCMediaConstraintsMinFrameRate];
-    if ([fpsConstraint isKindOfClass:[NSString class]]) {
-        int possibleFps = [fpsConstraint intValue];
-        if (possibleFps != 0) {
-            self._targetFps = possibleFps;
+        id fpsConstraint = mandatory[kRTCMediaConstraintsMinFrameRate];
+        if ([fpsConstraint isKindOfClass:[NSString class]]) {
+            int possibleFps = [fpsConstraint intValue];
+            if (possibleFps != 0) {
+                self._targetFps = possibleFps;
+            }
         }
     }
     
