@@ -1,6 +1,6 @@
 name: flutter_webrtc
 description: Flutter WebRTC plugin for iOS/Android.
-version: 0.0.2
+version: 0.0.3
 author: cloudwebrtc <duanweiwei1982@gmail.com>
 homepage: https://github.com/cloudwebrtc/flutter-webrtc
 
@@ -19,7 +19,6 @@ flutter:
 
 environment:
   sdk: ">=2.0.0-dev.35.0 <3.0.0"
-  flutter: ">=0.2.3 <2.0.0"
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
