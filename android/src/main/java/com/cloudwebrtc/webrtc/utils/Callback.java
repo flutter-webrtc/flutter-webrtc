@@ -2,5 +2,5 @@ package com.cloudwebrtc.webrtc.utils;
 
 public interface Callback {
 
-    public void invoke(Object... args);
+    void invoke(Object... args);
 }

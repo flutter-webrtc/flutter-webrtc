@@ -35,7 +35,7 @@ class MediaStreamTrack {
     );
   }
 
-  void dispose() async {
+  Future<void> dispose() async {
     await _channel.invokeMethod(
       'trackDispose',
       <String, dynamic>{'trackId': _trackId},

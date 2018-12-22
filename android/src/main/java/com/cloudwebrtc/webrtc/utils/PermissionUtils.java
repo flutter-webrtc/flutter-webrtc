@@ -188,7 +188,7 @@ public class PermissionUtils {
                 // the user about the denied ones.
                 finish();
                 send(
-                    (ResultReceiver) args.getParcelable(RESULT_RECEIVER),
+                        args.getParcelable(RESULT_RECEIVER),
                     requestCode,
                     permissions,
                     grantResults);
