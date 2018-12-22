@@ -93,6 +93,10 @@
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getUserMedia:constraints result:result];
+    } else if ([@"getDisplayMedia" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSDictionary* constraints = argsMap[@"constraints"];
+        [self getDisplayMedia:constraints result:result];
     } else if ([@"getSources" isEqualToString:call.method]) {
         [self getSources:result];
     }else if ([@"mediaStreamGetTracks" isEqualToString:call.method]) {
