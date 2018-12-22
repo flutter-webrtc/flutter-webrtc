@@ -274,7 +274,11 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             double volume = call.argument("volume");
             mediaStreamTrackSetVolume(trackId, volume);
             result.success(null);
-        } else {
+        } else if(call.method.equals("getDisplayMedia")) {
+            Map<String, Object> constraints = call.argument("constraints");
+            ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
+            getDisplayMedia(constraintsMap, result);
+        }else {
             result.notImplemented();
         }
     }
@@ -680,6 +684,24 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
 
         getUserMediaImpl.getUserMedia(constraints, result, mediaStream);
+    }
+
+    public void getDisplayMedia(ConstraintsMap constraints, Result result) {
+        String streamId = getNextStreamUUID();
+        MediaStream mediaStream = mFactory.createLocalMediaStream(streamId);
+
+        if (mediaStream == null) {
+            // XXX The following does not follow the getUserMedia() algorithm
+            // specified by
+            // https://www.w3.org/TR/mediacapture-streams/#dom-mediadevices-getusermedia
+            // with respect to distinguishing the various causes of failure.
+            result.error(
+                    /* type */ "getDisplayMedia",
+                    "Failed to create new media stream", null);
+            return;
+        }
+
+        getUserMediaImpl.getDisplayMedia(constraints, result, mediaStream);
     }
 
     public void getSources(Result result) {

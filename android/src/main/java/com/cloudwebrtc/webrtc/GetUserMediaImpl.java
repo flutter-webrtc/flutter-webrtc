@@ -96,7 +96,7 @@ class GetUserMediaImpl{
             if(resultCode != Activity.RESULT_OK) {
                 Activity activity = this.getActivity();
                 Bundle args = getArguments();
-                resultReceiver = (ResultReceiver) args.getParcelable(RESULT_RECEIVER);
+                resultReceiver = args.getParcelable(RESULT_RECEIVER);
                 requestCode = args.getInt(REQUEST_CODE);
                 requestStart(activity, requestCode);
             }
@@ -151,7 +151,6 @@ class GetUserMediaImpl{
         @Override
         public void onResume() {
             super.onResume();
-
             checkSelfPermissions(/* requestPermissions */ true);
         }
     }
@@ -326,122 +325,7 @@ class GetUserMediaImpl{
             }
         }
 
-        boolean requestScreenCapturer = videoConstraintsMandatory != null &&
-                videoConstraintsMandatory.hasKey("chromeMediaSource") &&
-                videoConstraintsMandatory.getString("chromeMediaSource").equals("desktop");
-
         final ArrayList<String> requestPermissions = new ArrayList<>();
-
-        if(requestScreenCapturer)
-        {
-            final  ConstraintsMap videoConstraintsMandatory2 =  videoConstraintsMandatory;
-            screenRequestPremissions(new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                @Override
-                protected void onReceiveResult(
-                        int requestCode,
-                        Bundle resultData) {
-
-                    /*Create ScreenCapture*/
-                    int resultCode = resultData.getInt(GRANT_RESULTS);
-                    Intent mediaProjectionData = resultData.getParcelable(PROJECTION_DATA);
-
-                    if (resultCode != Activity.RESULT_OK) {
-                        result.error( null,
-                                "User didn't give permission to capture the screen.", null);
-                        return;
-                    }
-
-                    MediaStreamTrack[] tracks = new MediaStreamTrack[1];
-                    VideoCapturer videoCapturer = null;
-                    videoCapturer = new ScreenCapturerAndroid(
-                            mediaProjectionData, new MediaProjection.Callback() {
-                        @Override
-                        public void onStop() {
-                            Log.e(TAG, "User revoked permission to capture the screen.");
-                            result.error(  null,
-                                    "User revoked permission to capture the screen.", null);
-                        }
-                    });
-
-                    if (videoCapturer != null) {
-
-                        PeerConnectionFactory pcFactory = plugin.mFactory;
-                        VideoSource videoSource = pcFactory.createVideoSource(true);
-
-                        // Fall back to defaults if keys are missing.
-                        int width
-                                = videoConstraintsMandatory2.hasKey("minWidth")
-                                ? videoConstraintsMandatory2.getInt("minWidth")
-                                : DEFAULT_WIDTH;
-                        int height
-                                = videoConstraintsMandatory2.hasKey("minHeight")
-                                ? videoConstraintsMandatory2.getInt("minHeight")
-                                : DEFAULT_HEIGHT;
-                        int fps
-                                = videoConstraintsMandatory2.hasKey("minFrameRate")
-                                ? videoConstraintsMandatory2.getInt("minFrameRate")
-                                : DEFAULT_FPS;
-
-                        videoCapturer.startCapture(width, height, fps);
-
-                        String trackId = plugin.getNextTrackUUID();
-                        mVideoCapturers.put(trackId, videoCapturer);
-
-                        Log.d(TAG, "changeCaptureFormat: " + width + "x" + height + "@" + fps);
-                        videoSource.adaptOutputFormat(width, height, fps);
-
-                        tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
-
-                        ConstraintsArray audioTracks = new ConstraintsArray();
-                        ConstraintsArray videoTracks = new ConstraintsArray();
-                        ConstraintsMap successResult = new ConstraintsMap();
-
-                        for (MediaStreamTrack track : tracks) {
-                            if (track == null) {
-                                continue;
-                            }
-
-                            String id = track.id();
-
-                            if (track instanceof AudioTrack) {
-                                mediaStream.addTrack((AudioTrack) track);
-                            } else {
-                                mediaStream.addTrack((VideoTrack) track);
-                            }
-                            plugin.localTracks.put(id, track);
-
-                            ConstraintsMap track_ = new ConstraintsMap();
-                            String kind = track.kind();
-
-                            track_.putBoolean("enabled", track.enabled());
-                            track_.putString("id", id);
-                            track_.putString("kind", kind);
-                            track_.putString("label", kind);
-                            track_.putString("readyState", track.state().toString());
-                            track_.putBoolean("remote", false);
-
-                            if (track instanceof AudioTrack) {
-                                audioTracks.pushMap(track_);
-                            } else {
-                                videoTracks.pushMap(track_);
-                            }
-                        }
-
-                        String streamId = mediaStream.getId();
-
-                        Log.d(TAG, "MediaStream id: " + streamId);
-                        plugin.localStreams.put(streamId, mediaStream);
-
-                        successResult.putString("streamId", streamId);
-                        successResult.putArray("audioTracks", audioTracks.toArrayList());
-                        successResult.putArray("videoTracks", audioTracks.toArrayList());
-                        result.success(successResult.toMap());
-                    }
-
-                }
-            });
-            return;
-        }
 
         if (constraints.hasKey("audio")) {
             switch (constraints.getType("audio")) {
@@ -458,7 +342,7 @@ class GetUserMediaImpl{
             }
         }
 
-        if (constraints.hasKey("video") && !requestScreenCapturer) {
+        if (constraints.hasKey("video")) {
             switch (constraints.getType("video")) {
             case Boolean:
                 if (constraints.getBoolean("video")) {
@@ -511,6 +395,134 @@ class GetUserMediaImpl{
                 }
             }
         );
+    }
+
+    void getDisplayMedia(
+            final ConstraintsMap constraints,
+            final Result result,
+            final MediaStream mediaStream) {
+        ConstraintsMap  videoConstraintsMap = null;
+        ConstraintsMap  videoConstraintsMandatory = null;
+
+        if (constraints.getType("video") == ObjectType.Map) {
+            videoConstraintsMap = constraints.getMap("video");
+            if (videoConstraintsMap.hasKey("mandatory")
+                    && videoConstraintsMap.getType("mandatory")
+                    == ObjectType.Map) {
+                videoConstraintsMandatory
+                        = videoConstraintsMap.getMap("mandatory");
+            }
+        }
+
+        final  ConstraintsMap videoConstraintsMandatory2 =  videoConstraintsMandatory;
+        screenRequestPremissions(new ResultReceiver(new Handler(Looper.getMainLooper())) {
+            @Override
+            protected void onReceiveResult(
+                    int requestCode,
+                    Bundle resultData) {
+
+                /* Create ScreenCapture */
+                int resultCode = resultData.getInt(GRANT_RESULTS);
+                Intent mediaProjectionData = resultData.getParcelable(PROJECTION_DATA);
+
+                if (resultCode != Activity.RESULT_OK) {
+                    result.error(null, "User didn't give permission to capture the screen.", null);
+                    return;
+                }
+
+                MediaStreamTrack[] tracks = new MediaStreamTrack[1];
+                VideoCapturer videoCapturer = null;
+                videoCapturer = new ScreenCapturerAndroid(mediaProjectionData, new MediaProjection.Callback() {
+                    @Override
+                    public void onStop() {
+                        Log.e(TAG, "User revoked permission to capture the screen.");
+                        result.error(null, "User revoked permission to capture the screen.", null);
+                    }
+                });
+                if (videoCapturer != null) {
+                    PeerConnectionFactory pcFactory = plugin.mFactory;
+                    VideoSource videoSource = pcFactory.createVideoSource(true);
+
+                    Context context = plugin.getContext();
+                    String threadName = Thread.currentThread().getName();
+                    SurfaceTextureHelper surfaceTextureHelper = SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
+                    videoCapturer.initialize(surfaceTextureHelper, context, videoSource.getCapturerObserver());
+
+
+                    // Fall back to defaults if keys are missing.
+                    int width
+                            = videoConstraintsMandatory2.hasKey("minWidth")
+                            ? videoConstraintsMandatory2.getInt("minWidth")
+                            : DEFAULT_WIDTH;
+                    int height
+                            = videoConstraintsMandatory2.hasKey("minHeight")
+                            ? videoConstraintsMandatory2.getInt("minHeight")
+                            : DEFAULT_HEIGHT;
+                    int fps
+                            = videoConstraintsMandatory2.hasKey("minFrameRate")
+                            ? videoConstraintsMandatory2.getInt("minFrameRate")
+                            : DEFAULT_FPS;
+
+                    videoCapturer.startCapture(width, height, fps);
+
+                    String trackId = plugin.getNextTrackUUID();
+                    mVideoCapturers.put(trackId, videoCapturer);
+
+                    Log.d(TAG, "changeCaptureFormat: " + width + "x" + height + "@" + fps);
+                    videoSource.adaptOutputFormat(width, height, fps);
+
+                    tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
+
+                    ConstraintsArray audioTracks = new ConstraintsArray();
+                    ConstraintsArray videoTracks = new ConstraintsArray();
+                    ConstraintsMap successResult = new ConstraintsMap();
+
+                    for (MediaStreamTrack track : tracks) {
+                        if (track == null) {
+                            continue;
+                        }
+
+                        String id = track.id();
+
+                        if (track instanceof AudioTrack) {
+                            mediaStream.addTrack((AudioTrack) track);
+                        } else {
+                            mediaStream.addTrack((VideoTrack) track);
+                        }
+                        plugin.localTracks.put(id, track);
+
+                        ConstraintsMap track_ = new ConstraintsMap();
+                        String kind = track.kind();
+
+                        track_.putBoolean("enabled", track.enabled());
+                        track_.putString("id", id);
+                        track_.putString("kind", kind);
+                        track_.putString("label", kind);
+                        track_.putString("readyState", track.state().toString());
+                        track_.putBoolean("remote", false);
+
+                        if (track instanceof AudioTrack) {
+                            audioTracks.pushMap(track_);
+                        } else {
+                            videoTracks.pushMap(track_);
+                        }
+                    }
+
+                    String streamId = mediaStream.getId();
+
+                    Log.d(TAG, "MediaStream id: " + streamId);
+                    plugin.localStreams.put(streamId, mediaStream);
+                    successResult.putString("streamId", streamId);
+                    successResult.putArray("audioTracks", audioTracks.toArrayList());
+                    successResult.putArray("videoTracks", audioTracks.toArrayList());
+                    result.success(successResult.toMap());
+                }else{
+                    result.error(
+                        /* type */ "GetDisplayMediaFailed",
+                           "Failed to create new VideoCapturer!", null);
+                }
+            }
+        });
     }
 
     /**

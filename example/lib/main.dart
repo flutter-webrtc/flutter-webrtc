@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:core';
 import 'src/loopback_sample.dart';
 import 'src/get_user_media_sample.dart';
+import 'src/get_display_media_sample.dart';
 import 'src/data_channel_sample.dart';
 import 'src/route_item.dart';
 
@@ -64,6 +65,15 @@ class _MyAppState extends State<MyApp> {
                 new MaterialPageRoute(
                     builder: (BuildContext context) =>
                         new GetUserMediaSample()));
+          }),
+      RouteItem(
+          title: 'GetDisplayMedia',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                new MaterialPageRoute(
+                    builder: (BuildContext context) =>
+                        new GetDisplayMediaSample()));
           }),
       RouteItem(
           title: 'LoopBack Sample',
