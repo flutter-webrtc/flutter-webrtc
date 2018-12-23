@@ -178,6 +178,14 @@ class _MyAppState extends State<LoopBackSample> {
 
   @override
   Widget build(BuildContext context) {
+    var widgets = <Widget>[
+                          new Expanded(
+                              child: new RTCVideoView(_localRenderer),
+                            ),
+                          new Expanded(
+                              child: new RTCVideoView(_remoteRenderer),
+                            )
+                        ];
     return
       new Scaffold(
         appBar: new AppBar(
@@ -187,35 +195,14 @@ class _MyAppState extends State<LoopBackSample> {
           builder: (context, orientation) {
             return new Center(
               child: new Container(
-                decoration: new BoxDecoration(color: Colors.white),
-                child: new Stack(
-                  children: <Widget>[
-                    new Align(
-                      alignment: orientation == Orientation.portrait
-                          ? const FractionalOffset(0.5, 0.1)
-                          : const FractionalOffset(0.0, 0.5),
-                      child: new Container(
-                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                        width: 320.0,
-                        height: 240.0,
-                        child: new RTCVideoView(_localRenderer),
-                        decoration: new BoxDecoration(color: Colors.black54),
-                      ),
-                    ),
-                    new Align(
-                      alignment: orientation == Orientation.portrait
-                          ? const FractionalOffset(0.5, 0.9)
-                          : const FractionalOffset(1.0, 0.5),
-                      child: new Container(
-                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                        width: 320.0,
-                        height: 240.0,
-                        child: new RTCVideoView(_remoteRenderer),
-                        decoration: new BoxDecoration(color: Colors.black54),
-                      ),
-                    ),
-                  ],
-                ),
+                decoration: new BoxDecoration(color: Colors.black54),
+                child: orientation == Orientation.portrait?
+                new Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: widgets) :
+                new Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: widgets),
               ),
             );
           },
