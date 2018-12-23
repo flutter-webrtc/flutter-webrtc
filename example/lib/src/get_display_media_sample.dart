@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
-
+import 'dart:async';
 /*
  * getDisplayMedia sample
  */
@@ -16,6 +16,8 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   MediaStream _localStream;
   final _localRenderer = new RTCVideoRenderer();
   bool _inCalling = false;
+  Timer _timer;
+  var _counter = 0;
 
   @override
   initState() {
@@ -29,10 +31,17 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     if (_inCalling) {
       _hangUp();
     }
+    _timer.cancel();
   }
 
   initRenderers() async {
     await _localRenderer.initialize();
+  }
+
+  void handleTimer(Timer timer) async {
+    setState(() {
+      _counter++;
+    });
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -63,6 +72,8 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     setState(() {
       _inCalling = true;
     });
+
+    _timer = new Timer.periodic(Duration(milliseconds: 100), handleTimer);
   }
 
   _hangUp() async {
@@ -75,6 +86,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     setState(() {
       _inCalling = false;
     });
+    _timer.cancel();
   }
 
   @override
@@ -86,13 +98,19 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
       body: new OrientationBuilder(
         builder: (context, orientation) {
           return new Center(
-            child: new Container(
-              margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: RTCVideoView(_localRenderer),
-              decoration: new BoxDecoration(color: Colors.black54),
-            ),
+            child: new Stack(
+                  children: <Widget>[
+                    new Center(
+                      child:new Text('counter: ' + _counter.toString()),
+                    ),
+                    new Container(
+                      margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height,
+                      child: RTCVideoView(_localRenderer),
+                      decoration: new BoxDecoration(color: Colors.black54),
+                    )
+                  ]),
           );
         },
       ),
