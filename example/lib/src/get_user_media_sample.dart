@@ -38,11 +38,11 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   // Platform messages are asynchronous, so we initialize in an async method.
   _makeCall() async {
     final Map<String, dynamic> mediaConstraints = {
-      "audio": true,
+      "audio": false,
       "video": {
         "mandatory": {
-          "minWidth":'640', // Provide your own width, height and frame rate here
-          "minHeight": '480',
+          "minWidth":'1280', // Provide your own width, height and frame rate here
+          "minHeight": '720',
           "minFrameRate": '30',
         },
         "facingMode": "user",
