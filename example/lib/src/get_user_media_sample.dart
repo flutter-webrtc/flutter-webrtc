@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
+import 'package:path_provider/path_provider.dart';
 
 /*
  * getUserMedia sample
@@ -16,6 +19,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaStream _localStream;
   final _localRenderer = new RTCVideoRenderer();
   bool _inCalling = false;
+  MediaRecorder _mediaRecorder;
+  get _isRec => _mediaRecorder != null;
 
   @override
   initState() {
@@ -77,11 +82,42 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     });
   }
 
+  _startRecording() async {
+    if (Platform.isIOS) {
+      print("Recording is not available on iOS");
+      return;
+    }
+    //TODO(rostopira): request write storage permission
+    final storagePath = await getExternalStorageDirectory();
+    final filePath = storagePath.path + '/webrtc_sample/test.mp4';
+    _mediaRecorder = MediaRecorder();
+    setState((){});
+    await _localStream.getMediaTracks();
+    final audioTracks = _localStream.getAudioTracks();
+    final videoTracks = _localStream.getVideoTracks();
+    await _mediaRecorder.start(
+      path: filePath,
+      audioTrack: audioTracks.length == 0 ? null : audioTracks.first,
+      videoTrack: videoTracks.length == 0 ? null : videoTracks.first,
+    );
+  }
+
+  _stopRecording() async {
+    await _mediaRecorder?.stop();
+    _mediaRecorder = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('GetUserMedia API Test'),
+        actions: _inCalling ? <Widget>[
+          new IconButton(
+            icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
+            onPressed: _isRec ? _stopRecording : _startRecording,
+          ),
+        ] : null,
       ),
       body: new OrientationBuilder(
         builder: (context, orientation) {
