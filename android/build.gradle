@@ -25,7 +25,7 @@ android {
     compileSdkVersion 28
 
     defaultConfig {
-        minSdkVersion 17
+        minSdkVersion 18
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
