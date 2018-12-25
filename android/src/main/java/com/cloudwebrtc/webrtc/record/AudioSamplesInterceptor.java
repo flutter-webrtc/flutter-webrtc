@@ -1,6 +1,7 @@
 package com.cloudwebrtc.webrtc.record;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 
 import org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
 import org.webrtc.audio.JavaAudioDeviceModule.AudioSamples;
@@ -14,15 +15,9 @@ public class AudioSamplesInterceptor implements SamplesReadyCallback {
 
     @SuppressLint("UseSparseArrays")
     private HashMap<Integer, SamplesReadyCallback> callbacks = new HashMap<>();
-    public int currentAudioFormat = -1;
-    public int currentChannelCount = -1;
-    public int currentSampleRate = -1;
 
     @Override
     public void onWebRtcAudioRecordSamplesReady(AudioSamples audioSamples) {
-        currentAudioFormat = audioSamples.getAudioFormat();
-        currentChannelCount = audioSamples.getChannelCount();
-        currentSampleRate = audioSamples.getSampleRate();
         for (SamplesReadyCallback callback : callbacks.values()) {
             callback.onWebRtcAudioRecordSamplesReady(audioSamples);
         }
