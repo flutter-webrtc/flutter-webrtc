@@ -16,6 +16,7 @@ public class MediaRecorderImpl {
     private final VideoTrack videoTrack;
     private final AudioSamplesInterceptor audioInterceptor;
     private VideoFileRenderer videoFileRenderer;
+    private boolean isRunning = false;
 
     public MediaRecorderImpl(Integer id, @Nullable VideoTrack videoTrack, @Nullable AudioSamplesInterceptor audioInterceptor) {
         this.id = id;
@@ -24,6 +25,9 @@ public class MediaRecorderImpl {
     }
 
     public void startRecording(File file) throws IOException {
+        if (isRunning)
+            return;
+        isRunning = true;
         //noinspection ResultOfMethodCallIgnored
         file.getParentFile().mkdirs();
         if (videoTrack != null) {
@@ -40,12 +44,14 @@ public class MediaRecorderImpl {
     }
 
     public void stopRecording() {
+        isRunning = false;
+        if (audioInterceptor != null)
+            audioInterceptor.detachCallback(id);
         if (videoTrack != null && videoFileRenderer != null) {
             videoTrack.removeSink(videoFileRenderer);
             videoFileRenderer.release();
+            videoFileRenderer = null;
         }
-        if (audioInterceptor != null)
-            audioInterceptor.detachCallback(id);
     }
 
     private static final String TAG = "MediaRecorderImpl";
