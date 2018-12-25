@@ -1,6 +1,5 @@
 package com.cloudwebrtc.webrtc.record;
 
-import android.media.AudioFormat;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -34,12 +33,14 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private final Handler audioThreadHandler;
     private final FileOutputStream videoOutFile;
     private final String outputFileName;
-    private final int outputFileWidth;
-    private final int outputFileHeight;
+    private int outputFileWidth = -1;
+    private int outputFileHeight = -1;
     private ByteBuffer[] encoderOutputBuffers;
     private ByteBuffer[] audioInputBuffers;
     private ByteBuffer[] audioOutputBuffers;
     private EglBase eglBase;
+    private EglBase.Context sharedContext;
+    private VideoFrameDrawer frameDrawer;
 
     // TODO: these ought to be configurable as well
     private static final String MIME_TYPE = "video/avc";    // H.264 Advanced Video Coding
@@ -49,23 +50,18 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private MediaMuxer mediaMuxer;
     private MediaCodec encoder;
     private MediaCodec.BufferInfo bufferInfo;
-    private int trackIndex;
-    private int audioTrackIndex = -1;
+    private int trackIndex = -1;
+    private int audioTrackIndex;
     private boolean isRunning = true;
     private GlRectDrawer drawer;
     private Surface surface;
     private MediaCodec audioEncoder;
-    private long framesCount = 0;
-    private long samplesCount = 0;
 
-    VideoFileRenderer(String outputFile, int outputFileWidth, int outputFileHeight,
-                             final EglBase.Context sharedContext) throws IOException {
+    VideoFileRenderer(String outputFile, final EglBase.Context sharedContext, boolean withAudio) throws IOException {
         if ((outputFileWidth % 2) == 1 || (outputFileHeight % 2) == 1) {
             throw new IllegalArgumentException("Does not support uneven width or height");
         }
         this.outputFileName = outputFile;
-        this.outputFileWidth = outputFileWidth;
-        this.outputFileHeight = outputFileHeight;
         videoOutFile = new FileOutputStream(outputFile);
         renderThread = new HandlerThread(TAG + "RenderThread");
         renderThread.start();
@@ -77,7 +73,18 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         audioThreadHandler = new Handler(audioThread.getLooper());
         fileThreadHandler = new Handler(fileThread.getLooper());
         bufferInfo = new MediaCodec.BufferInfo();
+        this.sharedContext = sharedContext;
 
+        // Create a MediaMuxer.  We can't add the video track and start() the muxer here,
+        // because our MediaFormat doesn't have the Magic Goodies.  These can only be
+        // obtained from the encoder after it has started processing data.
+        mediaMuxer = new MediaMuxer(outputFile,
+                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+
+        audioTrackIndex = withAudio ? 0 : -1;
+    }
+
+    private void initVideoEncoder() {
         MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, outputFileWidth, outputFileHeight);
 
         // Set some properties.  Failing to specify some of these can cause the MediaCodec
@@ -90,47 +97,39 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
 
         // Create a MediaCodec encoder, and configure it with our format.  Get a Surface
         // we can use for input and wrap it with a class that handles the EGL work.
-        encoder = MediaCodec.createEncoderByType(MIME_TYPE);
-        encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-        ThreadUtils.invokeAtFrontUninterruptibly(renderThreadHandler, new Runnable() {
-            @Override
-            public void run() {
+        try {
+            encoder = MediaCodec.createEncoderByType(MIME_TYPE);
+            encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+            renderThreadHandler.post(() -> {
                 eglBase = EglBase.create(sharedContext, EglBase.CONFIG_RECORDABLE);
                 surface = encoder.createInputSurface();
                 eglBase.createSurface(surface);
                 eglBase.makeCurrent();
                 drawer = new GlRectDrawer();
-            }
-        });
-
-        // Create a MediaMuxer.  We can't add the video track and start() the muxer here,
-        // because our MediaFormat doesn't have the Magic Goodies.  These can only be
-        // obtained from the encoder after it has started processing data.
-        //
-        // We're not actually interested in multiplexing audio.  We just want to convert
-        // the raw H.264 elementary stream we get from MediaCodec into a .mp4 file.
-        mediaMuxer = new MediaMuxer(outputFile,
-                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-
-        trackIndex = -1;
+            });
+        } catch (Exception e) {
+            Log.wtf(TAG, e);
+        }
     }
 
     @Override
     public void onFrame(VideoFrame frame) {
         frame.retain();
+        if (outputFileWidth == -1) {
+            outputFileWidth = frame.getRotatedWidth();
+            outputFileHeight = frame.getRotatedHeight();
+            initVideoEncoder();
+        }
         renderThreadHandler.post(() -> renderFrameOnRenderThread(frame));
     }
-
-    private VideoFrameDrawer frameDrawer;
 
     private void renderFrameOnRenderThread(VideoFrame frame) {
         if (frameDrawer == null) {
             frameDrawer = new VideoFrameDrawer();
         }
-        framesCount++;
         frameDrawer.drawFrame(frame, drawer, null, 0, 0, outputFileWidth, outputFileHeight);
         frame.release();
-        drainEncoder(false);
+        drainEncoder();
         eglBase.swapBuffers();
     }
 
@@ -138,12 +137,9 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
      * Release all resources. All already posted frames will be rendered first.
      */
     void release() {
-        Log.e(TAG, "Frames " + String.valueOf(framesCount) + " samples " + String.valueOf(samplesCount));
         final CountDownLatch cleanupBarrier = new CountDownLatch(2);
         isRunning = false;
         renderThreadHandler.post(() -> {
-//            encoder.flush();
-            //drainEncoder(false);
             encoder.stop();
             encoder.release();
             eglBase.release();
@@ -151,10 +147,9 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
             cleanupBarrier.countDown();
         });
         audioThreadHandler.post(() -> {
-//            audioEncoder.flush();
-            //drainAudio();
             audioEncoder.stop();
             audioEncoder.release();
+            audioThread.quit();
             cleanupBarrier.countDown();
         });
         ThreadUtils.awaitUninterruptibly(cleanupBarrier);
@@ -181,7 +176,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private volatile boolean muxerStarted = false;
     private long videoFrameStart = 0;
 
-    private void drainEncoder(boolean endOfStream) {
+    private void drainEncoder() {
         if (!encoderStarted) {
             encoder.start();
             encoderOutputBuffers = encoder.getOutputBuffers();
@@ -191,9 +186,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         while (true) {
             int encoderStatus = encoder.dequeueOutputBuffer(bufferInfo, 10000);
             if (encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
-                Log.i(TAG, "no output from encoder available");
-                if (!endOfStream)
-                    break;
+                break;
             } else if (encoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                 // not expected for an encoder
                 encoderOutputBuffers = encoder.getOutputBuffers();
@@ -217,6 +210,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                     ByteBuffer encodedData = encoderOutputBuffers[encoderStatus];
                     if (encodedData == null) {
                         Log.e(TAG, "encoderOutputBuffer " + encoderStatus + " was null");
+                        break;
                     }
                     // It's usually necessary to adjust the ByteBuffer values to match BufferInfo.
                     encodedData.position(bufferInfo.offset);
@@ -248,17 +242,16 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         while (true) {
             int encoderStatus = audioEncoder.dequeueOutputBuffer(bufferInfo, 10000);
             if (encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
-                Log.i(TAG, "no output from audio encoder available");
                 break;
             } else if (encoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                 // not expected for an encoder
                 audioOutputBuffers = audioEncoder.getOutputBuffers();
-                Log.e(TAG, "encoder output buffers changed");
+                Log.w(TAG, "encoder output buffers changed");
             } else if (encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                 // not expected for an encoder
                 MediaFormat newFormat = audioEncoder.getOutputFormat();
 
-                Log.e(TAG, "encoder output format changed: " + newFormat);
+                Log.w(TAG, "encoder output format changed: " + newFormat);
                 audioTrackIndex = mediaMuxer.addTrack(newFormat);
                 if (trackIndex != -1 && !muxerStarted) {
                     mediaMuxer.start();
@@ -299,7 +292,6 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     public void onWebRtcAudioRecordSamplesReady(JavaAudioDeviceModule.AudioSamples audioSamples) {
         if (!isRunning)
             return;
-        samplesCount++;
         audioThreadHandler.post(() -> {
             if (audioEncoder == null) try {
                 audioEncoder = MediaCodec.createEncoderByType("audio/mp4a-latm");

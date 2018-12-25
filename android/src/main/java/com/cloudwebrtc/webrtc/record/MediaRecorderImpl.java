@@ -31,7 +31,11 @@ public class MediaRecorderImpl {
         //noinspection ResultOfMethodCallIgnored
         file.getParentFile().mkdirs();
         if (videoTrack != null) {
-            videoFileRenderer = new VideoFileRenderer(file.getAbsolutePath(), 1280, 720, EglUtils.getRootEglBaseContext());
+            videoFileRenderer = new VideoFileRenderer(
+                file.getAbsolutePath(),
+                EglUtils.getRootEglBaseContext(),
+                audioInterceptor != null
+            );
             videoTrack.addSink(videoFileRenderer);
             if (audioInterceptor != null)
                 audioInterceptor.attachCallback(id, videoFileRenderer);

@@ -93,18 +93,18 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     _mediaRecorder = MediaRecorder();
     setState((){});
     await _localStream.getMediaTracks();
-    final audioTracks = _localStream.getAudioTracks();
-    final videoTracks = _localStream.getVideoTracks();
+    final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
     await _mediaRecorder.start(
       path: filePath,
-      audioTrack: audioTracks.length == 0 ? null : audioTracks.first,
-      videoTrack: videoTracks.length == 0 ? null : videoTracks.first,
+      videoTrack: videoTrack,
     );
   }
 
   _stopRecording() async {
     await _mediaRecorder?.stop();
-    _mediaRecorder = null;
+    setState((){
+      _mediaRecorder = null;
+    });
   }
 
   @override
