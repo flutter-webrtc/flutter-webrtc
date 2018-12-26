@@ -399,12 +399,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 -(void)getDisplayMedia:(NSDictionary *)constraints
                 result:(FlutterResult)result {
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
-    RTCMediaStream *mediaStream
-    = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
+    RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
     
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
-    
     FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
+    
+    [videoSource adaptOutputFormatToWidth:(NSUInteger)[UIScreen mainScreen].bounds.size.width height:(NSUInteger)[UIScreen mainScreen].bounds.size.height fps:30];
     
     [screenCapturer startCapture];
     
@@ -414,7 +414,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     NSString *trackUUID = [[NSUUID UUID] UUIDString];
     RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
     [mediaStream addVideoTrack:videoTrack];
-    
     
     NSMutableArray *audioTracks = [NSMutableArray array];
     NSMutableArray *videoTracks = [NSMutableArray array];
