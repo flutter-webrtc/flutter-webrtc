@@ -49,7 +49,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
 
     private MediaMuxer mediaMuxer;
     private MediaCodec encoder;
-    private MediaCodec.BufferInfo bufferInfo;
+    private MediaCodec.BufferInfo bufferInfo, audioBufferInfo;
     private int trackIndex = -1;
     private int audioTrackIndex;
     private boolean isRunning = true;
@@ -65,9 +65,14 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         renderThreadHandler = new Handler(renderThread.getLooper());
         fileThread = new HandlerThread(TAG + "FileThread");
         fileThread.start();
-        audioThread = new HandlerThread(TAG + "AudioThread");
-        audioThread.start();
-        audioThreadHandler = new Handler(audioThread.getLooper());
+        if (withAudio) {
+            audioThread = new HandlerThread(TAG + "AudioThread");
+            audioThread.start();
+            audioThreadHandler = new Handler(audioThread.getLooper());
+        } else {
+            audioThread = null;
+            audioThreadHandler = null;
+        }
         fileThreadHandler = new Handler(fileThread.getLooper());
         bufferInfo = new MediaCodec.BufferInfo();
         this.sharedContext = sharedContext;
@@ -78,7 +83,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         mediaMuxer = new MediaMuxer(outputFile,
                 MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
-        audioTrackIndex = withAudio ? 0 : -1;
+        audioTrackIndex = withAudio ? -1 : 0;
     }
 
     private void initVideoEncoder() {
@@ -143,12 +148,16 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
             renderThread.quit();
             cleanupBarrier.countDown();
         });
-        audioThreadHandler.post(() -> {
-            audioEncoder.stop();
-            audioEncoder.release();
-            audioThread.quit();
+        if (audioThreadHandler != null) {
+            audioThreadHandler.post(() -> {
+                audioEncoder.stop();
+                audioEncoder.release();
+                audioThread.quit();
+                cleanupBarrier.countDown();
+            });
+        } else {
             cleanupBarrier.countDown();
-        });
+        }
         ThreadUtils.awaitUninterruptibly(cleanupBarrier);
         fileThreadHandler.post(() -> {
             mediaMuxer.stop();
@@ -236,8 +245,10 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private long presTime = 0L;
 
     private void drainAudio() {
+        if (audioBufferInfo == null)
+            audioBufferInfo = new MediaCodec.BufferInfo();
         while (true) {
-            int encoderStatus = audioEncoder.dequeueOutputBuffer(bufferInfo, 10000);
+            int encoderStatus = audioEncoder.dequeueOutputBuffer(audioBufferInfo, 10000);
             if (encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                 break;
             } else if (encoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
@@ -266,15 +277,15 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                         break;
                     }
                     // It's usually necessary to adjust the ByteBuffer values to match BufferInfo.
-                    encodedData.position(bufferInfo.offset);
-                    encodedData.limit(bufferInfo.offset + bufferInfo.size);
+                    encodedData.position(audioBufferInfo.offset);
+                    encodedData.limit(audioBufferInfo.offset + audioBufferInfo.size);
                     if (muxerStarted)
-                        mediaMuxer.writeSampleData(audioTrackIndex, encodedData, bufferInfo);
-                    isRunning = isRunning && (bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) == 0;
-                    Log.d(TAG, "passed " + bufferInfo.size + " bytes to file"
+                        mediaMuxer.writeSampleData(audioTrackIndex, encodedData, audioBufferInfo);
+                    isRunning = isRunning && (audioBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) == 0;
+                    Log.d(TAG, "passed " + audioBufferInfo.size + " bytes to file"
                             + (!isRunning ? " (EOS)" : ""));
                     audioEncoder.releaseOutputBuffer(encoderStatus, false);
-                    if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                    if ((audioBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                         break;
                     }
                 } catch (Exception e) {
