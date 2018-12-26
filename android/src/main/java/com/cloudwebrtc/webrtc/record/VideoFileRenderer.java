@@ -27,8 +27,6 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private static final String TAG = "VideoFileRenderer";
     private final HandlerThread renderThread;
     private final Handler renderThreadHandler;
-    private final HandlerThread fileThread;
-    private final Handler fileThreadHandler;
     private final HandlerThread audioThread;
     private final Handler audioThreadHandler;
     private final FileOutputStream videoOutFile;
@@ -63,8 +61,6 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         renderThread = new HandlerThread(TAG + "RenderThread");
         renderThread.start();
         renderThreadHandler = new Handler(renderThread.getLooper());
-        fileThread = new HandlerThread(TAG + "FileThread");
-        fileThread.start();
         if (withAudio) {
             audioThread = new HandlerThread(TAG + "AudioThread");
             audioThread.start();
@@ -73,7 +69,6 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
             audioThread = null;
             audioThreadHandler = null;
         }
-        fileThreadHandler = new Handler(fileThread.getLooper());
         bufferInfo = new MediaCodec.BufferInfo();
         this.sharedContext = sharedContext;
 
@@ -159,23 +154,8 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
             cleanupBarrier.countDown();
         }
         ThreadUtils.awaitUninterruptibly(cleanupBarrier);
-        fileThreadHandler.post(() -> {
-            mediaMuxer.stop();
-            mediaMuxer.release();
-            try {
-                videoOutFile.close();
-                Log.d(TAG, "Video written to disk as " + outputFileName);
-            } catch (IOException e) {
-                throw new RuntimeException("Error closing output file", e);
-            }
-            fileThread.quit();
-        });
-        try {
-            fileThread.join();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            Log.e(TAG, "Interrupted while waiting for the write to disk to complete.", e);
-        }
+        mediaMuxer.stop();
+        mediaMuxer.release();
     }
 
     private boolean encoderStarted = false;
@@ -308,7 +288,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                 format.setInteger(MediaFormat.KEY_CHANNEL_COUNT, audioSamples.getChannelCount());
                 format.setInteger(MediaFormat.KEY_SAMPLE_RATE, audioSamples.getSampleRate());
                 format.setInteger(MediaFormat.KEY_BIT_RATE, 64 * 1024);
-                format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectMain);
+                format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
                 audioEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
                 audioEncoder.start();
                 audioInputBuffers = audioEncoder.getInputBuffers();
