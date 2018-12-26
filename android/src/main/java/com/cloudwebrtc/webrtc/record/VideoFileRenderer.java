@@ -58,9 +58,6 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private MediaCodec audioEncoder;
 
     VideoFileRenderer(String outputFile, final EglBase.Context sharedContext, boolean withAudio) throws IOException {
-        if ((outputFileWidth % 2) == 1 || (outputFileHeight % 2) == 1) {
-            throw new IllegalArgumentException("Does not support uneven width or height");
-        }
         this.outputFileName = outputFile;
         videoOutFile = new FileOutputStream(outputFile);
         renderThread = new HandlerThread(TAG + "RenderThread");
