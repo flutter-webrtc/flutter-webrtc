@@ -448,20 +448,6 @@ class GetUserMediaImpl{
                     SurfaceTextureHelper surfaceTextureHelper = SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
                     videoCapturer.initialize(surfaceTextureHelper, context, videoSource.getCapturerObserver());
 
-                    // Fall back to defaults if keys are missing.
-                    int width
-                            = videoConstraintsMandatory2.hasKey("minWidth")
-                            ? videoConstraintsMandatory2.getInt("minWidth")
-                            : DEFAULT_WIDTH;
-                    int height
-                            = videoConstraintsMandatory2.hasKey("minHeight")
-                            ? videoConstraintsMandatory2.getInt("minHeight")
-                            : DEFAULT_HEIGHT;
-                    int fps
-                            = videoConstraintsMandatory2.hasKey("minFrameRate")
-                            ? videoConstraintsMandatory2.getInt("minFrameRate")
-                            : DEFAULT_FPS;
-
                     WindowManager wm = (WindowManager) applicationContext
                             .getSystemService(Context.WINDOW_SERVICE);
 
