@@ -11,17 +11,14 @@ import android.view.Surface;
 
 import org.webrtc.EglBase;
 import org.webrtc.GlRectDrawer;
-import org.webrtc.ThreadUtils;
 import org.webrtc.VideoFrame;
 import org.webrtc.VideoFrameDrawer;
 import org.webrtc.VideoSink;
 import org.webrtc.audio.JavaAudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.CountDownLatch;
 
 class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private static final String TAG = "VideoFileRenderer";
@@ -29,8 +26,6 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private final Handler renderThreadHandler;
     private final HandlerThread audioThread;
     private final Handler audioThreadHandler;
-    private final FileOutputStream videoOutFile;
-    private final String outputFileName;
     private int outputFileWidth = -1;
     private int outputFileHeight = -1;
     private ByteBuffer[] encoderOutputBuffers;
@@ -56,8 +51,6 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private MediaCodec audioEncoder;
 
     VideoFileRenderer(String outputFile, final EglBase.Context sharedContext, boolean withAudio) throws IOException {
-        this.outputFileName = outputFile;
-        videoOutFile = new FileOutputStream(outputFile);
         renderThread = new HandlerThread(TAG + "RenderThread");
         renderThread.start();
         renderThreadHandler = new Handler(renderThread.getLooper());
@@ -134,28 +127,21 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
      * Release all resources. All already posted frames will be rendered first.
      */
     void release() {
-        final CountDownLatch cleanupBarrier = new CountDownLatch(2);
         isRunning = false;
-        renderThreadHandler.post(() -> {
-            encoder.stop();
-            encoder.release();
-            eglBase.release();
-            renderThread.quit();
-            cleanupBarrier.countDown();
-        });
-        if (audioThreadHandler != null) {
+        if (audioThreadHandler != null)
             audioThreadHandler.post(() -> {
                 audioEncoder.stop();
                 audioEncoder.release();
                 audioThread.quit();
-                cleanupBarrier.countDown();
             });
-        } else {
-            cleanupBarrier.countDown();
-        }
-        ThreadUtils.awaitUninterruptibly(cleanupBarrier);
-        mediaMuxer.stop();
-        mediaMuxer.release();
+        renderThreadHandler.post(() -> {
+            encoder.stop();
+            encoder.release();
+            eglBase.release();
+            mediaMuxer.stop();
+            mediaMuxer.release();
+            renderThread.quit();
+        });
     }
 
     private boolean encoderStarted = false;
@@ -208,8 +194,6 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                     if (muxerStarted)
                         mediaMuxer.writeSampleData(trackIndex, encodedData, bufferInfo);
                     isRunning = isRunning && (bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) == 0;
-                    Log.d(TAG, "passed " + bufferInfo.size + " bytes to file"
-                            + (!isRunning ? " (EOS)" : ""));
                     encoder.releaseOutputBuffer(encoderStatus, false);
                     if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                         break;
@@ -262,8 +246,6 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                     if (muxerStarted)
                         mediaMuxer.writeSampleData(audioTrackIndex, encodedData, audioBufferInfo);
                     isRunning = isRunning && (audioBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) == 0;
-                    Log.d(TAG, "passed " + audioBufferInfo.size + " bytes to file"
-                            + (!isRunning ? " (EOS)" : ""));
                     audioEncoder.releaseOutputBuffer(encoderStatus, false);
                     if ((audioBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                         break;
