@@ -40,6 +40,6 @@ android {
 }
 
 dependencies {
-    api 'org.webrtc:google-webrtc:1.0.25821'
+    api 'org.webrtc:google-webrtc:1.0.26131'
     implementation "com.android.support:support-annotations:22.0.0"
 }
