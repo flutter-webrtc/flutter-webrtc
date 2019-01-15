@@ -17,6 +17,7 @@ public class MediaRecorderImpl {
     private final AudioSamplesInterceptor audioInterceptor;
     private VideoFileRenderer videoFileRenderer;
     private boolean isRunning = false;
+    private File recordFile;
 
     public MediaRecorderImpl(Integer id, @Nullable VideoTrack videoTrack, @Nullable AudioSamplesInterceptor audioInterceptor) {
         this.id = id;
@@ -25,6 +26,7 @@ public class MediaRecorderImpl {
     }
 
     public void startRecording(File file) throws IOException {
+        recordFile = file;
         if (isRunning)
             return;
         isRunning = true;
@@ -46,6 +48,8 @@ public class MediaRecorderImpl {
             }
         }
     }
+
+    public File getRecordFile() { return recordFile; }
 
     public void stopRecording() {
         isRunning = false;
