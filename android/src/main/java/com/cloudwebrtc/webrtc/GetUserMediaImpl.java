@@ -3,6 +3,7 @@ package com.cloudwebrtc.webrtc;
 import android.Manifest;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -10,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.content.Intent;
@@ -760,6 +762,14 @@ class GetUserMediaImpl{
         if (mediaRecorder != null) {
             mediaRecorder.stopRecording();
             mediaRecorders.remove(id);
+            File file = mediaRecorder.getRecordFile();
+            if (file != null) {
+                ContentValues values = new ContentValues(3);
+                values.put(MediaStore.Video.Media.TITLE, file.getName());
+                values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
+                values.put(MediaStore.Video.Media.DATA, file.getAbsolutePath());
+                applicationContext.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+            }
         }
     }
 
