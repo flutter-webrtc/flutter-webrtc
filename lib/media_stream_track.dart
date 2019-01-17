@@ -35,6 +35,12 @@ class MediaStreamTrack {
     );
   }
 
+  captureFrame(String filePath) =>
+    _channel.invokeMethod(
+      'captureFrame',
+      <String, dynamic>{'trackId':_trackId, 'path': filePath},
+    );
+
   Future<void> dispose() async {
     await _channel.invokeMethod(
       'trackDispose',
