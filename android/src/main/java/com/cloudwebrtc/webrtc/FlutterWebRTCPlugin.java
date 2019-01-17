@@ -7,11 +7,13 @@ import android.graphics.SurfaceTexture;
 import android.util.Log;
 import android.util.LongSparseArray;
 
+import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 
+import java.io.File;
 import java.util.*;
 
 import org.webrtc.AudioTrack;
@@ -107,6 +109,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 .setUseHardwareNoiseSuppressor(true)
                 .setSamplesReadyCallback(getUserMediaImpl.audioSamplesInterceptor)
                 .createAudioDeviceModule();
+
 
         mFactory = PeerConnectionFactory.builder()
                 .setOptions(new PeerConnectionFactory.Options())
@@ -312,6 +315,18 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             Integer recorderId = call.argument("recorderId");
             getUserMediaImpl.stopRecording(recorderId);
             result.success(null);
+        } else if (call.method.equals("captureFrame")) {
+            String path = call.argument("path");
+            String videoTrackId = call.argument("trackId");
+            if (videoTrackId != null) {
+                MediaStreamTrack track = localTracks.get(videoTrackId);
+                if (track instanceof VideoTrack)
+                    new FrameCapturer((VideoTrack) track, new File(path), result);
+                else
+                    result.error("It's not video track", null, null);
+            } else {
+                result.error("Track is null", null, null);
+            }
         } else {
             result.notImplemented();
         }
