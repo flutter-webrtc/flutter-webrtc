@@ -49,7 +49,7 @@ android {
 ## Functionality
 We intend to implement support the following features:
 
-- [ ] Data Channel
+- [X] Data Channel
 - [ ] Port to [Flutter-Desktop-Embedding](https://github.com/google/flutter-desktop-embedding)
 - [ ] Screen Capture
 - [ ] ORTC API
