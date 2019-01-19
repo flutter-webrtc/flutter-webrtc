@@ -7,11 +7,13 @@ import android.graphics.SurfaceTexture;
 import android.util.Log;
 import android.util.LongSparseArray;
 
+import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 
+import java.io.File;
 import java.util.*;
 
 import org.webrtc.AudioTrack;
@@ -97,13 +99,17 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                         .setEnableInternalTracer(true)
                         .createInitializationOptions());
 
+        // Initialize EGL contexts required for HW acceleration.
+        EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
+
+        getUserMediaImpl = new GetUserMediaImpl(this, registrar.context());
+
         final AudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(registrar.context())
                 .setUseHardwareAcousticEchoCanceler(true)
                 .setUseHardwareNoiseSuppressor(true)
+                .setSamplesReadyCallback(getUserMediaImpl.audioSamplesInterceptor)
                 .createAudioDeviceModule();
 
-        // Initialize EGL contexts required for HW acceleration.
-        EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
 
         mFactory = PeerConnectionFactory.builder()
                 .setOptions(new PeerConnectionFactory.Options())
@@ -111,8 +117,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
                 .setAudioDeviceModule(audioDeviceModule)
                 .createPeerConnectionFactory();
-
-        getUserMediaImpl = new GetUserMediaImpl(this, registrar.context());
     }
 
     @Override
@@ -278,7 +282,52 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             Map<String, Object> constraints = call.argument("constraints");
             ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
             getDisplayMedia(constraintsMap, result);
-        }else {
+        }else if (call.method.equals("startRecordToFile")) {
+            //This method can a lot of different exceptions
+            //so we should notify plugin user about them
+            try {
+                String path = call.argument("path");
+                VideoTrack videoTrack = null;
+                String videoTrackId = call.argument("videoTrackId");
+                if (videoTrackId != null) {
+                    MediaStreamTrack track = localTracks.get(videoTrackId);
+                    if (track instanceof VideoTrack)
+                        videoTrack = (VideoTrack) track;
+                }
+                AudioTrack audioTrack = null;
+                String audioTrackId = call.argument("audioTrackId");
+                Integer recorderId = call.argument("recorderId");
+                if (audioTrackId != null) {
+                    MediaStreamTrack track = localTracks.get(audioTrackId);
+                    if (track instanceof AudioTrack)
+                        audioTrack = (AudioTrack) track;
+                }
+                if (videoTrack != null || audioTrack != null) {
+                    getUserMediaImpl.startRecordingToFile(path, recorderId, videoTrack, audioTrack);
+                    result.success(null);
+                } else {
+                    result.error("0", "No track", null);
+                }
+            } catch (Exception e) {
+                result.error("-1", e.getMessage(), e);
+            }
+        } else if (call.method.equals("stopRecordToFile")) {
+            Integer recorderId = call.argument("recorderId");
+            getUserMediaImpl.stopRecording(recorderId);
+            result.success(null);
+        } else if (call.method.equals("captureFrame")) {
+            String path = call.argument("path");
+            String videoTrackId = call.argument("trackId");
+            if (videoTrackId != null) {
+                MediaStreamTrack track = localTracks.get(videoTrackId);
+                if (track instanceof VideoTrack)
+                    new FrameCapturer((VideoTrack) track, new File(path), result);
+                else
+                    result.error("It's not video track", null, null);
+            } else {
+                result.error("Track is null", null, null);
+            }
+        } else {
             result.notImplemented();
         }
     }

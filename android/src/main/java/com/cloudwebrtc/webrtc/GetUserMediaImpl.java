@@ -3,6 +3,7 @@ package com.cloudwebrtc.webrtc;
 import android.Manifest;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -10,13 +11,18 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
+import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.content.Intent;
 import android.app.Activity;
 import android.view.WindowManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.util.SparseArray;
 
+import com.cloudwebrtc.webrtc.record.AudioSamplesInterceptor;
+import com.cloudwebrtc.webrtc.record.MediaRecorderImpl;
 import com.cloudwebrtc.webrtc.utils.Callback;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
@@ -24,6 +30,7 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,6 +70,9 @@ class GetUserMediaImpl{
     static final int minAPILevel = Build.VERSION_CODES.LOLLIPOP;
     private MediaProjectionManager mProjectionManager = null;
     private static MediaProjection sMediaProjection = null;
+
+    final AudioSamplesInterceptor audioSamplesInterceptor = new AudioSamplesInterceptor();
+    private final SparseArray<MediaRecorderImpl> mediaRecorders = new SparseArray<>();
 
     public void screenRequestPremissions(ResultReceiver resultReceiver){
         Activity activity = plugin.getActivity();
@@ -732,4 +742,35 @@ class GetUserMediaImpl{
             cameraVideoCapturer.switchCamera(null);
         }
     }
+
+    /** Creates and starts recording of local stream to file
+     *  @param path to the file for record
+     *  @param videoTrack to record or null if only audio needed
+     *  @param audioTrack actually ignored, because current WebRTC implementation allows only
+     *                    local track to be recorded, but if null passed, no audio will be recorded
+     *  @throws Exception lot of different exceptions, pass back to dart layer to print them at least
+     *  **/
+    void startRecordingToFile(String path, Integer id, @Nullable VideoTrack videoTrack, @Nullable AudioTrack audioTrack) throws Exception {
+        AudioSamplesInterceptor interceptor = audioTrack == null ? null : audioSamplesInterceptor;
+        MediaRecorderImpl mediaRecorder = new MediaRecorderImpl(id, videoTrack, interceptor);
+        mediaRecorder.startRecording(new File(path));
+        mediaRecorders.append(id, mediaRecorder);
+    }
+
+    void stopRecording(Integer id) {
+        MediaRecorderImpl mediaRecorder = mediaRecorders.get(id);
+        if (mediaRecorder != null) {
+            mediaRecorder.stopRecording();
+            mediaRecorders.remove(id);
+            File file = mediaRecorder.getRecordFile();
+            if (file != null) {
+                ContentValues values = new ContentValues(3);
+                values.put(MediaStore.Video.Media.TITLE, file.getName());
+                values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
+                values.put(MediaStore.Video.Media.DATA, file.getAbsolutePath());
+                applicationContext.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+            }
+        }
+    }
+
 }
