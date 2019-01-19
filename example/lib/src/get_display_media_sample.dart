@@ -32,6 +32,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
       _hangUp();
     }
     _timer.cancel();
+    _localRenderer.dispose();
   }
 
   initRenderers() async {
