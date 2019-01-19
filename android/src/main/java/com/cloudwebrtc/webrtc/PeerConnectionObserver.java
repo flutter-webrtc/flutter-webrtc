@@ -133,12 +133,19 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         // longer support them (in the face of multiple reported issues of
         // breakages).
         int dataChannelId = init.id;
-        if (-1 != dataChannelId) {
+        if (dataChannel != null && -1 != dataChannelId) {
             dataChannels.put(dataChannelId, dataChannel);
             registerDataChannelObserver(dataChannelId, dataChannel);
-        }
 
-        result.success(null);
+            ConstraintsMap params = new ConstraintsMap();
+            params.putInt("id", dataChannel.id());
+            params.putString("label", dataChannel.label());
+            result.success(params.toMap());
+        }else{
+            result.error("createDataChannel",
+                    "Can't create data-channel for id: " + dataChannelId,
+                    null);
+        }
     }
 
     void dataChannelClose(int dataChannelId) {
