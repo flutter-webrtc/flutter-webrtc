@@ -94,10 +94,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
          NSMutableArray *videoTracks = [NSMutableArray array];
          
          for (RTCAudioTrack *track in mediaStream.audioTracks) {
+             [self.localTracks setObject:track forKey:track.trackId];
              [audioTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
          }
          
          for (RTCVideoTrack *track in mediaStream.videoTracks) {
+             [self.localTracks setObject:track forKey:track.trackId];
              [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
          }
 
@@ -403,7 +405,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
     FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
-    
+
     [screenCapturer startCapture];
     
     //TODO:
@@ -415,12 +417,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     
     NSMutableArray *audioTracks = [NSMutableArray array];
     NSMutableArray *videoTracks = [NSMutableArray array];
-    
-    for (RTCAudioTrack *track in mediaStream.audioTracks) {
-        [audioTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
-    }
-    
+
     for (RTCVideoTrack *track in mediaStream.videoTracks) {
+        [self.localTracks setObject:track forKey:track.trackId];
         [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
     }
     
