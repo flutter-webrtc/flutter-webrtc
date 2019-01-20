@@ -4,10 +4,12 @@
 //See: https://developer.apple.com/videos/play/wwdc2017/606/
 
 @implementation FlutterRPScreenRecorder {
-	RPScreenRecorder * screenRecorder;
+	RPScreenRecorder *screenRecorder;
+	RTCVideoSource *source;
 }
 
 - (instancetype)initWithDelegate:(__weak id<RTCVideoCapturerDelegate>)delegate {
+    source = delegate;
     return [super initWithDelegate:delegate];
 }
 
@@ -52,6 +54,11 @@
     if (pixelBuffer == nil) {
         return;
     }
+    
+    size_t width = CVPixelBufferGetWidth(pixelBuffer);
+    size_t height = CVPixelBufferGetHeight(pixelBuffer);
+
+    [source adaptOutputFormatToWidth:width/2 height:height/2 fps:8];
     
     RTCCVPixelBuffer *rtcPixelBuffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBuffer];
     int64_t timeStampNs =

@@ -404,8 +404,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
     FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
     
-    [videoSource adaptOutputFormatToWidth:(NSUInteger)[UIScreen mainScreen].bounds.size.width height:(NSUInteger)[UIScreen mainScreen].bounds.size.height fps:self._targetFps];
-    
     [screenCapturer startCapture];
     
     //TODO:
