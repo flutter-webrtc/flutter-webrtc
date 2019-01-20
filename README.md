@@ -53,7 +53,7 @@ We intend to implement support the following features:
 - [ ] Port to [Flutter-Desktop-Embedding](https://github.com/google/flutter-desktop-embedding)
 - [ ] Screen Capture
 - [ ] ORTC API
-- [ ] Support [Fuchsia](https://github.com/fuchsia-mirror)
+- [ ] Support [Fuchsia](https://fuchsia.googlesource.com/)
 
 ### Example
 
