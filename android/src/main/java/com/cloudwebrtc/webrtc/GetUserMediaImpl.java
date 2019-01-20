@@ -516,7 +516,7 @@ class GetUserMediaImpl{
                     plugin.localStreams.put(streamId, mediaStream);
                     successResult.putString("streamId", streamId);
                     successResult.putArray("audioTracks", audioTracks.toArrayList());
-                    successResult.putArray("videoTracks", audioTracks.toArrayList());
+                    successResult.putArray("videoTracks", videoTracks.toArrayList());
                     result.success(successResult.toMap());
                 }else{
                     result.error(
@@ -602,7 +602,7 @@ class GetUserMediaImpl{
 
         successResult.putString("streamId", streamId);
         successResult.putArray("audioTracks", audioTracks.toArrayList());
-        successResult.putArray("videoTracks", audioTracks.toArrayList());
+        successResult.putArray("videoTracks", videoTracks.toArrayList());
         result.success(successResult.toMap());
     }
 

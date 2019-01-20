@@ -271,8 +271,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             result.success(null);
         } else if (call.method.equals("mediaStreamTrackSwitchCamera")) {
             String trackId = call.argument("trackId");
-            mediaStreamTrackSwitchCamera(trackId);
-            result.success(null);
+            mediaStreamTrackSwitchCamera(trackId, result);
         } else if (call.method.equals("setVolume")) {
             String trackId = call.argument("trackId");
             double volume = call.argument("volume");
@@ -801,10 +800,13 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         track.setEnabled(enabled);
     }
 
-    public void mediaStreamTrackSwitchCamera(final String id) {
+    public void mediaStreamTrackSwitchCamera(final String id, Result result) {
         MediaStreamTrack track = localTracks.get(id);
         if (track != null) {
             getUserMediaImpl.switchCamera(id);
+            result.success(null);
+        }else{
+            result.error("mediaStreamTrackSwitchCameraFailed", "mediaStreamTrackSwitchCamera() track is null", null);
         }
     }
 
