@@ -1,5 +1,11 @@
 ## Changelog
 --------------------------------------------
+[0.1.0] - 2019.01.21
+
+* Fix camera switch issues.
+* Support data channel, please use the latest demo to test.
+* Support screen sharing, but the work is not perfect, there is a problem with the local preview.
+
 [0.0.3] - 2018.12.20
 
 * Update WebRTC to 1.0.25821.
