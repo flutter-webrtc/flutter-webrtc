@@ -49,11 +49,11 @@ android {
 ## Functionality
 We intend to implement support the following features:
 
-- [ ] Data Channel
+- [X] Data Channel
 - [ ] Port to [Flutter-Desktop-Embedding](https://github.com/google/flutter-desktop-embedding)
 - [ ] Screen Capture
 - [ ] ORTC API
-- [ ] Port to [Fuchsia](https://github.com/fuchsia-mirror)
+- [ ] Support [Fuchsia](https://fuchsia.googlesource.com/)
 
 ### Example
 
