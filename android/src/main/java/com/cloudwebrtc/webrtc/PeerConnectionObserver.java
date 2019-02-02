@@ -12,7 +12,7 @@ import java.util.Map;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
