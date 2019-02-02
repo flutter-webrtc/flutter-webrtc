@@ -1,6 +1,6 @@
 package com.cloudwebrtc.webrtc.record;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import com.cloudwebrtc.webrtc.utils.EglUtils;
