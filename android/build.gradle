@@ -26,7 +26,7 @@ android {
 
     defaultConfig {
         minSdkVersion 18
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     lintOptions {
@@ -41,5 +41,5 @@ android {
 
 dependencies {
     api 'org.webrtc:google-webrtc:1.0.26131'
-    implementation "com.android.support:support-annotations:22.0.0"
+    implementation "androidx.annotation:annotation:1.1.0-alpha01"
 }
