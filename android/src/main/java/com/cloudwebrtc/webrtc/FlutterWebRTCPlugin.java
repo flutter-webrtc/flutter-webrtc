@@ -69,6 +69,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     private GetUserMediaImpl getUserMediaImpl;
     final PeerConnectionFactory mFactory;
 
+    private AudioDeviceModule audioDeviceModule;
 
     public Activity getActivity() {
         return registrar.activity();
@@ -108,7 +109,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         getUserMediaImpl = new GetUserMediaImpl(this, registrar.context());
 
-        AudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(registrar.context())
+        audioDeviceModule = JavaAudioDeviceModule.builder(registrar.context())
                 .setUseHardwareAcousticEchoCanceler(true)
                 .setUseHardwareNoiseSuppressor(true)
                 .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
@@ -301,6 +302,11 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String trackId = call.argument("trackId");
             double volume = call.argument("volume");
             mediaStreamTrackSetVolume(trackId, volume);
+            result.success(null);
+        } else if (call.method.equals("setMicrophoneMute")) {
+            String trackId = call.argument("trackId");
+            boolean mute = call.argument("mute");
+            mediaStreamTrackSetMicrophoneMute(trackId, mute);
             result.success(null);
         } else if(call.method.equals("getDisplayMedia")) {
             Map<String, Object> constraints = call.argument("constraints");
@@ -885,6 +891,14 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             }
         } else {
             Log.w(TAG, "setVolume(): track not found: " + id);
+        }
+    }
+
+    public void mediaStreamTrackSetMicrophoneMute(final String id, boolean mute) {
+        try {
+            audioDeviceModule.setMicrophoneMute(mute);
+        } catch (Exception e) {
+            Log.e(TAG, "setMicrophoneMute(): error", e);
         }
     }
 

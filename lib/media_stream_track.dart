@@ -38,6 +38,14 @@ class MediaStreamTrack {
     );
   }
 
+  void setMicrophoneMute(bool mute) async {
+    print('MediaStreamTrack:setMicrophoneMute $mute');
+    await _channel.invokeMethod(
+      'setMicrophoneMute',
+      <String, dynamic>{'trackId': _trackId, 'mute': mute},
+    );
+  }
+
   captureFrame(String filePath) =>
     _channel.invokeMethod(
       'captureFrame',
