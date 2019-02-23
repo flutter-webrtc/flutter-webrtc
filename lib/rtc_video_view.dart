@@ -69,7 +69,7 @@ class RTCVideoRenderer {
   }
 
   EventChannel _eventChannelFor(int textureId) {
-    return new EventChannel('cloudwebrtc.com/WebRTC/Texture$textureId');
+    return WebRTC.eventChannelFor('cloudwebrtc.com/WebRTC/Texture$textureId');
   }
 
   void eventListener(dynamic event) {

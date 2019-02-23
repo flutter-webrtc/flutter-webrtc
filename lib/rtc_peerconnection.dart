@@ -168,7 +168,7 @@ class RTCPeerConnection {
   }
 
   EventChannel _eventChannelFor(String peerConnectionId) {
-    return new EventChannel(
+    return WebRTC.eventChannelFor(
         'cloudwebrtc.com/WebRTC/peerConnectoinEvent$peerConnectionId');
   }
 

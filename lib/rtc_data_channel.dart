@@ -70,7 +70,7 @@ class RTCDataChannel {
   }
 
    EventChannel _eventChannelFor(int dataChannelId) {
-    return new EventChannel(
+    return WebRTC.eventChannelFor(
         'cloudwebrtc.com/WebRTC/dataChannelEvent$dataChannelId');
   }
 

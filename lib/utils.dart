@@ -1,9 +1,17 @@
+import 'dart:io' show Platform;
 import 'package:flutter/services.dart';
 import 'rtc_peerconnection.dart';
 import 'rtc_data_channel.dart';
 
 class WebRTC {
-  static const MethodChannel _channel = const MethodChannel('cloudwebrtc.com/WebRTC.Method');
+  static MethodCodec methodCodec() {
+    return (Platform.isIOS ||Platform.isAndroid)
+    ? new StandardMethodCodec() : new JSONMethodCodec();
+  }
+  static EventChannel eventChannelFor(String channel){
+    return new EventChannel(channel, methodCodec());
+  }
+  static MethodChannel _channel = MethodChannel('cloudwebrtc.com/WebRTC.Method', methodCodec());
   static MethodChannel methodChannel() => _channel;
 }
 
