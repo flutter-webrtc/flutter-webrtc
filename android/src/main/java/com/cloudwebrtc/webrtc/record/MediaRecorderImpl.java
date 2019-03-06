@@ -8,7 +8,6 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import org.webrtc.VideoTrack;
 
 import java.io.File;
-import java.io.IOException;
 
 public class MediaRecorderImpl {
 
@@ -25,7 +24,7 @@ public class MediaRecorderImpl {
         this.audioInterceptor = audioInterceptor;
     }
 
-    public void startRecording(File file) throws IOException {
+    public void startRecording(File file) throws Exception {
         recordFile = file;
         if (isRunning)
             return;
@@ -45,6 +44,7 @@ public class MediaRecorderImpl {
             Log.e(TAG, "Video track is null");
             if (audioInterceptor != null) {
                 //TODO(rostopira): audio only recording
+                throw new Exception("Audio-only recording not implemented yet");
             }
         }
     }
