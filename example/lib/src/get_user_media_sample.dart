@@ -96,7 +96,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     await _localStream.getMediaTracks();
     final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
     await _mediaRecorder.start(
-      path: filePath,
+      filePath,
       videoTrack: videoTrack,
     );
   }
