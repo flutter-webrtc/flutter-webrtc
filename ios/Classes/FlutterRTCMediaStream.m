@@ -33,9 +33,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 - (RTCMediaConstraints *)defaultMediaStreamConstraints {
     NSDictionary *mandatoryConstraints
-    = @{ kRTCMediaConstraintsMinWidth     : @"1280",
-         kRTCMediaConstraintsMinHeight    : @"720",
-         kRTCMediaConstraintsMinFrameRate : @"30" };
+    = @{ @"minWidth"     : @"1280",
+         @"minHeight"    : @"720",
+         @"minFrameRate" : @"30" };
     RTCMediaConstraints* constraints =
     [[RTCMediaConstraints alloc]
      initWithMandatoryConstraints:mandatoryConstraints
@@ -265,21 +265,21 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     // constraints.video.mandatory
     if(mandatory && [mandatory isKindOfClass:[NSDictionary class]])
     {
-        id widthConstraint = mandatory[kRTCMediaConstraintsMinWidth];
+        id widthConstraint = mandatory[@"minWidth"];
         if ([widthConstraint isKindOfClass:[NSString class]]) {
             int possibleWidth = [widthConstraint intValue];
             if (possibleWidth != 0) {
                 self._targetWidth = possibleWidth;
             }
         }
-        id heightConstraint = mandatory[kRTCMediaConstraintsMinHeight];
+        id heightConstraint = mandatory[@"minHeight"];
         if ([heightConstraint isKindOfClass:[NSString class]]) {
             int possibleHeight = [heightConstraint intValue];
             if (possibleHeight != 0) {
                 self._targetHeight = possibleHeight;
             }
         }
-        id fpsConstraint = mandatory[kRTCMediaConstraintsMinFrameRate];
+        id fpsConstraint = mandatory[@"minFrameRate"];
         if ([fpsConstraint isKindOfClass:[NSString class]]) {
             int possibleFps = [fpsConstraint intValue];
             if (possibleFps != 0) {

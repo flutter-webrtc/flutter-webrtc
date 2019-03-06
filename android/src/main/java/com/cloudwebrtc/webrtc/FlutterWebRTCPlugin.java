@@ -7,6 +7,7 @@ import android.graphics.SurfaceTexture;
 import android.util.Log;
 import android.util.LongSparseArray;
 
+import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
@@ -104,12 +105,13 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         getUserMediaImpl = new GetUserMediaImpl(this, registrar.context());
 
-        final AudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(registrar.context())
+        AudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(registrar.context())
                 .setUseHardwareAcousticEchoCanceler(true)
                 .setUseHardwareNoiseSuppressor(true)
-                .setSamplesReadyCallback(getUserMediaImpl.audioSamplesInterceptor)
+                .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
                 .createAudioDeviceModule();
 
+        getUserMediaImpl.audioDeviceModule = (JavaAudioDeviceModule) audioDeviceModule;
 
         mFactory = PeerConnectionFactory.builder()
                 .setOptions(new PeerConnectionFactory.Options())
@@ -298,19 +300,15 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                     if (track instanceof VideoTrack)
                         videoTrack = (VideoTrack) track;
                 }
-                AudioTrack audioTrack = null;
-                String audioTrackId = call.argument("audioTrackId");
+                AudioChannel audioChannel = null;
+                if (call.hasArgument("audioChannel"))
+                    audioChannel = AudioChannel.values()[(Integer) call.argument("audioChannel")];
                 Integer recorderId = call.argument("recorderId");
-                if (audioTrackId != null) {
-                    MediaStreamTrack track = localTracks.get(audioTrackId);
-                    if (track instanceof AudioTrack)
-                        audioTrack = (AudioTrack) track;
-                }
-                if (videoTrack != null || audioTrack != null) {
-                    getUserMediaImpl.startRecordingToFile(path, recorderId, videoTrack, audioTrack);
+                if (videoTrack != null || audioChannel != null) {
+                    getUserMediaImpl.startRecordingToFile(path, recorderId, videoTrack, audioChannel);
                     result.success(null);
                 } else {
-                    result.error("0", "No track", null);
+                    result.error("0", "No tracks", null);
                 }
             } catch (Exception e) {
                 result.error("-1", e.getMessage(), e);

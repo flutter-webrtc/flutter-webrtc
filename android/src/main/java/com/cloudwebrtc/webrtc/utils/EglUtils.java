@@ -1,5 +1,7 @@
 package com.cloudwebrtc.webrtc.utils;
 
+import android.os.Build;
+
 import org.webrtc.EglBase;
 
 public class EglUtils {
@@ -16,7 +18,10 @@ public class EglUtils {
      */
     public static synchronized EglBase getRootEglBase() {
         if (rootEglBase == null) {
-            rootEglBase = EglBase.create();
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+                rootEglBase = EglBase.createEgl10(EglBase.CONFIG_PLAIN);
+            else
+                rootEglBase = EglBase.create();
         }
 
         return rootEglBase;
