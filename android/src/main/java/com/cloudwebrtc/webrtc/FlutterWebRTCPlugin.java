@@ -253,8 +253,13 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else if (call.method.equals("videoRendererDispose")) {
             int textureId = call.argument("textureId");
             FlutterRTCVideoRenderer render = renders.get(textureId);
+            if(render == null ){
+                result.error("FlutterRTCVideoRendererNotFound", "render [" + textureId + "] not found !", null);
+                return;
+            }
             render.Dispose();
             renders.delete(textureId);
+            result.success(null);
         } else if (call.method.equals("videoRendererSetSrcObject")) {
             int textureId = call.argument("textureId");
             String streamId = call.argument("streamId");
