@@ -10,9 +10,7 @@ enum RTCVideoViewObjectFit {
   RTCVideoViewObjectFitCover,
 }
 
-typedef void VideoRotationChangeCallback(int textureId, int rotation);
-typedef void VideoSizeChangeCallback(
-    int textureId, double width, double height);
+typedef void VideoAspectRatioCallback(double aspectRatio);
 
 class RTCVideoRenderer {
   MethodChannel _channel = WebRTC.methodChannel();
@@ -20,13 +18,13 @@ class RTCVideoRenderer {
   int _rotation = 0;
   double _width = 0.0, _height = 0.0;
   bool _mirror;
+  double _aspectRatio = 1.0;
   MediaStream _srcObject;
   RTCVideoViewObjectFit _objectFit =
       RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
   StreamSubscription<dynamic> _eventSubscription;
-  VideoSizeChangeCallback onVideoSizeChanged;
-  VideoRotationChangeCallback onVideoRotationChanged;
-  dynamic onFirstFrameRendered;
+
+  VideoAspectRatioCallback onAspectRatioChanged;
 
   initialize() async {
     final Map<dynamic, dynamic> response =
@@ -44,6 +42,8 @@ class RTCVideoRenderer {
   double get height => _height;
   
   int get textureId => _textureId;
+
+  double get aspectRatio => _aspectRatio;
 
   set mirror(bool mirror) {
     _mirror = mirror;
@@ -77,19 +77,40 @@ class RTCVideoRenderer {
     switch (map['event']) {
       case 'didTextureChangeRotation':
         _rotation = map['rotation'];
-        if (this.onVideoRotationChanged != null)
-          this.onVideoRotationChanged(_textureId, _rotation);
+        _updateAspectRatio();
         break;
       case 'didTextureChangeVideoSize':
-        _width = map['width'];
-        _height = map['height'];
-        if (this.onVideoSizeChanged != null)
-          this.onVideoSizeChanged(_textureId, _width, _height);
+        _width = 0.0 + map['width'];
+        _height = 0.0 + map['height'];
+        _updateAspectRatio();
         break;
       case 'didFirstFrameRendered':
-        if (this.onFirstFrameRendered != null) this.onFirstFrameRendered();
+        _updateAspectRatio();
         break;
     }
+  }
+
+  void _updateAspectRatio() {
+    double aspectRatio = _aspectRatio;
+    double textureWidth = 0.0,
+        textureHeight = 0.0;
+    if (_rotation == 90 || _rotation == 270) {
+      textureWidth = min(_width, _height);
+      textureHeight = max(_width, _height);
+      if (_height != 0.0) {
+        aspectRatio = _width / _height;
+      }
+    } else {
+      textureWidth = max(_width, _height);
+      textureHeight = min(_width, _height);
+      if (_height != 0.0) {
+        aspectRatio = _width / _height;
+      }
+    }
+    if(this.onAspectRatioChanged != null && _aspectRatio != aspectRatio){
+      this.onAspectRatioChanged(aspectRatio);
+    }
+    _aspectRatio = aspectRatio;
   }
 
   void errorListener(Object obj) {
@@ -99,15 +120,15 @@ class RTCVideoRenderer {
 }
 
 class RTCVideoView extends StatefulWidget {
-  final RTCVideoRenderer renderer;
+  RTCVideoRenderer renderer;
   RTCVideoView(this.renderer);
   @override
   _RTCVideoViewState createState() => new _RTCVideoViewState(renderer);
 }
 
 class _RTCVideoViewState extends State<RTCVideoView> {
-  final RTCVideoRenderer renderer;
-  var aspectRatio = 1.0;
+  RTCVideoRenderer renderer;
+  double _aspectRatio;
 
   _RTCVideoViewState(this.renderer);
 
@@ -115,45 +136,21 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   void initState() {
     super.initState();
     _setCallbacks();
+    _aspectRatio = renderer.aspectRatio;
   }
 
   @override
   void deactivate() {
     super.deactivate();
-    renderer.onVideoRotationChanged = null;
-    renderer.onVideoSizeChanged = null;
-    renderer.onFirstFrameRendered = null;
+    renderer.onAspectRatioChanged = null;
   }
 
   void _setCallbacks() {
-    renderer.onVideoRotationChanged = (int textureId, int rotation) {
+    renderer.onAspectRatioChanged = (double aspectRatio ){
       setState(() {
-        _updateContainerSize();
+        _aspectRatio = aspectRatio;
       });
     };
-    renderer.onVideoSizeChanged = (int textureId, double width, double height) {
-      setState(() {
-        _updateContainerSize();
-      });
-    };
-    renderer.onFirstFrameRendered = () {
-      setState(() {
-        _updateContainerSize();
-      });
-    };
-  }
-
-  void _updateContainerSize() {
-    double textureWidth = 0.0, textureHeight = 0.0;
-    if (renderer.rotation == 90 || renderer.rotation == 270) {
-      textureWidth = min(renderer.width, renderer.height);
-      textureHeight = max(renderer.width, renderer.height);
-      aspectRatio = textureWidth / textureHeight;
-    } else {
-      textureWidth = max(renderer.width, renderer.height);
-      textureHeight = min(renderer.width, renderer.height);
-      aspectRatio = textureWidth / textureHeight;
-    }
   }
 
   @override
@@ -162,7 +159,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
         child: (this.renderer._textureId == null || this.renderer._srcObject == null)
             ? new Container()
             : new AspectRatio(
-                aspectRatio: aspectRatio,
+                aspectRatio: _aspectRatio,
                 child: new Texture(textureId: this.renderer._textureId)));
   }
 }
