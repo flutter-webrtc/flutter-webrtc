@@ -36,7 +36,7 @@ enum RTCIceConnectionState {
 }
 
 /*
- * 回调类型定义.
+ * Delegate for PeerConnection.
  */
 typedef void SignalingStateCallback(RTCSignalingState state);
 typedef void IceGatheringStateCallback(RTCIceGatheringState state);
@@ -56,8 +56,8 @@ class RTCPeerConnection {
   String _peerConnectionId;
   MethodChannel _channel = WebRTC.methodChannel();
   StreamSubscription<dynamic> _eventSubscription;
-  List<MediaStream> _localStreams;
-  List<MediaStream> _remoteStreams;
+  List<MediaStream> _localStreams = new List();
+  List<MediaStream> _remoteStreams = new List();
   RTCDataChannel _dataChannel;
 
   // public: delegate
@@ -116,26 +116,52 @@ class RTCPeerConnection {
         break;
       case 'onAddStream':
         String streamId = map['streamId'];
-        MediaStream stream = new MediaStream(streamId);
-        stream.setMediaTracks(map['audioTracks'], map['videoTracks']);
+        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
+          var newStream = new MediaStream(streamId);
+          newStream.setMediaTracks(map['audioTracks'], map['videoTracks']);
+          _remoteStreams.add(newStream);
+          return newStream;
+        });
         if (this.onAddStream != null) this.onAddStream(stream);
+        _remoteStreams.add(stream);
         break;
       case 'onRemoveStream':
         String streamId = map['streamId'];
-        MediaStream stream = new MediaStream(streamId);
+        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
+          return null;
+        });
         if (this.onRemoveStream != null) this.onRemoveStream(stream);
+        _remoteStreams.removeWhere((it) => it.id == streamId);
         break;
       case 'onAddTrack':
         String streamId = map['streamId'];
-        MediaStream stream = new MediaStream(streamId);
         Map<dynamic, dynamic> track = map['track'];
+
         MediaStreamTrack newTrack = new MediaStreamTrack(
             map['trackId'], track['label'], track['kind'], track['enabled']);
+        String kind = track["kind"];
+
+        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId,orElse: () {
+          var newStream = new MediaStream(streamId);
+          _remoteStreams.add(newStream);
+          return newStream;
+        });
+
+        List<MediaStreamTrack>  oldTracks = (kind == 'audio')? stream.getAudioTracks() : stream.getVideoTracks();
+        MediaStreamTrack oldTrack = oldTracks.length > 0? oldTracks[0] : null;
+        if(oldTrack != null){
+          stream.removeTrack(oldTrack, removeFromNaitve: false);
+          if (this.onRemoveTrack != null) this.onRemoveTrack(stream, oldTrack);
+        }
+
+        stream.addTrack(newTrack, addToNaitve: false);
         if (this.onAddTrack != null) this.onAddTrack(stream, newTrack);
         break;
       case 'onRemoveTrack':
         String streamId = map['streamId'];
-        MediaStream stream = new MediaStream(streamId);
+        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
+          return null;
+        });
         Map<dynamic, dynamic> track = map['track'];
         MediaStreamTrack oldTrack = new MediaStreamTrack(
             map['trackId'], track['label'], track['kind'], track['enabled']);
@@ -159,7 +185,7 @@ class RTCPeerConnection {
     throw e;
   }
 
-  Future<Null> dispose() async {
+  Future<void> dispose() async {
     await _eventSubscription?.cancel();
     await _channel.invokeMethod(
       'peerConnectionDispose',
@@ -207,15 +233,17 @@ class RTCPeerConnection {
     }
   }
 
-  void addStream(MediaStream stream) {
-    _channel.invokeMethod('addStream', <String, dynamic>{
+  Future<void> addStream(MediaStream stream) async {
+    _localStreams.add(stream);
+    await _channel.invokeMethod('addStream', <String, dynamic>{
       'peerConnectionId': this._peerConnectionId,
       'streamId': stream.id,
     });
   }
 
-  void removeStream(MediaStream stream) {
-    _channel.invokeMethod('removeStream', <String, dynamic>{
+  Future<void> removeStream(MediaStream stream) async  {
+    _localStreams.removeWhere((it) => it.id  == stream.id);
+    await _channel.invokeMethod('removeStream', <String, dynamic>{
       'peerConnectionId': this._peerConnectionId,
       'streamId': stream.id,
     });
@@ -243,8 +271,8 @@ class RTCPeerConnection {
     }
   }
 
-  void addCandidate(RTCIceCandidate candidate) {
-    _channel.invokeMethod('addCandidate', <String, dynamic>{
+  Future<void> addCandidate(RTCIceCandidate candidate) async {
+    await _channel.invokeMethod('addCandidate', <String, dynamic>{
       'peerConnectionId': this._peerConnectionId,
       'candidate': candidate.toMap(),
     });
