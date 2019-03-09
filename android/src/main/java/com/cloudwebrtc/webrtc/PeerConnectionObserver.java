@@ -24,6 +24,7 @@ import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
 import org.webrtc.RtpReceiver;
+import org.webrtc.RtpTransceiver;
 import org.webrtc.StatsObserver;
 import org.webrtc.StatsReport;
 import org.webrtc.VideoTrack;
@@ -375,34 +376,26 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     @Override
     public void onAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams){
         Log.d(TAG, "onAddTrack");
-
         for (MediaStream stream : mediaStreams) {
             String streamId = stream.getId();
-            List<MediaStreamTrack> tracks = new ArrayList<>(stream.audioTracks);
-            tracks.addAll(stream.videoTracks);
+            MediaStreamTrack track = receiver.track();
+            ConstraintsMap params = new ConstraintsMap();
+            params.putString("event", "onAddTrack");
+            params.putString("streamId", streamId);
+            params.putString("trackId", track.id());
 
-            for (MediaStreamTrack track : tracks) {
-                ConstraintsMap params = new ConstraintsMap();
-                params.putString("event", "onAddTrack");
-                params.putString("streamId", streamId);
-                params.putString("trackId", track.id());
-
-                String trackId = track.id();
-                ConstraintsMap trackInfo = new ConstraintsMap();
-                trackInfo.putString("id", trackId);
-                trackInfo.putString("label", track.kind());
-                trackInfo.putString("kind", track.kind());
-                trackInfo.putBoolean("enabled", track.enabled());
-                trackInfo.putString("readyState", track.state().toString());
-                trackInfo.putBoolean("remote", true);
-
-                params.putMap("track", trackInfo.toMap());
-
-                sendEvent(params);
-            }
+            String trackId = track.id();
+            ConstraintsMap trackInfo = new ConstraintsMap();
+            trackInfo.putString("id", trackId);
+            trackInfo.putString("label", track.kind());
+            trackInfo.putString("kind", track.kind());
+            trackInfo.putBoolean("enabled", track.enabled());
+            trackInfo.putString("readyState", track.state().toString());
+            trackInfo.putBoolean("remote", true);
+            params.putMap("track", trackInfo.toMap());
+            sendEvent(params);
         }
     }
-
     @Override
     public void onDataChannel(DataChannel dataChannel) {
         // XXX Unfortunately, the Java WebRTC API doesn't expose the id
