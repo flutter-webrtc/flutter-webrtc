@@ -57,10 +57,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      navigator.getUserMedia(mediaConstraints).then((stream){
-        _localStream = stream;
-        _localRenderer.srcObject = _localStream;
-      });
+      var stream = await navigator.getUserMedia(mediaConstraints);
+      _localStream = stream;
+      _localRenderer.srcObject = _localStream;
     } catch (e) {
       print(e.toString());
     }
