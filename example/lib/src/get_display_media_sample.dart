@@ -53,10 +53,9 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     };
 
     try {
-      navigator.getDisplayMedia(mediaConstraints).then((stream){
-        _localStream = stream;
-        _localRenderer.srcObject = _localStream;
-      });
+      var stream = await navigator.getDisplayMedia(mediaConstraints);
+      _localStream = stream;
+      _localRenderer.srcObject = _localStream;
     } catch (e) {
       print(e.toString());
     }
