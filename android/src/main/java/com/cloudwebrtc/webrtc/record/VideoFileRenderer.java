@@ -130,13 +130,17 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         isRunning = false;
         if (audioThreadHandler != null)
             audioThreadHandler.post(() -> {
-                audioEncoder.stop();
-                audioEncoder.release();
+                if (audioEncoder != null) {
+                    audioEncoder.stop();
+                    audioEncoder.release();
+                }
                 audioThread.quit();
             });
         renderThreadHandler.post(() -> {
-            encoder.stop();
-            encoder.release();
+            if (encoder != null) {
+                encoder.stop();
+                encoder.release();
+            }
             eglBase.release();
             mediaMuxer.stop();
             mediaMuxer.release();
