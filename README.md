@@ -54,6 +54,7 @@ We intend to implement support the following features:
 - [ ] Screen Capture
 - [ ] ORTC API
 - [ ] Support [Fuchsia](https://fuchsia.googlesource.com/)
+- [ ] MediaRecorder
 
 ### Example
 
