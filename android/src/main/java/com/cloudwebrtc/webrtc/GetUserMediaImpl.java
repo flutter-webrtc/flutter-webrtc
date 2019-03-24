@@ -471,12 +471,10 @@ class GetUserMediaImpl{
                     int fps = DEFAULT_FPS;
 
                     videoCapturer.startCapture(width, height, fps);
+                    Log.d(TAG, "ScreenCapturerAndroid.startCapture: " + width + "x" + height + "@" + fps);
 
                     String trackId = plugin.getNextTrackUUID();
                     mVideoCapturers.put(trackId, videoCapturer);
-
-                    Log.d(TAG, "changeCaptureFormat: " + width + "x" + height + "@" + fps);
-                    videoSource.adaptOutputFormat(width, height, fps);
 
                     tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
 
