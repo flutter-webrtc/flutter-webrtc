@@ -1,5 +1,12 @@
 ## Changelog
 --------------------------------------------
+[0.1.1] - 2019.03.24
+
+* Migrated to AndroidX using Refactoring from Andoid Studio
+* Fix mediaStreamTrackSetEnable not working.
+* Fix iOS can't render video when resolution changes.
+* Some code style changes.
+
 [0.1.0] - 2019.01.21
 
 * Fix camera switch issues.
