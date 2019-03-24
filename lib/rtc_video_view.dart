@@ -15,14 +15,14 @@ class RTCVideoRenderer {
   int _textureId;
   int _rotation = 0;
   double _width = 0.0, _height = 0.0;
-  bool _mirror;
+  bool _mirror = false;
   double _aspectRatio = 1.0;
   MediaStream _srcObject;
   RTCVideoViewObjectFit _objectFit =
       RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
   StreamSubscription<dynamic> _eventSubscription;
 
-  dynamic onAspectRatioChanged;
+  dynamic onStateChanged;
 
   initialize() async {
     final Map<dynamic, dynamic> response =
@@ -41,11 +41,19 @@ class RTCVideoRenderer {
 
   int get textureId => _textureId;
 
-	double get aspectRatio =>
-			_width == 0 || _height == 0 ? 1 : _width / _height;
+  double get aspectRatio => (_width == 0 || _height == 0)
+      ? 1
+      : (_rotation == 90 || _rotation == 270)
+          ? _height / _width
+          : _width / _height;
+
+  bool get flipHorizintal => _mirror;
 
   set mirror(bool mirror) {
     _mirror = mirror;
+    if (this.onStateChanged != null) {
+      this.onStateChanged();
+    }
   }
 
   set objectFit(RTCVideoViewObjectFit objectFit) {
@@ -65,6 +73,7 @@ class RTCVideoRenderer {
       'videoRendererDispose',
       <String, dynamic>{'textureId': _textureId},
     );
+    _eventSubscription?.cancel();
   }
 
   EventChannel _eventChannelFor(int textureId) {
@@ -84,8 +93,8 @@ class RTCVideoRenderer {
       case 'didFirstFrameRendered':
         break;
     }
-     if(this.onAspectRatioChanged != null ){
-      this.onAspectRatioChanged();
+    if (this.onStateChanged != null) {
+      this.onStateChanged();
     }
   }
 
@@ -96,15 +105,16 @@ class RTCVideoRenderer {
 }
 
 class RTCVideoView extends StatefulWidget {
-  RTCVideoRenderer _renderer;
+  final RTCVideoRenderer _renderer;
   RTCVideoView(this._renderer);
   @override
   _RTCVideoViewState createState() => new _RTCVideoViewState(_renderer);
 }
 
 class _RTCVideoViewState extends State<RTCVideoView> {
-  RTCVideoRenderer _renderer;
+  final RTCVideoRenderer _renderer;
   double _aspectRatio;
+  bool _mirror;
   _RTCVideoViewState(this._renderer);
 
   @override
@@ -112,18 +122,20 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     super.initState();
     _setCallbacks();
     _aspectRatio = _renderer.aspectRatio;
+    _mirror = _renderer.flipHorizintal;
   }
 
   @override
   void deactivate() {
     super.deactivate();
-    _renderer.onAspectRatioChanged = null;
+    _renderer.onStateChanged = null;
   }
 
   void _setCallbacks() {
-    _renderer.onAspectRatioChanged = (){
+    _renderer.onStateChanged = () {
       setState(() {
         _aspectRatio = _renderer.aspectRatio;
+        _mirror = _renderer.flipHorizintal;
       });
     };
   }
@@ -133,8 +145,14 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     return new Center(
         child: (_renderer._textureId == null || _renderer._srcObject == null)
             ? new Container()
-            : new AspectRatio(
-                aspectRatio: _aspectRatio,
-                child: new Texture(textureId: _renderer._textureId)));
+            : new Transform(
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.001)
+                  ..rotateX(0.0)
+                  ..rotateY(_mirror ? -pi : 0.0),
+                alignment: FractionalOffset.center,
+                child: new AspectRatio(
+                    aspectRatio: _aspectRatio,
+                    child: new Texture(textureId: _renderer._textureId))));
   }
 }
