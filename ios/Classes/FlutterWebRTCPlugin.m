@@ -55,7 +55,6 @@
                               initWithEncoderFactory:encoderFactory
                               decoderFactory:decoderFactory];
     
-    _startUpOrientation = [UIDevice currentDevice].orientation;
     
     self.peerConnections = [NSMutableDictionary new];
     self.localStreams = [NSMutableDictionary new];
