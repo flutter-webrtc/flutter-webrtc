@@ -95,8 +95,8 @@ class _MyAppState extends State<LoopBackSample> {
       "audio": true,
       "video": {
         "mandatory": {
-          "minWidth": '640', // Provide your own width, height and frame rate here
-          "minHeight": '480',
+          "minWidth": '1280', // Provide your own width, height and frame rate here
+          "minHeight": '720',
           "minFrameRate": '30',
         },
         "facingMode": "user",
