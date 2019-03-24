@@ -1,5 +1,9 @@
 ## Changelog
 --------------------------------------------
+[0.1.2] - 2019.03.24
+
+* Fix compilation failure caused by invalid code.
+
 [0.1.1] - 2019.03.24
 
 * Migrated to AndroidX using Refactoring from Andoid Studio
