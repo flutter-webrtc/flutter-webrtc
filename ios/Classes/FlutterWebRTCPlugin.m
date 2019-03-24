@@ -315,10 +315,7 @@
         result(nil);
     }else if([@"createVideoRenderer" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
-        CGFloat width = [argsMap[@"width"] floatValue];
-        CGFloat height = [argsMap[@"height"] floatValue];
-        FlutterRTCVideoRenderer* render = [self createWithSize:CGSizeMake(width, height)
-                                withTextureRegistry:_textures
+        FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures
                                           messenger:_messenger];
         self.renders[@(render.textureId)] = render;
         result(@{@"textureId": @(render.textureId)});

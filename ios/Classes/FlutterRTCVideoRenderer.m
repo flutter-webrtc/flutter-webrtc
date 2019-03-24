@@ -11,8 +11,8 @@
 #import "FlutterWebRTCPlugin.h"
 
 @implementation FlutterRTCVideoRenderer {
-    CGSize _renderSize;
     CGSize _frameSize;
+    CGSize _renderSize;
     CVPixelBufferRef _pixelBufferRef;
     RTCVideoRotation _rotation;
     FlutterEventChannel* _eventChannel;
@@ -22,12 +22,13 @@
 @synthesize registry = _registry;
 @synthesize eventSink = _eventSink;
 
-- (instancetype)initWithSize:(CGSize)renderSize
-         withTextureRegistry:(id<FlutterTextureRegistry>)registry
+- (instancetype)initWithTextureRegistry:(id<FlutterTextureRegistry>)registry
                    messenger:(NSObject<FlutterBinaryMessenger>*)messenger{
     self = [super init];
     if (self){
-        _renderSize = renderSize;
+        _frameSize = CGSizeZero;
+        _renderSize = CGSizeZero;
+        _rotation = -1;
         _registry = registry;
         _pixelBufferRef = nil;
         _eventSink = nil;
@@ -68,6 +69,9 @@
             [oldValue removeRenderer:self];
         }
         _videoTrack = videoTrack;
+        _frameSize = CGSizeZero;
+        _renderSize = CGSizeZero;
+        _rotation = -1;
         if (videoTrack) {
             [videoTrack addRenderer:self];
         }
@@ -167,9 +171,23 @@
 - (void)renderFrame:(RTCVideoFrame *)frame {
 
     [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
-    
+
     __weak FlutterRTCVideoRenderer *weakSelf = self;
-    
+    if(_renderSize.width != frame.width || _frameSize.height != frame.height){
+        dispatch_async(dispatch_get_main_queue(), ^{
+            FlutterRTCVideoRenderer *strongSelf = weakSelf;
+            if(strongSelf.eventSink){
+                strongSelf.eventSink(@{
+                                       @"event" : @"didTextureChangeVideoSize",
+                                       @"id": @(strongSelf.textureId),
+                                       @"width": @(frame.width),
+                                       @"height": @(frame.height),
+                                       });
+            }
+        });
+        _renderSize = CGSizeMake(frame.width, frame.height);
+    }
+
     if(frame.rotation != _rotation){
         dispatch_async(dispatch_get_main_queue(), ^{
             FlutterRTCVideoRenderer *strongSelf = weakSelf;
@@ -208,21 +226,9 @@
                             size.width, size.height,
                             kCVPixelFormatType_32BGRA,
                             (__bridge CFDictionaryRef)(pixelAttributes), &_pixelBufferRef);
+        
+        _frameSize = size;
     }
-    
-    __weak FlutterRTCVideoRenderer *weakSelf = self;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        FlutterRTCVideoRenderer *strongSelf = weakSelf;
-        if(strongSelf.eventSink){
-            strongSelf.eventSink(@{
-                    @"event" : @"didTextureChangeVideoSize",
-                    @"id": @(strongSelf.textureId),
-                    @"width": @(size.width),
-                    @"height": @(size.height),
-                    });
-        }
-    });
-    _frameSize = size;
 }
 
 #pragma mark - FlutterStreamHandler methods
@@ -241,10 +247,9 @@
 
 @implementation FlutterWebRTCPlugin (FlutterVideoRendererManager)
 
-- (FlutterRTCVideoRenderer *)createWithSize:(CGSize)size
-                    withTextureRegistry:(id<FlutterTextureRegistry>)registry
+- (FlutterRTCVideoRenderer *)createWithTextureRegistry:(id<FlutterTextureRegistry>)registry
                        messenger:(NSObject<FlutterBinaryMessenger>*)messenger{
-    return [[FlutterRTCVideoRenderer alloc] initWithSize:size withTextureRegistry:registry messenger:messenger];
+    return [[FlutterRTCVideoRenderer alloc] initWithTextureRegistry:registry messenger:messenger];
 }
 
 -(void)setStreamId:(NSString*)streamId view:(FlutterRTCVideoRenderer*)view {
