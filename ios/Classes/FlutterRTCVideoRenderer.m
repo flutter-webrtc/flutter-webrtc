@@ -203,10 +203,11 @@
         if(_pixelBufferRef){
             CVBufferRelease(_pixelBufferRef);
         }
+        NSDictionary *pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
         CVPixelBufferCreate(kCFAllocatorDefault,
                             size.width, size.height,
                             kCVPixelFormatType_32BGRA,
-                            NULL, &_pixelBufferRef);
+                            (__bridge CFDictionaryRef)(pixelAttributes), &_pixelBufferRef);
     }
     
     __weak FlutterRTCVideoRenderer *weakSelf = self;
