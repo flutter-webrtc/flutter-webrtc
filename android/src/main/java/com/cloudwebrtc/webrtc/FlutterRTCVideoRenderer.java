@@ -66,8 +66,8 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
                         params.putInt("id", id);
 
                         if(rotation == 90 || rotation == 270){
-                            params.putDouble("width", (double) videoHeight);
-                            params.putDouble("height", (double) videoWidth);
+                            params.putDouble("width", (double) videoWidth);
+                            params.putDouble("height", (double) videoHeight);
                         }else {
                             params.putDouble("width", (double) videoWidth);
                             params.putDouble("height", (double) videoHeight);

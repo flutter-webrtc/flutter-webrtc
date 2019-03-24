@@ -130,7 +130,7 @@ class _MyAppState extends State<LoopBackSample> {
     try {
       _localStream = await navigator.getUserMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
-
+      _localRenderer.mirror = true;
       _peerConnection =
       await createPeerConnection(configuration, loopbackConstraints);
 
