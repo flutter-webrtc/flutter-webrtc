@@ -737,12 +737,23 @@ class GetUserMediaImpl{
             callback);
     }
 
-    void switchCamera(String id) {
+    void switchCamera(String id, Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(id);
         if (videoCapturer != null) {
             CameraVideoCapturer cameraVideoCapturer
                 = (CameraVideoCapturer) videoCapturer;
-            cameraVideoCapturer.switchCamera(null);
+            cameraVideoCapturer.switchCamera(new CameraVideoCapturer.CameraSwitchHandler() {
+                @Override
+                public void onCameraSwitchDone(boolean b) {
+                    result.success(b);
+                }
+                @Override
+                public void onCameraSwitchError(String s) {
+                    result.error("Switching camera failed", s, null);
+                }
+            });
+        } else {
+            result.error("Video capturer not found for id: " + id, null, null);
         }
     }
 
