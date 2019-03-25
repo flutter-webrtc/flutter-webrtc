@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'utils.dart';
 
@@ -21,12 +23,13 @@ class MediaStreamTrack {
   String get kind => _kind;
   String get id => _trackId;
 
-  void switchCamera() async {
-    await _channel.invokeMethod(
+  ///Future contains isFrontCamera
+  ///Throws error if switching camera failed
+  Future<bool> switchCamera() =>
+    _channel.invokeMethod(
       'mediaStreamTrackSwitchCamera',
       <String, dynamic>{'trackId': _trackId},
     );
-  }
 
   void setVolume(double volume) async {
     await _channel.invokeMethod(

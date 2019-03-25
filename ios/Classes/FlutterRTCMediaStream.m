@@ -473,7 +473,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
   }
 }
 
--(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track
+-(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track result:(FlutterResult)result
 {
     if (!self.videoCapturer) {
         NSLog(@"Video capturer is null. Can't switch camera");
@@ -483,7 +483,13 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     AVCaptureDevicePosition position = self._usingFrontCamera ? AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
     AVCaptureDevice *videoDevice = [self findDeviceForPosition:position];
     AVCaptureDeviceFormat *selectedFormat = [self selectFormatForDevice:videoDevice];
-    [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:[self selectFpsForFormat:selectedFormat]];
+    [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:[self selectFpsForFormat:selectedFormat] completionHandler:^(NSError* error){
+        if (error != nil) {
+            result([FlutterError errorWithCode:@"Error while switching camera" message:@"Error while switching camera" details:error]);
+        } else {
+            result([NSNumber numberWithBool:self._usingFrontCamera]);
+        }
+    }];
 }
 
 -(void)mediaStreamTrackStop:(RTCMediaStreamTrack *)track

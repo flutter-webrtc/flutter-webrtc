@@ -342,15 +342,14 @@
         RTCMediaStreamTrack *track = self.localTracks[trackId];
         if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
             RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-            [self mediaStreamTrackSwitchCamera:videoTrack];
+            [self mediaStreamTrackSwitchCamera:videoTrack result:result];
         } else {
             if (track == nil) {
-                NSLog(@"Track is nil");
+                result([FlutterError errorWithCode:@"Track is nil" message:nil details:nil]);
             } else {
-                NSLog([@"Track is class of " stringByAppendingString:[[track class] description]]);
+                result([FlutterError errorWithCode:[@"Track is class of " stringByAppendingString:[[track class] description]] message:nil details:nil]);
             }
         }
-        result(nil);
     }else if ([@"setVolume" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
