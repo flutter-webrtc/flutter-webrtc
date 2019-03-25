@@ -1,5 +1,10 @@
 ## Changelog
 --------------------------------------------
+[0.1.3] - 2019.03.25
+
+* Add horizontal flip (mirror) function for RTCVideoView.
+* Fixed ScreenCapture preview aspect ratio for Android.
+
 [0.1.2] - 2019.03.24
 
 * Fix compilation failure caused by invalid code.
