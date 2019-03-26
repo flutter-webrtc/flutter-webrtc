@@ -271,8 +271,7 @@ class RTCPeerConnection {
     }
   }
 
-  Future<RTCSessionDescription> getLocalDescription(
-      RTCSessionDescription description) async {
+  Future<RTCSessionDescription> getLocalDescription() async {
     try {
       final Map<dynamic, dynamic> response =
       await _channel.invokeMethod('getLocalDescription', <String, dynamic>{
