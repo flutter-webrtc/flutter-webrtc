@@ -691,8 +691,10 @@ class GetUserMediaImpl{
                 videoCapturer.stopCapture();
             } catch (InterruptedException e) {
                 Log.e(TAG, "removeVideoCapturer() Failed to stop video capturer");
+            } finally {
+                videoCapturer.dispose();
+                mVideoCapturers.remove(id);
             }
-            mVideoCapturers.remove(id);
         }
     }
 
