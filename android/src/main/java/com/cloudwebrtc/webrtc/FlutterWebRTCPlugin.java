@@ -329,6 +329,32 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             } else {
                 result.error("Track is null", null, null);
             }
+        } else if (call.method.equals("getLocalDescription")) {
+            String peerConnectionId = call.argument("peerConnectionId");
+            PeerConnection peerConnection = getPeerConnection(peerConnectionId);
+            if (peerConnection != null) {
+                SessionDescription sdp = peerConnection.getLocalDescription();
+                ConstraintsMap params = new ConstraintsMap();
+                params.putString("sdp", sdp.description);
+                params.putString("type", sdp.type.canonicalForm());
+                result.success(params.toMap());
+            } else {
+                Log.d(TAG, "getLocalDescription() peerConnection is null");
+                result.error("getLocalDescriptionFailed", "getLocalDescription() peerConnection is null", null);
+            }
+        } else if (call.method.equals("getRemoteDescription")) {
+            String peerConnectionId = call.argument("peerConnectionId");
+            PeerConnection peerConnection = getPeerConnection(peerConnectionId);
+            if (peerConnection != null) {
+                SessionDescription sdp = peerConnection.getRemoteDescription();
+                ConstraintsMap params = new ConstraintsMap();
+                params.putString("sdp", sdp.description);
+                params.putString("type", sdp.type.canonicalForm());
+                result.success(params.toMap());
+            } else {
+                Log.d(TAG, "getRemoteDescription() peerConnection is null");
+                result.error("getRemoteDescriptionFailed", "getRemoteDescription() peerConnection is null", null);
+            }
         } else {
             result.notImplemented();
         }

@@ -361,7 +361,33 @@
             audioSource.volume = [volume doubleValue];
         }
         result(nil);
-    }else{
+    }else if ([@"getLocalDescription" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        if(peerConnection) {
+            RTCSessionDescription* sdp = peerConnection.localDescription;
+            NSString *type = [RTCSessionDescription stringForType:sdp.type];
+            result(@{@"sdp": sdp.sdp, @"type": type});
+        } else {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                                       details:nil]);
+        }
+    }  else if ([@"getRemoteDescription" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        if(peerConnection) {
+            RTCSessionDescription* sdp = peerConnection.remoteDescription;
+            NSString *type = [RTCSessionDescription stringForType:sdp.type];
+            result(@{@"sdp": sdp.sdp, @"type": type});
+        } else {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                                       details:nil]);
+        }
+    } else {
         result(FlutterMethodNotImplemented);
     }
 }

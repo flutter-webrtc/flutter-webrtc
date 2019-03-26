@@ -271,6 +271,35 @@ class RTCPeerConnection {
     }
   }
 
+  Future<RTCSessionDescription> getLocalDescription(
+      RTCSessionDescription description) async {
+    try {
+      final Map<dynamic, dynamic> response =
+      await _channel.invokeMethod('getLocalDescription', <String, dynamic>{
+        'peerConnectionId': this._peerConnectionId,
+      });
+      String sdp = response['sdp'];
+      String type = response['type'];
+      return new RTCSessionDescription(sdp, type);
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::getLocalDescription: ${e.message}';
+    }
+  }
+
+  Future<RTCSessionDescription> getRemoteDescription() async {
+    try {
+      final Map<dynamic, dynamic> response =
+      await _channel.invokeMethod('getRemoteDescription', <String, dynamic>{
+        'peerConnectionId': this._peerConnectionId,
+      });
+      String sdp = response['sdp'];
+      String type = response['type'];
+      return new RTCSessionDescription(sdp, type);
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::getRemoteDescription: ${e.message}';
+    }
+  }
+
   Future<void> addCandidate(RTCIceCandidate candidate) async {
     await _channel.invokeMethod('addCandidate', <String, dynamic>{
       'peerConnectionId': this._peerConnectionId,
