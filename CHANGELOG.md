@@ -1,5 +1,11 @@
 ## Changelog
 --------------------------------------------
+[0.1.4] - 2019.03.26
+
+* switchCamera method now returns future with isFrontCamera as result
+* Fix camera stuck in rare cases
+* Add getLocalDescription/getRemoteDescription methods
+
 [0.1.3] - 2019.03.25
 
 * Add horizontal flip (mirror) function for RTCVideoView.
