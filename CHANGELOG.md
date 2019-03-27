@@ -1,5 +1,9 @@
 ## Changelog
 --------------------------------------------
+[0.1.5] - 2019.03.27
+
+* Remove unnecessary parameter for getLocalDescription method.
+
 [0.1.4] - 2019.03.26
 
 * switchCamera method now returns future with isFrontCamera as result
