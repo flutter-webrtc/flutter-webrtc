@@ -1,12 +1,9 @@
 package com.cloudwebrtc.webrtc;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import android.util.Base64;
@@ -24,7 +21,6 @@ import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
 import org.webrtc.RtpReceiver;
-import org.webrtc.RtpTransceiver;
 import org.webrtc.StatsObserver;
 import org.webrtc.StatsReport;
 import org.webrtc.VideoTrack;
@@ -45,24 +41,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
     EventChannel eventChannel;
     EventChannel.EventSink eventSink;
-
-    /*
-        Map<String, Object> event = new HashMap<>();
-        event.put("event", "onSomeEvent");
-        event.put("param1", 111);
-        event.put("width", 176);
-        event.put("height", 144);
-        nativeToDartEventSink.success(event);
-     */
-
-    /**
-     * The <tt>StringBuilder</tt> cache utilized by {@link #statsToJSON} in
-     * order to minimize the number of allocations of <tt>StringBuilder</tt>
-     * instances and, more importantly, the allocations of its <tt>char</tt>
-     * buffer in an attempt to improve performance.
-     */
-    private SoftReference<StringBuilder> statsToJSONStringBuilder
-        = new SoftReference(null);
 
     PeerConnectionObserver(FlutterWebRTCPlugin plugin, String id) {
         this.plugin = plugin;

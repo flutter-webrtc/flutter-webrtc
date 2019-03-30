@@ -1,6 +1,5 @@
 package com.cloudwebrtc.webrtc;
 
-import android.content.Context;
 import android.util.Log;
 import android.graphics.SurfaceTexture;
 
