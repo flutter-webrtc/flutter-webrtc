@@ -22,5 +22,5 @@ Future<RTCPeerConnection> createPeerConnection(Map<String, dynamic> configuratio
   );
 
   String peerConnectionId = response['peerConnectionId'];
-  return new RTCPeerConnection(peerConnectionId);
+  return new RTCPeerConnection(peerConnectionId, configuration);
 }

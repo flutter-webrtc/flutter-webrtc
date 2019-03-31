@@ -387,6 +387,19 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
+    } else if([@"setConfiguration" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+            NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+            NSDictionary* configuration = argsMap[@"configuration"];
+            RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+            if(peerConnection) {
+                [self peerConnectionSetConfiguration:[self RTCConfiguration:configuration] peerConnection:peerConnection];
+                result(nil);
+            } else {
+                result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+                                           message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                                           details:nil]);
+            }
     } else {
         result(FlutterMethodNotImplemented);
     }

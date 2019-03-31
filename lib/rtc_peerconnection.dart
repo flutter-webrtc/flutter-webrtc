@@ -59,6 +59,7 @@ class RTCPeerConnection {
   List<MediaStream> _localStreams = new List();
   List<MediaStream> _remoteStreams = new List();
   RTCDataChannel _dataChannel;
+  Map<String, dynamic> _configuration;
 
   // public: delegate
   SignalingStateCallback onSignalingState;
@@ -80,7 +81,7 @@ class RTCPeerConnection {
     "optional": [],
   };
 
-  RTCPeerConnection(this._peerConnectionId) {
+  RTCPeerConnection(this._peerConnectionId, this._configuration) {
     _eventSubscription = _eventChannelFor(_peerConnectionId)
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
@@ -196,6 +197,20 @@ class RTCPeerConnection {
   EventChannel _eventChannelFor(String peerConnectionId) {
     return new EventChannel(
         'cloudwebrtc.com/WebRTC/peerConnectoinEvent$peerConnectionId');
+  }
+
+  Map<String, dynamic> get getConfiguration => _configuration;
+
+  Future<void> setConfiguration(Map<String, dynamic> configuration) async {
+    _configuration = configuration;
+    try {
+      await _channel.invokeMethod('setConfiguration', <String, dynamic>{
+        'peerConnectionId': this._peerConnectionId,
+        'configuration': configuration,
+      });
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::createOffer: ${e.message}';
+    }
   }
 
   Future<RTCSessionDescription> createOffer(
