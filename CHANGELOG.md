@@ -1,5 +1,10 @@
 ## Changelog
 --------------------------------------------
+[0.1.6] - 2019.01.31
+
+* Add getConfiguration/setConfiguration methods for Peerconnection.
+* Add object fit for RTCVideoView.
+
 [0.1.5] - 2019.03.27
 
 * Remove unnecessary parameter for getLocalDescription method.
