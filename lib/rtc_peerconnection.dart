@@ -209,7 +209,7 @@ class RTCPeerConnection {
         'configuration': configuration,
       });
     } on PlatformException catch (e) {
-      throw 'Unable to RTCPeerConnection::createOffer: ${e.message}';
+      throw 'Unable to RTCPeerConnection::setConfiguration: ${e.message}';
     }
   }
 
