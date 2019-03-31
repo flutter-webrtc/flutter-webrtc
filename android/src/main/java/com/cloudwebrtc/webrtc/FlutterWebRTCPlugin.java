@@ -355,6 +355,17 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 Log.d(TAG, "getRemoteDescription() peerConnection is null");
                 result.error("getRemoteDescriptionFailed", "getRemoteDescription() peerConnection is null", null);
             }
+        } else if (call.method.equals("setConfiguration")) {
+            String peerConnectionId = call.argument("peerConnectionId");
+            Map<String, Object> configuration = call.argument("configuration");
+            PeerConnection peerConnection = getPeerConnection(peerConnectionId);
+            if (peerConnection != null) {
+                peerConnectionSetConfiguration(new ConstraintsMap(configuration), peerConnection);
+                result.success(null);
+            } else {
+                Log.d(TAG, "setConfiguration() peerConnection is null");
+                result.error("setConfigurationFailed", "setConfiguration() peerConnection is null", null);
+            }
         } else {
             result.notImplemented();
         }
@@ -891,8 +902,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         return constraints;
     }
 
-    public void peerConnectionSetConfiguration(ConstraintsMap configuration, final String id) {
-        PeerConnection peerConnection = getPeerConnection(id);
+    public void peerConnectionSetConfiguration(ConstraintsMap configuration, PeerConnection peerConnection) {
         if (peerConnection == null) {
             Log.d(TAG, "peerConnectionSetConfiguration() peerConnection is null");
             return;
