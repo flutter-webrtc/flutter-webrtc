@@ -35,6 +35,9 @@
                 peerConnection:(nonnull RTCPeerConnection *)peerConnection
                         result:(nonnull FlutterResult)result;
 
-- (RTCMediaConstraints *)parseMediaConstraints:(nonnull NSDictionary *)constraints;
+-(RTCMediaConstraints *) parseMediaConstraints:(nonnull NSDictionary *)constraints;
+
+-(void) peerConnectionSetConfiguration:(RTCConfiguration*)configuration
+                        peerConnection:(RTCPeerConnection*)peerConnection;
 
 @end
