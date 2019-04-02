@@ -115,7 +115,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         mFactory = PeerConnectionFactory.builder()
                 .setOptions(new PeerConnectionFactory.Options())
-                .setVideoEncoderFactory(new DefaultVideoEncoderFactory(eglContext, true, true))
+                .setVideoEncoderFactory(new DefaultVideoEncoderFactory(eglContext, false, true))
                 .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
                 .setAudioDeviceModule(audioDeviceModule)
                 .createPeerConnectionFactory();
