@@ -16,6 +16,7 @@
     CVPixelBufferRef _pixelBufferRef;
     RTCVideoRotation _rotation;
     FlutterEventChannel* _eventChannel;
+    bool _isFirstFrameRendered;
 }
 
 @synthesize textureId  = _textureId;
@@ -26,6 +27,7 @@
                    messenger:(NSObject<FlutterBinaryMessenger>*)messenger{
     self = [super init];
     if (self){
+        _isFirstFrameRendered = false;
         _frameSize = CGSizeZero;
         _renderSize = CGSizeZero;
         _rotation = -1;
@@ -207,6 +209,12 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         FlutterRTCVideoRenderer *strongSelf = weakSelf;
         [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
+        if (!strongSelf->_isFirstFrameRendered) {
+            if (strongSelf.eventSink) {
+                strongSelf.eventSink(@{@"event":@"didFirstFrameRendered"});
+                strongSelf->_isFirstFrameRendered = true;
+            }
+        }
     });
 }
 
