@@ -2,6 +2,7 @@
 
 #import <WebRTC/WebRTC.h>
 
+#import "FlutterRTCFrameCapturer.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRPScreenRecorder.h"
@@ -490,6 +491,16 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             result([NSNumber numberWithBool:self._usingFrontCamera]);
         }
     }];
+}
+
+-(void)mediaStreamTrackCaptureFrame:(RTCVideoTrack *)track toPath:(NSString *) path result:(FlutterResult)result
+{
+    if (!self.videoCapturer) {
+        NSLog(@"Video capturer is null. Can't capture frame.");
+        return;
+    }
+
+    FlutterRTCFrameCapturer *capturer = [[FlutterRTCFrameCapturer alloc] initWithTrack:track toPath:path result:result];
 }
 
 -(void)mediaStreamTrackStop:(RTCMediaStreamTrack *)track
