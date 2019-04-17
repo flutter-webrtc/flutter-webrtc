@@ -33,50 +33,50 @@
 
 - (void)renderFrame:(nullable RTCVideoFrame *)frame
 {
-    if (_gotFrame) return;
+    if (_gotFrame || frame == nil) return;
     _gotFrame = true;
+
+    id<RTCVideoFrameBuffer> buffer = frame.buffer;
+    CVPixelBufferRef pixelBufferRef = ((RTCCVPixelBuffer *) buffer).pixelBuffer;
+
+    CIImage *ciImage = [CIImage imageWithCVPixelBuffer:pixelBufferRef];
+    CIContext *context = [CIContext contextWithOptions:nil];
+    CGImageRef cgImage = [context createCGImage:ciImage
+                                       fromRect:CGRectMake(0, 0, frame.width, frame.height)];
+
+    UIImageOrientation orientation;
+    switch (frame.rotation) {
+        case RTCVideoRotation_90:
+            orientation = UIImageOrientationRight;
+            break;
+        case RTCVideoRotation_180:
+            orientation = UIImageOrientationDown;
+            break;
+        case RTCVideoRotation_270:
+            orientation = UIImageOrientationLeft;
+        default:
+            orientation = UIImageOrientationUp;
+            break;
+    }
+
+    UIImage *uiImage = [UIImage imageWithCGImage:cgImage scale:1 orientation:orientation];
+    CGImageRelease(cgImage);
+    NSData *jpgData = UIImageJPEGRepresentation(uiImage, 0.9f);
+
+    if ([jpgData writeToFile:_path atomically:NO]) {
+        NSLog(@"File writed successfully to %@", _path);
+        _result(nil);
+    } else {
+        NSLog(@"Failed to write to file");
+        _result([FlutterError errorWithCode:@"CaptureFrameFailed"
+                                    message:@"Failed to write JPEG data to file"
+                                    details:nil]);
+    }
 
     dispatch_async(dispatch_get_main_queue(), ^{
         [self->_track removeRenderer:self];
+        self->_track = nil;
     });
-
-    id<RTCVideoFrameBuffer> buffer = [frame buffer];
-    id<RTCI420Buffer> i420Buffer = [buffer toI420];
-
-    CVPixelBufferRef pixelBuffer = nil;
-    CVPixelBufferCreate(kCFAllocatorDefault, i420Buffer.width, i420Buffer.height, kCVPixelFormatType_32ARGB, nil, &pixelBuffer);
-    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
-
-    uint8_t* dst = CVPixelBufferGetBaseAddress(pixelBuffer);
-    const size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer);
-
-    I420ToBGRA(i420Buffer.dataY,
-               i420Buffer.strideY,
-               i420Buffer.dataU,
-               i420Buffer.strideU,
-               i420Buffer.dataV,
-               i420Buffer.strideV,
-               dst,
-               (int)bytesPerRow,
-               i420Buffer.width,
-               i420Buffer.height);
-
-    CIContext *context = [[CIContext alloc] init];
-    CIImage *coreImage = [[CIImage alloc] initWithCVPixelBuffer:pixelBuffer];
-
-    CIImage *rotatedImage;
-    switch (frame.rotation) {
-        case RTCVideoRotation_0: rotatedImage = coreImage; break;
-        case RTCVideoRotation_90: rotatedImage = [coreImage imageByApplyingOrientation:kCGImagePropertyOrientationRight]; break;
-        case RTCVideoRotation_180: rotatedImage = [coreImage imageByApplyingOrientation:kCGImagePropertyOrientationDown]; break;
-        case RTCVideoRotation_270: rotatedImage = [coreImage imageByApplyingOrientation:kCGImagePropertyOrientationLeft]; break;
-    }
-
-    NSData* data = [context JPEGRepresentationOfImage:rotatedImage colorSpace:rotatedImage.colorSpace options:@{}];
-
-    [data writeToFile:_path atomically:NO];
-
-    _result(nil);
 }
 
 @end
