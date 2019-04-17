@@ -15,7 +15,8 @@
 @property (nonatomic, weak) id<FlutterTextureRegistry> registry;
 @property (nonatomic, strong) FlutterEventSink eventSink;
 
-- (instancetype)initWithSize:(CGSize)renderSize;
+- (instancetype)initWithTextureRegistry:(id<FlutterTextureRegistry>)registry
+                              messenger:(NSObject<FlutterBinaryMessenger>*)messenger;
 
 - (void)dispose;
 
