@@ -67,7 +67,7 @@
     RTCVideoTrack *oldValue = self.videoTrack;
     
     if (oldValue != videoTrack) {
-        self._isFirstFrameRendered = false;
+        _isFirstFrameRendered = false;
         if (oldValue) {
             [oldValue removeRenderer:self];
         }
