@@ -21,8 +21,10 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.util.SparseArray;
 
+import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.AudioSamplesInterceptor;
 import com.cloudwebrtc.webrtc.record.MediaRecorderImpl;
+import com.cloudwebrtc.webrtc.record.OutputAudioSamplesInterceptor;
 import com.cloudwebrtc.webrtc.utils.Callback;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
@@ -37,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.webrtc.*;
+import org.webrtc.audio.JavaAudioDeviceModule;
 
 import io.flutter.plugin.common.MethodChannel.Result;
 
@@ -71,7 +74,9 @@ class GetUserMediaImpl{
     private MediaProjectionManager mProjectionManager = null;
     private static MediaProjection sMediaProjection = null;
 
-    final AudioSamplesInterceptor audioSamplesInterceptor = new AudioSamplesInterceptor();
+    final AudioSamplesInterceptor inputSamplesInterceptor = new AudioSamplesInterceptor();
+    private OutputAudioSamplesInterceptor outputSamplesInterceptor = null;
+    JavaAudioDeviceModule audioDeviceModule;
     private final SparseArray<MediaRecorderImpl> mediaRecorders = new SparseArray<>();
 
     public void screenRequestPremissions(ResultReceiver resultReceiver){
@@ -466,12 +471,10 @@ class GetUserMediaImpl{
                     int fps = DEFAULT_FPS;
 
                     videoCapturer.startCapture(width, height, fps);
+                    Log.d(TAG, "ScreenCapturerAndroid.startCapture: " + width + "x" + height + "@" + fps);
 
                     String trackId = plugin.getNextTrackUUID();
                     mVideoCapturers.put(trackId, videoCapturer);
-
-                    Log.d(TAG, "changeCaptureFormat: " + width + "x" + height + "@" + fps);
-                    videoSource.adaptOutputFormat(width, height, fps);
 
                     tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
 
@@ -688,8 +691,10 @@ class GetUserMediaImpl{
                 videoCapturer.stopCapture();
             } catch (InterruptedException e) {
                 Log.e(TAG, "removeVideoCapturer() Failed to stop video capturer");
+            } finally {
+                videoCapturer.dispose();
+                mVideoCapturers.remove(id);
             }
-            mVideoCapturers.remove(id);
         }
     }
 
@@ -734,24 +739,41 @@ class GetUserMediaImpl{
             callback);
     }
 
-    void switchCamera(String id) {
+    void switchCamera(String id, Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(id);
         if (videoCapturer != null) {
             CameraVideoCapturer cameraVideoCapturer
                 = (CameraVideoCapturer) videoCapturer;
-            cameraVideoCapturer.switchCamera(null);
+            cameraVideoCapturer.switchCamera(new CameraVideoCapturer.CameraSwitchHandler() {
+                @Override
+                public void onCameraSwitchDone(boolean b) {
+                    result.success(b);
+                }
+                @Override
+                public void onCameraSwitchError(String s) {
+                    result.error("Switching camera failed", s, null);
+                }
+            });
+        } else {
+            result.error("Video capturer not found for id: " + id, null, null);
         }
     }
 
     /** Creates and starts recording of local stream to file
      *  @param path to the file for record
      *  @param videoTrack to record or null if only audio needed
-     *  @param audioTrack actually ignored, because current WebRTC implementation allows only
-     *                    local track to be recorded, but if null passed, no audio will be recorded
+     *  @param audioChannel channel for recording or null
      *  @throws Exception lot of different exceptions, pass back to dart layer to print them at least
      *  **/
-    void startRecordingToFile(String path, Integer id, @Nullable VideoTrack videoTrack, @Nullable AudioTrack audioTrack) throws Exception {
-        AudioSamplesInterceptor interceptor = audioTrack == null ? null : audioSamplesInterceptor;
+    void startRecordingToFile(String path, Integer id, @Nullable VideoTrack videoTrack, @Nullable AudioChannel audioChannel) throws Exception {
+        AudioSamplesInterceptor interceptor = null;
+        if (audioChannel == AudioChannel.INPUT)
+            interceptor = inputSamplesInterceptor;
+        else if (audioChannel == AudioChannel.OUTPUT) {
+            if (outputSamplesInterceptor == null)
+                outputSamplesInterceptor = new OutputAudioSamplesInterceptor(audioDeviceModule);
+            interceptor = outputSamplesInterceptor;
+        }
         MediaRecorderImpl mediaRecorder = new MediaRecorderImpl(id, videoTrack, interceptor);
         mediaRecorder.startRecording(new File(path));
         mediaRecorders.append(id, mediaRecorder);

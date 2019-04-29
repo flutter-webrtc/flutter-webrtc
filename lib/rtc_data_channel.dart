@@ -79,8 +79,8 @@ class RTCDataChannel {
     throw e;
   }
 
-  void send(String type, dynamic data){
-    _channel.invokeMethod('dataChannelSend',
+  Future<void> send(String type, dynamic data) async {
+    await _channel.invokeMethod('dataChannelSend',
         <String, dynamic>{ 'peerConnectionId': _peerConnectionId,
         'dataChannelId': _dataChannelId,
         'type': type,

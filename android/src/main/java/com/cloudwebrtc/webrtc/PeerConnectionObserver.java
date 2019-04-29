@@ -1,12 +1,9 @@
 package com.cloudwebrtc.webrtc;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import android.util.Base64;
@@ -44,24 +41,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
     EventChannel eventChannel;
     EventChannel.EventSink eventSink;
-
-    /*
-        Map<String, Object> event = new HashMap<>();
-        event.put("event", "onSomeEvent");
-        event.put("param1", 111);
-        event.put("width", 176);
-        event.put("height", 144);
-        nativeToDartEventSink.success(event);
-     */
-
-    /**
-     * The <tt>StringBuilder</tt> cache utilized by {@link #statsToJSON} in
-     * order to minimize the number of allocations of <tt>StringBuilder</tt>
-     * instances and, more importantly, the allocations of its <tt>char</tt>
-     * buffer in an attempt to improve performance.
-     */
-    private SoftReference<StringBuilder> statsToJSONStringBuilder
-        = new SoftReference(null);
 
     PeerConnectionObserver(FlutterWebRTCPlugin plugin, String id) {
         this.plugin = plugin;
@@ -375,34 +354,26 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     @Override
     public void onAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams){
         Log.d(TAG, "onAddTrack");
-
         for (MediaStream stream : mediaStreams) {
             String streamId = stream.getId();
-            List<MediaStreamTrack> tracks = new ArrayList<>(stream.audioTracks);
-            tracks.addAll(stream.videoTracks);
+            MediaStreamTrack track = receiver.track();
+            ConstraintsMap params = new ConstraintsMap();
+            params.putString("event", "onAddTrack");
+            params.putString("streamId", streamId);
+            params.putString("trackId", track.id());
 
-            for (MediaStreamTrack track : tracks) {
-                ConstraintsMap params = new ConstraintsMap();
-                params.putString("event", "onAddTrack");
-                params.putString("streamId", streamId);
-                params.putString("trackId", track.id());
-
-                String trackId = track.id();
-                ConstraintsMap trackInfo = new ConstraintsMap();
-                trackInfo.putString("id", trackId);
-                trackInfo.putString("label", track.kind());
-                trackInfo.putString("kind", track.kind());
-                trackInfo.putBoolean("enabled", track.enabled());
-                trackInfo.putString("readyState", track.state().toString());
-                trackInfo.putBoolean("remote", true);
-
-                params.putMap("track", trackInfo.toMap());
-
-                sendEvent(params);
-            }
+            String trackId = track.id();
+            ConstraintsMap trackInfo = new ConstraintsMap();
+            trackInfo.putString("id", trackId);
+            trackInfo.putString("label", track.kind());
+            trackInfo.putString("kind", track.kind());
+            trackInfo.putBoolean("enabled", track.enabled());
+            trackInfo.putString("readyState", track.state().toString());
+            trackInfo.putBoolean("remote", true);
+            params.putMap("track", trackInfo.toMap());
+            sendEvent(params);
         }
     }
-
     @Override
     public void onDataChannel(DataChannel dataChannel) {
         // XXX Unfortunately, the Java WebRTC API doesn't expose the id

@@ -51,9 +51,10 @@ We intend to implement support the following features:
 
 - [X] Data Channel
 - [ ] Port to [Flutter-Desktop-Embedding](https://github.com/google/flutter-desktop-embedding)
-- [ ] Screen Capture
+- [X] Screen Capture (iOS/Android)
 - [ ] ORTC API
 - [ ] Support [Fuchsia](https://fuchsia.googlesource.com/)
+- [ ] MediaRecorder
 
 ### Example
 
@@ -111,10 +112,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      navigator.getUserMedia(mediaConstraints).then((stream){
-        _localStream = stream;
-        _localRenderer.srcObject = _localStream;
-      });
+      var stream = await navigator.getUserMedia(mediaConstraints);
+      _localStream = stream;
+      _localRenderer.srcObject = _localStream;
     } catch (e) {
       print(e.toString());
     }

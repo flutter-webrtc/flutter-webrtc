@@ -47,7 +47,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       "audio": false,
       "video": {
         "mandatory": {
-          "minWidth":'1280', // Provide your own width, height and frame rate here
+          "minWidth": '1280', // Provide your own width, height and frame rate here
           "minHeight": '720',
           "minFrameRate": '30',
         },
@@ -57,10 +57,10 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      navigator.getUserMedia(mediaConstraints).then((stream){
-        _localStream = stream;
-        _localRenderer.srcObject = _localStream;
-      });
+      var stream = await navigator.getUserMedia(mediaConstraints);
+      _localStream = stream;
+      _localRenderer.srcObject = _localStream;
+      _localRenderer.mirror = true;
     } catch (e) {
       print(e.toString());
     }
@@ -92,20 +92,34 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     final storagePath = await getExternalStorageDirectory();
     final filePath = storagePath.path + '/webrtc_sample/test.mp4';
     _mediaRecorder = MediaRecorder();
-    setState((){});
+    setState(() {});
     await _localStream.getMediaTracks();
     final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
     await _mediaRecorder.start(
-      path: filePath,
+      filePath,
       videoTrack: videoTrack,
     );
   }
 
   _stopRecording() async {
     await _mediaRecorder?.stop();
-    setState((){
+    setState(() {
       _mediaRecorder = null;
     });
+  }
+
+  _captureFrame() async {
+    String filePath;
+    if (Platform.isAndroid) {
+      final storagePath = await getExternalStorageDirectory();
+      filePath = storagePath.path + '/webrtc_sample/test.jpg';
+    } else {
+      final storagePath = await getApplicationDocumentsDirectory();
+      filePath = storagePath.path + '/test${DateTime.now()}.jpg';
+    }
+
+    final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
+    videoTrack.captureFrame(filePath);
   }
 
   @override
@@ -113,12 +127,18 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('GetUserMedia API Test'),
-        actions: _inCalling ? <Widget>[
-          new IconButton(
-            icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
-            onPressed: _isRec ? _stopRecording : _startRecording,
-          ),
-        ] : null,
+        actions: _inCalling
+            ? <Widget>[
+                new IconButton(
+                  icon: Icon(Icons.camera),
+                  onPressed: _captureFrame,
+                ),
+                new IconButton(
+                  icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
+                  onPressed: _isRec ? _stopRecording : _startRecording,
+                ),
+              ]
+            : null,
       ),
       body: new OrientationBuilder(
         builder: (context, orientation) {

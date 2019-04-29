@@ -2,6 +2,7 @@
 
 #import <WebRTC/WebRTC.h>
 
+#import "FlutterRTCFrameCapturer.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRPScreenRecorder.h"
@@ -33,9 +34,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 - (RTCMediaConstraints *)defaultMediaStreamConstraints {
     NSDictionary *mandatoryConstraints
-    = @{ kRTCMediaConstraintsMinWidth     : @"1280",
-         kRTCMediaConstraintsMinHeight    : @"720",
-         kRTCMediaConstraintsMinFrameRate : @"30" };
+    = @{ @"minWidth"     : @"1280",
+         @"minHeight"    : @"720",
+         @"minFrameRate" : @"30" };
     RTCMediaConstraints* constraints =
     [[RTCMediaConstraints alloc]
      initWithMandatoryConstraints:mandatoryConstraints
@@ -265,21 +266,21 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     // constraints.video.mandatory
     if(mandatory && [mandatory isKindOfClass:[NSDictionary class]])
     {
-        id widthConstraint = mandatory[kRTCMediaConstraintsMinWidth];
+        id widthConstraint = mandatory[@"minWidth"];
         if ([widthConstraint isKindOfClass:[NSString class]]) {
             int possibleWidth = [widthConstraint intValue];
             if (possibleWidth != 0) {
                 self._targetWidth = possibleWidth;
             }
         }
-        id heightConstraint = mandatory[kRTCMediaConstraintsMinHeight];
+        id heightConstraint = mandatory[@"minHeight"];
         if ([heightConstraint isKindOfClass:[NSString class]]) {
             int possibleHeight = [heightConstraint intValue];
             if (possibleHeight != 0) {
                 self._targetHeight = possibleHeight;
             }
         }
-        id fpsConstraint = mandatory[kRTCMediaConstraintsMinFrameRate];
+        id fpsConstraint = mandatory[@"minFrameRate"];
         if ([fpsConstraint isKindOfClass:[NSString class]]) {
             int possibleFps = [fpsConstraint intValue];
             if (possibleFps != 0) {
@@ -473,7 +474,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
   }
 }
 
--(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track
+-(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track result:(FlutterResult)result
 {
     if (!self.videoCapturer) {
         NSLog(@"Video capturer is null. Can't switch camera");
@@ -483,7 +484,23 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     AVCaptureDevicePosition position = self._usingFrontCamera ? AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
     AVCaptureDevice *videoDevice = [self findDeviceForPosition:position];
     AVCaptureDeviceFormat *selectedFormat = [self selectFormatForDevice:videoDevice];
-    [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:[self selectFpsForFormat:selectedFormat]];
+    [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:[self selectFpsForFormat:selectedFormat] completionHandler:^(NSError* error){
+        if (error != nil) {
+            result([FlutterError errorWithCode:@"Error while switching camera" message:@"Error while switching camera" details:error]);
+        } else {
+            result([NSNumber numberWithBool:self._usingFrontCamera]);
+        }
+    }];
+}
+
+-(void)mediaStreamTrackCaptureFrame:(RTCVideoTrack *)track toPath:(NSString *) path result:(FlutterResult)result
+{
+    if (!self.videoCapturer) {
+        NSLog(@"Video capturer is null. Can't capture frame.");
+        return;
+    }
+
+    FlutterRTCFrameCapturer *capturer = [[FlutterRTCFrameCapturer alloc] initWithTrack:track toPath:path result:result];
 }
 
 -(void)mediaStreamTrackStop:(RTCMediaStreamTrack *)track

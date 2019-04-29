@@ -15,7 +15,8 @@
 @property (nonatomic, weak) id<FlutterTextureRegistry> registry;
 @property (nonatomic, strong) FlutterEventSink eventSink;
 
-- (instancetype)initWithSize:(CGSize)renderSize;
+- (instancetype)initWithTextureRegistry:(id<FlutterTextureRegistry>)registry
+                              messenger:(NSObject<FlutterBinaryMessenger>*)messenger;
 
 - (void)dispose;
 
@@ -24,8 +25,7 @@
 
 @interface FlutterWebRTCPlugin (FlutterVideoRendererManager)
 
-- (FlutterRTCVideoRenderer *)createWithSize:(CGSize)size
-             withTextureRegistry:(id<FlutterTextureRegistry>)registry
+- (FlutterRTCVideoRenderer *)createWithTextureRegistry:(id<FlutterTextureRegistry>)registry
                        messenger:(NSObject<FlutterBinaryMessenger>*)messenger;
 
 -(void)setStreamId:(NSString*)streamId view:(FlutterRTCVideoRenderer*)view;

@@ -1,6 +1,5 @@
 package com.cloudwebrtc.webrtc;
 
-import android.content.Context;
 import android.util.Log;
 import android.graphics.SurfaceTexture;
 
@@ -15,11 +14,13 @@ import org.webrtc.RendererCommon.RendererEvents;
 import org.webrtc.VideoTrack;
 
 import io.flutter.plugin.common.EventChannel;
+import io.flutter.view.TextureRegistry;
 
 public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
 
     private static final String TAG = FlutterWebRTCPlugin.TAG;
     private final SurfaceTexture texture;
+    private TextureRegistry.SurfaceTextureEntry entry;
     private int id = -1;
 
     public void Dispose(){
@@ -31,6 +32,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             eventChannel.setStreamHandler(null);
 
         eventSink = null;
+        entry.release();
     }
 
     /**
@@ -55,26 +57,19 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
                     int videoWidth, int videoHeight,
                     int rotation) {
 
-                if(eventSink != null)
-                {
-                    if(_width != videoWidth || _height != videoHeight){
+                if(eventSink != null) {
+                    if(_width != videoWidth || _height != videoHeight) {
                         ConstraintsMap params = new ConstraintsMap();
                         params.putString("event", "didTextureChangeVideoSize");
                         params.putInt("id", id);
-
-                        if(rotation == 90 || rotation == 270){
-                            params.putDouble("width", (double) videoHeight);
-                            params.putDouble("height", (double) videoWidth);
-                        }else {
-                            params.putDouble("width", (double) videoWidth);
-                            params.putDouble("height", (double) videoHeight);
-                        }
+                        params.putDouble("width", (double) videoWidth);
+                        params.putDouble("height", (double) videoHeight);
                         _width = videoWidth;
                         _height = videoHeight;
                         eventSink.success(params.toMap());
                     }
 
-                    if(_rotation != rotation){
+                    if(_rotation != rotation) {
                         ConstraintsMap params2 = new ConstraintsMap();
                         params2.putString("event", "didTextureChangeRotation");
                         params2.putInt("id", id);
@@ -96,13 +91,14 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
     EventChannel eventChannel;
     EventChannel.EventSink eventSink;
 
-    public FlutterRTCVideoRenderer(SurfaceTexture texture) {
+    public FlutterRTCVideoRenderer(SurfaceTexture texture, TextureRegistry.SurfaceTextureEntry entry) {
         this.surfaceTextureRenderer = new SurfaceTextureRenderer("");
         surfaceTextureRenderer.init(EglUtils.getRootEglBaseContext(), rendererEvents);
         surfaceTextureRenderer.surfaceCreated(texture);
 
         this.texture = texture;
         this.eventSink = null;
+        this.entry = entry;
     }
 
     public void setEventChannel(EventChannel eventChannel){
