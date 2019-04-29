@@ -74,11 +74,11 @@ class RTCVideoRenderer {
   }
 
   Future<Null> dispose() async {
+    await _eventSubscription?.cancel();
     await _channel.invokeMethod(
       'videoRendererDispose',
       <String, dynamic>{'textureId': _textureId},
     );
-    _eventSubscription?.cancel();
   }
 
   EventChannel _eventChannelFor(int textureId) {
