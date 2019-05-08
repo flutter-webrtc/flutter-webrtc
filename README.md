@@ -55,6 +55,7 @@ We intend to implement support the following features:
 - [ ] ORTC API
 - [ ] Support [Fuchsia](https://fuchsia.googlesource.com/)
 - [ ] MediaRecorder
+- [ ] Flutter Web
 
 ### Example
 
