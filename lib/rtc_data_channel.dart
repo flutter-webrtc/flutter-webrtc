@@ -30,7 +30,7 @@ enum RTCDataChannelState {
 }
 
 typedef void RTCDataChannelStateCallback(RTCDataChannelState state);
-typedef void RTCDataChannelOnMessageCallback(String data);
+typedef void RTCDataChannelOnMessageCallback(String type, dynamic data);
 
 class RTCDataChannel {
   String _peerConnectionId;
@@ -61,10 +61,12 @@ class RTCDataChannel {
         break;
       case 'dataChannelReceiveMessage':
         //int dataChannelId = map['id'];
+        
         String type = map['type'];
-        String data = map['data'];
+        dynamic data = map['data'];
+
         if (this.onMessage != null)
-          this.onMessage(data);
+          this.onMessage(type, data);
         break;
     }
   }
