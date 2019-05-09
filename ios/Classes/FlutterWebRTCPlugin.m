@@ -256,8 +256,9 @@
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSString* dataChannelId = argsMap[@"dataChannelId"];
-        NSString* data = argsMap[@"data"];
         NSString* type = argsMap[@"type"];
+        id data = argsMap[@"data"];
+        
         [self dataChannelSend:peerConnectionId
                 dataChannelId:dataChannelId
                          data:data
