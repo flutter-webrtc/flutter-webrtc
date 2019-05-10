@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
@@ -49,7 +51,20 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     print('RenegotiationNeeded');
   }
 
+  /// Send some sample messages and handle incoming messages.
   _onDataChannel(RTCDataChannel dataChannel) {
+    dataChannel.onMessage = (type, message) {
+      if (type == "text") {
+        print(message.text);
+      }
+      else {
+        // do something with message.binary
+      }
+    };
+    dataChannel.send("text", RTCDataChannelMessage("Hello!"));
+    dataChannel.send("binary", RTCDataChannelMessage.fromBinary(
+      Uint8List(5)
+    ));
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
