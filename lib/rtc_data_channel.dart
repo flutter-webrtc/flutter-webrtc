@@ -11,7 +11,6 @@ class RTCDataChannelInit {
   int maxRetransmitTime = -1;
   int maxRetransmits = -1;
   String protocol = 'sctp'; //sctp | quic
-  String binaryType = 'text'; // "binary" || text
   bool negotiated = false;
   int id = 0;
   Map<String, dynamic> toMap() {
