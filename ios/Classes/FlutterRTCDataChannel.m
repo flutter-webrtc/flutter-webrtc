@@ -89,14 +89,16 @@
 
 -(void)dataChannelSend:(nonnull NSString *)peerConnectionId
                     dataChannelId:(nonnull NSString *)dataChannelId
-                             data:(NSString *)data
+                             data:(id)data
                              type:(NSString *)type
 {
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     RTCDataChannel *dataChannel = peerConnection.dataChannels[dataChannelId];
+    
     NSData *bytes = [type isEqualToString:@"binary"] ?
-    [[NSData alloc] initWithBase64EncodedString:data options:0] :
+    ((FlutterStandardTypedData*)data).data :
     [data dataUsingEncoding:NSUTF8StringEncoding];
+    
     RTCDataBuffer *buffer = [[RTCDataBuffer alloc] initWithData:bytes isBinary:[type isEqualToString:@"binary"]];
     [dataChannel sendData:buffer];
 }
@@ -130,10 +132,10 @@
 - (void)dataChannel:(RTCDataChannel *)channel didReceiveMessageWithBuffer:(RTCDataBuffer *)buffer
 {
     NSString *type;
-    NSString *data;
+    id data;
     if (buffer.isBinary) {
         type = @"binary";
-        data = [buffer.data base64EncodedStringWithOptions:0];
+        data = buffer.data;
     } else {
         type = @"text";
         data = [[NSString alloc] initWithData:buffer.data
