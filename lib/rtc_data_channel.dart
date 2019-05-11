@@ -86,8 +86,12 @@ class RTCDataChannel {
   String _peerConnectionId;
   String _label;
   int _dataChannelId;
+  RTCDataChannelState _state;
   MethodChannel _channel = WebRTC.methodChannel();
   StreamSubscription<dynamic> _eventSubscription;
+  
+  /// Get current state.
+  RTCDataChannelState get state => _state;
 
   /// Event handler for datachannel state changes.
   /// Assign this property to listen for state changes.
@@ -114,9 +118,9 @@ class RTCDataChannel {
     switch (map['event']) {
       case 'dataChannelStateChanged':
         //int dataChannelId = map['id'];
-        String state = map['state'];
+        _state = rtcDataChannelStateForString(map['state']);
         if (this.onDataChannelState != null)
-          this.onDataChannelState(rtcDataChannelStateForString(state));
+          this.onDataChannelState(_state);
         break;
       case 'dataChannelReceiveMessage':
         //int dataChannelId = map['id'];
