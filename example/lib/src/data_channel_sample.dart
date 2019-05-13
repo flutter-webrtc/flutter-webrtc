@@ -61,8 +61,8 @@ class _DataChannelSampleState extends State<DataChannelSample> {
         // do something with message.binary
       }
     };
-    dataChannel.send(MessageType.text, RTCDataChannelMessage("Hello!"));
-    dataChannel.send(MessageType.binary, RTCDataChannelMessage.fromBinary(
+    dataChannel.send(RTCDataChannelMessage("Hello!"));
+    dataChannel.send(RTCDataChannelMessage.fromBinary(
       Uint8List(5)
     ));
   }

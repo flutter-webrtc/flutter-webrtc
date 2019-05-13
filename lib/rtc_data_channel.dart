@@ -95,7 +95,7 @@ enum RTCDataChannelState {
 }
 
 typedef void RTCDataChannelStateCallback(RTCDataChannelState state);
-typedef void RTCDataChannelOnMessageCallback(MessageType type, RTCDataChannelMessage message);
+typedef void RTCDataChannelOnMessageCallback(RTCDataChannelMessage message);
 
 /// A class that represents a WebRTC datachannel.
 /// Can send and receive text and binary messages.
@@ -113,9 +113,8 @@ class RTCDataChannel {
 
   /// Event handler for messages. Assign this property 
   /// to listen for messages from this [RTCDataChannel].
-  /// Will be passed a [type] argument telling the type of message recieved 
-  /// and a [message] argument, which is an [RTCDataChannelMessage] that will contain either
-  /// binary data as a [Uint8List] or text data as a [String], as defined by [type].
+  /// Will be passed a a [message] argument, which is an [RTCDataChannelMessage] that will contain either
+  /// binary data as a [Uint8List] or text data as a [String].
   RTCDataChannelOnMessageCallback onMessage;
 
   RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId){
@@ -153,7 +152,7 @@ class RTCDataChannel {
         }
 
         if (this.onMessage != null)
-          this.onMessage(type, message);
+          this.onMessage(message);
         break;
     }
   }
@@ -169,14 +168,12 @@ class RTCDataChannel {
   }
 
   /// Send a message to this datachannel.
-  /// To send a text message, pass [MessageType.text] to [type]
-  /// And use the default constructor to instantiate a text [RTCDataChannelMessage]
+  /// To send a text message, use the default constructor to instantiate a text [RTCDataChannelMessage]
   /// for the [message] parameter.
-  /// To send a binary message, pass [MessageType.binary] to [type]
-  /// and pass a binary [RTCDataChannelMessage]
+  /// To send a binary message, pass a binary [RTCDataChannelMessage]
   /// constructed with [RTCDataChannelMessage.fromBinary]
   /// or [RTCDataChannelMessage.fromBase64Binary].
-  Future<void> send(MessageType type, RTCDataChannelMessage message) async {
+  Future<void> send(RTCDataChannelMessage message) async {
     dynamic data;
     if (message.isBinary) {
       if (Platform.isAndroid) {
@@ -193,7 +190,7 @@ class RTCDataChannel {
       <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'dataChannelId': _dataChannelId,
-        'type': _messageTypeToTypeString[type],
+        'type': _messageTypeToTypeString[message.isBinary ? "binary" : "text"],
         'data': data
       }
     );
