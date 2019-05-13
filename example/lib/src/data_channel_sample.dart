@@ -53,8 +53,8 @@ class _DataChannelSampleState extends State<DataChannelSample> {
 
   /// Send some sample messages and handle incoming messages.
   _onDataChannel(RTCDataChannel dataChannel) {
-    dataChannel.onMessage = (type, message) {
-      if (type == MessageType.text) {
+    dataChannel.onMessage = (message) {
+      if (message.type == MessageType.text) {
         print(message.text);
       }
       else {
