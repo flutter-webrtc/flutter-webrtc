@@ -190,7 +190,7 @@ class RTCDataChannel {
       <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'dataChannelId': _dataChannelId,
-        'type': _messageTypeToTypeString[message.isBinary ? "binary" : "text"],
+        'type': message.isBinary ? "binary" : "text",
         'data': data
       }
     );
