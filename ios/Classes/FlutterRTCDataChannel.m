@@ -156,7 +156,7 @@
     FlutterEventSink eventSink = channel.eventSink;
     if(eventSink) {
         eventSink(@{ @"event" : @"dataChannelReceiveMessage",
-                     @"id": @(channel.channelId),
+                     @"id": @(channel.flutterChannelId),
                      @"type": type,
                      @"data": (data ? data : [NSNull null])});
     }
