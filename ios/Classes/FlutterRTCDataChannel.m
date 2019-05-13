@@ -25,6 +25,16 @@
     objc_setAssociatedObject(self, @selector(eventSink), eventSink, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
+- (NSNumber *)flutterChannelId
+{
+    return objc_getAssociatedObject(self, _cmd);
+}
+
+- (void)setFlutterChannelId:(NSNumber *)flutterChannelId
+{
+    objc_setAssociatedObject(self, @selector(flutterChannelId), flutterChannelId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
 - (FlutterEventChannel *)eventChannel
 {
     return objc_getAssociatedObject(self, _cmd);
@@ -59,10 +69,11 @@
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     RTCDataChannel *dataChannel = [peerConnection dataChannelForLabel:label configuration:config];
     
-    if (nil != dataChannel && -1 != dataChannel.channelId) {
+    if (nil != dataChannel) {
         dataChannel.peerConnectionId = peerConnectionId;
-        NSNumber *dataChannelId = [NSNumber numberWithInteger:dataChannel.channelId];
+        NSNumber *dataChannelId = [NSNumber numberWithInteger:config.channelId];
         peerConnection.dataChannels[dataChannelId] = dataChannel;
+        dataChannel.flutterChannelId = dataChannelId;
         dataChannel.delegate = self;
         
         FlutterEventChannel *eventChannel = [FlutterEventChannel
