@@ -16,7 +16,7 @@ A new flutter plugin project.
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   s.dependency 'libyuv-iOS'
-  s.dependency 'GoogleWebRTC', '1.1.27299' # DON'T UPDATE UNTIL FIXED: https://bugs.chromium.org/p/webrtc/issues/detail?id=10588
+  s.dependency 'GoogleWebRTC', '1.1.27299'
   s.ios.deployment_target = '9.0'
   s.static_framework = true
 end
