@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'utils.dart';
 import 'dart:io' show Platform;
 
+
 enum MessageType {
   text, binary
 }
@@ -83,6 +84,7 @@ class RTCDataChannelMessage {
 
   /// Binary contents of this message as a base64 encoded [String].
   /// Use only on binary messages.
+  /// See: [isBinary].
   String get binaryAsBase64 => base64.encode(_data);
 }
 
@@ -120,7 +122,18 @@ class RTCDataChannel {
   /// binary data as a [Uint8List] or text data as a [String].
   RTCDataChannelOnMessageCallback onMessage;
 
-  RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId){
+  final _stateChangeController = StreamController<RTCDataChannelState>.broadcast();
+  final _messageController = StreamController<RTCDataChannelMessage>.broadcast();
+
+  /// Stream of state change events. Emits the new state on change.
+  Stream<RTCDataChannelState> stateChangeStream;
+
+  /// Stream of incoming messages. Emits the message.
+  Stream<RTCDataChannelMessage> messageStream;
+
+  RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId) {
+    stateChangeStream = _stateChangeController.stream;
+    messageStream = _messageController.stream;
     _eventSubscription = _eventChannelFor(_dataChannelId)
       .receiveBroadcastStream()
       .listen(eventListener, onError: errorListener);
@@ -133,8 +146,10 @@ class RTCDataChannel {
       case 'dataChannelStateChanged':
         //int dataChannelId = map['id'];
         _state = rtcDataChannelStateForString(map['state']);
-        if (this.onDataChannelState != null)
+        _stateChangeController.add(_state);
+        if (this.onDataChannelState != null) {
           this.onDataChannelState(_state);
+        }
         break;
       case 'dataChannelReceiveMessage':
         //int dataChannelId = map['id'];
@@ -153,7 +168,7 @@ class RTCDataChannel {
         else {
           message = RTCDataChannelMessage(data);
         }
-
+        _messageController.add(message);
         if (this.onMessage != null)
           this.onMessage(message);
         break;
@@ -200,6 +215,8 @@ class RTCDataChannel {
   }
 
   Future<void> close() async {
+    _stateChangeController.close();
+    _messageController.close();
     await _eventSubscription?.cancel();
     await _channel.invokeMethod('dataChannelClose',
         <String, dynamic>{'peerConnectionId': _peerConnectionId, 'dataChannelId': _dataChannelId});
