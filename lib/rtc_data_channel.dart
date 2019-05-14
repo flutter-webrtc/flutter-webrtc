@@ -218,8 +218,8 @@ class RTCDataChannel {
   }
 
   Future<void> close() async {
-    _stateChangeController.close();
-    _messageController.close();
+    await _stateChangeController.close();
+    await _messageController.close();
     await _eventSubscription?.cancel();
     await _channel.invokeMethod('dataChannelClose',
         <String, dynamic>{'peerConnectionId': _peerConnectionId, 'dataChannelId': _dataChannelId});
