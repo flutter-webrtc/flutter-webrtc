@@ -5,6 +5,20 @@ import 'package:flutter/services.dart';
 import 'utils.dart';
 import 'dart:io' show Platform;
 
+enum MessageType {
+  text, binary
+}
+
+final _typeStringToMessageType = <String, MessageType>{
+  'text': MessageType.text,
+  'binary': MessageType.binary
+};
+
+final _messageTypeToTypeString = <MessageType, String>{
+  MessageType.text: 'text',
+  MessageType.binary: 'binary'
+};
+
 /// Initialization parameters for [RTCDataChannel].
 class RTCDataChannelInit {
   bool ordered = true;
@@ -55,6 +69,8 @@ class RTCDataChannelMessage {
   /// If this is false, it's a text message.
   bool get isBinary => _isBinary;
 
+  MessageType get type => isBinary ? MessageType.binary : MessageType.text;
+
   /// Text contents of this message as [String].
   /// Use only on text messages.
   /// See: [isBinary].
@@ -78,7 +94,7 @@ enum RTCDataChannelState {
 }
 
 typedef void RTCDataChannelStateCallback(RTCDataChannelState state);
-typedef void RTCDataChannelOnMessageCallback(String type, RTCDataChannelMessage message);
+typedef void RTCDataChannelOnMessageCallback(RTCDataChannelMessage message);
 
 /// A class that represents a WebRTC datachannel.
 /// Can send and receive text and binary messages.
@@ -100,16 +116,14 @@ class RTCDataChannel {
 
   /// Event handler for messages. Assign this property 
   /// to listen for messages from this [RTCDataChannel].
-  /// Will be passed a [type] argument, which can be either "binary" or "text"
-  /// depending on the type of message recieved 
-  /// and a [message] argument, which is an [RTCDataChannelMessage] that will contain either
-  /// binary data as a [Uint8List] or text data as a [String], as defined by [type].
+  /// Will be passed a a [message] argument, which is an [RTCDataChannelMessage] that will contain either
+  /// binary data as a [Uint8List] or text data as a [String].
   RTCDataChannelOnMessageCallback onMessage;
 
   RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId){
     _eventSubscription = _eventChannelFor(_dataChannelId)
-        .receiveBroadcastStream()
-        .listen(eventListener, onError: errorListener);
+      .receiveBroadcastStream()
+      .listen(eventListener, onError: errorListener);
   }
   
   /// RTCDataChannel event listener.
@@ -125,10 +139,10 @@ class RTCDataChannel {
       case 'dataChannelReceiveMessage':
         //int dataChannelId = map['id'];
         
-        String type = map['type'];
+        MessageType type = _typeStringToMessageType[map['type']];
         dynamic data = map['data'];
         RTCDataChannelMessage message;
-        if (type == 'binary') {
+        if (type == MessageType.binary) {
           if (Platform.isAndroid) {
             message = RTCDataChannelMessage.fromBase64Binary(data);
           }
@@ -141,7 +155,7 @@ class RTCDataChannel {
         }
 
         if (this.onMessage != null)
-          this.onMessage(type, message);
+          this.onMessage(message);
         break;
     }
   }
@@ -157,14 +171,12 @@ class RTCDataChannel {
   }
 
   /// Send a message to this datachannel.
-  /// To send a text message, pass "text" to [type]
-  /// And use the default constructor to instantiate a text [RTCDataChannelMessage]
+  /// To send a text message, use the default constructor to instantiate a text [RTCDataChannelMessage]
   /// for the [message] parameter.
-  /// To send a binary message, pass "binary" to [type]
-  /// and pass a binary [RTCDataChannelMessage]
+  /// To send a binary message, pass a binary [RTCDataChannelMessage]
   /// constructed with [RTCDataChannelMessage.fromBinary]
   /// or [RTCDataChannelMessage.fromBase64Binary].
-  Future<void> send(String type, RTCDataChannelMessage message) async {
+  Future<void> send(RTCDataChannelMessage message) async {
     dynamic data;
     if (message.isBinary) {
       if (Platform.isAndroid) {
@@ -177,11 +189,14 @@ class RTCDataChannel {
     else {
       data = message.text;
     }
-    await _channel.invokeMethod('dataChannelSend',
-        <String, dynamic>{ 'peerConnectionId': _peerConnectionId,
+    await _channel.invokeMethod('dataChannelSend', 
+      <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
         'dataChannelId': _dataChannelId,
-        'type': type,
-        'data': data});
+        'type': message.isBinary ? "binary" : "text",
+        'data': data
+      }
+    );
   }
 
   Future<void> close() async {
