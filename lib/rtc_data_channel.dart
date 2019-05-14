@@ -126,9 +126,11 @@ class RTCDataChannel {
   final _messageController = StreamController<RTCDataChannelMessage>.broadcast(sync: true);
 
   /// Stream of state change events. Emits the new state on change.
+  /// Closes when the [RTCDataChannel] is closed.
   Stream<RTCDataChannelState> stateChangeStream;
 
   /// Stream of incoming messages. Emits the message.
+  /// Closes when the [RTCDataChannel] is closed.
   Stream<RTCDataChannelMessage> messageStream;
 
   RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId) {
