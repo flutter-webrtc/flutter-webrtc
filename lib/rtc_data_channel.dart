@@ -122,8 +122,8 @@ class RTCDataChannel {
   /// binary data as a [Uint8List] or text data as a [String].
   RTCDataChannelOnMessageCallback onMessage;
 
-  final _stateChangeController = StreamController<RTCDataChannelState>.broadcast();
-  final _messageController = StreamController<RTCDataChannelMessage>.broadcast();
+  final _stateChangeController = StreamController<RTCDataChannelState>.broadcast(sync: true);
+  final _messageController = StreamController<RTCDataChannelMessage>.broadcast(sync: true);
 
   /// Stream of state change events. Emits the new state on change.
   Stream<RTCDataChannelState> stateChangeStream;
@@ -146,10 +146,10 @@ class RTCDataChannel {
       case 'dataChannelStateChanged':
         //int dataChannelId = map['id'];
         _state = rtcDataChannelStateForString(map['state']);
-        _stateChangeController.add(_state);
         if (this.onDataChannelState != null) {
           this.onDataChannelState(_state);
         }
+        _stateChangeController.add(_state);
         break;
       case 'dataChannelReceiveMessage':
         //int dataChannelId = map['id'];
@@ -168,9 +168,10 @@ class RTCDataChannel {
         else {
           message = RTCDataChannelMessage(data);
         }
-        _messageController.add(message);
-        if (this.onMessage != null)
+        if (this.onMessage != null) {
           this.onMessage(message);
+        }
+        _messageController.add(message);
         break;
     }
   }
