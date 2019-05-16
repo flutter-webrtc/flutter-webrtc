@@ -180,7 +180,7 @@ class RTCDataChannel {
 
   EventChannel _eventChannelFor(int dataChannelId) {
     return new EventChannel(
-        'cloudwebrtc.com/WebRTC/dataChannelEvent$dataChannelId');
+        'FlutterWebRTC/dataChannelEvent$dataChannelId');
   }
 
   void errorListener(Object obj) {

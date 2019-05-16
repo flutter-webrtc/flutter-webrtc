@@ -79,7 +79,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
      * Plugin registration.
      */
     public static void registerWith(Registrar registrar) {
-        final MethodChannel channel = new MethodChannel(registrar.messenger(), "cloudwebrtc.com/WebRTC.Method");
+        final MethodChannel channel = new MethodChannel(registrar.messenger(), "FlutterWebRTC.Method");
         channel.setMethodCallHandler(new FlutterWebRTCPlugin(registrar, channel));
     }
 
@@ -243,7 +243,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             EventChannel eventChannel =
                     new EventChannel(
                             registrar.messenger(),
-                            "cloudwebrtc.com/WebRTC/Texture" + entry.id());
+                            "FlutterWebRTC/Texture" + entry.id());
 
             eventChannel.setStreamHandler(render);
             render.setEventChannel(eventChannel);

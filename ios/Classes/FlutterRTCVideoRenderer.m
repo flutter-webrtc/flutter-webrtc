@@ -38,7 +38,7 @@
         _textureId  = [registry registerTexture:self];
         /*Create Event Channel.*/
         _eventChannel = [FlutterEventChannel
-                                       eventChannelWithName:[NSString stringWithFormat:@"cloudwebrtc.com/WebRTC/Texture%lld", _textureId]
+                                       eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/Texture%lld", _textureId]
                                        binaryMessenger:messenger];
         [_eventChannel setStreamHandler:self];
     }

@@ -3,7 +3,7 @@ import 'rtc_peerconnection.dart';
 import 'rtc_data_channel.dart';
 
 class WebRTC {
-  static const MethodChannel _channel = const MethodChannel('cloudwebrtc.com/WebRTC.Method');
+  static const MethodChannel _channel = const MethodChannel('FlutterWebRTC.Method');
   static MethodChannel methodChannel() => _channel;
 }
 
