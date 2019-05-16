@@ -52,7 +52,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         this.eventChannel =
                 new EventChannel(
                         plugin.registrar().messenger(),
-                        "cloudwebrtc.com/WebRTC/peerConnectoinEvent" + id);
+                        "FlutterWebRTC/peerConnectoinEvent" + id);
         eventChannel.setStreamHandler(this);
         this.eventSink = null;
     }

@@ -21,7 +21,7 @@
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     
     FlutterMethodChannel* channel = [FlutterMethodChannel
-                                     methodChannelWithName:@"cloudwebrtc.com/WebRTC.Method"
+                                     methodChannelWithName:@"FlutterWebRTC.Method"
                                      binaryMessenger:[registrar messenger]];
     UIViewController *viewController = (UIViewController *)registrar.messenger;
     FlutterWebRTCPlugin* instance = [[FlutterWebRTCPlugin alloc] initWithChannel:channel
@@ -84,7 +84,7 @@
         
         /*Create Event Channel.*/
         peerConnection.eventChannel = [FlutterEventChannel
-                                       eventChannelWithName:[NSString stringWithFormat:@"cloudwebrtc.com/WebRTC/peerConnectoinEvent%@", peerConnectionId]
+                                       eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/peerConnectoinEvent%@", peerConnectionId]
                                        binaryMessenger:_messenger];
         [peerConnection.eventChannel setStreamHandler:peerConnection];
         
