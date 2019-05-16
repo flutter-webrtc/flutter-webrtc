@@ -178,19 +178,12 @@ class RTCDataChannel {
   /// To send a binary message, pass a binary [RTCDataChannelMessage]
   /// constructed with [RTCDataChannelMessage.fromBinary]
   Future<void> send(RTCDataChannelMessage message) async {
-    dynamic data;
-    if (message.isBinary) {
-      data = message.binary;
-    }
-    else {
-      data = message.text;
-    }
     await _channel.invokeMethod('dataChannelSend',
       <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'dataChannelId': _dataChannelId,
         'type': message.isBinary ? "binary" : "text",
-        'data': data
+        'data': message.isBinary?  message.binary : message.text,
       }
     );
   }
