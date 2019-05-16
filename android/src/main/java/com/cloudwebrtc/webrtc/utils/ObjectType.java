@@ -7,4 +7,5 @@ public enum ObjectType {
     String,
     Map,
     Array,
+    Byte
 }

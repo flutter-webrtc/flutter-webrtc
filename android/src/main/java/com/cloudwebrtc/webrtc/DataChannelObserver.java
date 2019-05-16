@@ -79,7 +79,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
 
         if (buffer.binary) {
             params.putString("type", "binary");
-            params.putString("data", Base64.encodeToString(bytes, Base64.NO_WRAP));
+            params.putByte("data", bytes);
         } else {
             params.putString("type", "text");
             params.putString("data", new String(bytes, Charset.forName("UTF-8")));
