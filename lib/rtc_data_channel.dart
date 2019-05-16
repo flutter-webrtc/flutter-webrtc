@@ -59,12 +59,6 @@ class RTCDataChannelMessage {
     this._isBinary = true;
   }
 
-  /// Construct a binary message with a base64 encoded [String]
-  /// to be decoded into binary.
-  RTCDataChannelMessage.fromBase64Binary(String encodedBinary) {
-    this._data = base64.decode(encodedBinary);
-    this._isBinary = true;
-  }
 
   /// Tells whether this message contains binary.
   /// If this is false, it's a text message.
@@ -81,11 +75,6 @@ class RTCDataChannelMessage {
   /// Use only on binary messages.
   /// See: [isBinary].
   Uint8List get binary => _data;
-
-  /// Binary contents of this message as a base64 encoded [String].
-  /// Use only on binary messages.
-  /// See: [isBinary].
-  String get binaryAsBase64 => base64.encode(_data);
 }
 
 enum RTCDataChannelState {
@@ -160,12 +149,7 @@ class RTCDataChannel {
         dynamic data = map['data'];
         RTCDataChannelMessage message;
         if (type == MessageType.binary) {
-          if (Platform.isAndroid) {
-            message = RTCDataChannelMessage.fromBase64Binary(data);
-          }
-          else {
-            message = RTCDataChannelMessage.fromBinary(data);
-          }
+           message = RTCDataChannelMessage.fromBinary(data);
         }
         else {
           message = RTCDataChannelMessage(data);
@@ -193,21 +177,15 @@ class RTCDataChannel {
   /// for the [message] parameter.
   /// To send a binary message, pass a binary [RTCDataChannelMessage]
   /// constructed with [RTCDataChannelMessage.fromBinary]
-  /// or [RTCDataChannelMessage.fromBase64Binary].
   Future<void> send(RTCDataChannelMessage message) async {
     dynamic data;
     if (message.isBinary) {
-      if (Platform.isAndroid) {
-        data = message.binaryAsBase64;
-      }
-      else {
-        data = message.binary;
-      }
+      data = message.binary;
     }
     else {
       data = message.text;
     }
-    await _channel.invokeMethod('dataChannelSend', 
+    await _channel.invokeMethod('dataChannelSend',
       <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'dataChannelId': _dataChannelId,
