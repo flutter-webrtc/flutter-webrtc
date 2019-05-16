@@ -196,7 +196,7 @@ class RTCPeerConnection {
 
   EventChannel _eventChannelFor(String peerConnectionId) {
     return new EventChannel(
-        'cloudwebrtc.com/WebRTC/peerConnectoinEvent$peerConnectionId');
+        'FlutterWebRTC/peerConnectoinEvent$peerConnectionId');
   }
 
   Map<String, dynamic> get getConfiguration => _configuration;
