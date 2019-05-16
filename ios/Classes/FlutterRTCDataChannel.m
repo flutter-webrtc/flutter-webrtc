@@ -146,7 +146,7 @@
     id data;
     if (buffer.isBinary) {
         type = @"binary";
-        data = buffer.data;
+        data = [FlutterStandardTypedData typedDataWithBytes:buffer.data];
     } else {
         type = @"text";
         data = [[NSString alloc] initWithData:buffer.data
