@@ -58,8 +58,7 @@ class RTCDataChannelMessage {
     this._data = binary;
     this._isBinary = true;
   }
-
-
+  
   /// Tells whether this message contains binary.
   /// If this is false, it's a text message.
   bool get isBinary => _isBinary;
