@@ -487,6 +487,7 @@
                                          binaryMessenger:self.messenger];
     
     dataChannel.eventChannel = eventChannel;
+    dataChannel.flutterChannelId = dataChannelId;
     [eventChannel setStreamHandler:dataChannel];
     
     FlutterEventSink eventSink = peerConnection.eventSink;
