@@ -102,6 +102,10 @@ public class ConstraintsArray {
         mArray.add(array.toArrayList());
     }
 
+    public void pushByte(byte[] value){
+        mArray.add(value);
+    }
+
     public void pushMap(ConstraintsMap map){
         mArray.add(map.toMap());
     }
