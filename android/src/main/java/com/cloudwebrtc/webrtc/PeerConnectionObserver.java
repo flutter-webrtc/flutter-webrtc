@@ -137,25 +137,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         }
     }
 
-    void dataChannelSend(int dataChannelId, String data, String type) {
+    void dataChannelSend(int dataChannelId, ByteBuffer byteBuffer, Boolean isBinary) {
         DataChannel dataChannel = dataChannels.get(dataChannelId);
         if (dataChannel != null) {
-            byte[] byteArray;
-            if (type.equals("text")) {
-                try {
-                    byteArray = data.getBytes("UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    Log.d(TAG, "Could not encode text string as UTF-8.");
-                    return;
-                }
-            } else if (type.equals("binary")) {
-                byteArray = Base64.decode(data, Base64.NO_WRAP);
-            } else {
-                Log.e(TAG, "Unsupported data type: " + type);
-                return;
-            }
-            ByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);
-            DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, type.equals("binary"));
+            DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, isBinary);
             dataChannel.send(buffer);
         } else {
             Log.d(TAG, "dataChannelSend() dataChannel is null");
