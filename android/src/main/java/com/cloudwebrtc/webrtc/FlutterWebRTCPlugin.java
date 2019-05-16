@@ -14,7 +14,9 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 
+import java.io.UnsupportedEncodingException;
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.webrtc.AudioTrack;
@@ -207,9 +209,23 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else if (call.method.equals("dataChannelSend")) {
             String peerConnectionId = call.argument("peerConnectionId");
             int dataChannelId = call.argument("dataChannelId");
-            String data = call.argument("data");
             String type = call.argument("type");
-            dataChannelSend(peerConnectionId, dataChannelId, data, type);
+            Boolean isBinary = type.equals("binary");
+            ByteBuffer byteBuffer;
+            if(isBinary){
+                byteBuffer = ByteBuffer.wrap(call.argument("data"));
+            }else{
+                try {
+                    String data = call.argument("data");
+                    byteBuffer = ByteBuffer.wrap(data.getBytes("UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    Log.d(TAG, "Could not encode text string as UTF-8.");
+                    result.error("dataChannelSendFailed", "Could not encode text string as UTF-8.",null);
+                    return;
+                }
+            }
+            dataChannelSend(peerConnectionId, dataChannelId, byteBuffer, isBinary);
+            result.success(null);
         } else if (call.method.equals("dataChannelClose")) {
             String peerConnectionId = call.argument("peerConnectionId");
             int dataChannelId = call.argument("dataChannelId");
@@ -1152,7 +1168,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void dataChannelSend(String peerConnectionId, int dataChannelId, String data, String type) {
+    public void dataChannelSend(String peerConnectionId, int dataChannelId, ByteBuffer bytebuffer, Boolean isBinary) {
         // Forward to PeerConnectionObserver which deals with DataChannels
         // because DataChannel is owned by PeerConnection.
         PeerConnectionObserver pco
@@ -1160,7 +1176,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         if (pco == null || pco.getPeerConnection() == null) {
             Log.d(TAG, "dataChannelSend() peerConnection is null");
         } else {
-            pco.dataChannelSend(dataChannelId, data, type);
+            pco.dataChannelSend(dataChannelId, bytebuffer, isBinary);
         }
     }
 
