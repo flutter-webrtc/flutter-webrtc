@@ -134,7 +134,7 @@
     FlutterEventSink eventSink = channel.eventSink;
     if(eventSink) {
         eventSink(@{ @"event" : @"dataChannelStateChanged",
-                     @"id": @(channel.channelId),
+                     @"id": channel.flutterChannelId,
                      @"state": [self stringForDataChannelState:channel.readyState]});
     }
 }
@@ -156,7 +156,7 @@
     FlutterEventSink eventSink = channel.eventSink;
     if(eventSink) {
         eventSink(@{ @"event" : @"dataChannelReceiveMessage",
-                     @"id": @(channel.flutterChannelId),
+                     @"id": channel.flutterChannelId,
                      @"type": type,
                      @"data": (data ? data : [NSNull null])});
     }
