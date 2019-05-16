@@ -321,7 +321,7 @@ class RTCPeerConnection {
     });
   }
 
- Future<List<StatsReport>> getStats([MediaStreamTrack track = null]) async { {
+ Future<List<StatsReport>> getStats([MediaStreamTrack track = null]) async {
     try {
       final Map<dynamic, dynamic> response =
           await _channel.invokeMethod('getStats', <String, dynamic>{
