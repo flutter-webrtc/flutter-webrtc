@@ -14,6 +14,7 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 
+import java.io.UnsupportedEncodingException;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -209,8 +210,21 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String peerConnectionId = call.argument("peerConnectionId");
             int dataChannelId = call.argument("dataChannelId");
             String type = call.argument("type");
-            ByteBuffer byteBuffer = ByteBuffer.wrap(call.argument("data"));
-            dataChannelSend(peerConnectionId, dataChannelId, byteBuffer, type.equals("binary"));
+            Boolean isBinary = type.equals("binary");
+            ByteBuffer byteBuffer;
+            if(isBinary){
+                byteBuffer = ByteBuffer.wrap(call.argument("data"));
+            }else{
+                try {
+                    String data = call.argument("data");
+                    byteBuffer = ByteBuffer.wrap(data.getBytes("UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    Log.d(TAG, "Could not encode text string as UTF-8.");
+                    result.error("dataChannelSendFailed", "Could not encode text string as UTF-8.",null);
+                    return;
+                }
+            }
+            dataChannelSend(peerConnectionId, dataChannelId, byteBuffer, isBinary);
             result.success(null);
         } else if (call.method.equals("dataChannelClose")) {
             String peerConnectionId = call.argument("peerConnectionId");
