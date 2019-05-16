@@ -211,7 +211,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String peerConnectionId = call.argument("peerConnectionId");
             int dataChannelId = call.argument("dataChannelId");
             String type = call.argument("type");
-            String data = call.argument("data");
             ByteBuffer byteBuffer = ByteBuffer.wrap(call.argument("data"));
             dataChannelSend(peerConnectionId, dataChannelId, byteBuffer, type.equals("binary"));
             result.success(null);
