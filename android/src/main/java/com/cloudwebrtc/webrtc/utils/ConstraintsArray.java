@@ -39,6 +39,10 @@ public class ConstraintsArray {
         return (String) mArray.get(index);
     }
 
+    public Byte[] getByte(int index){
+        return (Byte[]) mArray.get(index);
+    }
+
     public ConstraintsArray getArray(int index){
         return new ConstraintsArray((ArrayList<Object>)mArray.get(index));
     }
@@ -64,6 +68,8 @@ public class ConstraintsArray {
             return ObjectType.Array;
         } else if (object instanceof Map) {
             return ObjectType.Map;
+        } else if (object instanceof Byte) {
+            return ObjectType.Byte;
         }
         return ObjectType.Null;
     }

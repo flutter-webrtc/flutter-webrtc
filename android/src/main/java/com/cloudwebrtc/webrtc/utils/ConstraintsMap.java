@@ -65,6 +65,8 @@ public class ConstraintsMap {
             return ObjectType.Map;
         } else if (value instanceof ArrayList) {
             return ObjectType.Array;
+        } else if (value instanceof Byte) {
+            return ObjectType.Byte;
         } else {
             throw new IllegalArgumentException("Invalid value " + value.toString() + " for key " + name +
                     "contained in ConstraintsMap");
@@ -84,6 +86,10 @@ public class ConstraintsMap {
     }
 
     public void putString(String key, String value) {
+        mMap.put(key, value);
+    }
+
+    public void putByte(String key, byte[] value) {
         mMap.put(key, value);
     }
 
