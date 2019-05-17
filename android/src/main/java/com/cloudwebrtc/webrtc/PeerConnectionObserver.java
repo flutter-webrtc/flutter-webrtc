@@ -11,6 +11,7 @@ import android.util.Log;
 import android.util.SparseArray;
 import androidx.annotation.Nullable;
 
+import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 
@@ -59,7 +60,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
     @Override
     public void onListen(Object o, EventChannel.EventSink sink) {
-        eventSink = sink;
+        eventSink = new AnyThreadSink(sink);
     }
 
     @Override
