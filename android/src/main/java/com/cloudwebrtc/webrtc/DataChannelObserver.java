@@ -5,6 +5,7 @@ import android.util.Base64;
 
 import org.webrtc.DataChannel;
 import io.flutter.plugin.common.EventChannel;
+import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 
 class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHandler {
@@ -43,7 +44,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
 
     @Override
     public void onListen(Object o, EventChannel.EventSink sink) {
-        eventSink = sink;
+        eventSink = new AnyThreadSink(sink);
     }
 
     @Override
