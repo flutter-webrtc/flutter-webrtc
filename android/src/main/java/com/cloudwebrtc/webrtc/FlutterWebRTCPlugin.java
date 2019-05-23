@@ -9,6 +9,7 @@ import android.util.LongSparseArray;
 
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.FrameCapturer;
+import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
@@ -124,7 +125,8 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     }
 
     @Override
-    public void onMethodCall(MethodCall call, Result result) {
+    public void onMethodCall(MethodCall call, Result notSafeResult) {
+        final AnyThreadResult result = new AnyThreadResult(notSafeResult);
         if (call.method.equals("createPeerConnection")) {
             Map<String, Object> constraints = call.argument("constraints");
             Map<String, Object> configuration = call.argument("configuration");
