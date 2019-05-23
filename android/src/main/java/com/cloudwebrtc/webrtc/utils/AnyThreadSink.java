@@ -6,27 +6,33 @@ import android.os.Looper;
 import io.flutter.plugin.common.EventChannel;
 
 public final class AnyThreadSink implements EventChannel.EventSink {
-    private final EventChannel.EventSink eventSink;
-    
+    final private EventChannel.EventSink eventSink;
+    final private Handler handler = new Handler(Looper.getMainLooper());
+
     public AnyThreadSink(EventChannel.EventSink eventSink) {
         this.eventSink = eventSink;
     }
-    
+
     @Override
     public void success(Object o) {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(()->eventSink.success(o));
+        post(()->eventSink.success(o));
     }
 
     @Override
     public void error(String s, String s1, Object o) {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(()->eventSink.error(s, s1, o));
+        post(()->eventSink.error(s, s1, o));
     }
 
     @Override
     public void endOfStream() {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(eventSink::endOfStream);
+        post(eventSink::endOfStream);
+    }
+
+    private void post(Runnable r) {
+        if(Looper.getMainLooper() == Looper.myLooper()){
+            r.run();
+        }else{
+            handler.post(r);
+        }
     }
 }
