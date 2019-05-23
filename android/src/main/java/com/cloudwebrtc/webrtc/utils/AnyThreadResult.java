@@ -7,6 +7,7 @@ import io.flutter.plugin.common.MethodChannel;
 
 public final class AnyThreadResult implements MethodChannel.Result {
     final private MethodChannel.Result result;
+    final private Handler handler = new Handler(Looper.getMainLooper());
 
     public AnyThreadResult(MethodChannel.Result result) {
         this.result = result;
@@ -14,19 +15,24 @@ public final class AnyThreadResult implements MethodChannel.Result {
 
     @Override
     public void success(Object o) {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(()->result.success(o));
+        post(()->result.success(o));
     }
 
     @Override
     public void error(String s, String s1, Object o) {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(()->result.error(s, s1, o));
+        post(()->result.error(s, s1, o));
     }
 
     @Override
     public void notImplemented() {
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(result::notImplemented);
+        post(result::notImplemented);
+    }
+
+    private void post(Runnable r) {
+        if(Looper.getMainLooper() == Looper.myLooper()){
+            r.run();
+        }else{
+            handler.post(r);
+        }
     }
 }
