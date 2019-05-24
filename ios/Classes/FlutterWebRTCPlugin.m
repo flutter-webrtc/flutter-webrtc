@@ -171,7 +171,7 @@
         NSString* path = argsMap[@"path"];
         NSString* trackId = argsMap[@"trackId"];
 
-        RTCMediaStreamTrack *track = self.localTracks[trackId];
+        RTCMediaStreamTrack *track = [self trackForId: trackId];
         if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
             RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
             [self mediaStreamTrackCaptureFrame:videoTrack toPath:path result:result];
@@ -482,8 +482,7 @@
 {
     RTCMediaStream *stream = _localStreams[streamId];
     if (!stream) {
-        for (NSString *peerConnectionId in _peerConnections) {
-            RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
+        for (RTCPeerConnection *peerConnection in _peerConnections.allValues) {
             stream = peerConnection.remoteStreams[streamId];
             if (stream) {
                 break;
@@ -491,6 +490,21 @@
         }
     }
     return stream;
+}
+
+- (RTCMediaStreamTrack*)trackForId:(NSString*)trackId
+{
+    RTCMediaStreamTrack *track = _localTracks[trackId];
+    if (!track) {
+        for (RTCPeerConnection *peerConnection in _peerConnections.allValues) {
+            track = peerConnection.remoteTracks[trackId];
+            if (track) {
+                break;
+            }
+        }
+    }
+
+    return track;    
 }
 
 - (RTCIceServer *)RTCIceServer:(id)json
