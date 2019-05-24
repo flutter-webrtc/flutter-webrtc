@@ -314,7 +314,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 VideoTrack videoTrack = null;
                 String videoTrackId = call.argument("videoTrackId");
                 if (videoTrackId != null) {
-                    MediaStreamTrack track = localTracks.get(videoTrackId);
+                    MediaStreamTrack track = getTrackForId(videoTrackId);
                     if (track instanceof VideoTrack)
                         videoTrack = (VideoTrack) track;
                 }
@@ -339,7 +339,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String path = call.argument("path");
             String videoTrackId = call.argument("trackId");
             if (videoTrackId != null) {
-                MediaStreamTrack track = localTracks.get(videoTrackId);
+                MediaStreamTrack track = getTrackForId(videoTrackId);
                 if (track instanceof VideoTrack)
                     new FrameCapturer((VideoTrack) track, new File(path), result);
                 else
