@@ -512,6 +512,22 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             }
         }
 
+        // sdpSemantics
+        if (map.hasKey("sdpSemantics")
+                && map.getType("sdpSemantics") == ObjectType.String) {
+            final String v = map.getString("sdpSemantics");
+            if (v != null) {
+                switch (v) {
+                    case "plan-b":
+                        conf.sdpSemantics = PeerConnection.SdpSemantics.PLAN_B;
+                        break;
+                    case "unified-plan":
+                        conf.sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
+                        break;
+                }
+            }
+        }
+
         // === below is private api in webrtc ===
 
         // tcpCandidatePolicy (private api)
