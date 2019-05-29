@@ -388,6 +388,15 @@
             audioTrack.isEnabled = !mute.boolValue;
         }
         result(nil);
+    } else if ([@"enableSpeakerphone" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSNumber* enable = argsMap[@"enable"];
+        AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+        [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
+                      withOptions:enable.boolValue ? AVAudioSessionCategoryOptionDefaultToSpeaker : 0
+                            error:nil];
+        [audioSession setActive:YES error:nil];
+        result(nil);
     }else if ([@"getLocalDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
