@@ -378,6 +378,16 @@
             audioSource.volume = [volume doubleValue];
         }
         result(nil);
+    } else if ([@"setMicrophoneMute" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* trackId = argsMap[@"trackId"];
+        NSNumber* mute = argsMap[@"mute"];
+        RTCMediaStreamTrack *track = self.localTracks[trackId];
+        if (track != nil && [track isKindOfClass:[RTCAudioTrack class]]) {
+            RTCAudioTrack *audioTrack = (RTCAudioTrack *)track;
+            audioTrack.isEnabled = !mute.boolValue;
+        }
+        result(nil);
     }else if ([@"getLocalDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
