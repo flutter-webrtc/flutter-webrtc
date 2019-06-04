@@ -46,6 +46,14 @@ class MediaStreamTrack {
     );
   }
 
+  void enableSpeakerphone(bool enable) async {
+    print('MediaStreamTrack:enableSpeakerphone $enable');
+    await _channel.invokeMethod(
+      'enableSpeakerphone',
+      <String, dynamic>{'trackId': _trackId, 'enable': enable},
+    );
+  }
+
   captureFrame(String filePath) =>
     _channel.invokeMethod(
       'captureFrame',
