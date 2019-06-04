@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.graphics.SurfaceTexture;
+import android.media.AudioManager;
 import android.util.Log;
 import android.util.LongSparseArray;
 
@@ -307,6 +308,11 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String trackId = call.argument("trackId");
             boolean mute = call.argument("mute");
             mediaStreamTrackSetMicrophoneMute(trackId, mute);
+            result.success(null);
+        } else if (call.method.equals("enableSpeakerphone")) {
+            String trackId = call.argument("trackId");
+            boolean enable = call.argument("enable");
+            mediaStreamTrackEnableSpeakerphone(trackId, enable);
             result.success(null);
         } else if(call.method.equals("getDisplayMedia")) {
             Map<String, Object> constraints = call.argument("constraints");
@@ -899,6 +905,16 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             audioDeviceModule.setMicrophoneMute(mute);
         } catch (Exception e) {
             Log.e(TAG, "setMicrophoneMute(): error", e);
+        }
+    }
+
+    public void mediaStreamTrackEnableSpeakerphone(final String id, boolean enabled) {
+        AudioManager audioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+
+        try {
+            audioManager.setSpeakerphoneOn(enabled);
+        } catch (Exception e) {
+            Log.e(TAG, "setSpeakerphoneOn(): error", e);
         }
     }
 
