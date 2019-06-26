@@ -305,7 +305,7 @@
         NSString* trackId = argsMap[@"trackId"];
         [self.localTracks removeObjectForKey:trackId];
         result(nil);
-    }else if([@"peerConnectionClose" isEqualToString:call.method]){
+    }else if([@"peerConnectionClose" isEqualToString:call.method] || [@"peerConnectionDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         

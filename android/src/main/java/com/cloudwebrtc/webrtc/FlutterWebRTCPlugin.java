@@ -254,7 +254,11 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String peerConnectionId = call.argument("peerConnectionId");
             peerConnectionClose(peerConnectionId);
             result.success(null);
-        } else if (call.method.equals("createVideoRenderer")) {
+        } else if(call.method.equals("peerConnectionDispose")){
+            String peerConnectionId = call.argument("peerConnectionId");
+            peerConnectionClose(peerConnectionId);
+            result.success(null);
+        }else if (call.method.equals("createVideoRenderer")) {
             TextureRegistry.SurfaceTextureEntry entry = textures.createSurfaceTexture();
             SurfaceTexture surfaceTexture = entry.surfaceTexture();
             FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, entry);
@@ -414,17 +418,17 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             boolean hasUsernameAndCredential = iceServerMap.hasKey("username") && iceServerMap.hasKey("credential");
             if (iceServerMap.hasKey("url")) {
                 if (hasUsernameAndCredential) {
-                    iceServers.add(new PeerConnection.IceServer(iceServerMap.getString("url"), iceServerMap.getString("username"), iceServerMap.getString("credential")));
+                    iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString("url")).setUsername(iceServerMap.getString("username")).setPassword(iceServerMap.getString("credential")).createIceServer());
                 } else {
-                    iceServers.add(new PeerConnection.IceServer(iceServerMap.getString("url")));
+                    iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString("url")).createIceServer());
                 }
             } else if (iceServerMap.hasKey("urls")) {
                 switch (iceServerMap.getType("urls")) {
                     case String:
                         if (hasUsernameAndCredential) {
-                            iceServers.add(new PeerConnection.IceServer(iceServerMap.getString("urls"), iceServerMap.getString("username"), iceServerMap.getString("credential")));
+                            iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString("urls")).setUsername(iceServerMap.getString("username")).setPassword(iceServerMap.getString("credential")).createIceServer());
                         } else {
-                            iceServers.add(new PeerConnection.IceServer(iceServerMap.getString("urls")));
+                            iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString("urls")).createIceServer());
                         }
                         break;
                     case Array:
@@ -432,9 +436,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                         for (int j = 0; j < urls.size(); j++) {
                             String url = urls.getString(j);
                             if (hasUsernameAndCredential) {
-                                iceServers.add(new PeerConnection.IceServer(url, iceServerMap.getString("username"), iceServerMap.getString("credential")));
+                                iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString(url)).setUsername(iceServerMap.getString("username")).setPassword(iceServerMap.getString("credential")).createIceServer());
                             } else {
-                                iceServers.add(new PeerConnection.IceServer(url));
+                                iceServers.add(PeerConnection.IceServer.builder(url).createIceServer());
                             }
                         }
                         break;
@@ -1184,6 +1188,14 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             Log.d(TAG, "peerConnectionClose() peerConnection is null");
         } else {
             pco.close();
+        }
+    }
+    public void peerConnectionDispose(final String id) {
+        PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
+        if (pco == null || pco.getPeerConnection() == null) {
+            Log.d(TAG, "peerConnectionDispose() peerConnection is null");
+        } else {
+            pco.dispose();
             mPeerConnectionObservers.remove(id);
         }
     }
