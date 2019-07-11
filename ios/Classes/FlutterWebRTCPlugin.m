@@ -21,7 +21,7 @@
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     
     FlutterMethodChannel* channel = [FlutterMethodChannel
-                                     methodChannelWithName:@"cloudwebrtc.com/WebRTC.Method"
+                                     methodChannelWithName:@"FlutterWebRTC.Method"
                                      binaryMessenger:[registrar messenger]];
     UIViewController *viewController = (UIViewController *)registrar.messenger;
     FlutterWebRTCPlugin* instance = [[FlutterWebRTCPlugin alloc] initWithChannel:channel
@@ -84,7 +84,7 @@
         
         /*Create Event Channel.*/
         peerConnection.eventChannel = [FlutterEventChannel
-                                       eventChannelWithName:[NSString stringWithFormat:@"cloudwebrtc.com/WebRTC/peerConnectoinEvent%@", peerConnectionId]
+                                       eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/peerConnectoinEvent%@", peerConnectionId]
                                        binaryMessenger:_messenger];
         [peerConnection.eventChannel setStreamHandler:peerConnection];
         
@@ -171,7 +171,7 @@
         NSString* path = argsMap[@"path"];
         NSString* trackId = argsMap[@"trackId"];
 
-        RTCMediaStreamTrack *track = self.localTracks[trackId];
+        RTCMediaStreamTrack *track = [self trackForId: trackId];
         if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
             RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
             [self mediaStreamTrackCaptureFrame:videoTrack toPath:path result:result];
@@ -256,8 +256,9 @@
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSString* dataChannelId = argsMap[@"dataChannelId"];
-        NSString* data = argsMap[@"data"];
         NSString* type = argsMap[@"type"];
+        id data = argsMap[@"data"];
+        
         [self dataChannelSend:peerConnectionId
                 dataChannelId:dataChannelId
                          data:data
@@ -377,6 +378,25 @@
             audioSource.volume = [volume doubleValue];
         }
         result(nil);
+    } else if ([@"setMicrophoneMute" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* trackId = argsMap[@"trackId"];
+        NSNumber* mute = argsMap[@"mute"];
+        RTCMediaStreamTrack *track = self.localTracks[trackId];
+        if (track != nil && [track isKindOfClass:[RTCAudioTrack class]]) {
+            RTCAudioTrack *audioTrack = (RTCAudioTrack *)track;
+            audioTrack.isEnabled = !mute.boolValue;
+        }
+        result(nil);
+    } else if ([@"enableSpeakerphone" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSNumber* enable = argsMap[@"enable"];
+        AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+        [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
+                      withOptions:enable.boolValue ? AVAudioSessionCategoryOptionDefaultToSpeaker : 0
+                            error:nil];
+        [audioSession setActive:YES error:nil];
+        result(nil);
     }else if ([@"getLocalDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -481,8 +501,7 @@
 {
     RTCMediaStream *stream = _localStreams[streamId];
     if (!stream) {
-        for (NSString *peerConnectionId in _peerConnections) {
-            RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
+        for (RTCPeerConnection *peerConnection in _peerConnections.allValues) {
             stream = peerConnection.remoteStreams[streamId];
             if (stream) {
                 break;
@@ -490,6 +509,21 @@
         }
     }
     return stream;
+}
+
+- (RTCMediaStreamTrack*)trackForId:(NSString*)trackId
+{
+    RTCMediaStreamTrack *track = _localTracks[trackId];
+    if (!track) {
+        for (RTCPeerConnection *peerConnection in _peerConnections.allValues) {
+            track = peerConnection.remoteTracks[trackId];
+            if (track) {
+                break;
+            }
+        }
+    }
+
+    return track;    
 }
 
 - (RTCIceServer *)RTCIceServer:(id)json
@@ -526,17 +560,40 @@
 
 - (nonnull RTCConfiguration *)RTCConfiguration:(id)json
 {
-    RTCConfiguration *config = [[RTCConfiguration alloc] init];
-    
-    if (!json) {
-        return config;
+   RTCConfiguration *config = [[RTCConfiguration alloc] init];
+
+  if (!json) {
+    return config;
+  }
+
+  if (![json isKindOfClass:[NSDictionary class]]) {
+    NSLog(@"must be an object");
+    return config;
+  }
+
+  if (json[@"audioJitterBufferMaxPackets"] != nil && [json[@"audioJitterBufferMaxPackets"] isKindOfClass:[NSNumber class]]) {
+    config.audioJitterBufferMaxPackets = [json[@"audioJitterBufferMaxPackets"] intValue];
+  }
+
+  if (json[@"bundlePolicy"] != nil && [json[@"bundlePolicy"] isKindOfClass:[NSString class]]) {
+    NSString *bundlePolicy = json[@"bundlePolicy"];
+    if ([bundlePolicy isEqualToString:@"balanced"]) {
+      config.bundlePolicy = RTCBundlePolicyBalanced;
+    } else if ([bundlePolicy isEqualToString:@"max-compat"]) {
+      config.bundlePolicy = RTCBundlePolicyMaxCompat;
+    } else if ([bundlePolicy isEqualToString:@"max-bundle"]) {
+      config.bundlePolicy = RTCBundlePolicyMaxBundle;
     }
-    
-    if (![json isKindOfClass:[NSDictionary class]]) {
-        NSLog(@"must be an object");
-        return config;
-    }
-    
+  }
+
+  if (json[@"iceBackupCandidatePairPingInterval"] != nil && [json[@"iceBackupCandidatePairPingInterval"] isKindOfClass:[NSNumber class]]) {
+    config.iceBackupCandidatePairPingInterval = [json[@"iceBackupCandidatePairPingInterval"] intValue];
+  }
+
+  if (json[@"iceConnectionReceivingTimeout"] != nil && [json[@"iceConnectionReceivingTimeout"] isKindOfClass:[NSNumber class]]) {
+    config.iceConnectionReceivingTimeout = [json[@"iceConnectionReceivingTimeout"] intValue];
+  }
+
     if (json[@"iceServers"] != nil && [json[@"iceServers"] isKindOfClass:[NSArray class]]) {
         NSMutableArray<RTCIceServer *> *iceServers = [NSMutableArray new];
         for (id server in json[@"iceServers"]) {
@@ -547,8 +604,48 @@
         }
         config.iceServers = iceServers;
     }
-    // TODO: Implement the rest of the RTCConfigure options ...
-    return config;
+
+  if (json[@"iceTransportPolicy"] != nil && [json[@"iceTransportPolicy"] isKindOfClass:[NSString class]]) {
+    NSString *iceTransportPolicy = json[@"iceTransportPolicy"];
+    if ([iceTransportPolicy isEqualToString:@"all"]) {
+      config.iceTransportPolicy = RTCIceTransportPolicyAll;
+    } else if ([iceTransportPolicy isEqualToString:@"none"]) {
+      config.iceTransportPolicy = RTCIceTransportPolicyNone;
+    } else if ([iceTransportPolicy isEqualToString:@"nohost"]) {
+      config.iceTransportPolicy = RTCIceTransportPolicyNoHost;
+    } else if ([iceTransportPolicy isEqualToString:@"relay"]) {
+      config.iceTransportPolicy = RTCIceTransportPolicyRelay;
+    }
+  }
+
+  if (json[@"rtcpMuxPolicy"] != nil && [json[@"rtcpMuxPolicy"] isKindOfClass:[NSString class]]) {
+    NSString *rtcpMuxPolicy = json[@"rtcpMuxPolicy"];
+    if ([rtcpMuxPolicy isEqualToString:@"negotiate"]) {
+      config.rtcpMuxPolicy = RTCRtcpMuxPolicyNegotiate;
+    } else if ([rtcpMuxPolicy isEqualToString:@"require"]) {
+      config.rtcpMuxPolicy = RTCRtcpMuxPolicyRequire;
+    }
+  }
+
+  if (json[@"tcpCandidatePolicy"] != nil && [json[@"tcpCandidatePolicy"] isKindOfClass:[NSString class]]) {
+    NSString *tcpCandidatePolicy = json[@"tcpCandidatePolicy"];
+    if ([tcpCandidatePolicy isEqualToString:@"enabled"]) {
+      config.tcpCandidatePolicy = RTCTcpCandidatePolicyEnabled;
+    } else if ([tcpCandidatePolicy isEqualToString:@"disabled"]) {
+      config.tcpCandidatePolicy = RTCTcpCandidatePolicyDisabled;
+    }
+  }
+
+  if (json[@"sdpSemantics"] != nil && [json[@"sdpSemantics"] isKindOfClass:[NSString class]]) {
+    NSString *sdpSemantics = json[@"sdpSemantics"];
+    if ([sdpSemantics isEqualToString:@"plan-b"]) {
+      config.sdpSemantics = RTCSdpSemanticsPlanB;
+    } else if ([sdpSemantics isEqualToString:@"unified-plan"]) {
+      config.sdpSemantics = RTCSdpSemanticsUnifiedPlan;
+    }
+  }
+
+  return config;
 }
 
 - (RTCDataChannelConfiguration *)RTCDataChannelConfiguration:(id)json
@@ -558,7 +655,7 @@
     }
     if ([json isKindOfClass:[NSDictionary class]]) {
         RTCDataChannelConfiguration *init = [RTCDataChannelConfiguration new];
-        
+
         if (json[@"id"]) {
             [init setChannelId:(int)[json[@"id"] integerValue]];
         }

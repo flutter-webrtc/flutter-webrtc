@@ -5,6 +5,7 @@ import android.util.Base64;
 
 import org.webrtc.DataChannel;
 import io.flutter.plugin.common.EventChannel;
+import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 
 class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHandler {
@@ -23,7 +24,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
         this.eventChannel =
                 new EventChannel(
                         plugin.registrar().messenger(),
-                        "cloudwebrtc.com/WebRTC/dataChannelEvent" + String.valueOf(id));
+                        "FlutterWebRTC/dataChannelEvent" + String.valueOf(id));
         eventChannel.setStreamHandler(this);
     }
 
@@ -43,7 +44,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
 
     @Override
     public void onListen(Object o, EventChannel.EventSink sink) {
-        eventSink = sink;
+        eventSink = new AnyThreadSink(sink);
     }
 
     @Override
@@ -79,7 +80,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
 
         if (buffer.binary) {
             params.putString("type", "binary");
-            params.putString("data", Base64.encodeToString(bytes, Base64.NO_WRAP));
+            params.putByte("data", bytes);
         } else {
             params.putString("type", "text");
             params.putString("data", new String(bytes, Charset.forName("UTF-8")));

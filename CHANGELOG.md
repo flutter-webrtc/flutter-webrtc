@@ -1,6 +1,13 @@
 ## Changelog
 --------------------------------------------
-[0.1.6] - 2019.01.31
+[0.1.7] - 2019.05.16
+
+* Add RTCDataChannelMessage for data channel and remove base64 type.
+* Add streaming API for datachannel messages and state changes.
+* Remove cloudwebrtc prefix in the plugin method/event channel name.
+* Other bug fixes.
+
+[0.1.6] - 2019.03.31
 
 * Add getConfiguration/setConfiguration methods for Peerconnection.
 * Add object fit for RTCVideoView.

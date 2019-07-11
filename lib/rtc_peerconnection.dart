@@ -195,8 +195,8 @@ class RTCPeerConnection {
   }
 
   EventChannel _eventChannelFor(String peerConnectionId) {
-    return WebRTC.eventChannelFor(
-        'cloudwebrtc.com/WebRTC/peerConnectoinEvent$peerConnectionId');
+    return new EventChannel(
+        'FlutterWebRTC/peerConnectoinEvent$peerConnectionId');
   }
 
   Map<String, dynamic> get getConfiguration => _configuration;
@@ -321,7 +321,7 @@ class RTCPeerConnection {
     });
   }
 
-  Future<List<StatsReport>> getStats(MediaStreamTrack track) async {
+ Future<List<StatsReport>> getStats([MediaStreamTrack track = null]) async {
     try {
       final Map<dynamic, dynamic> response =
           await _channel.invokeMethod('getStats', <String, dynamic>{

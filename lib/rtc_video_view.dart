@@ -82,7 +82,7 @@ class RTCVideoRenderer {
   }
 
   EventChannel _eventChannelFor(int textureId) {
-    return WebRTC.eventChannelFor('cloudwebrtc.com/WebRTC/Texture$textureId');
+    return new EventChannel('FlutterWebRTC/Texture$textureId');
   }
 
   void eventListener(dynamic event) {
