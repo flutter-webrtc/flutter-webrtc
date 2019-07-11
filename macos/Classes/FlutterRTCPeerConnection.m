@@ -1,6 +1,19 @@
+#import <objc/runtime.h>
 #import "FlutterWebRTCPlugin.h"
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCDataChannel.h"
+
+#import <WebRTC/RTCConfiguration.h>
+#import <WebRTC/RTCIceCandidate.h>
+#import <WebRTC/RTCIceServer.h>
+#import <WebRTC/RTCMediaConstraints.h>
+#import <WebRTC/RTCIceCandidate.h>
+#import <WebRTC/RTCLegacyStatsReport.h>
+#import <WebRTC/RTCSessionDescription.h>
+#import <WebRTC/RTCConfiguration.h>
+#import <WebRTC/RTCAudioTrack.h>
+#import <WebRTC/RTCVideoTrack.h>
+#import <WebRTC/RTCMediaStream.h>
 
 @implementation RTCPeerConnection (Flutter)
 
@@ -16,22 +29,22 @@
     objc_setAssociatedObject(self, @selector(flutterId), flutterId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-- (FLEEventSink)eventSink
+- (FlutterEventSink)eventSink
 {
     return objc_getAssociatedObject(self, _cmd);
 }
 
-- (void)setEventSink:(FLEEventSink)eventSink
+- (void)setEventSink:(FlutterEventSink)eventSink
 {
     objc_setAssociatedObject(self, @selector(eventSink), eventSink, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-- (FLEEventChannel *)eventChannel
+- (FlutterEventChannel *)eventChannel
 {
     return objc_getAssociatedObject(self, _cmd);
 }
 
-- (void)setEventChannel:(FLEEventChannel *)eventChannel
+- (void)setEventChannel:(FlutterEventChannel *)eventChannel
 {
     objc_setAssociatedObject(self, @selector(eventChannel), eventChannel, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
@@ -68,13 +81,13 @@
 
 #pragma mark - FlutterStreamHandler methods
 
-- (FLEMethodError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
+- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
     self.eventSink = nil;
     return nil;
 }
 
-- (FLEMethodError* _Nullable)onListenWithArguments:(id _Nullable)arguments
-                                       eventSink:(nonnull FLEEventSink)sink {
+- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
+                                       eventSink:(nonnull FlutterEventSink)sink {
     self.eventSink = sink;
     return nil;
 }
@@ -91,13 +104,13 @@
 
 -(void) peerConnectionCreateOffer:(NSDictionary *)constraints
                    peerConnection:(RTCPeerConnection*)peerConnection
-                           result:(FLEMethodResult)result
+                           result:(FlutterResult)result
 {
     [peerConnection
      offerForConstraints:[self parseMediaConstraints:constraints]
      completionHandler:^(RTCSessionDescription *sdp, NSError *error) {
          if (error) {
-             result([[FLEMethodError alloc] initWithCode:@"CreateOfferFailed"
+             result([FlutterError errorWithCode:@"CreateOfferFailed"
                                         message:[NSString stringWithFormat:@"Error %@", error.userInfo[@"error"]]
                                         details:nil]);
          } else {
@@ -109,13 +122,13 @@
 
 -(void) peerConnectionCreateAnswer:(NSDictionary *)constraints
                     peerConnection:(RTCPeerConnection *)peerConnection
-                            result:(FLEMethodResult)result
+                            result:(FlutterResult)result
 {
     [peerConnection
      answerForConstraints:[self parseMediaConstraints:constraints]
      completionHandler:^(RTCSessionDescription *sdp, NSError *error) {
          if (error) {
-             result([[FLEMethodError alloc] initWithCode:@"CreateAnswerFailed"
+             result([FlutterError errorWithCode:@"CreateAnswerFailed"
                                         message:[NSString stringWithFormat:@"Error %@", error.userInfo[@"error"]]
                                         details:nil]);
          } else {
@@ -127,11 +140,11 @@
 
 -(void) peerConnectionSetLocalDescription:(RTCSessionDescription *)sdp
                            peerConnection:(RTCPeerConnection *)peerConnection
-                                   result:(FLEMethodResult)result
+                                   result:(FlutterResult)result
 {
     [peerConnection setLocalDescription:sdp completionHandler: ^(NSError *error) {
         if (error) {
-            result([[FLEMethodError alloc] initWithCode:@"SetLocalDescriptionFailed"
+            result([FlutterError errorWithCode:@"SetLocalDescriptionFailed"
                                        message:[NSString stringWithFormat:@"Error %@", error.localizedDescription]
                                        details:nil]);
         } else {
@@ -142,11 +155,11 @@
 
 -(void) peerConnectionSetRemoteDescription:(RTCSessionDescription *)sdp
                             peerConnection:(RTCPeerConnection *)peerConnection
-                                    result:(FLEMethodResult)result
+                                    result:(FlutterResult)result
 {
     [peerConnection setRemoteDescription: sdp completionHandler: ^(NSError *error) {
         if (error) {
-            result([[FLEMethodError alloc] initWithCode:@"SetRemoteDescriptionFailed"
+            result([FlutterError errorWithCode:@"SetRemoteDescriptionFailed"
                                        message:[NSString stringWithFormat:@"Error %@", error.localizedDescription]
                                        details:nil]);
         } else {
@@ -157,7 +170,7 @@
 
 -(void) peerConnectionAddICECandidate:(RTCIceCandidate*)candidate
                        peerConnection:(RTCPeerConnection *)peerConnection
-                               result:(FLEMethodResult)result
+                               result:(FlutterResult)result
 {
     [peerConnection addIceCandidate:candidate];
     result(nil);
@@ -185,7 +198,7 @@
 
 -(void) peerConnectionGetStats:(nonnull NSString *)trackID
                 peerConnection:(nonnull RTCPeerConnection *)peerConnection
-                        result:(nonnull FLEMethodResult)result
+                        result:(nonnull FlutterResult)result
 {
     RTCMediaStreamTrack *track = nil;
     if (!trackID
@@ -209,7 +222,7 @@
                         result(@{@"stats": stats});
                     }];
     }else{
-        result([[FLEMethodError alloc] initWithCode:@"GetStatsFailed"
+        result([FlutterError errorWithCode:@"GetStatsFailed"
                                    message:[NSString stringWithFormat:@"Error %@", @""]
                                    details:nil]);
     }
@@ -316,7 +329,7 @@
 #pragma mark - RTCPeerConnectionDelegate methods
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeSignalingState:(RTCSignalingState)newState {
-    FLEEventSink eventSink = peerConnection.eventSink;
+    FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"signalingState",
@@ -331,7 +344,7 @@
     NSString *streamId = stream.streamId;
     peerConnection.remoteStreams[streamId] = stream;
     
-    FLEEventSink eventSink = peerConnection.eventSink;
+    FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"onAddTrack",
@@ -352,7 +365,7 @@
           mediaStream:(RTCMediaStream *)stream didRemoveTrack:(RTCVideoTrack*)track{
     [peerConnection.remoteTracks removeObjectForKey:track.trackId];
     NSString *streamId = stream.streamId;
-    FLEEventSink eventSink = peerConnection.eventSink;
+    FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"onRemoveTrack",
@@ -386,7 +399,7 @@
     NSString *streamId = stream.streamId;
     peerConnection.remoteStreams[streamId] = stream;
     
-    FLEEventSink eventSink = peerConnection.eventSink;
+    FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"onAddStream",
@@ -413,7 +426,7 @@
     }
     [peerConnection.remoteStreams removeObjectForKey:streamId];
     
-    FLEEventSink eventSink = peerConnection.eventSink;
+    FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"onRemoveStream",
@@ -423,14 +436,14 @@
 }
 
 - (void)peerConnectionShouldNegotiate:(RTCPeerConnection *)peerConnection {
-    FLEEventSink eventSink = peerConnection.eventSink;
+    FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{@"event" : @"onRenegotiationNeeded",});
     }
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceConnectionState:(RTCIceConnectionState)newState {
-    FLEEventSink eventSink = peerConnection.eventSink;
+    FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"iceConnectionState",
@@ -440,7 +453,7 @@
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceGatheringState:(RTCIceGatheringState)newState {
-    FLEEventSink eventSink = peerConnection.eventSink;
+    FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"iceGatheringState",
@@ -450,7 +463,7 @@
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didGenerateIceCandidate:(RTCIceCandidate *)candidate {
-    FLEEventSink eventSink = peerConnection.eventSink;
+    FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"onCandidate",
@@ -469,15 +482,15 @@
     dataChannel.delegate = self;
     peerConnection.dataChannels[dataChannelId] = dataChannel;
     
-    FLEEventChannel *eventChannel = [FLEEventChannel
-                                         eventChannelWithName:[NSString stringWithFormat:@"cloudwebrtc.com/WebRTC/dataChannelEvent%d", dataChannel.channelId]
-                                         binaryMessenger:self.messenger
-                                     codec:[FLEJSONMethodCodec sharedInstance]];
+    FlutterEventChannel *eventChannel = [FlutterEventChannel
+                                         eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%d", dataChannel.channelId]
+                                         binaryMessenger:self.messenger];
     
     dataChannel.eventChannel = eventChannel;
+    dataChannel.flutterChannelId = dataChannelId;
     [eventChannel setStreamHandler:dataChannel];
     
-    FLEEventSink eventSink = peerConnection.eventSink;
+    FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"didOpenDataChannel",

@@ -1,6 +1,7 @@
+#import <objc/runtime.h>
 #import "FlutterRTCDataChannel.h"
 #import "FlutterRTCPeerConnection.h"
-
+#import <WebRTC/RTCDataChannelConfiguration.h>
 
 @implementation RTCDataChannel (Flutter)
 
@@ -14,35 +15,45 @@
     objc_setAssociatedObject(self, @selector(peerConnectionId), peerConnectionId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-- (FLEEventSink )eventSink
+- (FlutterEventSink )eventSink
 {
     return objc_getAssociatedObject(self, _cmd);
 }
 
-- (void)setEventSink:(FLEEventSink)eventSink
+- (void)setEventSink:(FlutterEventSink)eventSink
 {
     objc_setAssociatedObject(self, @selector(eventSink), eventSink, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-- (FLEEventChannel *)eventChannel
+- (NSNumber *)flutterChannelId
 {
     return objc_getAssociatedObject(self, _cmd);
 }
 
-- (void)setEventChannel:(FLEEventChannel *)eventChannel
+- (void)setFlutterChannelId:(NSNumber *)flutterChannelId
+{
+    objc_setAssociatedObject(self, @selector(flutterChannelId), flutterChannelId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (FlutterEventChannel *)eventChannel
+{
+    return objc_getAssociatedObject(self, _cmd);
+}
+
+- (void)setEventChannel:(FlutterEventChannel *)eventChannel
 {
     objc_setAssociatedObject(self, @selector(eventChannel), eventChannel, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-#pragma mark - FLEStreamHandler methods
+#pragma mark - FlutterStreamHandler methods
 
-- (FLEMethodError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
+- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
     self.eventSink = nil;
     return nil;
 }
 
-- (FLEMethodError* _Nullable)onListenWithArguments:(id _Nullable)arguments
-                                       eventSink:(nonnull FLEEventSink)sink {
+- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
+                                       eventSink:(nonnull FlutterEventSink)sink {
     self.eventSink = sink;
     return nil;
 }
@@ -53,21 +64,21 @@
 -(void)createDataChannel:(nonnull NSString *)peerConnectionId
                               label:(NSString *)label
                              config:(RTCDataChannelConfiguration *)config
-               messenger:(NSObject<FLEBinaryMessenger>*)messenger
+               messenger:(NSObject<FlutterBinaryMessenger>*)messenger
 {
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     RTCDataChannel *dataChannel = [peerConnection dataChannelForLabel:label configuration:config];
     
-    if (nil != dataChannel && -1 != dataChannel.channelId) {
+    if (nil != dataChannel) {
         dataChannel.peerConnectionId = peerConnectionId;
-        NSNumber *dataChannelId = [NSNumber numberWithInteger:dataChannel.channelId];
+        NSNumber *dataChannelId = [NSNumber numberWithInteger:config.channelId];
         peerConnection.dataChannels[dataChannelId] = dataChannel;
+        dataChannel.flutterChannelId = dataChannelId;
         dataChannel.delegate = self;
         
-        FLEEventChannel *eventChannel = [FLEEventChannel
-                                         eventChannelWithName:[NSString stringWithFormat:@"cloudwebrtc.com/WebRTC/dataChannelEvent%d", dataChannel.channelId]
-                                         binaryMessenger:messenger
-                                         codec:[FLEJSONMethodCodec sharedInstance]];
+        FlutterEventChannel *eventChannel = [FlutterEventChannel
+                                             eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%d", dataChannel.channelId]
+                                             binaryMessenger:messenger];
         
         dataChannel.eventChannel = eventChannel;
         [eventChannel setStreamHandler:dataChannel];
@@ -80,7 +91,7 @@
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     NSMutableDictionary *dataChannels = peerConnection.dataChannels;
     RTCDataChannel *dataChannel = dataChannels[dataChannelId];
-    FLEEventChannel *eventChannel  = dataChannel.eventChannel;
+    FlutterEventChannel *eventChannel  = dataChannel.eventChannel;
     [eventChannel setStreamHandler:nil];
     dataChannel.eventChannel = nil;
     [dataChannel close];
@@ -89,14 +100,16 @@
 
 -(void)dataChannelSend:(nonnull NSString *)peerConnectionId
                     dataChannelId:(nonnull NSString *)dataChannelId
-                             data:(NSString *)data
+                             data:(id)data
                              type:(NSString *)type
 {
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     RTCDataChannel *dataChannel = peerConnection.dataChannels[dataChannelId];
+    
     NSData *bytes = [type isEqualToString:@"binary"] ?
-    [[NSData alloc] initWithBase64EncodedString:data options:0] :
+    ((FlutterStandardTypedData*)data).data :
     [data dataUsingEncoding:NSUTF8StringEncoding];
+    
     RTCDataBuffer *buffer = [[RTCDataBuffer alloc] initWithData:bytes isBinary:[type isEqualToString:@"binary"]];
     [dataChannel sendData:buffer];
 }
@@ -118,10 +131,10 @@
 - (void)dataChannelDidChangeState:(RTCDataChannel*)channel
 {
     RTCPeerConnection *peerConnection = self.peerConnections[channel.peerConnectionId];
-    FLEEventSink eventSink = channel.eventSink;
+    FlutterEventSink eventSink = channel.eventSink;
     if(eventSink) {
         eventSink(@{ @"event" : @"dataChannelStateChanged",
-                     @"id": @(channel.channelId),
+                     @"id": channel.flutterChannelId,
                      @"state": [self stringForDataChannelState:channel.readyState]});
     }
 }
@@ -130,20 +143,20 @@
 - (void)dataChannel:(RTCDataChannel *)channel didReceiveMessageWithBuffer:(RTCDataBuffer *)buffer
 {
     NSString *type;
-    NSString *data;
+    id data;
     if (buffer.isBinary) {
         type = @"binary";
-        data = [buffer.data base64EncodedStringWithOptions:0];
+        data = [FlutterStandardTypedData typedDataWithBytes:buffer.data];
     } else {
         type = @"text";
         data = [[NSString alloc] initWithData:buffer.data
                                      encoding:NSUTF8StringEncoding];
     }
     RTCPeerConnection *peerConnection = self.peerConnections[channel.peerConnectionId];
-    FLEEventSink eventSink = channel.eventSink;
+    FlutterEventSink eventSink = channel.eventSink;
     if(eventSink) {
         eventSink(@{ @"event" : @"dataChannelReceiveMessage",
-                     @"id": @(channel.channelId),
+                     @"id": channel.flutterChannelId,
                      @"type": type,
                      @"data": (data ? data : [NSNull null])});
     }
