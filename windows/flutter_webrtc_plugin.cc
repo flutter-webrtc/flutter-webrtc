@@ -1,101 +1,71 @@
-// Copyright 2019 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 #include "flutter_webrtc_plugin.h"
 
-#include <windows.h>
+#include <flutter/standard_message_codec.h>
+#include "flutter_webrtc.h"
 
-#include <VersionHelpers.h>
-#include <flutter/method_channel.h>
-#include <flutter/plugin_registrar.h>
-#include <flutter/standard_method_codec.h>
-#include <memory>
-#include <sstream>
+const char *kChannelName = "FlutterWebRTC.Method";
 
-namespace {
+namespace flutter_webrtc_plugin {
 
-class FlutterWebRTCPlugin : public flutter::Plugin {
- public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar);
+    // A webrtc plugin for windows/linux.
+    class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
+    public:
+        static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
+            auto channel = std::make_unique<flutter::MethodChannel<EncodableValue>>(
+                registrar->messenger(), kChannelName,
+                &flutter::StandardMethodCodec::GetInstance());
 
-  // Creates a plugin that communicates on the given channel.
-  FlutterWebRTCPlugin(
-      std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel);
+            auto *channel_pointer = channel.get();
 
-  virtual ~FlutterWebRTCPlugin();
+            // Uses new instead of make_unique due to private constructor.
+            std::unique_ptr<FlutterWebRTCPluginImpl> plugin(
+                new FlutterWebRTCPluginImpl(registrar, std::move(channel)));
 
- private:
-  // Called when a method is called on |channel_|;
-  void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+            channel_pointer->SetMethodCallHandler(
+                [plugin_pointer = plugin.get()](const auto &call, auto result) {
+                plugin_pointer->HandleMethodCall(call, std::move(result));
+            });
 
-  // The MethodChannel used for communication with the Flutter engine.
-  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
-};
+            registrar->AddPlugin(std::move(plugin));
+        }
 
-// static
-void FlutterWebRTCPlugin::RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
-  auto channel =
-      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "example_plugin",
-          &flutter::StandardMethodCodec::GetInstance());
-  auto *channel_pointer = channel.get();
+        virtual ~FlutterWebRTCPluginImpl() {}
 
-  auto plugin = std::make_unique<FlutterWebRTCPlugin>(std::move(channel));
+        flutter::BinaryMessenger *messenger() { return messenger_; }
 
-  channel_pointer->SetMethodCallHandler(
-      [plugin_pointer = plugin.get()](const auto &call, auto result) {
-        plugin_pointer->HandleMethodCall(call, std::move(result));
-      });
+        flutter::TextureRegistrar *textures() { return textures_; }
 
-  registrar->AddPlugin(std::move(plugin));
-}
+    private:
+        // Creates a plugin that communicates on the given channel.
+        FlutterWebRTCPluginImpl(
+            flutter::PluginRegistrar *registrar,
+            std::unique_ptr<flutter::MethodChannel<EncodableValue>> channel)
+            : channel_(std::move(channel)),
+            messenger_(registrar->messenger()),
+            textures_(registrar->textures()) {
+            webrtc_ = std::make_unique<FlutterWebRTC>(this);
+        }
 
-FlutterWebRTCPlugin::FlutterWebRTCPlugin(
-    std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel)
-    : channel_(std::move(channel)) {}
+        // Called when a method is called on |channel_|;
+        void HandleMethodCall(
+            const flutter::MethodCall<EncodableValue> &method_call,
+            std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+            // handle method call and forward to webrtc native sdk.
+            webrtc_->HandleMethodCall(method_call, std::move(result));
+        }
 
-FlutterWebRTCPlugin::~FlutterWebRTCPlugin(){};
+    private:
+        std::unique_ptr<flutter::MethodChannel<EncodableValue>> channel_;
+        std::unique_ptr<FlutterWebRTC> webrtc_;
+        flutter::BinaryMessenger *messenger_;
+        flutter::TextureRegistrar *textures_;
+    };
 
-void FlutterWebRTCPlugin::HandleMethodCall(
-    const flutter::MethodCall<flutter::EncodableValue> &method_call,
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  if (method_call.method_name().compare("getPlatformVersion") == 0) {
-    std::ostringstream version_stream;
-    version_stream << "Windows ";
-	// The result returned here will depend on the app manifest of the runner.
-    if (IsWindows10OrGreater()) {
-      version_stream << "10+";
-    } else if (IsWindows8OrGreater()) {
-      version_stream << "8";
-    } else if (IsWindows7OrGreater()) {
-      version_stream << "7";
-    }
-    flutter::EncodableValue response(version_stream.str());
-    result->Success(&response);
-  } else {
-    result->NotImplemented();
-  }
-}
-
-}  // namespace
+}  // namespace flutter_webrtc_plugin
 
 void FlutterWebRTCPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  // The plugin registrar owns the plugin, registered callbacks, etc., so must
-  // remain valid for the life of the application.
-  static auto *plugin_registrar = new flutter::PluginRegistrar(registrar);
-
-  FlutterWebRTCPlugin::RegisterWithRegistrar(plugin_registrar);
+    static auto *plugin_registrar = new flutter::PluginRegistrar(registrar);
+    flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
+        plugin_registrar);
 }

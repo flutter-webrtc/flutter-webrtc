@@ -69,13 +69,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;FLUTTER_PLUGIN_IMPL;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;FLUTTER_PLUGIN_IMPL;_WINDOWS;_USRDLL;LIB_WEBRTC_API_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>.;include;third_party\webrtc\include;third_party\uuidxx</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>flutter_windows.dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>flutter_windows.dll.lib;libwebrtc.dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>third_party\webrtc\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
       <Command>"$(ProjectDir)scripts\cache_flutter" "$(ProjectDir)flutter" debug</Command>
@@ -92,7 +94,8 @@
       </Outputs>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>xcopy /q /i /s /y "$(ProjectDir)flutter_webrtc_plugin.h" "$(OutDir)"</Command>
+      <Command>xcopy /q /i /s /y "$(ProjectDir)flutter_webrtc_plugin.h" "$(OutDir)"
+xcopy /q /i /s /y "$(ProjectDir)third_party\webrtc\lib\x64\libwebrtc.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Publishing header to output directory</Message>
@@ -139,6 +142,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="flutter_webrtc_plugin.h" />
+    <ClInclude Include="include\flutter_data_channel.h" />
+    <ClInclude Include="include\flutter_media_stream.h" />
+    <ClInclude Include="include\flutter_peerconnection.h" />
+    <ClInclude Include="include\flutter_video_renderer.h" />
+    <ClInclude Include="include\flutter_webrtc.h" />
+    <ClInclude Include="include\flutter_webrtc_base.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -147,6 +156,13 @@
     <ClCompile Include="flutter\cpp_client_wrapper\engine_method_result.cc" />
     <ClCompile Include="flutter\cpp_client_wrapper\plugin_registrar.cc" />
     <ClCompile Include="flutter\cpp_client_wrapper\standard_codec.cc" />
+    <ClCompile Include="src\flutter_data_channel.cc" />
+    <ClCompile Include="src\flutter_media_stream.cc" />
+    <ClCompile Include="src\flutter_peerconnection.cc" />
+    <ClCompile Include="src\flutter_video_renderer.cc" />
+    <ClCompile Include="src\flutter_webrtc.cc" />
+    <ClCompile Include="src\flutter_webrtc_base.cc" />
+    <ClCompile Include="third_party\uuidxx\uuidxx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
