@@ -313,7 +313,7 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     const EncodableMap params = (*method_call.arguments()).MapValue();
-    int64_t texture_id = findInt(params, "textureId");
+    int64_t texture_id = findLongInt(params, "textureId");
     VideoRendererDispose(texture_id, std::move(result));
   } else if (method_call.method_name().compare("videoRendererSetSrcObject") ==
              0) {

@@ -121,8 +121,7 @@ FlutterPeerConnectionObserver::FlutterPeerConnectionObserver(
     : base_(base),
       peerconnection_(peerconnection),
       event_channel_(new EventChannel<EncodableValue>(
-          messenger, channel_name, &StandardMethodCodec::GetInstance(),
-          &StandardMessageCodec::GetInstance())) {
+          messenger, channel_name, &StandardMethodCodec::GetInstance())) {
   StreamHandler<EncodableValue> stream_handler = {
       [&](const EncodableValue*arguments,
           const EventSink<EncodableValue> *events) -> MethodResult<EncodableValue> * {
@@ -153,8 +152,6 @@ static const char *iceConnectionStateString(RTCIceConnectionState state) {
       return "disconnected";
     case RTCIceConnectionStateClosed:
       return "closed";
-    case RTCIceConnectionStateCount:
-      return "count";
   }
   return "";
 }
@@ -176,12 +173,12 @@ static const char *signalingStateString(RTCSignalingState state) {
   }
   return "";
 }
-void FlutterPeerConnectionObserver::onSignalingState(RTCSignalingState state) {
+void FlutterPeerConnectionObserver::OnSignalingState(RTCSignalingState state) {
   if (event_sink_ != nullptr) {
       EncodableMap params;
       params[EncodableValue("event")] = "iceConnectionState";
     params[EncodableValue("state")] = signalingStateString(state);
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 
@@ -197,27 +194,27 @@ static const char *iceGatheringStateString(RTCIceGatheringState state) {
   return "";
 }
 
-void FlutterPeerConnectionObserver::onIceGatheringState(
+void FlutterPeerConnectionObserver::OnIceGatheringState(
     RTCIceGatheringState state) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "iceGatheringState";
     params[EncodableValue("state")] = iceGatheringStateString(state);
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::onIceConnectionState(
+void FlutterPeerConnectionObserver::OnIceConnectionState(
     RTCIceConnectionState state) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "signalingState";
     params[EncodableValue("state")] = iceConnectionStateString(state);
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::onIceCandidate(RTCIceCandidate *candidate) {
+void FlutterPeerConnectionObserver::OnIceCandidate(RTCIceCandidate *candidate) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onCandidate";
@@ -226,11 +223,11 @@ void FlutterPeerConnectionObserver::onIceCandidate(RTCIceCandidate *candidate) {
     cand[EncodableValue("sdpMLineIndex")] = candidate->sdp_mline_index();
     cand[EncodableValue("sdpMid")] = candidate->sdp_mid();
     params[EncodableValue("candidate")] = cand;
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::onAddStream(RTCMediaStream *stream) {
+void FlutterPeerConnectionObserver::OnAddStream(RTCMediaStream *stream) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onAddStream";
@@ -265,20 +262,20 @@ void FlutterPeerConnectionObserver::onAddStream(RTCMediaStream *stream) {
     }
 
     params[EncodableValue("videoTracks")] = videoTracks;
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::onRemoveStream(RTCMediaStream *stream) {
+void FlutterPeerConnectionObserver::OnRemoveStream(RTCMediaStream *stream) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onRemoveStream";
     params[EncodableValue("streamId")] = stream->label();
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::onAddTrack(RTCMediaStream *stream,
+void FlutterPeerConnectionObserver::OnAddTrack(RTCMediaStream *stream,
                                                RTCMediaTrack *track) {
   if (event_sink_ != nullptr) {
       EncodableMap params;
@@ -295,11 +292,11 @@ void FlutterPeerConnectionObserver::onAddTrack(RTCMediaStream *stream,
     audioTrack[EncodableValue("readyState")] = "live";
     params[EncodableValue("track")] = audioTrack;
 
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::onRemoveTrack(RTCMediaStream *stream,
+void FlutterPeerConnectionObserver::OnRemoveTrack(RTCMediaStream *stream,
                                                   RTCMediaTrack *track) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
@@ -316,11 +313,11 @@ void FlutterPeerConnectionObserver::onRemoveTrack(RTCMediaStream *stream,
     videoTrack[EncodableValue("readyState")] = "live";
     params[EncodableValue("track")] = videoTrack;
 
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::onDataChannel(
+void FlutterPeerConnectionObserver::OnDataChannel(
     RTCDataChannel *data_channel) {
   std::string event_channel = "FlutterWebRTC/dataChannelEvent" +
                               std::to_string(data_channel->id());
@@ -335,15 +332,15 @@ void FlutterPeerConnectionObserver::onDataChannel(
     params[EncodableValue("event")] = "didOpenDataChannel";
     params[EncodableValue("id")] = data_channel->id();
     params[EncodableValue("label")] = data_channel->label();
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::onRenegotiationNeeded() {
+void FlutterPeerConnectionObserver::OnRenegotiationNeeded() {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onRenegotiationNeeded";
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 

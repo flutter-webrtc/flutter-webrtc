@@ -9,13 +9,13 @@ namespace flutter_webrtc_plugin {
 void FlutterMediaStream::GetUserMedia(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
+
   std::string uuid = base_->GenerateUUID();
   scoped_refptr<RTCMediaStream> stream =
       base_->factory_->CreateStream(uuid.c_str());
 
-  
   EncodableMap params;
-  params[EncodableValue("streamId")] = uuid;
+  params[EncodableValue("streamId")] = EncodableValue(uuid);
 
   auto it = constraints.find(EncodableValue("audio"));
   if (it != constraints.end()) {
@@ -52,7 +52,8 @@ void FlutterMediaStream::GetUserMedia(
   }
 
   base_->media_streams_[uuid] = stream;
-  result->Success(&EncodableValue(params));
+  const EncodableValue res(params);
+  result->Success(&res);
 }
 
 void addDefaultAudioConstraints(
@@ -92,15 +93,17 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
       scoped_refptr<RTCAudioTrack> track =
           base_->factory_->CreateAudioTrack(source, uuid.c_str());
 
+      std::string track_id = track->id();
+
       EncodableMap track_info;
-      track_info[EncodableValue("id")] = track->id();
-      track_info[EncodableValue("label")] = track->id();
-      track_info[EncodableValue("kind")] = track->kind();
-      track_info[EncodableValue("enabled")] = track->enabled();
+      track_info[EncodableValue("id")] = EncodableValue(track->id());
+      track_info[EncodableValue("label")] = EncodableValue(track->id());
+      track_info[EncodableValue("kind")] = EncodableValue(track->kind());
+      track_info[EncodableValue("enabled")] = EncodableValue(track->enabled());
 
       EncodableList audioTracks;
       audioTracks.push_back(EncodableValue(track_info));
-      params[EncodableValue("audioTracks")] = audioTracks;
+      params[EncodableValue("audioTracks")] = EncodableValue(audioTracks);
       stream->AddTrack(track);
   }
 }
@@ -187,12 +190,12 @@ void FlutterMediaStream::GetUserVideo(
       base_->factory_->CreateVideoTrack(source, uuid.c_str());
   EncodableList videoTracks;
   EncodableMap info;
-  info[EncodableValue("id")] = track->id();
-  info[EncodableValue("label")] = track->id();
-  info[EncodableValue("kind")] = track->kind();
-  info[EncodableValue("enabled")] = track->enabled();
+  info[EncodableValue("id")] = EncodableValue(track->id());
+  info[EncodableValue("label")] = EncodableValue(track->id());
+  info[EncodableValue("kind")] = EncodableValue(track->kind());
+  info[EncodableValue("enabled")] = EncodableValue(track->enabled());
   videoTracks.push_back(EncodableValue(info));
-  params[EncodableValue("videoTracks")] = videoTracks;
+  params[EncodableValue("videoTracks")] = EncodableValue(videoTracks);
   stream->AddTrack(track);
 }
 

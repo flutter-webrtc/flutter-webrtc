@@ -14,18 +14,18 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
                                 BinaryMessenger *messenger,
                                 const std::string &channel_name);
 
-  virtual void onSignalingState(RTCSignalingState state) override;
-  virtual void onIceGatheringState(RTCIceGatheringState state) override;
-  virtual void onIceConnectionState(RTCIceConnectionState state) override;
-  virtual void onIceCandidate(RTCIceCandidate *candidate) override;
-  virtual void onAddStream(RTCMediaStream *stream) override;
-  virtual void onRemoveStream(RTCMediaStream *stream) override;
-  virtual void onAddTrack(RTCMediaStream *stream,
+  virtual void OnSignalingState(RTCSignalingState state) override;
+  virtual void OnIceGatheringState(RTCIceGatheringState state) override;
+  virtual void OnIceConnectionState(RTCIceConnectionState state) override;
+  virtual void OnIceCandidate(RTCIceCandidate *candidate) override;
+  virtual void OnAddStream(RTCMediaStream *stream) override;
+  virtual void OnRemoveStream(RTCMediaStream *stream) override;
+  virtual void OnAddTrack(RTCMediaStream *stream,
                           RTCMediaTrack *track) override;
-  virtual void onRemoveTrack(RTCMediaStream *stream,
+  virtual void OnRemoveTrack(RTCMediaStream *stream,
                              RTCMediaTrack *track) override;
-  virtual void onDataChannel(RTCDataChannel *data_channel) override;
-  virtual void onRenegotiationNeeded() override;
+  virtual void OnDataChannel(RTCDataChannel *data_channel) override;
+  virtual void OnRenegotiationNeeded() override;
 
  private:
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;

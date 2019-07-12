@@ -16,7 +16,7 @@ class FlutterVideoRenderer : public Texture,
  public:
   FlutterVideoRenderer(TextureRegistrar *registrar, BinaryMessenger *messenger);
 
-  virtual std::shared_ptr<uint8_t> CopyTextureBuffer(size_t width,
+  virtual std::shared_ptr<GLFWPixelBuffer> CopyTextureBuffer(size_t width,
                                                      size_t height) override;
 
   virtual void OnFrame(scoped_refptr<RTCVideoFrame> frame) override;
@@ -39,7 +39,7 @@ class FlutterVideoRenderer : public Texture,
   int64_t texture_id_ = -1;
   RTCVideoTrack *track_ = nullptr;
   scoped_refptr<RTCVideoFrame> frame_;
-  std::shared_ptr<uint8_t> frame_buffer_;
+  std::shared_ptr<GLFWPixelBuffer> pixel_buffer_;
 };
 
 class FlutterVideoRendererManager {

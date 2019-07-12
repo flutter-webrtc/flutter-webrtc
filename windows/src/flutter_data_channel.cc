@@ -7,8 +7,7 @@ FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
     const std::string &name)
     : data_channel_(data_channel),
       event_channel_(new EventChannel<EncodableValue>(
-          messenger, name, &StandardMethodCodec::GetInstance(),
-          &StandardMessageCodec::GetInstance())) {
+          messenger, name, &StandardMethodCodec::GetInstance())) {
   StreamHandler<EncodableValue> stream_handler = {
       [&](const EncodableValue*arguments,
           const EventSink<EncodableValue> *events) -> MethodResult<EncodableValue> * {
@@ -109,7 +108,7 @@ void FlutterRTCDataChannelObserver::OnStateChange(RTCDataChannelState state) {
     params[EncodableValue("event")] = "dataChannelReceiveMessage";
     params[EncodableValue("id")] = data_channel_->id();
     params[EncodableValue("state")] = DataStateString(state);
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 
@@ -121,7 +120,7 @@ void FlutterRTCDataChannelObserver::OnMessage(const char *buffer, int length,
     params[EncodableValue("id")] = data_channel_->id();
     params[EncodableValue("type")] = binary ? "binary" : "text";
     params[EncodableValue("data")] = std::string(buffer, length);
-    (*event_sink_)(&EncodableValue(params));
+    event_sink_->Success(&EncodableValue(params));
   }
 }
 };  // namespace flutter_webrtc_plugin
