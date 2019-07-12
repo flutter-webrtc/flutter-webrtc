@@ -143,7 +143,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="eflutter_webrtc_plugin.cc" />
+    <ClCompile Include="flutter_webrtc_plugin.cc" />
     <ClCompile Include="flutter\cpp_client_wrapper\engine_method_result.cc" />
     <ClCompile Include="flutter\cpp_client_wrapper\plugin_registrar.cc" />
     <ClCompile Include="flutter\cpp_client_wrapper\standard_codec.cc" />
