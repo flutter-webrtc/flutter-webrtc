@@ -21,7 +21,7 @@ class FlutterVideoRenderer : public Texture,
 
   virtual void OnFrame(scoped_refptr<RTCVideoFrame> frame) override;
 
-  void SetVideoTrack(RTCVideoTrack *track);
+  void SetVideoTrack(scoped_refptr<RTCVideoTrack> track);
 
   int64_t texture_id() { return texture_id_; }
 
@@ -30,16 +30,16 @@ class FlutterVideoRenderer : public Texture,
     size_t width;
     size_t height;
   };
-  FrameSize dest_frame_size_ = {0, 0};
-  FrameSize frame_size_ = {0, 0};
+  FrameSize last_frame_size_ = {0, 0};
   bool first_frame_rendered = false;
   TextureRegistrar *registrar_ = nullptr;
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
   const EventSink<EncodableValue> *event_sink_ = nullptr;
   int64_t texture_id_ = -1;
-  RTCVideoTrack *track_ = nullptr;
+  scoped_refptr<RTCVideoTrack> track_ = nullptr;
   scoped_refptr<RTCVideoFrame> frame_;
   std::shared_ptr<GLFWPixelBuffer> pixel_buffer_;
+  RTCVideoFrame::VideoRotation rotation_ = RTCVideoFrame::kVideoRotation_0;
 };
 
 class FlutterVideoRendererManager {

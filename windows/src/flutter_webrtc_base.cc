@@ -29,6 +29,12 @@ RTCPeerConnection *FlutterWebRTCBase::PeerConnectionForId(
   return nullptr;
 }
 
+void FlutterWebRTCBase::RemovePeerConnectionForId(const std::string &id){
+    auto it = peerconnections_.find(id);
+    if (it != peerconnections_.end())
+        peerconnections_.erase(it);
+}
+
 scoped_refptr<RTCMediaStream> FlutterWebRTCBase::MediaStreamForId(
     const std::string &id) {
   auto it = media_streams_.find(id);
@@ -36,6 +42,12 @@ scoped_refptr<RTCMediaStream> FlutterWebRTCBase::MediaStreamForId(
   if (it != media_streams_.end()) return (*it).second;
 
   return nullptr;
+}
+
+void FlutterWebRTCBase::RemoveStreamForId(const std::string &id) {
+    auto it = media_streams_.find(id);
+    if (it != media_streams_.end())
+        media_streams_.erase(it);
 }
 
 bool FlutterWebRTCBase::ParseConstraints(const EncodableMap &constraints,
@@ -97,8 +109,12 @@ scoped_refptr<RTCMediaConstraints> FlutterWebRTCBase::ParseMediaConstraints(
       break;
       case EncodableValue::Type::kList:
       {
-
-      }break;
+          const EncodableList list = optional.ListValue();
+          for (size_t i = 0; i < list.size(); i++) {
+              ParseConstraints(list[i].MapValue(), media_constraints, kOptional);
+          }
+      }
+      break;
       default:
           break;
       }

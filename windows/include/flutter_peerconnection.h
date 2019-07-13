@@ -17,14 +17,14 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
   virtual void OnSignalingState(RTCSignalingState state) override;
   virtual void OnIceGatheringState(RTCIceGatheringState state) override;
   virtual void OnIceConnectionState(RTCIceConnectionState state) override;
-  virtual void OnIceCandidate(RTCIceCandidate *candidate) override;
-  virtual void OnAddStream(RTCMediaStream *stream) override;
-  virtual void OnRemoveStream(RTCMediaStream *stream) override;
-  virtual void OnAddTrack(RTCMediaStream *stream,
-                          RTCMediaTrack *track) override;
-  virtual void OnRemoveTrack(RTCMediaStream *stream,
-                             RTCMediaTrack *track) override;
-  virtual void OnDataChannel(RTCDataChannel *data_channel) override;
+  virtual void OnIceCandidate(scoped_refptr<RTCIceCandidate> candidate) override;
+  virtual void OnAddStream(scoped_refptr<RTCMediaStream> stream) override;
+  virtual void OnRemoveStream(scoped_refptr<RTCMediaStream> stream) override;
+  virtual void OnAddTrack(scoped_refptr<RTCMediaStream> stream,
+      scoped_refptr<RTCMediaTrack> track) override;
+  virtual void OnRemoveTrack(scoped_refptr<RTCMediaStream> stream,
+      scoped_refptr<RTCMediaTrack> track) override;
+  virtual void OnDataChannel(scoped_refptr<RTCDataChannel> data_channel) override;
   virtual void OnRenegotiationNeeded() override;
 
  private:

@@ -71,7 +71,11 @@ class FlutterWebRTCBase {
 
   RTCPeerConnection *PeerConnectionForId(const std::string &id);
 
+  void RemovePeerConnectionForId(const std::string &id);
+
   scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string &id);
+
+  void RemoveStreamForId(const std::string &id);
 
   bool ParseConstraints(const EncodableMap& constraints,
                             RTCConfiguration *configuration);

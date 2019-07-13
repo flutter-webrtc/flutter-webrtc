@@ -27,11 +27,11 @@ FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar *registrar,
 std::shared_ptr<GLFWPixelBuffer> FlutterVideoRenderer::CopyTextureBuffer(
     size_t width, size_t height) {
     if (pixel_buffer_.get() && frame_.get()) {
-        if (pixel_buffer_->width != width || pixel_buffer_->height != height) {
-            size_t buffer_size = (height * width) * (32 >> 3);
+        if (pixel_buffer_->width != frame_->width() || pixel_buffer_->height != frame_->height()) {
+            size_t buffer_size = (frame_->width() * frame_->height()) * (32 >> 3);
             pixel_buffer_->buffer.reset(new uint8_t[buffer_size]);
-            pixel_buffer_->width = width;
-            pixel_buffer_->height = height;
+            pixel_buffer_->width = frame_->width();
+            pixel_buffer_->height = frame_->height();
         }
         if (frame_.get())
             frame_->ConvertToARGB(RTCVideoFrame::Type::kABGR, pixel_buffer_->buffer.get(), 0,
@@ -44,18 +44,11 @@ std::shared_ptr<GLFWPixelBuffer> FlutterVideoRenderer::CopyTextureBuffer(
 
 void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
  
-  if (!first_frame_rendered && event_sink_) {
-      {
+  if (!first_frame_rendered) {
+      if (event_sink_) {
           EncodableMap params;
-          params[EncodableValue("event")] = EncodableValue("didTextureChangeRotation");
-          params[EncodableValue("id")] = EncodableValue(texture_id_);
-          params[EncodableValue("rotation")] = EncodableValue(0);
-          event_sink_->Success(&EncodableValue(params));
-      }
-      {
-          EncodableMap params;
-          params[EncodableValue("event")] = EncodableValue("didFirstFrameRendered");
-          params[EncodableValue("id")] = EncodableValue(texture_id_);
+          params[EncodableValue("event")] = "didFirstFrameRendered";
+          params[EncodableValue("id")] = texture_id_;
           event_sink_->Success(&EncodableValue(params));
       }
       pixel_buffer_.reset(new GLFWPixelBuffer());
@@ -64,29 +57,41 @@ void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
       first_frame_rendered = true;
   }
 
-  if (frame_size_.width != frame->width() ||
-      frame_size_.height != frame->height()) {
+  if (rotation_ != frame->rotation()) {
+      if (event_sink_) {
+          EncodableMap params;
+          params[EncodableValue("event")] = "didTextureChangeRotation";
+          params[EncodableValue("id")] = texture_id_;
+          params[EncodableValue("rotation")] = (int32_t)frame->rotation();
+          event_sink_->Success(&EncodableValue(params));
+      }
+      rotation_ = frame->rotation();
+  }
+
+  if (last_frame_size_.width != frame->width() ||
+      last_frame_size_.height != frame->height()) {
+
     if (event_sink_) {
       EncodableMap params;
-      params[EncodableValue("event")] = EncodableValue("didTextureChangeVideoSize");
-      params[EncodableValue("id")] = EncodableValue(texture_id_);
-      params[EncodableValue("width")] = EncodableValue(0.0 + frame_size_.width);
-      params[EncodableValue("height")] = EncodableValue(0.0 + frame_size_.height);
+      params[EncodableValue("event")] = "didTextureChangeVideoSize";
+      params[EncodableValue("id")] = texture_id_;
+      params[EncodableValue("width")] = (int32_t)frame->width();
+      params[EncodableValue("height")] = (int32_t)frame->height();
       event_sink_->Success(&EncodableValue(params));
     }
-    frame_size_ = {(size_t)frame->width(), (size_t)frame->height()};
+
+    last_frame_size_ = {(size_t)frame->width(), (size_t)frame->height()};
   }
  
   frame_ = frame;
   registrar_->MarkTextureFrameAvailable(texture_id_);
 }
 
-void FlutterVideoRenderer::SetVideoTrack(RTCVideoTrack *track) {
+void FlutterVideoRenderer::SetVideoTrack(scoped_refptr<RTCVideoTrack> track) {
   if (track_ != track) {
     if (track_) track_->RemoveRenderer(this);
     track_ = track;
-    frame_size_ = {0, 0};
-    dest_frame_size_ = {0, 0};
+    last_frame_size_ = {0, 0};
     first_frame_rendered = false;
     if (track_) track_->AddRenderer(this);
   }
@@ -103,7 +108,7 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
   int64_t texture_id = texture->texture_id();
   renderers_[texture_id] = std::move(texture);
   EncodableMap params;
-  params[EncodableValue("textureId")] = EncodableValue(texture_id);
+  params[EncodableValue("textureId")] = texture_id;
   result->Success(&EncodableValue(params));
 }
 
@@ -117,7 +122,7 @@ void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
     if (stream.get()) {
       VideoTrackVector tracks = stream->GetVideoTracks();
       if (tracks.size() > 0) {
-        renderer->SetVideoTrack(tracks.at(0).get());
+        renderer->SetVideoTrack(tracks.at(0));
       }
     } else {
       renderer->SetVideoTrack(nullptr);

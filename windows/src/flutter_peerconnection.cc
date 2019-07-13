@@ -214,7 +214,7 @@ void FlutterPeerConnectionObserver::OnIceConnectionState(
   }
 }
 
-void FlutterPeerConnectionObserver::OnIceCandidate(RTCIceCandidate *candidate) {
+void FlutterPeerConnectionObserver::OnIceCandidate(scoped_refptr<RTCIceCandidate> candidate) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onCandidate";
@@ -227,7 +227,7 @@ void FlutterPeerConnectionObserver::OnIceCandidate(RTCIceCandidate *candidate) {
   }
 }
 
-void FlutterPeerConnectionObserver::OnAddStream(RTCMediaStream *stream) {
+void FlutterPeerConnectionObserver::OnAddStream(scoped_refptr<RTCMediaStream> stream) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onAddStream";
@@ -261,22 +261,24 @@ void FlutterPeerConnectionObserver::OnAddStream(RTCMediaStream *stream) {
       videoTracks.push_back(EncodableValue(videoTrack));
     }
 
+    base_->media_streams_[stream->label()] = scoped_refptr<RTCMediaStream>(stream);
     params[EncodableValue("videoTracks")] = videoTracks;
     event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::OnRemoveStream(RTCMediaStream *stream) {
+void FlutterPeerConnectionObserver::OnRemoveStream(scoped_refptr<RTCMediaStream> stream) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onRemoveStream";
     params[EncodableValue("streamId")] = stream->label();
+    base_->RemoveStreamForId(stream->label());
     event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::OnAddTrack(RTCMediaStream *stream,
-                                               RTCMediaTrack *track) {
+void FlutterPeerConnectionObserver::OnAddTrack(scoped_refptr<RTCMediaStream> stream,
+    scoped_refptr<RTCMediaTrack> track) {
   if (event_sink_ != nullptr) {
       EncodableMap params;
     params[EncodableValue("event")] = "onAddTrack";
@@ -296,8 +298,8 @@ void FlutterPeerConnectionObserver::OnAddTrack(RTCMediaStream *stream,
   }
 }
 
-void FlutterPeerConnectionObserver::OnRemoveTrack(RTCMediaStream *stream,
-                                                  RTCMediaTrack *track) {
+void FlutterPeerConnectionObserver::OnRemoveTrack(scoped_refptr<RTCMediaStream> stream,
+                                                  scoped_refptr<RTCMediaTrack> track) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onRemoveTrack";
@@ -318,7 +320,7 @@ void FlutterPeerConnectionObserver::OnRemoveTrack(RTCMediaStream *stream,
 }
 
 void FlutterPeerConnectionObserver::OnDataChannel(
-    RTCDataChannel *data_channel) {
+    scoped_refptr<RTCDataChannel> data_channel) {
   std::string event_channel = "FlutterWebRTC/dataChannelEvent" +
                               std::to_string(data_channel->id());
 
