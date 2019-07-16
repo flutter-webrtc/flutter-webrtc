@@ -29,7 +29,7 @@ class FlutterDataChannel {
   FlutterDataChannel(FlutterWebRTCBase *base) : base_(base) {}
 
   void CreateDataChannel(const std::string &label,
-                         const EncodableMap& dataChannelDict,
+                         const EncodableMap &dataChannelDict,
                          RTCPeerConnection *pc,
                          std::unique_ptr<MethodResult<EncodableValue>>);
 
@@ -46,6 +46,6 @@ class FlutterDataChannel {
   FlutterWebRTCBase *base_;
 };
 
-};  // namespace flutter_webrtc_plugin
+}  // namespace flutter_webrtc_plugin
 
 #endif  // !FLUTTER_WEBRTC_RTC_DATA_CHANNEL_HXX

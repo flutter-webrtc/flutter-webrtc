@@ -17,14 +17,16 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
   virtual void OnSignalingState(RTCSignalingState state) override;
   virtual void OnIceGatheringState(RTCIceGatheringState state) override;
   virtual void OnIceConnectionState(RTCIceConnectionState state) override;
-  virtual void OnIceCandidate(scoped_refptr<RTCIceCandidate> candidate) override;
+  virtual void OnIceCandidate(
+      scoped_refptr<RTCIceCandidate> candidate) override;
   virtual void OnAddStream(scoped_refptr<RTCMediaStream> stream) override;
   virtual void OnRemoveStream(scoped_refptr<RTCMediaStream> stream) override;
   virtual void OnAddTrack(scoped_refptr<RTCMediaStream> stream,
-      scoped_refptr<RTCMediaTrack> track) override;
+                          scoped_refptr<RTCMediaTrack> track) override;
   virtual void OnRemoveTrack(scoped_refptr<RTCMediaStream> stream,
-      scoped_refptr<RTCMediaTrack> track) override;
-  virtual void OnDataChannel(scoped_refptr<RTCDataChannel> data_channel) override;
+                             scoped_refptr<RTCMediaTrack> track) override;
+  virtual void OnDataChannel(
+      scoped_refptr<RTCDataChannel> data_channel) override;
   virtual void OnRenegotiationNeeded() override;
 
  private:
@@ -39,34 +41,36 @@ class FlutterPeerConnection {
   FlutterPeerConnection(FlutterWebRTCBase *base) : base_(base) {}
 
   void CreateRTCPeerConnection(
-      const EncodableMap& configuration,
-      const EncodableMap& constraints,
+      const EncodableMap &configuration, const EncodableMap &constraints,
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void RTCPeerConnectionClose(
       RTCPeerConnection *pc, const std::string &uuid,
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void CreateOffer(const EncodableMap& constraints, RTCPeerConnection *pc,
+  void CreateOffer(const EncodableMap &constraints, RTCPeerConnection *pc,
                    std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void CreateAnswer(const EncodableMap& constraints, RTCPeerConnection *pc,
+  void CreateAnswer(const EncodableMap &constraints, RTCPeerConnection *pc,
                     std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void SetLocalDescription(RTCSessionDescription *sdp, RTCPeerConnection *pc,
-                           std::unique_ptr<MethodResult<EncodableValue>> result);
+  void SetLocalDescription(
+      RTCSessionDescription *sdp, RTCPeerConnection *pc,
+      std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void SetRemoteDescription(RTCSessionDescription *sdp, RTCPeerConnection *pc,
-                            std::unique_ptr<MethodResult<EncodableValue>> result);
+  void SetRemoteDescription(
+      RTCSessionDescription *sdp, RTCPeerConnection *pc,
+      std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void AddIceCandidate(RTCIceCandidate *candidate, RTCPeerConnection *pc,
                        std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void GetStats(const std::string &track_id, RTCPeerConnection *pc,
                 std::unique_ptr<MethodResult<EncodableValue>> result);
+
  private:
   FlutterWebRTCBase *base_;
 };
-};  // namespace flutter_webrtc_plugin
+}  // namespace flutter_webrtc_plugin
 
 #endif  // !FLUTTER_WEBRTC_RTC_PEER_CONNECTION_HXX

@@ -1,8 +1,9 @@
 #ifndef FLUTTER_WEBRTC_RTC_VIDEO_RENDERER_HXX
 #define FLUTTER_WEBRTC_RTC_VIDEO_RENDERER_HXX
 
-#include "flutter_webrtc_base.h"
+#include <mutex>
 
+#include "flutter_webrtc_base.h"
 #include "rtc_video_frame.h"
 #include "rtc_video_renderer.h"
 
@@ -11,13 +12,14 @@ namespace flutter_webrtc_plugin {
 using namespace libwebrtc;
 using namespace flutter;
 
-class FlutterVideoRenderer : public Texture,
+class FlutterVideoRenderer
+    : public Texture,
       public RTCVideoRenderer<scoped_refptr<RTCVideoFrame>> {
  public:
   FlutterVideoRenderer(TextureRegistrar *registrar, BinaryMessenger *messenger);
 
-  virtual std::shared_ptr<GLFWPixelBuffer> CopyTextureBuffer(size_t width,
-                                                     size_t height) override;
+  virtual const PixelBuffer *CopyTextureBuffer(size_t width,
+                                               size_t height) override;
 
   virtual void OnFrame(scoped_refptr<RTCVideoFrame> frame) override;
 
@@ -38,7 +40,9 @@ class FlutterVideoRenderer : public Texture,
   int64_t texture_id_ = -1;
   scoped_refptr<RTCVideoTrack> track_ = nullptr;
   scoped_refptr<RTCVideoFrame> frame_;
-  std::shared_ptr<GLFWPixelBuffer> pixel_buffer_;
+  std::shared_ptr<PixelBuffer> pixel_buffer_;
+  std::shared_ptr<uint8_t> rgb_buffer_;
+  std::mutex mutex_;
   RTCVideoFrame::VideoRotation rotation_ = RTCVideoFrame::kVideoRotation_0;
 };
 
@@ -51,14 +55,14 @@ class FlutterVideoRendererManager {
 
   void SetMediaStream(int64_t texture_id, const std::string &stream_id);
 
-  void VideoRendererDispose(int64_t texture_id,
-                            std::unique_ptr<MethodResult<EncodableValue>> result);
+  void VideoRendererDispose(
+      int64_t texture_id, std::unique_ptr<MethodResult<EncodableValue>> result);
 
  private:
   FlutterWebRTCBase *base_;
   std::map<int64_t, std::unique_ptr<FlutterVideoRenderer>> renderers_;
 };
 
-};  // namespace flutter_webrtc_plugin
+}  // namespace flutter_webrtc_plugin
 
 #endif  // !FLUTTER_WEBRTC_RTC_VIDEO_RENDERER_HXX

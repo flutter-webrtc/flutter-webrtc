@@ -1,8 +1,6 @@
 #ifndef PLUGINS_FLUTTER_WEBRTC_HXX
 #define PLUGINS_FLUTTER_WEBRTC_HXX
 
-#include "libwebrtc.h"
-
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_message_codec.h>
@@ -11,6 +9,7 @@
 #include "flutter_media_stream.h"
 #include "flutter_peerconnection.h"
 #include "flutter_video_renderer.h"
+#include "libwebrtc.h"
 
 namespace flutter_webrtc_plugin {
 using namespace libwebrtc;
@@ -33,13 +32,12 @@ class FlutterWebRTC : public FlutterWebRTCBase,
 
   void HandleMethodCall(
       const flutter::MethodCall<EncodableValue> &method_call,
-      std::unique_ptr<flutter::MethodResult<EncodableValue>>
-          result);
+      std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 
  private:
   FlutterWebRTCPlugin *plugin_ = nullptr;
 };
 
-};  // namespace flutter_webrtc_plugin
+}  // namespace flutter_webrtc_plugin
 
 #endif  // PLUGINS_FLUTTER_WEBRTC_HXX

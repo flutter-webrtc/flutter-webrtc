@@ -1,15 +1,8 @@
 #include "flutter_webrtc.h"
+
 #include "flutter_webrtc_plugin.h"
 
 namespace flutter_webrtc_plugin {
-
-int64_t findLongInt(const EncodableMap& map, const std::string& key) {
-    auto it = map.find(EncodableValue(key));
-    if (it != map.end() && it->second.IsLong())
-        return it->second.LongValue();
-
-    return -1;
-}
 
 FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin *plugin)
     : FlutterWebRTCBase::FlutterWebRTCBase(plugin->messenger(),
@@ -23,9 +16,8 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin *plugin)
 FlutterWebRTC::~FlutterWebRTC() {}
 
 void FlutterWebRTC::HandleMethodCall(
-    const flutter::MethodCall<EncodableValue > &method_call,
-    std::unique_ptr<flutter::MethodResult<EncodableValue >>
-        result) {
+    const flutter::MethodCall<EncodableValue> &method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
   if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");
@@ -151,9 +143,9 @@ void FlutterWebRTC::HandleMethodCall(
 
     SdpParseError error;
     scoped_refptr<RTCSessionDescription> description =
-        CreateRTCSessionDescription(
-            findString(constraints, "type").c_str(),
-            findString(constraints, "sdp").c_str(), &error);
+        CreateRTCSessionDescription(findString(constraints, "type").c_str(),
+                                    findString(constraints, "sdp").c_str(),
+                                    &error);
 
     SetLocalDescription(description.get(), pc, std::move(result));
   } else if (method_call.method_name().compare("setRemoteDescription") == 0) {
@@ -173,9 +165,9 @@ void FlutterWebRTC::HandleMethodCall(
 
     SdpParseError error;
     scoped_refptr<RTCSessionDescription> description =
-        CreateRTCSessionDescription(
-            findString(constraints, "type").c_str(),
-            findString(constraints, "sdp").c_str(), &error);
+        CreateRTCSessionDescription(findString(constraints, "type").c_str(),
+                                    findString(constraints, "sdp").c_str(),
+                                    &error);
 
     SetRemoteDescription(description.get(), pc, std::move(result));
   } else if (method_call.method_name().compare("addCandidate") == 0) {
@@ -194,10 +186,10 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     SdpParseError error;
-    scoped_refptr<RTCIceCandidate> rtc_candidate = CreateRTCIceCandidate(
-        findString(constraints, "candidate").c_str(),
-        findString(constraints, "sdpMid").c_str(),
-        findInt(constraints, "sdpMLineIndex"), &error);
+    scoped_refptr<RTCIceCandidate> rtc_candidate =
+        CreateRTCIceCandidate(findString(constraints, "candidate").c_str(),
+                              findString(constraints, "sdpMid").c_str(),
+                              findInt(constraints, "sdpMLineIndex"), &error);
 
     AddIceCandidate(rtc_candidate.get(), pc, std::move(result));
   } else if (method_call.method_name().compare("getStats") == 0) {
@@ -341,4 +333,4 @@ void FlutterWebRTC::HandleMethodCall(
   }
 }
 
-};  // namespace flutter_webrtc_plugin
+}  // namespace flutter_webrtc_plugin

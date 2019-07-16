@@ -5,10 +5,13 @@
 #include <flutter/event_channel.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
-#include <flutter/texture_registrar.h>
-#include <flutter/standard_method_codec.h >
 #include <flutter/standard_message_codec.h>
+#include <flutter/standard_method_codec.h>
+#include <flutter/texture_registrar.h>
 
+#include <list>
+#include <map>
+#include <memory>
 
 #include "libwebrtc.h"
 #include "rtc_audio_device.h"
@@ -18,12 +21,8 @@
 #include "rtc_peerconnection.h"
 #include "rtc_peerconnection_factory.h"
 #include "rtc_video_device.h"
-
 #include "uuidxx.h"
 
-#include <list>
-#include <map>
-#include <memory>
 
 namespace flutter_webrtc_plugin {
 
@@ -34,25 +33,28 @@ class FlutterVideoRenderer;
 class FlutterRTCDataChannelObserver;
 class FlutterPeerConnectionObserver;
 
-inline EncodableMap findMap(const EncodableMap& map, const std::string& key) {
-    auto it = map.find(EncodableValue(key));
-    if (it != map.end() && it->second.IsMap())
-        return it->second.MapValue();
-    return EncodableMap();
+inline EncodableMap findMap(const EncodableMap &map, const std::string &key) {
+  auto it = map.find(EncodableValue(key));
+  if (it != map.end() && it->second.IsMap()) return it->second.MapValue();
+  return EncodableMap();
 }
 
-inline std::string findString(const EncodableMap& map, const std::string& key) {
-    auto it = map.find(EncodableValue(key));
-    if (it != map.end() && it->second.IsString())
-        return it->second.StringValue();
-    return std::string();
+inline std::string findString(const EncodableMap &map, const std::string &key) {
+  auto it = map.find(EncodableValue(key));
+  if (it != map.end() && it->second.IsString()) return it->second.StringValue();
+  return std::string();
 }
 
-inline int findInt(const EncodableMap& map, const std::string& key) {
-    auto it = map.find(EncodableValue(key));
-    if (it != map.end() && it->second.IsInt())
-        return it->second.IntValue();
-    return -1;
+inline int findInt(const EncodableMap &map, const std::string &key) {
+  auto it = map.find(EncodableValue(key));
+  if (it != map.end() && it->second.IsInt()) return it->second.IntValue();
+  return -1;
+}
+
+inline int64_t findLongInt(const EncodableMap &map, const std::string &key) {
+  auto it = map.find(EncodableValue(key));
+  if (it != map.end() && it->second.IsLong()) return it->second.LongValue();
+  return -1;
 }
 
 class FlutterWebRTCBase {
@@ -63,6 +65,7 @@ class FlutterWebRTCBase {
   friend class FlutterDataChannel;
   friend class FlutterPeerConnectionObserver;
   enum ParseConstraintType { kMandatory, kOptional };
+
  public:
   FlutterWebRTCBase(BinaryMessenger *messenger, TextureRegistrar *textures);
   ~FlutterWebRTCBase();
@@ -77,21 +80,23 @@ class FlutterWebRTCBase {
 
   void RemoveStreamForId(const std::string &id);
 
-  bool ParseConstraints(const EncodableMap& constraints,
-                            RTCConfiguration *configuration);
+  bool ParseConstraints(const EncodableMap &constraints,
+                        RTCConfiguration *configuration);
 
   scoped_refptr<RTCMediaConstraints> ParseMediaConstraints(
-      const EncodableMap& constraints);
+      const EncodableMap &constraints);
 
-  bool ParseRTCConfiguration(const EncodableMap& map,
+  bool ParseRTCConfiguration(const EncodableMap &map,
                              RTCConfiguration &configuration);
+
  private:
-  void ParseConstraints(const EncodableMap& src,
+  void ParseConstraints(const EncodableMap &src,
                         scoped_refptr<RTCMediaConstraints> mediaConstraints,
                         ParseConstraintType type = kMandatory);
 
-  bool CreateIceServers(const EncodableList& iceServersArray,
+  bool CreateIceServers(const EncodableList &iceServersArray,
                         IceServer *ice_servers);
+
  protected:
   scoped_refptr<RTCPeerConnectionFactory> factory_;
   scoped_refptr<RTCAudioDevice> audio_device_;
@@ -113,6 +118,6 @@ class FlutterWebRTCBase {
   TextureRegistrar *textures_;
 };
 
-};  // namespace flutter_webrtc_plugin
+}  // namespace flutter_webrtc_plugin
 
 #endif  // !FLUTTER_WEBRTC_BASE_HXX

@@ -1,25 +1,26 @@
 #include "flutter_peerconnection.h"
+
 #include "flutter_data_channel.h"
 
 namespace flutter_webrtc_plugin {
 
 void FlutterPeerConnection::CreateRTCPeerConnection(
-    const EncodableMap& configurationMap,
-    const EncodableMap& constraintsMap,
+    const EncodableMap &configurationMap, const EncodableMap &constraintsMap,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
-
-  //std::cout << " configuration = " << configurationMap.StringValue() << std::endl;
+  // std::cout << " configuration = " << configurationMap.StringValue() <<
+  // std::endl;
   base_->ParseRTCConfiguration(configurationMap, base_->configuration_);
-  //std::cout << " constraints = " << constraintsMap.StringValue() << std::endl;
-  scoped_refptr<RTCMediaConstraints> constraints = base_->ParseMediaConstraints(constraintsMap);
+  // std::cout << " constraints = " << constraintsMap.StringValue() <<
+  // std::endl;
+  scoped_refptr<RTCMediaConstraints> constraints =
+      base_->ParseMediaConstraints(constraintsMap);
 
   std::string uuid = base_->GenerateUUID();
   scoped_refptr<RTCPeerConnection> pc =
       base_->factory_->Create(base_->configuration_, constraints);
   base_->peerconnections_[uuid] = pc;
 
-  std::string event_channel =
-      "FlutterWebRTC/peerConnectoinEvent" + uuid;
+  std::string event_channel = "FlutterWebRTC/peerConnectoinEvent" + uuid;
 
   std::unique_ptr<FlutterPeerConnectionObserver> observer(
       new FlutterPeerConnectionObserver(base_, pc, base_->messenger_,
@@ -44,7 +45,7 @@ void FlutterPeerConnection::RTCPeerConnectionClose(
 }
 
 void FlutterPeerConnection::CreateOffer(
-    const EncodableMap& constraintsMap, RTCPeerConnection *pc,
+    const EncodableMap &constraintsMap, RTCPeerConnection *pc,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   scoped_refptr<RTCMediaConstraints> constraints =
       base_->ParseMediaConstraints(constraintsMap);
@@ -63,7 +64,7 @@ void FlutterPeerConnection::CreateOffer(
 }
 
 void FlutterPeerConnection::CreateAnswer(
-    const EncodableMap& constraintsMap, RTCPeerConnection *pc,
+    const EncodableMap &constraintsMap, RTCPeerConnection *pc,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   scoped_refptr<RTCMediaConstraints> constraints =
       base_->ParseMediaConstraints(constraintsMap);
@@ -123,12 +124,13 @@ FlutterPeerConnectionObserver::FlutterPeerConnectionObserver(
       event_channel_(new EventChannel<EncodableValue>(
           messenger, channel_name, &StandardMethodCodec::GetInstance())) {
   StreamHandler<EncodableValue> stream_handler = {
-      [&](const EncodableValue*arguments,
-          const EventSink<EncodableValue> *events) -> MethodResult<EncodableValue> * {
+      [&](const EncodableValue *arguments,
+          const EventSink<EncodableValue> *events)
+          -> MethodResult<EncodableValue> * {
         event_sink_ = events;
         return nullptr;
       },
-      [&](const EncodableValue*arguments) -> MethodResult<EncodableValue> * {
+      [&](const EncodableValue *arguments) -> MethodResult<EncodableValue> * {
         event_sink_ = nullptr;
         return nullptr;
       }};
@@ -175,8 +177,8 @@ static const char *signalingStateString(RTCSignalingState state) {
 }
 void FlutterPeerConnectionObserver::OnSignalingState(RTCSignalingState state) {
   if (event_sink_ != nullptr) {
-      EncodableMap params;
-      params[EncodableValue("event")] = "iceConnectionState";
+    EncodableMap params;
+    params[EncodableValue("event")] = "iceConnectionState";
     params[EncodableValue("state")] = signalingStateString(state);
     event_sink_->Success(&EncodableValue(params));
   }
@@ -214,7 +216,8 @@ void FlutterPeerConnectionObserver::OnIceConnectionState(
   }
 }
 
-void FlutterPeerConnectionObserver::OnIceCandidate(scoped_refptr<RTCIceCandidate> candidate) {
+void FlutterPeerConnectionObserver::OnIceCandidate(
+    scoped_refptr<RTCIceCandidate> candidate) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onCandidate";
@@ -227,12 +230,12 @@ void FlutterPeerConnectionObserver::OnIceCandidate(scoped_refptr<RTCIceCandidate
   }
 }
 
-void FlutterPeerConnectionObserver::OnAddStream(scoped_refptr<RTCMediaStream> stream) {
+void FlutterPeerConnectionObserver::OnAddStream(
+    scoped_refptr<RTCMediaStream> stream) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onAddStream";
     params[EncodableValue("streamId")] = stream->label();
-
     EncodableList audioTracks;
     for (auto track : stream->GetAudioTracks()) {
       EncodableMap audioTrack;
@@ -261,13 +264,15 @@ void FlutterPeerConnectionObserver::OnAddStream(scoped_refptr<RTCMediaStream> st
       videoTracks.push_back(EncodableValue(videoTrack));
     }
 
-    base_->media_streams_[stream->label()] = scoped_refptr<RTCMediaStream>(stream);
+    base_->media_streams_[stream->label()] =
+        scoped_refptr<RTCMediaStream>(stream);
     params[EncodableValue("videoTracks")] = videoTracks;
     event_sink_->Success(&EncodableValue(params));
   }
 }
 
-void FlutterPeerConnectionObserver::OnRemoveStream(scoped_refptr<RTCMediaStream> stream) {
+void FlutterPeerConnectionObserver::OnRemoveStream(
+    scoped_refptr<RTCMediaStream> stream) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onRemoveStream";
@@ -277,10 +282,10 @@ void FlutterPeerConnectionObserver::OnRemoveStream(scoped_refptr<RTCMediaStream>
   }
 }
 
-void FlutterPeerConnectionObserver::OnAddTrack(scoped_refptr<RTCMediaStream> stream,
-    scoped_refptr<RTCMediaTrack> track) {
+void FlutterPeerConnectionObserver::OnAddTrack(
+    scoped_refptr<RTCMediaStream> stream, scoped_refptr<RTCMediaTrack> track) {
   if (event_sink_ != nullptr) {
-      EncodableMap params;
+    EncodableMap params;
     params[EncodableValue("event")] = "onAddTrack";
     params[EncodableValue("streamId")] = stream->label();
     params[EncodableValue("trackId")] = track->id();
@@ -298,8 +303,8 @@ void FlutterPeerConnectionObserver::OnAddTrack(scoped_refptr<RTCMediaStream> str
   }
 }
 
-void FlutterPeerConnectionObserver::OnRemoveTrack(scoped_refptr<RTCMediaStream> stream,
-                                                  scoped_refptr<RTCMediaTrack> track) {
+void FlutterPeerConnectionObserver::OnRemoveTrack(
+    scoped_refptr<RTCMediaStream> stream, scoped_refptr<RTCMediaTrack> track) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onRemoveTrack";
@@ -321,8 +326,8 @@ void FlutterPeerConnectionObserver::OnRemoveTrack(scoped_refptr<RTCMediaStream> 
 
 void FlutterPeerConnectionObserver::OnDataChannel(
     scoped_refptr<RTCDataChannel> data_channel) {
-  std::string event_channel = "FlutterWebRTC/dataChannelEvent" +
-                              std::to_string(data_channel->id());
+  std::string event_channel =
+      "FlutterWebRTC/dataChannelEvent" + std::to_string(data_channel->id());
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
@@ -346,4 +351,4 @@ void FlutterPeerConnectionObserver::OnRenegotiationNeeded() {
   }
 }
 
-};  // namespace flutter_webrtc_plugin
+}  // namespace flutter_webrtc_plugin

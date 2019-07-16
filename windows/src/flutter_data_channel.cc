@@ -9,12 +9,13 @@ FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
       event_channel_(new EventChannel<EncodableValue>(
           messenger, name, &StandardMethodCodec::GetInstance())) {
   StreamHandler<EncodableValue> stream_handler = {
-      [&](const EncodableValue*arguments,
-          const EventSink<EncodableValue> *events) -> MethodResult<EncodableValue> * {
+      [&](const EncodableValue *arguments,
+          const EventSink<EncodableValue> *events)
+          -> MethodResult<EncodableValue> * {
         event_sink_ = events;
         return nullptr;
       },
-      [&](const EncodableValue*arguments) -> MethodResult<EncodableValue> * {
+      [&](const EncodableValue *arguments) -> MethodResult<EncodableValue> * {
         event_sink_ = nullptr;
         return nullptr;
       }};
@@ -24,27 +25,34 @@ FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
 FlutterRTCDataChannelObserver::~FlutterRTCDataChannelObserver() {}
 
 void FlutterDataChannel::CreateDataChannel(
-    const std::string &label, const EncodableMap& dataChannelDict,
-    RTCPeerConnection *pc, std::unique_ptr<MethodResult<EncodableValue>> result) {
-  
+    const std::string &label, const EncodableMap &dataChannelDict,
+    RTCPeerConnection *pc,
+    std::unique_ptr<MethodResult<EncodableValue>> result) {
   RTCDataChannelInit init;
   init.id = dataChannelDict.find(EncodableValue("id"))->second.IntValue();
-  init.ordered = dataChannelDict.find(EncodableValue("ordered"))->second.BoolValue();
-  init.maxRetransmitTime = dataChannelDict.find(EncodableValue("maxRetransmitTime"))->second.IntValue();
-  init.maxRetransmits = dataChannelDict.find(EncodableValue("maxRetransmits"))->second.IntValue();
-  std::string protocol = {dataChannelDict.find(EncodableValue("protocol"))->second.IsNull()
-                              ? "sctp"
-                              : dataChannelDict.find(EncodableValue("protocol"))->second.StringValue()};
+  init.ordered =
+      dataChannelDict.find(EncodableValue("ordered"))->second.BoolValue();
+  init.maxRetransmitTime =
+      dataChannelDict.find(EncodableValue("maxRetransmitTime"))
+          ->second.IntValue();
+  init.maxRetransmits =
+      dataChannelDict.find(EncodableValue("maxRetransmits"))->second.IntValue();
+  std::string protocol = {
+      dataChannelDict.find(EncodableValue("protocol"))->second.IsNull()
+          ? "sctp"
+          : dataChannelDict.find(EncodableValue("protocol"))
+                ->second.StringValue()};
 
   strncpy(init.protocol, protocol.c_str(), protocol.size());
 
-  init.negotiated = dataChannelDict.find(EncodableValue("negotiated"))->second.BoolValue();
+  init.negotiated =
+      dataChannelDict.find(EncodableValue("negotiated"))->second.BoolValue();
 
   scoped_refptr<RTCDataChannel> data_channel =
       pc->CreateDataChannel(label.c_str(), &init);
 
-  std::string event_channel = "FlutterWebRTC/dataChannelEvent" +
-                              std::to_string(data_channel->id());
+  std::string event_channel =
+      "FlutterWebRTC/dataChannelEvent" + std::to_string(data_channel->id());
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
@@ -123,4 +131,4 @@ void FlutterRTCDataChannelObserver::OnMessage(const char *buffer, int length,
     event_sink_->Success(&EncodableValue(params));
   }
 }
-};  // namespace flutter_webrtc_plugin
+}  // namespace flutter_webrtc_plugin

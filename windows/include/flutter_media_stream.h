@@ -11,19 +11,20 @@ class FlutterMediaStream {
  public:
   FlutterMediaStream(FlutterWebRTCBase *base) : base_(base) {}
 
-  void GetUserMedia(const EncodableMap& constraints,
+  void GetUserMedia(const EncodableMap &constraints,
                     std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void GetUserAudio(const EncodableMap& constraints,
-                    scoped_refptr<RTCMediaStream> stream, EncodableMap& params);
+  void GetUserAudio(const EncodableMap &constraints,
+                    scoped_refptr<RTCMediaStream> stream, EncodableMap &params);
 
-  void GetUserVideo(const EncodableMap& constraints,
-                    scoped_refptr<RTCMediaStream> stream, EncodableMap&params);
+  void GetUserVideo(const EncodableMap &constraints,
+                    scoped_refptr<RTCMediaStream> stream, EncodableMap &params);
 
   void GetSources(std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void MediaStreamGetTracks(const std::string &stream_id,
-                            std::unique_ptr<MethodResult<EncodableValue>> result);
+  void MediaStreamGetTracks(
+      const std::string &stream_id,
+      std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void MediaStreamDispose(const std::string &stream_id,
                           std::unique_ptr<MethodResult<EncodableValue>> result);
@@ -44,6 +45,6 @@ class FlutterMediaStream {
   FlutterWebRTCBase *base_;
 };
 
-};  // namespace flutter_webrtc_plugin
+}  // namespace flutter_webrtc_plugin
 
 #endif  // !FLUTTER_WEBRTC_RTC_GET_USERMEDIA_HXX
