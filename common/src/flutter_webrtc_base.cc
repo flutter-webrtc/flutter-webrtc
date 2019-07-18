@@ -126,7 +126,7 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
   for (size_t i = 0; i < size; i++) {
     IceServer &ice_server = ice_servers[i];
     EncodableMap iceServerMap = iceServersArray[i].MapValue();
-    boolean hasUsernameAndCredential =
+    bool hasUsernameAndCredential =
         iceServerMap.find(EncodableValue("username")) != iceServerMap.end() &&
         iceServerMap.find(EncodableValue("credential")) != iceServerMap.end();
     auto it = iceServerMap.find(EncodableValue("url"));
@@ -168,10 +168,10 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
         const EncodableList urls = it->second.ListValue();
         for (auto url : urls) {
           const EncodableMap map = url.MapValue();
-          std::string url;
+          std::string value;
           auto it2 = map.find(EncodableValue("url"));
           if (it2 != map.end()) {
-            url = it2->second.StringValue();
+            value = it2->second.StringValue();
             if (hasUsernameAndCredential) {
               std::string username =
                   iceServerMap.find(EncodableValue("username"))
@@ -182,9 +182,9 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
               strncpy(ice_server.username, username.c_str(), username.size());
               strncpy(ice_server.password, credential.c_str(),
                       credential.size());
-              strncpy(ice_server.uri, url.c_str(), url.size());
+              strncpy(ice_server.uri, value.c_str(), value.size());
             } else {
-              strncpy(ice_server.uri, url.c_str(), url.size());
+              strncpy(ice_server.uri, value.c_str(), value.size());
             }
           }
         }

@@ -33,9 +33,6 @@ class FlutterWebRTC : public FlutterWebRTCBase,
   void HandleMethodCall(
       const flutter::MethodCall<EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
-
- private:
-  FlutterWebRTCPlugin *plugin_ = nullptr;
 };
 
 }  // namespace flutter_webrtc_plugin

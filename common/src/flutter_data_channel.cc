@@ -5,9 +5,9 @@ namespace flutter_webrtc_plugin {
 FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
     scoped_refptr<RTCDataChannel> data_channel, BinaryMessenger *messenger,
     const std::string &name)
-    : data_channel_(data_channel),
-      event_channel_(new EventChannel<EncodableValue>(
-          messenger, name, &StandardMethodCodec::GetInstance())) {
+    : event_channel_(new EventChannel<EncodableValue>(
+          messenger, name, &StandardMethodCodec::GetInstance())),
+      data_channel_(data_channel) {
   StreamHandler<EncodableValue> stream_handler = {
       [&](const EncodableValue *arguments,
           const EventSink<EncodableValue> *events)

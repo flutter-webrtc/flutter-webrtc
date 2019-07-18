@@ -3,10 +3,18 @@
 
 #include <flutter_plugin_registrar.h>
 
+#if defined(_WINDOWS)
 #ifdef FLUTTER_PLUGIN_IMPL
 #define FLUTTER_PLUGIN_EXPORT __declspec(dllexport)
 #else
 #define FLUTTER_PLUGIN_EXPORT __declspec(dllimport)
+#endif
+#else
+#ifdef FLUTTER_PLUGIN_IMPL
+#define FLUTTER_PLUGIN_EXPORT __attribute__((visibility("default")))
+#else
+#define FLUTTER_PLUGIN_EXPORT
+#endif
 #endif
 
 #if defined(__cplusplus)

@@ -119,10 +119,10 @@ void FlutterPeerConnection::GetStats(
 FlutterPeerConnectionObserver::FlutterPeerConnectionObserver(
     FlutterWebRTCBase *base, scoped_refptr<RTCPeerConnection> peerconnection,
     BinaryMessenger *messenger, const std::string &channel_name)
-    : base_(base),
+    : event_channel_(new EventChannel<EncodableValue>(
+          messenger, channel_name, &StandardMethodCodec::GetInstance())),
       peerconnection_(peerconnection),
-      event_channel_(new EventChannel<EncodableValue>(
-          messenger, channel_name, &StandardMethodCodec::GetInstance())) {
+      base_(base) {
   StreamHandler<EncodableValue> stream_handler = {
       [&](const EncodableValue *arguments,
           const EventSink<EncodableValue> *events)

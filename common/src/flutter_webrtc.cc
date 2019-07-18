@@ -10,8 +10,7 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin *plugin)
       FlutterVideoRendererManager::FlutterVideoRendererManager(this),
       FlutterMediaStream::FlutterMediaStream(this),
       FlutterPeerConnection::FlutterPeerConnection(this),
-      FlutterDataChannel::FlutterDataChannel(this),
-      plugin_(plugin) {}
+      FlutterDataChannel::FlutterDataChannel(this){}
 
 FlutterWebRTC::~FlutterWebRTC() {}
 

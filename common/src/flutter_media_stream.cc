@@ -146,7 +146,7 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   }
 
   std::string facing_mode = getFacingMode(video_constraints);
-  boolean isFacing = facing_mode == "" || facing_mode != "environment";
+  //bool isFacing = facing_mode == "" || facing_mode != "environment";
   std::string sourceId = getSourceIdConstraint(video_constraints);
   /*
   int width = video_mandatory["minWidth"].isNumeric()
