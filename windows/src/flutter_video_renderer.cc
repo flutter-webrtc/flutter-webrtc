@@ -25,7 +25,7 @@ FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar *registrar,
   event_channel_->SetStreamHandler(stream_handler);
 }
 
-const PixelBuffer *FlutterVideoRenderer::CopyTextureBuffer(size_t width,
+const PixelBuffer *FlutterVideoRenderer::CopyPixelBuffer(size_t width,
                                                            size_t height) {
   mutex_.lock();
   if (pixel_buffer_.get() && frame_.get()) {

@@ -18,7 +18,7 @@ class FlutterVideoRenderer
  public:
   FlutterVideoRenderer(TextureRegistrar *registrar, BinaryMessenger *messenger);
 
-  virtual const PixelBuffer *CopyTextureBuffer(size_t width,
+  virtual const PixelBuffer *CopyPixelBuffer(size_t width,
                                                size_t height) override;
 
   virtual void OnFrame(scoped_refptr<RTCVideoFrame> frame) override;
