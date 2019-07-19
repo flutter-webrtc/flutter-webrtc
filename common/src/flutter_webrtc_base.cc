@@ -37,16 +37,24 @@ void FlutterWebRTCBase::RemovePeerConnectionForId(const std::string &id) {
 
 scoped_refptr<RTCMediaStream> FlutterWebRTCBase::MediaStreamForId(
     const std::string &id) {
-  auto it = media_streams_.find(id);
 
-  if (it != media_streams_.end()) return (*it).second;
+  auto it = local_streams_.find(id);
+  if (it != local_streams_.end()) {
+    return (*it).second;
+  }
+
+  for (auto kv : peerconnection_observers_) {
+    auto pco = kv.second.get();
+    auto stream = pco->MediaStreamForId(id);
+    if (stream != nullptr) return stream;
+  }
 
   return nullptr;
 }
 
 void FlutterWebRTCBase::RemoveStreamForId(const std::string &id) {
-  auto it = media_streams_.find(id);
-  if (it != media_streams_.end()) media_streams_.erase(it);
+  auto it = local_streams_.find(id);
+  if (it != local_streams_.end()) local_streams_.erase(it);
 }
 
 bool FlutterWebRTCBase::ParseConstraints(const EncodableMap &constraints,

@@ -9,6 +9,7 @@
 #include <flutter/standard_method_codec.h>
 #include <flutter/texture_registrar.h>
 
+#include <string.h>
 #include <list>
 #include <map>
 #include <memory>
@@ -22,7 +23,6 @@
 #include "rtc_peerconnection_factory.h"
 #include "rtc_video_device.h"
 #include "uuidxx.h"
-
 
 namespace flutter_webrtc_plugin {
 
@@ -104,13 +104,13 @@ class FlutterWebRTCBase {
   RTCConfiguration configuration_;
 
   std::map<std::string, scoped_refptr<RTCPeerConnection>> peerconnections_;
-  std::map<std::string, scoped_refptr<RTCMediaStream>> media_streams_;
+  std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
   std::map<std::string, scoped_refptr<RTCMediaTrack>> media_tracks_;
   std::map<std::string, scoped_refptr<RTCDataChannel>> data_channels_;
   std::map<int64_t, std::shared_ptr<FlutterVideoRenderer>> renders_;
-  std::map<int, std::unique_ptr<FlutterRTCDataChannelObserver>>
+  std::map<int, std::shared_ptr<FlutterRTCDataChannelObserver>>
       data_channel_observers_;
-  std::map<std::string, std::unique_ptr<FlutterPeerConnectionObserver>>
+  std::map<std::string, std::shared_ptr<FlutterPeerConnectionObserver>>
       peerconnection_observers_;
 
  protected:

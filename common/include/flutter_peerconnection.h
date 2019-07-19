@@ -29,10 +29,23 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
       scoped_refptr<RTCDataChannel> data_channel) override;
   virtual void OnRenegotiationNeeded() override;
 
+  scoped_refptr<RTCMediaStream> MediaStreamForId(
+      const std::string &id) {
+    auto it = remote_streams_.find(id);
+    if (it != remote_streams_.end()) return (*it).second;
+    return nullptr;
+  }
+
+  void RemoveStreamForId(const std::string &id) {
+    auto it = remote_streams_.find(id);
+    if (it != remote_streams_.end()) remote_streams_.erase(it);
+  }
+
  private:
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
   const EventSink<EncodableValue> *event_sink_ = nullptr;
   scoped_refptr<RTCPeerConnection> peerconnection_;
+  std::map<std::string, scoped_refptr<RTCMediaStream>> remote_streams_;
   FlutterWebRTCBase *base_;
 };
 

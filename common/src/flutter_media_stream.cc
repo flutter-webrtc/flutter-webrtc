@@ -50,7 +50,7 @@ void FlutterMediaStream::GetUserMedia(
     }
   }
 
-  base_->media_streams_[uuid] = stream;
+  base_->local_streams_[uuid] = stream;
   const EncodableValue res(params);
   result->Success(&res);
 }
@@ -160,12 +160,12 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
                 : DEFAULT_FPS;
  */
   scoped_refptr<RTCVideoCapturer> video_capturer;
-  char strNameUTF8[128];
-  char strGuidUTF8[128];
+  char strNameUTF8[256];
+  char strGuidUTF8[256];
   int nb_video_devices = base_->video_device_->NumberOfDevices();
 
   for (int i = 0; i < nb_video_devices; i++) {
-    base_->video_device_->GetDeviceName(i, strNameUTF8, 128, strGuidUTF8, 128);
+    base_->video_device_->GetDeviceName(i, strNameUTF8, 256, strGuidUTF8, 256);
     if (sourceId != "" && sourceId == strGuidUTF8) {
       video_capturer = base_->video_device_->Create(strNameUTF8, i);
       break;

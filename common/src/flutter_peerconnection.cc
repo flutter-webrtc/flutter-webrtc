@@ -26,7 +26,7 @@ void FlutterPeerConnection::CreateRTCPeerConnection(
       new FlutterPeerConnectionObserver(base_, pc, base_->messenger_,
                                         event_channel));
 
-  base_->peerconnection_observers_[event_channel] = std::move(observer);
+  base_->peerconnection_observers_[uuid] = std::move(observer);
 
   EncodableMap params;
   params[EncodableValue("peerConnectionId")] = uuid;
@@ -264,7 +264,7 @@ void FlutterPeerConnectionObserver::OnAddStream(
       videoTracks.push_back(EncodableValue(videoTrack));
     }
 
-    base_->media_streams_[stream->label()] =
+    remote_streams_[stream->label()] =
         scoped_refptr<RTCMediaStream>(stream);
     params[EncodableValue("videoTracks")] = videoTracks;
     event_sink_->Success(&EncodableValue(params));
@@ -277,9 +277,9 @@ void FlutterPeerConnectionObserver::OnRemoveStream(
     EncodableMap params;
     params[EncodableValue("event")] = "onRemoveStream";
     params[EncodableValue("streamId")] = stream->label();
-    base_->RemoveStreamForId(stream->label());
     event_sink_->Success(&EncodableValue(params));
   }
+  RemoveStreamForId(stream->label());
 }
 
 void FlutterPeerConnectionObserver::OnAddTrack(

@@ -20,6 +20,7 @@ FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
         return nullptr;
       }};
   event_channel_->SetStreamHandler(stream_handler);
+  data_channel_->RegisterObserver(this);
 }
 
 FlutterRTCDataChannelObserver::~FlutterRTCDataChannelObserver() {}
