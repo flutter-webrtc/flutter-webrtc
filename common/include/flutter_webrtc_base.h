@@ -51,9 +51,11 @@ inline int findInt(const EncodableMap &map, const std::string &key) {
   return -1;
 }
 
-inline int64_t findLongInt(const EncodableMap &map, const std::string &key) {
+inline int64_t findLongInt(const EncodableMap &map, const std::string &key)
+{
   auto it = map.find(EncodableValue(key));
-  if (it != map.end() && it->second.IsLong()) return it->second.LongValue();
+  if (it != map.end() && (it->second.IsLong() || it->second.IsInt()))
+    return it->second.LongValue();
   return -1;
 }
 
