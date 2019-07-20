@@ -34,7 +34,7 @@ class FlutterDataChannel {
                          std::unique_ptr<MethodResult<EncodableValue>>);
 
   void DataChannelSend(RTCDataChannel *data_channel, const std::string &type,
-                       const std::string &data,
+                       const EncodableValue &data,
                        std::unique_ptr<MethodResult<EncodableValue>>);
 
   void DataChannelClose(RTCDataChannel *data_channel,

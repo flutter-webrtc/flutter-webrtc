@@ -1,5 +1,7 @@
 #include "flutter_data_channel.h"
 
+#include <vector>
+
 namespace flutter_webrtc_plugin {
 
 FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
@@ -69,9 +71,16 @@ void FlutterDataChannel::CreateDataChannel(
 
 void FlutterDataChannel::DataChannelSend(
     RTCDataChannel *data_channel, const std::string &type,
-    const std::string &data,
+    const EncodableValue &data,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
-  data_channel->Send(data.data(), (int)data.size(), type == "binary");
+  bool is_binary = type == "binary";
+  if (is_binary && data.IsByteList()) { 
+    std::vector<uint8_t> binary = data.ByteListValue();
+    data_channel->Send((const char *)&binary[0], (int)binary.size(), true);
+  } else {
+    std::string str = data.StringValue();
+    data_channel->Send(str.data(), (int)str.size(), false);
+  }
   result->Success(nullptr);
 }
 
@@ -114,7 +123,7 @@ static const char *DataStateString(RTCDataChannelState state) {
 void FlutterRTCDataChannelObserver::OnStateChange(RTCDataChannelState state) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
-    params[EncodableValue("event")] = "dataChannelReceiveMessage";
+    params[EncodableValue("event")] = "dataChannelStateChanged";
     params[EncodableValue("id")] = data_channel_->id();
     params[EncodableValue("state")] = DataStateString(state);
     event_sink_->Success(&EncodableValue(params));
@@ -123,12 +132,14 @@ void FlutterRTCDataChannelObserver::OnStateChange(RTCDataChannelState state) {
 
 void FlutterRTCDataChannelObserver::OnMessage(const char *buffer, int length,
                                               bool binary) {
+
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "dataChannelReceiveMessage";
     params[EncodableValue("id")] = data_channel_->id();
     params[EncodableValue("type")] = binary ? "binary" : "text";
-    params[EncodableValue("data")] = std::string(buffer, length);
+    std::string str(buffer, length);
+    params[EncodableValue("data")] = binary ? EncodableValue(std::vector<uint8_t>(str.begin(), str.end())) : EncodableValue(str);
     event_sink_->Success(&EncodableValue(params));
   }
 }

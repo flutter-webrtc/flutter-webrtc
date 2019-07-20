@@ -227,7 +227,7 @@ void FlutterWebRTC::HandleMethodCall(
 
     int dataChannelId = findInt(params, "dataChannelId");
     const std::string type = findString(params, "type");
-    const std::string data = findString(params, "data");
+    const EncodableValue data = findEncodableValue(params, "data");
     RTCDataChannel *data_channel = DataChannelFormId(dataChannelId);
     if (data_channel == nullptr) {
       result->Error("dataChannelSendFailed",

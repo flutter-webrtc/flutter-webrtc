@@ -33,6 +33,13 @@ class FlutterVideoRenderer;
 class FlutterRTCDataChannelObserver;
 class FlutterPeerConnectionObserver;
 
+inline EncodableValue findEncodableValue(const EncodableMap &map,
+                                 const std::string &key) {
+  auto it = map.find(EncodableValue(key));
+  if (it != map.end()) return it->second;
+  return EncodableValue();
+}
+
 inline EncodableMap findMap(const EncodableMap &map, const std::string &key) {
   auto it = map.find(EncodableValue(key));
   if (it != map.end() && it->second.IsMap()) return it->second.MapValue();
