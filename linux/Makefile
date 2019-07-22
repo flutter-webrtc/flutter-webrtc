@@ -118,7 +118,7 @@ LDFLAGS=-shared -L$(FLUTTER_CACHE_DIR) -l$(FLUTTER_LIB_NAME) $(EXTRA_LDFLAGS) $(
 
 # Final output files that will be used by applications.
 LIBRARY_OUT=$(OUT_DIR)/lib$(PLUGIN_NAME).so
-HEADER_OUT=$(OUT_DIR)/include/$(PUBLIC_HEADER)
+HEADER_OUT=$(OUT_DIR)/include/$(PLUGIN_NAME).h
 
 # Intermediate files.
 OBJ_FILES=$(SOURCES:%.cc=$(OBJ_DIR)/%.o)
