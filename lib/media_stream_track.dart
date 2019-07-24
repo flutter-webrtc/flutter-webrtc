@@ -42,6 +42,22 @@ class MediaStreamTrack {
     );
   }
 
+  void setMicrophoneMute(bool mute) async {
+    print('MediaStreamTrack:setMicrophoneMute $mute');
+    await _channel.invokeMethod(
+      'setMicrophoneMute',
+      <String, dynamic>{'trackId': _trackId, 'mute': mute},
+    );
+  }
+
+  void enableSpeakerphone(bool enable) async {
+    print('MediaStreamTrack:enableSpeakerphone $enable');
+    await _channel.invokeMethod(
+      'enableSpeakerphone',
+      <String, dynamic>{'trackId': _trackId, 'enable': enable},
+    );
+  }
+
   captureFrame(String filePath) => _channel.invokeMethod(
         'captureFrame',
         <String, dynamic>{'trackId': _trackId, 'path': filePath},
