@@ -12,10 +12,7 @@ class navigator {
         'getUserMedia',
         <String, dynamic>{'constraints': mediaConstraints},
       );
-      String streamId = response["streamId"];
-      MediaStream stream = new MediaStream(streamId);
-      stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
-      return stream;
+      return MediaStream.fromMap(response);
     } on PlatformException catch (e) {
       throw 'Unable to getUserMedia: ${e.message}';
     }
@@ -33,10 +30,7 @@ static Future<MediaStream> getDisplayMedia(
         'getDisplayMedia',
         <String, dynamic>{'constraints': mediaConstraints},
       );
-      String streamId = response["streamId"];
-      MediaStream stream = new MediaStream(streamId);
-      stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
-      return stream;
+      return MediaStream.fromMap(response);
     } on PlatformException catch (e) {
       throw 'Unable to getDisplayMedia: ${e.message}';
     }

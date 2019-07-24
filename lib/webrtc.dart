@@ -1,6 +1,7 @@
 export 'get_user_media.dart';
 export 'media_stream_track.dart';
 export 'media_stream.dart';
+export 'media_recorder.dart';
 export 'rtc_data_channel.dart';
 export 'rtc_video_view.dart';
 export 'rtc_ice_candidate.dart';
@@ -8,4 +9,7 @@ export 'rtc_session_description.dart';
 export 'rtc_peerconnection.dart';
 export 'rtc_peerconnection_factory.dart';
 export 'rtc_stats_report.dart';
-export 'media_recorder.dart';
+export 'rtc_dtmf_sender.dart';
+export 'rtc_rtp_transceiver.dart';
+export 'rtc_rtp_sender.dart';
+export 'rtc_rtp_receiver.dart';

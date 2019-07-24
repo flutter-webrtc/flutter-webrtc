@@ -1,10 +1,14 @@
-
 class RTCSessionDescription {
-    String sdp;
-    String type;
-    RTCSessionDescription(this.sdp,this.type);
+  String sdp;
+  String type;
 
-    dynamic toMap() {
-      return { "sdp": this.sdp, "type": this.type};
-    }
+  factory RTCSessionDescription.fromMap(Map<String, dynamic> map) {
+    return new RTCSessionDescription(map['sdp'], map['type']);
+  }
+
+  RTCSessionDescription(this.sdp, this.type);
+
+  Map<String, dynamic> toMap() {
+    return {"sdp": this.sdp, "type": this.type};
+  }
 }

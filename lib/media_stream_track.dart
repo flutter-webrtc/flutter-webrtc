@@ -10,6 +10,11 @@ class MediaStreamTrack {
   String _kind;
   bool _enabled;
 
+  factory MediaStreamTrack.fromMap(Map<String, dynamic> map) {
+    return new MediaStreamTrack(
+        map['trackId'], map['label'], map['kind'], map['enabled']);
+  }
+
   MediaStreamTrack(this._trackId, this._label, this._kind, this._enabled);
 
   set enabled(bool enabled) {
@@ -25,11 +30,10 @@ class MediaStreamTrack {
 
   ///Future contains isFrontCamera
   ///Throws error if switching camera failed
-  Future<bool> switchCamera() =>
-    _channel.invokeMethod(
-      'mediaStreamTrackSwitchCamera',
-      <String, dynamic>{'trackId': _trackId},
-    );
+  Future<bool> switchCamera() => _channel.invokeMethod(
+        'mediaStreamTrackSwitchCamera',
+        <String, dynamic>{'trackId': _trackId},
+      );
 
   void setVolume(double volume) async {
     await _channel.invokeMethod(
@@ -38,11 +42,10 @@ class MediaStreamTrack {
     );
   }
 
-  captureFrame(String filePath) =>
-    _channel.invokeMethod(
-      'captureFrame',
-      <String, dynamic>{'trackId':_trackId, 'path': filePath},
-    );
+  captureFrame(String filePath) => _channel.invokeMethod(
+        'captureFrame',
+        <String, dynamic>{'trackId': _trackId, 'path': filePath},
+      );
 
   Future<void> dispose() async {
     await _channel.invokeMethod(
