@@ -9,11 +9,20 @@ enum RTCRtpTransceiverDirection {
   RTCRtpTransceiverDirectionInactive,
 }
 
-final typeStringToRtpTransceiverDirection = <String, RTCRtpTransceiverDirection>{
+final typeStringToRtpTransceiverDirection =
+    <String, RTCRtpTransceiverDirection>{
   'sendrecv': RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionSendRecv,
   'sendonly': RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionSendOnly,
   'recvonly': RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionRecvOnly,
   'inactive': RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionInactive,
+};
+
+final typeRtpTransceiverDirectionToString =
+    <RTCRtpTransceiverDirection, String>{
+  RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionSendRecv: 'sendrecv',
+  RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionSendOnly: 'sendonly',
+  RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionRecvOnly: 'recvonly',
+  RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionInactive: 'inactive',
 };
 
 class RTCRtpTransceiverInit {
@@ -22,12 +31,28 @@ class RTCRtpTransceiverInit {
   List<RTCRtpEncoding> sendEncodings;
 
   Map<String, dynamic> toMap() {
-    return Map();
+    List<dynamic> encodings = [];
+    sendEncodings.forEach((encoding) {
+      encodings.add(encoding.toMap());
+    });
+    return {
+      'direction': typeRtpTransceiverDirectionToString[this.direction],
+      'streamIds': streamIds,
+      'sendEncodings': encodings,
+    };
   }
 
   factory RTCRtpTransceiverInit.fromMap(Map<String, dynamic> map) {
+    List<RTCRtpEncoding> encodings = [];
+    dynamic encodingsMap = map['encodings'];
+    encodingsMap.forEach((params) {
+      encodings.add(RTCRtpEncoding.fromMap(params));
+    });
+    return RTCRtpTransceiverInit(
+        typeStringToRtpTransceiverDirection[map['direction']],
+        map['streamIds'],
+        encodings);
   }
-
   RTCRtpTransceiverInit(this.direction, this.streamIds, this.sendEncodings);
 }
 
@@ -39,8 +64,8 @@ class RTCRtpTransceiver {
   RTCRtpSender _sender;
   RTCRtpReceiver _receiver;
 
-  factory RTCRtpTransceiver.fromMap(Map<String,dynamic> map) {
-        RTCRtpTransceiver transceiver = RTCRtpTransceiver(
+  factory RTCRtpTransceiver.fromMap(Map<String, dynamic> map) {
+    RTCRtpTransceiver transceiver = RTCRtpTransceiver(
         map['transceiverId'],
         typeStringToRtpTransceiverDirection[map['direction']],
         map['mid'],
@@ -61,6 +86,8 @@ class RTCRtpTransceiver {
   RTCRtpReceiver get receiver => _receiver;
 
   bool get stoped => _stop;
+
+  String get transceiverId => _transceiverId;
 
   void stop() {}
 }

@@ -84,8 +84,10 @@ class RTCPeerConnection {
   dynamic onRenegotiationNeeded;
 
   /// Unified-Plan
-  OnAddTrackCallback onAddTrack2; //TODO:
+  /// TODO:
+  OnAddTrackCallback onAddTrack2;
   OnTrackCallback onTrack;
+  OnTrackCallback onRemoveTrack2;
 
   final Map<String, dynamic> defaultSdpConstraints = {
     "mandatory": {
@@ -195,7 +197,6 @@ class RTCPeerConnection {
         break;
 
       /// Unified-Plan
-
     }
   }
 
@@ -468,7 +469,7 @@ class RTCPeerConnection {
       final Map<dynamic, dynamic> response =
           await _channel.invokeMethod('addTransceiverOfType', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
-        'mediaType': mediaType,
+        'mediaType': typeRTCRtpMediaTypetoString[mediaType],
         'init': init.toMap()
       });
       RTCRtpTransceiver transceiver = RTCRtpTransceiver.fromMap(response);

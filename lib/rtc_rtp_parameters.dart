@@ -19,6 +19,17 @@ class RTCRTPCodec {
   /// The "format specific parameters" field from the "a=fmtp" line in the SDP
   Map<String, String> parameters;
 
+  Map<String, dynamic> toMap() {
+    return {
+      'payloadType': payloadType,
+      'name': name,
+      'kind': kind,
+      'clockRate': clockRate,
+      'numChannels': numChannels,
+      'parameters': parameters,
+    };
+  }
+
   factory RTCRTPCodec.fromMap(Map<String, dynamic> map) {
     return new RTCRTPCodec(map['payloadType'], map['name'], map['kind'],
         map['clockRate'], map['numChannels'], map['parameters']);
@@ -59,6 +70,19 @@ class RTCRtpEncoding {
   /// Can't be changed between getParameters/setParameters.
   int ssrc;
 
+  Map<String, dynamic> toMap() {
+    return {
+      'rid': rid,
+      'active': active,
+      'maxBitrateBps': maxBitrateBps,
+      'maxFramerate': maxFramerate,
+      'minBitrateBps': minBitrateBps,
+      'numTemporalLayers': numTemporalLayers,
+      'scaleResolutionDownBy': scaleResolutionDownBy,
+      'ssrc': ssrc,
+    };
+  }
+
   factory RTCRtpEncoding.fromMap(Map<String, dynamic> map) {
     return new RTCRtpEncoding(
         map['rid'],
@@ -70,6 +94,7 @@ class RTCRtpEncoding {
         map['scaleResolutionDownBy'],
         map['ssrc']);
   }
+
   RTCRtpEncoding(
       this.rid,
       this.active,
@@ -91,6 +116,14 @@ class RTCHeaderExtension {
   /// Whether the header extension is encrypted or not.
   bool encrypted;
 
+  Map<String, dynamic> toMap() {
+    return {
+      'uri': uri,
+      'id': id,
+      'encrypted': encrypted,
+    };
+  }
+
   factory RTCHeaderExtension.fromMap(Map<String, dynamic> map) {
     return new RTCHeaderExtension(map['uri'], map['id'], map['encrypted']);
   }
@@ -111,6 +144,28 @@ class RTCRtpParameters {
   /// setParameters. Though in the future it will be possible to reorder them or
   /// remove them.
   List<RTCRTPCodec> codecs;
+
+  Map<String, dynamic> toMap() {
+    List<dynamic> headerExtensionsList = [];
+    headerExtensions.forEach((params) {
+      headerExtensionsList.add(params.toMap());
+    });
+    List<dynamic> encodingList = [];
+    encodings.forEach((params) {
+      encodingList.add(params.toMap());
+    });
+    List<dynamic> codecsList = [];
+    codecs.forEach((params) {
+      codecsList.add(params.toMap());
+    });
+    return {
+      'transactionId': transactionId,
+      'rtcp': rtcp.toMap(),
+      'headerExtensions': headerExtensionsList,
+      'encodings': encodingList,
+      'codecs': codecsList,
+    };
+  }
 
   factory RTCRtpParameters.fromMap(Map<String, dynamic> map) {
     List<RTCRtpEncoding> encodings = [];

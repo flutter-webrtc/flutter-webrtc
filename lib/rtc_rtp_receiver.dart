@@ -7,6 +7,18 @@ enum RTCRtpMediaType {
   RTCRtpMediaTypeData,
 }
 
+final typeRTCRtpMediaTypetoString = <RTCRtpMediaType, String>{
+  RTCRtpMediaType.RTCRtpMediaTypeAudio: 'audio',
+  RTCRtpMediaType.RTCRtpMediaTypeVideo: 'video',
+  RTCRtpMediaType.RTCRtpMediaTypeData: 'data',
+};
+
+final typeStringToRTCRtpMediaType = <String, RTCRtpMediaType>{
+  'audio': RTCRtpMediaType.RTCRtpMediaTypeAudio,
+  'video': RTCRtpMediaType.RTCRtpMediaTypeVideo,
+  'data': RTCRtpMediaType.RTCRtpMediaTypeData,
+};
+
 typedef void OnFirstPacketReceivedCallback(
     RTCRtpReceiver rtpReceiver, RTCRtpMediaType mediaType);
 
@@ -16,9 +28,10 @@ class RTCRtpReceiver {
   RTCRtpParameters _parameters;
   OnFirstPacketReceivedCallback onFirstPacketReceived;
 
-  factory RTCRtpReceiver.fromMap(Map<String,dynamic> map){
+  factory RTCRtpReceiver.fromMap(Map<String, dynamic> map) {
     MediaStreamTrack track = MediaStreamTrack.fromMap(map['trackInfo']);
-    RTCRtpParameters parameters = RTCRtpParameters.fromMap(map['rtpParameters']);
+    RTCRtpParameters parameters =
+        RTCRtpParameters.fromMap(map['rtpParameters']);
     return RTCRtpReceiver(map['receiverId'], track, parameters);
   }
 
