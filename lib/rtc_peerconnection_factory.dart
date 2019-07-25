@@ -4,17 +4,12 @@ import 'package:flutter/services.dart';
 import 'rtc_peerconnection.dart';
 import 'utils.dart';
 
-Future<RTCPeerConnection> createPeerConnection(Map<String, dynamic> configuration, Map<String, dynamic> constraints) async {
-  MethodChannel channel = WebRTC.methodChannel();
+Future<RTCPeerConnection> createPeerConnection(
+    Map<String, dynamic> configuration,
+    Map<String, dynamic> constraints) async {
+  MethodChannel methodChannel = WebRTC.methodChannel();
 
-  Map<String, dynamic> defaultConstraints = {
-    "mandatory": {},
-    "optional": [
-      {"DtlsSrtpKeyAgreement": true},
-    ],
-  };
-
-  final Map<dynamic, dynamic> response = await channel.invokeMethod(
+  final Map<dynamic, dynamic> response = await methodChannel.invokeMethod(
     'createPeerConnection',
     <String, dynamic>{
       'configuration': configuration,
@@ -22,6 +17,5 @@ Future<RTCPeerConnection> createPeerConnection(Map<String, dynamic> configuratio
     },
   );
 
-  String peerConnectionId = response['peerConnectionId'];
-  return new RTCPeerConnection(peerConnectionId, configuration);
+  return new RTCPeerConnection(response['peerConnectionId'], configuration);
 }

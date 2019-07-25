@@ -4,11 +4,13 @@ import 'media_stream_track.dart';
 import 'utils.dart';
 
 class MediaStream {
-  MethodChannel _channel = WebRTC.methodChannel();
+  /// private:
+  MethodChannel _methodChannel = WebRTC.methodChannel();
   String _streamId;
   List<MediaStreamTrack> _audioTracks = new List<MediaStreamTrack>();
   List<MediaStreamTrack> _videoTracks = new List<MediaStreamTrack>();
 
+  /// public:
   factory MediaStream.fromMap(Map<String, dynamic> map) {
     MediaStream stream = new MediaStream(map['streamId']);
     stream._setMediaTracks(map['audioTracks'], map['videoTracks']);
@@ -17,16 +19,16 @@ class MediaStream {
 
   MediaStream(this._streamId);
 
+  String get id => _streamId;
+
   Future<void> getMediaTracks() async {
-    _channel = WebRTC.methodChannel();
-    final Map<dynamic, dynamic> response = await _channel.invokeMethod(
+    final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
       'mediaStreamGetTracks',
       <String, dynamic>{'streamId': _streamId},
     );
     _setMediaTracks(response['audioTracks'], response['videoTracks']);
   }
 
-  String get id => _streamId;
   Future<void> addTrack(MediaStreamTrack track,
       {bool addToNaitve = true}) async {
     if (track.kind == 'audio')
@@ -35,7 +37,7 @@ class MediaStream {
       _videoTracks.add(track);
 
     if (addToNaitve)
-      await _channel.invokeMethod('mediaStreamAddTrack',
+      await _methodChannel.invokeMethod('mediaStreamAddTrack',
           <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
   }
 
@@ -47,7 +49,7 @@ class MediaStream {
       _videoTracks.removeWhere((it) => it.id == track.id);
 
     if (removeFromNaitve)
-      await _channel.invokeMethod('mediaStreamRemoveTrack',
+      await _methodChannel.invokeMethod('mediaStreamRemoveTrack',
           <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
   }
 
@@ -60,12 +62,13 @@ class MediaStream {
   }
 
   Future<Null> dispose() async {
-    await _channel.invokeMethod(
+    await _methodChannel.invokeMethod(
       'streamDispose',
       <String, dynamic>{'streamId': _streamId},
     );
   }
 
+  /// private: method.
   void _setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
     List<MediaStreamTrack> newAudioTracks = new List();
     audioTracks.forEach((trackInfo) {

@@ -61,7 +61,7 @@ typedef void OnTrackCallback(RTCRtpTransceiver transceiver);
 class RTCPeerConnection {
   /// private:
   String _peerConnectionId;
-  MethodChannel _channel = WebRTC.methodChannel();
+  MethodChannel _methodChannel = WebRTC.methodChannel();
   StreamSubscription<dynamic> _eventSubscription;
   List<MediaStream> _localStreams = new List();
   List<MediaStream> _remoteStreams = new List();
@@ -89,14 +89,7 @@ class RTCPeerConnection {
   OnTrackCallback onTrack;
   OnTrackCallback onRemoveTrack2;
 
-  final Map<String, dynamic> defaultSdpConstraints = {
-    "mandatory": {
-      "OfferToReceiveAudio": true,
-      "OfferToReceiveVideo": true,
-    },
-    "optional": [],
-  };
-
+  /// public:
   RTCPeerConnection(this._peerConnectionId, this._configuration) {
     _eventSubscription = _eventChannelFor(_peerConnectionId)
         .receiveBroadcastStream()
@@ -205,14 +198,6 @@ class RTCPeerConnection {
     throw e;
   }
 
-  Future<void> dispose() async {
-    await _eventSubscription?.cancel();
-    await _channel.invokeMethod(
-      'peerConnectionDispose',
-      <String, dynamic>{'peerConnectionId': _peerConnectionId},
-    );
-  }
-
   EventChannel _eventChannelFor(String peerConnectionId) {
     return new EventChannel(
         'FlutterWebRTC/peerConnectoinEvent$peerConnectionId');
@@ -223,7 +208,7 @@ class RTCPeerConnection {
   Future<void> setConfiguration(Map<String, dynamic> configuration) async {
     _configuration = configuration;
     try {
-      await _channel.invokeMethod('setConfiguration', <String, dynamic>{
+      await _methodChannel.invokeMethod('setConfiguration', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'configuration': configuration,
       });
@@ -236,7 +221,7 @@ class RTCPeerConnection {
       Map<String, dynamic> constraints) async {
     try {
       final Map<dynamic, dynamic> response =
-          await _channel.invokeMethod('createOffer', <String, dynamic>{
+          await _methodChannel.invokeMethod('createOffer', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'constraints':
             constraints.length == 0 ? defaultSdpConstraints : constraints,
@@ -251,7 +236,7 @@ class RTCPeerConnection {
       Map<String, dynamic> constraints) async {
     try {
       final Map<dynamic, dynamic> response =
-          await _channel.invokeMethod('createAnswer', <String, dynamic>{
+          await _methodChannel.invokeMethod('createAnswer', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'constraints':
             constraints.length == 0 ? defaultSdpConstraints : constraints,
@@ -264,7 +249,7 @@ class RTCPeerConnection {
 
   Future<void> addStream(MediaStream stream) async {
     _localStreams.add(stream);
-    await _channel.invokeMethod('addStream', <String, dynamic>{
+    await _methodChannel.invokeMethod('addStream', <String, dynamic>{
       'peerConnectionId': this._peerConnectionId,
       'streamId': stream.id,
     });
@@ -272,7 +257,7 @@ class RTCPeerConnection {
 
   Future<void> removeStream(MediaStream stream) async {
     _localStreams.removeWhere((it) => it.id == stream.id);
-    await _channel.invokeMethod('removeStream', <String, dynamic>{
+    await _methodChannel.invokeMethod('removeStream', <String, dynamic>{
       'peerConnectionId': this._peerConnectionId,
       'streamId': stream.id,
     });
@@ -280,7 +265,8 @@ class RTCPeerConnection {
 
   Future<void> setLocalDescription(RTCSessionDescription description) async {
     try {
-      await _channel.invokeMethod('setLocalDescription', <String, dynamic>{
+      await _methodChannel
+          .invokeMethod('setLocalDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'description': description.toMap(),
       });
@@ -291,7 +277,8 @@ class RTCPeerConnection {
 
   Future<void> setRemoteDescription(RTCSessionDescription description) async {
     try {
-      await _channel.invokeMethod('setRemoteDescription', <String, dynamic>{
+      await _methodChannel
+          .invokeMethod('setRemoteDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'description': description.toMap(),
       });
@@ -302,8 +289,8 @@ class RTCPeerConnection {
 
   Future<RTCSessionDescription> getLocalDescription() async {
     try {
-      final Map<dynamic, dynamic> response =
-          await _channel.invokeMethod('getLocalDescription', <String, dynamic>{
+      final Map<dynamic, dynamic> response = await _methodChannel
+          .invokeMethod('getLocalDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
       });
       return new RTCSessionDescription(response['sdp'], response['type']);
@@ -314,8 +301,8 @@ class RTCPeerConnection {
 
   Future<RTCSessionDescription> getRemoteDescription() async {
     try {
-      final Map<dynamic, dynamic> response =
-          await _channel.invokeMethod('getRemoteDescription', <String, dynamic>{
+      final Map<dynamic, dynamic> response = await _methodChannel
+          .invokeMethod('getRemoteDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
       });
       return new RTCSessionDescription(response['sdp'], response['type']);
@@ -325,7 +312,7 @@ class RTCPeerConnection {
   }
 
   Future<void> addCandidate(RTCIceCandidate candidate) async {
-    await _channel.invokeMethod('addCandidate', <String, dynamic>{
+    await _methodChannel.invokeMethod('addCandidate', <String, dynamic>{
       'peerConnectionId': this._peerConnectionId,
       'candidate': candidate.toMap(),
     });
@@ -334,7 +321,7 @@ class RTCPeerConnection {
   Future<List<StatsReport>> getStats([MediaStreamTrack track]) async {
     try {
       final Map<dynamic, dynamic> response =
-          await _channel.invokeMethod('getStats', <String, dynamic>{
+          await _methodChannel.invokeMethod('getStats', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'track': track != null ? track.id : null
       });
@@ -362,8 +349,8 @@ class RTCPeerConnection {
   Future<RTCDataChannel> createDataChannel(
       String label, RTCDataChannelInit dataChannelDict) async {
     try {
-      final Map<dynamic, dynamic> response =
-          await _channel.invokeMethod('createDataChannel', <String, dynamic>{
+      final Map<dynamic, dynamic> response = await _methodChannel
+          .invokeMethod('createDataChannel', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'label': label,
         'dataChannelDict': dataChannelDict.toMap()
@@ -376,20 +363,10 @@ class RTCPeerConnection {
     }
   }
 
-  Future<Null> close() async {
-    try {
-      await _channel.invokeMethod('peerConnectionClose', <String, dynamic>{
-        'peerConnectionId': this._peerConnectionId,
-      });
-    } on PlatformException catch (e) {
-      throw 'Unable to RTCPeerConnection::close: ${e.message}';
-    }
-  }
-
   /// Unified-Plan.
   Future<RTCRtpSender> createSender(String kind, String streamId) async {
     try {
-      final Map<dynamic, dynamic> response = await _channel.invokeMethod(
+      final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
           'createSender', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'kind': kind,
@@ -419,7 +396,7 @@ class RTCPeerConnection {
       [List<String> streamIds]) async {
     try {
       final Map<dynamic, dynamic> response =
-          await _channel.invokeMethod('addTrack', <String, dynamic>{
+          await _methodChannel.invokeMethod('addTrack', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'track': track.id,
         'streamId': streamIds
@@ -434,7 +411,7 @@ class RTCPeerConnection {
 
   Future<void> removeTrack(RTCRtpSender sender) async {
     try {
-      await _channel.invokeMethod('removeTrack', <String, dynamic>{
+      await _methodChannel.invokeMethod('removeTrack', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'senderId': sender.senderId
       });
@@ -450,7 +427,7 @@ class RTCPeerConnection {
       [RTCRtpTransceiverInit init]) async {
     try {
       final Map<dynamic, dynamic> response =
-          await _channel.invokeMethod('addTransceiver', <String, dynamic>{
+          await _methodChannel.invokeMethod('addTransceiver', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'track': track.id,
         'init': init.toMap()
@@ -466,8 +443,8 @@ class RTCPeerConnection {
   Future<RTCRtpTransceiver> addTransceiverOfType(RTCRtpMediaType mediaType,
       [RTCRtpTransceiverInit init]) async {
     try {
-      final Map<dynamic, dynamic> response =
-          await _channel.invokeMethod('addTransceiverOfType', <String, dynamic>{
+      final Map<dynamic, dynamic> response = await _methodChannel
+          .invokeMethod('addTransceiverOfType', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'mediaType': typeRTCRtpMediaTypetoString[mediaType],
         'init': init.toMap()
@@ -478,5 +455,24 @@ class RTCPeerConnection {
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::addTransceiver: ${e.message}';
     }
+  }
+
+  Future<Null> close() async {
+    try {
+      await _methodChannel
+          .invokeMethod('peerConnectionClose', <String, dynamic>{
+        'peerConnectionId': this._peerConnectionId,
+      });
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::close: ${e.message}';
+    }
+  }
+
+  Future<void> dispose() async {
+    await _eventSubscription?.cancel();
+    await _methodChannel.invokeMethod(
+      'peerConnectionDispose',
+      <String, dynamic>{'peerConnectionId': _peerConnectionId},
+    );
   }
 }

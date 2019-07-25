@@ -11,7 +11,7 @@ enum RTCVideoViewObjectFit {
 }
 
 class RTCVideoRenderer {
-  MethodChannel _channel = WebRTC.methodChannel();
+  MethodChannel _methodChannel = WebRTC.methodChannel();
   int _textureId;
   int _rotation = 0;
   double _width = 0.0, _height = 0.0;
@@ -24,9 +24,9 @@ class RTCVideoRenderer {
 
   dynamic onStateChanged;
 
-  initialize() async {
+  Future<void> initialize() async {
     final Map<dynamic, dynamic> response =
-        await _channel.invokeMethod('createVideoRenderer', {});
+        await _methodChannel.invokeMethod('createVideoRenderer', {});
     _textureId = response['textureId'];
     _eventSubscription = _eventChannelFor(_textureId)
         .receiveBroadcastStream()
@@ -67,15 +67,15 @@ class RTCVideoRenderer {
 
   set srcObject(MediaStream stream) {
     _srcObject = stream;
-    _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
+    _methodChannel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
       'textureId': _textureId,
       'streamId': stream != null ? stream.id : ''
     });
   }
 
-  Future<Null> dispose() async {
+  Future<void> dispose() async {
     await _eventSubscription?.cancel();
-    await _channel.invokeMethod(
+    await _methodChannel.invokeMethod(
       'videoRendererDispose',
       <String, dynamic>{'textureId': _textureId},
     );

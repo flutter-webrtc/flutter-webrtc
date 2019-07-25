@@ -1,6 +1,11 @@
+import 'dart:async';
+import 'package:flutter/services.dart';
+
 import 'rtc_rtp_parameters.dart';
 import 'rtc_rtp_sender.dart';
 import 'rtc_rtp_receiver.dart';
+
+import 'utils.dart';
 
 enum RTCRtpTransceiverDirection {
   RTCRtpTransceiverDirectionSendRecv,
@@ -57,7 +62,8 @@ class RTCRtpTransceiverInit {
 }
 
 class RTCRtpTransceiver {
-  String _transceiverId;
+  MethodChannel _methodChannel = WebRTC.methodChannel();
+  String _id;
   bool _stop;
   RTCRtpTransceiverDirection _direction;
   String _mid;
@@ -74,8 +80,8 @@ class RTCRtpTransceiver {
     return transceiver;
   }
 
-  RTCRtpTransceiver(this._transceiverId, this._direction, this._mid,
-      this._sender, this._receiver);
+  RTCRtpTransceiver(
+      this._id, this._direction, this._mid, this._sender, this._receiver);
 
   RTCRtpTransceiverDirection get currentDirection => _direction;
 
@@ -87,7 +93,38 @@ class RTCRtpTransceiver {
 
   bool get stoped => _stop;
 
-  String get transceiverId => _transceiverId;
+  String get transceiverId => _id;
 
-  void stop() {}
+  Future<void> setDirection(RTCRtpTransceiverDirection direction) async {
+    try {
+      await _methodChannel
+          .invokeMethod('rtpTransceiverSetDirection', <String, dynamic>{
+        'transceiverId': _id,
+        'direction': typeRtpTransceiverDirectionToString[direction]
+      });
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpTransceiver::setDirection: ${e.message}';
+    }
+  }
+
+  Future<RTCRtpTransceiverDirection> getCurrentDirection() async {
+    try {
+      final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
+          'rtpTransceiverGetCurrentDirection',
+          <String, dynamic>{'transceiverId': _id});
+      _direction = typeStringToRtpTransceiverDirection[response['result']];
+      return _direction;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpTransceiver::getCurrentDirection: ${e.message}';
+    }
+  }
+
+  Future<void> stop() async {
+    try {
+      await _methodChannel.invokeMethod(
+          'rtpTransceiverStop', <String, dynamic>{'transceiverId': _id});
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpTransceiver::stop: ${e.message}';
+    }
+  }
 }

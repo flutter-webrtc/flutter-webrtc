@@ -1,8 +1,13 @@
+import 'dart:async';
+import 'package:flutter/services.dart';
+
 import 'media_stream_track.dart';
 import 'rtc_dtmf_sender.dart';
 import 'rtc_rtp_parameters.dart';
+import 'utils.dart';
 
 class RTCRtpSender {
+  MethodChannel _methodChannel = WebRTC.methodChannel();
   String _id;
   MediaStreamTrack _track;
   RTCDTMFSender _dtmf;
@@ -10,11 +15,12 @@ class RTCRtpSender {
   bool _ownsTrack = false;
 
   factory RTCRtpSender.fromMap(Map<String, dynamic> map) {
-    MediaStreamTrack track = MediaStreamTrack.fromMap(map['trackInfo']);
-    RTCDTMFSender dtmfSender = RTCDTMFSender(map['dtmfSenderId']);
-    RTCRtpParameters rtpParameters = RTCRtpParameters.fromMap(map['rtpParameters']);
     return new RTCRtpSender(
-        map['senderId'], track, dtmfSender, rtpParameters, map['ownsTrack']);
+        map['senderId'],
+        MediaStreamTrack.fromMap(map['trackInfo']),
+        RTCDTMFSender(map['dtmfSenderId']),
+        RTCRtpParameters.fromMap(map['rtpParameters']),
+        map['ownsTrack']);
   }
 
   RTCRtpSender(
@@ -22,16 +28,38 @@ class RTCRtpSender {
 
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     _parameters = parameters;
-    return false;
+    try {
+      final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
+          'rtpSenderSetParameters', <String, dynamic>{
+        'rtpSenderId': _id,
+        'parameters': parameters.toMap()
+      });
+      return response['result'];
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpSender::setParameters: ${e.message}';
+    }
   }
 
-  RTCRtpParameters getParameters() {
-    return _parameters;
+  Future<void> replaceTrack(MediaStreamTrack track) async {
+    try {
+      await _methodChannel.invokeMethod('rtpSenderReplaceTrack',
+          <String, dynamic>{'rtpSenderId': _id, 'trackId': track.id});
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpSender::replaceTrack: ${e.message}';
+    }
   }
 
-  Future<void> replaceTrack(MediaStreamTrack track) async {}
-
-  Future<void> setTrack(MediaStreamTrack track, bool takeOwnership) async {}
+  Future<void> setTrack(MediaStreamTrack track, bool takeOwnership) async {
+    try {
+      await _methodChannel.invokeMethod('rtpSenderSetTrack', <String, dynamic>{
+        'rtpSenderId': _id,
+        'trackId': track.id,
+        'takeOwnership': takeOwnership,
+      });
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
+    }
+  }
 
   RTCRtpParameters get parameters => _parameters;
 
@@ -43,5 +71,13 @@ class RTCRtpSender {
 
   RTCDTMFSender get dtmfSender => _dtmf;
 
-  Future<void> dispose() async {}
+  Future<void> dispose() async {
+    try {
+      await _methodChannel.invokeMethod('rtpSenderDispose', <String, dynamic>{
+        'rtpSenderId': _id,
+      });
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
+    }
+  }
 }

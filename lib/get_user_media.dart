@@ -4,6 +4,9 @@ import 'media_stream.dart';
 import 'utils.dart';
 
 class navigator {
+  /// Get a MediaStream from video capture.
+  /// Use |mediaConstraints| to limit video size,
+  /// frame rate, and video devices
   static Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
     MethodChannel channel = WebRTC.methodChannel();
@@ -18,11 +21,9 @@ class navigator {
     }
   }
 
-/* Implement screen sharing,
- * use MediaProjection for Android and use ReplayKit for iOS
- * TODO: implement for native layer.
- * */
-static Future<MediaStream> getDisplayMedia(
+  /// Get a MediaStream from screen sharing.
+  /// Currently supports Android/iOS.
+  static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
     MethodChannel channel = WebRTC.methodChannel();
     try {
@@ -36,6 +37,8 @@ static Future<MediaStream> getDisplayMedia(
     }
   }
 
+  /// Enumerate the currently available video capture devices,
+  /// returns a list of video devices and the sourceId.
   static Future<List<dynamic>> getSources() async {
     MethodChannel channel = WebRTC.methodChannel();
     try {

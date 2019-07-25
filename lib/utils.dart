@@ -3,8 +3,9 @@ import 'rtc_peerconnection.dart';
 import 'rtc_data_channel.dart';
 
 class WebRTC {
-  static const MethodChannel _channel = const MethodChannel('FlutterWebRTC.Method');
-  static MethodChannel methodChannel() => _channel;
+  static const MethodChannel _methodChannel =
+      const MethodChannel('FlutterWebRTC.Method');
+  static MethodChannel methodChannel() => _methodChannel;
 }
 
 RTCIceConnectionState iceConnectionStateForString(String state) {
@@ -72,3 +73,18 @@ RTCDataChannelState rtcDataChannelStateForString(String state) {
   }
   return RTCDataChannelState.RTCDataChannelClosed;
 }
+
+Map<String, dynamic> defaultConstraints = {
+  "mandatory": {},
+  "optional": [
+    {"DtlsSrtpKeyAgreement": true},
+  ],
+};
+
+final Map<String, dynamic> defaultSdpConstraints = {
+  "mandatory": {
+    "OfferToReceiveAudio": true,
+    "OfferToReceiveVideo": true,
+  },
+  "optional": [],
+};

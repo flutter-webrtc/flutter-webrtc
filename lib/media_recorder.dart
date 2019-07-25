@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/media_stream_track.dart';
 import 'package:flutter_webrtc/utils.dart';
 
 class MediaRecorder {
+  MethodChannel _methodChannel = WebRTC.methodChannel();
   static final _random = Random();
   final _recorderId = _random.nextInt(0x7FFFFFFF);
 
@@ -16,7 +18,7 @@ class MediaRecorder {
     if (audioChannel == null && videoTrack == null)
       throw Exception("Neither audio nor video track were provided");
 
-    await WebRTC.methodChannel().invokeMethod('startRecordToFile', {
+    await _methodChannel.invokeMethod('startRecordToFile', {
       'path': path,
       'audioChannel': audioChannel?.index,
       'videoTrackId': videoTrack?.id,
@@ -24,7 +26,7 @@ class MediaRecorder {
     });
   }
 
-  Future<void> stop() async => await WebRTC.methodChannel()
+  Future<void> stop() async => await _methodChannel
       .invokeMethod('stopRecordToFile', {'recorderId': _recorderId});
 }
 

@@ -4,12 +4,14 @@ import 'package:flutter/services.dart';
 import 'utils.dart';
 
 class MediaStreamTrack {
-  MethodChannel _channel = WebRTC.methodChannel();
+  /// private:
+  MethodChannel _methodChannel = WebRTC.methodChannel();
   String _trackId;
   String _label;
   String _kind;
   bool _enabled;
 
+  /// public:
   factory MediaStreamTrack.fromMap(Map<String, dynamic> map) {
     return new MediaStreamTrack(
         map['trackId'], map['label'], map['kind'], map['enabled']);
@@ -17,54 +19,59 @@ class MediaStreamTrack {
 
   MediaStreamTrack(this._trackId, this._label, this._kind, this._enabled);
 
+  /// Mute/unmute the track.
   set enabled(bool enabled) {
-    _channel.invokeMethod('mediaStreamTrackSetEnable',
+    _methodChannel.invokeMethod('mediaStreamTrackSetEnable',
         <String, dynamic>{'trackId': _trackId, 'enabled': enabled});
     _enabled = enabled;
   }
 
   bool get enabled => _enabled;
+
   String get label => _label;
+
   String get kind => _kind;
+
   String get id => _trackId;
 
-  ///Future contains isFrontCamera
-  ///Throws error if switching camera failed
-  Future<bool> switchCamera() => _channel.invokeMethod(
-        'mediaStreamTrackSwitchCamera',
-        <String, dynamic>{'trackId': _trackId},
-      );
-
-  void setVolume(double volume) async {
-    await _channel.invokeMethod(
+  Future<void> setVolume(double volume) async {
+    await _methodChannel.invokeMethod(
       'setVolume',
       <String, dynamic>{'trackId': _trackId, 'volume': volume},
     );
   }
 
-  void setMicrophoneMute(bool mute) async {
-    print('MediaStreamTrack:setMicrophoneMute $mute');
-    await _channel.invokeMethod(
+  /// AudioTrack methods.
+  /// Mute/unmute the microphone.
+  Future<void> setMicrophoneMute(bool mute) async {
+    await _methodChannel.invokeMethod(
       'setMicrophoneMute',
       <String, dynamic>{'trackId': _trackId, 'mute': mute},
     );
   }
 
-  void enableSpeakerphone(bool enable) async {
-    print('MediaStreamTrack:enableSpeakerphone $enable');
-    await _channel.invokeMethod(
+  Future<void> enableSpeakerphone(bool enable) async {
+    await _methodChannel.invokeMethod(
       'enableSpeakerphone',
       <String, dynamic>{'trackId': _trackId, 'enable': enable},
     );
   }
 
-  captureFrame(String filePath) => _channel.invokeMethod(
+  /// VideoTrack methods
+  /// Future contains isFrontCamera
+  /// Throws error if switching camera failed.
+  Future<bool> switchCamera() => _methodChannel.invokeMethod(
+        'mediaStreamTrackSwitchCamera',
+        <String, dynamic>{'trackId': _trackId},
+      );
+
+  Future<void> captureFrame(String filePath) => _methodChannel.invokeMethod(
         'captureFrame',
         <String, dynamic>{'trackId': _trackId, 'path': filePath},
       );
 
   Future<void> dispose() async {
-    await _channel.invokeMethod(
+    await _methodChannel.invokeMethod(
       'trackDispose',
       <String, dynamic>{'trackId': _trackId},
     );
