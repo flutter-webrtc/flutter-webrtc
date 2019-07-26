@@ -234,6 +234,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String peerConnectionId = call.argument("peerConnectionId");
             int dataChannelId = call.argument("dataChannelId");
             dataChannelClose(peerConnectionId, dataChannelId);
+            result.success(null);
         } else if (call.method.equals("streamDispose")) {
             String streamId = call.argument("streamId");
             mediaStreamRelease(streamId);
