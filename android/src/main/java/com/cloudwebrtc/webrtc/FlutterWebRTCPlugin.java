@@ -434,14 +434,22 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                         break;
                     case Array:
                         ConstraintsArray urls = iceServerMap.getArray("urls");
+                        List<String> urlsList = new ArrayList<>();
+
                         for (int j = 0; j < urls.size(); j++) {
-                            String url = urls.getString(j);
-                            if (hasUsernameAndCredential) {
-                                iceServers.add(PeerConnection.IceServer.builder(iceServerMap.getString(url)).setUsername(iceServerMap.getString("username")).setPassword(iceServerMap.getString("credential")).createIceServer());
-                            } else {
-                                iceServers.add(PeerConnection.IceServer.builder(url).createIceServer());
-                            }
+                            urlsList.add(urls.getString(j));
                         }
+
+                        PeerConnection.IceServer.Builder builder = PeerConnection.IceServer.builder(urlsList);
+
+                        if (hasUsernameAndCredential) {
+                            builder
+                                    .setUsername(iceServerMap.getString("username"))
+                                    .setPassword(iceServerMap.getString("credential"));
+                        }
+
+                        iceServers.add(builder.createIceServer());
+
                         break;
                 }
             }
