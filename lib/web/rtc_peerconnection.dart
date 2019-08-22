@@ -220,7 +220,7 @@ class RTCPeerConnection {
     final map = dataChannelDict.toMap();
     if (dataChannelDict.binaryType == 'binary')
       map['binaryType'] = 'arraybuffer'; // Avoid Blob in data channel
-    final jsDc = _jsPc.createDataChannel(label, dataChannelDict.toMap());
+    final jsDc = _jsPc.createDataChannel(label, map);
     return Future.value(RTCDataChannel(jsDc));
   }
 
