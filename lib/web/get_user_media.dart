@@ -4,7 +4,6 @@ import 'dart:js' as JS;
 // ignore: uri_does_not_exist
 import 'dart:html' as HTML;
 import 'media_stream.dart';
-import 'utils.dart';
 
 class navigator {
 
@@ -26,7 +25,7 @@ class navigator {
     if (jsMediaDevices.hasProperty(getDisplayMedia)) {
       final JS.JsObject arg = JS.JsObject.jsify({"video":true});
       JS.JsObject getDisplayMediaPromise = jsMediaDevices.callMethod('getDisplayMedia',[arg]);
-      final HTML.MediaStream jsStream = await promiseToFuture(getDisplayMediaPromise);
+      final HTML.MediaStream jsStream = await HTML.promiseToFuture(getDisplayMediaPromise);
       return MediaStream(jsStream);
     } else {
       return await nav.getUserMedia(
