@@ -28,10 +28,11 @@ class navigator {
       final HTML.MediaStream jsStream = await HTML.promiseToFuture(getDisplayMediaPromise);
       return MediaStream(jsStream);
     } else {
-      return await nav.getUserMedia(
+      final HTML.MediaStream jsStream = await nav.getUserMedia(
         video: {"mediaSource":'screen'},
         audio: mediaConstraints['audio'] ?? false
       );
+      return MediaStream(jsStream);
     }
   }
 
