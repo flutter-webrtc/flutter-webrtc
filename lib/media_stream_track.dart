@@ -54,7 +54,8 @@ class MediaStreamTrack {
     );
   }
 
-  captureFrame(String filePath) =>
+  /// On Flutter Web returns Future<dynamic> which contains data url on success
+  captureFrame([String filePath]) =>
     _channel.invokeMethod(
       'captureFrame',
       <String, dynamic>{'trackId':_trackId, 'path': filePath},
