@@ -75,11 +75,9 @@ Future<T> promiseToFuture<T>(JS.JsObject promise) {
   final completer = Completer<T>();
   promise.callMethod('then', [
     JS.JsFunction.withThis((_, arg) {
-      print("Promise success with: $arg");
       completer.complete(arg);
     }),
     JS.JsFunction.withThis((_, err) {
-      print("Promise failed with: $err");
       completer.completeError(Error());
     }),
   ]);
