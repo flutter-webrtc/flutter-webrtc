@@ -44,10 +44,16 @@ class MediaStreamTrack {
   void enableSpeakerphone(bool enable) {
     // Should this throw error?
   }
-
-  Future<dynamic> captureFrame(String filePath, int rotation) async {
+  
+  Future<dynamic> captureFrame([String filePath]) async {
     final imageCapture = HTML.ImageCapture(jsTrack);
-    return imageCapture.grabFrame();
+    final HTML.ImageBitmap bitmap = await imageCapture.grabFrame();
+    final HTML.CanvasElement canvas = HTML.Element.canvas();
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    final HTML.ImageBitmapRenderingContext renderer = canvas.getContext('bitmaprenderer');
+    renderer.transferFromImageBitmap(bitmap);
+    return canvas.toDataUrl();
   }
 
   Future<void> dispose() {
