@@ -53,7 +53,9 @@ class MediaStreamTrack {
     canvas.height = bitmap.height;
     final HTML.ImageBitmapRenderingContext renderer = canvas.getContext('bitmaprenderer');
     renderer.transferFromImageBitmap(bitmap);
-    return canvas.toDataUrl();
+    final dataUrl = canvas.toDataUrl();
+    bitmap.close();
+    return dataUrl;
   }
 
   Future<void> dispose() {
