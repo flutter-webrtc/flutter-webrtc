@@ -1,7 +1,3 @@
-import 'dart:async';
-// ignore: uri_does_not_exist
-import 'dart:js' as JS;
-
 import 'rtc_peerconnection.dart';
 import 'rtc_data_channel.dart';
 
@@ -69,17 +65,4 @@ RTCDataChannelState rtcDataChannelStateForString(String state) {
       return RTCDataChannelState.RTCDataChannelClosed;
   }
   return RTCDataChannelState.RTCDataChannelClosed;
-}
-
-Future<T> promiseToFuture<T>(JS.JsObject promise) {
-  final completer = Completer<T>();
-  promise.callMethod('then', [
-    JS.JsFunction.withThis((_, arg) {
-      completer.complete(arg);
-    }),
-    JS.JsFunction.withThis((_, err) {
-      completer.completeError(Error());
-    }),
-  ]);
-  return completer.future;
 }
