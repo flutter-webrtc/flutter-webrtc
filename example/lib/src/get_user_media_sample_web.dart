@@ -1,5 +1,8 @@
+// ignore: uri_does_not_exist
+import 'dart:html' as HTML;
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
+import 'package:flutter_webrtc/web/get_user_media.dart' as gum;
 import 'dart:core';
 
 /*
@@ -18,11 +21,17 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   bool _inCalling = false;
   MediaRecorder _mediaRecorder;
   get _isRec => _mediaRecorder != null;
+  List<dynamic> cameras;
 
   @override
   initState() {
     super.initState();
     initRenderers();
+    gum.navigator.getSources().then((md) {
+      setState(() {
+        cameras = md.where((d) => d['kind'] == 'videoinput');
+      });
+    });
   }
 
   @override
@@ -48,8 +57,6 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
           "minHeight": '720',
           "minFrameRate": '30',
         },
-        "facingMode": "user",
-        "optional": [],
       }
     };
 
@@ -87,17 +94,26 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   _stopRecording() async {
-    await _mediaRecorder?.stop();
+    final objectUrl = await _mediaRecorder?.stop();
     setState(() {
       _mediaRecorder = null;
     });
+    print(objectUrl);
+    HTML.window.open(objectUrl, '_blank');
   }
 
   _captureFrame() async {
-    String filePath;
     final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
     final frame = await videoTrack.captureFrame();
-    //TODO? What should we do with frame?
+    showDialog(context: context, builder: (context) => AlertDialog(
+      content: Image.network(frame, height: 720, width: 1280),
+      actions: <Widget>[
+        FlatButton(
+          child: Text("OK"),
+          onPressed: Navigator.of(context, rootNavigator: true).pop,
+        )
+      ],
+    ));
   }
 
   @override
@@ -105,18 +121,16 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('GetUserMedia API Test'),
-        actions: _inCalling
-            ? <Widget>[
-          new IconButton(
+        actions: _inCalling ? <Widget>[
+          IconButton(
             icon: Icon(Icons.camera),
             onPressed: _captureFrame,
           ),
-          new IconButton(
+          IconButton(
             icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
             onPressed: _isRec ? _stopRecording : _startRecording,
           ),
-        ]
-            : null,
+        ] : null,
       ),
       body: new OrientationBuilder(
         builder: (context, orientation) {
