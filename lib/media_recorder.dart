@@ -4,6 +4,7 @@ import 'dart:math';
 import 'media_stream.dart';
 import 'media_stream_track.dart';
 import 'utils.dart';
+import 'enums.dart';
 
 class MediaRecorder {
   static final _random = Random();
@@ -40,5 +41,3 @@ class MediaRecorder {
       });
 
 }
-
-enum RecorderAudioChannel { INPUT, OUTPUT }

@@ -6,6 +6,7 @@ import 'dart:html' as HTML;
 
 import 'media_stream.dart';
 import 'media_stream_track.dart';
+import '../enums.dart';
 
 class MediaRecorder {
   String filePath;
@@ -61,5 +62,3 @@ class MediaRecorder {
   }
 
 }
-
-enum RecorderAudioChannel { INPUT, OUTPUT }
