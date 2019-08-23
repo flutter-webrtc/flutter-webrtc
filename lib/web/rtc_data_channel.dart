@@ -19,8 +19,8 @@ final _messageTypeToTypeString = <MessageType, String>{
 
 class RTCDataChannelInit {
   bool ordered = true;
-  int maxRetransmitTime = -1;
-  int maxRetransmits = -1;
+  int maxRetransmitTime;
+  int maxRetransmits;
   String protocol = 'sctp'; //sctp | quic
   String binaryType = 'text'; // "binary" || text
   bool negotiated = false;
@@ -28,11 +28,15 @@ class RTCDataChannelInit {
   Map<String, dynamic> toMap() {
     return {
       'ordered': ordered,
-      'maxRetransmitTime': maxRetransmitTime,
-      'maxRetransmits': maxRetransmits,
+      if (maxRetransmitTime > 0)
+        //https://www.chromestatus.com/features/5198350873788416
+        'maxPacketLifeTime': maxRetransmitTime,
+      if (maxRetransmits > 0)
+        'maxRetransmits': maxRetransmits,
       'protocol': protocol,
       'negotiated': negotiated,
-      'id': id
+      if (id != 0)
+        'id': id
     };
   }
 }
