@@ -13,7 +13,6 @@ class navigator {
         audio: mediaConstraints['audio'] ?? false,
         video: mediaConstraints['video'] ?? false
     );
-    print("Got jsStream ${jsStream}");
     return MediaStream(jsStream);
   }
 
@@ -36,10 +35,18 @@ class navigator {
     }
   }
 
-  //FIXME(rostopira): throws weird error
   static Future<List<dynamic>> getSources() async {
-    final List devices = await HTML.window.navigator.mediaDevices.enumerateDevices();
-    return devices.cast<dynamic>();
+    final devices = await HTML.window.navigator.mediaDevices.enumerateDevices();
+    final result = List<dynamic>();
+    for (final device in devices) {
+      result.add(<String, String>{
+        'deviceId': device.deviceId,
+        'groupId': device.groupId,
+        'kind': device.kind,
+        'label': device.label
+      });
+    }
+    return result;
   }
 
 }
