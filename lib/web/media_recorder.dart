@@ -28,7 +28,7 @@ class MediaRecorder {
   /// Only for Flutter Web
   startWeb(MediaStream stream, {
     Function(dynamic blob, bool isLastOne) onDataChunk,
-    String mimeType = 'video/mp4;codecs=h264'
+    String mimeType = 'video/webm'
   }) {
     _recorder = HTML.MediaRecorder(stream.jsStream, {'mimeType':mimeType});
     if (onDataChunk == null) {
@@ -40,7 +40,8 @@ class MediaRecorder {
           _chunks.add(blob);
         }
         if (_recorder.state == 'inactive') {
-          _completer?.complete(HTML.Blob(_chunks, mimeType));
+          final blob = HTML.Blob(_chunks, mimeType);
+          _completer?.complete(HTML.Url.createObjectUrlFromBlob(blob));
           _completer = null;
         }
       });
@@ -54,6 +55,7 @@ class MediaRecorder {
         onDataChunk(blob, _recorder.state == 'inactive');
       });
     }
+    _recorder.start();
   }
 
   Future<dynamic> stop() {
