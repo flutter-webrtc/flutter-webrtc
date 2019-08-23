@@ -19,3 +19,4 @@ export 'rtc_peerconnection_factory.dart'
 export 'rtc_stats_report.dart';
 export 'media_recorder.dart'
   if (dart.library.js) 'web/media_recorder.dart';
+export 'enums.dart';

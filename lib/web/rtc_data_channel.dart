@@ -5,9 +5,7 @@ import 'dart:html' as HTML;
 import 'dart:js' as JS;
 import 'dart:typed_data';
 
-enum MessageType {
-  text, binary
-}
+import '../enums.dart';
 
 final _typeStringToMessageType = <String, MessageType>{
   'text': MessageType.text,
@@ -73,13 +71,6 @@ class RTCDataChannelMessage {
   /// Use only on binary messages.
   /// See: [isBinary].
   Uint8List get binary => _data;
-}
-
-enum RTCDataChannelState {
-  RTCDataChannelConnecting,
-  RTCDataChannelOpen,
-  RTCDataChannelClosing,
-  RTCDataChannelClosed,
 }
 
 typedef void RTCDataChannelStateCallback(RTCDataChannelState state);
