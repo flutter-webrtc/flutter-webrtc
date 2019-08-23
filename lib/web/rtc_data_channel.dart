@@ -19,8 +19,8 @@ final _messageTypeToTypeString = <MessageType, String>{
 
 class RTCDataChannelInit {
   bool ordered = true;
-  int maxRetransmitTime;
-  int maxRetransmits;
+  int maxRetransmitTime = -1;
+  int maxRetransmits = -1;
   String protocol = 'sctp'; //sctp | quic
   String binaryType = 'text'; // "binary" || text
   bool negotiated = false;
