@@ -60,6 +60,9 @@ class RTCPeerConnection {
   List<MediaStream> _remoteStreams = new List();
   RTCDataChannel _dataChannel;
   Map<String, dynamic> _configuration;
+  RTCSignalingState _signalingState;
+  RTCIceGatheringState _iceGatheringState;
+  RTCIceConnectionState _iceConnectionState;
 
   // public: delegate
   SignalingStateCallback onSignalingState;
@@ -87,6 +90,12 @@ class RTCPeerConnection {
         .listen(eventListener, onError: errorListener);
   }
 
+  RTCSignalingState get signalingState => _signalingState;
+
+  RTCIceGatheringState get iceGatheringState => _iceGatheringState;
+
+  RTCIceConnectionState get iceConnectionState => _iceConnectionState;
+
   /*
    * PeerConnection event listener.
    */
@@ -95,19 +104,19 @@ class RTCPeerConnection {
 
     switch (map['event']) {
       case 'signalingState':
-        String state = map['state'];
+        _signalingState = signalingStateForString(map['state']);
         if (this.onSignalingState != null)
-          this.onSignalingState(signalingStateForString(state));
+          this.onSignalingState(_signalingState);
         break;
       case 'iceGatheringState':
-        String state = map['state'];
+        _iceGatheringState = iceGatheringStateforString(map['state']);
         if (this.onIceGatheringState != null)
-          this.onIceGatheringState(iceGatheringStateforString(state));
+          this.onIceGatheringState(_iceGatheringState);
         break;
       case 'iceConnectionState':
-        String state = map['state'];
+        _iceConnectionState = iceConnectionStateForString(map['state']);
         if (this.onIceConnectionState != null)
-          this.onIceConnectionState(iceConnectionStateForString(state));
+          this.onIceConnectionState(_iceConnectionState);
         break;
       case 'onCandidate':
         Map<dynamic, dynamic> cand = map['candidate'];
