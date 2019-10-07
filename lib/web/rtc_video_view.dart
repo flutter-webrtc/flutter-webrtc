@@ -1,14 +1,14 @@
 import 'dart:async';
 // ignore: uri_does_not_exist
 import 'dart:html' as HTML;
-// ignore: uri_does_not_exist
-import 'dart:js' as JS;
+import 'package:flutter/material.dart';
+import 'media_stream.dart';
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
-
-import 'media_stream.dart';
-import '../enums.dart';
+enum RTCVideoViewObjectFit {
+  RTCVideoViewObjectFitContain,
+  RTCVideoViewObjectFitCover,
+}
 
 typedef void VideoRotationChangeCallback(int textureId, int rotation);
 typedef void VideoSizeChangeCallback(
@@ -31,38 +31,16 @@ class RTCVideoRenderer {
   HtmlElementView htmlElementView;
   HTML.VideoElement _htmlVideoElement;
 
-  static var _isViewFactoryRegistered = false;
-  static final _videoViews = Map<int, HTML.VideoElement>();
-  static Function(HTML.VideoElement) _nextCallback;
+  static final _videoViews = List<HTML.VideoElement>();
 
   bool get isMuted => _htmlVideoElement?.muted ?? true;
   set isMuted(bool i) => _htmlVideoElement?.muted = i;
 
   static void fixVideoElements() =>
-    _videoViews.values.forEach((v) => v.play());
+    _videoViews.forEach((v) => v.play());
 
-  /// Currently contains hacky solution
-  /// Multiple videos won't work
-  /// Waiting for onPlatformViewCreated callback implementation
   initialize() async {
-    if (!_isViewFactoryRegistered) {
-      // ignore: implementation_imports
-      ui.platformViewRegistry.registerViewFactory('webrtc_video', (int viewId) {
-        print("Platform view creation");
-        final x = HTML.VideoElement();
-        x.autoplay = true;
-        x.muted = true;
-        if (_srcObject != null)
-          x.srcObject = _srcObject.jsStream;
-        _videoViews[viewId] = x;
-        if (_nextCallback != null)
-          _nextCallback(x);
-        return x;
-      });
-      _isViewFactoryRegistered = true;
-    }
-    _nextCallback = (v) => _htmlVideoElement = v;
-    htmlElementView = HtmlElementView(viewType: 'webrtc_video');
+    print("You don't have to call RTCVideoRenderer.initialize on Flutter Web");
   }
 
   int get rotation => 0;
@@ -96,16 +74,28 @@ class RTCVideoRenderer {
 
   set srcObject(MediaStream stream) {
     _srcObject = stream;
-    findHtmlView()?.srcObject = stream.jsStream;
+    if (htmlElementView != null) {
+      findHtmlView()?.srcObject = stream.jsStream;
+    }
+    ui.platformViewRegistry.registerViewFactory(stream.id, (int viewId) {
+      final x = HTML.VideoElement();
+      x.autoplay = true;
+      x.muted = true;
+      x.srcObject = stream.jsStream;
+      _htmlVideoElement = x;
+      _videoViews.add(x);
+      return x;
+    });
+    htmlElementView = HtmlElementView(viewType: stream.id);
+    if (this.onStateChanged != null)
+      this.onStateChanged();
   }
 
   void findAndApply(Size size) {
     final htmlView = findHtmlView();
     if (_srcObject != null && htmlView != null) {
-      if (htmlView.width == size.width.toInt() && htmlView.height == size.height.toInt()) {
-        print("Same size, return");
+      if (htmlView.width == size.width.toInt() && htmlView.height == size.height.toInt())
         return;
-      }
       htmlView.srcObject = _srcObject.jsStream;
       htmlView.width = size.width.toInt();
       htmlView.height = size.height.toInt();
@@ -200,7 +190,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
       child: new SizedBox(
         width: constraints.maxHeight * _aspectRatio,
         height: constraints.maxHeight,
-        child: _renderer.htmlElementView
+        child: _renderer.htmlElementView ?? Container()
       )
     );
   }
