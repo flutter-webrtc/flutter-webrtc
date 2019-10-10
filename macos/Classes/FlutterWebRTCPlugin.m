@@ -30,7 +30,7 @@
 - (instancetype)initWithChannel:(FlutterMethodChannel *)channel
                       registrar:(NSObject<FlutterPluginRegistrar>*)registrar
                       messenger:(NSObject<FlutterBinaryMessenger>*)messenger
-                   withTextures:(NSObject<FLETextureRegistrar> *)textures{
+                   withTextures:(NSObject<FlutterTextureRegistry> *)textures{
 
     self = [super init];
     

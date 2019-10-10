@@ -3,7 +3,7 @@
 
 #import <AVFoundation/AVFoundation.h>
 #import <CoreGraphics/CGImage.h>
-
+#import <OpenGL/OpenGL.h>
 #import <objc/runtime.h>
 #include "libyuv.h"
 
@@ -20,7 +20,7 @@
 @synthesize registry = _registry;
 @synthesize eventSink = _eventSink;
 
-- (instancetype)initWithTextureRegistry:(id<FLETextureRegistrar>)registry
+- (instancetype)initWithTextureRegistry:(id<FlutterTextureRegistry>)registry
                    messenger:(NSObject<FlutterBinaryMessenger>*)messenger{
     self = [super init];
     if (self){
@@ -49,7 +49,7 @@
 }
 
 - (CVPixelBufferRef)copyPixelBuffer:(size_t)width height:(size_t)height {
-    if(_pixelBufferRef != nil){
+    if(_pixelBufferRef != nil) {
         RTCCVPixelBuffer *rtcPixelbuffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:_pixelBufferRef];
         CVPixelBufferRef outbuffer;
         CVPixelBufferCreate(kCFAllocatorDefault,
@@ -268,7 +268,7 @@
 
 @implementation FlutterWebRTCPlugin (FlutterVideoRendererManager)
 
-- (FlutterRTCVideoRenderer *)createWithTextureRegistry:(id<FLETextureRegistrar>)registry
+- (FlutterRTCVideoRenderer *)createWithTextureRegistry:(id<FlutterTextureRegistry>)registry
                        messenger:(NSObject<FlutterBinaryMessenger>*)messenger{
     return [[FlutterRTCVideoRenderer alloc] initWithTextureRegistry:registry messenger:messenger];
 }
