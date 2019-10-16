@@ -77,12 +77,15 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     }
 
     void close() {
-        eventChannel.setStreamHandler(null);
         peerConnection.close();
-        peerConnection.dispose();
         remoteStreams.clear();
         remoteTracks.clear();
         dataChannels.clear();
+    }
+    void  dispose(){
+        this.close();
+        peerConnection.dispose();
+        eventChannel.setStreamHandler(null);
     }
 
     void createDataChannel(String label, ConstraintsMap config, Result result) {
