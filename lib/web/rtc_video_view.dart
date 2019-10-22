@@ -77,6 +77,7 @@ class RTCVideoRenderer {
     if (htmlElementView != null) {
       findHtmlView()?.srcObject = stream.jsStream;
     }
+    // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(stream.id, (int viewId) {
       final x = HTML.VideoElement();
       x.autoplay = true;
