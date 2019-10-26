@@ -23,6 +23,12 @@ class MediaStreamTrack {
   String get kind => _kind;
   String get id => _trackId;
 
+  Future<void> setTorch(bool torch) =>
+    _channel.invokeMethod(
+      'mediaStreamTrackSetTorch',
+      <String, dynamic>{'trackId': _trackId, 'torch': torch},
+    );
+
   ///Future contains isFrontCamera
   ///Throws error if switching camera failed
   Future<bool> switchCamera() =>
