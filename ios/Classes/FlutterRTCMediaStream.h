@@ -11,6 +11,10 @@
 
 -(void)getSources:(FlutterResult)result;
 
+-(void)mediaStreamTrackSetTorch:(RTCMediaStreamTrack *)track
+                          torch:(BOOL) torch
+                         result:(FlutterResult) result;
+
 -(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track
                              result:(FlutterResult) result;
 
