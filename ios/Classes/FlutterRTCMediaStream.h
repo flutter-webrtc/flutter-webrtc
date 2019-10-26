@@ -11,6 +11,9 @@
 
 -(void)getSources:(FlutterResult)result;
 
+-(void)mediaStreamTrackHasTorch:(RTCMediaStreamTrack *)track
+                         result:(FlutterResult) result;
+
 -(void)mediaStreamTrackSetTorch:(RTCMediaStreamTrack *)track
                           torch:(BOOL) torch
                          result:(FlutterResult) result;

@@ -474,6 +474,23 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
   }
 }
 
+-(void)mediaStreamTrackHasTorch:(RTCMediaStreamTrack *)track result:(FlutterResult) result
+{
+    if (!self.videoCapturer) {
+        result(@NO);
+        return;
+    }
+    if (self.videoCapturer.captureSession.inputs.count == 0) {
+        result(@NO);
+        return;
+    }
+
+    AVCaptureDeviceInput *deviceInput = [self.videoCapturer.captureSession.inputs objectAtIndex:0];
+    AVCaptureDevice *device = deviceInput.device;
+
+    result(@([device isTorchModeSupported:AVCaptureTorchModeOn]));
+}
+
 -(void)mediaStreamTrackSetTorch:(RTCMediaStreamTrack *)track torch:(BOOL)torch result:(FlutterResult)result
 {
     if (!self.videoCapturer) {
