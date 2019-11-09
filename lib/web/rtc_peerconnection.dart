@@ -181,8 +181,12 @@ class RTCPeerConnection {
 
   Future<List<StatsReport>> getStats(MediaStreamTrack track) async {
     final stats = await _jsPc.getStats();
-    print(stats);
-    return [];
+    List<StatsReport> report = [];
+    stats.forEach((key, value) {
+      report.add(
+          StatsReport(value['id'], value['type'], value['timestamp'], value));
+    });
+    return report;
   }
 
   List<MediaStream> getLocalStreams() =>
