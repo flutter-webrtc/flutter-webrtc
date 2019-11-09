@@ -60,7 +60,8 @@ class RTCPeerConnection {
         onAddStream(mediaStream);
       }
       jsStream.onAddTrack.listen((mediaStreamTrackEvent) {
-        final jsTrack = (mediaStreamTrackEvent as HTML.MediaStreamTrackEvent).track;
+        final jsTrack =
+            (mediaStreamTrackEvent as HTML.MediaStreamTrackEvent).track;
         final MediaStreamTrack track = MediaStreamTrack(jsTrack);
         mediaStream.addTrack(track, addToNaitve: false);
         if (onAddTrack != null) {
@@ -68,7 +69,8 @@ class RTCPeerConnection {
         }
       });
       jsStream.onRemoveTrack.listen((mediaStreamTrackEvent) {
-        final jsTrack = (mediaStreamTrackEvent as HTML.MediaStreamTrackEvent).track;
+        final jsTrack =
+            (mediaStreamTrackEvent as HTML.MediaStreamTrackEvent).track;
         final MediaStreamTrack track = MediaStreamTrack(jsTrack);
         mediaStream.removeTrack(track, removeFromNaitve: false);
         if (onRemoveTrack != null) {
@@ -93,7 +95,8 @@ class RTCPeerConnection {
         onIceConnectionState(state);
       }
     });
-    JS.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] = JS.JsFunction.withThis((_) {
+    JS.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] =
+        JS.JsFunction.withThis((_) {
       if (onIceGatheringState != null) {
         final state = iceGatheringStateforString(_jsPc.iceGatheringState);
         onIceGatheringState(state);
@@ -112,7 +115,8 @@ class RTCPeerConnection {
         onSignalingState(state);
       }
     });
-    JS.JsObject.fromBrowserObject(_jsPc)['ontrack'] = JS.JsFunction.withThis((_, trackEvent) {
+    JS.JsObject.fromBrowserObject(_jsPc)['ontrack'] =
+        JS.JsFunction.withThis((_, trackEvent) {
       // trackEvent is JsObject conforming to RTCTrackEvent
       // https://developer.mozilla.org/en-US/docs/Web/API/RTCTrackEvent
       // TODO(rostopira)
@@ -126,19 +130,21 @@ class RTCPeerConnection {
   }
 
   Map<String, dynamic> get getConfiguration =>
-    throw "Not implemented"; // TODO(rostopira)
+      throw "Not implemented"; // TODO(rostopira)
 
   Future<void> setConfiguration(Map<String, dynamic> configuration) {
     _jsPc.setConfiguration(configuration);
     return Future.value();
   }
 
-  Future<RTCSessionDescription> createOffer(Map<String, dynamic> constraints) async {
+  Future<RTCSessionDescription> createOffer(
+      Map<String, dynamic> constraints) async {
     final offer = await _jsPc.createOffer(constraints);
     return RTCSessionDescription.fromJs(offer);
   }
 
-  Future<RTCSessionDescription> createAnswer(Map<String, dynamic> constraints) async {
+  Future<RTCSessionDescription> createAnswer(
+      Map<String, dynamic> constraints) async {
     final answer = await _jsPc.createAnswer(constraints);
     return RTCSessionDescription.fromJs(answer);
   }
@@ -167,7 +173,8 @@ class RTCPeerConnection {
   }
 
   Future<RTCSessionDescription> getRemoteDescription() async {
-    final cld = JS.JsObject.fromBrowserObject(_jsPc)['currentRemoteDescription'];
+    final cld =
+        JS.JsObject.fromBrowserObject(_jsPc)['currentRemoteDescription'];
     return RTCSessionDescription.fromJsObj(cld);
   }
 
@@ -190,12 +197,15 @@ class RTCPeerConnection {
   }
 
   List<MediaStream> getLocalStreams() =>
-    _jsPc.getLocalStreams().map((jsStream) => MediaStream(jsStream)).toList();
+      _jsPc.getLocalStreams().map((jsStream) => MediaStream(jsStream)).toList();
 
-  List<MediaStream> getRemoteStreams() =>
-    _jsPc.getRemoteStreams().map((jsStream) => MediaStream(jsStream)).toList();
+  List<MediaStream> getRemoteStreams() => _jsPc
+      .getRemoteStreams()
+      .map((jsStream) => MediaStream(jsStream))
+      .toList();
 
-  Future<RTCDataChannel> createDataChannel(String label, RTCDataChannelInit dataChannelDict) {
+  Future<RTCDataChannel> createDataChannel(
+      String label, RTCDataChannelInit dataChannelDict) {
     final map = dataChannelDict.toMap();
     if (dataChannelDict.binaryType == 'binary')
       map['binaryType'] = 'arraybuffer'; // Avoid Blob in data channel
@@ -207,5 +217,4 @@ class RTCPeerConnection {
     _jsPc.close();
     return Future.value();
   }
-
 }

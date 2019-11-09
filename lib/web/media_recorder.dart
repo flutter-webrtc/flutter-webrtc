@@ -16,7 +16,8 @@ class MediaRecorder {
 
   /// For Android use audioChannel param
   /// For iOS use audioTrack
-  Future<void> start(String path, {
+  Future<void> start(
+    String path, {
     MediaStreamTrack videoTrack,
     MediaStreamTrack audioTrack,
     RecorderAudioChannel audioChannel,
@@ -26,11 +27,10 @@ class MediaRecorder {
   }
 
   /// Only for Flutter Web
-  startWeb(MediaStream stream, {
-    Function(dynamic blob, bool isLastOne) onDataChunk,
-    String mimeType = 'video/webm'
-  }) {
-    _recorder = HTML.MediaRecorder(stream.jsStream, {'mimeType':mimeType});
+  startWeb(MediaStream stream,
+      {Function(dynamic blob, bool isLastOne) onDataChunk,
+      String mimeType = 'video/webm'}) {
+    _recorder = HTML.MediaRecorder(stream.jsStream, {'mimeType': mimeType});
     if (onDataChunk == null) {
       _chunks = List();
       _completer = Completer();
@@ -62,5 +62,4 @@ class MediaRecorder {
     _recorder?.stop();
     return _completer?.future ?? Future.value();
   }
-
 }

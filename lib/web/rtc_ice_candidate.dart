@@ -7,11 +7,9 @@ class RTCIceCandidate {
   int sdpMlineIndex;
 
   RTCIceCandidate(this.candidate, this.sdpMid, this.sdpMlineIndex);
-  RTCIceCandidate.fromJs(HTML.RtcIceCandidate jsIceCandidate): this(
-    jsIceCandidate.candidate,
-    jsIceCandidate.sdpMid,
-    jsIceCandidate.sdpMLineIndex
-  );
+  RTCIceCandidate.fromJs(HTML.RtcIceCandidate jsIceCandidate)
+      : this(jsIceCandidate.candidate, jsIceCandidate.sdpMid,
+            jsIceCandidate.sdpMLineIndex);
 
   dynamic toMap() {
     return {
@@ -21,7 +19,5 @@ class RTCIceCandidate {
     };
   }
 
-  HTML.RtcIceCandidate toJs() =>
-    HTML.RtcIceCandidate(toMap());
-
+  HTML.RtcIceCandidate toJs() => HTML.RtcIceCandidate(toMap());
 }
