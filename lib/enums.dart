@@ -1,4 +1,3 @@
-
 enum RecorderAudioChannel { INPUT, OUTPUT }
 
 /// RTCDataChannelMessage type

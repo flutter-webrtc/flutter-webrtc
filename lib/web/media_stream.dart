@@ -19,7 +19,8 @@ class MediaStream {
     return Future.value();
   }
 
-  Future<void> removeTrack(MediaStreamTrack track, {bool removeFromNaitve = true}) async {
+  Future<void> removeTrack(MediaStreamTrack track,
+      {bool removeFromNaitve = true}) async {
     if (removeFromNaitve) {
       jsStream.removeTrack(track.jsTrack);
     }
@@ -39,5 +40,4 @@ class MediaStream {
     jsStream.getAudioTracks().forEach((track) => track.stop());
     jsStream.getVideoTracks().forEach((track) => track.stop());
   }
-
 }

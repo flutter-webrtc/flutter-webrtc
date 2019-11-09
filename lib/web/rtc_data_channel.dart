@@ -31,12 +31,10 @@ class RTCDataChannelInit {
       if (maxRetransmitTime > 0)
         //https://www.chromestatus.com/features/5198350873788416
         'maxPacketLifeTime': maxRetransmitTime,
-      if (maxRetransmits > 0)
-        'maxRetransmits': maxRetransmits,
+      if (maxRetransmits > 0) 'maxRetransmits': maxRetransmits,
       'protocol': protocol,
       'negotiated': negotiated,
-      if (id != 0)
-        'id': id
+      if (id != 0) 'id': id
     };
   }
 }
@@ -89,8 +87,10 @@ class RTCDataChannel {
   /// Get current state.
   RTCDataChannelState get state => _state;
 
-  final _stateChangeController = StreamController<RTCDataChannelState>.broadcast(sync: true);
-  final _messageController = StreamController<RTCDataChannelMessage>.broadcast(sync: true);
+  final _stateChangeController =
+      StreamController<RTCDataChannelState>.broadcast(sync: true);
+  final _messageController =
+      StreamController<RTCDataChannelMessage>.broadcast(sync: true);
 
   /// Stream of state change events. Emits the new state on change.
   /// Closes when the [RTCDataChannel] is closed.
@@ -127,17 +127,18 @@ class RTCDataChannel {
   }
 
   Future<RTCDataChannelMessage> _parse(dynamic data) async {
-    if (data is String)
-      return RTCDataChannelMessage(data);
+    if (data is String) return RTCDataChannelMessage(data);
     dynamic arrayBuffer;
     if (data is HTML.Blob) {
       // This should never happen actually
-      final promise = JS.JsObject.fromBrowserObject(data).callMethod('arrayBuffer');
+      final promise =
+          JS.JsObject.fromBrowserObject(data).callMethod('arrayBuffer');
       arrayBuffer = await HTML.promiseToFuture(promise);
     } else {
       arrayBuffer = data;
     }
-    print("Object got from DataChannel ${arrayBuffer} with type ${arrayBuffer.runtimeType}");
+    print(
+        "Object got from DataChannel ${arrayBuffer} with type ${arrayBuffer.runtimeType}");
     //TODO: convert ArrayBuffer to Uint8Array
     //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
     throw UnimplementedError();
@@ -158,5 +159,4 @@ class RTCDataChannel {
     _jsDc.close();
     return Future.value();
   }
-
 }

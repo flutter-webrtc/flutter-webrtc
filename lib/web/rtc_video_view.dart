@@ -2,18 +2,15 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'dart:html' as HTML;
 import 'package:flutter/material.dart';
-
 // ignore: uri_does_not_exist
 import 'media_stream.dart';
 import '../enums.dart';
-
 
 typedef void VideoRotationChangeCallback(int textureId, int rotation);
 typedef void VideoSizeChangeCallback(
     int textureId, double width, double height);
 
 class RTCVideoRenderer {
-
   double _width = 0.0, _height = 0.0;
   bool _mirror = false;
   MediaStream _srcObject;
@@ -34,8 +31,7 @@ class RTCVideoRenderer {
   bool get isMuted => _htmlVideoElement?.muted ?? true;
   set isMuted(bool i) => _htmlVideoElement?.muted = i;
 
-  static void fixVideoElements() =>
-    _videoViews.forEach((v) => v.play());
+  static void fixVideoElements() => _videoViews.forEach((v) => v.play());
 
   initialize() async {
     print("You don't have to call RTCVideoRenderer.initialize on Flutter Web");
@@ -50,7 +46,7 @@ class RTCVideoRenderer {
   int get textureId => 0;
 
   double get aspectRatio =>
-    (_width == 0 || _height == 0) ? (9/16) : _width / _height;
+      (_width == 0 || _height == 0) ? (9 / 16) : _width / _height;
 
   bool get mirror => _mirror;
 
@@ -86,20 +82,22 @@ class RTCVideoRenderer {
       return x;
     });
     htmlElementView = HtmlElementView(viewType: stream.id);
-    if (this.onStateChanged != null)
-      this.onStateChanged();
+    if (this.onStateChanged != null) this.onStateChanged();
   }
 
   void findAndApply(Size size) {
     final htmlView = findHtmlView();
     if (_srcObject != null && htmlView != null) {
-      if (htmlView.width == size.width.toInt() && htmlView.height == size.height.toInt())
-        return;
+      if (htmlView.width == size.width.toInt() &&
+          htmlView.height == size.height.toInt()) return;
       htmlView.srcObject = _srcObject.jsStream;
       htmlView.width = size.width.toInt();
       htmlView.height = size.height.toInt();
       htmlView.onLoadedMetadata.listen((_) {
-        if (htmlView.videoWidth != 0 && htmlView.videoHeight != 0 && (_width != htmlView.videoWidth || _height != htmlView.videoHeight)) {
+        if (htmlView.videoWidth != 0 &&
+            htmlView.videoHeight != 0 &&
+            (_width != htmlView.videoWidth ||
+                _height != htmlView.videoHeight)) {
           _width = htmlView.videoWidth.toDouble();
           _height = htmlView.videoHeight.toDouble();
           if (onVideoSizeChanged != null)
@@ -111,35 +109,36 @@ class RTCVideoRenderer {
         }
       });
       htmlView.onResize.listen((_) {
-        if (htmlView.videoWidth != 0 && htmlView.videoHeight != 0 && (_width != htmlView.videoWidth || _height != htmlView.videoHeight)) {
+        if (htmlView.videoWidth != 0 &&
+            htmlView.videoHeight != 0 &&
+            (_width != htmlView.videoWidth ||
+                _height != htmlView.videoHeight)) {
           _width = htmlView.videoWidth.toDouble();
           _height = htmlView.videoHeight.toDouble();
           if (onVideoSizeChanged != null)
             onVideoSizeChanged(0, _width, _height);
         }
       });
-      if (htmlView.videoWidth != 0 && htmlView.videoHeight != 0 && (_width != htmlView.videoWidth || _height != htmlView.videoHeight)) {
+      if (htmlView.videoWidth != 0 &&
+          htmlView.videoHeight != 0 &&
+          (_width != htmlView.videoWidth || _height != htmlView.videoHeight)) {
         _width = htmlView.videoWidth.toDouble();
         _height = htmlView.videoHeight.toDouble();
-        if (onVideoSizeChanged != null)
-          onVideoSizeChanged(0, _width, _height);
+        if (onVideoSizeChanged != null) onVideoSizeChanged(0, _width, _height);
       }
     }
   }
 
   HTML.VideoElement findHtmlView() {
-    if (_htmlVideoElement != null)
-      return _htmlVideoElement;
+    if (_htmlVideoElement != null) return _htmlVideoElement;
     final fltPv = HTML.document.getElementsByTagName('flt-platform-view');
-    if (fltPv.isEmpty)
-      return null;
+    if (fltPv.isEmpty) return null;
     return (fltPv.first as HTML.Element).shadowRoot.lastChild;
   }
 
   Future<Null> dispose() async {
     //TODO?
   }
-
 }
 
 class RTCVideoView extends StatefulWidget {
@@ -184,26 +183,21 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   Widget _buildVideoView(BoxConstraints constraints) {
     _renderer.findAndApply(constraints.biggest);
     return Container(
-      width: constraints.maxWidth,
-      height: constraints.maxHeight,
-      child: new SizedBox(
-        width: constraints.maxHeight * _aspectRatio,
+        width: constraints.maxWidth,
         height: constraints.maxHeight,
-        child: _renderer.htmlElementView ?? Container()
-      )
-    );
+        child: new SizedBox(
+            width: constraints.maxHeight * _aspectRatio,
+            height: constraints.maxHeight,
+            child: _renderer.htmlElementView ?? Container()));
   }
 
   @override
   Widget build(BuildContext context) {
     bool renderVideo = _renderer._srcObject != null;
     return new LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        return new Center(
-          child: renderVideo ? _buildVideoView(constraints) : new Container()
-        );
-      }
-    );
+        builder: (BuildContext context, BoxConstraints constraints) {
+      return new Center(
+          child: renderVideo ? _buildVideoView(constraints) : new Container());
+    });
   }
-
 }
