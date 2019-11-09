@@ -1,14 +1,12 @@
 import 'dart:async';
-// ignore: uri_does_not_exist
+import 'dart:ui' as ui;
 import 'dart:html' as HTML;
 import 'package:flutter/material.dart';
-import 'media_stream.dart';
-import 'dart:ui' as ui;
 
-enum RTCVideoViewObjectFit {
-  RTCVideoViewObjectFitContain,
-  RTCVideoViewObjectFitCover,
-}
+// ignore: uri_does_not_exist
+import 'media_stream.dart';
+import '../enums.dart';
+
 
 typedef void VideoRotationChangeCallback(int textureId, int rotation);
 typedef void VideoSizeChangeCallback(
