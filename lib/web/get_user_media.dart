@@ -9,6 +9,11 @@ class navigator {
 
   static Future<MediaStream> getUserMedia(Map<String, dynamic> mediaConstraints) async {
     final nav = HTML.window.navigator;
+    if(mediaConstraints['video'] is Map){
+      if(mediaConstraints['video']['facingMode'] != null) {
+        mediaConstraints['video'].remove('facingMode');
+      }
+    }
     final jsStream = await nav.getUserMedia(
         audio: mediaConstraints['audio'] ?? false,
         video: mediaConstraints['video'] ?? false
