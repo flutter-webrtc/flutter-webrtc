@@ -13,12 +13,14 @@ A new flutter plugin project.
   s.author           = { 'CloudWebRTC' => 'duanweiwei1982@gmail.com' }
   s.source           = { :path => '.' }
   s.source_files     = ['Classes/**/*']
-  s.dependency 'FlutterMacOS'
+
   s.vendored_frameworks = 'WebRTC.framework'
   s.private_header_files = 'third_party/include/**/*'
   $dir = File.dirname(__FILE__) + "/third_party/include"
   s.pod_target_xcconfig = { "HEADER_SEARCH_PATHS" => $dir}
   s.vendored_libraries = 'third_party/lib/*.a'
+
+  s.dependency 'FlutterMacOS'
   s.platform = :osx
-  s.osx.deployment_target = '10.12'
+  s.osx.deployment_target = '10.11'
 end

@@ -14,9 +14,14 @@ dependencies:
 # The following section is specific to Flutter.
 flutter:
   plugin:
-    androidPackage: com.cloudwebrtc.webrtc
-    macosPrefix: FLE
-    pluginClass: FlutterWebRTCPlugin
+    platforms:
+      android:
+        package: com.cloudwebrtc.webrtc
+        pluginClass: FlutterWebRTCPlugin
+      ios:
+        pluginClass: FlutterWebRTCPlugin
+      macos:
+        pluginClass: FlutterWebRTCPlugin
 
 environment:
   sdk: ">=2.0.0-dev.35.0 <3.0.0"
