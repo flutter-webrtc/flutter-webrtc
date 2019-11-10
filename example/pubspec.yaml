@@ -18,6 +18,10 @@ dev_dependencies:
 
   # Required for MediaRecorder example
   path_provider:
+  path_provider_fde:
+    git:
+      url: https://github.com/google/flutter-desktop-embedding.git
+      path: plugins/flutter_plugins/path_provider_fde
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
