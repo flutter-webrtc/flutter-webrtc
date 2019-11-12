@@ -24,4 +24,4 @@ platforms:
     pluginClass: FlutterWebRTCPlugin
   web:
     pluginClass: FlutterWebRTCPlugin
-    fileName: lib/web_plugin.dart
+    fileName: lib/web/web_plugin.dart
