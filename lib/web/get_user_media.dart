@@ -23,7 +23,6 @@ class navigator {
   //TODO: test this
   static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
-    final nav = HTML.window.navigator;
     final jsMediaDevices =
         JS.JsObject.fromBrowserObject(JS.context['navigator']['mediaDevices']);
     if (jsMediaDevices.hasProperty("getDisplayMedia")) {
@@ -43,9 +42,10 @@ class navigator {
       ]);
       return completer.future;
     } else {
-      final HTML.MediaStream jsStream = await nav.getUserMedia(
-          video: {"mediaSource": 'screen'},
-          audio: mediaConstraints['audio'] ?? false);
+      final HTML.MediaStream jsStream = await HTML.window.navigator
+          .getUserMedia(
+              video: {"mediaSource": 'screen'},
+              audio: mediaConstraints['audio'] ?? false);
       return MediaStream(jsStream);
     }
   }
