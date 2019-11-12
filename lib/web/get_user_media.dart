@@ -24,15 +24,24 @@ class navigator {
   static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
     final nav = HTML.window.navigator;
-    final mediaDevices = nav.mediaDevices;
-    final jsMediaDevices = JS.JsObject.fromBrowserObject(mediaDevices);
-    if (jsMediaDevices.hasProperty(getDisplayMedia)) {
+    final jsMediaDevices =
+        JS.JsObject.fromBrowserObject(JS.context['navigator']['mediaDevices']);
+    if (jsMediaDevices.hasProperty("getDisplayMedia")) {
       final JS.JsObject arg = JS.JsObject.jsify({"video": true});
-      JS.JsObject getDisplayMediaPromise =
+      JS.JsObject jsPromise =
           jsMediaDevices.callMethod('getDisplayMedia', [arg]);
-      final HTML.MediaStream jsStream =
-          await HTML.promiseToFuture(getDisplayMediaPromise);
-      return MediaStream(jsStream);
+      var completer = new Completer<MediaStream>();
+      jsPromise.callMethod('then', [
+        (r) {
+          completer.complete(MediaStream(r as HTML.MediaStream));
+        }
+      ]);
+      jsPromise.callMethod('catch', [
+        (e) {
+          completer.completeError(e);
+        }
+      ]);
+      return completer.future;
     } else {
       final HTML.MediaStream jsStream = await nav.getUserMedia(
           video: {"mediaSource": 'screen'},
