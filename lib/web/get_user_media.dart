@@ -1,6 +1,7 @@
 import 'dart:async';
 // ignore: uri_does_not_exist
 import 'dart:js' as JS;
+import 'dart:js_util' as JSUtils;
 // ignore: uri_does_not_exist
 import 'dart:html' as HTML;
 import 'media_stream.dart';
@@ -20,27 +21,15 @@ class navigator {
     return MediaStream(jsStream);
   }
 
-  //TODO: test this
   static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
-    final jsMediaDevices =
-        JS.JsObject.fromBrowserObject(JS.context['navigator']['mediaDevices']);
-    if (jsMediaDevices.hasProperty("getDisplayMedia")) {
+    final mediaDevices = HTML.window.navigator.mediaDevices;
+    if (JSUtils.hasProperty(mediaDevices, "getDisplayMedia")) {
       final JS.JsObject arg = JS.JsObject.jsify({"video": true});
-      JS.JsObject jsPromise =
-          jsMediaDevices.callMethod('getDisplayMedia', [arg]);
-      var completer = new Completer<MediaStream>();
-      jsPromise.callMethod('then', [
-        (r) {
-          completer.complete(MediaStream(r as HTML.MediaStream));
-        }
-      ]);
-      jsPromise.callMethod('catch', [
-        (e) {
-          completer.completeError(e);
-        }
-      ]);
-      return completer.future;
+      final HTML.MediaStream jsStream =
+          await JSUtils.promiseToFuture<HTML.MediaStream>(
+              JSUtils.callMethod(mediaDevices, 'getDisplayMedia', [arg]));
+      return MediaStream(jsStream);
     } else {
       final HTML.MediaStream jsStream = await HTML.window.navigator
           .getUserMedia(
