@@ -178,11 +178,15 @@ class RTCPeerConnection {
   }
 
   Future<void> addCandidate(RTCIceCandidate candidate) async {
-    await _jsPc.addIceCandidate(candidate.toJs(), () {
+    Completer completer = new Completer();
+    _jsPc.addIceCandidate(candidate.toJs(), () {
       print("Ice candidate added");
-    }, (domException) {
+      completer.complete();
+    }, (HTML.DomException domException) {
       print(domException);
+      completer.completeError(domException);
     });
+    return completer.future;
   }
 
   Future<List<StatsReport>> getStats([MediaStreamTrack track]) async {
