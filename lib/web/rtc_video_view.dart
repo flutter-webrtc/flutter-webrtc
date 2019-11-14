@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'dart:html' as HTML;
 import 'package:flutter/material.dart';
-// ignore: uri_does_not_exist
+
 import 'media_stream.dart';
 import '../enums.dart';
 
@@ -68,8 +68,14 @@ class RTCVideoRenderer {
 
   set srcObject(MediaStream stream) {
     _srcObject = stream;
+
+    if(_srcObject == null){
+      findHtmlView()?.srcObject  = null;
+      return;
+    }
+
     if (htmlElementView != null) {
-      findHtmlView()?.srcObject = stream.jsStream;
+      findHtmlView()?.srcObject = stream?.jsStream;
     }
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(stream.id, (int viewId) {
