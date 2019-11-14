@@ -29,7 +29,7 @@ class navigator {
     try {
       final mediaDevices = HTML.window.navigator.mediaDevices;
       if (JSUtils.hasProperty(mediaDevices, "getDisplayMedia")) {
-        final JS.JsObject arg = JS.JsObject.jsify({"video": true});
+        final JS.JsObject arg = JS.JsObject.jsify(mediaConstraints);
 
         final HTML.MediaStream jsStream =
             await JSUtils.promiseToFuture<HTML.MediaStream>(
