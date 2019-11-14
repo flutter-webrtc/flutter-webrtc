@@ -9,33 +9,42 @@ import 'media_stream.dart';
 class navigator {
   static Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
-    final nav = HTML.window.navigator;
-    if (mediaConstraints['video'] is Map) {
-      if (mediaConstraints['video']['facingMode'] != null) {
-        mediaConstraints['video'].remove('facingMode');
+    try {
+      final nav = HTML.window.navigator;
+      if (mediaConstraints['video'] is Map) {
+        if (mediaConstraints['video']['facingMode'] != null) {
+          mediaConstraints['video'].remove('facingMode');
+        }
       }
+      final jsStream = await nav.getUserMedia(
+          audio: mediaConstraints['audio'] ?? false,
+          video: mediaConstraints['video'] ?? false);
+      return MediaStream(jsStream);
+    } catch (e) {
+      throw 'Unable to getUserMedia: ${e.toString()}';
     }
-    final jsStream = await nav.getUserMedia(
-        audio: mediaConstraints['audio'] ?? false,
-        video: mediaConstraints['video'] ?? false);
-    return MediaStream(jsStream);
   }
 
   static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
-    final mediaDevices = HTML.window.navigator.mediaDevices;
-    if (JSUtils.hasProperty(mediaDevices, "getDisplayMedia")) {
-      final JS.JsObject arg = JS.JsObject.jsify({"video": true});
-      final HTML.MediaStream jsStream =
-          await JSUtils.promiseToFuture<HTML.MediaStream>(
-              JSUtils.callMethod(mediaDevices, 'getDisplayMedia', [arg]));
-      return MediaStream(jsStream);
-    } else {
-      final HTML.MediaStream jsStream = await HTML.window.navigator
-          .getUserMedia(
-              video: {"mediaSource": 'screen'},
-              audio: mediaConstraints['audio'] ?? false);
-      return MediaStream(jsStream);
+    try {
+      final mediaDevices = HTML.window.navigator.mediaDevices;
+      if (JSUtils.hasProperty(mediaDevices, "getDisplayMedia")) {
+        final JS.JsObject arg = JS.JsObject.jsify({"video": true});
+
+        final HTML.MediaStream jsStream =
+            await JSUtils.promiseToFuture<HTML.MediaStream>(
+                JSUtils.callMethod(mediaDevices, 'getDisplayMedia', [arg]));
+        return MediaStream(jsStream);
+      } else {
+        final HTML.MediaStream jsStream = await HTML.window.navigator
+            .getUserMedia(
+                video: {"mediaSource": 'screen'},
+                audio: mediaConstraints['audio'] ?? false);
+        return MediaStream(jsStream);
+      }
+    } catch (e) {
+      throw 'Unable to getDisplayMedia: ${e.toString()}';
     }
   }
 
