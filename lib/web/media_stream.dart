@@ -12,16 +12,16 @@ class MediaStream {
   }
 
   String get id => jsStream.id;
-  Future<void> addTrack(MediaStreamTrack track, {bool addToNaitve = true}) {
-    if (addToNaitve) {
+  Future<void> addTrack(MediaStreamTrack track, {bool addToNative = true}) {
+    if (addToNative) {
       jsStream.addTrack(track.jsTrack);
     }
     return Future.value();
   }
 
   Future<void> removeTrack(MediaStreamTrack track,
-      {bool removeFromNaitve = true}) async {
-    if (removeFromNaitve) {
+      {bool removeFromNative = true}) async {
+    if (removeFromNative) {
       jsStream.removeTrack(track.jsTrack);
     }
   }
