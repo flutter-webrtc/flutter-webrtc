@@ -134,11 +134,7 @@ class RTCDataChannel {
     } else {
       arrayBuffer = data;
     }
-    print(
-        "Object got from DataChannel ${arrayBuffer} with type ${arrayBuffer.runtimeType}");
-    //TODO: convert ArrayBuffer to Uint8Array
-    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
-    throw UnimplementedError();
+    return RTCDataChannelMessage.fromBinary(arrayBuffer.asUint8List());
   }
 
   Future<void> send(RTCDataChannelMessage message) {
@@ -146,7 +142,7 @@ class RTCDataChannel {
       _jsDc.send(message.text);
     } else {
       // This may just work
-      _jsDc.send(message.binary);
+      _jsDc.sendByteBuffer(message.binary.buffer);
       // If not, convert to ArrayBuffer/Blob
     }
     return Future.value();
