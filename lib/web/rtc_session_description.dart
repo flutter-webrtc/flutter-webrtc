@@ -1,6 +1,4 @@
-// ignore: uri_does_not_exist
 import 'dart:js' as JS;
-// ignore: uri_does_not_exist
 import 'dart:html' as HTML;
 
 class RTCSessionDescription {

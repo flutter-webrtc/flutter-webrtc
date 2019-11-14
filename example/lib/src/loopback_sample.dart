@@ -51,7 +51,7 @@ class _MyAppState extends State<LoopBackSample> {
         print("    timestamp: ${report.timestamp},");
         print("    values => {");
         report.values.forEach((key, value) {
-          print("        " + key + " : " + value + ", ");
+          print("        " + key + " : " + value.toString() + ", ");
         });
         print("    }");
         print("}");
