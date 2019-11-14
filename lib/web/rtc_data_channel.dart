@@ -1,8 +1,6 @@
 import 'dart:async';
-// ignore: uri_does_not_exist
 import 'dart:html' as HTML;
-// ignore: uri_does_not_exist
-import 'dart:js' as JS;
+import 'dart:js_util' as JSUtils;
 import 'dart:typed_data';
 
 import '../enums.dart';
@@ -131,9 +129,8 @@ class RTCDataChannel {
     dynamic arrayBuffer;
     if (data is HTML.Blob) {
       // This should never happen actually
-      final promise =
-          JS.JsObject.fromBrowserObject(data).callMethod('arrayBuffer');
-      arrayBuffer = await HTML.promiseToFuture(promise);
+      arrayBuffer = await JSUtils.promiseToFuture(
+          JSUtils.callMethod(data, 'arrayBuffer', []));
     } else {
       arrayBuffer = data;
     }

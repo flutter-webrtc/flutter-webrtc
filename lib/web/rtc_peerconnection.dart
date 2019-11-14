@@ -1,8 +1,7 @@
 import 'dart:async';
-// ignore: uri_does_not_exist
 import 'dart:js' as JS;
-// ignore: uri_does_not_exist
 import 'dart:html' as HTML;
+
 import 'media_stream.dart';
 import 'media_stream_track.dart';
 import 'rtc_data_channel.dart';
@@ -85,7 +84,7 @@ class RTCPeerConnection {
       }
     });
     _jsPc.onIceCandidate.listen((iceEvent) {
-      if (onIceCandidate != null) {
+      if (onIceCandidate != null && iceEvent.candidate != null) {
         onIceCandidate(RTCIceCandidate.fromJs(iceEvent.candidate));
       }
     });
@@ -186,7 +185,7 @@ class RTCPeerConnection {
     });
   }
 
-  Future<List<StatsReport>> getStats(MediaStreamTrack track) async {
+  Future<List<StatsReport>> getStats([MediaStreamTrack track]) async {
     final stats = await _jsPc.getStats();
     List<StatsReport> report = [];
     stats.forEach((key, value) {
