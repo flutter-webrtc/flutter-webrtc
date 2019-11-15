@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:core';
+import 'package:flutter/material.dart';
+
 import 'src/loopback_sample.dart';
 import 'src/get_user_media_sample.dart';
 import 'src/get_display_media_sample.dart';
@@ -11,11 +12,6 @@ void main() => runApp(new MyApp());
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => new _MyAppState();
-}
-
-enum DialogDemoAction {
-  cancel,
-  connect,
 }
 
 class _MyAppState extends State<MyApp> {
