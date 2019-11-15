@@ -300,7 +300,52 @@
             track.isEnabled = enabled.boolValue;
         }
         result(nil);
-    }else if([@"trackDispose" isEqualToString:call.method]){
+    }else if([@"mediaStreamAddTrack" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* streamId = argsMap[@"streamId"];
+        NSString* trackId = argsMap[@"trackId"];
+
+        RTCMediaStream *stream = self.localStreams[streamId];
+        if (stream) {
+            RTCMediaStreamTrack *track = self.localTracks[trackId];
+            if(track != nil) {
+                if([track isKindOfClass:[RTCAudioTrack class]]) {
+                    RTCAudioTrack *audioTrack = (RTCAudioTrack *)track;
+                    [stream addAudioTrack:audioTrack];
+                } else if([track isKindOfClass:[RTCVideoTrack class]]){
+                    RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
+                    [stream addVideoTrack:videoTrack];
+                }
+            } else {
+                result([FlutterError errorWithCode:@"mediaStreamAddTrack: Track is nil" message:nil details:nil]);
+            }
+        } else {
+            result([FlutterError errorWithCode:@"mediaStreamAddTrack: Stream is nil" message:nil details:nil]);
+        }
+        result(nil);
+    }else if([@"mediaStreamRemoveTrack" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* streamId = argsMap[@"streamId"];
+        NSString* trackId = argsMap[@"trackId"];
+        RTCMediaStream *stream = self.localStreams[streamId];
+        if (stream) {
+            RTCMediaStreamTrack *track = self.localTracks[trackId];
+            if(track != nil) {
+                if([track isKindOfClass:[RTCAudioTrack class]]) {
+                    RTCAudioTrack *audioTrack = (RTCAudioTrack *)track;
+                    [stream removeAudioTrack:audioTrack];
+                } else if([track isKindOfClass:[RTCVideoTrack class]]){
+                    RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
+                    [stream removeVideoTrack:videoTrack];
+                }
+            } else {
+                result([FlutterError errorWithCode:@"mediaStreamRemoveTrack: Track is nil" message:nil details:nil]);
+            }
+        } else {
+            result([FlutterError errorWithCode:@"mediaStreamRemoveTrack: Stream is nil" message:nil details:nil]);
+        }
+        result(nil);
+    } else if([@"trackDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
         [self.localTracks removeObjectForKey:trackId];

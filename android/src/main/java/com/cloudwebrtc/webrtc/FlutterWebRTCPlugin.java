@@ -247,7 +247,15 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 track.setEnabled(enabled);
             }
             result.success(null);
-        }else if (call.method.equals("trackDispose")) {
+        }else if (call.method.equals("mediaStreamAddTrack")) {
+            String streamId = call.argument("streamId");
+            String trackId = call.argument("trackId");
+            mediaStreamAddTrack(streamId, trackId, result);
+        }else if (call.method.equals("mediaStreamRemoveTrack")) {
+            String streamId = call.argument("streamId");
+            String trackId = call.argument("trackId");
+            mediaStreamRemoveTrack(streamId,trackId, result);
+        } else if (call.method.equals("trackDispose")) {
             String trackId = call.argument("trackId");
             localTracks.remove(trackId);
             result.success(null);
@@ -929,6 +937,52 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } catch (Exception e) {
             Log.e(TAG, "setSpeakerphoneOn(): error", e);
         }
+    }
+
+    public void mediaStreamAddTrack(final String streaemId, final String trackId, Result result) {
+        MediaStream mediaStream = localStreams.get(streaemId);
+        if (mediaStream != null) {
+            MediaStreamTrack track = localTracks.get(trackId);
+            if (track != null){
+                if (track.kind().equals("audio")) {
+                    mediaStream.addTrack((AudioTrack) track);
+                } else if (track.kind().equals("video")) {
+                    mediaStream.addTrack((VideoTrack) track);
+                }
+            } else {
+                String errorMsg = "mediaStreamAddTrack() track [" + trackId + "] is null";
+                Log.d(TAG, errorMsg);
+                result.error("mediaStreamAddTrack", errorMsg, null);
+            }
+        } else {
+            String errorMsg = "mediaStreamAddTrack() stream [" + trackId + "] is null";
+            Log.d(TAG, errorMsg);
+            result.error("mediaStreamAddTrack", errorMsg, null);
+        }
+        result.success(null);
+    }
+
+    public void mediaStreamRemoveTrack(final String streaemId, final String trackId, Result result) {
+        MediaStream mediaStream = localStreams.get(streaemId);
+        if (mediaStream != null) {
+            MediaStreamTrack track = localTracks.get(trackId);
+            if (track != null) {
+                if (track.kind().equals("audio")) {
+                    mediaStream.removeTrack((AudioTrack) track);
+                } else if (track.kind().equals("video")) {
+                    mediaStream.removeTrack((VideoTrack) track);
+                }
+            } else {
+                String errorMsg = "mediaStreamRemoveTrack() track [" + trackId + "] is null";
+                Log.d(TAG, errorMsg);
+                result.error("mediaStreamRemoveTrack", errorMsg, null);
+            }
+        } else {
+            String errorMsg = "mediaStreamRemoveTrack() stream [" + trackId + "] is null";
+            Log.d(TAG, errorMsg);
+            result.error("mediaStreamRemoveTrack", errorMsg, null);
+        }
+        result.success(null);
     }
 
     public void mediaStreamTrackRelease(final String streamId, final String _trackId) {
