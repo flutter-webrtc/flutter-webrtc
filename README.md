@@ -49,13 +49,14 @@ android {
 ## Functionality
 We intend to implement support the following features:
 
+- [X] Audio/Video
 - [X] Data Channel
-- [ ] Port to [Flutter-Desktop-Embedding](https://github.com/google/flutter-desktop-embedding)
-- [X] Screen Capture (iOS/Android)
-- [ ] ORTC API
-- [ ] Support [Fuchsia](https://fuchsia.googlesource.com/)
+- [X] Screen/Window Capture (iOS/Android)
+- [ ] Unified-Plan
+- [ ] [Flutter Web](https://flutter.dev/web)
+- [ ] [Flutter Desktop](https://github.com/flutter/flutter/wiki/Desktop-shells) (macOS/Windows/Linux)
+- [ ] Support for [Fuchsia](https://fuchsia.googlesource.com/)
 - [ ] MediaRecorder
-- [ ] Flutter Web
 
 ## Contributing
 The project is inseparable from the contributors of the community.
