@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
 import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/webrtc.dart';
+
 
 
 class LoopBackSample extends StatefulWidget {
@@ -43,7 +45,7 @@ class _MyAppState extends State<LoopBackSample> {
 
   void handleStatsReport(Timer timer) async {
     if (_peerConnection != null) {
-      List<StatsReport> reports = await _peerConnection.getStats(null);
+      List<StatsReport> reports = await _peerConnection.getStats();
       reports.forEach((report) {
         print("report => { ");
         print("    id: " + report.id + ",");
@@ -51,7 +53,7 @@ class _MyAppState extends State<LoopBackSample> {
         print("    timestamp: ${report.timestamp},");
         print("    values => {");
         report.values.forEach((key, value) {
-          print("        " + key + " : " + value + ", ");
+          print("        " + key + " : " + value.toString() + ", ");
         });
         print("    }");
         print("}");
