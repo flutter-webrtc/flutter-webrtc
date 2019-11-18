@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:js' as JS;
+import 'dart:js_util' as JSUtils;
 import 'dart:html' as HTML;
 
 import 'media_stream.dart';
@@ -178,15 +179,8 @@ class RTCPeerConnection {
   }
 
   Future<void> addCandidate(RTCIceCandidate candidate) async {
-    Completer completer = new Completer();
-    _jsPc.addIceCandidate(candidate.toJs(), () {
-      print("Ice candidate added");
-      completer.complete();
-    }, (HTML.DomException domException) {
-      print(domException);
-      completer.completeError(domException);
-    });
-    return completer.future;
+    await JSUtils.promiseToFuture(
+        JSUtils.callMethod(_jsPc, 'addIceCandidate', [candidate.toJs()]));
   }
 
   Future<List<StatsReport>> getStats([MediaStreamTrack track]) async {
