@@ -7,33 +7,7 @@ import 'rtc_ice_candidate.dart';
 import 'rtc_session_description.dart';
 import 'rtc_stats_report.dart';
 import 'utils.dart';
-
-
-enum RTCSignalingState {
-  RTCSignalingStateStable,
-  RTCSignalingStateHaveLocalOffer,
-  RTCSignalingStateHaveRemoteOffer,
-  RTCSignalingStateHaveLocalPrAnswer,
-  RTCSignalingStateHaveRemotePrAnswer,
-  RTCSignalingStateClosed
-}
-
-enum RTCIceGatheringState {
-  RTCIceGatheringStateNew,
-  RTCIceGatheringStateGathering,
-  RTCIceGatheringStateComplete
-}
-
-enum RTCIceConnectionState {
-  RTCIceConnectionStateNew,
-  RTCIceConnectionStateChecking,
-  RTCIceConnectionStateCompleted,
-  RTCIceConnectionStateConnected,
-  RTCIceConnectionStateCount,
-  RTCIceConnectionStateFailed,
-  RTCIceConnectionStateDisconnected,
-  RTCIceConnectionStateClosed,
-}
+import 'enums.dart';
 
 /*
  * Delegate for PeerConnection.

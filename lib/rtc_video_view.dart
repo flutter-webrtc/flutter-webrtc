@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'media_stream.dart';
 import 'utils.dart';
-
-enum RTCVideoViewObjectFit {
-  RTCVideoViewObjectFitContain,
-  RTCVideoViewObjectFitCover,
-}
+import 'enums.dart';
 
 class RTCVideoRenderer {
   MethodChannel _channel = WebRTC.methodChannel();
