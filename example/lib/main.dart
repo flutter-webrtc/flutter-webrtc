@@ -5,7 +5,8 @@ import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 
 import 'src/loopback_sample.dart';
-import 'src/get_user_media_sample.dart';
+import 'src/get_user_media_sample.dart'
+  if (dart.library.js) 'src/get_user_media_sample_web.dart';
 import 'src/get_display_media_sample.dart';
 import 'src/data_channel_sample.dart';
 import 'src/route_item.dart';
@@ -23,11 +24,6 @@ void main(){
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => new _MyAppState();
-}
-
-enum DialogDemoAction {
-  cancel,
-  connect,
 }
 
 class _MyAppState extends State<MyApp> {

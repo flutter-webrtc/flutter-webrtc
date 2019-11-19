@@ -23,6 +23,18 @@ class MediaStreamTrack {
   String get kind => _kind;
   String get id => _trackId;
 
+  Future<bool> hasTorch() =>
+    _channel.invokeMethod(
+      'mediaStreamTrackHasTorch',
+      <String, dynamic>{'trackId': _trackId},
+    );
+
+  Future<void> setTorch(bool torch) =>
+    _channel.invokeMethod(
+      'mediaStreamTrackSetTorch',
+      <String, dynamic>{'trackId': _trackId, 'torch': torch},
+    );
+
   ///Future contains isFrontCamera
   ///Throws error if switching camera failed
   Future<bool> switchCamera() =>
@@ -54,7 +66,8 @@ class MediaStreamTrack {
     );
   }
 
-  captureFrame(String filePath) =>
+  /// On Flutter Web returns Future<dynamic> which contains data url on success
+  captureFrame([String filePath]) =>
     _channel.invokeMethod(
       'captureFrame',
       <String, dynamic>{'trackId':_trackId, 'path': filePath},

@@ -49,24 +49,24 @@ class MediaStream {
   }
 
   String get id => _streamId;
-  Future<void> addTrack(MediaStreamTrack track, {bool addToNaitve = true}) async {
+  Future<void> addTrack(MediaStreamTrack track, {bool addToNative = true}) async {
     if (track.kind == 'audio')
       _audioTracks.add(track);
     else
       _videoTracks.add(track);
 
-    if(addToNaitve)
+    if(addToNative)
      await _channel.invokeMethod('mediaStreamAddTrack',
         <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
   }
 
-  Future<void> removeTrack(MediaStreamTrack track, {bool removeFromNaitve = true}) async {
+  Future<void> removeTrack(MediaStreamTrack track, {bool removeFromNative = true}) async {
     if (track.kind == 'audio')
       _audioTracks.removeWhere((it) => it.id == track.id);
     else
       _videoTracks.removeWhere((it) => it.id == track.id);
 
-    if(removeFromNaitve)
+    if(removeFromNative)
       await _channel.invokeMethod('mediaStreamRemoveTrack',
         <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
   }

@@ -3,6 +3,18 @@
 
 Flutter WebRTC plugin for iOS/Android
 
+## Functionality
+We intend to implement support the following features:
+
+- [X] Audio/Video
+- [X] Data Channel
+- [X] Screen/Window Capture (iOS/Android)
+- [ ] Unified-Plan
+- [X] [Flutter Web](https://flutter.dev/web)
+- [ ] [Flutter Desktop](https://github.com/flutter/flutter/wiki/Desktop-shells) (macOS/Windows/Linux)
+- [ ] Support for [Fuchsia](https://fuchsia.googlesource.com/)
+- [ ] MediaRecorder
+
 ## Usage
 Add `flutter_webrtc` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
 
@@ -45,17 +57,6 @@ android {
     }
 }
 ```
-
-## Functionality
-We intend to implement support the following features:
-
-- [X] Data Channel
-- [ ] Port to [Flutter-Desktop-Embedding](https://github.com/google/flutter-desktop-embedding)
-- [X] Screen Capture (iOS/Android)
-- [ ] ORTC API
-- [ ] Support [Fuchsia](https://fuchsia.googlesource.com/)
-- [ ] MediaRecorder
-- [ ] Flutter Web
 
 ## Contributing
 The project is inseparable from the contributors of the community.

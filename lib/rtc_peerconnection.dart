@@ -7,33 +7,7 @@ import 'rtc_ice_candidate.dart';
 import 'rtc_session_description.dart';
 import 'rtc_stats_report.dart';
 import 'utils.dart';
-
-
-enum RTCSignalingState {
-  RTCSignalingStateStable,
-  RTCSignalingStateHaveLocalOffer,
-  RTCSignalingStateHaveRemoteOffer,
-  RTCSignalingStateHaveLocalPrAnswer,
-  RTCSignalingStateHaveRemotePrAnswer,
-  RTCSignalingStateClosed
-}
-
-enum RTCIceGatheringState {
-  RTCIceGatheringStateNew,
-  RTCIceGatheringStateGathering,
-  RTCIceGatheringStateComplete
-}
-
-enum RTCIceConnectionState {
-  RTCIceConnectionStateNew,
-  RTCIceConnectionStateChecking,
-  RTCIceConnectionStateCompleted,
-  RTCIceConnectionStateConnected,
-  RTCIceConnectionStateCount,
-  RTCIceConnectionStateFailed,
-  RTCIceConnectionStateDisconnected,
-  RTCIceConnectionStateClosed,
-}
+import 'enums.dart';
 
 /*
  * Delegate for PeerConnection.
@@ -160,11 +134,11 @@ class RTCPeerConnection {
         List<MediaStreamTrack>  oldTracks = (kind == 'audio')? stream.getAudioTracks() : stream.getVideoTracks();
         MediaStreamTrack oldTrack = oldTracks.length > 0? oldTracks[0] : null;
         if(oldTrack != null){
-          stream.removeTrack(oldTrack, removeFromNaitve: false);
+          stream.removeTrack(oldTrack, removeFromNative: false);
           if (this.onRemoveTrack != null) this.onRemoveTrack(stream, oldTrack);
         }
 
-        stream.addTrack(newTrack, addToNaitve: false);
+        stream.addTrack(newTrack, addToNative: false);
         if (this.onAddTrack != null) this.onAddTrack(stream, newTrack);
         break;
       case 'onRemoveTrack':

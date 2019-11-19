@@ -1,9 +1,9 @@
-import 'dart:io';
-import 'dart:core';
-
+// ignore: uri_does_not_exist
+import 'dart:html' as HTML;
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_webrtc/web/get_user_media.dart' as gum;
+import 'dart:core';
 
 /*
  * getUserMedia sample
@@ -21,11 +21,17 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   bool _inCalling = false;
   MediaRecorder _mediaRecorder;
   get _isRec => _mediaRecorder != null;
+  List<dynamic> cameras;
 
   @override
   initState() {
     super.initState();
     initRenderers();
+    gum.navigator.getSources().then((md) {
+      setState(() {
+        cameras = md.where((d) => d['kind'] == 'videoinput');
+      });
+    });
   }
 
   @override
@@ -44,15 +50,13 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   // Platform messages are asynchronous, so we initialize in an async method.
   _makeCall() async {
     final Map<String, dynamic> mediaConstraints = {
-      "audio": false,
+      "audio": true,
       "video": {
         "mandatory": {
           "minWidth": '1280', // Provide your own width, height and frame rate here
           "minHeight": '720',
           "minFrameRate": '30',
         },
-        "facingMode": "user",
-        "optional": [],
       }
     };
 
@@ -84,42 +88,32 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   _startRecording() async {
-    if (Platform.isIOS) {
-      print("Recording is not available on iOS");
-      return;
-    }
-    //TODO(rostopira): request write storage permission
-    final storagePath = await getExternalStorageDirectory();
-    final filePath = storagePath.path + '/webrtc_sample/test.mp4';
     _mediaRecorder = MediaRecorder();
     setState(() {});
-    await _localStream.getMediaTracks();
-    final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
-    await _mediaRecorder.start(
-      filePath,
-      videoTrack: videoTrack,
-    );
+    _mediaRecorder.startWeb(_localStream);
   }
 
   _stopRecording() async {
-    await _mediaRecorder?.stop();
+    final objectUrl = await _mediaRecorder?.stop();
     setState(() {
       _mediaRecorder = null;
     });
+    print(objectUrl);
+    HTML.window.open(objectUrl, '_blank');
   }
 
   _captureFrame() async {
-    String filePath;
-    if (Platform.isAndroid) {
-      final storagePath = await getExternalStorageDirectory();
-      filePath = storagePath.path + '/webrtc_sample/test.jpg';
-    } else {
-      final storagePath = await getApplicationDocumentsDirectory();
-      filePath = storagePath.path + '/test${DateTime.now()}.jpg';
-    }
-
     final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
-    videoTrack.captureFrame(filePath);
+    final frame = await videoTrack.captureFrame();
+    showDialog(context: context, builder: (context) => AlertDialog(
+      content: Image.network(frame, height: 720, width: 1280),
+      actions: <Widget>[
+        FlatButton(
+          child: Text("OK"),
+          onPressed: Navigator.of(context, rootNavigator: true).pop,
+        )
+      ],
+    ));
   }
 
   @override
@@ -127,18 +121,16 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('GetUserMedia API Test'),
-        actions: _inCalling
-            ? <Widget>[
-                new IconButton(
-                  icon: Icon(Icons.camera),
-                  onPressed: _captureFrame,
-                ),
-                new IconButton(
-                  icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
-                  onPressed: _isRec ? _stopRecording : _startRecording,
-                ),
-              ]
-            : null,
+        actions: _inCalling ? <Widget>[
+          IconButton(
+            icon: Icon(Icons.camera),
+            onPressed: _captureFrame,
+          ),
+          IconButton(
+            icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
+            onPressed: _isRec ? _stopRecording : _startRecording,
+          ),
+        ] : null,
       ),
       body: new OrientationBuilder(
         builder: (context, orientation) {

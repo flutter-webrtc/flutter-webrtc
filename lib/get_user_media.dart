@@ -25,7 +25,7 @@ class navigator {
  * use MediaProjection for Android and use ReplayKit for iOS
  * TODO: implement for native layer.
  * */
-static Future<MediaStream> getDisplayMedia(
+  static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
     MethodChannel channel = WebRTC.methodChannel();
     try {

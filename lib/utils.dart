@@ -1,7 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:flutter/services.dart';
-import 'rtc_peerconnection.dart';
-import 'rtc_data_channel.dart';
+import 'enums.dart';
 
 class WebRTC {
   static const MethodChannel _channel = const MethodChannel('FlutterWebRTC.Method');
