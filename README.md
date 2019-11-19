@@ -10,7 +10,7 @@ We intend to implement support the following features:
 - [X] Data Channel
 - [X] Screen/Window Capture (iOS/Android)
 - [ ] Unified-Plan
-- [ ] [Flutter Web](https://flutter.dev/web)
+- [X] [Flutter Web](https://flutter.dev/web)
 - [ ] [Flutter Desktop](https://github.com/flutter/flutter/wiki/Desktop-shells) (macOS/Windows/Linux)
 - [ ] Support for [Fuchsia](https://fuchsia.googlesource.com/)
 - [ ] MediaRecorder
