@@ -1,23 +1,19 @@
 import 'dart:core';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
+import 'package:flutter_webrtc/webrtc.dart';
 
 import 'src/loopback_sample.dart';
 import 'src/get_user_media_sample.dart'
-  if (dart.library.js) 'src/get_user_media_sample_web.dart';
+    if (dart.library.js) 'src/get_user_media_sample_web.dart';
 import 'src/get_display_media_sample.dart';
 import 'src/data_channel_sample.dart';
 import 'src/route_item.dart';
 
-bool isDesktop() {
-  return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-}
-
-void main(){
- if(isDesktop())
-   debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
+void main() {
+  if (WebRTC.platformIsDesktop)
+    debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
   runApp(new MyApp());
 }
 
