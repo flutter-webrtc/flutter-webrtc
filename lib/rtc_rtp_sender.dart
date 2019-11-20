@@ -8,17 +8,18 @@ import 'utils.dart';
 
 class RTCRtpSender {
   MethodChannel _methodChannel = WebRTC.methodChannel();
+  String _peerConnectionId;
   String _id;
   MediaStreamTrack _track;
   RTCDTMFSender _dtmf;
   RTCRtpParameters _parameters;
   bool _ownsTrack = false;
 
-  factory RTCRtpSender.fromMap(Map<String, dynamic> map) {
+  factory RTCRtpSender.fromMap(Map<dynamic, dynamic> map) {
     return new RTCRtpSender(
         map['senderId'],
-        MediaStreamTrack.fromMap(map['trackInfo']),
-        RTCDTMFSender(map['dtmfSenderId']),
+        MediaStreamTrack.fromMap(map['track']),
+        RTCDTMFSender.fromMap(map['dtmfSender']),
         RTCRtpParameters.fromMap(map['rtpParameters']),
         map['ownsTrack']);
   }
@@ -26,11 +27,16 @@ class RTCRtpSender {
   RTCRtpSender(
       this._id, this._track, this._dtmf, this._parameters, this._ownsTrack);
 
+  set peerConnectionId(String id) {
+    _peerConnectionId = id;
+  }
+
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     _parameters = parameters;
     try {
-      final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
-          'rtpSenderSetParameters', <String, dynamic>{
+      final Map<dynamic, dynamic> response = await _methodChannel
+          .invokeMethod('rtpSenderSetParameters', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
         'parameters': parameters.toMap()
       });
@@ -42,8 +48,12 @@ class RTCRtpSender {
 
   Future<void> replaceTrack(MediaStreamTrack track) async {
     try {
-      await _methodChannel.invokeMethod('rtpSenderReplaceTrack',
-          <String, dynamic>{'rtpSenderId': _id, 'trackId': track.id});
+      await _methodChannel.invokeMethod(
+          'rtpSenderReplaceTrack', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'rtpSenderId': _id,
+        'trackId': track.id
+      });
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::replaceTrack: ${e.message}';
     }
@@ -52,6 +62,7 @@ class RTCRtpSender {
   Future<void> setTrack(MediaStreamTrack track, bool takeOwnership) async {
     try {
       await _methodChannel.invokeMethod('rtpSenderSetTrack', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
         'trackId': track.id,
         'takeOwnership': takeOwnership,

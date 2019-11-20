@@ -10,6 +10,8 @@ class MediaRecorder {
   static final _random = Random();
   final _recorderId = _random.nextInt(0x7FFFFFFF);
 
+  MediaRecorder();
+
   Future<void> start(String path,
       {MediaStreamTrack videoTrack, RecorderAudioChannel audioChannel
       //TODO: add codec/quality options

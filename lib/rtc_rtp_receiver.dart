@@ -30,6 +30,7 @@ typedef void OnFirstPacketReceivedCallback(
 class RTCRtpReceiver {
   /// private:
   MethodChannel _methodChannel = WebRTC.methodChannel();
+  String _peerConnectionId;
   String _id;
   MediaStreamTrack _track;
   RTCRtpParameters _parameters;
@@ -37,7 +38,7 @@ class RTCRtpReceiver {
   /// public:
   OnFirstPacketReceivedCallback onFirstPacketReceived;
 
-  factory RTCRtpReceiver.fromMap(Map<String, dynamic> map) {
+  factory RTCRtpReceiver.fromMap(Map<dynamic, dynamic> map) {
     MediaStreamTrack track = MediaStreamTrack.fromMap(map['trackInfo']);
     RTCRtpParameters parameters =
         RTCRtpParameters.fromMap(map['rtpParameters']);
@@ -46,12 +47,17 @@ class RTCRtpReceiver {
 
   RTCRtpReceiver(this._id, this._track, this._parameters);
 
+  set peerConnectionId(String id) {
+    _peerConnectionId = id;
+  }
+
   /// Currently, doesn't support changing any parameters, but may in the future.
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     _parameters = parameters;
     try {
-      final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
-          'rtpReceiverSetParameters', <String, dynamic>{
+      final Map<dynamic, dynamic> response = await _methodChannel
+          .invokeMethod('rtpReceiverSetParameters', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
         'rtpReceiverId': _id,
         'parameters': parameters.toMap()
       });

@@ -11,7 +11,7 @@ class MediaStream {
   List<MediaStreamTrack> _videoTracks = new List<MediaStreamTrack>();
 
   /// public:
-  factory MediaStream.fromMap(Map<String, dynamic> map) {
+  factory MediaStream.fromMap(Map<dynamic, dynamic> map) {
     MediaStream stream = new MediaStream(map['streamId']);
     stream._setMediaTracks(map['audioTracks'], map['videoTracks']);
     return stream;

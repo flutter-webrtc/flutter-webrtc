@@ -6,10 +6,16 @@ import 'utils.dart';
 class RTCDTMFSender {
   /// private:
   String _id;
+  int _interToneGap;
+  int _duration;
   MethodChannel _methodChannel = WebRTC.methodChannel();
 
-  /// public::
-  RTCDTMFSender(this._id);
+  /// public:
+  factory RTCDTMFSender.fromMap(Map<String, dynamic> map){
+    return new RTCDTMFSender(map['dtmfSenderId'], map['interToneGap'], map['duration']);
+  }
+
+  RTCDTMFSender(this._id, this._interToneGap, this._duration);
 
   Future<bool> canInsertDtmf() async {
     try {
@@ -50,7 +56,8 @@ class RTCDTMFSender {
     try {
       final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
           'dtmfSenderGetDuration', <String, dynamic>{'dtmfSenderId': _id});
-      return response['result'];
+      _duration = response['result'];
+      return _duration;
     } on PlatformException catch (e) {
       throw 'Unable to RTCDTMFSender::duration: ${e.message}';
     }
@@ -60,7 +67,8 @@ class RTCDTMFSender {
     try {
       final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
           'dtmfSenderGetInterToneGap', <String, dynamic>{'dtmfSenderId': _id});
-      return response['result'];
+      _interToneGap = response['result'];
+      return _interToneGap;
     } on PlatformException catch (e) {
       throw 'Unable to RTCDTMFSender::interToneGap: ${e.message}';
     }

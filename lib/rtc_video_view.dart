@@ -11,6 +11,7 @@ enum RTCVideoViewObjectFit {
 }
 
 class RTCVideoRenderer {
+  /// private:
   MethodChannel _methodChannel = WebRTC.methodChannel();
   int _textureId;
   int _rotation = 0;
@@ -22,7 +23,10 @@ class RTCVideoRenderer {
       RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
   StreamSubscription<dynamic> _eventSubscription;
 
+  /// public:
   dynamic onStateChanged;
+
+  RTCVideoRenderer();
 
   Future<void> initialize() async {
     final Map<dynamic, dynamic> response =
@@ -32,6 +36,8 @@ class RTCVideoRenderer {
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
   }
+
+  MediaStream get src => _srcObject;
 
   int get rotation => _rotation;
 
@@ -166,13 +172,13 @@ class _RTCVideoViewState extends State<RTCVideoView> {
                           ..rotateY(_mirror ? -pi : 0.0),
                         alignment: FractionalOffset.center,
                         child:
-                            new Texture(textureId: _renderer._textureId))))));
+                            new Texture(textureId: _renderer.textureId))))));
   }
 
   @override
   Widget build(BuildContext context) {
     bool renderVideo =
-        (_renderer._textureId != null && _renderer._srcObject != null);
+        (_renderer.textureId != null && _renderer.src != null);
 
     return new LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {

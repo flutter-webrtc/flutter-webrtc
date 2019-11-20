@@ -2,7 +2,7 @@ class RTCSessionDescription {
   String sdp;
   String type;
 
-  factory RTCSessionDescription.fromMap(Map<String, dynamic> map) {
+  factory RTCSessionDescription.fromMap(Map<dynamic, dynamic> map) {
     return new RTCSessionDescription(map['sdp'], map['type']);
   }
 

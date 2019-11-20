@@ -3,7 +3,7 @@ class RTCIceCandidate {
   String sdpMid;
   int sdpMlineIndex;
 
-  factory RTCIceCandidate.fromMap(Map<String, dynamic> map) {
+  factory RTCIceCandidate.fromMap(Map<dynamic, dynamic> map) {
     return new RTCIceCandidate(
         map['candidate'], map['sdpMid'], map['sdpMLineIndex']);
   }

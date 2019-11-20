@@ -32,6 +32,7 @@ import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.RtpSender;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.VideoTrack;
@@ -242,10 +243,16 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }else if (call.method.equals("mediaStreamTrackSetEnable")) {
             String trackId = call.argument("trackId");
             Boolean enabled = call.argument("enabled");
-            MediaStreamTrack track = getTrackForId(trackId);
-            if(track != null){
-                track.setEnabled(enabled);
-            }
+            mediaStreamTrackSetEnabled(trackId, enabled);
+            result.success(null);
+        }else if (call.method.equals("mediaStreamTrackStop")) {
+            String trackId = call.argument("trackId");
+            mediaStreamTrackStop(trackId);
+            result.success(null);
+        }else if (call.method.equals("mediaStreamTrackRelease")) {
+            String streamId = call.argument("streamId");
+            String trackId = call.argument("trackId");
+            mediaStreamTrackRelease(streamId, trackId);
             result.success(null);
         }else if (call.method.equals("trackDispose")) {
             String trackId = call.argument("trackId");
@@ -257,7 +264,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             result.success(null);
         } else if(call.method.equals("peerConnectionDispose")){
             String peerConnectionId = call.argument("peerConnectionId");
-            peerConnectionClose(peerConnectionId);
+            peerConnectionDispose(peerConnectionId);
             result.success(null);
         }else if (call.method.equals("createVideoRenderer")) {
             TextureRegistry.SurfaceTextureEntry entry = textures.createSurfaceTexture();
@@ -290,14 +297,11 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else if (call.method.equals("videoRendererSetSrcObject")) {
             int textureId = call.argument("textureId");
             String streamId = call.argument("streamId");
-
             FlutterRTCVideoRenderer render = renders.get(textureId);
-
             if(render == null ){
                 result.error("FlutterRTCVideoRendererNotFound", "render [" + textureId + "] not found !", null);
                 return;
             }
-
             MediaStream stream = getStreamForId(streamId);
             render.setStream(stream);
             result.success(null);
@@ -401,6 +405,66 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 Log.d(TAG, "setConfiguration() peerConnection is null");
                 result.error("setConfigurationFailed", "setConfiguration() peerConnection is null", null);
             }
+        } else if (call.method.equals("createSender")) {
+            String peerConnectionId = call.argument("peerConnectionId");
+            String kind = call.argument("kind");
+            String streamId = call.argument("streamId");
+            createSender(peerConnectionId, kind, streamId, result);
+        } else if (call.method.equals("addTrack")) {
+            String peerConnectionId = call.argument("peerConnectionId");
+            String trackId = call.argument("trackId");
+            List<String> streamIds = call.argument("streamIds");
+            addTrack(peerConnectionId, trackId, streamIds, result);
+        } else if (call.method.equals("removeTrack")) {
+            String peerConnectionId = call.argument("peerConnectionId");
+            String senderId = call.argument("senderId");
+            removeTrack(peerConnectionId, senderId, result);
+        } else if (call.method.equals("addTransceiver")) {
+            String peerConnectionId = call.argument("peerConnectionId");
+            String trackId = call.argument("trackId");
+            Map<String, Object> transceiverInit = call.argument("transceiverInit");
+            addTransceiver(peerConnectionId, trackId, transceiverInit, result);
+        }  else if(call.method.equals("addTransceiverOfType")){
+            String peerConnectionId = call.argument("peerConnectionId");
+            String mediaType = call.argument("mediaType");
+            Map<String, Object> transceiverInit = call.argument("transceiverInit");
+            addTransceiverOfType(peerConnectionId, mediaType, transceiverInit, result);
+        } else if(call.method.equals("rtpTransceiverSetDirection")){
+            String peerConnectionId = call.argument("peerConnectionId");
+            String direction = call.argument("direction");
+            String transceiverId = call.argument("transceiverId");
+
+            result.notImplemented();
+        } else if(call.method.equals("rtpTransceiverGetCurrentDirection")){
+            String peerConnectionId = call.argument("peerConnectionId");
+            String transceiverId = call.argument("transceiverId");
+
+            result.notImplemented();
+        } else if(call.method.equals("rtpTransceiverStop")) {
+            String peerConnectionId = call.argument("peerConnectionId");
+            String transceiverId = call.argument("transceiverId");
+
+            result.notImplemented();
+        }else if(call.method.equals("rtpSenderSetParameters")){
+            result.notImplemented();
+        } else if(call.method.equals("rtpSenderReplaceTrack")){
+            result.notImplemented();
+        } else if(call.method.equals("rtpSenderSetTrack")){
+            result.notImplemented();
+        } else if(call.method.equals("rtpSenderDispose")){
+            result.notImplemented();
+        } else if(call.method.equals("rtpReceiverSetParameters")){
+            result.notImplemented();
+        } else if(call.method.equals("dtmfSenderCanInsertDtmf")){
+            result.notImplemented();
+        } else if(call.method.equals("dtmfSenderCanInsertDtmf")){
+            result.notImplemented();
+        } else if(call.method.equals("dtmfSenderGetTones")){
+            result.notImplemented();
+        } else if(call.method.equals("dtmfSenderGetDuration")){
+            result.notImplemented();
+        } else if(call.method.equals("dtmfSenderGetInterToneGap")){
+            result.notImplemented();
         } else {
             result.notImplemented();
         }
@@ -658,7 +722,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         return conf;
     }
 
-    public String peerConnectionInit(
+    private String peerConnectionInit(
             ConstraintsMap configuration,
             ConstraintsMap constraints) {
 
@@ -674,7 +738,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         return peerConnectionId;
     }
 
-    String getNextStreamUUID() {
+    public String getNextStreamUUID() {
         String uuid;
 
         do {
@@ -684,19 +748,16 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         return uuid;
     }
 
-    String getNextTrackUUID() {
+    public String getNextTrackUUID() {
         String uuid;
-
         do {
             uuid = UUID.randomUUID().toString();
         } while (getTrackForId(uuid) != null);
-
         return uuid;
     }
 
-    MediaStream getStreamForId(String id) {
+    public MediaStream getStreamForId(String id) {
         MediaStream stream = localStreams.get(id);
-
         if (stream == null) {
             for (Map.Entry<String, PeerConnectionObserver> entry : mPeerConnectionObservers.entrySet()) {
                 PeerConnectionObserver pco = entry.getValue();
@@ -706,13 +767,11 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 }
             }
         }
-
         return stream;
     }
 
-    private MediaStreamTrack getTrackForId(String trackId) {
+    public MediaStreamTrack getTrackForId(String trackId) {
         MediaStreamTrack track = localTracks.get(trackId);
-
         if (track == null) {
             for (Map.Entry<String, PeerConnectionObserver> entry : mPeerConnectionObservers.entrySet()) {
                 PeerConnectionObserver pco = entry.getValue();
@@ -722,7 +781,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 }
             }
         }
-
         return track;
     }
 
@@ -735,10 +793,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
      * @param dst The <tt>List</tt> of <tt>MediaConstraints.KeyValuePair</tt>s
      *            into which the specified <tt>src</tt> is to be parsed.
      */
-    private void parseConstraints(
+    public void parseConstraints(
             ConstraintsMap src,
             List<MediaConstraints.KeyValuePair> dst) {
-
         for (Map.Entry<String, Object> entry : src.toMap().entrySet()) {
             String key = entry.getKey();
             String value = getMapStrValue(src, entry.getKey());
@@ -778,7 +835,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
      * mandatory and optional constraint keys and values specified by
      * <tt>constraints</tt>.
      */
-    MediaConstraints parseMediaConstraints(ConstraintsMap constraints) {
+    public MediaConstraints parseMediaConstraints(ConstraintsMap constraints) {
         MediaConstraints mediaConstraints = new MediaConstraints();
 
         if (constraints.hasKey("mandatory")
@@ -807,7 +864,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         return mediaConstraints;
     }
 
-    public void getUserMedia(ConstraintsMap constraints, Result result) {
+    private void getUserMedia(ConstraintsMap constraints, Result result) {
         String streamId = getNextStreamUUID();
         MediaStream mediaStream = mFactory.createLocalMediaStream(streamId);
 
@@ -825,7 +882,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         getUserMediaImpl.getUserMedia(constraints, result, mediaStream);
     }
 
-    public void getDisplayMedia(ConstraintsMap constraints, Result result) {
+    private void getDisplayMedia(ConstraintsMap constraints, Result result) {
         String streamId = getNextStreamUUID();
         MediaStream mediaStream = mFactory.createLocalMediaStream(streamId);
 
@@ -843,7 +900,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         getUserMediaImpl.getDisplayMedia(constraints, result, mediaStream);
     }
 
-    public void getSources(Result result) {
+    private void getSources(Result result) {
         ConstraintsArray array = new ConstraintsArray();
         String[] names = new String[Camera.getNumberOfCameras()];
 
@@ -863,10 +920,10 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         result.success(array);
     }
 
-    public void mediaStreamTrackStop(final String id) {
+    private void mediaStreamTrackStop(final String id) {
         // Is this functionality equivalent to `mediaStreamTrackRelease()` ?
         // if so, we should merge this two and remove track from stream as well.
-        MediaStreamTrack track = localTracks.get(id);
+        MediaStreamTrack track = getTrackForId(id);
         if (track == null) {
             Log.d(TAG, "mediaStreamTrackStop() track is null");
             return;
@@ -880,8 +937,8 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         // see: https://www.w3.org/TR/mediacapture-streams/#track-detached
     }
 
-    public void mediaStreamTrackSetEnabled(final String id, final boolean enabled) {
-        MediaStreamTrack track = localTracks.get(id);
+    private void mediaStreamTrackSetEnabled(final String id, final boolean enabled) {
+        MediaStreamTrack track = getTrackForId(id);
         if (track == null) {
             Log.d(TAG, "mediaStreamTrackSetEnabled() track is null");
             return;
@@ -891,7 +948,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         track.setEnabled(enabled);
     }
 
-    public void mediaStreamTrackSetVolume(final String id, final double volume) {
+    private void mediaStreamTrackSetVolume(final String id, final double volume) {
         MediaStreamTrack track = localTracks.get(id);
         if (track != null && track instanceof AudioTrack) {
             Log.d(TAG, "setVolume(): " + id + "," + volume);
@@ -905,7 +962,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void mediaStreamTrackSetMicrophoneMute(final String id, boolean mute) {
+    private void mediaStreamTrackSetMicrophoneMute(final String id, boolean mute) {
         try {
             audioDeviceModule.setMicrophoneMute(mute);
         } catch (Exception e) {
@@ -913,9 +970,8 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void mediaStreamTrackEnableSpeakerphone(final String id, boolean enabled) {
+    private void mediaStreamTrackEnableSpeakerphone(final String id, boolean enabled) {
         AudioManager audioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
-
         try {
             audioManager.setSpeakerphoneOn(enabled);
         } catch (Exception e) {
@@ -923,7 +979,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void mediaStreamTrackRelease(final String streamId, final String _trackId) {
+    private void mediaStreamTrackRelease(final String streamId, final String _trackId) {
         MediaStream stream = localStreams.get(streamId);
         if (stream == null) {
             Log.d(TAG, "mediaStreamTrackRelease() stream is null");
@@ -944,9 +1000,8 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public ConstraintsMap getCameraInfo(int index) {
+    private ConstraintsMap getCameraInfo(int index) {
         Camera.CameraInfo info = new Camera.CameraInfo();
-
         try {
             Camera.getCameraInfo(index, info);
         } catch (Exception e) {
@@ -962,16 +1017,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         return params;
     }
 
-    private MediaConstraints defaultConstraints() {
-        MediaConstraints constraints = new MediaConstraints();
-        // TODO video media
-        constraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
-        constraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
-        constraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
-        return constraints;
-    }
-
-    public void peerConnectionSetConfiguration(ConstraintsMap configuration, PeerConnection peerConnection) {
+    private void peerConnectionSetConfiguration(ConstraintsMap configuration, PeerConnection peerConnection) {
         if (peerConnection == null) {
             Log.d(TAG, "peerConnectionSetConfiguration() peerConnection is null");
             return;
@@ -979,7 +1025,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         peerConnection.setConfiguration(parseRTCConfiguration(configuration));
     }
 
-    public void peerConnectionAddStream(final String streamId, final String id, Result result) {
+    private void peerConnectionAddStream(final String streamId, final String id, Result result) {
         MediaStream mediaStream = localStreams.get(streamId);
         if (mediaStream == null) {
             Log.d(TAG, "peerConnectionAddStream() mediaStream is null");
@@ -996,7 +1042,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void peerConnectionRemoveStream(final String streamId, final String id, Result result) {
+    private void peerConnectionRemoveStream(final String streamId, final String id, Result result) {
         MediaStream mediaStream = localStreams.get(streamId);
         if (mediaStream == null) {
             Log.d(TAG, "peerConnectionRemoveStream() mediaStream is null");
@@ -1012,7 +1058,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void peerConnectionCreateOffer(
+    private void peerConnectionCreateOffer(
             String id,
             ConstraintsMap constraints,
             final Result result) {
@@ -1047,7 +1093,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void peerConnectionCreateAnswer(
+    private void peerConnectionCreateAnswer(
             String id,
             ConstraintsMap constraints,
             final Result result) {
@@ -1082,7 +1128,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void peerConnectionSetLocalDescription(ConstraintsMap sdpMap, final String id, final Result result) {
+    private void peerConnectionSetLocalDescription(ConstraintsMap sdpMap, final String id, final Result result) {
         PeerConnection peerConnection = getPeerConnection(id);
 
         Log.d(TAG, "peerConnectionSetLocalDescription() start");
@@ -1118,7 +1164,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         Log.d(TAG, "peerConnectionSetLocalDescription() end");
     }
 
-    public void peerConnectionSetRemoteDescription(final ConstraintsMap sdpMap, final String id, final Result result) {
+    private void peerConnectionSetRemoteDescription(final ConstraintsMap sdpMap, final String id, final Result result) {
         PeerConnection peerConnection = getPeerConnection(id);
         // final String d = sdpMap.getString("type");
 
@@ -1155,26 +1201,25 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         Log.d(TAG, "peerConnectionSetRemoteDescription() end");
     }
 
-    public void peerConnectionAddICECandidate(ConstraintsMap candidateMap, final String id, final Result result) {
+    private void peerConnectionAddICECandidate(ConstraintsMap candidateMap, final String id, final Result result) {
         boolean res = false;
         PeerConnection peerConnection = getPeerConnection(id);
-        Log.d(TAG, "peerConnectionAddICECandidate() start");
         if (peerConnection != null) {
             IceCandidate candidate = new IceCandidate(
                     candidateMap.getString("sdpMid"),
                     candidateMap.getInt("sdpMLineIndex"),
                     candidateMap.getString("candidate")
             );
+            Log.d(TAG, "addIceCandidate: candidate => " + candidate);
             res = peerConnection.addIceCandidate(candidate);
         } else {
             Log.d(TAG, "peerConnectionAddICECandidate() peerConnection is null");
             result.error("peerConnectionAddICECandidateFailed", "peerConnectionAddICECandidate() peerConnection is null", null);
         }
         result.success(res);
-        Log.d(TAG, "peerConnectionAddICECandidate() end");
     }
 
-    public void peerConnectionGetStats(String trackId, String id, final Result result) {
+    private void peerConnectionGetStats(String trackId, String id, final Result result) {
         PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
         if (pco == null || pco.getPeerConnection() == null) {
             Log.d(TAG, "peerConnectionGetStats() peerConnection is null");
@@ -1183,7 +1228,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void peerConnectionClose(final String id) {
+    private void peerConnectionClose(final String id) {
         PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
         if (pco == null || pco.getPeerConnection() == null) {
             Log.d(TAG, "peerConnectionClose() peerConnection is null");
@@ -1191,7 +1236,8 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             pco.close();
         }
     }
-    public void peerConnectionDispose(final String id) {
+
+    private void peerConnectionDispose(final String id) {
         PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
         if (pco == null || pco.getPeerConnection() == null) {
             Log.d(TAG, "peerConnectionDispose() peerConnection is null");
@@ -1201,7 +1247,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void mediaStreamRelease(final String id) {
+    private void mediaStreamRelease(final String id) {
         MediaStream mediaStream = localStreams.get(id);
         if (mediaStream != null) {
             for (VideoTrack track : mediaStream.videoTracks) {
@@ -1217,7 +1263,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void createDataChannel(final String peerConnectionId, String label, ConstraintsMap config, Result result) {
+    private void createDataChannel(final String peerConnectionId, String label, ConstraintsMap config, Result result) {
         // Forward to PeerConnectionObserver which deals with DataChannels
         // because DataChannel is owned by PeerConnection.
         PeerConnectionObserver pco
@@ -1229,7 +1275,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void dataChannelSend(String peerConnectionId, int dataChannelId, ByteBuffer bytebuffer, Boolean isBinary) {
+    private void dataChannelSend(String peerConnectionId, int dataChannelId, ByteBuffer bytebuffer, Boolean isBinary) {
         // Forward to PeerConnectionObserver which deals with DataChannels
         // because DataChannel is owned by PeerConnection.
         PeerConnectionObserver pco
@@ -1241,7 +1287,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    public void dataChannelClose(String peerConnectionId, int dataChannelId) {
+    private void dataChannelClose(String peerConnectionId, int dataChannelId) {
         // Forward to PeerConnectionObserver which deals with DataChannels
         // because DataChannel is owned by PeerConnection.
         PeerConnectionObserver pco
@@ -1253,4 +1299,67 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
+    private void createSender(String peerConnectionId, String kind, String streamId, Result result){
+        PeerConnectionObserver pco
+                = mPeerConnectionObservers.get(peerConnectionId);
+        if (pco == null || pco.getPeerConnection() == null) {
+            Log.d(TAG, "createSender() peerConnection is null");
+            result.error("createSender", "createSender() peerConnection is null", null);
+        } else {
+            pco.createSender(kind, streamId, result);
+        }
+    }
+
+    private void addTrack(String peerConnectionId, String trackId, List<String> streamIds, Result result){
+        PeerConnectionObserver pco
+                = mPeerConnectionObservers.get(peerConnectionId);
+        MediaStreamTrack track = localTracks.get(trackId);
+        if (track == null) {
+            result.error("addTrack", "addTrack() track is null", null);
+            return;
+        }
+        if (pco == null || pco.getPeerConnection() == null) {
+            Log.d(TAG, "addTrack() peerConnection is null");
+            result.error("addTrack", "addTrack() peerConnection is null", null);
+        } else {
+            pco.addTrack(track, streamIds, result);
+        }
+    }
+
+    private void removeTrack(String peerConnectionId, String senderId, Result result){
+        PeerConnectionObserver pco
+                = mPeerConnectionObservers.get(peerConnectionId);
+        if (pco == null || pco.getPeerConnection() == null) {
+            Log.d(TAG, "removeTrack() peerConnection is null");
+            result.error("removeTrack", "removeTrack() peerConnection is null", null);
+        } else {
+            pco.removeTrack(senderId, result);
+        }
+    }
+
+    private void addTransceiver(String peerConnectionId, String trackId, Map<String, Object> transceiverInit,  Result result){
+        PeerConnectionObserver pco
+                = mPeerConnectionObservers.get(peerConnectionId);
+        MediaStreamTrack track = localTracks.get(trackId);
+        if (track == null) {
+            result.error("addTransceiver", "addTransceiver() track is null", null);
+            return;
+        }
+        if (pco == null || pco.getPeerConnection() == null) {
+            Log.d(TAG, "addTransceiver() peerConnection is null");
+            result.error("addTransceiver", "addTransceiver() peerConnection is null", null);
+        } else {
+            pco.addTransceiver(track, transceiverInit, result);
+        }
+    }
+    private void addTransceiverOfType(String peerConnectionId, String mediaType, Map<String, Object> transceiverInit,  Result result){
+        PeerConnectionObserver pco
+                = mPeerConnectionObservers.get(peerConnectionId);
+        if (pco == null || pco.getPeerConnection() == null) {
+            Log.d(TAG, "addTransceiverOfType() peerConnection is null");
+            result.error("addTransceiverOfType", "addTransceiverOfType() peerConnection is null", null);
+        } else {
+            pco.addTransceiverOfType(mediaType, transceiverInit, result);
+        }
+    }
 }

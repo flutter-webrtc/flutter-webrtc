@@ -13,7 +13,9 @@ Future<RTCPeerConnection> createPeerConnection(
     'createPeerConnection',
     <String, dynamic>{
       'configuration': configuration,
-      'constraints': constraints.length == 0 ? defaultConstraints : constraints
+      'constraints': (constraints == null || constraints.length == 0)
+          ? defaultConstraints
+          : constraints
     },
   );
 

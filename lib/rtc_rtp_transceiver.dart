@@ -33,36 +33,25 @@ final typeRtpTransceiverDirectionToString =
 class RTCRtpTransceiverInit {
   RTCRtpTransceiverDirection direction;
   List<String> streamIds;
-  List<RTCRtpEncoding> sendEncodings;
 
   Map<String, dynamic> toMap() {
-    List<dynamic> encodings = [];
-    sendEncodings.forEach((encoding) {
-      encodings.add(encoding.toMap());
-    });
     return {
       'direction': typeRtpTransceiverDirectionToString[this.direction],
-      'streamIds': streamIds,
-      'sendEncodings': encodings,
+      'streamIds': streamIds
     };
   }
 
-  factory RTCRtpTransceiverInit.fromMap(Map<String, dynamic> map) {
-    List<RTCRtpEncoding> encodings = [];
-    dynamic encodingsMap = map['encodings'];
-    encodingsMap.forEach((params) {
-      encodings.add(RTCRtpEncoding.fromMap(params));
-    });
+  factory RTCRtpTransceiverInit.fromMap(Map<dynamic, dynamic> map) {
     return RTCRtpTransceiverInit(
         typeStringToRtpTransceiverDirection[map['direction']],
-        map['streamIds'],
-        encodings);
+        map['streamIds']);
   }
-  RTCRtpTransceiverInit(this.direction, this.streamIds, this.sendEncodings);
+  RTCRtpTransceiverInit(this.direction, this.streamIds);
 }
 
 class RTCRtpTransceiver {
   MethodChannel _methodChannel = WebRTC.methodChannel();
+  String _peerConnectionId;
   String _id;
   bool _stop;
   RTCRtpTransceiverDirection _direction;
@@ -70,18 +59,22 @@ class RTCRtpTransceiver {
   RTCRtpSender _sender;
   RTCRtpReceiver _receiver;
 
-  factory RTCRtpTransceiver.fromMap(Map<String, dynamic> map) {
+  factory RTCRtpTransceiver.fromMap(Map<dynamic, dynamic> map) {
     RTCRtpTransceiver transceiver = RTCRtpTransceiver(
         map['transceiverId'],
         typeStringToRtpTransceiverDirection[map['direction']],
         map['mid'],
-        RTCRtpSender.fromMap(map["senderInfo"]),
-        RTCRtpReceiver.fromMap(map['receiverInfo']));
+        RTCRtpSender.fromMap(map["sender"]),
+        RTCRtpReceiver.fromMap(map['receiver']));
     return transceiver;
   }
 
   RTCRtpTransceiver(
       this._id, this._direction, this._mid, this._sender, this._receiver);
+
+  set peerConnectionId(String id) {
+    _peerConnectionId = id;
+  }
 
   RTCRtpTransceiverDirection get currentDirection => _direction;
 
@@ -99,6 +92,7 @@ class RTCRtpTransceiver {
     try {
       await _methodChannel
           .invokeMethod('rtpTransceiverSetDirection', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
         'transceiverId': _id,
         'direction': typeRtpTransceiverDirectionToString[direction]
       });
@@ -110,8 +104,10 @@ class RTCRtpTransceiver {
   Future<RTCRtpTransceiverDirection> getCurrentDirection() async {
     try {
       final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
-          'rtpTransceiverGetCurrentDirection',
-          <String, dynamic>{'transceiverId': _id});
+          'rtpTransceiverGetCurrentDirection', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'transceiverId': _id
+      });
       _direction = typeStringToRtpTransceiverDirection[response['result']];
       return _direction;
     } on PlatformException catch (e) {
@@ -121,8 +117,10 @@ class RTCRtpTransceiver {
 
   Future<void> stop() async {
     try {
-      await _methodChannel.invokeMethod(
-          'rtpTransceiverStop', <String, dynamic>{'transceiverId': _id});
+      await _methodChannel.invokeMethod('rtpTransceiverStop', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'transceiverId': _id
+      });
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpTransceiver::stop: ${e.message}';
     }

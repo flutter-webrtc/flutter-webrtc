@@ -12,7 +12,7 @@ class RTCRTCPParameters {
     };
   }
 
-  factory RTCRTCPParameters.fromMap(Map<String, dynamic> map) {
+  factory RTCRTCPParameters.fromMap(Map<dynamic, dynamic> map) {
     return new RTCRTCPParameters(map['cname'], map['reducedSize']);
   }
 

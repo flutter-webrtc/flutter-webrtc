@@ -30,7 +30,7 @@ class RTCRTPCodec {
     };
   }
 
-  factory RTCRTPCodec.fromMap(Map<String, dynamic> map) {
+  factory RTCRTPCodec.fromMap(Map<dynamic, dynamic> map) {
     return new RTCRTPCodec(map['payloadType'], map['name'], map['kind'],
         map['clockRate'], map['numChannels'], map['parameters']);
   }
@@ -83,7 +83,7 @@ class RTCRtpEncoding {
     };
   }
 
-  factory RTCRtpEncoding.fromMap(Map<String, dynamic> map) {
+  factory RTCRtpEncoding.fromMap(Map<dynamic, dynamic> map) {
     return new RTCRtpEncoding(
         map['rid'],
         map['active'],
@@ -124,7 +124,7 @@ class RTCHeaderExtension {
     };
   }
 
-  factory RTCHeaderExtension.fromMap(Map<String, dynamic> map) {
+  factory RTCHeaderExtension.fromMap(Map<dynamic, dynamic> map) {
     return new RTCHeaderExtension(map['uri'], map['id'], map['encrypted']);
   }
 
@@ -167,7 +167,7 @@ class RTCRtpParameters {
     };
   }
 
-  factory RTCRtpParameters.fromMap(Map<String, dynamic> map) {
+  factory RTCRtpParameters.fromMap(Map<dynamic, dynamic> map) {
     List<RTCRtpEncoding> encodings = [];
     dynamic encodingsMap = map['encodings'];
     encodingsMap.forEach((params) {

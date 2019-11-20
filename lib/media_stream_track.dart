@@ -12,7 +12,7 @@ class MediaStreamTrack {
   bool _enabled;
 
   /// public:
-  factory MediaStreamTrack.fromMap(Map<String, dynamic> map) {
+  factory MediaStreamTrack.fromMap(Map<dynamic, dynamic> map) {
     return new MediaStreamTrack(
         map['trackId'], map['label'], map['kind'], map['enabled']);
   }
@@ -41,6 +41,8 @@ class MediaStreamTrack {
     );
   }
 
+  /// TODO: Split the following method into a RTCAudioTrack and RTCVideoTrack.
+  ///
   /// AudioTrack methods.
   /// Mute/unmute the microphone.
   Future<void> setMicrophoneMute(bool mute) async {

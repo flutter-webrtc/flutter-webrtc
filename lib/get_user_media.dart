@@ -23,6 +23,7 @@ class navigator {
 
   /// Get a MediaStream from screen sharing.
   /// Currently supports Android/iOS.
+  /// TODO: Implement the desktop version.
   static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
     MethodChannel channel = WebRTC.methodChannel();
