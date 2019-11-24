@@ -30,6 +30,9 @@ typedef void RTCDataChannelCallback(RTCDataChannel channel);
  */
 class RTCPeerConnection {
   final HTML.RtcPeerConnection _jsPc;
+  RTCSignalingState _signalingState;
+  RTCIceGatheringState _iceGatheringState;
+  RTCIceConnectionState _iceConnectionState;
 
   // public: delegate
   SignalingStateCallback onSignalingState;
@@ -50,6 +53,12 @@ class RTCPeerConnection {
     },
     "optional": [],
   };
+
+  RTCSignalingState get signalingState => _signalingState;
+
+  RTCIceGatheringState get iceGatheringState => _iceGatheringState;
+
+  RTCIceConnectionState get iceConnectionState => _iceConnectionState;
 
   RTCPeerConnection(this._jsPc) {
     _jsPc.onAddStream.listen((mediaStreamEvent) {
@@ -91,15 +100,17 @@ class RTCPeerConnection {
     });
     _jsPc.onIceConnectionStateChange.listen((_) {
       if (onIceConnectionState != null) {
-        final state = iceConnectionStateForString(_jsPc.iceConnectionState);
-        onIceConnectionState(state);
+        _iceConnectionState =
+            iceConnectionStateForString(_jsPc.iceConnectionState);
+        onIceConnectionState(_iceConnectionState);
       }
     });
     JS.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] =
         JS.JsFunction.withThis((_) {
       if (onIceGatheringState != null) {
-        final state = iceGatheringStateforString(_jsPc.iceGatheringState);
-        onIceGatheringState(state);
+        _iceGatheringState =
+            iceGatheringStateforString(_jsPc.iceGatheringState);
+        onIceGatheringState(_iceGatheringState);
       }
     });
     _jsPc.onRemoveStream.listen((mediaStreamEvent) {
@@ -111,8 +122,8 @@ class RTCPeerConnection {
     });
     _jsPc.onSignalingStateChange.listen((_) {
       if (onSignalingState != null) {
-        final state = signalingStateForString(_jsPc.signalingState);
-        onSignalingState(state);
+        _signalingState = signalingStateForString(_jsPc.signalingState);
+        onSignalingState(_signalingState);
       }
     });
     JS.JsObject.fromBrowserObject(_jsPc)['ontrack'] =
