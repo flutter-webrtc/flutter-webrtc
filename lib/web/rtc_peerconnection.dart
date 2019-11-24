@@ -179,14 +179,14 @@ class RTCPeerConnection {
   }
 
   Future<RTCSessionDescription> getLocalDescription() async {
-    final cld = JS.JsObject.fromBrowserObject(_jsPc)['currentLocalDescription'];
-    return RTCSessionDescription.fromJsObj(cld);
+    final desc = JS.JsObject.fromBrowserObject(_jsPc)['localDescription'];
+    return RTCSessionDescription.fromJsObj(desc);
   }
 
   Future<RTCSessionDescription> getRemoteDescription() async {
-    final cld =
-        JS.JsObject.fromBrowserObject(_jsPc)['currentRemoteDescription'];
-    return RTCSessionDescription.fromJsObj(cld);
+    final desc =
+        JS.JsObject.fromBrowserObject(_jsPc)['remoteDescription'];
+    return RTCSessionDescription.fromJsObj(desc);
   }
 
   Future<void> addCandidate(RTCIceCandidate candidate) async {
