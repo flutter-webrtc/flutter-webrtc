@@ -301,7 +301,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
             FlutterRTCVideoRenderer render = renders.get(textureId);
 
-            if(render == null ){
+            if (render == null) {
                 result.error("FlutterRTCVideoRendererNotFound", "render [" + textureId + "] not found !", null);
                 return;
             }
@@ -309,6 +309,10 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             MediaStream stream = getStreamForId(streamId);
             render.setStream(stream);
             result.success(null);
+        } else if (call.method.equals("mediaStreamTrackSetTorch")) {
+            String trackId = call.argument("trackId");
+            boolean torch = call.argument("torch");
+            getUserMediaImpl.setTorch(trackId, torch, result);
         } else if (call.method.equals("mediaStreamTrackSwitchCamera")) {
             String trackId = call.argument("trackId");
             getUserMediaImpl.switchCamera(trackId, result);
