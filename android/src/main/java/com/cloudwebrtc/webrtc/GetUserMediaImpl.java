@@ -7,7 +7,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CaptureRequest;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,9 +22,11 @@ import androidx.annotation.Nullable;
 import android.util.Log;
 import android.content.Intent;
 import android.app.Activity;
+import android.view.Surface;
 import android.view.WindowManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.util.Range;
 import android.util.SparseArray;
 
 import com.cloudwebrtc.webrtc.record.AudioChannel;
@@ -43,6 +49,7 @@ import java.util.Map;
 
 import org.webrtc.*;
 import org.webrtc.audio.JavaAudioDeviceModule;
+import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
 
 import io.flutter.plugin.common.MethodChannel.Result;
 
@@ -858,6 +865,147 @@ class GetUserMediaImpl{
         VideoCapturer videoCapturer = mVideoCapturers.get(trackId);
         if (videoCapturer == null) {
             result.error("Video capturer not found for id: " + trackId, null, null);
+            return;
+        }
+
+        if (videoCapturer instanceof Camera2Capturer) {
+            Object session;
+            try {
+                Field currentSessionField = Camera2Capturer.class.getSuperclass().getDeclaredField("currentSession");
+                currentSessionField.setAccessible(true);
+                session = currentSessionField.get(videoCapturer);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera1Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
+                result.error("Failed to get `currentSession` from `Camera1Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            CameraManager manager;
+            try {
+                Field field = videoCapturer.getClass().getDeclaredField("cameraManager");
+                field.setAccessible(true);
+                manager = (CameraManager) field.get(videoCapturer);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `cameraManager` from `Camera2Capturer`");
+                result.error("Failed to get `cameraManager` from `Camera2Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            CameraCaptureSession captureSession;
+            try {
+                Field field = session.getClass().getDeclaredField("captureSession");
+                field.setAccessible(true);
+                captureSession = (CameraCaptureSession) field.get(session);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `captureSession` from `Camera2Capturer`");
+                result.error("Failed to get `captureSession` from `Camera2Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            CameraDevice cameraDevice;
+            try {
+                Field field = session.getClass().getDeclaredField("cameraDevice");
+                field.setAccessible(true);
+                cameraDevice = (CameraDevice) field.get(session);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `cameraDevice` from `Camera2Capturer`");
+                result.error("Failed to get `cameraDevice` from `Camera2Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            CaptureFormat captureFormat;
+            try {
+                Field field = session.getClass().getDeclaredField("captureFormat");
+                field.setAccessible(true);
+                captureFormat = (CaptureFormat) field.get(session);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `captureFormat` from `Camera2Capturer`");
+                result.error("Failed to get `captureFormat` from `Camera2Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            int fpsUnitFactor;
+            try {
+                Field field = session.getClass().getDeclaredField("fpsUnitFactor");
+                field.setAccessible(true);
+                fpsUnitFactor = (int) field.get(session);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `fpsUnitFactor` from `Camera2Capturer`");
+                result.error("Failed to get `fpsUnitFactor` from `Camera2Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            Surface surface;
+            try {
+                Field field = session.getClass().getDeclaredField("surface");
+                field.setAccessible(true);
+                surface = (Surface) field.get(session);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `surface` from `Camera2Capturer`");
+                result.error("Failed to get `surface` from `Camera2Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            Handler cameraThreadHandler;
+            try {
+                Field field = session.getClass().getDeclaredField("cameraThreadHandler");
+                field.setAccessible(true);
+                cameraThreadHandler = (Handler) field.get(session);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `cameraThreadHandler` from `Camera2Capturer`");
+                result.error("Failed to get `cameraThreadHandler` from `Camera2Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            try {
+                final CaptureRequest.Builder captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+                captureRequestBuilder.set(CaptureRequest.FLASH_MODE, torch ? CaptureRequest.FLASH_MODE_TORCH : CaptureRequest.FLASH_MODE_OFF);
+                captureRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
+                    new Range<Integer>(captureFormat.framerate.min / fpsUnitFactor,
+                        captureFormat.framerate.max / fpsUnitFactor));
+                captureRequestBuilder.set(
+                    CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+                captureRequestBuilder.set(CaptureRequest.CONTROL_AE_LOCK, false);
+                captureRequestBuilder.addTarget(surface);
+                captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, cameraThreadHandler);
+            } catch (CameraAccessException e) {
+                // Should never happen since we are already accessing the camera
+                throw new RuntimeException(e);
+            }
+
+            result.success(null);
             return;
         }
 
