@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
@@ -811,6 +812,65 @@ class GetUserMediaImpl{
         VideoCapturer videoCapturer = mVideoCapturers.get(trackId);
         if (videoCapturer == null) {
             result.error("Video capturer not found for id: " + trackId, null, null);
+            return;
+        }
+
+        if (videoCapturer instanceof Camera2Capturer) {
+            Object session;
+            try {
+                Field currentSessionField = Camera2Capturer.class.getSuperclass().getDeclaredField("currentSession");
+                currentSessionField.setAccessible(true);
+                session = currentSessionField.get(videoCapturer);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera1Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
+                result.error("Failed to get `currentSession` from `Camera1Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            CameraManager manager;
+            try {
+                Field field = videoCapturer.getClass().getDeclaredField("cameraManager");
+                field.setAccessible(true);
+                manager = (CameraManager) field.get(videoCapturer);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `cameraManager` from `Camera2Capturer`");
+                result.error("Failed to get `cameraManager` from `Camera2Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            CameraDevice cameraDevice;
+            try {
+                Field field = session.getClass().getDeclaredField("cameraDevice");
+                field.setAccessible(true);
+                cameraDevice = (CameraDevice) field.get(session);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `cameraDevice` from `Camera2Capturer`");
+                result.error("Failed to get `cameraDevice` from `Camera2Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            boolean flashIsAvailable;
+            try {
+                CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraDevice.getId());
+                flashIsAvailable = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+            } catch (CameraAccessException e) {
+                // Should never happen since we are already accessing the camera
+                throw new RuntimeException(e);
+            }
+
+            result.success(flashIsAvailable);
             return;
         }
 
