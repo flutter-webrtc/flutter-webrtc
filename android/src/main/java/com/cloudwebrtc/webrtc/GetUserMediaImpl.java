@@ -816,33 +816,17 @@ class GetUserMediaImpl{
         }
 
         if (videoCapturer instanceof Camera2Capturer) {
-            Object session;
-            try {
-                session = getPrivateProperty(Camera2Capturer.class.getSuperclass(), videoCapturer, "currentSession");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera1Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
-                result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
-                return;
-            }
-
             CameraManager manager;
-            try {
-                manager = (CameraManager) getPrivateProperty(Camera2Capturer.class, videoCapturer, "cameraManager");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `cameraManager` from `Camera2Capturer`");
-                result.error(null, "Failed to get `cameraManager` from `Camera2Capturer`", null);
-                return;
-            }
-
             CameraDevice cameraDevice;
+
             try {
+                Object session = getPrivateProperty(Camera2Capturer.class.getSuperclass(), videoCapturer, "currentSession");
+                manager = (CameraManager) getPrivateProperty(Camera2Capturer.class, videoCapturer, "cameraManager");
                 cameraDevice = (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
-            } catch (NoSuchFieldException e) {
+            } catch (NoSuchFieldWithNameException e) {
                 // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `cameraDevice` from `Camera2Capturer`");
-                result.error(null, "Failed to get `cameraDevice` from `Camera2Capturer`", null);
+                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
+                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
                 return;
             }
 
@@ -860,23 +844,15 @@ class GetUserMediaImpl{
         }
 
         if (videoCapturer instanceof Camera1Capturer) {
-            Object session;
-            try {
-                session = getPrivateProperty(Camera1Capturer.class.getSuperclass(), videoCapturer, "currentSession");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera1Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
-                result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
-                return;
-            }
-
             Camera camera;
+
             try {
+                Object session = getPrivateProperty(Camera1Capturer.class.getSuperclass(), videoCapturer, "currentSession");
                 camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera1Session class have changed
-                Log.e(TAG, "[TORCH] Failed to get `camera` from `Camera1Session`");
-                result.error(null, "Failed to get `camera` from `Camera1Session`", null);
+            } catch (NoSuchFieldWithNameException e) {
+                // Most likely the upstream Camera1Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
+                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
                 return;
             }
 
@@ -899,83 +875,26 @@ class GetUserMediaImpl{
         }
 
         if (videoCapturer instanceof Camera2Capturer) {
-            Object session;
-            try {
-                session = getPrivateProperty(Camera2Capturer.class.getSuperclass(), videoCapturer, "currentSession");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera1Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
-                result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
-                return;
-            }
-
-            CameraManager manager;
-            try {
-                manager = (CameraManager) getPrivateProperty(Camera2Capturer.class, videoCapturer, "cameraManager");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `cameraManager` from `Camera2Capturer`");
-                result.error(null, "Failed to get `cameraManager` from `Camera2Capturer`", null);
-                return;
-            }
-
             CameraCaptureSession captureSession;
-            try {
-                captureSession = (CameraCaptureSession) getPrivateProperty(session.getClass(), session, "captureSession");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `captureSession` from `Camera2Capturer`");
-                result.error(null, "Failed to get `captureSession` from `Camera2Capturer`", null);
-                return;
-            }
-
             CameraDevice cameraDevice;
-            try {
-                cameraDevice = (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `cameraDevice` from `Camera2Capturer`");
-                result.error(null, "Failed to get `cameraDevice` from `Camera2Capturer`", null);
-                return;
-            }
-
             CaptureFormat captureFormat;
-            try {
-                captureFormat = (CaptureFormat) getPrivateProperty(session.getClass(), session, "captureFormat");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `captureFormat` from `Camera2Capturer`");
-                result.error(null, "Failed to get `captureFormat` from `Camera2Capturer`", null);
-                return;
-            }
-
             int fpsUnitFactor;
-            try {
-                fpsUnitFactor = (int) getPrivateProperty(session.getClass(), session, "fpsUnitFactor");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `fpsUnitFactor` from `Camera2Capturer`");
-                result.error(null, "Failed to get `fpsUnitFactor` from `Camera2Capturer`", null);
-                return;
-            }
-
             Surface surface;
-            try {
-                surface = (Surface) getPrivateProperty(session.getClass(), session, "surface");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `surface` from `Camera2Capturer`");
-                result.error(null, "Failed to get `surface` from `Camera2Capturer`", null);
-                return;
-            }
-
             Handler cameraThreadHandler;
+
             try {
+                Object session = getPrivateProperty(Camera2Capturer.class.getSuperclass(), videoCapturer, "currentSession");
+                CameraManager manager = (CameraManager) getPrivateProperty(Camera2Capturer.class, videoCapturer, "cameraManager");
+                captureSession = (CameraCaptureSession) getPrivateProperty(session.getClass(), session, "captureSession");
+                cameraDevice = (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
+                captureFormat = (CaptureFormat) getPrivateProperty(session.getClass(), session, "captureFormat");
+                fpsUnitFactor = (int) getPrivateProperty(session.getClass(), session, "fpsUnitFactor");
+                surface = (Surface) getPrivateProperty(session.getClass(), session, "surface");
                 cameraThreadHandler = (Handler) getPrivateProperty(session.getClass(), session, "cameraThreadHandler");
-            } catch (NoSuchFieldException e) {
+            } catch (NoSuchFieldWithNameException e) {
                 // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `cameraThreadHandler` from `Camera2Capturer`");
-                result.error(null, "Failed to get `cameraThreadHandler` from `Camera2Capturer`", null);
+                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
+                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
                 return;
             }
 
@@ -1000,23 +919,14 @@ class GetUserMediaImpl{
         }
 
         if (videoCapturer instanceof Camera1Capturer) {
-            Object session;
-            try {
-                session = getPrivateProperty(Camera1Capturer.class.getSuperclass(), videoCapturer, "currentSession");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera1Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
-                result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
-                return;
-            }
-
             Camera camera;
             try {
+                Object session = getPrivateProperty(Camera1Capturer.class.getSuperclass(), videoCapturer, "currentSession");
                 camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
-            } catch (NoSuchFieldException e) {
-                // Most likely the upstream Camera1Session class have changed
-                Log.e(TAG, "[TORCH] Failed to get `camera` from `Camera1Session`");
-                result.error(null, "Failed to get `camera` from `Camera1Session`", null);
+            } catch (NoSuchFieldWithNameException e) {
+                // Most likely the upstream Camera1Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
+                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
                 return;
             }
 
@@ -1032,14 +942,27 @@ class GetUserMediaImpl{
         result.error(null, "Video capturer not compatible", null);
     }
 
-    private Object getPrivateProperty (Class klass, Object object, String fieldName) throws NoSuchFieldException {
+    private Object getPrivateProperty (Class klass, Object object, String fieldName) throws NoSuchFieldWithNameException {
         try {
             Field field = klass.getDeclaredField(fieldName);
             field.setAccessible(true);
             return field.get(object);
+        } catch (NoSuchFieldException e) {
+            throw new NoSuchFieldWithNameException(klass.getName(), fieldName, e);
         } catch (IllegalAccessException e) {
             // Should never happen since we are calling `setAccessible(true)`
             throw new RuntimeException(e);
+        }
+    }
+
+    private class NoSuchFieldWithNameException extends NoSuchFieldException {
+        String className;
+        String fieldName;
+
+        NoSuchFieldWithNameException(String className, String fieldName, NoSuchFieldException e) {
+            super(e.getMessage());
+            this.className = className;
+            this.fieldName = fieldName;
         }
     }
 }
