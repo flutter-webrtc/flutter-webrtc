@@ -818,47 +818,32 @@ class GetUserMediaImpl{
         if (videoCapturer instanceof Camera2Capturer) {
             Object session;
             try {
-                Field currentSessionField = Camera2Capturer.class.getSuperclass().getDeclaredField("currentSession");
-                currentSessionField.setAccessible(true);
-                session = currentSessionField.get(videoCapturer);
+                session = getPrivateProperty(Camera2Capturer.class.getSuperclass(), videoCapturer, "currentSession");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
                 result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             CameraManager manager;
             try {
-                Field field = videoCapturer.getClass().getDeclaredField("cameraManager");
-                field.setAccessible(true);
-                manager = (CameraManager) field.get(videoCapturer);
+                manager = (CameraManager) getPrivateProperty(Camera2Capturer.class, videoCapturer, "cameraManager");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `cameraManager` from `Camera2Capturer`");
                 result.error(null, "Failed to get `cameraManager` from `Camera2Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             CameraDevice cameraDevice;
             try {
-                Field field = session.getClass().getDeclaredField("cameraDevice");
-                field.setAccessible(true);
-                cameraDevice = (CameraDevice) field.get(session);
+                cameraDevice = (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `cameraDevice` from `Camera2Capturer`");
                 result.error(null, "Failed to get `cameraDevice` from `Camera2Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             boolean flashIsAvailable;
@@ -877,43 +862,28 @@ class GetUserMediaImpl{
         if (videoCapturer instanceof Camera1Capturer) {
             Object session;
             try {
-                Field currentSessionField = Camera1Capturer.class.getSuperclass().getDeclaredField("currentSession");
-                currentSessionField.setAccessible(true);
-                session = currentSessionField.get(videoCapturer);
+                session = getPrivateProperty(Camera1Capturer.class.getSuperclass(), videoCapturer, "currentSession");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
                 result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             Camera camera;
             try {
-                Field cameraField = session.getClass().getDeclaredField("camera");
-                cameraField.setAccessible(true);
-                camera = (Camera) cameraField.get(session);
+                camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Session class have changed
                 Log.e(TAG, "[TORCH] Failed to get `camera` from `Camera1Session`");
                 result.error(null, "Failed to get `camera` from `Camera1Session`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             Camera.Parameters params = camera.getParameters();
             List<String> supportedModes = params.getSupportedFlashModes();
 
-            if (supportedModes == null) {
-                result.success(false);
-                return;
-            }
-
-            result.success(supportedModes.contains(Camera.Parameters.FLASH_MODE_TORCH));
+            result.success((supportedModes == null) ? false : supportedModes.contains(Camera.Parameters.FLASH_MODE_TORCH));
             return;
         }
 
@@ -931,122 +901,82 @@ class GetUserMediaImpl{
         if (videoCapturer instanceof Camera2Capturer) {
             Object session;
             try {
-                Field currentSessionField = Camera2Capturer.class.getSuperclass().getDeclaredField("currentSession");
-                currentSessionField.setAccessible(true);
-                session = currentSessionField.get(videoCapturer);
+                session = getPrivateProperty(Camera2Capturer.class.getSuperclass(), videoCapturer, "currentSession");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
                 result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             CameraManager manager;
             try {
-                Field field = videoCapturer.getClass().getDeclaredField("cameraManager");
-                field.setAccessible(true);
-                manager = (CameraManager) field.get(videoCapturer);
+                manager = (CameraManager) getPrivateProperty(Camera2Capturer.class, videoCapturer, "cameraManager");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `cameraManager` from `Camera2Capturer`");
                 result.error(null, "Failed to get `cameraManager` from `Camera2Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             CameraCaptureSession captureSession;
             try {
-                Field field = session.getClass().getDeclaredField("captureSession");
-                field.setAccessible(true);
-                captureSession = (CameraCaptureSession) field.get(session);
+                captureSession = (CameraCaptureSession) getPrivateProperty(session.getClass(), session, "captureSession");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `captureSession` from `Camera2Capturer`");
                 result.error(null, "Failed to get `captureSession` from `Camera2Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             CameraDevice cameraDevice;
             try {
-                Field field = session.getClass().getDeclaredField("cameraDevice");
-                field.setAccessible(true);
-                cameraDevice = (CameraDevice) field.get(session);
+                cameraDevice = (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `cameraDevice` from `Camera2Capturer`");
                 result.error(null, "Failed to get `cameraDevice` from `Camera2Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             CaptureFormat captureFormat;
             try {
-                Field field = session.getClass().getDeclaredField("captureFormat");
-                field.setAccessible(true);
-                captureFormat = (CaptureFormat) field.get(session);
+                captureFormat = (CaptureFormat) getPrivateProperty(session.getClass(), session, "captureFormat");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `captureFormat` from `Camera2Capturer`");
                 result.error(null, "Failed to get `captureFormat` from `Camera2Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             int fpsUnitFactor;
             try {
-                Field field = session.getClass().getDeclaredField("fpsUnitFactor");
-                field.setAccessible(true);
-                fpsUnitFactor = (int) field.get(session);
+                fpsUnitFactor = (int) getPrivateProperty(session.getClass(), session, "fpsUnitFactor");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `fpsUnitFactor` from `Camera2Capturer`");
                 result.error(null, "Failed to get `fpsUnitFactor` from `Camera2Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             Surface surface;
             try {
-                Field field = session.getClass().getDeclaredField("surface");
-                field.setAccessible(true);
-                surface = (Surface) field.get(session);
+                surface = (Surface) getPrivateProperty(session.getClass(), session, "surface");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `surface` from `Camera2Capturer`");
                 result.error(null, "Failed to get `surface` from `Camera2Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             Handler cameraThreadHandler;
             try {
-                Field field = session.getClass().getDeclaredField("cameraThreadHandler");
-                field.setAccessible(true);
-                cameraThreadHandler = (Handler) field.get(session);
+                cameraThreadHandler = (Handler) getPrivateProperty(session.getClass(), session, "cameraThreadHandler");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `cameraThreadHandler` from `Camera2Capturer`");
                 result.error(null, "Failed to get `cameraThreadHandler` from `Camera2Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             try {
@@ -1072,32 +1002,22 @@ class GetUserMediaImpl{
         if (videoCapturer instanceof Camera1Capturer) {
             Object session;
             try {
-                Field currentSessionField = Camera1Capturer.class.getSuperclass().getDeclaredField("currentSession");
-                currentSessionField.setAccessible(true);
-                session = currentSessionField.get(videoCapturer);
+                session = getPrivateProperty(Camera1Capturer.class.getSuperclass(), videoCapturer, "currentSession");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
                 result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             Camera camera;
             try {
-                Field cameraField = session.getClass().getDeclaredField("camera");
-                cameraField.setAccessible(true);
-                camera = (Camera) cameraField.get(session);
+                camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Session class have changed
                 Log.e(TAG, "[TORCH] Failed to get `camera` from `Camera1Session`");
                 result.error(null, "Failed to get `camera` from `Camera1Session`", null);
                 return;
-            } catch (IllegalAccessException e) {
-                // Should never happen since we are calling `setAccessible(true)`
-                throw new RuntimeException(e);
             }
 
             Camera.Parameters params = camera.getParameters();
@@ -1110,5 +1030,16 @@ class GetUserMediaImpl{
 
         Log.e(TAG, "[TORCH] Video capturer not compatible");
         result.error(null, "Video capturer not compatible", null);
+    }
+
+    private Object getPrivateProperty (Class klass, Object object, String fieldName) throws NoSuchFieldException {
+        try {
+            Field field = klass.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(object);
+        } catch (IllegalAccessException e) {
+            // Should never happen since we are calling `setAccessible(true)`
+            throw new RuntimeException(e);
+        }
     }
 }
