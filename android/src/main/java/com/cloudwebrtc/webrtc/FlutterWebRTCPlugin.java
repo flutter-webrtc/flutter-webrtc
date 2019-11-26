@@ -375,9 +375,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 if (track instanceof VideoTrack)
                     new FrameCapturer((VideoTrack) track, new File(path), result);
                 else
-                    result.error("It's not video track", null, null);
+                    result.error(null, "It's not video track", null);
             } else {
-                result.error("Track is null", null, null);
+                result.error(null, "Track is null", null);
             }
         } else if (call.method.equals("getLocalDescription")) {
             String peerConnectionId = call.argument("peerConnectionId");
