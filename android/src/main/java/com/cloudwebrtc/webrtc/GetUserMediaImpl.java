@@ -754,7 +754,7 @@ class GetUserMediaImpl{
     void switchCamera(String id, Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(id);
         if (videoCapturer == null) {
-            result.error("Video capturer not found for id: " + id, null, null);
+            result.error(null, "Video capturer not found for id: " + id, null);
             return;
         }
 
@@ -811,7 +811,7 @@ class GetUserMediaImpl{
     void hasTorch(String trackId, Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(trackId);
         if (videoCapturer == null) {
-            result.error("Video capturer not found for id: " + trackId, null, null);
+            result.error(null, "Video capturer not found for id: " + trackId, null);
             return;
         }
 
@@ -824,7 +824,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
-                result.error("Failed to get `currentSession` from `Camera1Capturer`", null, null);
+                result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -839,7 +839,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `cameraManager` from `Camera2Capturer`");
-                result.error("Failed to get `cameraManager` from `Camera2Capturer`", null, null);
+                result.error(null, "Failed to get `cameraManager` from `Camera2Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -854,7 +854,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `cameraDevice` from `Camera2Capturer`");
-                result.error("Failed to get `cameraDevice` from `Camera2Capturer`", null, null);
+                result.error(null, "Failed to get `cameraDevice` from `Camera2Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -883,7 +883,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
-                result.error("Failed to get `currentSession` from `Camera1Capturer`", null, null);
+                result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -898,7 +898,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Session class have changed
                 Log.e(TAG, "[TORCH] Failed to get `camera` from `Camera1Session`");
-                result.error("Failed to get `camera` from `Camera1Session`", null, null);
+                result.error(null, "Failed to get `camera` from `Camera1Session`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -918,13 +918,13 @@ class GetUserMediaImpl{
         }
 
         Log.e(TAG, "[TORCH] Video capturer not compatible");
-        result.error("Video capturer not compatible", null, null);
+        result.error(null, "Video capturer not compatible", null);
     }
 
     void setTorch(String trackId, boolean torch, Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(trackId);
         if (videoCapturer == null) {
-            result.error("Video capturer not found for id: " + trackId, null, null);
+            result.error(null, "Video capturer not found for id: " + trackId, null);
             return;
         }
 
@@ -937,7 +937,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
-                result.error("Failed to get `currentSession` from `Camera1Capturer`", null, null);
+                result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -952,7 +952,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `cameraManager` from `Camera2Capturer`");
-                result.error("Failed to get `cameraManager` from `Camera2Capturer`", null, null);
+                result.error(null, "Failed to get `cameraManager` from `Camera2Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -967,7 +967,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `captureSession` from `Camera2Capturer`");
-                result.error("Failed to get `captureSession` from `Camera2Capturer`", null, null);
+                result.error(null, "Failed to get `captureSession` from `Camera2Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -982,7 +982,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `cameraDevice` from `Camera2Capturer`");
-                result.error("Failed to get `cameraDevice` from `Camera2Capturer`", null, null);
+                result.error(null, "Failed to get `cameraDevice` from `Camera2Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -997,7 +997,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `captureFormat` from `Camera2Capturer`");
-                result.error("Failed to get `captureFormat` from `Camera2Capturer`", null, null);
+                result.error(null, "Failed to get `captureFormat` from `Camera2Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -1012,7 +1012,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `fpsUnitFactor` from `Camera2Capturer`");
-                result.error("Failed to get `fpsUnitFactor` from `Camera2Capturer`", null, null);
+                result.error(null, "Failed to get `fpsUnitFactor` from `Camera2Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -1027,7 +1027,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `surface` from `Camera2Capturer`");
-                result.error("Failed to get `surface` from `Camera2Capturer`", null, null);
+                result.error(null, "Failed to get `surface` from `Camera2Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -1042,7 +1042,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera2Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `cameraThreadHandler` from `Camera2Capturer`");
-                result.error("Failed to get `cameraThreadHandler` from `Camera2Capturer`", null, null);
+                result.error(null, "Failed to get `cameraThreadHandler` from `Camera2Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -1078,7 +1078,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Capturer class have changed
                 Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
-                result.error("Failed to get `currentSession` from `Camera1Capturer`", null, null);
+                result.error(null, "Failed to get `currentSession` from `Camera1Capturer`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -1093,7 +1093,7 @@ class GetUserMediaImpl{
             } catch (NoSuchFieldException e) {
                 // Most likely the upstream Camera1Session class have changed
                 Log.e(TAG, "[TORCH] Failed to get `camera` from `Camera1Session`");
-                result.error("Failed to get `camera` from `Camera1Session`", null, null);
+                result.error(null, "Failed to get `camera` from `Camera1Session`", null);
                 return;
             } catch (IllegalAccessException e) {
                 // Should never happen since we are calling `setAccessible(true)`
@@ -1109,6 +1109,6 @@ class GetUserMediaImpl{
         }
 
         Log.e(TAG, "[TORCH] Video capturer not compatible");
-        result.error("Video capturer not compatible", null, null);
+        result.error(null, "Video capturer not compatible", null);
     }
 }
