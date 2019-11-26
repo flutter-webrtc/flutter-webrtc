@@ -454,78 +454,79 @@ class GetUserMediaImpl{
                         result.error(null, "User revoked permission to capture the screen.", null);
                     }
                 });
-                if (videoCapturer != null) {
-                    PeerConnectionFactory pcFactory = plugin.mFactory;
-                    VideoSource videoSource = pcFactory.createVideoSource(true);
-
-                    Context context = plugin.getContext();
-                    String threadName = Thread.currentThread().getName();
-                    SurfaceTextureHelper surfaceTextureHelper = SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
-                    videoCapturer.initialize(surfaceTextureHelper, context, videoSource.getCapturerObserver());
-
-                    WindowManager wm = (WindowManager) applicationContext
-                            .getSystemService(Context.WINDOW_SERVICE);
-
-                    int width = wm.getDefaultDisplay().getWidth();
-                    int height = wm.getDefaultDisplay().getHeight();
-                    int fps = DEFAULT_FPS;
-
-                    videoCapturer.startCapture(width, height, fps);
-                    Log.d(TAG, "ScreenCapturerAndroid.startCapture: " + width + "x" + height + "@" + fps);
-
-                    String trackId = plugin.getNextTrackUUID();
-                    mVideoCapturers.put(trackId, videoCapturer);
-
-                    tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
-
-                    ConstraintsArray audioTracks = new ConstraintsArray();
-                    ConstraintsArray videoTracks = new ConstraintsArray();
-                    ConstraintsMap successResult = new ConstraintsMap();
-
-                    for (MediaStreamTrack track : tracks) {
-                        if (track == null) {
-                            continue;
-                        }
-
-                        String id = track.id();
-
-                        if (track instanceof AudioTrack) {
-                            mediaStream.addTrack((AudioTrack) track);
-                        } else {
-                            mediaStream.addTrack((VideoTrack) track);
-                        }
-                        plugin.localTracks.put(id, track);
-
-                        ConstraintsMap track_ = new ConstraintsMap();
-                        String kind = track.kind();
-
-                        track_.putBoolean("enabled", track.enabled());
-                        track_.putString("id", id);
-                        track_.putString("kind", kind);
-                        track_.putString("label", kind);
-                        track_.putString("readyState", track.state().toString());
-                        track_.putBoolean("remote", false);
-
-                        if (track instanceof AudioTrack) {
-                            audioTracks.pushMap(track_);
-                        } else {
-                            videoTracks.pushMap(track_);
-                        }
-                    }
-
-                    String streamId = mediaStream.getId();
-
-                    Log.d(TAG, "MediaStream id: " + streamId);
-                    plugin.localStreams.put(streamId, mediaStream);
-                    successResult.putString("streamId", streamId);
-                    successResult.putArray("audioTracks", audioTracks.toArrayList());
-                    successResult.putArray("videoTracks", videoTracks.toArrayList());
-                    result.success(successResult.toMap());
-                }else{
+                if (videoCapturer == null) {
                     result.error(
                         /* type */ "GetDisplayMediaFailed",
                            "Failed to create new VideoCapturer!", null);
+                    return;
                 }
+
+                PeerConnectionFactory pcFactory = plugin.mFactory;
+                VideoSource videoSource = pcFactory.createVideoSource(true);
+
+                Context context = plugin.getContext();
+                String threadName = Thread.currentThread().getName();
+                SurfaceTextureHelper surfaceTextureHelper = SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
+                videoCapturer.initialize(surfaceTextureHelper, context, videoSource.getCapturerObserver());
+
+                WindowManager wm = (WindowManager) applicationContext
+                        .getSystemService(Context.WINDOW_SERVICE);
+
+                int width = wm.getDefaultDisplay().getWidth();
+                int height = wm.getDefaultDisplay().getHeight();
+                int fps = DEFAULT_FPS;
+
+                videoCapturer.startCapture(width, height, fps);
+                Log.d(TAG, "ScreenCapturerAndroid.startCapture: " + width + "x" + height + "@" + fps);
+
+                String trackId = plugin.getNextTrackUUID();
+                mVideoCapturers.put(trackId, videoCapturer);
+
+                tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
+
+                ConstraintsArray audioTracks = new ConstraintsArray();
+                ConstraintsArray videoTracks = new ConstraintsArray();
+                ConstraintsMap successResult = new ConstraintsMap();
+
+                for (MediaStreamTrack track : tracks) {
+                    if (track == null) {
+                        continue;
+                    }
+
+                    String id = track.id();
+
+                    if (track instanceof AudioTrack) {
+                        mediaStream.addTrack((AudioTrack) track);
+                    } else {
+                        mediaStream.addTrack((VideoTrack) track);
+                    }
+                    plugin.localTracks.put(id, track);
+
+                    ConstraintsMap track_ = new ConstraintsMap();
+                    String kind = track.kind();
+
+                    track_.putBoolean("enabled", track.enabled());
+                    track_.putString("id", id);
+                    track_.putString("kind", kind);
+                    track_.putString("label", kind);
+                    track_.putString("readyState", track.state().toString());
+                    track_.putBoolean("remote", false);
+
+                    if (track instanceof AudioTrack) {
+                        audioTracks.pushMap(track_);
+                    } else {
+                        videoTracks.pushMap(track_);
+                    }
+                }
+
+                String streamId = mediaStream.getId();
+
+                Log.d(TAG, "MediaStream id: " + streamId);
+                plugin.localStreams.put(streamId, mediaStream);
+                successResult.putString("streamId", streamId);
+                successResult.putArray("audioTracks", audioTracks.toArrayList());
+                successResult.putArray("videoTracks", videoTracks.toArrayList());
+                result.success(successResult.toMap());
             }
         });
     }
@@ -741,22 +742,23 @@ class GetUserMediaImpl{
 
     void switchCamera(String id, Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(id);
-        if (videoCapturer != null) {
-            CameraVideoCapturer cameraVideoCapturer
-                = (CameraVideoCapturer) videoCapturer;
-            cameraVideoCapturer.switchCamera(new CameraVideoCapturer.CameraSwitchHandler() {
-                @Override
-                public void onCameraSwitchDone(boolean b) {
-                    result.success(b);
-                }
-                @Override
-                public void onCameraSwitchError(String s) {
-                    result.error("Switching camera failed", s, null);
-                }
-            });
-        } else {
+        if (videoCapturer == null) {
             result.error("Video capturer not found for id: " + id, null, null);
+            return;
         }
+
+        CameraVideoCapturer cameraVideoCapturer
+            = (CameraVideoCapturer) videoCapturer;
+        cameraVideoCapturer.switchCamera(new CameraVideoCapturer.CameraSwitchHandler() {
+            @Override
+            public void onCameraSwitchDone(boolean b) {
+                result.success(b);
+            }
+            @Override
+            public void onCameraSwitchError(String s) {
+                result.error("Switching camera failed", s, null);
+            }
+        });
     }
 
     /** Creates and starts recording of local stream to file
