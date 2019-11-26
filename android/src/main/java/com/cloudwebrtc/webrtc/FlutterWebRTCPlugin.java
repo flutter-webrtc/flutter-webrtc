@@ -309,6 +309,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             MediaStream stream = getStreamForId(streamId);
             render.setStream(stream);
             result.success(null);
+        } else if (call.method.equals("mediaStreamTrackHasTorch")) {
+            String trackId = call.argument("trackId");
+            getUserMediaImpl.hasTorch(trackId, result);
         } else if (call.method.equals("mediaStreamTrackSetTorch")) {
             String trackId = call.argument("trackId");
             boolean torch = call.argument("torch");
