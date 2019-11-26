@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
+import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -797,6 +798,60 @@ class GetUserMediaImpl{
                 applicationContext.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
             }
         }
+    }
+
+    void hasTorch(String trackId, Result result) {
+        VideoCapturer videoCapturer = mVideoCapturers.get(trackId);
+        if (videoCapturer == null) {
+            result.error("Video capturer not found for id: " + trackId, null, null);
+            return;
+        }
+
+        if (videoCapturer instanceof Camera1Capturer) {
+            Object session;
+            try {
+                Field currentSessionField = Camera1Capturer.class.getSuperclass().getDeclaredField("currentSession");
+                currentSessionField.setAccessible(true);
+                session = currentSessionField.get(videoCapturer);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera1Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `currentSession` from `Camera1Capturer`");
+                result.error("Failed to get `currentSession` from `Camera1Capturer`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            Camera camera;
+            try {
+                Field cameraField = session.getClass().getDeclaredField("camera");
+                cameraField.setAccessible(true);
+                camera = (Camera) cameraField.get(session);
+            } catch (NoSuchFieldException e) {
+                // Most likely the upstream Camera1Session class have changed
+                Log.e(TAG, "[TORCH] Failed to get `camera` from `Camera1Session`");
+                result.error("Failed to get `camera` from `Camera1Session`", null, null);
+                return;
+            } catch (IllegalAccessException e) {
+                // Should never happen since we are calling `setAccessible(true)`
+                throw new RuntimeException(e);
+            }
+
+            Camera.Parameters params = camera.getParameters();
+            List<String> supportedModes = params.getSupportedFlashModes();
+
+            if (supportedModes == null) {
+                result.success(false);
+                return;
+            }
+
+            result.success(supportedModes.contains(Camera.Parameters.FLASH_MODE_TORCH));
+            return;
+        }
+
+        Log.e(TAG, "[TORCH] Video capturer not compatible");
+        result.error("Video capturer not compatible", null, null);
     }
 
     void setTorch(String trackId, boolean torch, Result result) {
