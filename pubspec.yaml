@@ -20,16 +20,10 @@ flutter:
         pluginClass: FlutterWebRTCPlugin
       macos:
         pluginClass: FlutterWebRTCPlugin
-
+      web:
+        pluginClass: FlutterWebRTCPlugin
+        fileName: lib/web/web_plugin.dart
+    
 environment:
   sdk: ">=2.2.2 <3.0.0"
 
-platforms:
-  android:
-    package: com.cloudwebrtc.webrtc
-    pluginClass: FlutterWebRTCPlugin
-  ios:
-    pluginClass: FlutterWebRTCPlugin
-  web:
-    pluginClass: FlutterWebRTCPlugin
-    fileName: lib/web/web_plugin.dart
