@@ -61,6 +61,15 @@ class RTCVideoRenderer {
     }
   }
 
+  void setSrcObjectForId(MediaStream stream, String peerConnectionId) {
+    _srcObject=stream;
+    _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
+      'textureId': _textureId,
+      'streamId': stream != null ? stream.id : '',
+      'peerConnectionId': peerConnectionId
+    });
+  }
+
   set srcObject(MediaStream stream) {
     _srcObject = stream;
     _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{

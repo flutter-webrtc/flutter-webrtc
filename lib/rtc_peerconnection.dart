@@ -16,7 +16,7 @@ typedef void SignalingStateCallback(RTCSignalingState state);
 typedef void IceGatheringStateCallback(RTCIceGatheringState state);
 typedef void IceConnectionStateCallback(RTCIceConnectionState state);
 typedef void IceCandidateCallback(RTCIceCandidate candidate);
-typedef void AddStreamCallback(MediaStream stream);
+typedef void AddStreamCallback(MediaStream stream, String peerConnectionid);
 typedef void RemoveStreamCallback(MediaStream stream);
 typedef void AddTrackCallback(MediaStream stream, MediaStreamTrack track);
 typedef void RemoveTrackCallback(MediaStream stream, MediaStreamTrack track);
@@ -106,7 +106,7 @@ class RTCPeerConnection {
           _remoteStreams.add(newStream);
           return newStream;
         });
-        if (this.onAddStream != null) this.onAddStream(stream);
+        if (this.onAddStream != null) this.onAddStream(stream,_peerConnectionId);
         _remoteStreams.add(stream);
         break;
       case 'onRemoveStream':
