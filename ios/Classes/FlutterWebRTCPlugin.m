@@ -394,8 +394,9 @@
         NSNumber *textureId = argsMap[@"textureId"];
         FlutterRTCVideoRenderer *render = self.renders[textureId];
         NSString *streamId = argsMap[@"streamId"];
+        NSString *peerConnectionId = argsMap[@"peerConnectionId"];
         if(render){
-            [self setStreamId:streamId view:render];
+            [self setStreamId:streamId view:render peerConnectionId:peerConnectionId];
         }
         result(nil);
     }else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {
@@ -534,7 +535,7 @@
 
 -(void)mediaStreamGetTracks:(NSString*)streamId
                      result:(FlutterResult)result {
-    RTCMediaStream* stream = [self streamForId:streamId];
+    RTCMediaStream* stream = [self streamForId:streamId peerConnectionId:@""];
     if(stream){
         NSMutableArray *audioTracks = [NSMutableArray array];
         NSMutableArray *videoTracks = [NSMutableArray array];
@@ -571,16 +572,21 @@
     }
 }
 
-- (RTCMediaStream*)streamForId:(NSString*)streamId
+- (RTCMediaStream*)streamForId:(NSString*)streamId peerConnectionId:(NSString *)peerConnectionId
 {
     RTCMediaStream *stream = _localStreams[streamId];
     if (!stream) {
-        for (RTCPeerConnection *peerConnection in _peerConnections.allValues) {
-            stream = peerConnection.remoteStreams[streamId];
-            if (stream) {
-                break;
+        if (peerConnectionId.length > 0) {
+             RTCPeerConnection *peerConnection = [_peerConnections objectForKey:peerConnectionId];
+             stream = peerConnection.remoteStreams[streamId];
+        } else {
+            for (RTCPeerConnection *peerConnection in _peerConnections.allValues) {
+              stream = peerConnection.remoteStreams[streamId];
+              if (stream) {
+                   break;
+              }
             }
-        }
+       }
     }
     return stream;
 }

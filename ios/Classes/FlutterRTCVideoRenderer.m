@@ -261,10 +261,10 @@
     return [[FlutterRTCVideoRenderer alloc] initWithTextureRegistry:registry messenger:messenger];
 }
 
--(void)setStreamId:(NSString*)streamId view:(FlutterRTCVideoRenderer*)view {
+-(void)setStreamId:(NSString*)streamId view:(FlutterRTCVideoRenderer*)view peerConnectionId:(NSString *)peerConnectionId{
     
     RTCVideoTrack *videoTrack;
-    RTCMediaStream *stream = [self streamForId:streamId];
+    RTCMediaStream *stream = [self streamForId:streamId peerConnectionId:peerConnectionId];
     if(stream){
         NSArray *videoTracks = stream ? stream.videoTracks : nil;
         videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
