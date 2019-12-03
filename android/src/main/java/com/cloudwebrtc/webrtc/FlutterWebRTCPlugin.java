@@ -152,7 +152,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             peerConnectionCreateAnswer(peerConnectionId, new ConstraintsMap(constraints), result);
         } else if (call.method.equals("mediaStreamGetTracks")) {
             String streamId = call.argument("streamId");
-            MediaStream stream = getStreamForId(streamId);
+            MediaStream stream = getStreamForId(streamId,"");
             Map<String, Object> resultMap = new HashMap<>();
             List<Object> audioTracks = new ArrayList<>();
             List<Object> videoTracks = new ArrayList<>();
@@ -298,7 +298,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else if (call.method.equals("videoRendererSetSrcObject")) {
             int textureId = call.argument("textureId");
             String streamId = call.argument("streamId");
-
+            String peerConnectionId = call.argument("peerConnectionId");
             FlutterRTCVideoRenderer render = renders.get(textureId);
 
             if (render == null) {
@@ -306,7 +306,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 return;
             }
 
-            MediaStream stream = getStreamForId(streamId);
+            MediaStream stream = getStreamForId(streamId, peerConnectionId);
             render.setStream(stream);
             result.success(null);
         } else if (call.method.equals("mediaStreamTrackHasTorch")) {
@@ -702,7 +702,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
         do {
             uuid = UUID.randomUUID().toString();
-        } while (getStreamForId(uuid) != null);
+        } while (getStreamForId(uuid,"") != null);
 
         return uuid;
     }
@@ -717,15 +717,20 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         return uuid;
     }
 
-    MediaStream getStreamForId(String id) {
+    MediaStream getStreamForId(String id, String peerConnectionId) {
         MediaStream stream = localStreams.get(id);
 
         if (stream == null) {
-            for (Map.Entry<String, PeerConnectionObserver> entry : mPeerConnectionObservers.entrySet()) {
-                PeerConnectionObserver pco = entry.getValue();
+            if (peerConnectionId.length() > 0) {
+                PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
                 stream = pco.remoteStreams.get(id);
-                if (stream != null) {
-                    break;
+            } else {
+                for (Map.Entry<String, PeerConnectionObserver> entry : mPeerConnectionObservers.entrySet()) {
+                    PeerConnectionObserver pco = entry.getValue();
+                    stream = pco.remoteStreams.get(id);
+                    if (stream != null) {
+                        break;
+                    }
                 }
             }
         }
