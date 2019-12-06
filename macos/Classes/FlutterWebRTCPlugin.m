@@ -493,16 +493,21 @@
     }
 }
 
-- (RTCMediaStream*)streamForId:(NSString*)streamId
+- (RTCMediaStream*)streamForId:(NSString*)streamId peerConnectionId:(NSString *)peerConnectionId
 {
     RTCMediaStream *stream = _localStreams[streamId];
     if (!stream) {
-        for (RTCPeerConnection *peerConnection in _peerConnections.allValues) {
-            stream = peerConnection.remoteStreams[streamId];
-            if (stream) {
-                break;
+        if (peerConnectionId.length > 0) {
+             RTCPeerConnection *peerConnection = [_peerConnections objectForKey:peerConnectionId];
+             stream = peerConnection.remoteStreams[streamId];
+        } else {
+            for (RTCPeerConnection *peerConnection in _peerConnections.allValues) {
+              stream = peerConnection.remoteStreams[streamId];
+              if (stream) {
+                   break;
+              }
             }
-        }
+       }
     }
     return stream;
 }
