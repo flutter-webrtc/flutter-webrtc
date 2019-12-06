@@ -13,7 +13,7 @@ class navigator {
         <String, dynamic>{'constraints': mediaConstraints},
       );
       String streamId = response["streamId"];
-      MediaStream stream = new MediaStream(streamId);
+      MediaStream stream = new MediaStream(streamId, "local");
       stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
       return stream;
     } on PlatformException catch (e) {
@@ -34,7 +34,7 @@ class navigator {
         <String, dynamic>{'constraints': mediaConstraints},
       );
       String streamId = response["streamId"];
-      MediaStream stream = new MediaStream(streamId);
+      MediaStream stream = new MediaStream(streamId, "local");
       stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
       return stream;
     } on PlatformException catch (e) {

@@ -6,9 +6,12 @@ import 'utils.dart';
 class MediaStream {
   MethodChannel _channel = WebRTC.methodChannel();
   String _streamId;
+  String _ownerTag;
   List<MediaStreamTrack> _audioTracks = new List<MediaStreamTrack>();
   List<MediaStreamTrack> _videoTracks = new List<MediaStreamTrack>();
-  MediaStream(this._streamId);
+  MediaStream(this._streamId,this._ownerTag);
+
+  String get ownerTag => _ownerTag;
 
   void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks){
 
