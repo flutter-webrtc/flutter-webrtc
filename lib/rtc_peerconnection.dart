@@ -16,7 +16,7 @@ typedef void SignalingStateCallback(RTCSignalingState state);
 typedef void IceGatheringStateCallback(RTCIceGatheringState state);
 typedef void IceConnectionStateCallback(RTCIceConnectionState state);
 typedef void IceCandidateCallback(RTCIceCandidate candidate);
-typedef void AddStreamCallback(MediaStream stream, String peerConnectionid);
+typedef void AddStreamCallback(MediaStream stream);
 typedef void RemoveStreamCallback(MediaStream stream);
 typedef void AddTrackCallback(MediaStream stream, MediaStreamTrack track);
 typedef void RemoveTrackCallback(MediaStream stream, MediaStreamTrack track);
@@ -100,13 +100,14 @@ class RTCPeerConnection {
         break;
       case 'onAddStream':
         String streamId = map['streamId'];
+
         MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
-          var newStream = new MediaStream(streamId);
+          var newStream = new MediaStream(streamId, _peerConnectionId);
           newStream.setMediaTracks(map['audioTracks'], map['videoTracks']);
           _remoteStreams.add(newStream);
           return newStream;
         });
-        if (this.onAddStream != null) this.onAddStream(stream,_peerConnectionId);
+        if (this.onAddStream != null) this.onAddStream(stream);
         _remoteStreams.add(stream);
         break;
       case 'onRemoveStream':
@@ -126,7 +127,7 @@ class RTCPeerConnection {
         String kind = track["kind"];
 
         MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId,orElse: () {
-          var newStream = new MediaStream(streamId);
+          var newStream = new MediaStream(streamId, _peerConnectionId);
           _remoteStreams.add(newStream);
           return newStream;
         });

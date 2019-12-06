@@ -394,7 +394,7 @@
         NSNumber *textureId = argsMap[@"textureId"];
         FlutterRTCVideoRenderer *render = self.renders[textureId];
         NSString *streamId = argsMap[@"streamId"];
-        NSString *peerConnectionId = argsMap[@"peerConnectionId"];
+        NSString *peerConnectionId = argsMap[@"ownerTag"];
         if(render){
             [self setStreamId:streamId view:render peerConnectionId:peerConnectionId];
         }
