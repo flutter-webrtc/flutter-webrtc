@@ -342,8 +342,9 @@
         NSNumber *textureId = argsMap[@"textureId"];
         FlutterRTCVideoRenderer *render = self.renders[textureId];
         NSString *streamId = argsMap[@"streamId"];
+        NSString *peerConnectionId = argsMap[@"peerConnectionId"];
         if(render){
-            [self setStreamId:streamId view:render];
+            [self setStreamId:streamId view:render peerConnectionId:peerConnectionId];
         }
         result(nil);
     }else if ([@"mediaStreamTrackSwitchCamera" isEqualToString:call.method]){
@@ -420,7 +421,7 @@
         }
     } else if([@"setConfiguration" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
-            NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+            NSString* peerConnectionId = argsMap[@"ownerTag"];
             NSDictionary* configuration = argsMap[@"configuration"];
             RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
             if(peerConnection) {
@@ -455,7 +456,7 @@
 
 -(void)mediaStreamGetTracks:(NSString*)streamId
                      result:(FlutterResult)result {
-    RTCMediaStream* stream = [self streamForId:streamId];
+    RTCMediaStream* stream = [self streamForId:streamId peerConnectionId:@""];
     if(stream){
         NSMutableArray *audioTracks = [NSMutableArray array];
         NSMutableArray *videoTracks = [NSMutableArray array];
