@@ -1,5 +1,9 @@
 ## Changelog
 --------------------------------------------
+[0.2.1] - 2019.12.12
+* Code format.
+* Remove unused files.
+
 [0.2.0] - 2019.12.12
 * Add support for macOS (channel dev).
 * Add support for Flutter Web (channel dev).
