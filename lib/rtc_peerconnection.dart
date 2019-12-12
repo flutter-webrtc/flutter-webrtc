@@ -101,7 +101,8 @@ class RTCPeerConnection {
       case 'onAddStream':
         String streamId = map['streamId'];
 
-        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
+        MediaStream stream =
+            _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
           var newStream = new MediaStream(streamId, _peerConnectionId);
           newStream.setMediaTracks(map['audioTracks'], map['videoTracks']);
           _remoteStreams.add(newStream);
@@ -112,7 +113,8 @@ class RTCPeerConnection {
         break;
       case 'onRemoveStream':
         String streamId = map['streamId'];
-        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
+        MediaStream stream =
+            _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
           return null;
         });
         if (this.onRemoveStream != null) this.onRemoveStream(stream);
@@ -126,15 +128,18 @@ class RTCPeerConnection {
             map['trackId'], track['label'], track['kind'], track['enabled']);
         String kind = track["kind"];
 
-        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId,orElse: () {
+        MediaStream stream =
+            _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
           var newStream = new MediaStream(streamId, _peerConnectionId);
           _remoteStreams.add(newStream);
           return newStream;
         });
 
-        List<MediaStreamTrack>  oldTracks = (kind == 'audio')? stream.getAudioTracks() : stream.getVideoTracks();
-        MediaStreamTrack oldTrack = oldTracks.length > 0? oldTracks[0] : null;
-        if(oldTrack != null){
+        List<MediaStreamTrack> oldTracks = (kind == 'audio')
+            ? stream.getAudioTracks()
+            : stream.getVideoTracks();
+        MediaStreamTrack oldTrack = oldTracks.length > 0 ? oldTracks[0] : null;
+        if (oldTrack != null) {
           stream.removeTrack(oldTrack, removeFromNative: false);
           if (this.onRemoveTrack != null) this.onRemoveTrack(stream, oldTrack);
         }
@@ -144,7 +149,8 @@ class RTCPeerConnection {
         break;
       case 'onRemoveTrack':
         String streamId = map['streamId'];
-        MediaStream stream = _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
+        MediaStream stream =
+            _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
           return null;
         });
         Map<dynamic, dynamic> track = map['track'];
@@ -240,8 +246,8 @@ class RTCPeerConnection {
     });
   }
 
-  Future<void> removeStream(MediaStream stream) async  {
-    _localStreams.removeWhere((it) => it.id  == stream.id);
+  Future<void> removeStream(MediaStream stream) async {
+    _localStreams.removeWhere((it) => it.id == stream.id);
     await _channel.invokeMethod('removeStream', <String, dynamic>{
       'peerConnectionId': this._peerConnectionId,
       'streamId': stream.id,
@@ -273,7 +279,7 @@ class RTCPeerConnection {
   Future<RTCSessionDescription> getLocalDescription() async {
     try {
       final Map<dynamic, dynamic> response =
-      await _channel.invokeMethod('getLocalDescription', <String, dynamic>{
+          await _channel.invokeMethod('getLocalDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
       });
       String sdp = response['sdp'];
@@ -287,7 +293,7 @@ class RTCPeerConnection {
   Future<RTCSessionDescription> getRemoteDescription() async {
     try {
       final Map<dynamic, dynamic> response =
-      await _channel.invokeMethod('getRemoteDescription', <String, dynamic>{
+          await _channel.invokeMethod('getRemoteDescription', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
       });
       String sdp = response['sdp'];
@@ -305,7 +311,7 @@ class RTCPeerConnection {
     });
   }
 
- Future<List<StatsReport>> getStats([MediaStreamTrack track = null]) async {
+  Future<List<StatsReport>> getStats([MediaStreamTrack track = null]) async {
     try {
       final Map<dynamic, dynamic> response =
           await _channel.invokeMethod('getStats', <String, dynamic>{
@@ -313,11 +319,12 @@ class RTCPeerConnection {
         'track': track != null ? track.id : null
       });
       List<StatsReport> stats = new List<StatsReport>();
-      if(response != null){
+      if (response != null) {
         List<dynamic> reports = response['stats'];
-        reports.forEach((report){
-         stats.add(new StatsReport(report['id'], report['type'], report['timestamp'], report['values']));
-       });
+        reports.forEach((report) {
+          stats.add(new StatsReport(report['id'], report['type'],
+              report['timestamp'], report['values']));
+        });
       }
       return stats;
     } on PlatformException catch (e) {

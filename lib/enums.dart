@@ -106,4 +106,3 @@ RTCDataChannelState rtcDataChannelStateForString(String state) {
   }
   return RTCDataChannelState.RTCDataChannelClosed;
 }
-
