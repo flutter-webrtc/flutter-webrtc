@@ -1,4 +1,3 @@
-
 class WebRTC {
   static bool get platformIsDesktop => false;
 

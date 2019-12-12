@@ -69,8 +69,8 @@ class RTCVideoRenderer {
   set srcObject(MediaStream stream) {
     _srcObject = stream;
 
-    if(_srcObject == null){
-      findHtmlView()?.srcObject  = null;
+    if (_srcObject == null) {
+      findHtmlView()?.srcObject = null;
       return;
     }
 

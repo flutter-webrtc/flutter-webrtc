@@ -9,21 +9,22 @@ class MediaStream {
   String _ownerTag;
   List<MediaStreamTrack> _audioTracks = new List<MediaStreamTrack>();
   List<MediaStreamTrack> _videoTracks = new List<MediaStreamTrack>();
-  MediaStream(this._streamId,this._ownerTag);
+  MediaStream(this._streamId, this._ownerTag);
 
   String get ownerTag => _ownerTag;
 
-  void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks){
-
+  void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
     List<MediaStreamTrack> newAudioTracks = new List();
-    audioTracks.forEach((track){
-      newAudioTracks.add(new MediaStreamTrack(track["id"], track["label"], track["kind"], track["enabled"]));
+    audioTracks.forEach((track) {
+      newAudioTracks.add(new MediaStreamTrack(
+          track["id"], track["label"], track["kind"], track["enabled"]));
     });
     _audioTracks = newAudioTracks;
 
     List<MediaStreamTrack> newVideoTracks = new List();
-    videoTracks.forEach((track){
-      newVideoTracks.add(new MediaStreamTrack(track["id"], track["label"], track["kind"], track["enabled"]));
+    videoTracks.forEach((track) {
+      newVideoTracks.add(new MediaStreamTrack(
+          track["id"], track["label"], track["kind"], track["enabled"]));
     });
     _videoTracks = newVideoTracks;
   }
@@ -38,40 +39,44 @@ class MediaStream {
     List<dynamic> audioTracks = response['audioTracks'];
 
     List<MediaStreamTrack> newAudioTracks = new List();
-    audioTracks.forEach((track){
-      newAudioTracks.add(new MediaStreamTrack(track["id"], track["label"], track["kind"], track["enabled"]));
+    audioTracks.forEach((track) {
+      newAudioTracks.add(new MediaStreamTrack(
+          track["id"], track["label"], track["kind"], track["enabled"]));
     });
     _audioTracks = newAudioTracks;
 
     List<MediaStreamTrack> newVideoTracks = new List();
     List<dynamic> videoTracks = response['videoTracks'];
-    videoTracks.forEach((track){
-      newVideoTracks.add(new MediaStreamTrack(track["id"], track["label"], track["kind"], track["enabled"]));
+    videoTracks.forEach((track) {
+      newVideoTracks.add(new MediaStreamTrack(
+          track["id"], track["label"], track["kind"], track["enabled"]));
     });
     _videoTracks = newVideoTracks;
   }
 
   String get id => _streamId;
-  Future<void> addTrack(MediaStreamTrack track, {bool addToNative = true}) async {
+  Future<void> addTrack(MediaStreamTrack track,
+      {bool addToNative = true}) async {
     if (track.kind == 'audio')
       _audioTracks.add(track);
     else
       _videoTracks.add(track);
 
-    if(addToNative)
-     await _channel.invokeMethod('mediaStreamAddTrack',
-        <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
+    if (addToNative)
+      await _channel.invokeMethod('mediaStreamAddTrack',
+          <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
   }
 
-  Future<void> removeTrack(MediaStreamTrack track, {bool removeFromNative = true}) async {
+  Future<void> removeTrack(MediaStreamTrack track,
+      {bool removeFromNative = true}) async {
     if (track.kind == 'audio')
       _audioTracks.removeWhere((it) => it.id == track.id);
     else
       _videoTracks.removeWhere((it) => it.id == track.id);
 
-    if(removeFromNative)
+    if (removeFromNative)
       await _channel.invokeMethod('mediaStreamRemoveTrack',
-        <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
+          <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
   }
 
   List<MediaStreamTrack> getAudioTracks() {
