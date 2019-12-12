@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
 import 'dart:async';
+
 /*
  * getDisplayMedia sample
  */
@@ -9,7 +10,8 @@ class GetDisplayMediaSample extends StatefulWidget {
   static String tag = 'get_display_media_sample';
 
   @override
-  _GetDisplayMediaSampleState createState() => new _GetDisplayMediaSampleState();
+  _GetDisplayMediaSampleState createState() =>
+      new _GetDisplayMediaSampleState();
 }
 
 class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
@@ -31,7 +33,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     if (_inCalling) {
       _hangUp();
     }
-    if(_timer != null) _timer.cancel();
+    if (_timer != null) _timer.cancel();
     _localRenderer.dispose();
   }
 
@@ -90,19 +92,18 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
       body: new OrientationBuilder(
         builder: (context, orientation) {
           return new Center(
-            child: new Stack(
-                  children: <Widget>[
-                    new Center(
-                      child:new Text('counter: ' + _counter.toString()),
-                    ),
-                    new Container(
-                      margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height,
-                      child: RTCVideoView(_localRenderer),
-                      decoration: new BoxDecoration(color: Colors.black54),
-                    )
-                  ]),
+            child: new Stack(children: <Widget>[
+              new Center(
+                child: new Text('counter: ' + _counter.toString()),
+              ),
+              new Container(
+                margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                child: RTCVideoView(_localRenderer),
+                decoration: new BoxDecoration(color: Colors.black54),
+              )
+            ]),
           );
         },
       ),
