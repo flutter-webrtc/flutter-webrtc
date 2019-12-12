@@ -1,5 +1,16 @@
 ## Changelog
 --------------------------------------------
+[0.2.0] - 2019.12.12
+* Add support for macOS (channel dev).
+* Add support for Flutter Web (channel dev).
+* Add hasTorch support for Android (Camera2 API) and iOS.
+* Fix(PeerConnections) split dispose and close
+* Add microphone mute support for Android/iOS.
+* Add enable speakerphone support for Android/iOS.
+* Fix 'createIceServer' method Invalid value error (Android).
+* Store SignalingState/IceGatheringState/IceConnectionState in RTCPeerConnection.
+* Fixed rendering issues caused by remote MediaStream using the same msid/label when using multiple PeerConntions.
+
 [0.1.7] - 2019.05.16
 
 * Add RTCDataChannelMessage for data channel and remove base64 type.
