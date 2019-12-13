@@ -1,10 +1,17 @@
 ## Changelog
+
 --------------------------------------------
+[0.2.2] - 2019.12.13
+
+* Removed the soft link of WebRTC.framework to fix compile errors of macos version when third-party flutter app depends on plugins
+
 [0.2.1] - 2019.12.12
+
 * Code format.
 * Remove unused files.
 
 [0.2.0] - 2019.12.12
+
 * Add support for macOS (channel dev).
 * Add support for Flutter Web (channel dev).
 * Add hasTorch support for Android (Camera2 API) and iOS.
