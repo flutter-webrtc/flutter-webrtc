@@ -93,7 +93,7 @@
         [self getDisplayMedia:constraints result:result];
     } else if ([@"getSources" isEqualToString:call.method]) {
         [self getSources:result];
-    }else if ([@"mediaStreamGetTracks" isEqualToString:call.method]) {
+    } else if ([@"mediaStreamGetTracks" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* streamId = argsMap[@"streamId"];
         [self mediaStreamGetTracks:streamId result:result];
@@ -110,7 +110,7 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
-    }  else if ([@"createAnswer" isEqualToString:call.method]) {
+    } else if ([@"createAnswer" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSDictionary * constraints = argsMap[@"constraints"];
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -125,7 +125,7 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
-    }  else if ([@"addStream" isEqualToString:call.method]) {
+    } else if ([@"addStream" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         
         NSString* streamId = ((NSString*)argsMap[@"streamId"]);
@@ -142,7 +142,7 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection or mediaStream not found!"]
                                        details:nil]);
         }
-    }  else if ([@"removeStream" isEqualToString:call.method]) {
+    } else if ([@"removeStream" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         
         NSString* streamId = ((NSString*)argsMap[@"streamId"]);
@@ -159,7 +159,7 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection or mediaStream not found!"]
                                        details:nil]);
         }
-    }  else if ([@"captureFrame" isEqualToString:call.method]) {
+    } else if ([@"captureFrame" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* path = argsMap[@"path"];
         NSString* trackId = argsMap[@"trackId"];
@@ -175,7 +175,7 @@
                 result([FlutterError errorWithCode:[@"Track is class of " stringByAppendingString:[[track class] description]] message:nil details:nil]);
             }
         }
-    }  else if ([@"setLocalDescription" isEqualToString:call.method]) {
+    } else if ([@"setLocalDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
@@ -191,7 +191,7 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
-    }  else if ([@"setRemoteDescription" isEqualToString:call.method]) {
+    } else if ([@"setRemoteDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
@@ -208,7 +208,7 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
-    }  else if ([@"addCandidate" isEqualToString:call.method]) {
+    } else if ([@"addCandidate" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSDictionary* candMap = argsMap[@"candidate"];
@@ -235,7 +235,7 @@
         if(peerConnection)
             return [self peerConnectionGetStats:trackId peerConnection:peerConnection result:result];
         result(nil);
-    } else if([@"createDataChannel" isEqualToString:call.method]){
+    } else if ([@"createDataChannel" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSString* label = argsMap[@"label"];
@@ -245,7 +245,7 @@
                          config:[self RTCDataChannelConfiguration:dataChannelDict]
                       messenger:_messenger];
         result(nil);
-    }else if([@"dataChannelSend" isEqualToString:call.method]){
+    } else if ([@"dataChannelSend" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSString* dataChannelId = argsMap[@"dataChannelId"];
@@ -257,14 +257,14 @@
                          data:data
                          type:type];
         result(nil);
-    }else if([@"dataChannelClose" isEqualToString:call.method]){
+    } else if ([@"dataChannelClose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSString* dataChannelId = argsMap[@"dataChannelId"];
         [self dataChannelClose:peerConnectionId
                  dataChannelId:dataChannelId];
         result(nil);
-    }else if([@"streamDispose" isEqualToString:call.method]){
+    } else if ([@"streamDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* streamId = argsMap[@"streamId"];
         RTCMediaStream *stream = self.localStreams[streamId];
@@ -284,7 +284,7 @@
             [self.localStreams removeObjectForKey:streamId];
         }
         result(nil);
-    }else if([@"mediaStreamTrackSetEnable" isEqualToString:call.method]){
+    } else if ([@"mediaStreamTrackSetEnable" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
         NSNumber* enabled = argsMap[@"enabled"];
@@ -293,12 +293,12 @@
             track.isEnabled = enabled.boolValue;
         }
         result(nil);
-    }else if([@"trackDispose" isEqualToString:call.method]){
+    } else if ([@"trackDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
         [self.localTracks removeObjectForKey:trackId];
         result(nil);
-    }else if([@"peerConnectionClose" isEqualToString:call.method]){
+    } else if ([@"peerConnectionClose" isEqualToString:call.method] || [@"peerConnectionDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         
@@ -323,13 +323,13 @@
         }
         [dataChannels removeAllObjects];
         result(nil);
-    }else if([@"createVideoRenderer" isEqualToString:call.method]){
+    } else if ([@"createVideoRenderer" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures
                                           messenger:_messenger];
         self.renders[@(render.textureId)] = render;
         result(@{@"textureId": @(render.textureId)});
-    }else if([@"videoRendererDispose" isEqualToString:call.method]){
+    } else if ([@"videoRendererDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSNumber *textureId = argsMap[@"textureId"];
         FlutterRTCVideoRenderer *render = self.renders[textureId];
@@ -337,7 +337,7 @@
         [render dispose];
         [self.renders removeObjectForKey:textureId];
         result(nil);
-    }else if([@"videoRendererSetSrcObject" isEqualToString:call.method]){
+    } else if ([@"videoRendererSetSrcObject" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSNumber *textureId = argsMap[@"textureId"];
         FlutterRTCVideoRenderer *render = self.renders[textureId];
@@ -347,7 +347,7 @@
             [self setStreamId:streamId view:render peerConnectionId:peerConnectionId];
         }
         result(nil);
-    }else if ([@"mediaStreamTrackSwitchCamera" isEqualToString:call.method]){
+    } else if ([@"mediaStreamTrackSwitchCamera" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
         RTCMediaStreamTrack *track = self.localTracks[trackId];
@@ -361,7 +361,7 @@
                 result([FlutterError errorWithCode:[@"Track is class of " stringByAppendingString:[[track class] description]] message:nil details:nil]);
             }
         }
-    }else if ([@"setVolume" isEqualToString:call.method]){
+    } else if ([@"setVolume" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
         NSNumber* volume = argsMap[@"volume"];
@@ -393,7 +393,7 @@
         [audioSession setActive:YES error:nil];
 #endif
         result(nil);
-    }else if ([@"getLocalDescription" isEqualToString:call.method]) {
+    } else if ([@"getLocalDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
@@ -406,7 +406,7 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
-    }  else if ([@"getRemoteDescription" isEqualToString:call.method]) {
+    } else if ([@"getRemoteDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
@@ -419,7 +419,7 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
-    } else if([@"setConfiguration" isEqualToString:call.method]){
+    } else if ([@"setConfiguration" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
             NSString* peerConnectionId = argsMap[@"ownerTag"];
             NSDictionary* configuration = argsMap[@"configuration"];
