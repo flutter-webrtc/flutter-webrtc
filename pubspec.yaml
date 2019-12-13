@@ -20,4 +20,4 @@ flutter:
 
 environment:
   sdk: ">=2.2.2 <3.0.0"
-  flutter: ">=0.1.12"
+  flutter: ^1.10.0
