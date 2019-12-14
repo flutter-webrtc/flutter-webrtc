@@ -1,6 +1,9 @@
 package com.cloudwebrtc.webrtc.record;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.Handler;
@@ -66,9 +69,12 @@ public class FrameCapturer implements VideoSink {
             videoTrack.removeSink(this);
         });
         try {
-            if (!file.exists())
+            if (!file.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                file.getParentFile().mkdirs();
                 //noinspection ResultOfMethodCallIgnored
                 file.createNewFile();
+            }
         } catch (IOException io) {
             callback.error("IOException", io.getLocalizedMessage(), io);
             return;
@@ -79,6 +85,23 @@ public class FrameCapturer implements VideoSink {
                 100,
                 outputStream
             );
+            switch (videoFrame.getRotation()) {
+                case 0:
+                    break;
+                case 90:
+                case 180:
+                case 270:
+                    Bitmap original = BitmapFactory.decodeFile(file.toString());
+                    Matrix matrix = new Matrix();
+                    matrix.postRotate(videoFrame.getRotation());
+                    Bitmap rotated = Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), matrix, true);
+                    FileOutputStream rotatedOutputStream = new FileOutputStream(file);
+                    rotated.compress(Bitmap.CompressFormat.JPEG, 100, rotatedOutputStream);
+                    break;
+                default:
+                    // Rotation is checked to always be 0, 90, 180 or 270 by VideoFrame
+                    throw new RuntimeException("Invalid rotation");
+            }
             callback.success(null);
         } catch (IOException io) {
             callback.error("IOException", io.getLocalizedMessage(), io);
