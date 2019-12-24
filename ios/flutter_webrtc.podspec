@@ -10,7 +10,7 @@ A new flutter plugin project.
                        DESC
   s.homepage         = 'https://github.com/cloudwebrtc/flutter-webrtc'
   s.license          = { :file => '../LICENSE' }
-  s.author           = {{ 'CloudWebRTC' => 'duanweiwei1982@gmail.com' }
+  s.author           = { 'CloudWebRTC' => 'duanweiwei1982@gmail.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
