@@ -3,12 +3,12 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_webrtc'
-  s.version          = '0.2.0'
+  s.version          = '0.2.2'
   s.summary          = 'Flutter WebRTC plugin for macOS.'
   s.description      = <<-DESC
 A new flutter plugin project.
                        DESC
-  s.homepage         = 'https://github.com/flutter-webrtc'
+  s.homepage         = 'https://github.com/cloudwebrtc/flutter-webrtc'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'CloudWebRTC' => 'duanweiwei1982@gmail.com' }
   s.source           = { :path => '.' }
