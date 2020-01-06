@@ -108,39 +108,37 @@ class RTCVideoRenderer {
 
 class RTCVideoView extends StatefulWidget {
   final RTCVideoRenderer _renderer;
-  RTCVideoView(this._renderer);
+  RTCVideoView(this._renderer, {Key key}) : super(key: key);
   @override
-  _RTCVideoViewState createState() => new _RTCVideoViewState(_renderer);
+  _RTCVideoViewState createState() => new _RTCVideoViewState();
 }
 
 class _RTCVideoViewState extends State<RTCVideoView> {
-  final RTCVideoRenderer _renderer;
   double _aspectRatio;
   RTCVideoViewObjectFit _objectFit;
   bool _mirror;
-  _RTCVideoViewState(this._renderer);
 
   @override
   void initState() {
     super.initState();
     _setCallbacks();
-    _aspectRatio = _renderer.aspectRatio;
-    _mirror = _renderer.mirror;
-    _objectFit = _renderer.objectFit;
+    _aspectRatio = widget._renderer.aspectRatio;
+    _mirror = widget._renderer.mirror;
+    _objectFit = widget._renderer.objectFit;
   }
 
   @override
   void deactivate() {
     super.deactivate();
-    _renderer.onStateChanged = null;
+    widget._renderer.onStateChanged = null;
   }
 
   void _setCallbacks() {
-    _renderer.onStateChanged = () {
+    widget._renderer.onStateChanged = () {
       setState(() {
-        _aspectRatio = _renderer.aspectRatio;
-        _mirror = _renderer.mirror;
-        _objectFit = _renderer.objectFit;
+        _aspectRatio = widget._renderer.aspectRatio;
+        _mirror = widget._renderer.mirror;
+        _objectFit = widget._renderer.objectFit;
       });
     };
   }
@@ -163,13 +161,13 @@ class _RTCVideoViewState extends State<RTCVideoView> {
                           ..rotateY(_mirror ? -pi : 0.0),
                         alignment: FractionalOffset.center,
                         child:
-                            new Texture(textureId: _renderer._textureId))))));
+                            new Texture(textureId: widget._renderer._textureId))))));
   }
 
   @override
   Widget build(BuildContext context) {
     bool renderVideo =
-        (_renderer._textureId != null && _renderer._srcObject != null);
+        (widget._renderer._textureId != null && widget._renderer._srcObject != null);
 
     return new LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
