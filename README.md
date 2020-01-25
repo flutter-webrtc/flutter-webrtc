@@ -30,7 +30,7 @@ This entry allows your app to access camera and microphone.
 
 ### Android
 
-Ensure the following permission is present in your Android Manifest file, located in `<project root>/android/app/src/main/AndroidManifest.xml:
+Ensure the following permission is present in your Android Manifest file, located in `<project root>/android/app/src/main/AndroidManifest.xml`:
 
 ```xml
 <uses-feature android:name="android.hardware.camera" />
