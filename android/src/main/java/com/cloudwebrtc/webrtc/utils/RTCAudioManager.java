@@ -403,7 +403,7 @@ public class RTCAudioManager {
   }
 
   /** Sets the speaker phone mode. */
-  private void setSpeakerphoneOn(boolean on) {
+  public void setSpeakerphoneOn(boolean on) {
     boolean wasOn = audioManager.isSpeakerphoneOn();
     if (wasOn == on) {
       return;
@@ -412,7 +412,7 @@ public class RTCAudioManager {
   }
 
   /** Sets the microphone mute state. */
-  private void setMicrophoneMute(boolean on) {
+  public void setMicrophoneMute(boolean on) {
     boolean wasMuted = audioManager.isMicrophoneMute();
     if (wasMuted == on) {
       return;
