@@ -362,7 +362,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             result.success(null);
         } else if (call.method.equals("enableSpeakerphone")) {
             boolean enable = call.argument("enable");
-            rtcAudioManager.setSpeakerphoneOn(enabled);
+            rtcAudioManager.setSpeakerphoneOn(enable);
             result.success(null);
         } else if(call.method.equals("getDisplayMedia")) {
             Map<String, Object> constraints = call.argument("constraints");

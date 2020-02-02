@@ -1,6 +1,10 @@
 ## Changelog
 
 --------------------------------------------
+[0.2.4] - 2020.02.03
+
+* Fixed bug.
+
 [0.2.3] - 2020.02.03
 
 * Fixed bug for enableSpeakerphone (Android/iOS).
