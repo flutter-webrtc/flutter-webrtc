@@ -357,14 +357,12 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             mediaStreamTrackSetVolume(trackId, volume);
             result.success(null);
         } else if (call.method.equals("setMicrophoneMute")) {
-            String trackId = call.argument("trackId");
             boolean mute = call.argument("mute");
-            mediaStreamTrackSetMicrophoneMute(trackId, mute);
+            rtcAudioManager.setMicrophoneMute(mute);
             result.success(null);
         } else if (call.method.equals("enableSpeakerphone")) {
-            String trackId = call.argument("trackId");
             boolean enable = call.argument("enable");
-            mediaStreamTrackEnableSpeakerphone(trackId, enable);
+            rtcAudioManager.setSpeakerphoneOn(enabled);
             result.success(null);
         } else if(call.method.equals("getDisplayMedia")) {
             Map<String, Object> constraints = call.argument("constraints");
@@ -963,18 +961,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else {
             Log.w(TAG, "setVolume(): track not found: " + id);
         }
-    }
-
-    public void mediaStreamTrackSetMicrophoneMute(final String id, boolean mute) {
-        try {
-            audioDeviceModule.setMicrophoneMute(mute);
-        } catch (Exception e) {
-            Log.e(TAG, "setMicrophoneMute(): error", e);
-        }
-    }
-
-    public void mediaStreamTrackEnableSpeakerphone(final String id, boolean enabled) {
-        rtcAudioManager.selectAudioDevice(enabled? RTCAudioManager.AudioDevice.SPEAKER_PHONE : RTCAudioManager.AudioDevice.EARPIECE);
     }
 
     public void mediaStreamAddTrack(final String streaemId, final String trackId, Result result) {
