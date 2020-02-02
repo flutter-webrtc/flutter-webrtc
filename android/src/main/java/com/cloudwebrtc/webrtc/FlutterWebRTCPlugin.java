@@ -15,6 +15,7 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
+import com.cloudwebrtc.webrtc.utils.RTCAudioManager;
 
 import java.io.UnsupportedEncodingException;
 import java.io.File;
@@ -72,6 +73,8 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
 
     private AudioDeviceModule audioDeviceModule;
 
+    private RTCAudioManager rtcAudioManager;
+
     public Activity getActivity() {
         return registrar.activity();
     }
@@ -124,6 +127,35 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
                 .setAudioDeviceModule(audioDeviceModule)
                 .createPeerConnectionFactory();
+
+        rtcAudioManager = RTCAudioManager.create(registrar.context());
+        // Store existing audio settings and change audio mode to
+        // MODE_IN_COMMUNICATION for best possible VoIP performance.
+        Log.d(TAG, "Starting the audio manager...");
+        rtcAudioManager.start(new RTCAudioManager.AudioManagerEvents() {
+            // This method will be called each time the number of available audio
+            // devices has changed.
+            @Override
+            public void onAudioDeviceChanged(
+                RTCAudioManager.AudioDevice audioDevice, Set<RTCAudioManager.AudioDevice> availableAudioDevices) {
+                onAudioManagerDevicesChanged(audioDevice, availableAudioDevices);
+            }
+        });
+        /*
+        if (audioManager != null) {
+            audioManager.stop();
+            audioManager = null;
+        }
+        */
+    }
+
+    // This method is called when the audio manager reports audio device change,
+    // e.g. from wired headset to speakerphone.
+    private void onAudioManagerDevicesChanged(
+        final RTCAudioManager.AudioDevice device, final Set<RTCAudioManager.AudioDevice> availableDevices) {
+        Log.d(TAG, "onAudioManagerDevicesChanged: " + availableDevices + ", "
+                + "selected: " + device);
+        // TODO(henrika): add callback handler.
     }
 
     @Override
@@ -942,13 +974,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     }
 
     public void mediaStreamTrackEnableSpeakerphone(final String id, boolean enabled) {
-        AudioManager audioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
-
-        try {
-            audioManager.setSpeakerphoneOn(enabled);
-        } catch (Exception e) {
-            Log.e(TAG, "setSpeakerphoneOn(): error", e);
-        }
+        rtcAudioManager.selectAudioDevice(enabled? RTCAudioManager.AudioDevice.SPEAKER_PHONE : RTCAudioManager.AudioDevice.EARPIECE);
     }
 
     public void mediaStreamAddTrack(final String streaemId, final String trackId, Result result) {
