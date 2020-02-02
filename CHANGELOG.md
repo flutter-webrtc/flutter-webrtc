@@ -1,6 +1,12 @@
 ## Changelog
 
 --------------------------------------------
+[0.2.3] - 2020.02.03
+
+* Fixed bug for enableSpeakerphone (Android/iOS).
+* Fix RtcVideoView not rebuild when setState called and renderer is changed.
+* Fix Android frame orientation.
+
 [0.2.2] - 2019.12.13
 
 * Removed the soft link of WebRTC.framework to fix compile errors of macos version when third-party flutter app depends on plugins
