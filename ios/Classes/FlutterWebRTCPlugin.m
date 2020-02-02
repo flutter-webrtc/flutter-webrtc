@@ -14,6 +14,7 @@
     id _registry;
     id _messenger;
     id _textures;
+    BOOL _speakerOn;
 }
 
 @synthesize messenger = _messenger;
@@ -45,6 +46,7 @@
         _registry = registrar;
         _textures = textures;
         _messenger = messenger;
+        _speakerOn = NO;
         self.viewController = viewController;
     }
     
@@ -60,11 +62,31 @@
     self.localStreams = [NSMutableDictionary new];
     self.localTracks = [NSMutableDictionary new];
     self.renders = [[NSMutableDictionary alloc] init];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:nil];
+
     return self;
 }
 
+
+- (void)didSessionRouteChange:(NSNotification *)notification {
+  NSDictionary *interuptionDict = notification.userInfo;
+  NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
+
+  switch (routeChangeReason) {
+      case AVAudioSessionRouteChangeReasonCategoryChange: {
+          NSError* error;
+          [[AVAudioSession sharedInstance] overrideOutputAudioPort:_speakerOn? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:&error];
+      }
+      break;
+
+    default:
+      break;
+  }
+}
+
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult) result {
-    
+
     if ([@"createPeerConnection" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSDictionary* configuration = argsMap[@"configuration"];
@@ -466,9 +488,10 @@
     } else if ([@"enableSpeakerphone" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSNumber* enable = argsMap[@"enable"];
+        _speakerOn = enable.boolValue;
         AVAudioSession *audioSession = [AVAudioSession sharedInstance];
         [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
-                      withOptions:enable.boolValue ? AVAudioSessionCategoryOptionDefaultToSpeaker : 0
+                      withOptions:_speakerOn ? AVAudioSessionCategoryOptionDefaultToSpeaker : 0
                             error:nil];
         [audioSession setActive:YES error:nil];
         result(nil);
