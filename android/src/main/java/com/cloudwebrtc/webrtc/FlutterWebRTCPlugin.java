@@ -127,6 +127,11 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
                 .setAudioDeviceModule(audioDeviceModule)
                 .createPeerConnectionFactory();
+    }
+
+    private void startAudioManager() {
+        if(rtcAudioManager != null)
+            return;
 
         rtcAudioManager = RTCAudioManager.create(registrar.context());
         // Store existing audio settings and change audio mode to
@@ -141,12 +146,14 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 onAudioManagerDevicesChanged(audioDevice, availableAudioDevices);
             }
         });
-        /*
-        if (audioManager != null) {
-            audioManager.stop();
-            audioManager = null;
+    }
+
+    private void stopAudioManager() {
+        if (rtcAudioManager != null) {
+            Log.d(TAG, "Stoping the audio manager...");
+            rtcAudioManager.stop();
+            rtcAudioManager = null;
         }
-        */
     }
 
     // This method is called when the audio manager reports audio device change,
@@ -297,7 +304,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             result.success(null);
         } else if(call.method.equals("peerConnectionDispose")){
             String peerConnectionId = call.argument("peerConnectionId");
-            peerConnectionClose(peerConnectionId);
+            peerConnectionDispose(peerConnectionId);
             result.success(null);
         }else if (call.method.equals("createVideoRenderer")) {
             TextureRegistry.SurfaceTextureEntry entry = textures.createSurfaceTexture();
@@ -362,6 +369,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             result.success(null);
         } else if (call.method.equals("enableSpeakerphone")) {
             boolean enable = call.argument("enable");
+            if(rtcAudioManager == null ){
+                startAudioManager();
+            }
             rtcAudioManager.setSpeakerphoneOn(enable);
             result.success(null);
         } else if(call.method.equals("getDisplayMedia")) {
@@ -723,6 +733,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 parseMediaConstraints(constraints),
                 observer);
         observer.setPeerConnection(peerConnection);
+        if(mPeerConnectionObservers.size() == 0) {
+            startAudioManager();
+        }
         mPeerConnectionObservers.put(peerConnectionId, observer);
         return peerConnectionId;
     }
@@ -1284,6 +1297,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else {
             pco.dispose();
             mPeerConnectionObservers.remove(id);
+        }
+        if(mPeerConnectionObservers.size() == 0) {
+            stopAudioManager();
         }
     }
 
