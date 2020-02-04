@@ -1,6 +1,11 @@
 ## Changelog
 
 --------------------------------------------
+
+[0.2.6] - 2020.02.03
+
+* Fixed the interruption of the Bluetooth headset that was playing music after the plugin started.
+
 [0.2.4] - 2020.02.03
 
 * Fixed bug.

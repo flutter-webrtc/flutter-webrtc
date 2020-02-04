@@ -158,6 +158,42 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         // TODO(henrika): add callback handler.
     }
 
+    private void startAudioManager() {
+        if(rtcAudioManager != null)
+            return;
+
+        rtcAudioManager = RTCAudioManager.create(registrar.context());
+        // Store existing audio settings and change audio mode to
+        // MODE_IN_COMMUNICATION for best possible VoIP performance.
+        Log.d(TAG, "Starting the audio manager...");
+        rtcAudioManager.start(new RTCAudioManager.AudioManagerEvents() {
+            // This method will be called each time the number of available audio
+            // devices has changed.
+            @Override
+            public void onAudioDeviceChanged(
+                RTCAudioManager.AudioDevice audioDevice, Set<RTCAudioManager.AudioDevice> availableAudioDevices) {
+                onAudioManagerDevicesChanged(audioDevice, availableAudioDevices);
+            }
+        });
+    }
+
+    private void stopAudioManager() {
+        if (rtcAudioManager != null) {
+            Log.d(TAG, "Stoping the audio manager...");
+            rtcAudioManager.stop();
+            rtcAudioManager = null;
+        }
+    }
+
+    // This method is called when the audio manager reports audio device change,
+    // e.g. from wired headset to speakerphone.
+    private void onAudioManagerDevicesChanged(
+        final RTCAudioManager.AudioDevice device, final Set<RTCAudioManager.AudioDevice> availableDevices) {
+        Log.d(TAG, "onAudioManagerDevicesChanged: " + availableDevices + ", "
+                + "selected: " + device);
+        // TODO(henrika): add callback handler.
+    }
+
     @Override
     public void onMethodCall(MethodCall call, Result notSafeResult) {
         final AnyThreadResult result = new AnyThreadResult(notSafeResult);
@@ -297,7 +333,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             result.success(null);
         } else if(call.method.equals("peerConnectionDispose")){
             String peerConnectionId = call.argument("peerConnectionId");
-            peerConnectionClose(peerConnectionId);
+            peerConnectionDispose(peerConnectionId);
             result.success(null);
         }else if (call.method.equals("createVideoRenderer")) {
             TextureRegistry.SurfaceTextureEntry entry = textures.createSurfaceTexture();
@@ -362,6 +398,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             result.success(null);
         } else if (call.method.equals("enableSpeakerphone")) {
             boolean enable = call.argument("enable");
+            if(rtcAudioManager == null ){
+                startAudioManager();
+            }
             rtcAudioManager.setSpeakerphoneOn(enable);
             result.success(null);
         } else if(call.method.equals("getDisplayMedia")) {
@@ -723,6 +762,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
                 parseMediaConstraints(constraints),
                 observer);
         observer.setPeerConnection(peerConnection);
+        if(mPeerConnectionObservers.size() == 0) {
+            startAudioManager();
+        }
         mPeerConnectionObservers.put(peerConnectionId, observer);
         return peerConnectionId;
     }
@@ -1284,6 +1326,9 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         } else {
             pco.dispose();
             mPeerConnectionObservers.remove(id);
+        }
+        if(mPeerConnectionObservers.size() == 0) {
+            stopAudioManager();
         }
     }
 
