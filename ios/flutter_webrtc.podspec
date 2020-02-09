@@ -15,7 +15,7 @@ A new flutter plugin project.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'libyuv-iOS'
+  s.dependency 'Libyuv', '1703'
   s.dependency 'GoogleWebRTC', '1.1.29400'
   s.ios.deployment_target = '10.0'
   s.static_framework = true
