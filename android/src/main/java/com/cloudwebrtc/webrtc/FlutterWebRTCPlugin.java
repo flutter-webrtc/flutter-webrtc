@@ -149,15 +149,6 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         */
     }
 
-    // This method is called when the audio manager reports audio device change,
-    // e.g. from wired headset to speakerphone.
-    private void onAudioManagerDevicesChanged(
-        final RTCAudioManager.AudioDevice device, final Set<RTCAudioManager.AudioDevice> availableDevices) {
-        Log.d(TAG, "onAudioManagerDevicesChanged: " + availableDevices + ", "
-                + "selected: " + device);
-        // TODO(henrika): add callback handler.
-    }
-
     private void startAudioManager() {
         if(rtcAudioManager != null)
             return;
