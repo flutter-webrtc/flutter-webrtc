@@ -14,7 +14,7 @@ class MediaStreamTrack {
   /// public:
   factory MediaStreamTrack.fromMap(Map<dynamic, dynamic> map) {
     return new MediaStreamTrack(
-        map['trackId'], map['label'], map['kind'], map['enabled']);
+        map['id'], map['label'], map['kind'], map['enabled']);
   }
 
   MediaStreamTrack(this._trackId, this._label, this._kind, this._enabled);

@@ -540,11 +540,21 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         for(RtpParameters.Encoding encoding : rtpParameters.encodings){
             ConstraintsMap map = new ConstraintsMap();
             map.putBoolean("active",encoding.active);
-            map.putInt("maxBitrateBps", encoding.maxBitrateBps);
-            map.putInt("minBitrateBps", encoding.minBitrateBps);
-            map.putInt("maxFramerate", encoding.maxFramerate);
-            map.putInt("numTemporalLayers", encoding.numTemporalLayers);
-            map.putDouble("scaleResolutionDownBy", encoding.scaleResolutionDownBy);
+            if (encoding.maxBitrateBps != null) {
+                map.putInt("maxBitrateBps", encoding.maxBitrateBps);
+            }
+            if (encoding.minBitrateBps != null) {
+                map.putInt("minBitrateBps", encoding.minBitrateBps);
+            }
+            if (encoding.maxFramerate != null) {
+                map.putInt("maxFramerate", encoding.maxFramerate);
+            }
+            if (encoding.numTemporalLayers != null) {
+                map.putInt("numTemporalLayers", encoding.numTemporalLayers);
+            }
+            if (encoding.scaleResolutionDownBy != null) {
+                map.putDouble("scaleResolutionDownBy", encoding.scaleResolutionDownBy);
+            }
             map.putLong("ssrc", encoding.ssrc);
             encodings.pushMap(map);
         }
@@ -581,8 +591,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     private Map<String, Object> dtmfSenderToMap(DtmfSender dtmfSender, String id){
         ConstraintsMap info = new ConstraintsMap();
         info.putString("dtmfSenderId",id);
-        info.putInt("interToneGap", dtmfSender.interToneGap());
-        info.putInt("duration",dtmfSender.duration());
+        if (dtmfSender != null) {
+            info.putInt("interToneGap", dtmfSender.interToneGap());
+            info.putInt("duration", dtmfSender.duration());
+        }
         return info.toMap();
     }
 
@@ -599,6 +611,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     private Map<String, Object> rtpReceiverToMap(RtpReceiver receiver){
         ConstraintsMap info = new ConstraintsMap();
         info.putString("receiverId", receiver.id());
+        info.putMap("rtpParameters", rtpParametersToMap(receiver.getParameters()));
         info.putMap("track", mediaTrackToMap(receiver.track()));
         return info.toMap();
     }

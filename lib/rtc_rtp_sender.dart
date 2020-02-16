@@ -19,7 +19,7 @@ class RTCRtpSender {
     return new RTCRtpSender(
         map['senderId'],
         MediaStreamTrack.fromMap(map['track']),
-        RTCDTMFSender.fromMap(map['dtmfSender']),
+        RTCDTMFSender.fromMap(Map<String, dynamic>.from(map['dtmfSender'])),
         RTCRtpParameters.fromMap(map['rtpParameters']),
         map['ownsTrack']);
   }

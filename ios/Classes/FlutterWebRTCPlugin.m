@@ -149,6 +149,48 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection or mediaStream not found!"]
                                        details:nil]);
         }
+    }  else if ([@"addTrack" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+
+        NSString* peerConnectionId = ((NSString*)argsMap[@"peerConnectionId"]);
+        NSString* trackId = ((NSString*)argsMap[@"trackId"]);
+        NSArray<NSString *> *streamIds = ((NSArray<NSString *>*)argsMap[@"streamIds"]);
+
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        RTCMediaStreamTrack *track = self.localTracks[trackId];
+
+        if (peerConnection && track) {
+            RTCRtpSender* sender = [peerConnection addTrack:track streamIds:streamIds];
+            
+            // TODO: properly map sender
+            result(@{
+                @"senderId": sender.senderId,
+                @"ownsTrack": @(YES),
+                @"dtmfSender": @{
+                        @"dtmfSenderId": sender.senderId,
+                },
+                @"rtpParameters": @{
+                        @"encodings": @[],
+                        @"headerExtensions": @[],
+                        @"codecs": @[],
+                        @"rtcp": @{
+                                
+                        },
+                },
+                @"track": @{
+                        @"id": sender.track.trackId,
+                        @"kind": sender.track.kind,
+                        @"label": sender.track.trackId,
+                        @"enabled": @(sender.track.isEnabled),
+                        @"remote": @(YES),
+                        @"readyState": @"live"
+                }
+            });
+        } else {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection or track not found!"]
+                                       details:nil]);
+        }
     }  else if ([@"removeStream" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         
