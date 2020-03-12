@@ -1,7 +1,19 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
+
 import 'utils.dart';
+import 'enums.dart';
+
+final _typeStringToMessageType = <String, MessageType>{
+  'text': MessageType.text,
+  'binary': MessageType.binary
+};
+
+final _messageTypeToTypeString = <MessageType, String>{
+  MessageType.text: 'text',
+  MessageType.binary: 'binary'
+};
 
 /// Initialization parameters for [RTCDataChannel].
 class RTCDataChannelInit {
@@ -22,8 +34,6 @@ class RTCDataChannelInit {
     };
   }
 }
-
-enum MessageType { text, binary }
 
 /// A class that represents a datachannel message.
 /// Can either contain binary data as a [Uint8List] or
@@ -61,13 +71,6 @@ class RTCDataChannelMessage {
   Uint8List get binary => _data;
 }
 
-enum RTCDataChannelState {
-  RTCDataChannelConnecting,
-  RTCDataChannelOpen,
-  RTCDataChannelClosing,
-  RTCDataChannelClosed,
-}
-
 typedef void RTCDataChannelStateCallback(RTCDataChannelState state);
 typedef void RTCDataChannelOnMessageCallback(RTCDataChannelMessage message);
 
@@ -75,34 +78,12 @@ typedef void RTCDataChannelOnMessageCallback(RTCDataChannelMessage message);
 /// Can send and receive text and binary messages.
 class RTCDataChannel {
   /// private:
-  MethodChannel _methodChannel = WebRTC.methodChannel();
+  MethodChannel _channel = WebRTC.methodChannel();
   int _dataChannelId;
   String _peerConnectionId;
   String _label;
   RTCDataChannelState _state;
   StreamSubscription<dynamic> _eventSubscription;
-  final _stateChangeController =
-      StreamController<RTCDataChannelState>.broadcast(sync: true);
-  final _messageController =
-      StreamController<RTCDataChannelMessage>.broadcast(sync: true);
-  final _typeStringToMessageType = <String, MessageType>{
-    'text': MessageType.text,
-    'binary': MessageType.binary
-  };
-
-  /// public:
-
-  RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId) {
-    stateChangeStream = _stateChangeController.stream;
-    messageStream = _messageController.stream;
-    _eventSubscription = _eventChannelFor(_dataChannelId)
-        .receiveBroadcastStream()
-        .listen(eventListener, onError: errorListener);
-  }
-
-
-  /// Get label.
-  String get lable => _label;
 
   /// Get current state.
   RTCDataChannelState get state => _state;
@@ -118,6 +99,11 @@ class RTCDataChannel {
   /// binary data as a [Uint8List] or text data as a [String].
   RTCDataChannelOnMessageCallback onMessage;
 
+  final _stateChangeController =
+      StreamController<RTCDataChannelState>.broadcast(sync: true);
+  final _messageController =
+      StreamController<RTCDataChannelMessage>.broadcast(sync: true);
+
   /// Stream of state change events. Emits the new state on change.
   /// Closes when the [RTCDataChannel] is closed.
   Stream<RTCDataChannelState> stateChangeStream;
@@ -125,6 +111,14 @@ class RTCDataChannel {
   /// Stream of incoming messages. Emits the message.
   /// Closes when the [RTCDataChannel] is closed.
   Stream<RTCDataChannelMessage> messageStream;
+
+  RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId) {
+    stateChangeStream = _stateChangeController.stream;
+    messageStream = _messageController.stream;
+    _eventSubscription = _eventChannelFor(_dataChannelId)
+        .receiveBroadcastStream()
+        .listen(eventListener, onError: errorListener);
+  }
 
   /// RTCDataChannel event listener.
   void eventListener(dynamic event) {
@@ -138,6 +132,8 @@ class RTCDataChannel {
         _stateChangeController.add(_state);
         break;
       case 'dataChannelReceiveMessage':
+        //int dataChannelId = map['id'];
+
         MessageType type = _typeStringToMessageType[map['type']];
         dynamic data = map['data'];
         RTCDataChannelMessage message;
@@ -169,7 +165,7 @@ class RTCDataChannel {
   /// To send a binary message, pass a binary [RTCDataChannelMessage]
   /// constructed with [RTCDataChannelMessage.fromBinary]
   Future<void> send(RTCDataChannelMessage message) async {
-    await _methodChannel.invokeMethod('dataChannelSend', <String, dynamic>{
+    await _channel.invokeMethod('dataChannelSend', <String, dynamic>{
       'peerConnectionId': _peerConnectionId,
       'dataChannelId': _dataChannelId,
       'type': message.isBinary ? "binary" : "text",
@@ -181,7 +177,7 @@ class RTCDataChannel {
     await _stateChangeController.close();
     await _messageController.close();
     await _eventSubscription?.cancel();
-    await _methodChannel.invokeMethod('dataChannelClose', <String, dynamic>{
+    await _channel.invokeMethod('dataChannelClose', <String, dynamic>{
       'peerConnectionId': _peerConnectionId,
       'dataChannelId': _dataChannelId
     });

@@ -5,24 +5,43 @@ import 'utils.dart';
 
 class MediaStream {
   /// private:
-  MethodChannel _methodChannel = WebRTC.methodChannel();
+  MethodChannel _channel = WebRTC.methodChannel();
   String _streamId;
+  String _ownerTag;
   List<MediaStreamTrack> _audioTracks = new List<MediaStreamTrack>();
   List<MediaStreamTrack> _videoTracks = new List<MediaStreamTrack>();
 
   /// public:
   factory MediaStream.fromMap(Map<dynamic, dynamic> map) {
-    MediaStream stream = new MediaStream(map['streamId']);
+    MediaStream stream = new MediaStream(map['streamId'], map['ownerTag']);
     stream._setMediaTracks(map['audioTracks'], map['videoTracks']);
     return stream;
   }
 
-  MediaStream(this._streamId);
+  MediaStream(this._streamId, this._ownerTag);
 
   String get id => _streamId;
 
+  String get ownerTag => _ownerTag;
+
+  void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
+    List<MediaStreamTrack> newAudioTracks = new List();
+    audioTracks.forEach((track) {
+      newAudioTracks.add(new MediaStreamTrack(
+          track["id"], track["label"], track["kind"], track["enabled"]));
+    });
+    _audioTracks = newAudioTracks;
+
+    List<MediaStreamTrack> newVideoTracks = new List();
+    videoTracks.forEach((track) {
+      newVideoTracks.add(new MediaStreamTrack(
+          track["id"], track["label"], track["kind"], track["enabled"]));
+    });
+    _videoTracks = newVideoTracks;
+  }
+
   Future<void> getMediaTracks() async {
-    final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
+    final Map<dynamic, dynamic> response = await _channel.invokeMethod(
       'mediaStreamGetTracks',
       <String, dynamic>{'streamId': _streamId},
     );
@@ -30,15 +49,16 @@ class MediaStream {
   }
 
   Future<void> addTrack(MediaStreamTrack track,
-      {bool addToNaitve = true}) async {
+      {bool addToNative = true}) async {
     if (track.kind == 'audio')
       _audioTracks.add(track);
     else
       _videoTracks.add(track);
 
-    if (addToNaitve)
-      await _methodChannel.invokeMethod('mediaStreamAddTrack',
+    if (addToNative) {
+      await _channel.invokeMethod('mediaStreamAddTrack',
           <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
+    }
   }
 
   Future<void> removeTrack(MediaStreamTrack track,
@@ -49,7 +69,7 @@ class MediaStream {
       _videoTracks.removeWhere((it) => it.id == track.id);
 
     if (removeFromNaitve)
-      await _methodChannel.invokeMethod('mediaStreamRemoveTrack',
+      await _channel.invokeMethod('mediaStreamRemoveTrack',
           <String, dynamic>{'streamId': _streamId, 'trackId': track.id});
   }
 
@@ -62,7 +82,7 @@ class MediaStream {
   }
 
   Future<Null> dispose() async {
-    await _methodChannel.invokeMethod(
+    await _channel.invokeMethod(
       'streamDispose',
       <String, dynamic>{'streamId': _streamId},
     );

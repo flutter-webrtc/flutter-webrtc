@@ -7,7 +7,7 @@ import 'rtc_rtp_parameters.dart';
 import 'utils.dart';
 
 class RTCRtpSender {
-  MethodChannel _methodChannel = WebRTC.methodChannel();
+  MethodChannel _channel = WebRTC.methodChannel();
   String _peerConnectionId;
   String _id;
   MediaStreamTrack _track;
@@ -34,7 +34,7 @@ class RTCRtpSender {
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     _parameters = parameters;
     try {
-      final Map<dynamic, dynamic> response = await _methodChannel
+      final Map<dynamic, dynamic> response = await _channel
           .invokeMethod('rtpSenderSetParameters', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
@@ -48,8 +48,7 @@ class RTCRtpSender {
 
   Future<void> replaceTrack(MediaStreamTrack track) async {
     try {
-      await _methodChannel.invokeMethod(
-          'rtpSenderReplaceTrack', <String, dynamic>{
+      await _channel.invokeMethod('rtpSenderReplaceTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
         'trackId': track.id
@@ -61,7 +60,7 @@ class RTCRtpSender {
 
   Future<void> setTrack(MediaStreamTrack track, bool takeOwnership) async {
     try {
-      await _methodChannel.invokeMethod('rtpSenderSetTrack', <String, dynamic>{
+      await _channel.invokeMethod('rtpSenderSetTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
         'trackId': track.id,
@@ -84,7 +83,7 @@ class RTCRtpSender {
 
   Future<void> dispose() async {
     try {
-      await _methodChannel.invokeMethod('rtpSenderDispose', <String, dynamic>{
+      await _channel.invokeMethod('rtpSenderDispose', <String, dynamic>{
         'rtpSenderId': _id,
       });
     } on PlatformException catch (e) {

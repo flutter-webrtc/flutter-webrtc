@@ -6,6 +6,13 @@ import android.app.FragmentTransaction;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.hardware.Camera;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CaptureRequest;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,9 +23,11 @@ import androidx.annotation.Nullable;
 import android.util.Log;
 import android.content.Intent;
 import android.app.Activity;
+import android.view.Surface;
 import android.view.WindowManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.util.Range;
 import android.util.SparseArray;
 
 import com.cloudwebrtc.webrtc.record.AudioChannel;
@@ -33,6 +42,7 @@ import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +50,7 @@ import java.util.Map;
 
 import org.webrtc.*;
 import org.webrtc.audio.JavaAudioDeviceModule;
+import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
 
 import io.flutter.plugin.common.MethodChannel.Result;
 
@@ -454,78 +465,79 @@ class GetUserMediaImpl{
                         result.error(null, "User revoked permission to capture the screen.", null);
                     }
                 });
-                if (videoCapturer != null) {
-                    PeerConnectionFactory pcFactory = plugin.mFactory;
-                    VideoSource videoSource = pcFactory.createVideoSource(true);
-
-                    Context context = plugin.getContext();
-                    String threadName = Thread.currentThread().getName();
-                    SurfaceTextureHelper surfaceTextureHelper = SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
-                    videoCapturer.initialize(surfaceTextureHelper, context, videoSource.getCapturerObserver());
-
-                    WindowManager wm = (WindowManager) applicationContext
-                            .getSystemService(Context.WINDOW_SERVICE);
-
-                    int width = wm.getDefaultDisplay().getWidth();
-                    int height = wm.getDefaultDisplay().getHeight();
-                    int fps = DEFAULT_FPS;
-
-                    videoCapturer.startCapture(width, height, fps);
-                    Log.d(TAG, "ScreenCapturerAndroid.startCapture: " + width + "x" + height + "@" + fps);
-
-                    String trackId = plugin.getNextTrackUUID();
-                    mVideoCapturers.put(trackId, videoCapturer);
-
-                    tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
-
-                    ConstraintsArray audioTracks = new ConstraintsArray();
-                    ConstraintsArray videoTracks = new ConstraintsArray();
-                    ConstraintsMap successResult = new ConstraintsMap();
-
-                    for (MediaStreamTrack track : tracks) {
-                        if (track == null) {
-                            continue;
-                        }
-
-                        String id = track.id();
-
-                        if (track instanceof AudioTrack) {
-                            mediaStream.addTrack((AudioTrack) track);
-                        } else {
-                            mediaStream.addTrack((VideoTrack) track);
-                        }
-                        plugin.localTracks.put(id, track);
-
-                        ConstraintsMap track_ = new ConstraintsMap();
-                        String kind = track.kind();
-
-                        track_.putBoolean("enabled", track.enabled());
-                        track_.putString("id", id);
-                        track_.putString("kind", kind);
-                        track_.putString("label", kind);
-                        track_.putString("readyState", track.state().toString());
-                        track_.putBoolean("remote", false);
-
-                        if (track instanceof AudioTrack) {
-                            audioTracks.pushMap(track_);
-                        } else {
-                            videoTracks.pushMap(track_);
-                        }
-                    }
-
-                    String streamId = mediaStream.getId();
-
-                    Log.d(TAG, "MediaStream id: " + streamId);
-                    plugin.localStreams.put(streamId, mediaStream);
-                    successResult.putString("streamId", streamId);
-                    successResult.putArray("audioTracks", audioTracks.toArrayList());
-                    successResult.putArray("videoTracks", videoTracks.toArrayList());
-                    result.success(successResult.toMap());
-                }else{
+                if (videoCapturer == null) {
                     result.error(
                         /* type */ "GetDisplayMediaFailed",
                            "Failed to create new VideoCapturer!", null);
+                    return;
                 }
+
+                PeerConnectionFactory pcFactory = plugin.mFactory;
+                VideoSource videoSource = pcFactory.createVideoSource(true);
+
+                Context context = plugin.getContext();
+                String threadName = Thread.currentThread().getName();
+                SurfaceTextureHelper surfaceTextureHelper = SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
+                videoCapturer.initialize(surfaceTextureHelper, context, videoSource.getCapturerObserver());
+
+                WindowManager wm = (WindowManager) applicationContext
+                        .getSystemService(Context.WINDOW_SERVICE);
+
+                int width = wm.getDefaultDisplay().getWidth();
+                int height = wm.getDefaultDisplay().getHeight();
+                int fps = DEFAULT_FPS;
+
+                videoCapturer.startCapture(width, height, fps);
+                Log.d(TAG, "ScreenCapturerAndroid.startCapture: " + width + "x" + height + "@" + fps);
+
+                String trackId = plugin.getNextTrackUUID();
+                mVideoCapturers.put(trackId, videoCapturer);
+
+                tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
+
+                ConstraintsArray audioTracks = new ConstraintsArray();
+                ConstraintsArray videoTracks = new ConstraintsArray();
+                ConstraintsMap successResult = new ConstraintsMap();
+
+                for (MediaStreamTrack track : tracks) {
+                    if (track == null) {
+                        continue;
+                    }
+
+                    String id = track.id();
+
+                    if (track instanceof AudioTrack) {
+                        mediaStream.addTrack((AudioTrack) track);
+                    } else {
+                        mediaStream.addTrack((VideoTrack) track);
+                    }
+                    plugin.localTracks.put(id, track);
+
+                    ConstraintsMap track_ = new ConstraintsMap();
+                    String kind = track.kind();
+
+                    track_.putBoolean("enabled", track.enabled());
+                    track_.putString("id", id);
+                    track_.putString("kind", kind);
+                    track_.putString("label", kind);
+                    track_.putString("readyState", track.state().toString());
+                    track_.putBoolean("remote", false);
+
+                    if (track instanceof AudioTrack) {
+                        audioTracks.pushMap(track_);
+                    } else {
+                        videoTracks.pushMap(track_);
+                    }
+                }
+
+                String streamId = mediaStream.getId();
+
+                Log.d(TAG, "MediaStream id: " + streamId);
+                plugin.localStreams.put(streamId, mediaStream);
+                successResult.putString("streamId", streamId);
+                successResult.putArray("audioTracks", audioTracks.toArrayList());
+                successResult.putArray("videoTracks", videoTracks.toArrayList());
+                result.success(successResult.toMap());
             }
         });
     }
@@ -741,22 +753,23 @@ class GetUserMediaImpl{
 
     void switchCamera(String id, Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(id);
-        if (videoCapturer != null) {
-            CameraVideoCapturer cameraVideoCapturer
-                = (CameraVideoCapturer) videoCapturer;
-            cameraVideoCapturer.switchCamera(new CameraVideoCapturer.CameraSwitchHandler() {
-                @Override
-                public void onCameraSwitchDone(boolean b) {
-                    result.success(b);
-                }
-                @Override
-                public void onCameraSwitchError(String s) {
-                    result.error("Switching camera failed", s, null);
-                }
-            });
-        } else {
-            result.error("Video capturer not found for id: " + id, null, null);
+        if (videoCapturer == null) {
+            result.error(null, "Video capturer not found for id: " + id, null);
+            return;
         }
+
+        CameraVideoCapturer cameraVideoCapturer
+            = (CameraVideoCapturer) videoCapturer;
+        cameraVideoCapturer.switchCamera(new CameraVideoCapturer.CameraSwitchHandler() {
+            @Override
+            public void onCameraSwitchDone(boolean b) {
+                result.success(b);
+            }
+            @Override
+            public void onCameraSwitchError(String s) {
+                result.error("Switching camera failed", s, null);
+            }
+        });
     }
 
     /** Creates and starts recording of local stream to file
@@ -795,4 +808,161 @@ class GetUserMediaImpl{
         }
     }
 
+    void hasTorch(String trackId, Result result) {
+        VideoCapturer videoCapturer = mVideoCapturers.get(trackId);
+        if (videoCapturer == null) {
+            result.error(null, "Video capturer not found for id: " + trackId, null);
+            return;
+        }
+
+        if (videoCapturer instanceof Camera2Capturer) {
+            CameraManager manager;
+            CameraDevice cameraDevice;
+
+            try {
+                Object session = getPrivateProperty(Camera2Capturer.class.getSuperclass(), videoCapturer, "currentSession");
+                manager = (CameraManager) getPrivateProperty(Camera2Capturer.class, videoCapturer, "cameraManager");
+                cameraDevice = (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
+            } catch (NoSuchFieldWithNameException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
+                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
+                return;
+            }
+
+            boolean flashIsAvailable;
+            try {
+                CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraDevice.getId());
+                flashIsAvailable = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+            } catch (CameraAccessException e) {
+                // Should never happen since we are already accessing the camera
+                throw new RuntimeException(e);
+            }
+
+            result.success(flashIsAvailable);
+            return;
+        }
+
+        if (videoCapturer instanceof Camera1Capturer) {
+            Camera camera;
+
+            try {
+                Object session = getPrivateProperty(Camera1Capturer.class.getSuperclass(), videoCapturer, "currentSession");
+                camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
+            } catch (NoSuchFieldWithNameException e) {
+                // Most likely the upstream Camera1Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
+                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
+                return;
+            }
+
+            Camera.Parameters params = camera.getParameters();
+            List<String> supportedModes = params.getSupportedFlashModes();
+
+            result.success((supportedModes == null) ? false : supportedModes.contains(Camera.Parameters.FLASH_MODE_TORCH));
+            return;
+        }
+
+        Log.e(TAG, "[TORCH] Video capturer not compatible");
+        result.error(null, "Video capturer not compatible", null);
+    }
+
+    void setTorch(String trackId, boolean torch, Result result) {
+        VideoCapturer videoCapturer = mVideoCapturers.get(trackId);
+        if (videoCapturer == null) {
+            result.error(null, "Video capturer not found for id: " + trackId, null);
+            return;
+        }
+
+        if (videoCapturer instanceof Camera2Capturer) {
+            CameraCaptureSession captureSession;
+            CameraDevice cameraDevice;
+            CaptureFormat captureFormat;
+            int fpsUnitFactor;
+            Surface surface;
+            Handler cameraThreadHandler;
+
+            try {
+                Object session = getPrivateProperty(Camera2Capturer.class.getSuperclass(), videoCapturer, "currentSession");
+                CameraManager manager = (CameraManager) getPrivateProperty(Camera2Capturer.class, videoCapturer, "cameraManager");
+                captureSession = (CameraCaptureSession) getPrivateProperty(session.getClass(), session, "captureSession");
+                cameraDevice = (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
+                captureFormat = (CaptureFormat) getPrivateProperty(session.getClass(), session, "captureFormat");
+                fpsUnitFactor = (int) getPrivateProperty(session.getClass(), session, "fpsUnitFactor");
+                surface = (Surface) getPrivateProperty(session.getClass(), session, "surface");
+                cameraThreadHandler = (Handler) getPrivateProperty(session.getClass(), session, "cameraThreadHandler");
+            } catch (NoSuchFieldWithNameException e) {
+                // Most likely the upstream Camera2Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
+                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
+                return;
+            }
+
+            try {
+                final CaptureRequest.Builder captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+                captureRequestBuilder.set(CaptureRequest.FLASH_MODE, torch ? CaptureRequest.FLASH_MODE_TORCH : CaptureRequest.FLASH_MODE_OFF);
+                captureRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
+                    new Range<Integer>(captureFormat.framerate.min / fpsUnitFactor,
+                        captureFormat.framerate.max / fpsUnitFactor));
+                captureRequestBuilder.set(
+                    CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+                captureRequestBuilder.set(CaptureRequest.CONTROL_AE_LOCK, false);
+                captureRequestBuilder.addTarget(surface);
+                captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, cameraThreadHandler);
+            } catch (CameraAccessException e) {
+                // Should never happen since we are already accessing the camera
+                throw new RuntimeException(e);
+            }
+
+            result.success(null);
+            return;
+        }
+
+        if (videoCapturer instanceof Camera1Capturer) {
+            Camera camera;
+            try {
+                Object session = getPrivateProperty(Camera1Capturer.class.getSuperclass(), videoCapturer, "currentSession");
+                camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
+            } catch (NoSuchFieldWithNameException e) {
+                // Most likely the upstream Camera1Capturer class have changed
+                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
+                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
+                return;
+            }
+
+            Camera.Parameters params = camera.getParameters();
+            params.setFlashMode(torch ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF);
+            camera.setParameters(params);
+
+            result.success(null);
+            return;
+        }
+
+        Log.e(TAG, "[TORCH] Video capturer not compatible");
+        result.error(null, "Video capturer not compatible", null);
+    }
+
+    private Object getPrivateProperty (Class klass, Object object, String fieldName) throws NoSuchFieldWithNameException {
+        try {
+            Field field = klass.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(object);
+        } catch (NoSuchFieldException e) {
+            throw new NoSuchFieldWithNameException(klass.getName(), fieldName, e);
+        } catch (IllegalAccessException e) {
+            // Should never happen since we are calling `setAccessible(true)`
+            throw new RuntimeException(e);
+        }
+    }
+
+    private class NoSuchFieldWithNameException extends NoSuchFieldException {
+        String className;
+        String fieldName;
+
+        NoSuchFieldWithNameException(String className, String fieldName, NoSuchFieldException e) {
+            super(e.getMessage());
+            this.className = className;
+            this.fieldName = fieldName;
+        }
+    }
 }

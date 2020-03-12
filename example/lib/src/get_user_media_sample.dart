@@ -1,8 +1,8 @@
 import 'dart:io';
+import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
-import 'dart:core';
 import 'package:path_provider/path_provider.dart';
 
 /*
@@ -19,6 +19,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaStream _localStream;
   final _localRenderer = new RTCVideoRenderer();
   bool _inCalling = false;
+  bool _isTorchOn = false;
   MediaRecorder _mediaRecorder;
   get _isRec => _mediaRecorder != null;
 
@@ -47,7 +48,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       "audio": false,
       "video": {
         "mandatory": {
-          "minWidth": '1280', // Provide your own width, height and frame rate here
+          "minWidth":
+              '1280', // Provide your own width, height and frame rate here
           "minHeight": '720',
           "minFrameRate": '30',
         },
@@ -94,7 +96,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     _mediaRecorder = MediaRecorder();
     setState(() {});
     await _localStream.getMediaTracks();
-    final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
+    final videoTrack = _localStream
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == "video");
     await _mediaRecorder.start(
       filePath,
       videoTrack: videoTrack,
@@ -108,6 +112,28 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     });
   }
 
+  _toggleTorch() async {
+    final videoTrack = _localStream
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == "video");
+    final has = await videoTrack.hasTorch();
+    if (has) {
+      print("[TORCH] Current camera supports torch mode");
+      setState(() => _isTorchOn = !_isTorchOn);
+      await videoTrack.setTorch(_isTorchOn);
+      print("[TORCH] Torch state is now ${_isTorchOn ? "on" : "off"}");
+    } else {
+      print("[TORCH] Current camera does not support torch mode");
+    }
+  }
+
+  _toggleCamera() async {
+    final videoTrack = _localStream
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == "video");
+    await videoTrack.switchCamera();
+  }
+
   _captureFrame() async {
     String filePath;
     if (Platform.isAndroid) {
@@ -118,7 +144,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       filePath = storagePath.path + '/test${DateTime.now()}.jpg';
     }
 
-    final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
+    final videoTrack = _localStream
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == "video");
     videoTrack.captureFrame(filePath);
   }
 
@@ -129,6 +157,14 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
         title: new Text('GetUserMedia API Test'),
         actions: _inCalling
             ? <Widget>[
+                new IconButton(
+                  icon: Icon(_isTorchOn ? Icons.flash_off : Icons.flash_on),
+                  onPressed: _toggleTorch,
+                ),
+                new IconButton(
+                  icon: Icon(Icons.switch_video),
+                  onPressed: _toggleCamera,
+                ),
                 new IconButton(
                   icon: Icon(Icons.camera),
                   onPressed: _captureFrame,

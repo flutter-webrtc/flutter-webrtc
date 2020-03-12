@@ -50,7 +50,7 @@ class RTCRtpTransceiverInit {
 }
 
 class RTCRtpTransceiver {
-  MethodChannel _methodChannel = WebRTC.methodChannel();
+  MethodChannel _channel = WebRTC.methodChannel();
   String _peerConnectionId;
   String _id;
   bool _stop;
@@ -90,7 +90,7 @@ class RTCRtpTransceiver {
 
   Future<void> setDirection(RTCRtpTransceiverDirection direction) async {
     try {
-      await _methodChannel
+      await _channel
           .invokeMethod('rtpTransceiverSetDirection', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'transceiverId': _id,
@@ -103,7 +103,7 @@ class RTCRtpTransceiver {
 
   Future<RTCRtpTransceiverDirection> getCurrentDirection() async {
     try {
-      final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
+      final Map<dynamic, dynamic> response = await _channel.invokeMethod(
           'rtpTransceiverGetCurrentDirection', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'transceiverId': _id
@@ -117,7 +117,7 @@ class RTCRtpTransceiver {
 
   Future<void> stop() async {
     try {
-      await _methodChannel.invokeMethod('rtpTransceiverStop', <String, dynamic>{
+      await _channel.invokeMethod('rtpTransceiverStop', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'transceiverId': _id
       });

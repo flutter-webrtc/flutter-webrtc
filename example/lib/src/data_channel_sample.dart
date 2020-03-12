@@ -5,7 +5,6 @@ import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
 
 class DataChannelSample extends StatefulWidget {
-
   static String tag = 'data_channel_sample';
 
   @override
@@ -56,8 +55,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     dataChannel.onMessage = (message) {
       if (message.type == MessageType.text) {
         print(message.text);
-      }
-      else {
+      } else {
         // do something with message.binary
       }
     };
@@ -65,21 +63,17 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     dataChannel.messageStream.listen((message) {
       if (message.type == MessageType.text) {
         print(message.text);
-      }
-      else {
+      } else {
         // do something with message.binary
       }
     });
-    
+
     dataChannel.send(RTCDataChannelMessage("Hello!"));
-    dataChannel.send(RTCDataChannelMessage.fromBinary(
-      Uint8List(5)
-    ));
+    dataChannel.send(RTCDataChannelMessage.fromBinary(Uint8List(5)));
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   _makeCall() async {
-
     Map<String, dynamic> configuration = {
       "iceServers": [
         {"url": "stun:stun.l.google.com:19302"},
@@ -97,16 +91,15 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     final Map<String, dynamic> loopbackConstraints = {
       "mandatory": {},
       "optional": [
-        {"DtlsSrtpKeyAgreement": true },
+        {"DtlsSrtpKeyAgreement": true},
       ],
     };
 
     if (_peerConnection != null) return;
 
     try {
-
       _peerConnection =
-      await createPeerConnection(configuration, loopbackConstraints);
+          await createPeerConnection(configuration, loopbackConstraints);
 
       _peerConnection.onSignalingState = _onSignalingState;
       _peerConnection.onIceGatheringState = _onIceGatheringState;
@@ -122,11 +115,12 @@ class _DataChannelSampleState extends State<DataChannelSample> {
       _dataChannelDict.protocol = "sctp";
       _dataChannelDict.negotiated = false;
 
-      _dataChannel = await _peerConnection.createDataChannel('dataChannel', _dataChannelDict);
+      _dataChannel = await _peerConnection.createDataChannel(
+          'dataChannel', _dataChannelDict);
       _peerConnection.onDataChannel = _onDataChannel;
 
       RTCSessionDescription description =
-      await _peerConnection.createOffer(offerSdpConstraints);
+          await _peerConnection.createOffer(offerSdpConstraints);
       print(description.sdp);
       _peerConnection.setLocalDescription(description);
 
@@ -159,26 +153,24 @@ class _DataChannelSampleState extends State<DataChannelSample> {
 
   @override
   Widget build(BuildContext context) {
-    return
-      new Scaffold(
-        appBar: new AppBar(
-          title: new Text('Data Channel Test'),
-        ),
-        body: new OrientationBuilder(
-          builder: (context, orientation) {
-            return new Center(
-              child: new Container(
-                child: _inCalling? Text(_sdp) : Text('data channel test'),
-              ),
-            );
-          },
-        ),
-        floatingActionButton: new FloatingActionButton(
-          onPressed: _inCalling ? _hangUp : _makeCall,
-          tooltip: _inCalling ? 'Hangup' : 'Call',
-          child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
-        ),
-      );
-
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text('Data Channel Test'),
+      ),
+      body: new OrientationBuilder(
+        builder: (context, orientation) {
+          return new Center(
+            child: new Container(
+              child: _inCalling ? Text(_sdp) : Text('data channel test'),
+            ),
+          );
+        },
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: _inCalling ? _hangUp : _makeCall,
+        tooltip: _inCalling ? 'Hangup' : 'Call',
+        child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
+      ),
+    );
   }
 }

@@ -29,7 +29,7 @@ typedef void OnFirstPacketReceivedCallback(
 
 class RTCRtpReceiver {
   /// private:
-  MethodChannel _methodChannel = WebRTC.methodChannel();
+  MethodChannel _channel = WebRTC.methodChannel();
   String _peerConnectionId;
   String _id;
   MediaStreamTrack _track;
@@ -55,7 +55,7 @@ class RTCRtpReceiver {
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     _parameters = parameters;
     try {
-      final Map<dynamic, dynamic> response = await _methodChannel
+      final Map<dynamic, dynamic> response = await _channel
           .invokeMethod('rtpReceiverSetParameters', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpReceiverId': _id,

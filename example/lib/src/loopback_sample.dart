@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/webrtc.dart';
 
 class LoopBackSample extends StatefulWidget {
-
   static String tag = 'loopback_sample';
 
   @override
@@ -26,7 +25,7 @@ class _MyAppState extends State<LoopBackSample> {
     initRenderers();
   }
 
-    @override
+  @override
   deactivate() {
     super.deactivate();
     if (_inCalling) {
@@ -43,7 +42,7 @@ class _MyAppState extends State<LoopBackSample> {
 
   void handleStatsReport(Timer timer) async {
     if (_peerConnection != null) {
-      List<StatsReport> reports = await _peerConnection.getStats(null);
+      List<StatsReport> reports = await _peerConnection.getStats();
       reports.forEach((report) {
         print("report => { ");
         print("    id: " + report.id + ",");
@@ -51,7 +50,7 @@ class _MyAppState extends State<LoopBackSample> {
         print("    timestamp: ${report.timestamp},");
         print("    values => {");
         report.values.forEach((key, value) {
-          print("        " + key + " : " + value + ", ");
+          print("        " + key + " : " + value.toString() + ", ");
         });
         print("    }");
         print("}");
@@ -95,7 +94,8 @@ class _MyAppState extends State<LoopBackSample> {
       "audio": true,
       "video": {
         "mandatory": {
-          "minWidth": '1280', // Provide your own width, height and frame rate here
+          "minWidth":
+              '1280', // Provide your own width, height and frame rate here
           "minHeight": '720',
           "minFrameRate": '30',
         },
@@ -132,7 +132,7 @@ class _MyAppState extends State<LoopBackSample> {
       _localRenderer.srcObject = _localStream;
       _localRenderer.mirror = true;
       _peerConnection =
-      await createPeerConnection(configuration, loopbackConstraints);
+          await createPeerConnection(configuration, loopbackConstraints);
 
       _peerConnection.onSignalingState = _onSignalingState;
       _peerConnection.onIceGatheringState = _onIceGatheringState;
@@ -144,7 +144,7 @@ class _MyAppState extends State<LoopBackSample> {
 
       _peerConnection.addStream(_localStream);
       RTCSessionDescription description =
-      await _peerConnection.createOffer(offerSdpConstraints);
+          await _peerConnection.createOffer(offerSdpConstraints);
       print(description.sdp);
       _peerConnection.setLocalDescription(description);
       //change for loopback.
@@ -181,40 +181,38 @@ class _MyAppState extends State<LoopBackSample> {
   @override
   Widget build(BuildContext context) {
     var widgets = <Widget>[
-                          new Expanded(
-                              child: new RTCVideoView(_localRenderer),
-                            ),
-                          new Expanded(
-                              child: new RTCVideoView(_remoteRenderer),
-                            )
-                        ];
-    return
-      new Scaffold(
-        appBar: new AppBar(
-          title: new Text('LoopBack example'),
-        ),
-        body: new OrientationBuilder(
-          builder: (context, orientation) {
-            return new Center(
-              child: new Container(
-                decoration: new BoxDecoration(color: Colors.black54),
-                child: orientation == Orientation.portrait?
-                new Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: widgets) :
-                new Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: widgets),
-              ),
-            );
-          },
-        ),
-        floatingActionButton: new FloatingActionButton(
-          onPressed: _inCalling ? _hangUp : _makeCall,
-          tooltip: _inCalling ? 'Hangup' : 'Call',
-          child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
-        ),
-      );
-
+      new Expanded(
+        child: new RTCVideoView(_localRenderer),
+      ),
+      new Expanded(
+        child: new RTCVideoView(_remoteRenderer),
+      )
+    ];
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text('LoopBack example'),
+      ),
+      body: new OrientationBuilder(
+        builder: (context, orientation) {
+          return new Center(
+            child: new Container(
+              decoration: new BoxDecoration(color: Colors.black54),
+              child: orientation == Orientation.portrait
+                  ? new Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: widgets)
+                  : new Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: widgets),
+            ),
+          );
+        },
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: _inCalling ? _hangUp : _makeCall,
+        tooltip: _inCalling ? 'Hangup' : 'Call',
+        child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
+      ),
+    );
   }
 }

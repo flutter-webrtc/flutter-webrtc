@@ -2,22 +2,18 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'media_stream.dart';
 import 'utils.dart';
-
-enum RTCVideoViewObjectFit {
-  RTCVideoViewObjectFitContain,
-  RTCVideoViewObjectFitCover,
-}
+import 'enums.dart';
 
 class RTCVideoRenderer {
   /// private:
-  MethodChannel _methodChannel = WebRTC.methodChannel();
+  MethodChannel _channel = WebRTC.methodChannel();
   int _textureId;
   int _rotation = 0;
   double _width = 0.0, _height = 0.0;
   bool _mirror = false;
-  double _aspectRatio = 1.0;
   MediaStream _srcObject;
   RTCVideoViewObjectFit _objectFit =
       RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
@@ -30,7 +26,7 @@ class RTCVideoRenderer {
 
   Future<void> initialize() async {
     final Map<dynamic, dynamic> response =
-        await _methodChannel.invokeMethod('createVideoRenderer', {});
+        await _channel.invokeMethod('createVideoRenderer', {});
     _textureId = response['textureId'];
     _eventSubscription = _eventChannelFor(_textureId)
         .receiveBroadcastStream()
@@ -73,15 +69,16 @@ class RTCVideoRenderer {
 
   set srcObject(MediaStream stream) {
     _srcObject = stream;
-    _methodChannel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
+    _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
       'textureId': _textureId,
-      'streamId': stream != null ? stream.id : ''
+      'streamId': stream != null ? stream.id : '',
+      'ownerTag': stream != null ? stream.ownerTag : ''
     });
   }
 
   Future<void> dispose() async {
     await _eventSubscription?.cancel();
-    await _methodChannel.invokeMethod(
+    await _channel.invokeMethod(
       'videoRendererDispose',
       <String, dynamic>{'textureId': _textureId},
     );
@@ -117,39 +114,37 @@ class RTCVideoRenderer {
 
 class RTCVideoView extends StatefulWidget {
   final RTCVideoRenderer _renderer;
-  RTCVideoView(this._renderer);
+  RTCVideoView(this._renderer, {Key key}) : super(key: key);
   @override
-  _RTCVideoViewState createState() => new _RTCVideoViewState(_renderer);
+  _RTCVideoViewState createState() => new _RTCVideoViewState();
 }
 
 class _RTCVideoViewState extends State<RTCVideoView> {
-  final RTCVideoRenderer _renderer;
   double _aspectRatio;
   RTCVideoViewObjectFit _objectFit;
   bool _mirror;
-  _RTCVideoViewState(this._renderer);
 
   @override
   void initState() {
     super.initState();
     _setCallbacks();
-    _aspectRatio = _renderer.aspectRatio;
-    _mirror = _renderer.mirror;
-    _objectFit = _renderer.objectFit;
+    _aspectRatio = widget._renderer.aspectRatio;
+    _mirror = widget._renderer.mirror;
+    _objectFit = widget._renderer.objectFit;
   }
 
   @override
   void deactivate() {
     super.deactivate();
-    _renderer.onStateChanged = null;
+    widget._renderer.onStateChanged = null;
   }
 
   void _setCallbacks() {
-    _renderer.onStateChanged = () {
+    widget._renderer.onStateChanged = () {
       setState(() {
-        _aspectRatio = _renderer.aspectRatio;
-        _mirror = _renderer.mirror;
-        _objectFit = _renderer.objectFit;
+        _aspectRatio = widget._renderer.aspectRatio;
+        _mirror = widget._renderer.mirror;
+        _objectFit = widget._renderer.objectFit;
       });
     };
   }
@@ -171,14 +166,14 @@ class _RTCVideoViewState extends State<RTCVideoView> {
                         transform: Matrix4.identity()
                           ..rotateY(_mirror ? -pi : 0.0),
                         alignment: FractionalOffset.center,
-                        child:
-                            new Texture(textureId: _renderer.textureId))))));
+                        child: new Texture(
+                            textureId: widget._renderer._textureId))))));
   }
 
   @override
   Widget build(BuildContext context) {
-    bool renderVideo =
-        (_renderer.textureId != null && _renderer.src != null);
+    bool renderVideo = (widget._renderer._textureId != null &&
+        widget._renderer._srcObject != null);
 
     return new LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {

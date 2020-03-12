@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
+
 import 'media_stream.dart';
 import 'utils.dart';
 
@@ -21,9 +22,10 @@ class navigator {
     }
   }
 
-  /// Get a MediaStream from screen sharing.
-  /// Currently supports Android/iOS.
-  /// TODO: Implement the desktop version.
+/* Implement screen sharing,
+ * use MediaProjection for Android and use ReplayKit for iOS
+ * TODO: implement for native layer.
+ * */
   static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
     MethodChannel channel = WebRTC.methodChannel();
