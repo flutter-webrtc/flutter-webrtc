@@ -39,7 +39,7 @@ class RTCRtpReceiver {
   OnFirstPacketReceivedCallback onFirstPacketReceived;
 
   factory RTCRtpReceiver.fromMap(Map<dynamic, dynamic> map) {
-    MediaStreamTrack track = MediaStreamTrack.fromMap(map['trackInfo']);
+    MediaStreamTrack track = MediaStreamTrack.fromMap(map['track']);
     RTCRtpParameters parameters =
         RTCRtpParameters.fromMap(map['rtpParameters']);
     return RTCRtpReceiver(map['receiverId'], track, parameters);
