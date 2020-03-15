@@ -1,6 +1,14 @@
 ## Changelog
 
 --------------------------------------------
+[0.2.7] - 2020.03.15
+
+* [macOS] Fix crash with H264 HW Encoder.
+* [Web] Add addTransceiver API.
+* [Android] Removed duplicate method that was causing compilation error.
+* [iOS] Use MrAlek Libyuv pod fixing incompatibility with FirebaseFirestore.
+* [iOS] Upgrade GoogleWebRTC dependency to 1.1.29400.
+
 
 [0.2.6] - 2020.02.03
 
