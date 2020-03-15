@@ -222,4 +222,12 @@ class RTCPeerConnection {
     _jsPc.close();
     return Future.value();
   }
+
+  //'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
+  void addTransceiver(String type, Map<String, String> options) {
+    if (JSUtils.hasProperty(_jsPc, "addTransceiver")) {
+      final JS.JsObject jsOptions = JS.JsObject.jsify(options);
+      JSUtils.callMethod(_jsPc, "addTransceiver", [type, jsOptions]);
+    }
+  }
 }
