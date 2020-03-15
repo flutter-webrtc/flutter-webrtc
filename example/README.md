@@ -4,14 +4,27 @@ Demonstrates how to use the webrtc plugin.
 
 ## Getting Started
 
+Make sure your flutter is using the `dev` channel.
+
+```bash
+flutter channel dev
+./scripts/project_tools.sh create
+```
+
 Android/iOS
 
-`flutter run`
+```bash
+flutter run
+```
 
 macOS
 
-`flutter run -d macOS`
+```bash
+flutter run -d macos
+```
 
 Web
 
-`flutter run -d chrome`
+```bash
+flutter run -d web
+```
