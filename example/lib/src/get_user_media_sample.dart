@@ -48,7 +48,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       "audio": false,
       "video": {
         "mandatory": {
-          "minWidth": '1280', // Provide your own width, height and frame rate here
+          "minWidth":
+              '1280', // Provide your own width, height and frame rate here
           "minHeight": '720',
           "minFrameRate": '30',
         },
@@ -95,7 +96,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     _mediaRecorder = MediaRecorder();
     setState(() {});
     await _localStream.getMediaTracks();
-    final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
+    final videoTrack = _localStream
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == "video");
     await _mediaRecorder.start(
       filePath,
       videoTrack: videoTrack,
@@ -110,7 +113,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   _toggleTorch() async {
-    final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
+    final videoTrack = _localStream
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == "video");
     final has = await videoTrack.hasTorch();
     if (has) {
       print("[TORCH] Current camera supports torch mode");
@@ -123,7 +128,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   _toggleCamera() async {
-    final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
+    final videoTrack = _localStream
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == "video");
     await videoTrack.switchCamera();
   }
 
@@ -137,7 +144,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       filePath = storagePath.path + '/test${DateTime.now()}.jpg';
     }
 
-    final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
+    final videoTrack = _localStream
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == "video");
     videoTrack.captureFrame(filePath);
   }
 

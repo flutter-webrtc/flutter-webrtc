@@ -53,7 +53,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       "audio": true,
       "video": {
         "mandatory": {
-          "minWidth": '1280', // Provide your own width, height and frame rate here
+          "minWidth":
+              '1280', // Provide your own width, height and frame rate here
           "minHeight": '720',
           "minFrameRate": '30',
         },
@@ -103,17 +104,21 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   _captureFrame() async {
-    final videoTrack = _localStream.getVideoTracks().firstWhere((track) => track.kind == "video");
+    final videoTrack = _localStream
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == "video");
     final frame = await videoTrack.captureFrame();
-    showDialog(context: context, builder: (context) => AlertDialog(
-      content: Image.network(frame, height: 720, width: 1280),
-      actions: <Widget>[
-        FlatButton(
-          child: Text("OK"),
-          onPressed: Navigator.of(context, rootNavigator: true).pop,
-        )
-      ],
-    ));
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              content: Image.network(frame, height: 720, width: 1280),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("OK"),
+                  onPressed: Navigator.of(context, rootNavigator: true).pop,
+                )
+              ],
+            ));
   }
 
   @override
@@ -121,16 +126,18 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('GetUserMedia API Test'),
-        actions: _inCalling ? <Widget>[
-          IconButton(
-            icon: Icon(Icons.camera),
-            onPressed: _captureFrame,
-          ),
-          IconButton(
-            icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
-            onPressed: _isRec ? _stopRecording : _startRecording,
-          ),
-        ] : null,
+        actions: _inCalling
+            ? <Widget>[
+                IconButton(
+                  icon: Icon(Icons.camera),
+                  onPressed: _captureFrame,
+                ),
+                IconButton(
+                  icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
+                  onPressed: _isRec ? _stopRecording : _startRecording,
+                ),
+              ]
+            : null,
       ),
       body: new OrientationBuilder(
         builder: (context, orientation) {
