@@ -69,8 +69,8 @@ class RTCVideoRenderer {
   set srcObject(MediaStream stream) {
     _srcObject = stream;
 
-    if(_srcObject == null){
-      findHtmlView()?.srcObject  = null;
+    if (_srcObject == null) {
+      findHtmlView()?.srcObject = null;
       return;
     }
 
@@ -81,7 +81,7 @@ class RTCVideoRenderer {
     ui.platformViewRegistry.registerViewFactory(stream.id, (int viewId) {
       final x = HTML.VideoElement();
       x.autoplay = true;
-      x.muted = true;
+      x.muted = false;
       x.srcObject = stream.jsStream;
       _htmlVideoElement = x;
       _videoViews.add(x);

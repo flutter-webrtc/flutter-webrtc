@@ -1,4 +1,3 @@
-
 class RTCIceCandidate {
   String candidate;
   String sdpMid;
