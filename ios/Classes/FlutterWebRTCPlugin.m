@@ -3,6 +3,7 @@
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCDataChannel.h"
 #import "FlutterRTCVideoRenderer.h"
+#import "FlutterRTCAudioRecorder.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
@@ -17,6 +18,8 @@
 }
 
 @synthesize messenger = _messenger;
+
+FlutterRTCAudioRecorder* flutterRTCAudioRecorder;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     
@@ -328,6 +331,7 @@
                 }
             }
             for (RTCAudioTrack *track in stream.audioTracks) {
+                track.isEnabled = NO;
                 [self.localTracks removeObjectForKey:track.trackId];
             }
             [self.localStreams removeObjectForKey:streamId];
@@ -338,6 +342,7 @@
         NSString* trackId = argsMap[@"trackId"];
         NSNumber* enabled = argsMap[@"enabled"];
         RTCMediaStreamTrack *track = self.localTracks[trackId];
+        
         if(track != nil){
             track.isEnabled = enabled.boolValue;
         }
@@ -478,6 +483,20 @@
                                            message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                            details:nil]);
             }
+    } else if([@"startRecordToFile" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* path = argsMap[@"path"];
+        NSNumber* audioChannel = argsMap[@"audioChannel"];
+        
+        flutterRTCAudioRecorder = [[FlutterRTCAudioRecorder alloc] initWithPath:path];
+        result(nil);
+    } else if([@"stopRecordToFile" isEqualToString:call.method]){
+        if (flutterRTCAudioRecorder != nil) {
+            [flutterRTCAudioRecorder stop:^(bool flag) {
+                result([NSNumber numberWithBool:(BOOL)flag]);
+            }];
+        }
+        result(nil);
     } else {
         result(FlutterMethodNotImplemented);
     }

@@ -9,12 +9,15 @@ import org.webrtc.VideoTrack;
 
 import java.io.File;
 
+import io.flutter.plugin.common.MethodChannel;
+
 public class MediaRecorderImpl {
 
     private final Integer id;
     private final VideoTrack videoTrack;
     private final AudioSamplesInterceptor audioInterceptor;
     private VideoFileRenderer videoFileRenderer;
+    private AudioFileRenderer audioFileRenderer;
     private boolean isRunning = false;
     private File recordFile;
 
@@ -43,18 +46,20 @@ public class MediaRecorderImpl {
         } else {
             Log.e(TAG, "Video track is null");
             if (audioInterceptor != null) {
-                //TODO(rostopira): audio only recording
-                throw new Exception("Audio-only recording not implemented yet");
+                audioFileRenderer = new AudioFileRenderer(file);
+                audioInterceptor.attachCallback(id, audioFileRenderer);
             }
         }
     }
 
     public File getRecordFile() { return recordFile; }
 
-    public void stopRecording() {
+    public void stopRecording(MethodChannel.Result result) {
         isRunning = false;
         if (audioInterceptor != null)
             audioInterceptor.detachCallback(id);
+            audioFileRenderer.release(result);
+            audioFileRenderer = null;
         if (videoTrack != null && videoFileRenderer != null) {
             videoTrack.removeSink(videoFileRenderer);
             videoFileRenderer.release();

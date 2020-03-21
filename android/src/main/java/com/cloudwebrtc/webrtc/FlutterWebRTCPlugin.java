@@ -354,8 +354,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             }
         } else if (call.method.equals("stopRecordToFile")) {
             Integer recorderId = call.argument("recorderId");
-            getUserMediaImpl.stopRecording(recorderId);
-            result.success(null);
+            getUserMediaImpl.stopRecording(recorderId, result);
         } else if (call.method.equals("captureFrame")) {
             String path = call.argument("path");
             String videoTrackId = call.argument("trackId");

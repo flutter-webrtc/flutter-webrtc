@@ -779,19 +779,11 @@ class GetUserMediaImpl{
         mediaRecorders.append(id, mediaRecorder);
     }
 
-    void stopRecording(Integer id) {
+    void stopRecording(Integer id, Result result) {
         MediaRecorderImpl mediaRecorder = mediaRecorders.get(id);
         if (mediaRecorder != null) {
-            mediaRecorder.stopRecording();
+            mediaRecorder.stopRecording(result);
             mediaRecorders.remove(id);
-            File file = mediaRecorder.getRecordFile();
-            if (file != null) {
-                ContentValues values = new ContentValues(3);
-                values.put(MediaStore.Video.Media.TITLE, file.getName());
-                values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
-                values.put(MediaStore.Video.Media.DATA, file.getAbsolutePath());
-                applicationContext.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
-            }
         }
     }
 
