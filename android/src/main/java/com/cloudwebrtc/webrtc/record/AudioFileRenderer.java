@@ -139,7 +139,11 @@ public class AudioFileRenderer implements JavaAudioDeviceModule.SamplesReadyCall
                     audioEncoder.stop();
                     audioEncoder.release();
                 }
-                mediaMuxer.stop();
+                try {
+                    mediaMuxer.stop();
+                } catch (Exception e) {
+                    // do nothing...
+                }
                 mediaMuxer.release();
                 audioThread.quit();
 
