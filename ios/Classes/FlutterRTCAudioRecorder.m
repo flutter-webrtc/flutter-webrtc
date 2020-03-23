@@ -18,7 +18,7 @@ OnRecordingStopped onRecordingStopped;
 
 -(id) initWithPath:(NSString *) path {
     self = [super init];
-    recordingSession = [AVAudioSession sharedInstance];
+    recordingSession = [[AVAudioSession alloc] init];
     
     [recordingSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
     [recordingSession setActive:true error:nil];
@@ -46,6 +46,7 @@ OnRecordingStopped onRecordingStopped;
 }
 
 -(void)stop:(OnRecordingStopped) callback {
+    [recordingSession setActive:false error:nil];
     onRecordingStopped = callback;
     if (audioRecorder != nil) {
         [audioRecorder stop];

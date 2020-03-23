@@ -496,7 +496,6 @@ FlutterRTCAudioRecorder* flutterRTCAudioRecorder;
                 result([NSNumber numberWithBool:(BOOL)flag]);
             }];
         }
-        result(nil);
     } else {
         result(FlutterMethodNotImplemented);
     }
