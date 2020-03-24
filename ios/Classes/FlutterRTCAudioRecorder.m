@@ -18,10 +18,10 @@ OnRecordingStopped onRecordingStopped;
 
 -(id) initWithPath:(NSString *) path {
     self = [super init];
-    recordingSession = [[AVAudioSession alloc] init];
-    
+    recordingSession = [AVAudioSession sharedInstance];
     [recordingSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
     [recordingSession setActive:true error:nil];
+    
     [recordingSession requestRecordPermission:^(BOOL granted) {
         if (granted) {
             NSError* error;
@@ -32,6 +32,8 @@ OnRecordingStopped onRecordingStopped;
                 @"AVEncoderAudioQualityKey": [NSNumber numberWithInt:AVAudioQualityMedium]
             };
             audioRecorder = [[AVAudioRecorder alloc] initWithURL:[NSURL URLWithString:path] settings: recordingSettings error:&error];
+            
+            audioRecorder.delegate = self;
             
             [audioRecorder prepareToRecord];
             [audioRecorder record];
@@ -46,7 +48,6 @@ OnRecordingStopped onRecordingStopped;
 }
 
 -(void)stop:(OnRecordingStopped) callback {
-    [recordingSession setActive:false error:nil];
     onRecordingStopped = callback;
     if (audioRecorder != nil) {
         [audioRecorder stop];
