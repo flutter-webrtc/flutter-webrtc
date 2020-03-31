@@ -25,7 +25,6 @@ public class AudioSamplesInterceptor implements SamplesReadyCallback {
 
     @Override
     public void onWebRtcAudioRecordSamplesReady(AudioSamples audioSamples) {
-        Log.d(TAG, _id + " Samples ready! Callbacks: "+callbacks.size());
         for (SamplesReadyCallback callback : callbacks.values()) {
             callback.onWebRtcAudioRecordSamplesReady(audioSamples);
         }
