@@ -55,6 +55,8 @@ android {
 }
 ```
 
+If necessary, in the same `build.gradle` you will need to increase `minSdkVersion` of `defaultConfig` up to `18` (currently default Flutter generator set it to `16`).
+
 ## Contributing
 The project is inseparable from the contributors of the community.
 - [CloudWebRTC](https://github.com/cloudwebrtc) - Original Author
