@@ -109,7 +109,6 @@ class RTCPeerConnection {
           return newStream;
         });
         if (this.onAddStream != null) this.onAddStream(stream);
-        _remoteStreams.add(stream);
         break;
       case 'onRemoveStream':
         String streamId = map['streamId'];
