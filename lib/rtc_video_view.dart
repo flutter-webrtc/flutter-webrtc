@@ -128,8 +128,8 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   }
 
   @override
-  void deactivate() {
-    super.deactivate();
+  void dispose() {
+    super.dispose();
     widget._renderer.onStateChanged = null;
   }
 
