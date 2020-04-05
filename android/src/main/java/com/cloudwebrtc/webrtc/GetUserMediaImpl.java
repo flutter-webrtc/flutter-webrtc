@@ -573,6 +573,7 @@ class GetUserMediaImpl{
             }
 
             String id = track.id();
+            Log.d(TAG, "MediaStream Track id: " + id);
 
             if (track instanceof AudioTrack) {
                 mediaStream.addTrack((AudioTrack) track);

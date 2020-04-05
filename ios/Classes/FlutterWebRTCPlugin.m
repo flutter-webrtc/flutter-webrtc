@@ -62,6 +62,7 @@ FlutterRTCAudioRecorder* flutterRTCAudioRecorder;
     self.peerConnections = [NSMutableDictionary new];
     self.localStreams = [NSMutableDictionary new];
     self.localTracks = [NSMutableDictionary new];
+    self.localSenders = [NSMutableDictionary new];
     self.renders = [[NSMutableDictionary alloc] init];
     return self;
 }
@@ -164,6 +165,7 @@ FlutterRTCAudioRecorder* flutterRTCAudioRecorder;
 
         if (peerConnection && track) {
             RTCRtpSender* sender = [peerConnection addTrack:track streamIds:streamIds];
+            self.localSenders[sender.senderId] = sender;
             
             // TODO: properly map sender
             result(@{
@@ -192,6 +194,23 @@ FlutterRTCAudioRecorder* flutterRTCAudioRecorder;
         } else {
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: peerConnection or track not found!"]
+                                       details:nil]);
+        }
+    }  else if ([@"removeTrack" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        
+        NSString* senderId = ((NSString*)argsMap[@"senderId"]);
+        RTCRtpSender *sender = self.localSenders[senderId];
+        
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        
+        if(peerConnection && sender){
+            [peerConnection removeTrack:sender];
+            result(@{ @"result": @(YES) });
+        }else{
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection or mediaStream not found!"]
                                        details:nil]);
         }
     }  else if ([@"removeStream" isEqualToString:call.method]) {
@@ -507,6 +526,8 @@ FlutterRTCAudioRecorder* flutterRTCAudioRecorder;
     _localTracks = nil;
     [_localStreams removeAllObjects];
     _localStreams = nil;
+    [_localSenders removeAllObjects];
+    _localSenders = nil;
     
     for (NSString *peerConnectionId in _peerConnections) {
         RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
