@@ -3,6 +3,7 @@
 .DS_Store
 .packages
 .vscode/.DS_Store
+.dart_tool/
 example/pubspec.lock
 pubspec.lock
 example/ios/Podfile.lock
@@ -15,5 +16,12 @@ example/.flutter-plugins
 example/android/local.properties
 android/.gradle
 android/.settings
+android/gradle
+android/gradlew
+android/gradlew.bat
 android/local.properties
 example/android/.settings
+example/.flutter-plugins-dependencies
+example/android/.project/
+example/android/app/.classpath
+example/ios/Flutter/flutter_export_environment.sh
