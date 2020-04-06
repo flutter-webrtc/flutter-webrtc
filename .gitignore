@@ -25,3 +25,9 @@ example/.flutter-plugins-dependencies
 example/android/.project/
 example/android/app/.classpath
 example/ios/Flutter/flutter_export_environment.sh
+example/ios/Flutter/Generated.xcconfig
+example/ios/Pods/.symlinks
+example/ios/Pods/Local Podspecs/
+example/ios/Runner/GeneratedPluginRegistrant.h
+example/ios/Runner/GeneratedPluginRegistrant.m
+example/ios/Runner.xcworkspace/xcuserdata/
