@@ -1,7 +1,16 @@
 # Flutter-WebRTC
-[![pub package](https://img.shields.io/pub/v/flutter_webrtc.svg)](https://pub.dartlang.org/packages/flutter_webrtc) [![Join the chat at https://gitter.im/flutter-webrtc/Lobby](https://badges.gitter.im/flutter-webrtc/Lobby.svg)](https://gitter.im/flutter-webrtc/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Financial Contributors on Open Collective](https://opencollective.com/flutter-webrtc/all/badge.svg?label=financial+contributors)](https://opencollective.com/flutter-webrtc) [![pub package](https://img.shields.io/pub/v/flutter_webrtc.svg)](https://pub.dartlang.org/packages/flutter_webrtc) [![Gitter](https://badges.gitter.im/flutter-webrtc/Lobby.svg)](https://gitter.im/flutter-webrtc/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Flutter WebRTC plugin for iOS/Android
+WebRTC plugin for Flutter Mobile/Desktop/Web
+
+## Functionality
+| Feature | Android | iOS | [Web](https://flutter.dev/web) | macOS | Windows | Linux | [Fuchsia](https://fuchsia.googlesource.com/) |
+| :-------------: | :-------------:| :-----: | :-----: | :-----: | :-----: | :-----: | :-----: |
+| Audio/Video | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | [WIP] | |
+| Data Channel | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | [WIP] | |
+| Screen Capture | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | | | |
+| Unified-Plan | | |  | | | | |
+| MediaRecorder| :warning: | :warning: | :heavy_check_mark: | | | | |
 
 ## Usage
 Add `flutter_webrtc` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
@@ -21,7 +30,7 @@ This entry allows your app to access camera and microphone.
 
 ### Android
 
-Ensure the following permission is present in your Android Manifest file, located in `<project root>/android/app/src/main/AndroidManifest.xml:
+Ensure the following permission is present in your Android Manifest file, located in `<project root>/android/app/src/main/AndroidManifest.xml`:
 
 ```xml
 <uses-feature android:name="android.hardware.camera" />
@@ -46,125 +55,40 @@ android {
 }
 ```
 
-## Functionality
-We intend to implement support the following features:
-
-- [X] Data Channel
-- [ ] Port to [Flutter-Desktop-Embedding](https://github.com/google/flutter-desktop-embedding)
-- [X] Screen Capture (iOS/Android)
-- [ ] ORTC API
-- [ ] Support [Fuchsia](https://fuchsia.googlesource.com/)
-- [ ] MediaRecorder
-- [ ] Flutter Web
+## Contributing
+The project is inseparable from the contributors of the community.
+- [CloudWebRTC](https://github.com/cloudwebrtc) - Original Author
+- [RainwayApp](https://github.com/rainwayapp) - Sponsor from Paypal
 
 ### Example
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/webrtc.dart';
-import 'dart:core';
-
-/**
- * getUserMedia sample
- */
-class GetUserMediaSample extends StatefulWidget {
-  static String tag = 'get_usermedia_sample';
-
-  @override
-  _GetUserMediaSampleState createState() => new _GetUserMediaSampleState();
-}
-
-class _GetUserMediaSampleState extends State<GetUserMediaSample> {
-  MediaStream _localStream;
-  final _localRenderer = new RTCVideoRenderer();
-  bool _inCalling = false;
-
-  @override
-  initState() {
-    super.initState();
-    initRenderers();
-  }
-
-  @override
-  deactivate() {
-    super.deactivate();
-    if (_inCalling) {
-      _hangUp();
-    }
-  }
-
-  initRenderers() async {
-    await _localRenderer.initialize();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  _makeCall() async {
-    final Map<String, dynamic> mediaConstraints = {
-      "audio": true,
-      "video": {
-        "mandatory": {
-          "minWidth":'640', // Provide your own width, height and frame rate here
-          "minHeight": '480',
-          "minFrameRate": '30',
-        },
-        "facingMode": "user",
-        "optional": [],
-      }
-    };
-
-    try {
-      var stream = await navigator.getUserMedia(mediaConstraints);
-      _localStream = stream;
-      _localRenderer.srcObject = _localStream;
-    } catch (e) {
-      print(e.toString());
-    }
-    if (!mounted) return;
-
-    setState(() {
-      _inCalling = true;
-    });
-  }
-
-  _hangUp() async {
-    try {
-      await _localStream.dispose();
-      _localRenderer.srcObject = null;
-    } catch (e) {
-      print(e.toString());
-    }
-    setState(() {
-      _inCalling = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('GetUserMedia API Test'),
-      ),
-      body: new OrientationBuilder(
-        builder: (context, orientation) {
-          return new Center(
-            child: new Container(
-              margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: RTCVideoView(_localRenderer),
-              decoration: new BoxDecoration(color: Colors.black54),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _inCalling ? _hangUp : _makeCall,
-        tooltip: _inCalling ? 'Hangup' : 'Call',
-        child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
-      ),
-    );
-  }
-}
-```
-
 For more examples, please refer to [flutter-webrtc-demo](https://github.com/cloudwebrtc/flutter-webrtc-demo/).
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/cloudwebrtc/flutter-webrtc/graphs/contributors"><img src="https://opencollective.com/flutter-webrtc/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/flutter-webrtc/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/flutter-webrtc"><img src="https://opencollective.com/flutter-webrtc/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/flutter-webrtc/contribute)]
+
+<a href="https://opencollective.com/flutter-webrtc/organization/0/website"><img src="https://opencollective.com/flutter-webrtc/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/flutter-webrtc/organization/1/website"><img src="https://opencollective.com/flutter-webrtc/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/flutter-webrtc/organization/2/website"><img src="https://opencollective.com/flutter-webrtc/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/flutter-webrtc/organization/3/website"><img src="https://opencollective.com/flutter-webrtc/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/flutter-webrtc/organization/4/website"><img src="https://opencollective.com/flutter-webrtc/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/flutter-webrtc/organization/5/website"><img src="https://opencollective.com/flutter-webrtc/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/flutter-webrtc/organization/6/website"><img src="https://opencollective.com/flutter-webrtc/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/flutter-webrtc/organization/7/website"><img src="https://opencollective.com/flutter-webrtc/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/flutter-webrtc/organization/8/website"><img src="https://opencollective.com/flutter-webrtc/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/flutter-webrtc/organization/9/website"><img src="https://opencollective.com/flutter-webrtc/organization/9/avatar.svg"></a>

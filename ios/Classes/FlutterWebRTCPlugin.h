@@ -26,6 +26,6 @@
 @property (nonatomic) int _targetHeight;
 @property (nonatomic) int _targetFps;
 
-- (RTCMediaStream*)streamForId:(NSString*)streamId;
+- (RTCMediaStream*)streamForId:(NSString*)streamId peerConnectionId:(NSString *)peerConnectionId;
 
 @end

@@ -1,21 +1,25 @@
-import 'package:flutter/material.dart';
 import 'dart:core';
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'
+    show debugDefaultTargetPlatformOverride;
+import 'package:flutter_webrtc/webrtc.dart';
+
 import 'src/loopback_sample.dart';
-import 'src/get_user_media_sample.dart';
+import 'src/get_user_media_sample.dart'
+    if (dart.library.js) 'src/get_user_media_sample_web.dart';
 import 'src/get_display_media_sample.dart';
 import 'src/data_channel_sample.dart';
 import 'src/route_item.dart';
 
-void main() => runApp(new MyApp());
+void main() {
+  if (WebRTC.platformIsDesktop)
+    debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
+  runApp(new MyApp());
+}
 
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => new _MyAppState();
-}
-
-enum DialogDemoAction {
-  cancel,
-  connect,
 }
 
 class _MyAppState extends State<MyApp> {

@@ -1,5 +1,42 @@
 ## Changelog
+
 --------------------------------------------
+
+[0.2.6] - 2020.02.03
+
+* Fixed the interruption of the Bluetooth headset that was playing music after the plugin started.
+
+[0.2.4] - 2020.02.03
+
+* Fixed bug.
+
+[0.2.3] - 2020.02.03
+
+* Fixed bug for enableSpeakerphone (Android/iOS).
+* Fix RtcVideoView not rebuild when setState called and renderer is changed.
+* Fix Android frame orientation.
+
+[0.2.2] - 2019.12.13
+
+* Removed the soft link of WebRTC.framework to fix compile errors of macos version when third-party flutter app depends on plugins
+
+[0.2.1] - 2019.12.12
+
+* Code format.
+* Remove unused files.
+
+[0.2.0] - 2019.12.12
+
+* Add support for macOS (channel dev).
+* Add support for Flutter Web (channel dev).
+* Add hasTorch support for Android (Camera2 API) and iOS.
+* Fix(PeerConnections) split dispose and close
+* Add microphone mute support for Android/iOS.
+* Add enable speakerphone support for Android/iOS.
+* Fix 'createIceServer' method Invalid value error (Android).
+* Store SignalingState/IceGatheringState/IceConnectionState in RTCPeerConnection.
+* Fixed rendering issues caused by remote MediaStream using the same msid/label when using multiple PeerConntions.
+
 [0.1.7] - 2019.05.16
 
 * Add RTCDataChannelMessage for data channel and remove base64 type.

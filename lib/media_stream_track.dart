@@ -5,7 +5,7 @@ import 'utils.dart';
 
 class MediaStreamTrack {
   /// private:
-  MethodChannel _methodChannel = WebRTC.methodChannel();
+  MethodChannel _channel = WebRTC.methodChannel();
   String _trackId;
   String _label;
   String _kind;
@@ -21,7 +21,7 @@ class MediaStreamTrack {
 
   /// Mute/unmute the track.
   set enabled(bool enabled) {
-    _methodChannel.invokeMethod('mediaStreamTrackSetEnable',
+    _channel.invokeMethod('mediaStreamTrackSetEnable',
         <String, dynamic>{'trackId': _trackId, 'enabled': enabled});
     _enabled = enabled;
   }
@@ -34,8 +34,25 @@ class MediaStreamTrack {
 
   String get id => _trackId;
 
+  Future<bool> hasTorch() => _channel.invokeMethod(
+        'mediaStreamTrackHasTorch',
+        <String, dynamic>{'trackId': _trackId},
+      );
+
+  Future<void> setTorch(bool torch) => _channel.invokeMethod(
+        'mediaStreamTrackSetTorch',
+        <String, dynamic>{'trackId': _trackId, 'torch': torch},
+      );
+
+  ///Future contains isFrontCamera
+  ///Throws error if switching camera failed
+  Future<bool> switchCamera() => _channel.invokeMethod(
+        'mediaStreamTrackSwitchCamera',
+        <String, dynamic>{'trackId': _trackId},
+      );
+
   Future<void> setVolume(double volume) async {
-    await _methodChannel.invokeMethod(
+    await _channel.invokeMethod(
       'setVolume',
       <String, dynamic>{'trackId': _trackId, 'volume': volume},
     );
@@ -46,34 +63,27 @@ class MediaStreamTrack {
   /// AudioTrack methods.
   /// Mute/unmute the microphone.
   Future<void> setMicrophoneMute(bool mute) async {
-    await _methodChannel.invokeMethod(
+    await _channel.invokeMethod(
       'setMicrophoneMute',
       <String, dynamic>{'trackId': _trackId, 'mute': mute},
     );
   }
 
   Future<void> enableSpeakerphone(bool enable) async {
-    await _methodChannel.invokeMethod(
+    await _channel.invokeMethod(
       'enableSpeakerphone',
       <String, dynamic>{'trackId': _trackId, 'enable': enable},
     );
   }
 
-  /// VideoTrack methods
-  /// Future contains isFrontCamera
-  /// Throws error if switching camera failed.
-  Future<bool> switchCamera() => _methodChannel.invokeMethod(
-        'mediaStreamTrackSwitchCamera',
-        <String, dynamic>{'trackId': _trackId},
-      );
-
-  Future<void> captureFrame(String filePath) => _methodChannel.invokeMethod(
+  /// On Flutter Web returns Future<dynamic> which contains data url on success
+  captureFrame([String filePath]) => _channel.invokeMethod(
         'captureFrame',
         <String, dynamic>{'trackId': _trackId, 'path': filePath},
       );
 
   Future<void> dispose() async {
-    await _methodChannel.invokeMethod(
+    await _channel.invokeMethod(
       'trackDispose',
       <String, dynamic>{'trackId': _trackId},
     );
