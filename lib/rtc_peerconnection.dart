@@ -410,7 +410,7 @@ class RTCPeerConnection {
 
   Future<bool> closeSender(RTCRtpSender sender) async {
     try {
-      final Map<dynamic, dynamic> response = await _methodChannel.invokeMethod(
+      final Map<dynamic, dynamic> response = await _channel.invokeMethod(
           'closeSender', <String, dynamic>{
         'peerConnectionId': this._peerConnectionId,
         'senderId': sender.senderId
