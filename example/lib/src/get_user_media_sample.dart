@@ -62,7 +62,6 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       var stream = await navigator.getUserMedia(mediaConstraints);
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
-      _localRenderer.mirror = true;
     } catch (e) {
       print(e.toString());
     }
@@ -183,7 +182,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
               margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
-              child: RTCVideoView(_localRenderer),
+              child: RTCVideoView(_localRenderer, mirror: true),
               decoration: new BoxDecoration(color: Colors.black54),
             ),
           );
