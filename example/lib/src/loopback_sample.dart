@@ -130,7 +130,6 @@ class _MyAppState extends State<LoopBackSample> {
     try {
       _localStream = await navigator.getUserMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
-      _localRenderer.mirror = true;
       _peerConnection =
           await createPeerConnection(configuration, loopbackConstraints);
 
@@ -182,7 +181,7 @@ class _MyAppState extends State<LoopBackSample> {
   Widget build(BuildContext context) {
     var widgets = <Widget>[
       new Expanded(
-        child: new RTCVideoView(_localRenderer),
+        child: new RTCVideoView(_localRenderer, mirror: true),
       ),
       new Expanded(
         child: new RTCVideoView(_remoteRenderer),

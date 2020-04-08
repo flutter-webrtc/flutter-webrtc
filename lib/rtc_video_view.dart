@@ -11,7 +11,6 @@ class RTCVideoRenderer {
   int _textureId;
   int _rotation = 0;
   double _width = 0.0, _height = 0.0;
-  bool _mirror = false;
   double _aspectRatio = 1.0;
   MediaStream _srcObject;
   StreamSubscription<dynamic> _eventSubscription;
@@ -40,15 +39,6 @@ class RTCVideoRenderer {
       : (_rotation == 90 || _rotation == 270)
           ? _height / _width
           : _width / _height;
-
-  bool get mirror => _mirror;
-
-  set mirror(bool mirror) {
-    _mirror = mirror;
-    if (this.onStateChanged != null) {
-      this.onStateChanged();
-    }
-  }
 
   set srcObject(MediaStream stream) {
     _srcObject = stream;
@@ -99,12 +89,15 @@ class RTCVideoView extends StatefulWidget {
   final RTCVideoRenderer _renderer;
 
   final RTCVideoViewObjectFit objectFit;
+  final bool mirror;
 
   RTCVideoView(
     this._renderer, {
     Key key,
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+    this.mirror = false,
   })  : assert(objectFit != null),
+        assert(mirror != null),
         super(key: key);
 
   @override
@@ -113,14 +106,12 @@ class RTCVideoView extends StatefulWidget {
 
 class _RTCVideoViewState extends State<RTCVideoView> {
   double _aspectRatio;
-  bool _mirror;
 
   @override
   void initState() {
     super.initState();
     _setCallbacks();
     _aspectRatio = widget._renderer.aspectRatio;
-    _mirror = widget._renderer.mirror;
   }
 
   @override
@@ -133,7 +124,6 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     widget._renderer.onStateChanged = () {
       setState(() {
         _aspectRatio = widget._renderer.aspectRatio;
-        _mirror = widget._renderer.mirror;
       });
     };
   }
@@ -150,7 +140,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
                     height: constraints.maxHeight,
                     child: new Transform(
                         transform: Matrix4.identity()
-                          ..rotateY(_mirror ? -pi : 0.0),
+                          ..rotateY(widget.mirror ? -pi : 0.0),
                         alignment: FractionalOffset.center,
                         child:
                             new Texture(textureId: widget._renderer._textureId))))));

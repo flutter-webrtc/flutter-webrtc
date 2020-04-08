@@ -12,7 +12,6 @@ typedef void VideoSizeChangeCallback(
 
 class RTCVideoRenderer {
   double _width = 0.0, _height = 0.0;
-  bool _mirror = false;
   MediaStream _srcObject;
   VideoSizeChangeCallback onVideoSizeChanged;
   VideoRotationChangeCallback onVideoRotationChanged;
@@ -45,15 +44,6 @@ class RTCVideoRenderer {
 
   double get aspectRatio =>
       (_width == 0 || _height == 0) ? (9 / 16) : _width / _height;
-
-  bool get mirror => _mirror;
-
-  set mirror(bool mirror) {
-    _mirror = mirror;
-    if (this.onStateChanged != null) {
-      this.onStateChanged();
-    }
-  }
 
   set srcObject(MediaStream stream) {
     _srcObject = stream;
@@ -140,10 +130,14 @@ class RTCVideoView extends StatefulWidget {
   final RTCVideoRenderer _renderer;
 
   final RTCVideoViewObjectFit objectFit;
+  final mirror;
 
-  RTCVideoView(this._renderer, {
+  RTCVideoView(
+    this._renderer, {
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
-  }) : assert(objectFit != null);
+    this.mirror = false,
+  })  : assert(objectFit != null),
+        assert(mirror != null);
 
   @override
   _RTCVideoViewState createState() => new _RTCVideoViewState(_renderer);
@@ -152,7 +146,6 @@ class RTCVideoView extends StatefulWidget {
 class _RTCVideoViewState extends State<RTCVideoView> {
   final RTCVideoRenderer _renderer;
   double _aspectRatio;
-  bool _mirror;
   _RTCVideoViewState(this._renderer);
 
   @override
@@ -160,7 +153,6 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     super.initState();
     _setCallbacks();
     _aspectRatio = _renderer.aspectRatio;
-    _mirror = _renderer.mirror;
   }
 
   @override
@@ -173,7 +165,6 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     _renderer.onStateChanged = () {
       setState(() {
         _aspectRatio = _renderer.aspectRatio;
-        _mirror = _renderer.mirror;
       });
     };
   }
