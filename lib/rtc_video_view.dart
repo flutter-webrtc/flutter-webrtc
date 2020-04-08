@@ -11,7 +11,6 @@ class RTCVideoRenderer {
   int _textureId;
   int _rotation = 0;
   double _width = 0.0, _height = 0.0;
-  double _aspectRatio = 1.0;
   MediaStream _srcObject;
   StreamSubscription<dynamic> _eventSubscription;
 
