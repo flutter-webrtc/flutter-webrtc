@@ -14,8 +14,6 @@ class RTCVideoRenderer {
   bool _mirror = false;
   double _aspectRatio = 1.0;
   MediaStream _srcObject;
-  RTCVideoViewObjectFit _objectFit =
-      RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
   StreamSubscription<dynamic> _eventSubscription;
 
   dynamic onStateChanged;
@@ -47,15 +45,6 @@ class RTCVideoRenderer {
 
   set mirror(bool mirror) {
     _mirror = mirror;
-    if (this.onStateChanged != null) {
-      this.onStateChanged();
-    }
-  }
-
-  RTCVideoViewObjectFit get objectFit => _objectFit;
-
-  set objectFit(RTCVideoViewObjectFit objectFit) {
-    _objectFit = objectFit;
     if (this.onStateChanged != null) {
       this.onStateChanged();
     }
@@ -108,14 +97,22 @@ class RTCVideoRenderer {
 
 class RTCVideoView extends StatefulWidget {
   final RTCVideoRenderer _renderer;
-  RTCVideoView(this._renderer, {Key key}) : super(key: key);
+
+  final RTCVideoViewObjectFit objectFit;
+
+  RTCVideoView(
+    this._renderer, {
+    Key key,
+    this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+  })  : assert(objectFit != null),
+        super(key: key);
+
   @override
   _RTCVideoViewState createState() => new _RTCVideoViewState();
 }
 
 class _RTCVideoViewState extends State<RTCVideoView> {
   double _aspectRatio;
-  RTCVideoViewObjectFit _objectFit;
   bool _mirror;
 
   @override
@@ -124,7 +121,6 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     _setCallbacks();
     _aspectRatio = widget._renderer.aspectRatio;
     _mirror = widget._renderer.mirror;
-    _objectFit = widget._renderer.objectFit;
   }
 
   @override
@@ -138,7 +134,6 @@ class _RTCVideoViewState extends State<RTCVideoView> {
       setState(() {
         _aspectRatio = widget._renderer.aspectRatio;
         _mirror = widget._renderer.mirror;
-        _objectFit = widget._renderer.objectFit;
       });
     };
   }
@@ -148,10 +143,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
         width: constraints.maxWidth,
         height: constraints.maxHeight,
         child: FittedBox(
-            fit:
-                _objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
-                    ? BoxFit.contain
-                    : BoxFit.cover,
+            fit: widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain ? BoxFit.contain : BoxFit.cover,
             child: new Center(
                 child: new SizedBox(
                     width: constraints.maxHeight * _aspectRatio,
