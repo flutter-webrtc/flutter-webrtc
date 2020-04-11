@@ -108,7 +108,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
   }
 }
 
-class RTCVideoView extends StatefulWidget {
+class RTCVideoView extends StatelessWidget {
   final RTCVideoRenderer _renderer;
 
   final RTCVideoViewObjectFit objectFit;
@@ -124,43 +124,42 @@ class RTCVideoView extends StatefulWidget {
         super(key: key);
 
   @override
-  _RTCVideoViewState createState() => _RTCVideoViewState();
-}
-
-class _RTCVideoViewState extends State<RTCVideoView> {
-  Widget _buildVideoView(BoxConstraints constraints) {
-    return Container(
-        width: constraints.maxWidth,
-        height: constraints.maxHeight,
-        child: FittedBox(
-            fit: widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain ? BoxFit.contain : BoxFit.cover,
-            child: Center(
-              child: ValueListenableBuilder<RTCVideoValue>(
-                  valueListenable: widget._renderer,
-                  builder: (BuildContext context, RTCVideoValue value, Widget child) {
-                    return SizedBox(
-                      width: constraints.maxHeight * value.aspectRatio,
-                      height: constraints.maxHeight,
-                      child: child,
-                    );
-                  },
-                  child: Transform(
-                      transform: Matrix4.identity()
-                        ..rotateY(widget.mirror ? -pi : 0.0),
-                      alignment: FractionalOffset.center,
-                      child: Texture(textureId: widget._renderer._textureId))),
-            )));
-  }
-
-  @override
   Widget build(BuildContext context) {
-    bool renderVideo =
-        (widget._renderer._textureId != null && widget._renderer._srcObject != null);
+    bool renderVideo = _renderer._textureId != null && _renderer._srcObject != null;
 
     return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-      return Center(
-          child: renderVideo ? _buildVideoView(constraints) : Container());
-    });
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return Center(
+          child: renderVideo ? _buildVideoView(constraints) : Container(),
+        );
+      },
+    );
+  }
+
+  Widget _buildVideoView(BoxConstraints constraints) {
+    return Container(
+      width: constraints.maxWidth,
+      height: constraints.maxHeight,
+      child: FittedBox(
+        fit: objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain ? BoxFit.contain : BoxFit.cover,
+        child: Center(
+          child: ValueListenableBuilder<RTCVideoValue>(
+            valueListenable: _renderer,
+            builder: (BuildContext context, RTCVideoValue value, Widget child) {
+              return SizedBox(
+                width: constraints.maxHeight * value.aspectRatio,
+                height: constraints.maxHeight,
+                child: child,
+              );
+            },
+            child: Transform(
+              transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
+              alignment: FractionalOffset.center,
+              child: Texture(textureId: _renderer._textureId),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
