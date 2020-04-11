@@ -57,7 +57,7 @@ class RTCVideoRenderer {
   }
 
   EventChannel _eventChannelFor(int textureId) {
-    return new EventChannel('FlutterWebRTC/Texture$textureId');
+    return EventChannel('FlutterWebRTC/Texture$textureId');
   }
 
   void eventListener(dynamic event) {
@@ -100,7 +100,7 @@ class RTCVideoView extends StatefulWidget {
         super(key: key);
 
   @override
-  _RTCVideoViewState createState() => new _RTCVideoViewState();
+  _RTCVideoViewState createState() => _RTCVideoViewState();
 }
 
 class _RTCVideoViewState extends State<RTCVideoView> {
@@ -133,16 +133,16 @@ class _RTCVideoViewState extends State<RTCVideoView> {
         height: constraints.maxHeight,
         child: FittedBox(
             fit: widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain ? BoxFit.contain : BoxFit.cover,
-            child: new Center(
-                child: new SizedBox(
+            child: Center(
+                child: SizedBox(
                     width: constraints.maxHeight * _aspectRatio,
                     height: constraints.maxHeight,
-                    child: new Transform(
+                    child: Transform(
                         transform: Matrix4.identity()
                           ..rotateY(widget.mirror ? -pi : 0.0),
                         alignment: FractionalOffset.center,
                         child:
-                            new Texture(textureId: widget._renderer._textureId))))));
+                            Texture(textureId: widget._renderer._textureId))))));
   }
 
   @override
@@ -150,10 +150,10 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     bool renderVideo =
         (widget._renderer._textureId != null && widget._renderer._srcObject != null);
 
-    return new LayoutBuilder(
+    return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      return new Center(
-          child: renderVideo ? _buildVideoView(constraints) : new Container());
+      return Center(
+          child: renderVideo ? _buildVideoView(constraints) : Container());
     });
   }
 }
