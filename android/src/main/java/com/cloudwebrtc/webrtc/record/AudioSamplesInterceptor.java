@@ -6,7 +6,7 @@ import android.util.Log;
 import org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
 import org.webrtc.audio.JavaAudioDeviceModule.AudioSamples;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** JavaAudioDeviceModule allows attaching samples callback only on building
  *  We don't want to instantiate VideoFileRenderer and codecs at this step
@@ -17,7 +17,7 @@ public class AudioSamplesInterceptor implements SamplesReadyCallback {
     private int _id;
     private static final String TAG = "AudioSamplesInterceptor";
     @SuppressLint("UseSparseArrays")
-    protected final HashMap<Integer, SamplesReadyCallback> callbacks = new HashMap<>();
+    protected final ConcurrentHashMap<Integer, SamplesReadyCallback> callbacks = new ConcurrentHashMap<>();
 
     public AudioSamplesInterceptor() {
         this._id = id++;
