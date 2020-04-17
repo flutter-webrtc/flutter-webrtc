@@ -290,6 +290,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     
     if (videoDevice) {
         RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+        if(self.videoCapturer){
+            [self.videoCapturer stopCapture];
+        }
         self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
         AVCaptureDeviceFormat *selectedFormat = [self selectFormatForDevice:videoDevice];
         NSInteger selectedFps = [self selectFpsForFormat:selectedFormat];
