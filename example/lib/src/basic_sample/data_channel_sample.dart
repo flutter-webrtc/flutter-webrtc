@@ -1,10 +1,9 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
 
 class DataChannelSample extends StatefulWidget {
+
   static String tag = 'data_channel_sample';
 
   @override
@@ -15,7 +14,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   RTCPeerConnection _peerConnection;
   bool _inCalling = false;
 
-  RTCDataChannelInit _dataChannelDict;
+  RTCDataChannelInit _dataChannelDict = null;
   RTCDataChannel _dataChannel;
 
   String _sdp;
@@ -50,37 +49,19 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     print('RenegotiationNeeded');
   }
 
-  /// Send some sample messages and handle incoming messages.
   _onDataChannel(RTCDataChannel dataChannel) {
-    dataChannel.onMessage = (message) {
-      if (message.type == MessageType.text) {
-        print(message.text);
-      } else {
-        // do something with message.binary
-      }
-    };
-    // or alternatively:
-    dataChannel.messageStream.listen((message) {
-      if (message.type == MessageType.text) {
-        print(message.text);
-      } else {
-        // do something with message.binary
-      }
-    });
-
-    dataChannel.send(RTCDataChannelMessage("Hello!"));
-    dataChannel.send(RTCDataChannelMessage.fromBinary(Uint8List(5)));
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   _makeCall() async {
+
     Map<String, dynamic> configuration = {
       "iceServers": [
         {"url": "stun:stun.l.google.com:19302"},
       ]
     };
 
-    final Map<String, dynamic> offerSdpConstraints = {
+    final Map<String, dynamic> offer_sdp_constraints = {
       "mandatory": {
         "OfferToReceiveAudio": false,
         "OfferToReceiveVideo": false,
@@ -88,18 +69,19 @@ class _DataChannelSampleState extends State<DataChannelSample> {
       "optional": [],
     };
 
-    final Map<String, dynamic> loopbackConstraints = {
+    final Map<String, dynamic> loopback_constraints = {
       "mandatory": {},
       "optional": [
-        {"DtlsSrtpKeyAgreement": true},
+        {"DtlsSrtpKeyAgreement": true },
       ],
     };
 
     if (_peerConnection != null) return;
 
     try {
+
       _peerConnection =
-          await createPeerConnection(configuration, loopbackConstraints);
+      await createPeerConnection(configuration, loopback_constraints);
 
       _peerConnection.onSignalingState = _onSignalingState;
       _peerConnection.onIceGatheringState = _onIceGatheringState;
@@ -115,12 +97,11 @@ class _DataChannelSampleState extends State<DataChannelSample> {
       _dataChannelDict.protocol = "sctp";
       _dataChannelDict.negotiated = false;
 
-      _dataChannel = await _peerConnection.createDataChannel(
-          'dataChannel', _dataChannelDict);
+      _dataChannel = await _peerConnection.createDataChannel('dataChannel', _dataChannelDict);
       _peerConnection.onDataChannel = _onDataChannel;
 
       RTCSessionDescription description =
-          await _peerConnection.createOffer(offerSdpConstraints);
+      await _peerConnection.createOffer(offer_sdp_constraints);
       print(description.sdp);
       _peerConnection.setLocalDescription(description);
 
@@ -153,24 +134,26 @@ class _DataChannelSampleState extends State<DataChannelSample> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('Data Channel Test'),
-      ),
-      body: new OrientationBuilder(
-        builder: (context, orientation) {
-          return new Center(
-            child: new Container(
-              child: _inCalling ? Text(_sdp) : Text('data channel test'),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _inCalling ? _hangUp : _makeCall,
-        tooltip: _inCalling ? 'Hangup' : 'Call',
-        child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
-      ),
-    );
+    return
+      new Scaffold(
+        appBar: new AppBar(
+          title: new Text('Data Channel Test'),
+        ),
+        body: new OrientationBuilder(
+          builder: (context, orientation) {
+            return new Center(
+              child: new Container(
+                child: _inCalling? Text(_sdp) : Text('data channel test'),
+              ),
+            );
+          },
+        ),
+        floatingActionButton: new FloatingActionButton(
+          onPressed: _inCalling ? _hangUp : _makeCall,
+          tooltip: _inCalling ? 'Hangup' : 'Call',
+          child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
+        ),
+      );
+
   }
 }

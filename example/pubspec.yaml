@@ -1,6 +1,9 @@
-name: webrtc_example
+name: flutter_webrtc_demo
 description: Demonstrates how to use the webrtc plugin.
 version: 1.0.0
+
+environment:
+  sdk: ">=2.2.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -9,16 +12,16 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.0
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
+  shared_preferences:
+  shared_preferences_macos:
+  shared_preferences_web:
+  http: ^0.12.0+4
   flutter_webrtc:
     path: ../
 
   # Required for MediaRecorder example
   path_provider:
+  path_provider_macos:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
@@ -59,5 +62,5 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
-  # For details regarding fonts from package dependencies, 
+  # For details regarding fonts from package dependencies,
   # see https://flutter.io/custom-fonts/#from-packages

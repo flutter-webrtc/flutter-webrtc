@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
-import 'dart:async';
 
-/*
- * getDisplayMedia sample
+/**
+ * getUserMedia sample
  */
-class GetDisplayMediaSample extends StatefulWidget {
-  static String tag = 'get_display_media_sample';
+class GetUserMediaSample extends StatefulWidget {
+  static String tag = 'get_usermedia_sample';
 
   @override
-  _GetDisplayMediaSampleState createState() =>
-      new _GetDisplayMediaSampleState();
+  _GetUserMediaSampleState createState() => new _GetUserMediaSampleState();
 }
 
-class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
+class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaStream _localStream;
   final _localRenderer = new RTCVideoRenderer();
   bool _inCalling = false;
-  Timer _timer;
-  var _counter = 0;
 
   @override
   initState() {
@@ -33,7 +29,6 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     if (_inCalling) {
       _hangUp();
     }
-    if (_timer != null) _timer.cancel();
     _localRenderer.dispose();
   }
 
@@ -41,23 +36,26 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     await _localRenderer.initialize();
   }
 
-  void handleTimer(Timer timer) async {
-    setState(() {
-      _counter++;
-    });
-  }
-
   // Platform messages are asynchronous, so we initialize in an async method.
   _makeCall() async {
     final Map<String, dynamic> mediaConstraints = {
-      "audio": false,
-      "video": true
+      "audio": true,
+      "video": {
+        "mandatory": {
+          "minWidth":'640', // Provide your own width, height and frame rate here
+          "minHeight": '480',
+          "minFrameRate": '30',
+        },
+        "facingMode": "user",
+        "optional": [],
+      }
     };
 
     try {
-      var stream = await navigator.getDisplayMedia(mediaConstraints);
-      _localStream = stream;
-      _localRenderer.srcObject = _localStream;
+      navigator.getUserMedia(mediaConstraints).then((stream){
+        _localStream = stream;
+        _localRenderer.srcObject = _localStream;
+      });
     } catch (e) {
       print(e.toString());
     }
@@ -66,8 +64,6 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     setState(() {
       _inCalling = true;
     });
-
-    _timer = new Timer.periodic(Duration(milliseconds: 100), handleTimer);
   }
 
   _hangUp() async {
@@ -80,7 +76,6 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     setState(() {
       _inCalling = false;
     });
-    _timer.cancel();
   }
 
   @override
@@ -92,18 +87,13 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
       body: new OrientationBuilder(
         builder: (context, orientation) {
           return new Center(
-            child: new Stack(children: <Widget>[
-              new Center(
-                child: new Text('counter: ' + _counter.toString()),
-              ),
-              new Container(
-                margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: RTCVideoView(_localRenderer),
-                decoration: new BoxDecoration(color: Colors.black54),
-              )
-            ]),
+            child: new Container(
+              margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: RTCVideoView(_localRenderer),
+              decoration: new BoxDecoration(color: Colors.black54),
+            ),
           );
         },
       ),

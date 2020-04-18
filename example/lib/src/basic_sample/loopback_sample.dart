@@ -1,10 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/webrtc.dart';
 
 class LoopBackSample extends StatefulWidget {
+
   static String tag = 'loopback_sample';
 
   @override
@@ -25,7 +26,7 @@ class _MyAppState extends State<LoopBackSample> {
     initRenderers();
   }
 
-  @override
+    @override
   deactivate() {
     super.deactivate();
     if (_inCalling) {
@@ -50,7 +51,7 @@ class _MyAppState extends State<LoopBackSample> {
         print("    timestamp: ${report.timestamp},");
         print("    values => {");
         report.values.forEach((key, value) {
-          print("        " + key + " : " + value.toString() + ", ");
+          print("        " + key + " : " + value + ", ");
         });
         print("    }");
         print("}");
@@ -95,8 +96,8 @@ class _MyAppState extends State<LoopBackSample> {
       "video": {
         "mandatory": {
           "minWidth":
-              '1280', // Provide your own width, height and frame rate here
-          "minHeight": '720',
+          '640', // Provide your own width, height and frame rate here
+          "minHeight": '480',
           "minFrameRate": '30',
         },
         "facingMode": "user",
@@ -110,7 +111,7 @@ class _MyAppState extends State<LoopBackSample> {
       ]
     };
 
-    final Map<String, dynamic> offerSdpConstraints = {
+    final Map<String, dynamic> offer_sdp_constraints = {
       "mandatory": {
         "OfferToReceiveAudio": true,
         "OfferToReceiveVideo": true,
@@ -118,7 +119,7 @@ class _MyAppState extends State<LoopBackSample> {
       "optional": [],
     };
 
-    final Map<String, dynamic> loopbackConstraints = {
+    final Map<String, dynamic> loopback_constraints = {
       "mandatory": {},
       "optional": [
         {"DtlsSrtpKeyAgreement": false},
@@ -130,9 +131,9 @@ class _MyAppState extends State<LoopBackSample> {
     try {
       _localStream = await navigator.getUserMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
-      _localRenderer.mirror = true;
+
       _peerConnection =
-          await createPeerConnection(configuration, loopbackConstraints);
+      await createPeerConnection(configuration, loopback_constraints);
 
       _peerConnection.onSignalingState = _onSignalingState;
       _peerConnection.onIceGatheringState = _onIceGatheringState;
@@ -144,12 +145,14 @@ class _MyAppState extends State<LoopBackSample> {
 
       _peerConnection.addStream(_localStream);
       RTCSessionDescription description =
-          await _peerConnection.createOffer(offerSdpConstraints);
+      await _peerConnection.createOffer(offer_sdp_constraints);
       print(description.sdp);
       _peerConnection.setLocalDescription(description);
       //change for loopback.
       description.type = 'answer';
       _peerConnection.setRemoteDescription(description);
+
+      _localStream.getAudioTracks()[0].setMicrophoneMute(false);
     } catch (e) {
       print(e.toString());
     }
@@ -175,44 +178,58 @@ class _MyAppState extends State<LoopBackSample> {
     setState(() {
       _inCalling = false;
     });
-    _timer.cancel();
   }
 
   @override
   Widget build(BuildContext context) {
-    var widgets = <Widget>[
-      new Expanded(
-        child: new RTCVideoView(_localRenderer),
-      ),
-      new Expanded(
-        child: new RTCVideoView(_remoteRenderer),
-      )
-    ];
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('LoopBack example'),
-      ),
-      body: new OrientationBuilder(
-        builder: (context, orientation) {
-          return new Center(
-            child: new Container(
-              decoration: new BoxDecoration(color: Colors.black54),
-              child: orientation == Orientation.portrait
-                  ? new Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: widgets)
-                  : new Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: widgets),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _inCalling ? _hangUp : _makeCall,
-        tooltip: _inCalling ? 'Hangup' : 'Call',
-        child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
-      ),
-    );
+    return
+      new Scaffold(
+        appBar: new AppBar(
+          title: new Text('LoopBack example'),
+        ),
+        body: new OrientationBuilder(
+          builder: (context, orientation) {
+            return new Center(
+              child: new Container(
+                decoration: new BoxDecoration(color: Colors.white),
+                child: new Stack(
+                  children: <Widget>[
+                    new Align(
+                      alignment: orientation == Orientation.portrait
+                          ? const FractionalOffset(0.5, 0.1)
+                          : const FractionalOffset(0.0, 0.5),
+                      child: new Container(
+                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                        width: 320.0,
+                        height: 240.0,
+                        child: new RTCVideoView(_localRenderer),
+                        decoration: new BoxDecoration(color: Colors.black54),
+                      ),
+                    ),
+                    new Align(
+                      alignment: orientation == Orientation.portrait
+                          ? const FractionalOffset(0.5, 0.9)
+                          : const FractionalOffset(1.0, 0.5),
+                      child: new Container(
+                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                        width: 320.0,
+                        height: 240.0,
+                        child: new RTCVideoView(_remoteRenderer),
+                        decoration: new BoxDecoration(color: Colors.black54),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+        floatingActionButton: new FloatingActionButton(
+          onPressed: _inCalling ? _hangUp : _makeCall,
+          tooltip: _inCalling ? 'Hangup' : 'Call',
+          child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
+        ),
+      );
+
   }
 }
