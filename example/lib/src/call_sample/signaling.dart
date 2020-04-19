@@ -38,8 +38,7 @@ class Signaling {
   String _selfId = randomNumeric(6);
   SimpleWebSocket _socket;
   var _sessionId;
-  var _host;
-  var _port = 8086;
+  Uri _uri;
   var _peerConnections = new Map<String, RTCPeerConnection>();
   var _dataChannels = new Map<String, RTCDataChannel>();
   var _remoteCandidates = [];
@@ -78,7 +77,7 @@ class Signaling {
     'optional': [],
   };
 
-  Signaling(this._host);
+  Signaling(this._uri);
 
   close() {
     if (_localStream != null) {
@@ -250,10 +249,12 @@ class Signaling {
   }
 
   void connect() async {
-    var url = 'https://$_host:$_port/ws';
-    _socket = SimpleWebSocket(url);
+    var socketUrl = _uri
+        .removeFragment()
+        .replace(path: 'ws');
+    _socket = SimpleWebSocket(socketUrl);
 
-    print('connect to $url');
+    print('connect to $socketUrl');
 
     _socket.onOpen = () {
       print('onOpen');

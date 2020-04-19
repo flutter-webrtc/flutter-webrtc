@@ -9,12 +9,12 @@ import 'package:flutter_webrtc/webrtc.dart';
 class DataChannelSample extends StatefulWidget {
   static String tag = 'call_sample';
 
-  final String ip;
+  final Uri uri;
 
-  DataChannelSample({Key key, @required this.ip}) : super(key: key);
+  DataChannelSample({Key key, @required this.uri}) : super(key: key);
 
   @override
-  _DataChannelSampleState createState() => new _DataChannelSampleState(serverIP: ip);
+  _DataChannelSampleState createState() => new _DataChannelSampleState(serverUri: uri);
 }
 
 class _DataChannelSampleState extends State<DataChannelSample> {
@@ -22,11 +22,11 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   List<dynamic> _peers;
   var _selfId;
   bool _inCalling = false;
-  final String serverIP;
+  final Uri serverUri;
   RTCDataChannel _dataChannel;
   Timer _timer;
   var _text = '';
-  _DataChannelSampleState({Key key, @required this.serverIP});
+  _DataChannelSampleState({Key key, @required this.serverUri});
 
   @override
   initState() {
@@ -45,7 +45,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
 
   void _connect() async {
     if (_signaling == null) {
-      _signaling = new Signaling(serverIP)
+      _signaling = new Signaling(serverUri)
         ..connect();
 
       _signaling.onDataChannelMessage = (dc, RTCDataChannelMessage data){

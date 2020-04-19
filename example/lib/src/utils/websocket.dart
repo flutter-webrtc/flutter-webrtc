@@ -13,7 +13,9 @@ class SimpleWebSocket {
   OnOpenCallback onOpen;
   OnMessageCallback onMessage;
   OnCloseCallback onClose;
-  SimpleWebSocket(this._url);
+  SimpleWebSocket(Uri uri) {
+    this._url = uri.toString();
+  }
 
   connect() async {
     try {

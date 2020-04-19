@@ -6,12 +6,12 @@ import 'package:flutter_webrtc/webrtc.dart';
 class CallSample extends StatefulWidget {
   static String tag = 'call_sample';
 
-  final String ip;
+  final Uri uri;
 
-  CallSample({Key key, @required this.ip}) : super(key: key);
+  CallSample({Key key, @required this.uri}) : super(key: key);
 
   @override
-  _CallSampleState createState() => new _CallSampleState(serverIP: ip);
+  _CallSampleState createState() => new _CallSampleState(serverUri: uri);
 }
 
 class _CallSampleState extends State<CallSample> {
@@ -21,9 +21,9 @@ class _CallSampleState extends State<CallSample> {
   RTCVideoRenderer _localRenderer = new RTCVideoRenderer();
   RTCVideoRenderer _remoteRenderer = new RTCVideoRenderer();
   bool _inCalling = false;
-  final String serverIP;
+  final Uri serverUri;
 
-  _CallSampleState({Key key, @required this.serverIP});
+  _CallSampleState({Key key, @required this.serverUri});
 
   @override
   initState() {
@@ -47,7 +47,7 @@ class _CallSampleState extends State<CallSample> {
 
   void _connect() async {
     if (_signaling == null) {
-      _signaling = new Signaling(serverIP)..connect();
+      _signaling = new Signaling(serverUri)..connect();
 
       _signaling.onStateChange = (SignalingState state) {
         switch (state) {

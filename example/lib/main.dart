@@ -22,7 +22,7 @@ enum DialogDemoAction {
 
 class _MyAppState extends State<MyApp> {
   List<RouteItem> items;
-  String _server = '';
+  Uri _server;
   SharedPreferences _prefs;
 
   bool _datachannel = false;
@@ -64,7 +64,7 @@ class _MyAppState extends State<MyApp> {
   _initData() async {
     _prefs = await SharedPreferences.getInstance();
     setState(() {
-      _server = _prefs.getString('server') ?? 'demo.cloudwebrtc.com';
+      _server = Uri.parse(_prefs.getString('server') ?? 'https://demo.cloudwebrtc.com:8086');
     });
   }
 
@@ -76,13 +76,13 @@ class _MyAppState extends State<MyApp> {
       // The value passed to Navigator.pop() or null.
       if (value != null) {
         if (value == DialogDemoAction.connect) {
-          _prefs.setString('server', _server);
+          _prefs.setString('server', _server.toString());
           Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (BuildContext context) => _datachannel
-                      ? DataChannelSample(ip: _server)
-                      : CallSample(ip: _server)));
+                      ? DataChannelSample(uri: _server)
+                      : CallSample(uri: _server)));
         }
       }
     });
@@ -96,11 +96,11 @@ class _MyAppState extends State<MyApp> {
             content: TextField(
               onChanged: (String text) {
                 setState(() {
-                  _server = text;
+                  _server = Uri.parse(text) ;
                 });
               },
               decoration: InputDecoration(
-                hintText: _server,
+                hintText: _server.toString(),
               ),
               textAlign: TextAlign.center,
             ),
