@@ -3,6 +3,8 @@ import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
 import 'dart:async';
 
+import 'package:flutter_webrtc_demo/src/utils/connection_configuration.dart';
+
 
 class LoopBackSample extends StatefulWidget {
 
@@ -105,12 +107,6 @@ class _MyAppState extends State<LoopBackSample> {
       }
     };
 
-    Map<String, dynamic> configuration = {
-      "iceServers": [
-        {"url": "stun:stun.l.google.com:19302"},
-      ]
-    };
-
     final Map<String, dynamic> offer_sdp_constraints = {
       "mandatory": {
         "OfferToReceiveAudio": true,
@@ -133,7 +129,7 @@ class _MyAppState extends State<LoopBackSample> {
       _localRenderer.srcObject = _localStream;
 
       _peerConnection =
-      await createPeerConnection(configuration, loopback_constraints);
+      await createPeerConnection(connectionConfiguration, loopback_constraints);
 
       _peerConnection.onSignalingState = _onSignalingState;
       _peerConnection.onIceGatheringState = _onIceGatheringState;

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'dart:core';
 
+import 'package:flutter_webrtc_demo/src/utils/connection_configuration.dart';
+
 class DataChannelSample extends StatefulWidget {
 
   static String tag = 'data_channel_sample';
@@ -55,12 +57,6 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   // Platform messages are asynchronous, so we initialize in an async method.
   _makeCall() async {
 
-    Map<String, dynamic> configuration = {
-      "iceServers": [
-        {"url": "stun:stun.l.google.com:19302"},
-      ]
-    };
-
     final Map<String, dynamic> offer_sdp_constraints = {
       "mandatory": {
         "OfferToReceiveAudio": false,
@@ -81,7 +77,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     try {
 
       _peerConnection =
-      await createPeerConnection(configuration, loopback_constraints);
+      await createPeerConnection(connectionConfiguration, loopback_constraints);
 
       _peerConnection.onSignalingState = _onSignalingState;
       _peerConnection.onIceGatheringState = _onIceGatheringState;
