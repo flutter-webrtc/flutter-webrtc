@@ -249,9 +249,7 @@ class Signaling {
   }
 
   void connect() async {
-    var socketUrl = _uri
-        .removeFragment()
-        .replace(path: 'ws');
+    var socketUrl = _uri.removeFragment().replace(path: 'ws');
     _socket = SimpleWebSocket(socketUrl);
 
     print('connect to $socketUrl');
@@ -308,7 +306,8 @@ class Signaling {
 
   _createPeerConnection(id, media, user_screen) async {
     if (media != 'data') _localStream = await createStream(media, user_screen);
-    RTCPeerConnection pc = await createPeerConnection(connectionConfiguration, _config);
+    RTCPeerConnection pc =
+        await createPeerConnection(connectionConfiguration, _config);
     if (media != 'data') pc.addStream(_localStream);
     pc.onIceCandidate = (candidate) {
       _send('candidate', {

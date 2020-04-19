@@ -5,9 +5,7 @@ import 'dart:async';
 
 import 'package:flutter_webrtc_demo/src/utils/connection_configuration.dart';
 
-
 class LoopBackSample extends StatefulWidget {
-
   static String tag = 'loopback_sample';
 
   @override
@@ -28,7 +26,7 @@ class _MyAppState extends State<LoopBackSample> {
     initRenderers();
   }
 
-    @override
+  @override
   deactivate() {
     super.deactivate();
     if (_inCalling) {
@@ -98,7 +96,7 @@ class _MyAppState extends State<LoopBackSample> {
       "video": {
         "mandatory": {
           "minWidth":
-          '640', // Provide your own width, height and frame rate here
+              '640', // Provide your own width, height and frame rate here
           "minHeight": '480',
           "minFrameRate": '30',
         },
@@ -128,8 +126,8 @@ class _MyAppState extends State<LoopBackSample> {
       _localStream = await navigator.getUserMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
 
-      _peerConnection =
-      await createPeerConnection(connectionConfiguration, loopback_constraints);
+      _peerConnection = await createPeerConnection(
+          connectionConfiguration, loopback_constraints);
 
       _peerConnection.onSignalingState = _onSignalingState;
       _peerConnection.onIceGatheringState = _onIceGatheringState;
@@ -141,7 +139,7 @@ class _MyAppState extends State<LoopBackSample> {
 
       _peerConnection.addStream(_localStream);
       RTCSessionDescription description =
-      await _peerConnection.createOffer(offer_sdp_constraints);
+          await _peerConnection.createOffer(offer_sdp_constraints);
       print(description.sdp);
       _peerConnection.setLocalDescription(description);
       //change for loopback.
@@ -178,54 +176,52 @@ class _MyAppState extends State<LoopBackSample> {
 
   @override
   Widget build(BuildContext context) {
-    return
-      new Scaffold(
-        appBar: new AppBar(
-          title: new Text('LoopBack example'),
-        ),
-        body: new OrientationBuilder(
-          builder: (context, orientation) {
-            return new Center(
-              child: new Container(
-                decoration: new BoxDecoration(color: Colors.white),
-                child: new Stack(
-                  children: <Widget>[
-                    new Align(
-                      alignment: orientation == Orientation.portrait
-                          ? const FractionalOffset(0.5, 0.1)
-                          : const FractionalOffset(0.0, 0.5),
-                      child: new Container(
-                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                        width: 320.0,
-                        height: 240.0,
-                        child: new RTCVideoView(_localRenderer),
-                        decoration: new BoxDecoration(color: Colors.black54),
-                      ),
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text('LoopBack example'),
+      ),
+      body: new OrientationBuilder(
+        builder: (context, orientation) {
+          return new Center(
+            child: new Container(
+              decoration: new BoxDecoration(color: Colors.white),
+              child: new Stack(
+                children: <Widget>[
+                  new Align(
+                    alignment: orientation == Orientation.portrait
+                        ? const FractionalOffset(0.5, 0.1)
+                        : const FractionalOffset(0.0, 0.5),
+                    child: new Container(
+                      margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                      width: 320.0,
+                      height: 240.0,
+                      child: new RTCVideoView(_localRenderer),
+                      decoration: new BoxDecoration(color: Colors.black54),
                     ),
-                    new Align(
-                      alignment: orientation == Orientation.portrait
-                          ? const FractionalOffset(0.5, 0.9)
-                          : const FractionalOffset(1.0, 0.5),
-                      child: new Container(
-                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                        width: 320.0,
-                        height: 240.0,
-                        child: new RTCVideoView(_remoteRenderer),
-                        decoration: new BoxDecoration(color: Colors.black54),
-                      ),
+                  ),
+                  new Align(
+                    alignment: orientation == Orientation.portrait
+                        ? const FractionalOffset(0.5, 0.9)
+                        : const FractionalOffset(1.0, 0.5),
+                    child: new Container(
+                      margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                      width: 320.0,
+                      height: 240.0,
+                      child: new RTCVideoView(_remoteRenderer),
+                      decoration: new BoxDecoration(color: Colors.black54),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            );
-          },
-        ),
-        floatingActionButton: new FloatingActionButton(
-          onPressed: _inCalling ? _hangUp : _makeCall,
-          tooltip: _inCalling ? 'Hangup' : 'Call',
-          child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
-        ),
-      );
-
+            ),
+          );
+        },
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: _inCalling ? _hangUp : _makeCall,
+        tooltip: _inCalling ? 'Hangup' : 'Call',
+        child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
+      ),
+    );
   }
 }

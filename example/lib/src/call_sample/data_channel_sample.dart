@@ -14,7 +14,8 @@ class DataChannelSample extends StatefulWidget {
   DataChannelSample({Key key, @required this.uri}) : super(key: key);
 
   @override
-  _DataChannelSampleState createState() => new _DataChannelSampleState(serverUri: uri);
+  _DataChannelSampleState createState() =>
+      new _DataChannelSampleState(serverUri: uri);
 }
 
 class _DataChannelSampleState extends State<DataChannelSample> {
@@ -38,28 +39,26 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   deactivate() {
     super.deactivate();
     if (_signaling != null) _signaling.close();
-    if(_timer != null){
+    if (_timer != null) {
       _timer.cancel();
     }
   }
 
   void _connect() async {
     if (_signaling == null) {
-      _signaling = new Signaling(serverUri)
-        ..connect();
+      _signaling = new Signaling(serverUri)..connect();
 
-      _signaling.onDataChannelMessage = (dc, RTCDataChannelMessage data){
+      _signaling.onDataChannelMessage = (dc, RTCDataChannelMessage data) {
         setState(() {
-          if(data.isBinary) {
+          if (data.isBinary) {
             print('Got binary [' + data.binary.toString() + ']');
-          }
-          else{
+          } else {
             _text = data.text;
           }
         });
       };
 
-      _signaling.onDataChannel = (channel){
+      _signaling.onDataChannel = (channel) {
         _dataChannel = channel;
       };
 
@@ -70,7 +69,8 @@ class _DataChannelSampleState extends State<DataChannelSample> {
               this.setState(() {
                 _inCalling = true;
               });
-              _timer = new Timer.periodic(Duration(seconds: 1), _handleDataChannelTest);
+              _timer = new Timer.periodic(
+                  Duration(seconds: 1), _handleDataChannelTest);
               break;
             }
           case SignalingState.CallStateBye:
@@ -78,7 +78,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
               this.setState(() {
                 _inCalling = false;
               });
-              if(_timer != null){
+              if (_timer != null) {
                 _timer.cancel();
                 _timer = null;
               }
@@ -106,9 +106,14 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   }
 
   _handleDataChannelTest(Timer timer) async {
-    if(_dataChannel != null){
-      String text = 'Say hello ' + timer.tick.toString() + ' times, from [' + _selfId + ']';
-      _dataChannel.send(RTCDataChannelMessage.fromBinary(Uint8List(timer.tick + 1)));
+    if (_dataChannel != null) {
+      String text = 'Say hello ' +
+          timer.tick.toString() +
+          ' times, from [' +
+          _selfId +
+          ']';
+      _dataChannel
+          .send(RTCDataChannelMessage.fromBinary(Uint8List(timer.tick + 1)));
       _dataChannel.send(RTCDataChannelMessage(text));
     }
   }
@@ -160,11 +165,13 @@ class _DataChannelSampleState extends State<DataChannelSample> {
               child: new Icon(Icons.call_end),
             )
           : null,
-      body: _inCalling? new Center(
+      body: _inCalling
+          ? new Center(
               child: new Container(
-              child:  Text('Recevied => ' + _text),
+                child: Text('Recevied => ' + _text),
               ),
-              ) : new ListView.builder(
+            )
+          : new ListView.builder(
               shrinkWrap: true,
               padding: const EdgeInsets.all(0.0),
               itemCount: (_peers != null ? _peers.length : 0),

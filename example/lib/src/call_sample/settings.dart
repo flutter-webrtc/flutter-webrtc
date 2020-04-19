@@ -17,7 +17,6 @@ class _CallSettingsState extends State<CallSettings> {
   @override
   deactivate() {
     super.deactivate();
-
   }
 
   @override
@@ -28,9 +27,7 @@ class _CallSettingsState extends State<CallSettings> {
       ),
       body: new OrientationBuilder(
         builder: (context, orientation) {
-          return new Center(
-            child: Text("settings")
-          );
+          return new Center(child: Text("settings"));
         },
       ),
     );

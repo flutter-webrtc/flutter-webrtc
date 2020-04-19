@@ -42,7 +42,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       "audio": true,
       "video": {
         "mandatory": {
-          "minWidth":'640', // Provide your own width, height and frame rate here
+          "minWidth":
+              '640', // Provide your own width, height and frame rate here
           "minHeight": '480',
           "minFrameRate": '30',
         },
@@ -52,7 +53,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      navigator.getUserMedia(mediaConstraints).then((stream){
+      navigator.getUserMedia(mediaConstraints).then((stream) {
         _localStream = stream;
         _localRenderer.srcObject = _localStream;
       });

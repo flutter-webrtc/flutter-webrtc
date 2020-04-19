@@ -64,7 +64,8 @@ class _MyAppState extends State<MyApp> {
   _initData() async {
     _prefs = await SharedPreferences.getInstance();
     setState(() {
-      _server = Uri.parse(_prefs.getString('server') ?? 'https://demo.cloudwebrtc.com:8086');
+      _server = Uri.parse(
+          _prefs.getString('server') ?? 'https://demo.cloudwebrtc.com:8086');
     });
   }
 
@@ -96,7 +97,7 @@ class _MyAppState extends State<MyApp> {
             content: TextField(
               onChanged: (String text) {
                 setState(() {
-                  _server = Uri.parse(text) ;
+                  _server = Uri.parse(text);
                 });
               },
               decoration: InputDecoration(
