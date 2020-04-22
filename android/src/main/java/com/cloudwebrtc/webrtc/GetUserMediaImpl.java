@@ -673,15 +673,15 @@ class GetUserMediaImpl{
 
         // Fall back to defaults if keys are missing.
         int width
-            = videoConstraintsMandatory.hasKey("minWidth")
+            = videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minWidth")
                 ? videoConstraintsMandatory.getInt("minWidth")
                 : DEFAULT_WIDTH;
         int height
-            = videoConstraintsMandatory.hasKey("minHeight")
+            = videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minHeight")
                 ? videoConstraintsMandatory.getInt("minHeight")
                 : DEFAULT_HEIGHT;
         int fps
-            = videoConstraintsMandatory.hasKey("minFrameRate")
+            = videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minFrameRate")
                 ? videoConstraintsMandatory.getInt("minFrameRate")
                 : DEFAULT_FPS;
 
