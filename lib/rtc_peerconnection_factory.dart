@@ -5,7 +5,7 @@ import 'utils.dart';
 
 Future<RTCPeerConnection> createPeerConnection(
     Map<String, dynamic> configuration,
-    Map<String, dynamic> constraints) async {
+    [Map<String, dynamic> constraints = const {}]) async {
   MethodChannel channel = WebRTC.methodChannel();
 
   Map<String, dynamic> defaultConstraints = {
