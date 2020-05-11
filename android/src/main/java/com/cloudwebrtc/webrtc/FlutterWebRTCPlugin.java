@@ -421,8 +421,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             }
         } else if (call.method.equals("stopRecordToFile")) {
             Integer recorderId = call.argument("recorderId");
-            getUserMediaImpl.stopRecording(recorderId);
-            result.success(null);
+            getUserMediaImpl.stopRecording(recorderId, result);
         } else if (call.method.equals("captureFrame")) {
             String path = call.argument("path");
             String videoTrackId = call.argument("trackId");
@@ -477,6 +476,10 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             String kind = call.argument("kind");
             String streamId = call.argument("streamId");
             createSender(peerConnectionId, kind, streamId, result);
+        } else if (call.method.equals("closeSender")) {
+            String peerConnectionId = call.argument("peerConnectionId");
+            String senderId = call.argument("senderId");
+            stopSender(peerConnectionId, senderId, result);
         } else if (call.method.equals("addTrack")) {
             String peerConnectionId = call.argument("peerConnectionId");
             String trackId = call.argument("trackId");
@@ -1000,7 +1003,7 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
     private void mediaStreamTrackSetEnabled(final String id, final boolean enabled) {
         MediaStreamTrack track = getTrackForId(id);
         if (track == null) {
-            Log.d(TAG, "mediaStreamTrackSetEnabled() track is null");
+            Log.d(TAG, "mediaStreamTrackSetEnabled() track is null " + id);
             return;
         } else if (track.enabled() == enabled) {
             return;
@@ -1386,8 +1389,21 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         }
     }
 
-    private void addTrack(String peerConnectionId, String trackId, List<String> streamIds, Result result) {
-        PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+
+    private void stopSender(String peerConnectionId, String senderId, Result result) {
+        PeerConnectionObserver pco
+                = mPeerConnectionObservers.get(peerConnectionId);
+        if (pco == null || pco.getPeerConnection() == null) {
+            Log.d(TAG, "removeTrack() peerConnection is null");
+            result.error("removeTrack", "removeTrack() peerConnection is null", null);
+        } else {
+            pco.closeSender(senderId, result);
+        }
+    }
+
+    private void addTrack(String peerConnectionId, String trackId, List<String> streamIds, Result result){
+        PeerConnectionObserver pco
+                = mPeerConnectionObservers.get(peerConnectionId);
         MediaStreamTrack track = localTracks.get(trackId);
         if (track == null) {
             result.error("addTrack", "addTrack() track is null", null);

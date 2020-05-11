@@ -92,8 +92,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         remoteTracks.clear();
         dataChannels.clear();
         transceivers.clear();
-        senders.clear();;
-        receivers.clear();;
+        senders.clear();
+        receivers.clear();
     }
 
     void  dispose() {
@@ -641,6 +641,14 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         result.success(rtpSenderToMap(sender));
     }
 
+    public void closeSender(String senderId, Result result) {
+        RtpSender sender = senders.get(senderId);
+        sender.dispose();
+        Map<String, Object> params = new HashMap<>();
+        params.put("result", true);
+        result.success(params);
+    }
+
     public void addTrack(MediaStreamTrack track, List<String> streamIds, Result result){
         RtpSender sender = peerConnection.addTrack(track, streamIds);
         senders.put(sender.id(),sender);
@@ -654,8 +662,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             return;
         }
         boolean res = peerConnection.removeTrack(sender);
-        ConstraintsMap params = new ConstraintsMap();
-        params.putBoolean("result", res);
+        Map<String, Object> params = new HashMap<>();
+        params.put("result", res);
         result.success(params);
     }
 

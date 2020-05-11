@@ -91,12 +91,12 @@ class MediaStream {
   /// private: method.
   void _setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
     List<MediaStreamTrack> newAudioTracks = new List();
-    audioTracks.forEach((trackInfo) {
+    (audioTracks ?? []).forEach((trackInfo) {
       newAudioTracks.add(MediaStreamTrack.fromMap(trackInfo));
     });
     _audioTracks = newAudioTracks;
     List<MediaStreamTrack> newVideoTracks = new List();
-    videoTracks.forEach((trackInfo) {
+    (videoTracks ?? []).forEach((trackInfo) {
       newVideoTracks.add(MediaStreamTrack.fromMap(trackInfo));
     });
     _videoTracks = newVideoTracks;

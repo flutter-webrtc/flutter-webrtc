@@ -408,6 +408,23 @@ class RTCPeerConnection {
     }
   }
 
+  Future<bool> closeSender(RTCRtpSender sender) async {
+    try {
+      final Map<dynamic, dynamic> response = await _channel.invokeMethod(
+          'closeSender', <String, dynamic>{
+        'peerConnectionId': this._peerConnectionId,
+        'senderId': sender.senderId
+      });
+      bool result = response["result"];
+      _senders.removeWhere((item) {
+        return sender.senderId == item.senderId;
+      });
+      return result;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::removeTrack: ${e.message}';
+    }
+  }
+
   Future<RTCRtpTransceiver> addTransceiver(MediaStreamTrack track,
       [RTCRtpTransceiverInit init]) async {
     try {

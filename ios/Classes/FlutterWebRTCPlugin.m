@@ -3,6 +3,7 @@
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
+#import "FlutterRTCAudioRecorder.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
@@ -16,6 +17,8 @@
 }
 
 @synthesize messenger = _messenger;
+
+FlutterRTCAudioRecorder* flutterRTCAudioRecorder;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
 
@@ -61,6 +64,7 @@
   self.peerConnections = [NSMutableDictionary new];
   self.localStreams = [NSMutableDictionary new];
   self.localTracks = [NSMutableDictionary new];
+  self.localSenders = [NSMutableDictionary new];
   self.renders = [[NSMutableDictionary alloc] init];
 
   [[NSNotificationCenter defaultCenter]
@@ -436,27 +440,39 @@
                                  details:nil]);
     }
     result(nil);
-  } else if ([@"mediaStreamRemoveTrack" isEqualToString:call.method]) {
-    NSDictionary *argsMap = call.arguments;
-    NSString *streamId = argsMap[@"streamId"];
-    NSString *trackId = argsMap[@"trackId"];
-    RTCMediaStream *stream = self.localStreams[streamId];
-    if (stream) {
-      RTCMediaStreamTrack *track = self.localTracks[trackId];
-      if (track != nil) {
-        if ([track isKindOfClass:[RTCAudioTrack class]]) {
-          RTCAudioTrack *audioTrack = (RTCAudioTrack *)track;
-          [stream removeAudioTrack:audioTrack];
-        } else if ([track isKindOfClass:[RTCVideoTrack class]]) {
-          RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-          [stream removeVideoTrack:videoTrack];
-        }
+  } else if ([@"mediaStreamRemoveTrack" isEqualToString:call.method]){
+      NSDictionary* argsMap = call.arguments;
+      NSString* streamId = argsMap[@"streamId"];
+      NSString* trackId = argsMap[@"trackId"];
+      RTCMediaStream *stream = self.localStreams[streamId];
+      if (stream) {
+          RTCMediaStreamTrack *track = self.localTracks[trackId];
+          if(track != nil) {
+              if([track isKindOfClass:[RTCAudioTrack class]]) {
+                  RTCAudioTrack *audioTrack = (RTCAudioTrack *)track;
+                  [stream removeAudioTrack:audioTrack];
+              } else if ([track isKindOfClass:[RTCVideoTrack class]]){
+                  RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
+                  [stream removeVideoTrack:videoTrack];
+              }
+          } else {
+              result([FlutterError errorWithCode:@"mediaStreamRemoveTrack: Track is nil" message:nil details:nil]);
+          }
       } else {
-        result([FlutterError
-            errorWithCode:@"mediaStreamRemoveTrack: Track is nil"
-                  message:nil
-                  details:nil]);
+          result([FlutterError errorWithCode:@"mediaStreamRemoveTrack: Stream is nil" message:nil details:nil]);
       }
+      result(nil);
+  } else if([@"startRecordToFile" isEqualToString:call.method]){
+    NSDictionary* argsMap = call.arguments;
+    NSString* path = argsMap[@"path"];
+    
+    flutterRTCAudioRecorder = [[FlutterRTCAudioRecorder alloc] initWithPath:path];
+    result(nil);
+  } else if([@"stopRecordToFile" isEqualToString:call.method]){
+    if (flutterRTCAudioRecorder != nil) {
+        [flutterRTCAudioRecorder stop:^(bool flag) {
+            result([NSNumber numberWithBool:(BOOL)flag]);
+        }];
     } else {
       result([FlutterError
           errorWithCode:@"mediaStreamRemoveTrack: Stream is nil"
@@ -664,11 +680,13 @@
   }
 }
 
-- (void)dealloc {
+- (void) dealloc {
   [_localTracks removeAllObjects];
   _localTracks = nil;
   [_localStreams removeAllObjects];
   _localStreams = nil;
+  [_localSenders removeAllObjects];
+    _localSenders = nil;
 
   for (NSString *peerConnectionId in _peerConnections) {
     RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
