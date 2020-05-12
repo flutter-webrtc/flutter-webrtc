@@ -204,7 +204,7 @@ class RTCPeerConnection {
   }
 
   Future<RTCSessionDescription> createOffer(
-      Map<String, dynamic> constraints) async {
+      [Map<String, dynamic> constraints = const {}]) async {
     try {
       final Map<dynamic, dynamic> response =
           await _channel.invokeMethod('createOffer', <String, dynamic>{
