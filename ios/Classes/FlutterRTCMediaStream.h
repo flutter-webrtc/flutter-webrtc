@@ -9,6 +9,8 @@
 -(void)getDisplayMedia:(NSDictionary *)constraints
              result:(FlutterResult)result;
 
+-(void)createLocalMediaStream:(FlutterResult)result;
+
 -(void)getSources:(FlutterResult)result;
 
 -(void)mediaStreamTrackHasTorch:(RTCMediaStreamTrack *)track
