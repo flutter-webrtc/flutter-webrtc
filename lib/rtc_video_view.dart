@@ -9,7 +9,7 @@ import 'enums.dart';
 class RTCVideoRenderer {
   MethodChannel _channel = WebRTC.methodChannel();
   int _textureId;
-  bool _disposed;
+  bool _disposed = false;
   int _rotation = 0;
   double _width = 0.0, _height = 0.0;
   bool _mirror = false;
