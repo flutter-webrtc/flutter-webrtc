@@ -9,6 +9,7 @@ import 'enums.dart';
 class RTCVideoRenderer {
   MethodChannel _channel = WebRTC.methodChannel();
   int _textureId;
+  bool _disposed;
   int _rotation = 0;
   double _width = 0.0, _height = 0.0;
   bool _mirror = false;
@@ -24,6 +25,10 @@ class RTCVideoRenderer {
     final Map<dynamic, dynamic> response =
         await _channel.invokeMethod('createVideoRenderer', {});
     _textureId = response['textureId'];
+    if (_disposed) {
+      dispose();
+      return;
+    }
     _eventSubscription = _eventChannelFor(_textureId)
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
@@ -62,20 +67,26 @@ class RTCVideoRenderer {
   }
 
   set srcObject(MediaStream stream) {
-    _srcObject = stream;
-    _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
-      'textureId': _textureId,
-      'streamId': stream != null ? stream.id : '',
-      'ownerTag': stream != null ? stream.ownerTag : ''
-    });
+    if (_textureId != null) {
+      _srcObject = stream;
+      _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
+        'textureId': _textureId,
+        'streamId': stream != null ? stream.id : '',
+        'ownerTag': stream != null ? stream.ownerTag : ''
+      });
+    }
   }
 
   Future<Null> dispose() async {
-    await _eventSubscription?.cancel();
-    await _channel.invokeMethod(
-      'videoRendererDispose',
-      <String, dynamic>{'textureId': _textureId},
-    );
+    _disposed = true;
+    if (_textureId != null) {
+      await _eventSubscription?.cancel();
+      await _channel.invokeMethod(
+        'videoRendererDispose',
+        <String, dynamic>{'textureId': _textureId},
+      );
+      _textureId = null;
+    }
   }
 
   EventChannel _eventChannelFor(int textureId) {
@@ -160,14 +171,14 @@ class _RTCVideoViewState extends State<RTCVideoView> {
                         transform: Matrix4.identity()
                           ..rotateY(_mirror ? -pi : 0.0),
                         alignment: FractionalOffset.center,
-                        child:
-                            new Texture(textureId: widget._renderer._textureId))))));
+                        child: new Texture(
+                            textureId: widget._renderer._textureId))))));
   }
 
   @override
   Widget build(BuildContext context) {
-    bool renderVideo =
-        (widget._renderer._textureId != null && widget._renderer._srcObject != null);
+    bool renderVideo = (widget._renderer._textureId != null &&
+        widget._renderer._srcObject != null);
 
     return new LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
