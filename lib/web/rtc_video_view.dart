@@ -83,6 +83,7 @@ class RTCVideoRenderer {
       x.autoplay = true;
       x.muted = false;
       x.srcObject = stream.jsStream;
+      x.id = stream.id;
       _htmlVideoElement = x;
       _videoViews.add(x);
       return x;
@@ -139,7 +140,11 @@ class RTCVideoRenderer {
     if (_htmlVideoElement != null) return _htmlVideoElement;
     final fltPv = HTML.document.getElementsByTagName('flt-platform-view');
     if (fltPv.isEmpty) return null;
-    return (fltPv.first as HTML.Element).shadowRoot.lastChild;
+    final lastChild = (fltPv.first as HTML.Element).shadowRoot.lastChild;
+    if (!(lastChild is HTML.VideoElement)) return null;
+    final videoElement = lastChild as HTML.VideoElement;
+    if (_srcObject != null && videoElement.id != _srcObject.id) return null;
+    return lastChild;
   }
 
   Future<Null> dispose() async {
