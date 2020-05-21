@@ -179,6 +179,8 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
             Map<String, Object> constraints = call.argument("constraints");
             ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
             getUserMedia(constraintsMap, result);
+        } else if (call.method.equals("createLocalMediaStream")) {
+            createLocalMediaStream(result);
         }else if (call.method.equals("getSources")) {
             getSources(result);
         }else if (call.method.equals("createOffer")) {
@@ -932,6 +934,20 @@ public class FlutterWebRTCPlugin implements MethodCallHandler {
         audio.putString("kind", "audioinput");
         array.pushMap(audio);
         result.success(array);
+    }
+
+    private void createLocalMediaStream(Result result) {
+        String streamId = getNextStreamUUID();
+        MediaStream mediaStream = mFactory.createLocalMediaStream(streamId);
+        localStreams.put(streamId, mediaStream);
+
+        if (mediaStream == null) {
+            result.error(/* type */ "createLocalMediaStream", "Failed to create new media stream", null);
+            return;
+        }
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("streamId", mediaStream.getId());
+        result.success(resultMap);
     }
 
     public void mediaStreamTrackStop(final String id) {
