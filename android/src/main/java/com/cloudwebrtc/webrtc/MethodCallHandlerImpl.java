@@ -115,6 +115,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     this.audioManager = audioManager;
   }
 
+  void dispose() {
+    mPeerConnectionObservers.clear();
+  }
+
   private void ensureInitialized() {
     if (mFactory != null) {
       return;

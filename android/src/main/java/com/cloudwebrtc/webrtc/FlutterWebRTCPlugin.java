@@ -117,8 +117,9 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
   }
 
   private void stopListening() {
-    channel.setMethodCallHandler(null);
+    methodCallHandler.dispose();
     methodCallHandler = null;
+    channel.setMethodCallHandler(null);
 
     if (rtcAudioManager != null) {
       Log.d(TAG, "Stopping the audio manager...");
