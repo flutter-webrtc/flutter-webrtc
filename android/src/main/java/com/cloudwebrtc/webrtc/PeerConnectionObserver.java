@@ -75,6 +75,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
   void dispose() {
     this.close();
+
     peerConnection.dispose();
     eventChannel.setStreamHandler(null);
   }
