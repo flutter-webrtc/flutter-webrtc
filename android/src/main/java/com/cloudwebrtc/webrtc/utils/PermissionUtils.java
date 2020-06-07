@@ -5,13 +5,12 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
-
-import com.cloudwebrtc.webrtc.FlutterWebRTCPlugin;
-
+import androidx.annotation.RequiresApi;
 import java.util.ArrayList;
 
 /**
@@ -36,7 +35,7 @@ public class PermissionUtils {
     private static int requestCode;
 
     private static void requestPermissions(
-            FlutterWebRTCPlugin plugin,
+            Activity activity,
             String[] permissions,
             ResultReceiver resultReceiver) {
         // Ask the Context whether we have already been granted the requested
@@ -51,7 +50,7 @@ public class PermissionUtils {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
                 grantResult = PackageManager.PERMISSION_GRANTED;
             else
-                grantResult = plugin.getContext().checkSelfPermission(permissions[i]);
+                grantResult = activity.checkSelfPermission(permissions[i]);
 
             grantResults[i] = grantResult;
             if (grantResult != PackageManager.PERMISSION_GRANTED) {
@@ -73,15 +72,9 @@ public class PermissionUtils {
                 // must still use old permissions model, regardless of the
                 // Android version on the device.
                 || Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-                || plugin.getActivity().getApplicationInfo().targetSdkVersion
+                || activity.getApplicationInfo().targetSdkVersion
                     < Build.VERSION_CODES.M) {
             send(resultReceiver, requestCode, permissions, grantResults);
-            return;
-        }
-
-        Activity activity = plugin.getActivity();
-
-        if (activity == null) {
             return;
         }
 
@@ -92,7 +85,6 @@ public class PermissionUtils {
 
         RequestPermissionsFragment fragment = new RequestPermissionsFragment();
         fragment.setArguments(args);
-        fragment.setPlugin(plugin);
 
         FragmentTransaction transaction
             = activity.getFragmentManager().beginTransaction().add(
@@ -107,12 +99,13 @@ public class PermissionUtils {
         }
     }
 
+    @RequiresApi(api = VERSION_CODES.M)
     public static void requestPermissions(
-            final FlutterWebRTCPlugin plugin,
+            final Activity activity,
             final String[] permissions,
             final Callback callback) {
         requestPermissions(
-            plugin,
+            activity,
             permissions,
             new ResultReceiver(new Handler(Looper.getMainLooper())) {
                 @Override
@@ -150,11 +143,7 @@ public class PermissionUtils {
      * using a <tt>ResultReceiver</tt>.
      */
     public static class RequestPermissionsFragment extends Fragment {
-        private FlutterWebRTCPlugin plugin;
-
-        public void setPlugin(FlutterWebRTCPlugin plugin){
-            this.plugin = plugin;
-        }
+        @RequiresApi(api = VERSION_CODES.M)
         private void checkSelfPermissions(boolean requestPermissions) {
             // Figure out which of the requested permissions are actually denied
             // because we do not want to ask about the granted permissions
@@ -211,6 +200,7 @@ public class PermissionUtils {
             }
         }
 
+        @RequiresApi(api = VERSION_CODES.M)
         @Override
         public void onRequestPermissionsResult(
                 int requestCode,
@@ -231,7 +221,7 @@ public class PermissionUtils {
                 // the invocation so we have to redo the permission request.
                 finish();
                 PermissionUtils.requestPermissions(
-                    plugin,
+                    getActivity(),
                     args.getStringArray(PERMISSIONS),
                     (ResultReceiver) args.getParcelable(RESULT_RECEIVER));
             } else {
