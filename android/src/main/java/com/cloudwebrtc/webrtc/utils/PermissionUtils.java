@@ -5,12 +5,14 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 
 /**
@@ -99,7 +101,6 @@ public class PermissionUtils {
         }
     }
 
-    @RequiresApi(api = VERSION_CODES.M)
     public static void requestPermissions(
             final Activity activity,
             final String[] permissions,
@@ -143,7 +144,7 @@ public class PermissionUtils {
      * using a <tt>ResultReceiver</tt>.
      */
     public static class RequestPermissionsFragment extends Fragment {
-        @RequiresApi(api = VERSION_CODES.M)
+//        @RequiresApi(api = VERSION_CODES.M)
         private void checkSelfPermissions(boolean requestPermissions) {
             // Figure out which of the requested permissions are actually denied
             // because we do not want to ask about the granted permissions
@@ -236,7 +237,9 @@ public class PermissionUtils {
         public void onResume() {
             super.onResume();
 
-            checkSelfPermissions(/* requestPermissions */ true);
-        }
+					if (VERSION.SDK_INT >= VERSION_CODES.M) {
+						checkSelfPermissions(/* requestPermissions */ true);
+					}
+				}
     }
 }
