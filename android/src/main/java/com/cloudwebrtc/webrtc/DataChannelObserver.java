@@ -1,30 +1,29 @@
 package com.cloudwebrtc.webrtc;
 
-import java.nio.charset.Charset;
-import android.util.Base64;
-
-import org.webrtc.DataChannel;
-import io.flutter.plugin.common.EventChannel;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 
+import org.webrtc.DataChannel;
+
+import java.nio.charset.Charset;
+
+import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
+
 class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHandler {
+
     private final int mId;
     private final DataChannel mDataChannel;
-    private final String peerConnectionId;
-    private final FlutterWebRTCPlugin plugin;
+
     private EventChannel eventChannel;
     private EventChannel.EventSink eventSink;
 
-    DataChannelObserver(FlutterWebRTCPlugin plugin, String peerConnectionId, int id, DataChannel dataChannel) {
-        this.peerConnectionId = peerConnectionId;
+    DataChannelObserver(BinaryMessenger messenger, String peerConnectionId, int id,
+                        DataChannel dataChannel) {
         mId = id;
         mDataChannel = dataChannel;
-        this.plugin = plugin;
-        this.eventChannel =
-                new EventChannel(
-                        plugin.registrar().messenger(),
-                        "FlutterWebRTC/dataChannelEvent" + peerConnectionId + String.valueOf(id));
+        eventChannel =
+                new EventChannel(messenger, "FlutterWebRTC/dataChannelEvent" + peerConnectionId + id);
         eventChannel.setStreamHandler(this);
     }
 
@@ -53,7 +52,8 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     }
 
     @Override
-    public void onBufferedAmountChange(long amount) { }
+    public void onBufferedAmountChange(long amount) {
+    }
 
     @Override
     public void onStateChange() {
@@ -89,8 +89,9 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
         sendEvent(params);
     }
 
-    void sendEvent(ConstraintsMap params) {
-        if(eventSink != null)
+    private void sendEvent(ConstraintsMap params) {
+        if (eventSink != null) {
             eventSink.success(params.toMap());
+        }
     }
 }
