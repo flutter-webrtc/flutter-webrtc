@@ -20,7 +20,7 @@ class FlutterRTCDataChannelObserver : public RTCDataChannelObserver {
 
  private:
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
-  EventSink<EncodableValue> *event_sink_ = nullptr;
+  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
   scoped_refptr<RTCDataChannel> data_channel_;
 };
 

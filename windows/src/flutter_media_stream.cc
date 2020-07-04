@@ -31,6 +31,8 @@ void FlutterMediaStream::GetUserMedia(
       default:
         break;
     }
+  } else {
+	  params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
   }
 
   it = constraints.find(EncodableValue("video"));
@@ -48,6 +50,8 @@ void FlutterMediaStream::GetUserMedia(
       default:
         break;
     }
+  } else {
+	  params[EncodableValue("videoTracks")] = EncodableValue(EncodableList());
   }
 
   base_->local_streams_[uuid] = stream;

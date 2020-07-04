@@ -14,7 +14,7 @@ class navigator {
       );
       String streamId = response["streamId"];
       MediaStream stream = new MediaStream(streamId, "local");
-      stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
+      stream.setMediaTracks(response['audioTracks'] ?? List<dynamic>(), response['videoTracks'] ?? List<dynamic>());
       return stream;
     } on PlatformException catch (e) {
       throw 'Unable to getUserMedia: ${e.message}';

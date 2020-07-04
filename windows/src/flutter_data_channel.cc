@@ -15,7 +15,7 @@ FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
 			const flutter::EncodableValue* arguments,
 			std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
 		-> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-		event_sink_ = events.get();
+		event_sink_ = std::move(events);
 		return nullptr;
 	},
 		[&](const flutter::EncodableValue* arguments)

@@ -43,7 +43,7 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
 
  private:
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
-  EventSink<EncodableValue> *event_sink_ = nullptr;
+  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
   scoped_refptr<RTCPeerConnection> peerconnection_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> remote_streams_;
   FlutterWebRTCBase *base_;

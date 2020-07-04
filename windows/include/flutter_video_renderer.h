@@ -36,7 +36,7 @@ class FlutterVideoRenderer
   bool first_frame_rendered = false;
   TextureRegistrar *registrar_ = nullptr;
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
-  EventSink<EncodableValue> *event_sink_ = nullptr;
+  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
   int64_t texture_id_ = -1;
   scoped_refptr<RTCVideoTrack> track_ = nullptr;
   scoped_refptr<RTCVideoFrame> frame_;
