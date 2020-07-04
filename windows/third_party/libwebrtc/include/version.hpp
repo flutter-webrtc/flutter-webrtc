@@ -1,0 +1,9 @@
+#ifndef LIBWEBRTC_VERSION_HPP
+#define LIBWEBRTC_VERSION_HPP
+
+// Version configuration.
+#define LIBWEBRTC_VERSION_MAJOR 0
+#define LIBWEBRTC_VERSION_MINOR 0
+#define LIBWEBRTC_VERSION_PATCH 1
+
+#endif
