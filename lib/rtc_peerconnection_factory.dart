@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'rtc_peerconnection.dart';
+import 'media_stream.dart';
 import 'utils.dart';
 
 Future<RTCPeerConnection> createPeerConnection(
     Map<String, dynamic> configuration,
-    Map<String, dynamic> constraints) async {
+    [Map<String, dynamic> constraints = const {}]) async {
   MethodChannel channel = WebRTC.methodChannel();
 
   Map<String, dynamic> defaultConstraints = {
@@ -25,4 +26,14 @@ Future<RTCPeerConnection> createPeerConnection(
 
   String peerConnectionId = response['peerConnectionId'];
   return new RTCPeerConnection(peerConnectionId, configuration);
+}
+
+Future<MediaStream> createLocalMediaStream(String label) async {
+  MethodChannel _channel = WebRTC.methodChannel();
+
+  final Map<dynamic, dynamic> response = await _channel.invokeMethod(
+    'createLocalMediaStream'
+  );
+
+  return new MediaStream(response['streamId'], label);
 }

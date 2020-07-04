@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.1'
+        classpath 'com.android.tools.build:gradle:3.6.3'
     }
 }
 
@@ -27,6 +27,7 @@ android {
     defaultConfig {
         minSdkVersion 18
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'proguard-rules.pro'
     }
 
     lintOptions {
@@ -40,6 +41,6 @@ android {
 }
 
 dependencies {
-    api 'org.webrtc:google-webrtc:1.0.28262'
-    implementation "androidx.annotation:annotation:1.0.1"
+    api 'org.webrtc:google-webrtc:1.0.30039'
+    implementation "androidx.annotation:annotation:1.1.0"
 }
