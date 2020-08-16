@@ -81,7 +81,7 @@ class RTCVideoRenderer {
     ui.platformViewRegistry.registerViewFactory(stream.id, (int viewId) {
       final x = HTML.VideoElement();
       x.autoplay = true;
-      x.muted = true;
+      x.muted = _srcObject.ownerTag == 'local';
       x.srcObject = stream.jsStream;
       x.id = stream.id;
       _htmlVideoElement = x;
