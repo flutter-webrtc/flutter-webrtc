@@ -86,6 +86,9 @@ class RTCDataChannel {
   /// Get current state.
   RTCDataChannelState get state => _state;
 
+  /// Get label.
+  String get label => _label;
+
   /// Event handler for datachannel state changes.
   /// Assign this property to listen for state changes.
   /// Will be passed one argument, [state], which is an [RTCDataChannelState].
