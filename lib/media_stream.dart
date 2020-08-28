@@ -10,7 +10,6 @@ class MediaStream {
   List<MediaStreamTrack> _audioTracks = new List<MediaStreamTrack>();
   List<MediaStreamTrack> _videoTracks = new List<MediaStreamTrack>();
   MediaStream(this._streamId, this._ownerTag);
-
   String get ownerTag => _ownerTag;
 
   void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {

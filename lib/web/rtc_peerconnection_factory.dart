@@ -21,5 +21,5 @@ Future<RTCPeerConnection> createPeerConnection(
 
 Future<MediaStream> createLocalMediaStream(String label) async {
   final jsMs = HTML.MediaStream();
-  return new MediaStream(jsMs);
+  return new MediaStream(jsMs, 'local');
 }
