@@ -20,9 +20,7 @@ class RTCVideoRenderer {
   VideoRotationChangeCallback onVideoRotationChanged;
   dynamic onFirstFrameRendered;
   var isFirstFrameRendered = false;
-
   dynamic onStateChanged;
-
   HtmlElementView htmlElementView;
   HTML.VideoElement _htmlVideoElement;
 
