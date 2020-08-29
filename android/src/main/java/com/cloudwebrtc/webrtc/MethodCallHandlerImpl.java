@@ -949,7 +949,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     audio.putString("facing", "");
     audio.putString("kind", "audioinput");
     array.pushMap(audio);
-    result.success(array);
+    
+    ConstraintsMap map = new ConstraintsMap();
+    map.putArray("sources", array.toArrayList());
+    
+    result.success(map.toMap());
   }
 
   private void createLocalMediaStream(Result result) {
