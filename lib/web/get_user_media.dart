@@ -8,16 +8,21 @@ import 'media_stream.dart';
 class navigator {
   static Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
+    //TODO: Can be remove when dart null safety will be enforce
+    if (mediaConstraints == null) mediaConstraints = Map<String, dynamic>();
+
     try {
-      final nav = HTML.window.navigator;
       if (mediaConstraints['video'] is Map) {
         if (mediaConstraints['video']['facingMode'] != null) {
           mediaConstraints['video'].remove('facingMode');
         }
       }
-      final jsStream = await nav.getUserMedia(
-          audio: mediaConstraints['audio'] ?? false,
-          video: mediaConstraints['video'] ?? false);
+
+      mediaConstraints.putIfAbsent('video', () => false);
+      mediaConstraints.putIfAbsent('audio', () => false);
+
+      final mediaDevices = HTML.window.navigator.mediaDevices;
+      final jsStream = await mediaDevices.getUserMedia(mediaConstraints);
       return MediaStream(jsStream, 'local');
     } catch (e) {
       throw 'Unable to getUserMedia: ${e.toString()}';
