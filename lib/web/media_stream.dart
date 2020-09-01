@@ -5,8 +5,8 @@ import 'media_stream_track.dart';
 
 class MediaStream {
   final HTML.MediaStream jsStream;
-  String _ownerTag;
-  MediaStream(this.jsStream, this._ownerTag);
+  final String _ownerTag;
+  const MediaStream(this.jsStream, this._ownerTag);
 
   Future<void> getMediaTracks() {
     return Future.value();

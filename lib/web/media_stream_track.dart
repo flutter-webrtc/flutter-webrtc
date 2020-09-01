@@ -5,7 +5,7 @@ import 'dart:js' as JS;
 class MediaStreamTrack {
   final HTML.MediaStreamTrack jsTrack;
 
-  MediaStreamTrack(this.jsTrack);
+  const MediaStreamTrack(this.jsTrack);
 
   set enabled(bool enabled) => jsTrack.enabled = enabled;
 
