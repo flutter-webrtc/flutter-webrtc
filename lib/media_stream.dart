@@ -4,56 +4,42 @@ import 'media_stream_track.dart';
 import 'utils.dart';
 
 class MediaStream {
-  MethodChannel _channel = WebRTC.methodChannel();
-  String _streamId;
-  String _ownerTag;
-  List<MediaStreamTrack> _audioTracks = new List<MediaStreamTrack>();
-  List<MediaStreamTrack> _videoTracks = new List<MediaStreamTrack>();
+  final MethodChannel _channel = WebRTC.methodChannel();
+  final String _streamId;
+  final String _ownerTag;
+  List<MediaStreamTrack> _audioTracks = List<MediaStreamTrack>();
+  List<MediaStreamTrack> _videoTracks = List<MediaStreamTrack>();
+
   MediaStream(this._streamId, this._ownerTag);
+
   String get ownerTag => _ownerTag;
+  String get id => _streamId;
 
   void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
-    List<MediaStreamTrack> newAudioTracks = new List();
+    var newAudioTracks = List<MediaStreamTrack>();
     audioTracks.forEach((track) {
-      newAudioTracks.add(new MediaStreamTrack(
+      newAudioTracks.add(MediaStreamTrack(
           track["id"], track["label"], track["kind"], track["enabled"]));
     });
-    _audioTracks = newAudioTracks;
+    this._audioTracks = newAudioTracks;
 
-    List<MediaStreamTrack> newVideoTracks = new List();
+    var newVideoTracks = List<MediaStreamTrack>();
     videoTracks.forEach((track) {
-      newVideoTracks.add(new MediaStreamTrack(
+      newVideoTracks.add(MediaStreamTrack(
           track["id"], track["label"], track["kind"], track["enabled"]));
     });
-    _videoTracks = newVideoTracks;
+    this._videoTracks = newVideoTracks;
   }
 
   Future<void> getMediaTracks() async {
-    _channel = WebRTC.methodChannel();
     final Map<dynamic, dynamic> response = await _channel.invokeMethod(
       'mediaStreamGetTracks',
       <String, dynamic>{'streamId': _streamId},
     );
 
-    List<dynamic> audioTracks = response['audioTracks'];
-
-    List<MediaStreamTrack> newAudioTracks = new List();
-    audioTracks.forEach((track) {
-      newAudioTracks.add(new MediaStreamTrack(
-          track["id"], track["label"], track["kind"], track["enabled"]));
-    });
-    _audioTracks = newAudioTracks;
-
-    List<MediaStreamTrack> newVideoTracks = new List();
-    List<dynamic> videoTracks = response['videoTracks'];
-    videoTracks.forEach((track) {
-      newVideoTracks.add(new MediaStreamTrack(
-          track["id"], track["label"], track["kind"], track["enabled"]));
-    });
-    _videoTracks = newVideoTracks;
+    setMediaTracks(response['audioTracks'], response['videoTracks']);
   }
 
-  String get id => _streamId;
   Future<void> addTrack(MediaStreamTrack track,
       {bool addToNative = true}) async {
     if (track.kind == 'audio')
