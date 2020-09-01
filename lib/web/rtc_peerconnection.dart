@@ -35,6 +35,7 @@ class RTCPeerConnection {
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
   RTCIceConnectionState _iceConnectionState;
+  MediaStream _mediaStream;
 
   // public: delegate
   SignalingStateCallback onSignalingState;
@@ -64,71 +65,63 @@ class RTCPeerConnection {
 
   RTCPeerConnection(this._jsPc) {
     _peerConnectionId = base64Encode(this.toString().codeUnits);
+
     _jsPc.onAddStream.listen((mediaStreamEvent) {
       final jsStream = mediaStreamEvent.stream;
-      print("onaddstream argument: $jsStream");
-      final mediaStream = MediaStream(jsStream, _peerConnectionId);
-      if (onAddStream != null) {
-        onAddStream(mediaStream);
-      }
+      this._mediaStream = MediaStream(jsStream, _peerConnectionId);
+      onAddStream?.call(_mediaStream);
+
       jsStream.onAddTrack.listen((mediaStreamTrackEvent) {
         final jsTrack =
             (mediaStreamTrackEvent as HTML.MediaStreamTrackEvent).track;
         final MediaStreamTrack track = MediaStreamTrack(jsTrack);
-        mediaStream.addTrack(track, addToNative: false);
-        if (onAddTrack != null) {
-          onAddTrack(mediaStream, track);
-        }
+        _mediaStream.addTrack(track, addToNative: false).then((_) {
+          onAddTrack?.call(_mediaStream, track);
+        });
       });
+
       jsStream.onRemoveTrack.listen((mediaStreamTrackEvent) {
         final jsTrack =
             (mediaStreamTrackEvent as HTML.MediaStreamTrackEvent).track;
         final MediaStreamTrack track = MediaStreamTrack(jsTrack);
-        mediaStream.removeTrack(track, removeFromNative: false);
-        if (onRemoveTrack != null) {
-          onRemoveTrack(mediaStream, track);
-        }
+        _mediaStream.removeTrack(track, removeFromNative: false).then((_) {
+          onRemoveTrack?.call(_mediaStream, track);
+        });
       });
     });
+
     _jsPc.onDataChannel.listen((dataChannelEvent) {
-      if (onDataChannel != null) {
-        final dc = RTCDataChannel(dataChannelEvent.channel);
-        onDataChannel(dc);
-      }
+      onDataChannel?.call(RTCDataChannel(dataChannelEvent.channel));
     });
+
     _jsPc.onIceCandidate.listen((iceEvent) {
-      if (onIceCandidate != null && iceEvent.candidate != null) {
-        onIceCandidate(RTCIceCandidate.fromJs(iceEvent.candidate));
+      if (iceEvent.candidate != null) {
+        onIceCandidate?.call(RTCIceCandidate.fromJs(iceEvent.candidate));
       }
     });
+
     _jsPc.onIceConnectionStateChange.listen((_) {
-      if (onIceConnectionState != null) {
-        _iceConnectionState =
-            iceConnectionStateForString(_jsPc.iceConnectionState);
-        onIceConnectionState(_iceConnectionState);
-      }
+      this._iceConnectionState =
+          iceConnectionStateForString(_jsPc.iceConnectionState);
+      onIceConnectionState?.call(_iceConnectionState);
     });
+
     JS.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] =
         JS.JsFunction.withThis((_) {
-      if (onIceGatheringState != null) {
-        _iceGatheringState =
-            iceGatheringStateforString(_jsPc.iceGatheringState);
-        onIceGatheringState(_iceGatheringState);
-      }
+      this._iceGatheringState =
+          iceGatheringStateforString(_jsPc.iceGatheringState);
+      onIceGatheringState.call(_iceGatheringState);
     });
+
     _jsPc.onRemoveStream.listen((mediaStreamEvent) {
-      final jsStream = mediaStreamEvent.stream;
-      final mediaStream = MediaStream(jsStream, _peerConnectionId);
-      if (onRemoveStream != null) {
-        onRemoveStream(mediaStream);
-      }
+      onRemoveStream?.call(_mediaStream);
     });
+
     _jsPc.onSignalingStateChange.listen((_) {
-      if (onSignalingState != null) {
-        _signalingState = signalingStateForString(_jsPc.signalingState);
-        onSignalingState(_signalingState);
-      }
+      _signalingState = signalingStateForString(_jsPc.signalingState);
+      onSignalingState?.call(_signalingState);
     });
+
     JS.JsObject.fromBrowserObject(_jsPc)['ontrack'] =
         JS.JsFunction.withThis((_, trackEvent) {
       // trackEvent is JsObject conforming to RTCTrackEvent
