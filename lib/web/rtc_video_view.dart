@@ -43,6 +43,8 @@ class RTCVideoRenderer {
   double get aspectRatio =>
       (_width == 0 || _height == 0) ? (9 / 16) : _width / _height;
 
+  MediaStream get srcObject => _srcObject;
+
   set srcObject(MediaStream stream) {
     _srcObject = stream;
 
@@ -136,12 +138,13 @@ class RTCVideoView extends StatefulWidget {
   final RTCVideoViewObjectFit objectFit;
   final mirror;
 
-  RTCVideoView(
-    this._renderer, {
-    this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
-    this.mirror = false,
-  })  : assert(objectFit != null),
-        assert(mirror != null);
+  RTCVideoView(this._renderer,
+      {Key key,
+      this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+      this.mirror = false})
+      : assert(objectFit != null),
+        assert(mirror != null),
+        super(key: key);
 
   @override
   _RTCVideoViewState createState() => new _RTCVideoViewState(_renderer);
