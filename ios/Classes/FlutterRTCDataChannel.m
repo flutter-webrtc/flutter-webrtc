@@ -77,7 +77,7 @@
         dataChannel.delegate = self;
         
         FlutterEventChannel *eventChannel = [FlutterEventChannel
-                                             eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%d", [dataChannelId intValue]]
+                                             eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$d", peerConnectionId, [dataChannelId intValue]]
                                              binaryMessenger:messenger];
         
         dataChannel.eventChannel = eventChannel;

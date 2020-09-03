@@ -18,7 +18,7 @@ class navigator {
       final jsStream = await nav.getUserMedia(
           audio: mediaConstraints['audio'] ?? false,
           video: mediaConstraints['video'] ?? false);
-      return MediaStream(jsStream);
+      return MediaStream(jsStream, 'local');
     } catch (e) {
       throw 'Unable to getUserMedia: ${e.toString()}';
     }
@@ -34,13 +34,13 @@ class navigator {
         final HTML.MediaStream jsStream =
             await JSUtils.promiseToFuture<HTML.MediaStream>(
                 JSUtils.callMethod(mediaDevices, 'getDisplayMedia', [arg]));
-        return MediaStream(jsStream);
+        return MediaStream(jsStream, 'local');
       } else {
         final HTML.MediaStream jsStream = await HTML.window.navigator
             .getUserMedia(
                 video: {"mediaSource": 'screen'},
                 audio: mediaConstraints['audio'] ?? false);
-        return MediaStream(jsStream);
+        return MediaStream(jsStream, 'local');
       }
     } catch (e) {
       throw 'Unable to getDisplayMedia: ${e.toString()}';

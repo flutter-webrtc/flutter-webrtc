@@ -86,6 +86,9 @@ class RTCDataChannel {
   /// Get current state.
   RTCDataChannelState get state => _state;
 
+  /// Get label.
+  String get label => _label;
+
   /// Event handler for datachannel state changes.
   /// Assign this property to listen for state changes.
   /// Will be passed one argument, [state], which is an [RTCDataChannelState].
@@ -113,7 +116,7 @@ class RTCDataChannel {
   RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId) {
     stateChangeStream = _stateChangeController.stream;
     messageStream = _messageController.stream;
-    _eventSubscription = _eventChannelFor(_dataChannelId)
+    _eventSubscription = _eventChannelFor(_peerConnectionId, _dataChannelId)
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
   }
@@ -149,8 +152,8 @@ class RTCDataChannel {
     }
   }
 
-  EventChannel _eventChannelFor(int dataChannelId) {
-    return new EventChannel('FlutterWebRTC/dataChannelEvent$dataChannelId');
+  EventChannel _eventChannelFor(String peerConnectionId, int dataChannelId) {
+    return new EventChannel('FlutterWebRTC/dataChannelEvent$peerConnectionId$dataChannelId');
   }
 
   void errorListener(Object obj) {
