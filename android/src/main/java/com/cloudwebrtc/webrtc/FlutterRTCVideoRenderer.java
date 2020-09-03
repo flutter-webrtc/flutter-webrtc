@@ -40,9 +40,11 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * The {@code RendererEvents} which listens to rendering events reported by
      * {@link #surfaceTextureRenderer}.
      */
-    private final RendererEvents rendererEvents
-        = new RendererEvents() {
-            private int _rotation = 0;
+    private RendererEvents rendererEvents;
+
+    private void listenRendererEvents() {
+    rendererEvents = new RendererEvents() {
+            private int _rotation = -1;
             private  int _width = 0, _height = 0;
 
             @Override
@@ -81,7 +83,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
                 }
             }
         };
-
+    }
     private SurfaceTextureRenderer surfaceTextureRenderer;
 
     /**
@@ -94,6 +96,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
 
     public FlutterRTCVideoRenderer(SurfaceTexture texture, TextureRegistry.SurfaceTextureEntry entry) {
         this.surfaceTextureRenderer = new SurfaceTextureRenderer("");
+        listenRendererEvents();
         surfaceTextureRenderer.init(EglUtils.getRootEglBaseContext(), rendererEvents);
         surfaceTextureRenderer.surfaceCreated(texture);
 
@@ -190,6 +193,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             }
 
             surfaceTextureRenderer.release();
+            listenRendererEvents();
             surfaceTextureRenderer.init(sharedContext, rendererEvents);
             surfaceTextureRenderer.surfaceCreated(texture);
 
