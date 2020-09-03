@@ -13,35 +13,42 @@ class RTCVideoValue {
   final double width;
   final double height;
   final int rotation;
+  final bool renderVideo;
 
   const RTCVideoValue({
     this.width = 0.0,
     this.height = 0.0,
     this.rotation = 0,
+    this.renderVideo = false,
   });
 
   double get aspectRatio {
     if (width == 0.0 || height == 0.0) {
       return 1.0;
-    } else {
-      return (rotation == 90 || rotation == 270) ? height / width : width / height;
     }
+    return (rotation == 90 || rotation == 270)
+        ? height / width
+        : width / height;
   }
 
   RTCVideoValue copyWith({
     double width,
     double height,
     int rotation,
+    bool renderVideo,
   }) {
     return RTCVideoValue(
       width: width ?? this.width,
       height: height ?? this.height,
       rotation: rotation ?? this.rotation,
+      renderVideo: (this.width != 0 && this.height != 0 && renderVideo) ??
+          this.renderVideo,
     );
   }
 
   @override
-  String toString() => '$runtimeType(width: $width, height: $height, rotation: $rotation)';
+  String toString() =>
+      '$runtimeType(width: $width, height: $height, rotation: $rotation)';
 }
 
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
@@ -49,7 +56,6 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
   int _textureId;
   MediaStream _srcObject;
   StreamSubscription<dynamic> _eventSubscription;
-
   RTCVideoRenderer() : super(RTCVideoValue.empty);
 
   initialize() async {
@@ -63,6 +69,8 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
 
   int get textureId => _textureId;
 
+  MediaStream get srcObject => _srcObject;
+
   set srcObject(MediaStream stream) {
     if (stream == null) {
       value = RTCVideoValue.empty;
@@ -73,9 +81,13 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
       'streamId': stream != null ? stream.id : '',
       'ownerTag': stream != null ? stream.ownerTag : ''
     });
+    value = value.copyWith(renderVideo: renderVideo);
+    notifyListeners();
   }
 
-  Future<Null> dispose() async {
+  @override
+  Future<void> dispose() async {
+    super.dispose();
     await _eventSubscription?.cancel();
     await _channel.invokeMethod(
       'videoRendererDispose',
@@ -91,21 +103,27 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     final Map<dynamic, dynamic> map = event;
     switch (map['event']) {
       case 'didTextureChangeRotation':
-        value = value.copyWith(rotation: map['rotation']);
+        value =
+            value.copyWith(rotation: map['rotation'], renderVideo: renderVideo);
         break;
       case 'didTextureChangeVideoSize':
-        value = value.copyWith(width: 0.0 + map['width'], height: 0.0 + map['height']);
+        value = value.copyWith(
+            width: 0.0 + map['width'],
+            height: 0.0 + map['height'],
+            renderVideo: renderVideo);
         break;
       case 'didFirstFrameRendered':
-        notifyListeners();
         break;
     }
+    notifyListeners();
   }
 
   void errorListener(Object obj) {
     final PlatformException e = obj;
     throw e;
   }
+
+  bool get renderVideo => srcObject != null;
 }
 
 class RTCVideoView extends StatelessWidget {
@@ -125,12 +143,10 @@ class RTCVideoView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool renderVideo = _renderer._textureId != null && _renderer._srcObject != null;
-
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return Center(
-          child: renderVideo ? _buildVideoView(constraints) : Container(),
+          child: _buildVideoView(constraints),
         );
       },
     );
@@ -141,7 +157,9 @@ class RTCVideoView extends StatelessWidget {
       width: constraints.maxWidth,
       height: constraints.maxHeight,
       child: FittedBox(
-        fit: objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain ? BoxFit.contain : BoxFit.cover,
+        fit: objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
+            ? BoxFit.contain
+            : BoxFit.cover,
         child: Center(
           child: ValueListenableBuilder<RTCVideoValue>(
             valueListenable: _renderer,
@@ -149,13 +167,15 @@ class RTCVideoView extends StatelessWidget {
               return SizedBox(
                 width: constraints.maxHeight * value.aspectRatio,
                 height: constraints.maxHeight,
-                child: child,
+                child: value.renderVideo ? child : Container(),
               );
             },
             child: Transform(
               transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
               alignment: FractionalOffset.center,
-              child: Texture(textureId: _renderer._textureId),
+              child: _renderer.textureId != null
+                  ? Texture(textureId: _renderer.textureId)
+                  : Container(),
             ),
           ),
         ),
