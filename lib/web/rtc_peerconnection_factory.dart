@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html' as HTML;
 
 import 'rtc_peerconnection.dart';
@@ -16,7 +17,8 @@ Future<RTCPeerConnection> createPeerConnection(
           ],
         };
   final jsRtcPc = HTML.RtcPeerConnection(configuration, constr);
-  return RTCPeerConnection(jsRtcPc);
+  final _peerConnectionId = base64Encode(jsRtcPc.toString().codeUnits);
+  return RTCPeerConnection(_peerConnectionId, jsRtcPc);
 }
 
 Future<MediaStream> createLocalMediaStream(String label) async {
