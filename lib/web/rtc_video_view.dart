@@ -17,9 +17,7 @@ class RTCVideoRenderer {
   VideoRotationChangeCallback onVideoRotationChanged;
   dynamic onFirstFrameRendered;
   var isFirstFrameRendered = false;
-
   dynamic onStateChanged;
-
   HtmlElementView htmlElementView;
   HTML.VideoElement _htmlVideoElement;
 
@@ -60,8 +58,9 @@ class RTCVideoRenderer {
     ui.platformViewRegistry.registerViewFactory(stream.id, (int viewId) {
       final x = HTML.VideoElement();
       x.autoplay = true;
-      x.muted = false;
+      x.muted = _srcObject.ownerTag == 'local';
       x.srcObject = stream.jsStream;
+      x.id = stream.id;
       _htmlVideoElement = x;
       _videoViews.add(x);
       return x;
@@ -118,11 +117,16 @@ class RTCVideoRenderer {
     if (_htmlVideoElement != null) return _htmlVideoElement;
     final fltPv = HTML.document.getElementsByTagName('flt-platform-view');
     if (fltPv.isEmpty) return null;
-    return (fltPv.first as HTML.Element).shadowRoot.lastChild;
+    final lastChild = (fltPv.first as HTML.Element).shadowRoot.lastChild;
+    if (!(lastChild is HTML.VideoElement)) return null;
+    final videoElement = lastChild as HTML.VideoElement;
+    if (_srcObject != null && videoElement.id != _srcObject.id) return null;
+    return lastChild;
   }
 
   Future<Null> dispose() async {
     //TODO?
+    //https://stackoverflow.com/questions/3258587/how-to-properly-unload-destroy-a-video-element/28060352
   }
 }
 

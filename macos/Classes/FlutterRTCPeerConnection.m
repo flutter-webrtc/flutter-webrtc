@@ -483,7 +483,7 @@
     peerConnection.dataChannels[dataChannelId] = dataChannel;
     
     FlutterEventChannel *eventChannel = [FlutterEventChannel
-                                         eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%d", dataChannel.channelId]
+                                         eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$d", peerConnection.flutterId, dataChannel.channelId]
                                          binaryMessenger:self.messenger];
     
     dataChannel.eventChannel = eventChannel;

@@ -1,6 +1,12 @@
 ## Changelog
 
 --------------------------------------------
+[0.2.8] - 2020.04.22
+
+* [macOS/iOS] Fix typo in render size change check condition.
+* [macOS] Fix hot restart videoCapturer crash.
+* [Android] Fix Android crash when getUserVideo.
+
 [0.2.7] - 2020.03.15
 
 * [macOS] Fix crash with H264 HW Encoder.

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js' as JS;
 import 'dart:js_util' as JSUtils;
 import 'dart:html' as HTML;
@@ -29,6 +30,7 @@ typedef void RTCDataChannelCallback(RTCDataChannel channel);
  *  PeerConnection
  */
 class RTCPeerConnection {
+  String _peerConnectionId;
   final HTML.RtcPeerConnection _jsPc;
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
@@ -61,10 +63,11 @@ class RTCPeerConnection {
   RTCIceConnectionState get iceConnectionState => _iceConnectionState;
 
   RTCPeerConnection(this._jsPc) {
+    _peerConnectionId = base64Encode(this.toString().codeUnits);
     _jsPc.onAddStream.listen((mediaStreamEvent) {
       final jsStream = mediaStreamEvent.stream;
       print("onaddstream argument: $jsStream");
-      final mediaStream = MediaStream(jsStream);
+      final mediaStream = MediaStream(jsStream, _peerConnectionId);
       if (onAddStream != null) {
         onAddStream(mediaStream);
       }
@@ -115,7 +118,7 @@ class RTCPeerConnection {
     });
     _jsPc.onRemoveStream.listen((mediaStreamEvent) {
       final jsStream = mediaStreamEvent.stream;
-      final mediaStream = MediaStream(jsStream);
+      final mediaStream = MediaStream(jsStream, _peerConnectionId);
       if (onRemoveStream != null) {
         onRemoveStream(mediaStream);
       }
@@ -201,12 +204,14 @@ class RTCPeerConnection {
     return report;
   }
 
-  List<MediaStream> getLocalStreams() =>
-      _jsPc.getLocalStreams().map((jsStream) => MediaStream(jsStream)).toList();
+  List<MediaStream> getLocalStreams() => _jsPc
+      .getLocalStreams()
+      .map((jsStream) => MediaStream(jsStream, 'local'))
+      .toList();
 
   List<MediaStream> getRemoteStreams() => _jsPc
       .getRemoteStreams()
-      .map((jsStream) => MediaStream(jsStream))
+      .map((jsStream) => MediaStream(jsStream, _peerConnectionId))
       .toList();
 
   Future<RTCDataChannel> createDataChannel(
