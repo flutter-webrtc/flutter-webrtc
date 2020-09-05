@@ -14,3 +14,4 @@ WorkspaceSettings.xcsettings
 example/.flutter-plugins
 example/android/local.properties
 .dart_tool/package_config.json
+android/.project
