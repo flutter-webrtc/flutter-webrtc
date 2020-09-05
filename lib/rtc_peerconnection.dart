@@ -27,11 +27,11 @@ typedef void RTCDataChannelCallback(RTCDataChannel channel);
  */
 class RTCPeerConnection {
   // private:
-  String _peerConnectionId;
-  MethodChannel _channel = WebRTC.methodChannel();
+  final String _peerConnectionId;
+  final MethodChannel _channel = WebRTC.methodChannel();
   StreamSubscription<dynamic> _eventSubscription;
-  List<MediaStream> _localStreams = new List();
-  List<MediaStream> _remoteStreams = new List();
+  final List<MediaStream> _localStreams = List();
+  final List<MediaStream> _remoteStreams = List();
   RTCDataChannel _dataChannel;
   Map<String, dynamic> _configuration;
   RTCSignalingState _signalingState;
@@ -79,58 +79,52 @@ class RTCPeerConnection {
     switch (map['event']) {
       case 'signalingState':
         _signalingState = signalingStateForString(map['state']);
-        if (this.onSignalingState != null)
-          this.onSignalingState(_signalingState);
+        this.onSignalingState?.call(_signalingState);
         break;
       case 'iceGatheringState':
         _iceGatheringState = iceGatheringStateforString(map['state']);
-        if (this.onIceGatheringState != null)
-          this.onIceGatheringState(_iceGatheringState);
+        this.onIceGatheringState?.call(_iceGatheringState);
         break;
       case 'iceConnectionState':
         _iceConnectionState = iceConnectionStateForString(map['state']);
-        if (this.onIceConnectionState != null)
-          this.onIceConnectionState(_iceConnectionState);
+        this.onIceConnectionState?.call(_iceConnectionState);
         break;
       case 'onCandidate':
         Map<dynamic, dynamic> cand = map['candidate'];
-        RTCIceCandidate candidate = new RTCIceCandidate(
+        var candidate = RTCIceCandidate(
             cand['candidate'], cand['sdpMid'], cand['sdpMLineIndex']);
-        if (this.onIceCandidate != null) this.onIceCandidate(candidate);
+        this.onIceCandidate?.call(candidate);
         break;
       case 'onAddStream':
         String streamId = map['streamId'];
 
-        MediaStream stream =
+        var stream =
             _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
-          var newStream = new MediaStream(streamId, _peerConnectionId);
+          var newStream = MediaStream(streamId, _peerConnectionId);
           newStream.setMediaTracks(map['audioTracks'], map['videoTracks']);
-          _remoteStreams.add(newStream);
           return newStream;
         });
-        if (this.onAddStream != null) this.onAddStream(stream);
+        this.onAddStream?.call(stream);
         _remoteStreams.add(stream);
         break;
       case 'onRemoveStream':
         String streamId = map['streamId'];
-        MediaStream stream =
-            _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
-          return null;
-        });
-        if (this.onRemoveStream != null) this.onRemoveStream(stream);
+        var stream = _remoteStreams.firstWhere((it) => it.id == streamId,
+            orElse: () => null);
+        this.onRemoveStream?.call(stream);
         _remoteStreams.removeWhere((it) => it.id == streamId);
         break;
       case 'onAddTrack':
         String streamId = map['streamId'];
         Map<dynamic, dynamic> track = map['track'];
 
-        MediaStreamTrack newTrack = new MediaStreamTrack(
+        var newTrack = MediaStreamTrack(
             map['trackId'], track['label'], track['kind'], track['enabled']);
         String kind = track["kind"];
 
-        MediaStream stream =
+        var stream =
             _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
-          var newStream = new MediaStream(streamId, _peerConnectionId);
+          var newStream = MediaStream(streamId, _peerConnectionId);
           _remoteStreams.add(newStream);
           return newStream;
         });
@@ -141,32 +135,30 @@ class RTCPeerConnection {
         MediaStreamTrack oldTrack = oldTracks.length > 0 ? oldTracks[0] : null;
         if (oldTrack != null) {
           stream.removeTrack(oldTrack, removeFromNative: false);
-          if (this.onRemoveTrack != null) this.onRemoveTrack(stream, oldTrack);
+          this.onRemoveTrack?.call(stream, oldTrack);
         }
 
         stream.addTrack(newTrack, addToNative: false);
-        if (this.onAddTrack != null) this.onAddTrack(stream, newTrack);
+        this.onAddTrack?.call(stream, newTrack);
         break;
       case 'onRemoveTrack':
         String streamId = map['streamId'];
-        MediaStream stream =
-            _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
-          return null;
-        });
+        var stream = _remoteStreams.firstWhere((it) => it.id == streamId,
+            orElse: () => null);
         Map<dynamic, dynamic> track = map['track'];
-        MediaStreamTrack oldTrack = new MediaStreamTrack(
+        var oldTrack = MediaStreamTrack(
             map['trackId'], track['label'], track['kind'], track['enabled']);
-        if (this.onRemoveTrack != null) this.onRemoveTrack(stream, oldTrack);
+        this.onRemoveTrack?.call(stream, oldTrack);
         break;
       case 'didOpenDataChannel':
         int dataChannelId = map['id'];
         String label = map['label'];
         _dataChannel =
-            new RTCDataChannel(this._peerConnectionId, label, dataChannelId);
-        if (this.onDataChannel != null) this.onDataChannel(_dataChannel);
+            RTCDataChannel(this._peerConnectionId, label, dataChannelId);
+        this.onDataChannel?.call(_dataChannel);
         break;
       case 'onRenegotiationNeeded':
-        if (this.onRenegotiationNeeded != null) this.onRenegotiationNeeded();
+        this.onRenegotiationNeeded?.call();
         break;
     }
   }
@@ -215,7 +207,7 @@ class RTCPeerConnection {
 
       String sdp = response['sdp'];
       String type = response['type'];
-      return new RTCSessionDescription(sdp, type);
+      return RTCSessionDescription(sdp, type);
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::createOffer: ${e.message}';
     }
@@ -232,7 +224,7 @@ class RTCPeerConnection {
       });
       String sdp = response['sdp'];
       String type = response['type'];
-      return new RTCSessionDescription(sdp, type);
+      return RTCSessionDescription(sdp, type);
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::createAnswer: ${e.message}';
     }
@@ -284,7 +276,7 @@ class RTCPeerConnection {
       });
       String sdp = response['sdp'];
       String type = response['type'];
-      return new RTCSessionDescription(sdp, type);
+      return RTCSessionDescription(sdp, type);
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::getLocalDescription: ${e.message}';
     }
@@ -298,7 +290,7 @@ class RTCPeerConnection {
       });
       String sdp = response['sdp'];
       String type = response['type'];
-      return new RTCSessionDescription(sdp, type);
+      return RTCSessionDescription(sdp, type);
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::getRemoteDescription: ${e.message}';
     }
@@ -318,11 +310,11 @@ class RTCPeerConnection {
         'peerConnectionId': this._peerConnectionId,
         'track': track != null ? track.id : null
       });
-      List<StatsReport> stats = new List<StatsReport>();
+      List<StatsReport> stats = List<StatsReport>();
       if (response != null) {
         List<dynamic> reports = response['stats'];
         reports.forEach((report) {
-          stats.add(new StatsReport(report['id'], report['type'],
+          stats.add(StatsReport(report['id'], report['type'],
               report['timestamp'], report['values']));
         });
       }
@@ -350,7 +342,7 @@ class RTCPeerConnection {
         'dataChannelDict': dataChannelDict.toMap()
       });
       _dataChannel =
-          new RTCDataChannel(this._peerConnectionId, label, dataChannelDict.id);
+          RTCDataChannel(this._peerConnectionId, label, dataChannelDict.id);
       return _dataChannel;
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::createDataChannel: ${e.message}';
