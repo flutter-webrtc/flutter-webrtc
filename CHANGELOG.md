@@ -1,6 +1,22 @@
-## Changelog
+# Changelog
 
 --------------------------------------------
+[0.3.0] - 2020.09.05
+
+* [Dart] Improve RTCVideoView.
+* [Android] Refactors Android plugin alongside the embedding V2 migration.
+* [Dart] Fix .ownerTag not defined for web.
+* [Dart] Added label as read only property.
+* [macOS] Updated WebRTC framework to work with AppStoreConnect.
+* [Dart] Make 'constraints' argument optional.
+* [Dart] Make createOffer constraints optional.
+* [iOS/Android/Web] Adding createLocalMediaStream method to PeerConnectionFactory.
+* [Web] Fixing multiple video renderers on the same HTML page for Flutter Web.
+* [iOS] Add peerConnectionId to data channel EventChannel.
+* [Android] Add library module ProGuard configuration file.
+* [iOS] Fix typo in render size change check condition
+* [README] Add missed Android usage hint.
+
 [0.2.8] - 2020.04.22
 
 * [macOS/iOS] Fix typo in render size change check condition.
