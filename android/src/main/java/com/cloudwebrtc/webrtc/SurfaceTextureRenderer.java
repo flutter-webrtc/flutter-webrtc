@@ -56,7 +56,7 @@ public class SurfaceTextureRenderer extends EglRenderer {
       isFirstFrameRendered = false;
       rotatedFrameWidth = 0;
       rotatedFrameHeight = 0;
-      frameRotation = 0;
+      frameRotation = -1;
     }
     super.init(sharedContext, configAttributes, drawer);
   }
