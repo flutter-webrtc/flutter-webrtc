@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.3.0+1] - 2020.09.06
+
+* [Dart] FIX - missing null check onIceGatheringState (web)
+
+--------------------------------------------
 [0.3.0] - 2020.09.05
 
 * [Dart] Improve RTCVideoView.
