@@ -52,7 +52,7 @@ class RTCVideoValue {
 }
 
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
-  MethodChannel _channel = WebRTC.methodChannel();
+  final _channel = WebRTC.methodChannel();
   int _textureId;
   MediaStream _srcObject;
   StreamSubscription<dynamic> _eventSubscription;
