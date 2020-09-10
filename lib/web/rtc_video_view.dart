@@ -13,10 +13,7 @@ typedef VideoSizeChangeCallback = void Function(
 
 class RTCVideoRenderer {
   double _width = 0.0, _height = 0.0;
-  bool _mirror = false;
   MediaStream _srcObject;
-  RTCVideoViewObjectFit _objectFit =
-      RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
   VideoSizeChangeCallback onVideoSizeChanged;
   VideoRotationChangeCallback onVideoRotationChanged;
   dynamic onFirstFrameRendered;
@@ -47,23 +44,7 @@ class RTCVideoRenderer {
   double get aspectRatio =>
       (_width == 0 || _height == 0) ? (9 / 16) : _width / _height;
 
-  bool get mirror => _mirror;
-
-  set mirror(bool mirror) {
-    _mirror = mirror;
-    if (onStateChanged != null) {
-      onStateChanged();
-    }
-  }
-
-  RTCVideoViewObjectFit get objectFit => _objectFit;
-
-  set objectFit(RTCVideoViewObjectFit objectFit) {
-    _objectFit = objectFit;
-    if (onStateChanged != null) {
-      onStateChanged();
-    }
-  }
+  MediaStream get srcObject => _srcObject;
 
   set srcObject(MediaStream stream) {
     _srcObject = stream;
@@ -158,7 +139,18 @@ class RTCVideoRenderer {
 
 class RTCVideoView extends StatefulWidget {
   final RTCVideoRenderer _renderer;
-  RTCVideoView(this._renderer, {Key key}) : super(key: key);
+
+  final RTCVideoViewObjectFit objectFit;
+  final mirror;
+
+  RTCVideoView(this._renderer,
+      {Key key,
+      this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+      this.mirror = false})
+      : assert(objectFit != null),
+        assert(mirror != null),
+        super(key: key);
+
   @override
   _RTCVideoViewState createState() => _RTCVideoViewState(_renderer);
 }
@@ -166,8 +158,6 @@ class RTCVideoView extends StatefulWidget {
 class _RTCVideoViewState extends State<RTCVideoView> {
   final RTCVideoRenderer _renderer;
   double _aspectRatio;
-  // RTCVideoViewObjectFit _objectFit;
-  // bool _mirror;
   _RTCVideoViewState(this._renderer);
 
   @override
@@ -175,8 +165,6 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     super.initState();
     _setCallbacks();
     _aspectRatio = _renderer.aspectRatio;
-    // _mirror = _renderer.mirror;
-    // _objectFit = _renderer.objectFit;
   }
 
   @override
@@ -189,8 +177,6 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     _renderer.onStateChanged = () {
       setState(() {
         _aspectRatio = _renderer.aspectRatio;
-        // _mirror = _renderer.mirror;
-        // _objectFit = _renderer.objectFit;
       });
     };
   }

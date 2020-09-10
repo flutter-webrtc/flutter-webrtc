@@ -104,7 +104,6 @@ class RTCPeerConnection {
             _remoteStreams.firstWhere((it) => it.id == streamId, orElse: () {
           var newStream = MediaStream(streamId, _peerConnectionId);
           newStream.setMediaTracks(map['audioTracks'], map['videoTracks']);
-          _remoteStreams.add(newStream);
           return newStream;
         });
 
