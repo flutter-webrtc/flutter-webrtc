@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:html' as HTML;
+import 'dart:html' as html;
 
 import 'media_stream_track.dart';
 
 class MediaStream {
-  final HTML.MediaStream jsStream;
+  final html.MediaStream jsStream;
   final String _ownerTag;
   const MediaStream(this.jsStream, this._ownerTag);
 

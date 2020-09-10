@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:js' as JS;
-import 'dart:html' as HTML;
+import 'dart:js' as js;
+import 'dart:html' as html;
 
 import 'media_stream.dart';
 import 'media_stream_track.dart';
@@ -8,8 +8,8 @@ import '../enums.dart';
 
 class MediaRecorder {
   String filePath;
-  HTML.MediaRecorder _recorder;
-  List<HTML.Blob> _chunks;
+  html.MediaRecorder _recorder;
+  List<html.Blob> _chunks;
   Completer<dynamic> _completer;
 
   /// For Android use audioChannel param
@@ -21,25 +21,25 @@ class MediaRecorder {
     RecorderAudioChannel audioChannel,
     int rotation,
   }) {
-    throw "Use startWeb on Flutter Web!";
+    throw 'Use startWeb on Flutter Web!';
   }
 
   /// Only for Flutter Web
-  startWeb(MediaStream stream,
+  void startWeb(MediaStream stream,
       {Function(dynamic blob, bool isLastOne) onDataChunk,
       String mimeType = 'video/webm'}) {
-    _recorder = HTML.MediaRecorder(stream.jsStream, {'mimeType': mimeType});
+    _recorder = html.MediaRecorder(stream.jsStream, {'mimeType': mimeType});
     if (onDataChunk == null) {
-      _chunks = List();
+      _chunks = [];
       _completer = Completer();
-      _recorder.addEventListener('dataavailable', (HTML.Event event) {
-        final HTML.Blob blob = JS.JsObject.fromBrowserObject(event)['data'];
+      _recorder.addEventListener('dataavailable', (html.Event event) {
+        final html.Blob blob = js.JsObject.fromBrowserObject(event)['data'];
         if (blob.size > 0) {
           _chunks.add(blob);
         }
         if (_recorder.state == 'inactive') {
-          final blob = HTML.Blob(_chunks, mimeType);
-          _completer?.complete(HTML.Url.createObjectUrlFromBlob(blob));
+          final blob = html.Blob(_chunks, mimeType);
+          _completer?.complete(html.Url.createObjectUrlFromBlob(blob));
           _completer = null;
         }
       });
@@ -48,8 +48,8 @@ class MediaRecorder {
         _completer = null;
       });
     } else {
-      _recorder.addEventListener('dataavailable', (HTML.Event event) {
-        final HTML.Blob blob = JS.JsObject.fromBrowserObject(event)['data'];
+      _recorder.addEventListener('dataavailable', (html.Event event) {
+        final html.Blob blob = js.JsObject.fromBrowserObject(event)['data'];
         onDataChunk(blob, _recorder.state == 'inactive');
       });
     }

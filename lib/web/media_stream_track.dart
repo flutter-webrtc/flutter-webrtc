@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:html' as HTML;
-import 'dart:js' as JS;
+import 'dart:html' as html;
+import 'dart:js' as js;
 
 class MediaStreamTrack {
-  final HTML.MediaStreamTrack jsTrack;
+  final html.MediaStreamTrack jsTrack;
 
   const MediaStreamTrack(this.jsTrack);
 
@@ -31,8 +31,8 @@ class MediaStreamTrack {
   void setVolume(double volume) {
     final constraints = jsTrack.getConstraints();
     constraints['volume'] = volume;
-    JS.JsObject.fromBrowserObject(jsTrack)
-        .callMethod('applyConstraints', [JS.JsObject.jsify(constraints)]);
+    js.JsObject.fromBrowserObject(jsTrack)
+        .callMethod('applyConstraints', [js.JsObject.jsify(constraints)]);
   }
 
   void setMicrophoneMute(bool mute) {
@@ -44,12 +44,12 @@ class MediaStreamTrack {
   }
 
   Future<dynamic> captureFrame([String filePath]) async {
-    final imageCapture = HTML.ImageCapture(jsTrack);
-    final HTML.ImageBitmap bitmap = await imageCapture.grabFrame();
-    final HTML.CanvasElement canvas = HTML.Element.canvas();
+    final imageCapture = html.ImageCapture(jsTrack);
+    final bitmap = await imageCapture.grabFrame();
+    final html.CanvasElement canvas = html.Element.canvas();
     canvas.width = bitmap.width;
     canvas.height = bitmap.height;
-    final HTML.ImageBitmapRenderingContext renderer =
+    final html.ImageBitmapRenderingContext renderer =
         canvas.getContext('bitmaprenderer');
     renderer.transferFromImageBitmap(bitmap);
     final dataUrl = canvas.toDataUrl();

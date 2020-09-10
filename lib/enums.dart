@@ -43,21 +43,21 @@ enum RTCVideoViewObjectFit {
 
 RTCIceConnectionState iceConnectionStateForString(String state) {
   switch (state) {
-    case "new":
+    case 'new':
       return RTCIceConnectionState.RTCIceConnectionStateNew;
-    case "checking":
+    case 'checking':
       return RTCIceConnectionState.RTCIceConnectionStateChecking;
-    case "connected":
+    case 'connected':
       return RTCIceConnectionState.RTCIceConnectionStateConnected;
-    case "completed":
+    case 'completed':
       return RTCIceConnectionState.RTCIceConnectionStateCompleted;
-    case "failed":
+    case 'failed':
       return RTCIceConnectionState.RTCIceConnectionStateFailed;
-    case "disconnected":
+    case 'disconnected':
       return RTCIceConnectionState.RTCIceConnectionStateDisconnected;
-    case "closed":
+    case 'closed':
       return RTCIceConnectionState.RTCIceConnectionStateClosed;
-    case "count":
+    case 'count':
       return RTCIceConnectionState.RTCIceConnectionStateCount;
   }
   return RTCIceConnectionState.RTCIceConnectionStateClosed;
@@ -65,11 +65,11 @@ RTCIceConnectionState iceConnectionStateForString(String state) {
 
 RTCIceGatheringState iceGatheringStateforString(String state) {
   switch (state) {
-    case "new":
+    case 'new':
       return RTCIceGatheringState.RTCIceGatheringStateNew;
-    case "gathering":
+    case 'gathering':
       return RTCIceGatheringState.RTCIceGatheringStateGathering;
-    case "complete":
+    case 'complete':
       return RTCIceGatheringState.RTCIceGatheringStateComplete;
   }
   return RTCIceGatheringState.RTCIceGatheringStateNew;
@@ -77,17 +77,17 @@ RTCIceGatheringState iceGatheringStateforString(String state) {
 
 RTCSignalingState signalingStateForString(String state) {
   switch (state) {
-    case "stable":
+    case 'stable':
       return RTCSignalingState.RTCSignalingStateStable;
-    case "have-local-offer":
+    case 'have-local-offer':
       return RTCSignalingState.RTCSignalingStateHaveLocalOffer;
-    case "have-local-pranswer":
+    case 'have-local-pranswer':
       return RTCSignalingState.RTCSignalingStateHaveLocalPrAnswer;
-    case "have-remote-offer":
+    case 'have-remote-offer':
       return RTCSignalingState.RTCSignalingStateHaveRemoteOffer;
-    case "have-remote-pranswer":
+    case 'have-remote-pranswer':
       return RTCSignalingState.RTCSignalingStateHaveRemotePrAnswer;
-    case "closed":
+    case 'closed':
       return RTCSignalingState.RTCSignalingStateClosed;
   }
   return RTCSignalingState.RTCSignalingStateClosed;
@@ -95,13 +95,13 @@ RTCSignalingState signalingStateForString(String state) {
 
 RTCDataChannelState rtcDataChannelStateForString(String state) {
   switch (state) {
-    case "connecting":
+    case 'connecting':
       return RTCDataChannelState.RTCDataChannelConnecting;
-    case "open":
+    case 'open':
       return RTCDataChannelState.RTCDataChannelOpen;
-    case "closing":
+    case 'closing':
       return RTCDataChannelState.RTCDataChannelClosing;
-    case "closed":
+    case 'closed':
       return RTCDataChannelState.RTCDataChannelClosed;
   }
   return RTCDataChannelState.RTCDataChannelClosed;

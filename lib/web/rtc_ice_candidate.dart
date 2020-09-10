@@ -1,22 +1,22 @@
-import 'dart:html' as HTML;
+import 'dart:html' as html;
 
 class RTCIceCandidate {
-  String candidate;
-  String sdpMid;
-  int sdpMlineIndex;
+  final String candidate;
+  final String sdpMid;
+  final int sdpMlineIndex;
 
   RTCIceCandidate(this.candidate, this.sdpMid, this.sdpMlineIndex);
-  RTCIceCandidate.fromJs(HTML.RtcIceCandidate jsIceCandidate)
+  RTCIceCandidate.fromJs(html.RtcIceCandidate jsIceCandidate)
       : this(jsIceCandidate.candidate, jsIceCandidate.sdpMid,
             jsIceCandidate.sdpMLineIndex);
 
   dynamic toMap() {
     return {
-      "candidate": candidate,
-      "sdpMid": sdpMid,
-      "sdpMLineIndex": sdpMlineIndex
+      'candidate': candidate,
+      'sdpMid': sdpMid,
+      'sdpMLineIndex': sdpMlineIndex
     };
   }
 
-  HTML.RtcIceCandidate toJs() => HTML.RtcIceCandidate(toMap());
+  html.RtcIceCandidate toJs() => html.RtcIceCandidate(toMap());
 }

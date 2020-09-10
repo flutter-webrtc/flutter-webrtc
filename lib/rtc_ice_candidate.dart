@@ -7,9 +7,9 @@ class RTCIceCandidate {
 
   dynamic toMap() {
     return {
-      "candidate": candidate,
-      "sdpMid": sdpMid,
-      "sdpMLineIndex": sdpMlineIndex
+      'candidate': candidate,
+      'sdpMid': sdpMid,
+      'sdpMLineIndex': sdpMlineIndex
     };
   }
 }
