@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:ui' as ui;
-import 'dart:html' as HTML;
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 
 import 'media_stream.dart';
 import '../enums.dart';
 
-typedef void VideoRotationChangeCallback(int textureId, int rotation);
-typedef void VideoSizeChangeCallback(
+typedef VideoRotationChangeCallback = void Function(
+    int textureId, int rotation);
+typedef VideoSizeChangeCallback = void Function(
     int textureId, double width, double height);
 
 class RTCVideoRenderer {
@@ -22,17 +23,17 @@ class RTCVideoRenderer {
   var isFirstFrameRendered = false;
   dynamic onStateChanged;
   HtmlElementView htmlElementView;
-  HTML.VideoElement _htmlVideoElement;
+  html.VideoElement _htmlVideoElement;
 
-  static final _videoViews = List<HTML.VideoElement>();
+  static final _videoViews = <html.VideoElement>[];
 
   bool get isMuted => _htmlVideoElement?.muted ?? true;
   set isMuted(bool i) => _htmlVideoElement?.muted = i;
 
   static void fixVideoElements() => _videoViews.forEach((v) => v.play());
 
-  initialize() async {
-    print("You don't have to call RTCVideoRenderer.initialize on Flutter Web");
+  void initialize() async {
+    print('You don\'t have to call RTCVideoRenderer.initialize on Flutter Web');
   }
 
   int get rotation => 0;
@@ -50,8 +51,8 @@ class RTCVideoRenderer {
 
   set mirror(bool mirror) {
     _mirror = mirror;
-    if (this.onStateChanged != null) {
-      this.onStateChanged();
+    if (onStateChanged != null) {
+      onStateChanged();
     }
   }
 
@@ -59,8 +60,8 @@ class RTCVideoRenderer {
 
   set objectFit(RTCVideoViewObjectFit objectFit) {
     _objectFit = objectFit;
-    if (this.onStateChanged != null) {
-      this.onStateChanged();
+    if (onStateChanged != null) {
+      onStateChanged();
     }
   }
 
@@ -77,7 +78,7 @@ class RTCVideoRenderer {
     }
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(stream.id, (int viewId) {
-      final x = HTML.VideoElement();
+      final x = html.VideoElement();
       x.autoplay = true;
       x.muted = _srcObject.ownerTag == 'local';
       x.srcObject = stream.jsStream;
@@ -87,7 +88,9 @@ class RTCVideoRenderer {
       return x;
     });
     htmlElementView = HtmlElementView(viewType: stream.id);
-    if (this.onStateChanged != null) this.onStateChanged();
+    if (onStateChanged != null) {
+      onStateChanged();
+    }
   }
 
   void findAndApply(Size size) {
@@ -105,8 +108,9 @@ class RTCVideoRenderer {
                 _height != htmlView.videoHeight)) {
           _width = htmlView.videoWidth.toDouble();
           _height = htmlView.videoHeight.toDouble();
-          if (onVideoSizeChanged != null)
+          if (onVideoSizeChanged != null) {
             onVideoSizeChanged(0, _width, _height);
+          }
         }
         if (!isFirstFrameRendered && onFirstFrameRendered != null) {
           onFirstFrameRendered();
@@ -120,8 +124,9 @@ class RTCVideoRenderer {
                 _height != htmlView.videoHeight)) {
           _width = htmlView.videoWidth.toDouble();
           _height = htmlView.videoHeight.toDouble();
-          if (onVideoSizeChanged != null)
+          if (onVideoSizeChanged != null) {
             onVideoSizeChanged(0, _width, _height);
+          }
         }
       });
       if (htmlView.videoWidth != 0 &&
@@ -134,13 +139,13 @@ class RTCVideoRenderer {
     }
   }
 
-  HTML.VideoElement findHtmlView() {
+  html.VideoElement findHtmlView() {
     if (_htmlVideoElement != null) return _htmlVideoElement;
-    final fltPv = HTML.document.getElementsByTagName('flt-platform-view');
+    final fltPv = html.document.getElementsByTagName('flt-platform-view');
     if (fltPv.isEmpty) return null;
-    final lastChild = (fltPv.first as HTML.Element).shadowRoot.lastChild;
-    if (!(lastChild is HTML.VideoElement)) return null;
-    final videoElement = lastChild as HTML.VideoElement;
+    final lastChild = (fltPv.first as html.Element).shadowRoot.lastChild;
+    if (!(lastChild is html.VideoElement)) return null;
+    final videoElement = lastChild as html.VideoElement;
     if (_srcObject != null && videoElement.id != _srcObject.id) return null;
     return lastChild;
   }
@@ -155,14 +160,14 @@ class RTCVideoView extends StatefulWidget {
   final RTCVideoRenderer _renderer;
   RTCVideoView(this._renderer, {Key key}) : super(key: key);
   @override
-  _RTCVideoViewState createState() => new _RTCVideoViewState(_renderer);
+  _RTCVideoViewState createState() => _RTCVideoViewState(_renderer);
 }
 
 class _RTCVideoViewState extends State<RTCVideoView> {
   final RTCVideoRenderer _renderer;
   double _aspectRatio;
-  RTCVideoViewObjectFit _objectFit;
-  bool _mirror;
+  // RTCVideoViewObjectFit _objectFit;
+  // bool _mirror;
   _RTCVideoViewState(this._renderer);
 
   @override
@@ -170,8 +175,8 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     super.initState();
     _setCallbacks();
     _aspectRatio = _renderer.aspectRatio;
-    _mirror = _renderer.mirror;
-    _objectFit = _renderer.objectFit;
+    // _mirror = _renderer.mirror;
+    // _objectFit = _renderer.objectFit;
   }
 
   @override
@@ -184,8 +189,8 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     _renderer.onStateChanged = () {
       setState(() {
         _aspectRatio = _renderer.aspectRatio;
-        _mirror = _renderer.mirror;
-        _objectFit = _renderer.objectFit;
+        // _mirror = _renderer.mirror;
+        // _objectFit = _renderer.objectFit;
       });
     };
   }
@@ -195,7 +200,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     return Container(
         width: constraints.maxWidth,
         height: constraints.maxHeight,
-        child: new SizedBox(
+        child: SizedBox(
             width: constraints.maxHeight * _aspectRatio,
             height: constraints.maxHeight,
             child: _renderer.htmlElementView ?? Container()));
@@ -203,11 +208,11 @@ class _RTCVideoViewState extends State<RTCVideoView> {
 
   @override
   Widget build(BuildContext context) {
-    bool renderVideo = _renderer._srcObject != null;
-    return new LayoutBuilder(
+    var renderVideo = _renderer._srcObject != null;
+    return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      return new Center(
-          child: renderVideo ? _buildVideoView(constraints) : new Container());
+      return Center(
+          child: renderVideo ? _buildVideoView(constraints) : Container());
     });
   }
 }

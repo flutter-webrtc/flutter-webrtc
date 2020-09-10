@@ -4,6 +4,6 @@ class RTCSessionDescription {
   RTCSessionDescription(this.sdp, this.type);
 
   dynamic toMap() {
-    return {"sdp": this.sdp, "type": this.type};
+    return {'sdp': sdp, 'type': type};
   }
 }

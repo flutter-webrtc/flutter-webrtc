@@ -14,9 +14,13 @@ class MediaRecorder {
       {MediaStreamTrack videoTrack, RecorderAudioChannel audioChannel
       //TODO: add codec/quality options
       }) async {
-    if (path == null) throw ArgumentError.notNull("path");
-    if (audioChannel == null && videoTrack == null)
-      throw Exception("Neither audio nor video track were provided");
+    if (path == null) {
+      throw ArgumentError.notNull('path');
+    }
+
+    if (audioChannel == null && videoTrack == null) {
+      throw Exception('Neither audio nor video track were provided');
+    }
 
     await WebRTC.methodChannel().invokeMethod('startRecordToFile', {
       'path': path,
@@ -29,7 +33,7 @@ class MediaRecorder {
   void startWeb(MediaStream stream,
       {Function(dynamic blob, bool isLastOne) onDataChunk,
       String mimeType = 'video/mp4;codecs=h264'}) {
-    throw "It's for Flutter Web only";
+    throw 'It\'s for Flutter Web only';
   }
 
   Future<dynamic> stop() async => await WebRTC.methodChannel()

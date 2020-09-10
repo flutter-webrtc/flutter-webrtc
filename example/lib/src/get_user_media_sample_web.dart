@@ -50,13 +50,13 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   // Platform messages are asynchronous, so we initialize in an async method.
   _makeCall() async {
     final Map<String, dynamic> mediaConstraints = {
-      "audio": true,
-      "video": {
-        "mandatory": {
-          "minWidth":
+      'audio': true,
+      'video': {
+        'mandatory': {
+          'minWidth':
               '1280', // Provide your own width, height and frame rate here
-          "minHeight": '720',
-          "minFrameRate": '30',
+          'minHeight': '720',
+          'minFrameRate': '30',
         },
       }
     };
@@ -106,7 +106,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   _captureFrame() async {
     final videoTrack = _localStream
         .getVideoTracks()
-        .firstWhere((track) => track.kind == "video");
+        .firstWhere((track) => track.kind == 'video');
     final frame = await videoTrack.captureFrame();
     showDialog(
         context: context,
@@ -114,7 +114,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
               content: Image.network(frame, height: 720, width: 1280),
               actions: <Widget>[
                 FlatButton(
-                  child: Text("OK"),
+                  child: Text('OK'),
                   onPressed: Navigator.of(context, rootNavigator: true).pop,
                 )
               ],

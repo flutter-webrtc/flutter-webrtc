@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/services.dart';
 import 'rtc_peerconnection.dart';
 import 'media_stream.dart';
 import 'utils.dart';
@@ -7,33 +6,32 @@ import 'utils.dart';
 Future<RTCPeerConnection> createPeerConnection(
     Map<String, dynamic> configuration,
     [Map<String, dynamic> constraints = const {}]) async {
-  MethodChannel channel = WebRTC.methodChannel();
+  var channel = WebRTC.methodChannel();
 
-  Map<String, dynamic> defaultConstraints = {
-    "mandatory": {},
-    "optional": [
-      {"DtlsSrtpKeyAgreement": true},
+  var defaultConstraints = <String, dynamic>{
+    'mandatory': {},
+    'optional': [
+      {'DtlsSrtpKeyAgreement': true},
     ],
   };
 
-  final Map<dynamic, dynamic> response = await channel.invokeMethod(
+  final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
     'createPeerConnection',
     <String, dynamic>{
       'configuration': configuration,
-      'constraints': constraints.length == 0 ? defaultConstraints : constraints
+      'constraints': constraints.isEmpty ? defaultConstraints : constraints
     },
   );
 
   String peerConnectionId = response['peerConnectionId'];
-  return new RTCPeerConnection(peerConnectionId, configuration);
+  return RTCPeerConnection(peerConnectionId, configuration);
 }
 
 Future<MediaStream> createLocalMediaStream(String label) async {
-  MethodChannel _channel = WebRTC.methodChannel();
+  var _channel = WebRTC.methodChannel();
 
-  final Map<dynamic, dynamic> response = await _channel.invokeMethod(
-    'createLocalMediaStream'
-  );
+  final response = await _channel
+      .invokeMethod<Map<dynamic, dynamic>>('createLocalMediaStream');
 
-  return new MediaStream(response['streamId'], label);
+  return MediaStream(response['streamId'], label);
 }
