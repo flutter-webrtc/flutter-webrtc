@@ -23,3 +23,4 @@ export 'src/rtc_stats_report.dart';
 export 'src/rtc_video_view.dart'
     if (dart.library.html) 'src/web/rtc_video_view.dart';
 export 'src/utils.dart' if (dart.library.html) 'src/web/utils.dart';
+export 'rtc_dtmf_sender.dart';

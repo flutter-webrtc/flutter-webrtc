@@ -74,6 +74,8 @@ class RTCPeerConnection {
 
   RTCIceConnectionState get iceConnectionState => _iceConnectionState;
 
+  String get peerConnectionId => _peerConnectionId;
+
   /*
    * PeerConnection event listener.
    */
