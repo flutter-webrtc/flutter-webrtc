@@ -3,7 +3,7 @@ import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
 import 'dart:typed_data';
 
-import 'package:flutter_webrtc/enums.dart';
+import '../enums.dart';
 
 class RTCDataChannelInit {
   bool ordered = true;

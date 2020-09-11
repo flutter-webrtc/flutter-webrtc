@@ -3,8 +3,8 @@ import 'dart:core';
 import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/web/get_user_media.dart' as gum;
-import 'package:flutter_webrtc/webrtc.dart';
+import 'package:flutter_webrtc/src/web/get_user_media.dart' as gum;
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 /*
  * getUserMedia sample
