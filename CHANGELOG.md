@@ -1,6 +1,12 @@
 # Changelog
 
 --------------------------------------------
+[0.3.2] - 2020.09.11
+
+* Reorganize the directory structure.
+* Replace class name navigator to MediaDevices.
+* Downgrade pedantic version to 1.9.0.
+
 [0.3.1] - 2020.09.11
 
 * [Dart] Apply pedantic linter and more rigorous analysis options.
