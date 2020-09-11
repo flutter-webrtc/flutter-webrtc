@@ -239,6 +239,40 @@
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
         }
+    } else if ([@"sendDtmf" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        NSString* tone = argsMap[@"tone"];
+        NSString* durationString = argsMap[@"duration"];
+        NSString* gapString = argsMap[@"gap"];
+        
+        double duration = [durationString doubleValue];
+        double gap = [gapString doubleValue];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        if(peerConnection) {
+   
+             RTCRtpSender* m_audioSender = nil ;
+            for( RTCRtpSender *rtpSender in peerConnection.senders){
+                if([[[rtpSender track] kind] isEqualToString:@"audio"]) {
+           
+                    m_audioSender = rtpSender;
+                }
+            }
+            if(m_audioSender){
+            NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+            [queue addOperationWithBlock:^{
+                [m_audioSender.dtmfSender insertDtmf :(NSString *)tone
+                duration:(NSTimeInterval) duration interToneGap:(NSTimeInterval)gap];
+                NSLog(@"DTMF Tone played ");
+            }];
+            }
+            
+            result(@{@"result": @"success"});
+        } else {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+                                       message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                                       details:nil]);
+        }
     } else if ([@"addCandidate" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
