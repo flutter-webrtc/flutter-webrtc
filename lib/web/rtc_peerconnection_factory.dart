@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html' as HTML;
+import 'dart:html' as html;
 
 import 'rtc_peerconnection.dart';
 import 'media_stream.dart';
@@ -11,17 +11,17 @@ Future<RTCPeerConnection> createPeerConnection(
   final constr = (constraints != null && constraints.isNotEmpty)
       ? constraints
       : {
-          "mandatory": {},
-          "optional": [
-            {"DtlsSrtpKeyAgreement": true},
+          'mandatory': {},
+          'optional': [
+            {'DtlsSrtpKeyAgreement': true},
           ],
         };
-  final jsRtcPc = HTML.RtcPeerConnection(configuration, constr);
+  final jsRtcPc = html.RtcPeerConnection(configuration, constr);
   final _peerConnectionId = base64Encode(jsRtcPc.toString().codeUnits);
   return RTCPeerConnection(_peerConnectionId, jsRtcPc);
 }
 
 Future<MediaStream> createLocalMediaStream(String label) async {
-  final jsMs = HTML.MediaStream();
-  return new MediaStream(jsMs, 'local');
+  final jsMs = html.MediaStream();
+  return MediaStream(jsMs, 'local');
 }

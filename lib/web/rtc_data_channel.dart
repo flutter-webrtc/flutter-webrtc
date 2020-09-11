@@ -1,19 +1,9 @@
 import 'dart:async';
-import 'dart:html' as HTML;
-import 'dart:js_util' as JSUtils;
+import 'dart:html' as html;
+import 'dart:js_util' as jsutil;
 import 'dart:typed_data';
 
-import '../enums.dart';
-
-final _typeStringToMessageType = <String, MessageType>{
-  'text': MessageType.text,
-  'binary': MessageType.binary
-};
-
-final _messageTypeToTypeString = <MessageType, String>{
-  MessageType.text: 'text',
-  MessageType.binary: 'binary'
-};
+import 'package:flutter_webrtc/enums.dart';
 
 class RTCDataChannelInit {
   bool ordered = true;
@@ -46,14 +36,14 @@ class RTCDataChannelMessage {
 
   /// Construct a text message with a [String].
   RTCDataChannelMessage(String text) {
-    this._data = text;
-    this._isBinary = false;
+    _data = text;
+    _isBinary = false;
   }
 
   /// Construct a binary message with a [Uint8List].
   RTCDataChannelMessage.fromBinary(Uint8List binary) {
-    this._data = binary;
-    this._isBinary = true;
+    _data = binary;
+    _isBinary = true;
   }
 
   /// Tells whether this message contains binary.
@@ -73,11 +63,12 @@ class RTCDataChannelMessage {
   Uint8List get binary => _data;
 }
 
-typedef void RTCDataChannelStateCallback(RTCDataChannelState state);
-typedef void RTCDataChannelOnMessageCallback(RTCDataChannelMessage data);
+typedef RTCDataChannelStateCallback = void Function(RTCDataChannelState state);
+typedef RTCDataChannelOnMessageCallback = void Function(
+    RTCDataChannelMessage data);
 
 class RTCDataChannel {
-  final HTML.RtcDataChannel _jsDc;
+  final html.RtcDataChannel _jsDc;
   RTCDataChannelStateCallback onDataChannelState;
   RTCDataChannelOnMessageCallback onMessage;
   RTCDataChannelState _state = RTCDataChannelState.RTCDataChannelConnecting;
@@ -116,7 +107,7 @@ class RTCDataChannel {
       }
     });
     _jsDc.onMessage.listen((event) async {
-      RTCDataChannelMessage msg = await _parse(event.data);
+      var msg = await _parse(event.data);
       _messageController.add(msg);
       if (onMessage != null) {
         onMessage(msg);
@@ -127,10 +118,10 @@ class RTCDataChannel {
   Future<RTCDataChannelMessage> _parse(dynamic data) async {
     if (data is String) return RTCDataChannelMessage(data);
     dynamic arrayBuffer;
-    if (data is HTML.Blob) {
+    if (data is html.Blob) {
       // This should never happen actually
-      arrayBuffer = await JSUtils.promiseToFuture(
-          JSUtils.callMethod(data, 'arrayBuffer', []));
+      arrayBuffer = await jsutil
+          .promiseToFuture(jsutil.callMethod(data, 'arrayBuffer', []));
     } else {
       arrayBuffer = data;
     }

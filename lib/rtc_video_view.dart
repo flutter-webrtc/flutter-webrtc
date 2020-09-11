@@ -52,15 +52,15 @@ class RTCVideoValue {
 }
 
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
-  MethodChannel _channel = WebRTC.methodChannel();
+  final _channel = WebRTC.methodChannel();
   int _textureId;
   MediaStream _srcObject;
   StreamSubscription<dynamic> _eventSubscription;
   RTCVideoRenderer() : super(RTCVideoValue.empty);
 
-  initialize() async {
-    final Map<dynamic, dynamic> response =
-        await _channel.invokeMethod('createVideoRenderer', {});
+  void initialize() async {
+    final response = await _channel
+        .invokeMethod<Map<dynamic, dynamic>>('createVideoRenderer', {});
     _textureId = response['textureId'];
     _eventSubscription = _eventChannelFor(_textureId)
         .receiveBroadcastStream()
