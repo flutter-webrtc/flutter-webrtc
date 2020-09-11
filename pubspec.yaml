@@ -10,7 +10,7 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
-  pedantic: ^1.9.2
+  pedantic: ^1.9.0
 
 flutter:
   plugin:

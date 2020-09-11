@@ -10,17 +10,17 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.0
 
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
   flutter_webrtc:
     path: ../
 
   # Required for MediaRecorder example
   path_provider:
 
-  pedantic: ^1.9.2
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  pedantic: ^1.9.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
