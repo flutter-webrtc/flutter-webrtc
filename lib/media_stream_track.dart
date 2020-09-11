@@ -1,13 +1,11 @@
 import 'dart:async';
-
-import 'package:flutter/services.dart';
 import 'utils.dart';
 
 class MediaStreamTrack {
-  MethodChannel _channel = WebRTC.methodChannel();
-  String _trackId;
-  String _label;
-  String _kind;
+  final _channel = WebRTC.methodChannel();
+  final String _trackId;
+  final String _label;
+  final String _kind;
   bool _enabled;
 
   MediaStreamTrack(this._trackId, this._label, this._kind, this._enabled);
@@ -64,10 +62,12 @@ class MediaStreamTrack {
   }
 
   /// On Flutter Web returns Future<dynamic> which contains data url on success
-  captureFrame([String filePath]) => _channel.invokeMethod(
-        'captureFrame',
-        <String, dynamic>{'trackId': _trackId, 'path': filePath},
-      );
+  Future<dynamic> captureFrame([String filePath]) {
+    return _channel.invokeMethod<void>(
+      'captureFrame',
+      <String, dynamic>{'trackId': _trackId, 'path': filePath},
+    );
+  }
 
   Future<void> dispose() async {
     await _channel.invokeMethod(

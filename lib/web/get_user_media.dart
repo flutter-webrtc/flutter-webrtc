@@ -1,15 +1,14 @@
 import 'dart:async';
-import 'dart:js' as JS;
-import 'dart:js_util' as JSUtils;
-import 'dart:html' as HTML;
+import 'dart:js';
+import 'dart:js_util' as jsutil;
+import 'dart:html' as html;
 
 import 'media_stream.dart';
 
 class navigator {
   static Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
-    //TODO: Can be remove when dart null safety will be enforce
-    if (mediaConstraints == null) mediaConstraints = Map<String, dynamic>();
+    mediaConstraints ??= <String, dynamic>{};
 
     try {
       if (mediaConstraints['video'] is Map) {
@@ -21,7 +20,7 @@ class navigator {
       mediaConstraints.putIfAbsent('video', () => false);
       mediaConstraints.putIfAbsent('audio', () => false);
 
-      final mediaDevices = HTML.window.navigator.mediaDevices;
+      final mediaDevices = html.window.navigator.mediaDevices;
       final jsStream = await mediaDevices.getUserMedia(mediaConstraints);
       return MediaStream(jsStream, 'local');
     } catch (e) {
@@ -32,19 +31,17 @@ class navigator {
   static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
     try {
-      final mediaDevices = HTML.window.navigator.mediaDevices;
-      if (JSUtils.hasProperty(mediaDevices, "getDisplayMedia")) {
-        final JS.JsObject arg = JS.JsObject.jsify(mediaConstraints);
+      final mediaDevices = html.window.navigator.mediaDevices;
+      if (jsutil.hasProperty(mediaDevices, 'getDisplayMedia')) {
+        final arg = JsObject.jsify(mediaConstraints);
 
-        final HTML.MediaStream jsStream =
-            await JSUtils.promiseToFuture<HTML.MediaStream>(
-                JSUtils.callMethod(mediaDevices, 'getDisplayMedia', [arg]));
+        final jsStream = await jsutil.promiseToFuture<html.MediaStream>(
+            jsutil.callMethod(mediaDevices, 'getDisplayMedia', [arg]));
         return MediaStream(jsStream, 'local');
       } else {
-        final HTML.MediaStream jsStream = await HTML.window.navigator
-            .getUserMedia(
-                video: {"mediaSource": 'screen'},
-                audio: mediaConstraints['audio'] ?? false);
+        final jsStream = await html.window.navigator.getUserMedia(
+            video: {'mediaSource': 'screen'},
+            audio: mediaConstraints['audio'] ?? false);
         return MediaStream(jsStream, 'local');
       }
     } catch (e) {
@@ -53,8 +50,8 @@ class navigator {
   }
 
   static Future<List<dynamic>> getSources() async {
-    final devices = await HTML.window.navigator.mediaDevices.enumerateDevices();
-    final result = List<dynamic>();
+    final devices = await html.window.navigator.mediaDevices.enumerateDevices();
+    final result = <dynamic>[];
     for (final device in devices) {
       result.add(<String, String>{
         'deviceId': device.deviceId,

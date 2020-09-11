@@ -9,11 +9,6 @@ final _typeStringToMessageType = <String, MessageType>{
   'binary': MessageType.binary
 };
 
-final _messageTypeToTypeString = <MessageType, String>{
-  MessageType.text: 'text',
-  MessageType.binary: 'binary'
-};
-
 /// Initialization parameters for [RTCDataChannel].
 class RTCDataChannelInit {
   bool ordered = true;
@@ -43,14 +38,14 @@ class RTCDataChannelMessage {
 
   /// Construct a text message with a [String].
   RTCDataChannelMessage(String text) {
-    this._data = text;
-    this._isBinary = false;
+    _data = text;
+    _isBinary = false;
   }
 
   /// Construct a binary message with a [Uint8List].
   RTCDataChannelMessage.fromBinary(Uint8List binary) {
-    this._data = binary;
-    this._isBinary = true;
+    _data = binary;
+    _isBinary = true;
   }
 
   /// Tells whether this message contains binary.
@@ -70,17 +65,18 @@ class RTCDataChannelMessage {
   Uint8List get binary => _data;
 }
 
-typedef void RTCDataChannelStateCallback(RTCDataChannelState state);
-typedef void RTCDataChannelOnMessageCallback(RTCDataChannelMessage message);
+typedef RTCDataChannelStateCallback = void Function(RTCDataChannelState state);
+typedef RTCDataChannelOnMessageCallback = void Function(
+    RTCDataChannelMessage message);
 
 /// A class that represents a WebRTC datachannel.
 /// Can send and receive text and binary messages.
 class RTCDataChannel {
-  String _peerConnectionId;
-  String _label;
-  int _dataChannelId;
+  final String _peerConnectionId;
+  final String _label;
+  final int _dataChannelId;
   RTCDataChannelState _state;
-  MethodChannel _channel = WebRTC.methodChannel();
+  final _channel = WebRTC.methodChannel();
   StreamSubscription<dynamic> _eventSubscription;
 
   /// Get current state.
@@ -128,15 +124,14 @@ class RTCDataChannel {
       case 'dataChannelStateChanged':
         //int dataChannelId = map['id'];
         _state = rtcDataChannelStateForString(map['state']);
-        if (this.onDataChannelState != null) {
-          this.onDataChannelState(_state);
-        }
+        onDataChannelState?.call(_state);
+
         _stateChangeController.add(_state);
         break;
       case 'dataChannelReceiveMessage':
         //int dataChannelId = map['id'];
 
-        MessageType type = _typeStringToMessageType[map['type']];
+        var type = _typeStringToMessageType[map['type']];
         dynamic data = map['data'];
         RTCDataChannelMessage message;
         if (type == MessageType.binary) {
@@ -144,16 +139,17 @@ class RTCDataChannel {
         } else {
           message = RTCDataChannelMessage(data);
         }
-        if (this.onMessage != null) {
-          this.onMessage(message);
-        }
+
+        onMessage?.call(message);
+
         _messageController.add(message);
         break;
     }
   }
 
   EventChannel _eventChannelFor(String peerConnectionId, int dataChannelId) {
-    return new EventChannel('FlutterWebRTC/dataChannelEvent$peerConnectionId$dataChannelId');
+    return EventChannel(
+        'FlutterWebRTC/dataChannelEvent$peerConnectionId$dataChannelId');
   }
 
   void errorListener(Object obj) {
@@ -170,7 +166,7 @@ class RTCDataChannel {
     await _channel.invokeMethod('dataChannelSend', <String, dynamic>{
       'peerConnectionId': _peerConnectionId,
       'dataChannelId': _dataChannelId,
-      'type': message.isBinary ? "binary" : "text",
+      'type': message.isBinary ? 'binary' : 'text',
       'data': message.isBinary ? message.binary : message.text,
     });
   }

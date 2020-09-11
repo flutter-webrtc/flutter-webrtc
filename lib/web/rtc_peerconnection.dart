@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:js' as JS;
-import 'dart:js_util' as JSUtils;
-import 'dart:html' as HTML;
+import 'dart:js' as js;
+import 'dart:js_util' as jsutil;
+import 'dart:html' as html;
 
 import 'media_stream.dart';
 import 'media_stream_track.dart';
@@ -15,25 +14,27 @@ import '../enums.dart';
 /*
  * Delegate for PeerConnection.
  */
-typedef void SignalingStateCallback(RTCSignalingState state);
-typedef void IceGatheringStateCallback(RTCIceGatheringState state);
-typedef void IceConnectionStateCallback(RTCIceConnectionState state);
-typedef void IceCandidateCallback(RTCIceCandidate candidate);
-typedef void AddStreamCallback(MediaStream stream);
-typedef void RemoveStreamCallback(MediaStream stream);
-typedef void AddTrackCallback(MediaStream stream, MediaStreamTrack track);
-typedef void RemoveTrackCallback(MediaStream stream, MediaStreamTrack track);
-typedef void RTCDataChannelCallback(RTCDataChannel channel);
+typedef SignalingStateCallback = void Function(RTCSignalingState state);
+typedef IceGatheringStateCallback = void Function(RTCIceGatheringState state);
+typedef IceConnectionStateCallback = void Function(RTCIceConnectionState state);
+typedef IceCandidateCallback = void Function(RTCIceCandidate candidate);
+typedef AddStreamCallback = void Function(MediaStream stream);
+typedef RemoveStreamCallback = void Function(MediaStream stream);
+typedef AddTrackCallback = void Function(
+    MediaStream stream, MediaStreamTrack track);
+typedef RemoveTrackCallback = void Function(
+    MediaStream stream, MediaStreamTrack track);
+typedef RTCDataChannelCallback = void Function(RTCDataChannel channel);
 
 /*
  *  PeerConnection
  */
 class RTCPeerConnection {
   final String _peerConnectionId;
-  final HTML.RtcPeerConnection _jsPc;
-  final _localStreams = Map<String, MediaStream>();
-  final _remoteStreams = Map<String, MediaStream>();
-  final _configuration = Map<String, dynamic>();
+  final html.RtcPeerConnection _jsPc;
+  final _localStreams = <String, MediaStream>{};
+  final _remoteStreams = <String, MediaStream>{};
+  final _configuration = <String, dynamic>{};
 
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
@@ -67,7 +68,7 @@ class RTCPeerConnection {
 
       jsStream.onAddTrack.listen((mediaStreamTrackEvent) {
         final jsTrack =
-            (mediaStreamTrackEvent as HTML.MediaStreamTrackEvent).track;
+            (mediaStreamTrackEvent as html.MediaStreamTrackEvent).track;
         final track = MediaStreamTrack(jsTrack);
         _remoteStream.addTrack(track, addToNative: false).then((_) {
           onAddTrack?.call(_remoteStream, track);
@@ -76,7 +77,7 @@ class RTCPeerConnection {
 
       jsStream.onRemoveTrack.listen((mediaStreamTrackEvent) {
         final jsTrack =
-            (mediaStreamTrackEvent as HTML.MediaStreamTrackEvent).track;
+            (mediaStreamTrackEvent as html.MediaStreamTrackEvent).track;
         final track = MediaStreamTrack(jsTrack);
         _remoteStream.removeTrack(track, removeFromNative: false).then((_) {
           onRemoveTrack?.call(_remoteStream, track);
@@ -95,16 +96,15 @@ class RTCPeerConnection {
     });
 
     _jsPc.onIceConnectionStateChange.listen((_) {
-      this._iceConnectionState =
+      _iceConnectionState =
           iceConnectionStateForString(_jsPc.iceConnectionState);
       onIceConnectionState?.call(_iceConnectionState);
     });
 
-    JS.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] =
-        JS.JsFunction.withThis((_) {
-      this._iceGatheringState =
-          iceGatheringStateforString(_jsPc.iceGatheringState);
-      onIceGatheringState?.call(_iceGatheringState);
+    js.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] =
+        js.JsFunction.withThis((_) {
+      _iceGatheringState = iceGatheringStateforString(_jsPc.iceGatheringState);
+      onIceGatheringState.call(_iceGatheringState);
     });
 
     _jsPc.onRemoveStream.listen((mediaStreamEvent) {
@@ -117,12 +117,12 @@ class RTCPeerConnection {
       onSignalingState?.call(_signalingState);
     });
 
-    JS.JsObject.fromBrowserObject(_jsPc)['ontrack'] =
-        JS.JsFunction.withThis((_, trackEvent) {
+    js.JsObject.fromBrowserObject(_jsPc)['ontrack'] =
+        js.JsFunction.withThis((_, trackEvent) {
       // trackEvent is JsObject conforming to RTCTrackEvent
       // https://developer.mozilla.org/en-US/docs/Web/API/RTCTrackEvent
       // TODO(rostopira)
-      print("ontrack arg: ${trackEvent}");
+      print('ontrack arg: ${trackEvent}');
     });
   }
 
@@ -134,7 +134,7 @@ class RTCPeerConnection {
   Map<String, dynamic> get getConfiguration => _configuration;
 
   Future<void> setConfiguration(Map<String, dynamic> configuration) {
-    this._configuration.addAll(configuration);
+    _configuration.addAll(configuration);
 
     _jsPc.setConfiguration(configuration);
     return Future.value();
@@ -182,13 +182,13 @@ class RTCPeerConnection {
   }
 
   Future<void> addCandidate(RTCIceCandidate candidate) async {
-    await JSUtils.promiseToFuture(
-        JSUtils.callMethod(_jsPc, 'addIceCandidate', [candidate.toJs()]));
+    await jsutil.promiseToFuture(
+        jsutil.callMethod(_jsPc, 'addIceCandidate', [candidate.toJs()]));
   }
 
   Future<List<StatsReport>> getStats([MediaStreamTrack track]) async {
     final stats = await _jsPc.getStats();
-    List<StatsReport> report = [];
+    var report = <StatsReport>[];
     stats.forEach((key, value) {
       report.add(
           StatsReport(value['id'], value['type'], value['timestamp'], value));
@@ -209,8 +209,10 @@ class RTCPeerConnection {
   Future<RTCDataChannel> createDataChannel(
       String label, RTCDataChannelInit dataChannelDict) {
     final map = dataChannelDict.toMap();
-    if (dataChannelDict.binaryType == 'binary')
+    if (dataChannelDict.binaryType == 'binary') {
       map['binaryType'] = 'arraybuffer'; // Avoid Blob in data channel
+    }
+
     final jsDc = _jsPc.createDataChannel(label, map);
     return Future.value(RTCDataChannel(jsDc));
   }
@@ -222,9 +224,9 @@ class RTCPeerConnection {
 
   //'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
   void addTransceiver(String type, Map<String, String> options) {
-    if (JSUtils.hasProperty(_jsPc, "addTransceiver")) {
-      final JS.JsObject jsOptions = JS.JsObject.jsify(options);
-      JSUtils.callMethod(_jsPc, "addTransceiver", [type, jsOptions]);
+    if (jsutil.hasProperty(_jsPc, 'addTransceiver')) {
+      final jsOptions = js.JsObject.jsify(options);
+      jsutil.callMethod(_jsPc, 'addTransceiver', [type, jsOptions]);
     }
   }
 }

@@ -1,15 +1,15 @@
-import 'dart:js' as JS;
-import 'dart:html' as HTML;
+import 'dart:js' as js;
+import 'dart:html' as html;
 
 class RTCSessionDescription {
-  String sdp;
-  String type;
+  final String sdp;
+  final String type;
   RTCSessionDescription(this.sdp, this.type);
-  RTCSessionDescription.fromJs(HTML.RtcSessionDescription rsd)
+  RTCSessionDescription.fromJs(html.RtcSessionDescription rsd)
       : this(rsd.sdp, rsd.type);
-  RTCSessionDescription.fromJsObj(JS.JsObject js) : this(js['sdp'], js['type']);
+  RTCSessionDescription.fromJsObj(js.JsObject js) : this(js['sdp'], js['type']);
 
   dynamic toMap() {
-    return {"sdp": this.sdp, "type": this.type};
+    return {'sdp': sdp, 'type': type};
   }
 }
