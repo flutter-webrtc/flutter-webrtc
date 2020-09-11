@@ -7,33 +7,34 @@ import '../enums.dart';
 import './ui_fake.dart' if (dart.library.html) 'dart:ui' as ui;
 import 'media_stream.dart';
 
-typedef VideoRotationChangeCallback = void Function(
-    int textureId, int rotation);
 typedef VideoSizeChangeCallback = void Function(
     int textureId, double width, double height);
+typedef StateChangeCallback = void Function();
+typedef FirstFrameRenderedCallback = void Function();
 
 class RTCVideoRenderer {
   RTCVideoRenderer();
-  double _width = 0.0, _height = 0.0;
+  var _width = 0.0, _height = 0.0;
+  var _isFirstFrameRendered = false;
   MediaStream _srcObject;
   VideoSizeChangeCallback onVideoSizeChanged;
-  VideoRotationChangeCallback onVideoRotationChanged;
-  dynamic onFirstFrameRendered;
-  var isFirstFrameRendered = false;
-  dynamic onStateChanged;
-  HtmlElementView htmlElementView;
+  StateChangeCallback onStateChanged;
+  FirstFrameRenderedCallback onFirstFrameRendered;
+
+  HtmlElementView _htmlElementView;
   html.VideoElement _htmlVideoElement;
 
-  static final _videoViews = <html.VideoElement>[];
+  final _videoViews = <html.VideoElement>[];
 
   bool get isMuted => _htmlVideoElement?.muted ?? true;
   set isMuted(bool i) => _htmlVideoElement?.muted = i;
 
-  static void fixVideoElements() => _videoViews.forEach((v) => v.play());
+  HtmlElementView get htmlElementView => _htmlElementView;
 
-  void initialize() async {
-    print('You don\'t have to call RTCVideoRenderer.initialize on Flutter Web');
-  }
+  void fixVideoElements() => _videoViews.forEach((v) => v.play());
+
+  /// You don\'t have to call RTCVideoRenderer.initialize if you use only Flutter web
+  void initialize() async {}
 
   int get rotation => 0;
 
@@ -49,14 +50,12 @@ class RTCVideoRenderer {
   MediaStream get srcObject => _srcObject;
 
   set srcObject(MediaStream stream) {
-    _srcObject = stream;
-
-    if (_srcObject == null) {
-      findHtmlView()?.srcObject = null;
+    if (stream == null) {
       return;
     }
 
-    if (htmlElementView != null) {
+    _srcObject = stream;
+    if (_htmlElementView != null) {
       findHtmlView()?.srcObject = stream?.jsStream;
     }
 
@@ -70,55 +69,42 @@ class RTCVideoRenderer {
       _videoViews.add(x);
       return x;
     });
-    htmlElementView = HtmlElementView(viewType: stream.id);
-    if (onStateChanged != null) {
-      onStateChanged();
-    }
+
+    _htmlElementView = HtmlElementView(viewType: stream.id);
+    onStateChanged?.call();
   }
 
   void findAndApply(Size size) {
     final htmlView = findHtmlView();
-    if (_srcObject != null && htmlView != null) {
-      if (htmlView.width == size.width.toInt() &&
-          htmlView.height == size.height.toInt()) return;
-      htmlView.srcObject = _srcObject.jsStream;
-      htmlView.width = size.width.toInt();
-      htmlView.height = size.height.toInt();
-      htmlView.onLoadedMetadata.listen((_) {
-        if (htmlView.videoWidth != 0 &&
-            htmlView.videoHeight != 0 &&
-            (_width != htmlView.videoWidth ||
-                _height != htmlView.videoHeight)) {
-          _width = htmlView.videoWidth.toDouble();
-          _height = htmlView.videoHeight.toDouble();
-          if (onVideoSizeChanged != null) {
-            onVideoSizeChanged(0, _width, _height);
-          }
-        }
-        if (!isFirstFrameRendered && onFirstFrameRendered != null) {
-          onFirstFrameRendered();
-          isFirstFrameRendered = true;
-        }
-      });
-      htmlView.onResize.listen((_) {
-        if (htmlView.videoWidth != 0 &&
-            htmlView.videoHeight != 0 &&
-            (_width != htmlView.videoWidth ||
-                _height != htmlView.videoHeight)) {
-          _width = htmlView.videoWidth.toDouble();
-          _height = htmlView.videoHeight.toDouble();
-          if (onVideoSizeChanged != null) {
-            onVideoSizeChanged(0, _width, _height);
-          }
-        }
-      });
-      if (htmlView.videoWidth != 0 &&
-          htmlView.videoHeight != 0 &&
-          (_width != htmlView.videoWidth || _height != htmlView.videoHeight)) {
-        _width = htmlView.videoWidth.toDouble();
-        _height = htmlView.videoHeight.toDouble();
-        if (onVideoSizeChanged != null) onVideoSizeChanged(0, _width, _height);
+    if (_srcObject == null || htmlView == null) return;
+    if (htmlView.width == size.width.toInt() &&
+        htmlView.height == size.height.toInt()) return;
+
+    htmlView.srcObject = _srcObject.jsStream;
+    htmlView.width = size.width.toInt();
+    htmlView.height = size.height.toInt();
+
+    htmlView.onLoadedMetadata.listen((_) {
+      _checkVideoSizeChanged(htmlView);
+
+      if (!_isFirstFrameRendered) {
+        onFirstFrameRendered?.call();
+        _isFirstFrameRendered = true;
       }
+    });
+
+    htmlView.onResize.listen((_) => _checkVideoSizeChanged(htmlView));
+
+    _checkVideoSizeChanged(htmlView);
+  }
+
+  void _checkVideoSizeChanged(html.VideoElement htmlView) {
+    if (htmlView.videoWidth != 0 &&
+        htmlView.videoHeight != 0 &&
+        (_width != htmlView.videoWidth || _height != htmlView.videoHeight)) {
+      _width = htmlView.videoWidth.toDouble();
+      _height = htmlView.videoHeight.toDouble();
+      onVideoSizeChanged?.call(0, _width, _height);
     }
   }
 
@@ -133,7 +119,15 @@ class RTCVideoRenderer {
     return lastChild;
   }
 
-  Future<Null> dispose() async {
+  ///By calling the dispose you are safely disposing the MediaStream
+  Future<void> dispose() async {
+    await _srcObject?.dispose();
+
+    _srcObject = null;
+    findHtmlView()?.srcObject = null;
+    _videoViews.forEach((element) {
+      element.srcObject = null;
+    });
     // TODO(cloudwebrtc): ???
     // https://stackoverflow.com/questions/3258587/how-to-properly-unload-destroy-a-video-element/28060352
   }
