@@ -7,10 +7,8 @@ import 'media_stream.dart';
 import 'media_stream_track.dart';
 
 class MediaRecorder {
-  String filePath;
   html.MediaRecorder _recorder;
-  List<html.Blob> _chunks;
-  Completer<dynamic> _completer;
+  Completer<String> _completer;
 
   /// For Android use audioChannel param
   /// For iOS use audioTrack
@@ -25,13 +23,15 @@ class MediaRecorder {
   }
 
   /// Only for Flutter Web
-  void startWeb(MediaStream stream,
-      {Function(dynamic blob, bool isLastOne) onDataChunk,
-      String mimeType = 'video/webm'}) {
+  void startWeb(
+    MediaStream stream, {
+    Function(dynamic blob, bool isLastOne) onDataChunk,
+    String mimeType = 'video/webm',
+  }) {
     _recorder = html.MediaRecorder(stream.jsStream, {'mimeType': mimeType});
     if (onDataChunk == null) {
-      _chunks = [];
-      _completer = Completer();
+      var _chunks = <html.Blob>[];
+      _completer = Completer<String>();
       _recorder.addEventListener('dataavailable', (html.Event event) {
         final html.Blob blob = js.JsObject.fromBrowserObject(event)['data'];
         if (blob.size > 0) {
@@ -49,8 +49,10 @@ class MediaRecorder {
       });
     } else {
       _recorder.addEventListener('dataavailable', (html.Event event) {
-        final html.Blob blob = js.JsObject.fromBrowserObject(event)['data'];
-        onDataChunk(blob, _recorder.state == 'inactive');
+        onDataChunk(
+          js.JsObject.fromBrowserObject(event)['data'],
+          _recorder.state == 'inactive',
+        );
       });
     }
     _recorder.start();
