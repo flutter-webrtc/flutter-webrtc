@@ -1,15 +1,15 @@
 import 'dart:async';
+import 'dart:html' as html;
 import 'dart:js' as js;
 import 'dart:js_util' as jsutil;
-import 'dart:html' as html;
 
+import '../enums.dart';
+import '../rtc_stats_report.dart';
 import 'media_stream.dart';
 import 'media_stream_track.dart';
 import 'rtc_data_channel.dart';
 import 'rtc_ice_candidate.dart';
 import 'rtc_session_description.dart';
-import '../rtc_stats_report.dart';
-import '../enums.dart';
 
 /*
  * Delegate for PeerConnection.
@@ -30,34 +30,6 @@ typedef RTCDataChannelCallback = void Function(RTCDataChannel channel);
  *  PeerConnection
  */
 class RTCPeerConnection {
-  final String _peerConnectionId;
-  final html.RtcPeerConnection _jsPc;
-  final _localStreams = <String, MediaStream>{};
-  final _remoteStreams = <String, MediaStream>{};
-  final _configuration = <String, dynamic>{};
-
-  RTCSignalingState _signalingState;
-  RTCIceGatheringState _iceGatheringState;
-  RTCIceConnectionState _iceConnectionState;
-
-  // public: delegate
-  SignalingStateCallback onSignalingState;
-  IceGatheringStateCallback onIceGatheringState;
-  IceConnectionStateCallback onIceConnectionState;
-  IceCandidateCallback onIceCandidate;
-  AddStreamCallback onAddStream;
-  RemoveStreamCallback onRemoveStream;
-  AddTrackCallback onAddTrack;
-  RemoveTrackCallback onRemoveTrack;
-  RTCDataChannelCallback onDataChannel;
-  dynamic onRenegotiationNeeded;
-
-  RTCSignalingState get signalingState => _signalingState;
-
-  RTCIceGatheringState get iceGatheringState => _iceGatheringState;
-
-  RTCIceConnectionState get iceConnectionState => _iceConnectionState;
-
   RTCPeerConnection(this._peerConnectionId, this._jsPc) {
     _jsPc.onAddStream.listen((mediaStreamEvent) {
       final jsStream = mediaStreamEvent.stream;
@@ -119,12 +91,38 @@ class RTCPeerConnection {
 
     js.JsObject.fromBrowserObject(_jsPc)['ontrack'] =
         js.JsFunction.withThis((_, trackEvent) {
-      // trackEvent is JsObject conforming to RTCTrackEvent
+      // TODO(rostopira):  trackEvent is JsObject conforming to RTCTrackEvent,
       // https://developer.mozilla.org/en-US/docs/Web/API/RTCTrackEvent
-      // TODO(rostopira)
-      print('ontrack arg: ${trackEvent}');
+      print('ontrack arg: $trackEvent');
     });
   }
+  final String _peerConnectionId;
+  final html.RtcPeerConnection _jsPc;
+  final _localStreams = <String, MediaStream>{};
+  final _remoteStreams = <String, MediaStream>{};
+  final _configuration = <String, dynamic>{};
+
+  RTCSignalingState _signalingState;
+  RTCIceGatheringState _iceGatheringState;
+  RTCIceConnectionState _iceConnectionState;
+
+  // public: delegate
+  SignalingStateCallback onSignalingState;
+  IceGatheringStateCallback onIceGatheringState;
+  IceConnectionStateCallback onIceConnectionState;
+  IceCandidateCallback onIceCandidate;
+  AddStreamCallback onAddStream;
+  RemoveStreamCallback onRemoveStream;
+  AddTrackCallback onAddTrack;
+  RemoveTrackCallback onRemoveTrack;
+  RTCDataChannelCallback onDataChannel;
+  dynamic onRenegotiationNeeded;
+
+  RTCSignalingState get signalingState => _signalingState;
+
+  RTCIceGatheringState get iceGatheringState => _iceGatheringState;
+
+  RTCIceConnectionState get iceConnectionState => _iceConnectionState;
 
   Future<void> dispose() {
     _jsPc.close();

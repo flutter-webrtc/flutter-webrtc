@@ -31,9 +31,6 @@ class RTCDataChannelInit {
 /// Can either contain binary data as a [Uint8List] or
 /// text data as a [String].
 class RTCDataChannelMessage {
-  dynamic _data;
-  bool _isBinary;
-
   /// Construct a text message with a [String].
   RTCDataChannelMessage(String text) {
     _data = text;
@@ -45,6 +42,8 @@ class RTCDataChannelMessage {
     _data = binary;
     _isBinary = true;
   }
+  dynamic _data;
+  bool _isBinary;
 
   /// Tells whether this message contains binary.
   /// If this is false, it's a text message.
@@ -68,27 +67,6 @@ typedef RTCDataChannelOnMessageCallback = void Function(
     RTCDataChannelMessage data);
 
 class RTCDataChannel {
-  final html.RtcDataChannel _jsDc;
-  RTCDataChannelStateCallback onDataChannelState;
-  RTCDataChannelOnMessageCallback onMessage;
-  RTCDataChannelState _state = RTCDataChannelState.RTCDataChannelConnecting;
-
-  /// Get current state.
-  RTCDataChannelState get state => _state;
-
-  final _stateChangeController =
-      StreamController<RTCDataChannelState>.broadcast(sync: true);
-  final _messageController =
-      StreamController<RTCDataChannelMessage>.broadcast(sync: true);
-
-  /// Stream of state change events. Emits the new state on change.
-  /// Closes when the [RTCDataChannel] is closed.
-  Stream<RTCDataChannelState> stateChangeStream;
-
-  /// Stream of incoming messages. Emits the message.
-  /// Closes when the [RTCDataChannel] is closed.
-  Stream<RTCDataChannelMessage> messageStream;
-
   RTCDataChannel(this._jsDc) {
     stateChangeStream = _stateChangeController.stream;
     messageStream = _messageController.stream;
@@ -114,6 +92,27 @@ class RTCDataChannel {
       }
     });
   }
+
+  final html.RtcDataChannel _jsDc;
+  RTCDataChannelStateCallback onDataChannelState;
+  RTCDataChannelOnMessageCallback onMessage;
+  RTCDataChannelState _state = RTCDataChannelState.RTCDataChannelConnecting;
+
+  /// Get current state.
+  RTCDataChannelState get state => _state;
+
+  final _stateChangeController =
+      StreamController<RTCDataChannelState>.broadcast(sync: true);
+  final _messageController =
+      StreamController<RTCDataChannelMessage>.broadcast(sync: true);
+
+  /// Stream of state change events. Emits the new state on change.
+  /// Closes when the [RTCDataChannel] is closed.
+  Stream<RTCDataChannelState> stateChangeStream;
+
+  /// Stream of incoming messages. Emits the message.
+  /// Closes when the [RTCDataChannel] is closed.
+  Stream<RTCDataChannelMessage> messageStream;
 
   Future<RTCDataChannelMessage> _parse(dynamic data) async {
     if (data is String) return RTCDataChannelMessage(data);

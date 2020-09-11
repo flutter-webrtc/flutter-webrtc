@@ -1,5 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/services.dart';
+
+import 'enums.dart';
 import 'media_stream.dart';
 import 'media_stream_track.dart';
 import 'rtc_data_channel.dart';
@@ -7,7 +10,6 @@ import 'rtc_ice_candidate.dart';
 import 'rtc_session_description.dart';
 import 'rtc_stats_report.dart';
 import 'utils.dart';
-import 'enums.dart';
 
 /*
  * Delegate for PeerConnection.
@@ -28,6 +30,12 @@ typedef RTCDataChannelCallback = void Function(RTCDataChannel channel);
  *  PeerConnection
  */
 class RTCPeerConnection {
+  RTCPeerConnection(this._peerConnectionId, this._configuration) {
+    _eventSubscription = _eventChannelFor(_peerConnectionId)
+        .receiveBroadcastStream()
+        .listen(eventListener, onError: errorListener);
+  }
+
   // private:
   final String _peerConnectionId;
   final _channel = WebRTC.methodChannel();
@@ -59,12 +67,6 @@ class RTCPeerConnection {
     },
     'optional': [],
   };
-
-  RTCPeerConnection(this._peerConnectionId, this._configuration) {
-    _eventSubscription = _eventChannelFor(_peerConnectionId)
-        .receiveBroadcastStream()
-        .listen(eventListener, onError: errorListener);
-  }
 
   RTCSignalingState get signalingState => _signalingState;
 

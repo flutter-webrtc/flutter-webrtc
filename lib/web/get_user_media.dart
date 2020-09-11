@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'dart:html' as html;
 import 'dart:js';
 import 'dart:js_util' as jsutil;
-import 'dart:html' as html;
 
 import 'media_stream.dart';
 

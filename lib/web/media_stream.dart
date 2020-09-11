@@ -4,17 +4,17 @@ import 'dart:html' as html;
 import 'media_stream_track.dart';
 
 class MediaStream {
+  const MediaStream(this.jsStream, this._ownerTag);
   final html.MediaStream jsStream;
   final String _ownerTag;
-  const MediaStream(this.jsStream, this._ownerTag);
-
-  Future<void> getMediaTracks() {
-    return Future.value();
-  }
 
   String get id => jsStream.id;
 
   String get ownerTag => _ownerTag;
+
+  Future<void> getMediaTracks() {
+    return Future.value();
+  }
 
   Future<void> addTrack(MediaStreamTrack track, {bool addToNative = true}) {
     if (addToNative) {

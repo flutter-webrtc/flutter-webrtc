@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:typed_data';
+
 import 'package:flutter/services.dart';
-import 'utils.dart';
+
 import 'enums.dart';
+import 'utils.dart';
 
 final _typeStringToMessageType = <String, MessageType>{
   'text': MessageType.text,
@@ -33,9 +35,6 @@ class RTCDataChannelInit {
 /// Can either contain binary data as a [Uint8List] or
 /// text data as a [String].
 class RTCDataChannelMessage {
-  dynamic _data;
-  bool _isBinary;
-
   /// Construct a text message with a [String].
   RTCDataChannelMessage(String text) {
     _data = text;
@@ -47,6 +46,9 @@ class RTCDataChannelMessage {
     _data = binary;
     _isBinary = true;
   }
+
+  dynamic _data;
+  bool _isBinary;
 
   /// Tells whether this message contains binary.
   /// If this is false, it's a text message.
@@ -72,6 +74,13 @@ typedef RTCDataChannelOnMessageCallback = void Function(
 /// A class that represents a WebRTC datachannel.
 /// Can send and receive text and binary messages.
 class RTCDataChannel {
+  RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId) {
+    stateChangeStream = _stateChangeController.stream;
+    messageStream = _messageController.stream;
+    _eventSubscription = _eventChannelFor(_peerConnectionId, _dataChannelId)
+        .receiveBroadcastStream()
+        .listen(eventListener, onError: errorListener);
+  }
   final String _peerConnectionId;
   final String _label;
   final int _dataChannelId;
@@ -108,14 +117,6 @@ class RTCDataChannel {
   /// Stream of incoming messages. Emits the message.
   /// Closes when the [RTCDataChannel] is closed.
   Stream<RTCDataChannelMessage> messageStream;
-
-  RTCDataChannel(this._peerConnectionId, this._label, this._dataChannelId) {
-    stateChangeStream = _stateChangeController.stream;
-    messageStream = _messageController.stream;
-    _eventSubscription = _eventChannelFor(_peerConnectionId, _dataChannelId)
-        .receiveBroadcastStream()
-        .listen(eventListener, onError: errorListener);
-  }
 
   /// RTCDataChannel event listener.
   void eventListener(dynamic event) {

@@ -1,27 +1,26 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import 'enums.dart';
 import 'media_stream.dart';
 import 'utils.dart';
-import 'enums.dart';
 
 @immutable
 class RTCVideoValue {
-  static const RTCVideoValue empty = RTCVideoValue();
-
-  final double width;
-  final double height;
-  final int rotation;
-  final bool renderVideo;
-
   const RTCVideoValue({
     this.width = 0.0,
     this.height = 0.0,
     this.rotation = 0,
     this.renderVideo = false,
   });
-
+  static const RTCVideoValue empty = RTCVideoValue();
+  final double width;
+  final double height;
+  final int rotation;
+  final bool renderVideo;
   double get aspectRatio {
     if (width == 0.0 || height == 0.0) {
       return 1.0;
@@ -52,13 +51,13 @@ class RTCVideoValue {
 }
 
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
+  RTCVideoRenderer() : super(RTCVideoValue.empty);
   final _channel = WebRTC.methodChannel();
   int _textureId;
   MediaStream _srcObject;
   StreamSubscription<dynamic> _eventSubscription;
-  RTCVideoRenderer() : super(RTCVideoValue.empty);
 
-  void initialize() async {
+  Future<void> initialize() async {
     final response = await _channel
         .invokeMethod<Map<dynamic, dynamic>>('createVideoRenderer', {});
     _textureId = response['textureId'];
@@ -127,11 +126,6 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
 }
 
 class RTCVideoView extends StatelessWidget {
-  final RTCVideoRenderer _renderer;
-
-  final RTCVideoViewObjectFit objectFit;
-  final bool mirror;
-
   RTCVideoView(
     this._renderer, {
     Key key,
@@ -140,6 +134,10 @@ class RTCVideoView extends StatelessWidget {
   })  : assert(objectFit != null),
         assert(mirror != null),
         super(key: key);
+
+  final RTCVideoRenderer _renderer;
+  final RTCVideoViewObjectFit objectFit;
+  final bool mirror;
 
   @override
   Widget build(BuildContext context) {

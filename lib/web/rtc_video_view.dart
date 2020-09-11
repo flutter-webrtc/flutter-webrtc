@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 import 'dart:html' as html;
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
-import 'media_stream.dart';
 import '../enums.dart';
+import 'media_stream.dart';
 
 typedef VideoRotationChangeCallback = void Function(
     int textureId, int rotation);
@@ -132,17 +133,12 @@ class RTCVideoRenderer {
   }
 
   Future<Null> dispose() async {
-    //TODO?
-    //https://stackoverflow.com/questions/3258587/how-to-properly-unload-destroy-a-video-element/28060352
+    // TODO(cloudwebrtc): ???
+    // https://stackoverflow.com/questions/3258587/how-to-properly-unload-destroy-a-video-element/28060352
   }
 }
 
 class RTCVideoView extends StatefulWidget {
-  final RTCVideoRenderer _renderer;
-
-  final RTCVideoViewObjectFit objectFit;
-  final mirror;
-
   RTCVideoView(this._renderer,
       {Key key,
       this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
@@ -151,14 +147,19 @@ class RTCVideoView extends StatefulWidget {
         assert(mirror != null),
         super(key: key);
 
+  final RTCVideoRenderer _renderer;
+  final RTCVideoViewObjectFit objectFit;
+  final mirror;
+
   @override
   _RTCVideoViewState createState() => _RTCVideoViewState(_renderer);
 }
 
 class _RTCVideoViewState extends State<RTCVideoView> {
+  _RTCVideoViewState(this._renderer);
+
   final RTCVideoRenderer _renderer;
   double _aspectRatio;
-  _RTCVideoViewState(this._renderer);
 
   @override
   void initState() {

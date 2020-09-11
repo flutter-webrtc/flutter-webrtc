@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:js' as js;
 import 'dart:html' as html;
+import 'dart:js' as js;
 
+import '../enums.dart';
 import 'media_stream.dart';
 import 'media_stream_track.dart';
-import '../enums.dart';
 
 class MediaRecorder {
   String filePath;
