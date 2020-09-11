@@ -6,6 +6,8 @@ linter:
     - avoid_empty_else
     - await_only_futures
     - avoid_returning_null_for_void
+    - camel_case_extensions
+    - camel_case_types
     - cancel_subscriptions
     - directives_ordering
     - flutter_style_todos

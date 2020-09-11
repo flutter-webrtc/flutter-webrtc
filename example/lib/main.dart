@@ -3,12 +3,12 @@ import 'dart:core';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'src/data_channel_sample.dart';
 import 'src/get_display_media_sample.dart';
 import 'src/get_user_media_sample.dart'
-    if (dart.library.js) 'src/get_user_media_sample_web.dart';
+    if (dart.library.html) 'src/get_user_media_sample_web.dart';
 import 'src/loopback_sample.dart';
 import 'src/route_item.dart';
 

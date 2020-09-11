@@ -7,8 +7,8 @@ class RTCSessionDescription {
       : this(rsd.sdp, rsd.type);
   RTCSessionDescription.fromJsObj(js.JsObject js) : this(js['sdp'], js['type']);
 
-  final String sdp;
-  final String type;
+  String sdp;
+  String type;
 
   Map<String, dynamic> toMap() {
     return {'sdp': sdp, 'type': type};

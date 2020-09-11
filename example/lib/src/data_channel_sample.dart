@@ -2,7 +2,7 @@ import 'dart:core';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class DataChannelSample extends StatefulWidget {
   static String tag = 'data_channel_sample';

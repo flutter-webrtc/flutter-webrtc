@@ -2,7 +2,7 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:path_provider/path_provider.dart';
 
 /*

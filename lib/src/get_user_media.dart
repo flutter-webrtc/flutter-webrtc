@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'media_stream.dart';
 import 'utils.dart';
 
+// ignore: camel_case_types
 class navigator {
   static Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
