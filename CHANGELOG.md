@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.3.1] - 2020.09.11
+
+* [Dart] Apply pedantic linter and more rigorous analysis options.
+
 [0.3.0+1] - 2020.09.06
 
 * [Dart] FIX - missing null check onIceGatheringState (web)
