@@ -3,9 +3,9 @@ import 'dart:html' as html;
 import 'dart:js' as js;
 
 class MediaStreamTrack {
-  final html.MediaStreamTrack jsTrack;
-
   const MediaStreamTrack(this.jsTrack);
+
+  final html.MediaStreamTrack jsTrack;
 
   set enabled(bool enabled) => jsTrack.enabled = enabled;
 
@@ -20,12 +20,12 @@ class MediaStreamTrack {
   ///Future contains isFrontCamera
   ///Throws error if switching camera failed
   Future<bool> switchCamera() async {
-    //TODO
+    // TODO(cloudwebrtc): ???
     return false;
   }
 
   Future<void> adaptRes(int width, int height) async {
-    //TODO
+    // TODO(cloudwebrtc): ???
   }
 
   void setVolume(double volume) {

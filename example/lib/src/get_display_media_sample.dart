@@ -1,7 +1,8 @@
+import 'dart:async';
+import 'dart:core';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/webrtc.dart';
-import 'dart:core';
-import 'dart:async';
 
 /*
  * getDisplayMedia sample
@@ -10,25 +11,24 @@ class GetDisplayMediaSample extends StatefulWidget {
   static String tag = 'get_display_media_sample';
 
   @override
-  _GetDisplayMediaSampleState createState() =>
-      new _GetDisplayMediaSampleState();
+  _GetDisplayMediaSampleState createState() => _GetDisplayMediaSampleState();
 }
 
 class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   MediaStream _localStream;
-  final _localRenderer = new RTCVideoRenderer();
+  final _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   Timer _timer;
   var _counter = 0;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     initRenderers();
   }
 
   @override
-  deactivate() {
+  void deactivate() {
     super.deactivate();
     if (_inCalling) {
       _hangUp();
@@ -37,7 +37,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     _localRenderer.dispose();
   }
 
-  initRenderers() async {
+  Future<void> initRenderers() async {
     await _localRenderer.initialize();
   }
 
@@ -48,11 +48,8 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
-  _makeCall() async {
-    final Map<String, dynamic> mediaConstraints = {
-      "audio": false,
-      "video": true
-    };
+  Future<void> _makeCall() async {
+    final mediaConstraints = <String, dynamic>{'audio': false, 'video': true};
 
     try {
       var stream = await navigator.getDisplayMedia(mediaConstraints);
@@ -67,10 +64,10 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
       _inCalling = true;
     });
 
-    _timer = new Timer.periodic(Duration(milliseconds: 100), handleTimer);
+    _timer = Timer.periodic(Duration(milliseconds: 100), handleTimer);
   }
 
-  _hangUp() async {
+  void _hangUp() async {
     try {
       await _localStream.dispose();
       _localRenderer.srcObject = null;
@@ -85,32 +82,32 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('GetUserMedia API Test'),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('GetUserMedia API Test'),
       ),
-      body: new OrientationBuilder(
+      body: OrientationBuilder(
         builder: (context, orientation) {
-          return new Center(
-            child: new Stack(children: <Widget>[
-              new Center(
-                child: new Text('counter: ' + _counter.toString()),
+          return Center(
+            child: Stack(children: <Widget>[
+              Center(
+                child: Text('counter: ' + _counter.toString()),
               ),
-              new Container(
-                margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+              Container(
+                margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
                 child: RTCVideoView(_localRenderer),
-                decoration: new BoxDecoration(color: Colors.black54),
+                decoration: BoxDecoration(color: Colors.black54),
               )
             ]),
           );
         },
       ),
-      floatingActionButton: new FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         onPressed: _inCalling ? _hangUp : _makeCall,
         tooltip: _inCalling ? 'Hangup' : 'Call',
-        child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
+        child: Icon(_inCalling ? Icons.call_end : Icons.phone),
       ),
     );
   }

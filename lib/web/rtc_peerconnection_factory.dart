@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html' as html;
 
-import 'rtc_peerconnection.dart';
 import 'media_stream.dart';
+import 'rtc_peerconnection.dart';
 
 Future<RTCPeerConnection> createPeerConnection(
     Map<String, dynamic> configuration,
