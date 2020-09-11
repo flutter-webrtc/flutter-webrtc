@@ -28,7 +28,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   void initState() {
     super.initState();
     initRenderers();
-    gum.navigator.getSources().then((md) {
+    gum.WebRTCNavigator.getSources().then((md) {
       setState(() {
         cameras = md.where((d) => d['kind'] == 'videoinput');
       });
@@ -63,7 +63,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      var stream = await navigator.getUserMedia(mediaConstraints);
+      var stream = await WebRTCNavigator.getUserMedia(mediaConstraints);
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
     } catch (e) {

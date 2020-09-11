@@ -5,7 +5,7 @@ import 'dart:js_util' as jsutil;
 
 import 'media_stream.dart';
 
-class navigator {
+class WebRTCNavigator {
   static Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
     mediaConstraints ??= <String, dynamic>{};

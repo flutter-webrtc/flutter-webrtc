@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'media_stream.dart';
 import 'utils.dart';
 
-class navigator {
+class WebRTCNavigator {
   static Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
     var channel = WebRTC.methodChannel();

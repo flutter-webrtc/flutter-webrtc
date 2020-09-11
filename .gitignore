@@ -15,3 +15,7 @@ example/.flutter-plugins
 example/android/local.properties
 .dart_tool/package_config.json
 android/.project
+doc/
+flutter-webrtc.code-workspace
+example/ios/Runner/GeneratedPluginRegistrant.h
+example/ios/Runner/GeneratedPluginRegistrant.m

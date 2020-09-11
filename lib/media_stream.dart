@@ -1,16 +1,19 @@
 import 'dart:async';
-import 'package:flutter/services.dart';
 import 'media_stream_track.dart';
 import 'utils.dart';
 
 class MediaStream {
   MediaStream(this._streamId, this._ownerTag);
-  final MethodChannel _channel = WebRTC.methodChannel();
+
+  final _channel = WebRTC.methodChannel();
   final String _streamId;
   final String _ownerTag;
   final _audioTracks = <MediaStreamTrack>[];
   final _videoTracks = <MediaStreamTrack>[];
+
   String get ownerTag => _ownerTag;
+
+  ///The unique identifier of the stream
   String get id => _streamId;
 
   void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
