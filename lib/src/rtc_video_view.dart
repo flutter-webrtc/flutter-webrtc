@@ -71,17 +71,18 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
   MediaStream get srcObject => _srcObject;
 
   set srcObject(MediaStream stream) {
-    if (stream == null) {
-      value = RTCVideoValue.empty;
-    }
     _srcObject = stream;
     _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
       'textureId': _textureId,
-      'streamId': stream != null ? stream.id : '',
-      'ownerTag': stream != null ? stream.ownerTag : ''
+      'streamId': stream?.id ?? '',
+      'ownerTag': stream?.ownerTag ?? ''
+    }).then((_) {
+      if (stream == null) {
+        value = RTCVideoValue.empty;
+      } else {
+        value = value.copyWith(renderVideo: renderVideo);
+      }
     });
-    value = value.copyWith(renderVideo: renderVideo);
-    notifyListeners();
   }
 
   @override
@@ -114,7 +115,6 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
       case 'didFirstFrameRendered':
         break;
     }
-    notifyListeners();
   }
 
   void errorListener(Object obj) {
