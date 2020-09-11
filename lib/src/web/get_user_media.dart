@@ -5,8 +5,7 @@ import 'dart:js_util' as jsutil;
 
 import 'media_stream.dart';
 
-// ignore: camel_case_types
-class navigator {
+class MediaDevices {
   static Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
     mediaConstraints ??= <String, dynamic>{};

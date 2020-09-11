@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:html' as html;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
 import '../enums.dart';
+import './ui_fake.dart' if (dart.library.html) 'dart:ui' as ui;
 import 'media_stream.dart';
 
 typedef VideoRotationChangeCallback = void Function(
@@ -13,6 +13,7 @@ typedef VideoSizeChangeCallback = void Function(
     int textureId, double width, double height);
 
 class RTCVideoRenderer {
+  RTCVideoRenderer();
   double _width = 0.0, _height = 0.0;
   MediaStream _srcObject;
   VideoSizeChangeCallback onVideoSizeChanged;
@@ -58,7 +59,7 @@ class RTCVideoRenderer {
     if (htmlElementView != null) {
       findHtmlView()?.srcObject = stream?.jsStream;
     }
-    // ignore: undefined_prefixed_name
+
     ui.platformViewRegistry.registerViewFactory(stream.id, (int viewId) {
       final x = html.VideoElement();
       x.autoplay = true;

@@ -3,7 +3,6 @@ import 'dart:core';
 import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/src/web/get_user_media.dart' as gum;
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 /*
@@ -28,7 +27,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   void initState() {
     super.initState();
     initRenderers();
-    gum.navigator.getSources().then((md) {
+    MediaDevices.getSources().then((md) {
       setState(() {
         cameras = md.where((d) => d['kind'] == 'videoinput');
       });
@@ -63,7 +62,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      var stream = await navigator.getUserMedia(mediaConstraints);
+      var stream = await MediaDevices.getUserMedia(mediaConstraints);
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
     } catch (e) {

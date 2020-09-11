@@ -4,7 +4,7 @@ import 'dart:html' as html;
 import 'media_stream_track.dart';
 
 class MediaStream {
-  const MediaStream(this.jsStream, this._ownerTag);
+  MediaStream(this.jsStream, this._ownerTag);
   final html.MediaStream jsStream;
   final String _ownerTag;
 

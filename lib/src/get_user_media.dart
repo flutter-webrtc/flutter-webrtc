@@ -3,8 +3,7 @@ import 'package:flutter/services.dart';
 import 'media_stream.dart';
 import 'utils.dart';
 
-// ignore: camel_case_types
-class navigator {
+class MediaDevices {
   static Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
     var channel = WebRTC.methodChannel();
@@ -24,7 +23,7 @@ class navigator {
 
 /* Implement screen sharing,
  * use MediaProjection for Android and use ReplayKit for iOS
- * TODO: implement for native layer.
+ * TODO(cloudwebrtc): implement for native layer.
  * */
   static Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
