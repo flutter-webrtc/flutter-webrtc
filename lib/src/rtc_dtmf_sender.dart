@@ -4,13 +4,15 @@ import 'package:flutter/services.dart';
 
 class RTCDTMFSender {
   // peer connection Id must be defined as a variable where this function will be called.
+  final String _peerConnectionId;
 
-  static Future<void> sendDtmf(String peerConnectionId, String tone,
-      {double duration, double gap}) async {
+  RTCDTMFSender(this._peerConnectionId);
+
+  Future<void> sendDtmf(String tone, {var duration, var gap}) async {
     final MethodChannel _channel = WebRTC.methodChannel();
 
-    double _duration = 0.0;
-    double _gap = 0.0;
+    var _duration = Platform.isIOS ? 0.5 : 500;
+    var _gap = Platform.isIOS ? 0.05 : 50;
     // IOS accepts gap and duration in seconds so conversion to be needed
     if (duration != null) {
       if (Platform.isIOS) {
@@ -19,6 +21,7 @@ class RTCDTMFSender {
         _duration = duration;
       }
     }
+
     if (gap != null) {
       if (Platform.isIOS) {
         _gap = gap / 1000;
@@ -28,7 +31,7 @@ class RTCDTMFSender {
     }
 
     await _channel.invokeMethod('sendDtmf', <String, dynamic>{
-      'peerConnectionId': peerConnectionId,
+      'peerConnectionId': _peerConnectionId,
       'tone': tone,
       'duration': _duration,
       'gap': _gap,

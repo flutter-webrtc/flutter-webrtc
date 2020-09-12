@@ -6,6 +6,7 @@ import 'enums.dart';
 import 'media_stream.dart';
 import 'media_stream_track.dart';
 import 'rtc_data_channel.dart';
+import 'rtc_dtmf_sender.dart';
 import 'rtc_ice_candidate.dart';
 import 'rtc_session_description.dart';
 import 'rtc_stats_report.dart';
@@ -34,6 +35,8 @@ class RTCPeerConnection {
     _eventSubscription = _eventChannelFor(_peerConnectionId)
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
+
+    _dtmfSender = RTCDTMFSender(_peerConnectionId);
   }
 
   // private:
@@ -47,7 +50,7 @@ class RTCPeerConnection {
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
   RTCIceConnectionState _iceConnectionState;
-
+  RTCDTMFSender _dtmfSender;
   // public: delegate
   SignalingStateCallback onSignalingState;
   IceGatheringStateCallback onIceGatheringState;
@@ -58,6 +61,7 @@ class RTCPeerConnection {
   AddTrackCallback onAddTrack;
   RemoveTrackCallback onRemoveTrack;
   RTCDataChannelCallback onDataChannel;
+
   dynamic onRenegotiationNeeded;
 
   final Map<String, dynamic> defaultSdpConstraints = {
@@ -74,7 +78,7 @@ class RTCPeerConnection {
 
   RTCIceConnectionState get iceConnectionState => _iceConnectionState;
 
-  String get peerConnectionId => _peerConnectionId;
+  RTCDTMFSender get dtmfSender => _dtmfSender;
 
   /*
    * PeerConnection event listener.
