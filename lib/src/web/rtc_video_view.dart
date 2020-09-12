@@ -2,205 +2,218 @@ import 'dart:async';
 import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../enums.dart';
 import './ui_fake.dart' if (dart.library.html) 'dart:ui' as ui;
 import 'media_stream.dart';
 
-typedef VideoRotationChangeCallback = void Function(
-    int textureId, int rotation);
-typedef VideoSizeChangeCallback = void Function(
-    int textureId, double width, double height);
+// An error code value to error name Map.
+// See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
+const Map<int, String> _kErrorValueToErrorName = {
+  1: 'MEDIA_ERR_ABORTED',
+  2: 'MEDIA_ERR_NETWORK',
+  3: 'MEDIA_ERR_DECODE',
+  4: 'MEDIA_ERR_SRC_NOT_SUPPORTED',
+};
 
-class RTCVideoRenderer {
-  RTCVideoRenderer();
-  double _width = 0.0, _height = 0.0;
-  MediaStream _srcObject;
-  VideoSizeChangeCallback onVideoSizeChanged;
-  VideoRotationChangeCallback onVideoRotationChanged;
-  dynamic onFirstFrameRendered;
-  var isFirstFrameRendered = false;
-  dynamic onStateChanged;
-  HtmlElementView htmlElementView;
-  html.VideoElement _htmlVideoElement;
+// An error code value to description Map.
+// See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
+const Map<int, String> _kErrorValueToErrorDescription = {
+  1: 'The user canceled the fetching of the video.',
+  2: 'A network error occurred while fetching the video, despite having previously been available.',
+  3: 'An error occurred while trying to decode the video, despite having previously been determined to be usable.',
+  4: 'The video has been found to be unsuitable (missing or in a format not supported by your browser).',
+};
 
-  static final _videoViews = <html.VideoElement>[];
+// The default error message, when the error is an empty string
+// See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/message
+const String _kDefaultErrorMessage =
+    'No further diagnostic information can be determined or provided.';
 
-  bool get isMuted => _htmlVideoElement?.muted ?? true;
-  set isMuted(bool i) => _htmlVideoElement?.muted = i;
-
-  static void fixVideoElements() => _videoViews.forEach((v) => v.play());
-
-  void initialize() async {
-    print('You don\'t have to call RTCVideoRenderer.initialize on Flutter Web');
+@immutable
+class RTCVideoValue {
+  const RTCVideoValue({
+    this.width = 0.0,
+    this.height = 0.0,
+    this.rotation = 0,
+    this.renderVideo = false,
+  });
+  static const RTCVideoValue empty = RTCVideoValue();
+  final double width;
+  final double height;
+  final int rotation;
+  final bool renderVideo;
+  double get aspectRatio {
+    if (width == 0.0 || height == 0.0) {
+      return 1.0;
+    }
+    return (rotation == 90 || rotation == 270)
+        ? height / width
+        : width / height;
   }
 
-  int get rotation => 0;
+  RTCVideoValue copyWith({
+    double width,
+    double height,
+    int rotation,
+    bool renderVideo,
+  }) {
+    return RTCVideoValue(
+      width: width ?? this.width,
+      height: height ?? this.height,
+      rotation: rotation ?? this.rotation,
+      renderVideo: (this.width != 0 && this.height != 0 && renderVideo) ??
+          this.renderVideo,
+    );
+  }
 
-  double get width => _width ?? 1080;
+  @override
+  String toString() =>
+      '$runtimeType(width: $width, height: $height, rotation: $rotation)';
+}
 
-  double get height => _height ?? 1920;
+class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
+  RTCVideoRenderer()
+      : textureId = _textureCounter++,
+        super(RTCVideoValue.empty);
 
-  int get textureId => 0;
+  static int _textureCounter = 1;
+  final int textureId;
+  html.VideoElement videoElement;
+  MediaStream _srcObject;
 
-  double get aspectRatio =>
-      (_width == 0 || _height == 0) ? (9 / 16) : _width / _height;
+  bool get muted => videoElement?.muted ?? true;
+
+  set muted(bool mute) => videoElement?.muted = mute;
+
+  bool get renderVideo => videoElement != null && srcObject != null;
+
+  Future<void> initialize() async {
+    videoElement = html.VideoElement()
+      //..src = 'https://flutter-webrtc-video-view-RTCVideoRenderer-$textureId'
+      ..autoplay = true
+      ..controls = false
+      ..style.objectFit = 'contain' // contain or cover
+      ..style.border = 'none';
+
+    // Allows Safari iOS to play the video inline
+    videoElement.setAttribute('playsinline', 'true');
+
+    // ignore: undefined_prefixed_name
+    ui.platformViewRegistry.registerViewFactory(
+        'RTCVideoRenderer-$textureId', (int viewId) => videoElement);
+
+    videoElement.onCanPlay.listen((dynamic _) {
+      value = value.copyWith(
+          rotation: 0,
+          width: videoElement.videoWidth.toDouble() ?? 0.0,
+          height: videoElement.videoHeight.toDouble() ?? 0.0,
+          renderVideo: renderVideo);
+      print('RTCVideoRenderer: videoElement.onCanPlay ${value.toString()}');
+    });
+
+    videoElement.onResize.listen((dynamic _) {
+      value = value.copyWith(
+          rotation: 0,
+          width: videoElement.videoWidth.toDouble() ?? 0.0,
+          height: videoElement.videoHeight.toDouble() ?? 0.0,
+          renderVideo: renderVideo);
+      print('RTCVideoRenderer: videoElement.onResize ${value.toString()}');
+    });
+
+    // The error event fires when some form of error occurs while attempting to load or perform the media.
+    videoElement.onError.listen((html.Event _) {
+      // The Event itself (_) doesn't contain info about the actual error.
+      // We need to look at the HTMLMediaElement.error.
+      // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
+      var error = videoElement.error;
+      throw PlatformException(
+        code: _kErrorValueToErrorName[error.code],
+        message: error.message != '' ? error.message : _kDefaultErrorMessage,
+        details: _kErrorValueToErrorDescription[error.code],
+      );
+    });
+
+    videoElement.onEnded.listen((dynamic _) {
+      print('RTCVideoRenderer: videoElement.onEnded');
+    });
+  }
 
   MediaStream get srcObject => _srcObject;
 
   set srcObject(MediaStream stream) {
-    _srcObject = stream;
+    if (videoElement == null) throw 'Call initialize before setting the stream';
 
-    if (_srcObject == null) {
-      findHtmlView()?.srcObject = null;
+    if (stream == null) {
+      videoElement.srcObject = null;
+      _srcObject = null;
       return;
     }
-
-    if (htmlElementView != null) {
-      findHtmlView()?.srcObject = stream?.jsStream;
-    }
-
-    ui.platformViewRegistry.registerViewFactory(stream.id, (int viewId) {
-      final x = html.VideoElement();
-      x.autoplay = true;
-      x.muted = _srcObject.ownerTag == 'local';
-      x.srcObject = stream.jsStream;
-      x.id = stream.id;
-      _htmlVideoElement = x;
-      _videoViews.add(x);
-      return x;
-    });
-    htmlElementView = HtmlElementView(viewType: stream.id);
-    if (onStateChanged != null) {
-      onStateChanged();
-    }
+    _srcObject = stream;
+    videoElement.srcObject = stream?.jsStream;
+    videoElement.muted = stream?.ownerTag == 'local' ?? false;
+    value = value.copyWith(renderVideo: renderVideo);
   }
 
-  void findAndApply(Size size) {
-    final htmlView = findHtmlView();
-    if (_srcObject != null && htmlView != null) {
-      if (htmlView.width == size.width.toInt() &&
-          htmlView.height == size.height.toInt()) return;
-      htmlView.srcObject = _srcObject.jsStream;
-      htmlView.width = size.width.toInt();
-      htmlView.height = size.height.toInt();
-      htmlView.onLoadedMetadata.listen((_) {
-        if (htmlView.videoWidth != 0 &&
-            htmlView.videoHeight != 0 &&
-            (_width != htmlView.videoWidth ||
-                _height != htmlView.videoHeight)) {
-          _width = htmlView.videoWidth.toDouble();
-          _height = htmlView.videoHeight.toDouble();
-          if (onVideoSizeChanged != null) {
-            onVideoSizeChanged(0, _width, _height);
-          }
-        }
-        if (!isFirstFrameRendered && onFirstFrameRendered != null) {
-          onFirstFrameRendered();
-          isFirstFrameRendered = true;
-        }
-      });
-      htmlView.onResize.listen((_) {
-        if (htmlView.videoWidth != 0 &&
-            htmlView.videoHeight != 0 &&
-            (_width != htmlView.videoWidth ||
-                _height != htmlView.videoHeight)) {
-          _width = htmlView.videoWidth.toDouble();
-          _height = htmlView.videoHeight.toDouble();
-          if (onVideoSizeChanged != null) {
-            onVideoSizeChanged(0, _width, _height);
-          }
-        }
-      });
-      if (htmlView.videoWidth != 0 &&
-          htmlView.videoHeight != 0 &&
-          (_width != htmlView.videoWidth || _height != htmlView.videoHeight)) {
-        _width = htmlView.videoWidth.toDouble();
-        _height = htmlView.videoHeight.toDouble();
-        if (onVideoSizeChanged != null) onVideoSizeChanged(0, _width, _height);
-      }
-    }
-  }
-
-  html.VideoElement findHtmlView() {
-    if (_htmlVideoElement != null) return _htmlVideoElement;
-    final fltPv = html.document.getElementsByTagName('flt-platform-view');
-    if (fltPv.isEmpty) return null;
-    final lastChild = (fltPv.first as html.Element).shadowRoot.lastChild;
-    if (!(lastChild is html.VideoElement)) return null;
-    final videoElement = lastChild as html.VideoElement;
-    if (_srcObject != null && videoElement.id != _srcObject.id) return null;
-    return lastChild;
-  }
-
-  Future<Null> dispose() async {
-    // TODO(cloudwebrtc): ???
-    // https://stackoverflow.com/questions/3258587/how-to-properly-unload-destroy-a-video-element/28060352
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    await _srcObject?.dispose();
+    _srcObject = null;
+    videoElement.removeAttribute('src');
+    videoElement.load();
   }
 }
 
 class RTCVideoView extends StatefulWidget {
-  RTCVideoView(this._renderer,
-      {Key key,
-      this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
-      this.mirror = false})
-      : assert(objectFit != null),
+  RTCVideoView(
+    this._renderer, {
+    Key key,
+    this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+    this.mirror = false,
+  })  : assert(objectFit != null),
         assert(mirror != null),
         super(key: key);
 
   final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
-  final mirror;
-
+  final bool mirror;
   @override
-  _RTCVideoViewState createState() => _RTCVideoViewState(_renderer);
+  _RTCVideoViewState createState() => _RTCVideoViewState();
 }
 
 class _RTCVideoViewState extends State<RTCVideoView> {
-  _RTCVideoViewState(this._renderer);
-
-  final RTCVideoRenderer _renderer;
-  double _aspectRatio;
+  _RTCVideoViewState();
 
   @override
   void initState() {
     super.initState();
-    _setCallbacks();
-    _aspectRatio = _renderer.aspectRatio;
+    widget._renderer?.addListener(() => setState(() {}));
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    _renderer.onStateChanged = null;
-  }
-
-  void _setCallbacks() {
-    _renderer.onStateChanged = () {
-      setState(() {
-        _aspectRatio = _renderer.aspectRatio;
-      });
-    };
-  }
-
-  Widget _buildVideoView(BoxConstraints constraints) {
-    _renderer.findAndApply(constraints.biggest);
-    return Container(
-        width: constraints.maxWidth,
-        height: constraints.maxHeight,
-        child: SizedBox(
-            width: constraints.maxHeight * _aspectRatio,
-            height: constraints.maxHeight,
-            child: _renderer.htmlElementView ?? Container()));
+  Widget buildVideoElementView(RTCVideoViewObjectFit objFit, bool mirror) {
+    // TODO(cloudwebrtc): Add css style for mirror.
+    widget._renderer.videoElement.style.objectFit =
+        objFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
+            ? 'contain'
+            : 'cover';
+    return HtmlElementView(
+        viewType: 'RTCVideoRenderer-${widget._renderer.textureId}');
   }
 
   @override
   Widget build(BuildContext context) {
-    var renderVideo = _renderer._srcObject != null;
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       return Center(
-          child: renderVideo ? _buildVideoView(constraints) : Container());
+          child: Container(
+        width: constraints.maxWidth,
+        height: constraints.maxHeight,
+        child: widget._renderer.renderVideo
+            ? buildVideoElementView(widget.objectFit, widget.mirror)
+            : Container(),
+      ));
     });
   }
 }
