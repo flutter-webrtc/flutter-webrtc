@@ -251,17 +251,16 @@
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection) {
    
-             RTCRtpSender* m_audioSender = nil ;
+             RTCRtpSender* audioSender = nil ;
             for( RTCRtpSender *rtpSender in peerConnection.senders){
                 if([[[rtpSender track] kind] isEqualToString:@"audio"]) {
-           
-                    m_audioSender = rtpSender;
+                    audioSender = rtpSender;
                 }
             }
-            if(m_audioSender){
+            if(audioSender){
             NSOperationQueue *queue = [[NSOperationQueue alloc] init];
             [queue addOperationWithBlock:^{
-                [m_audioSender.dtmfSender insertDtmf :(NSString *)tone
+                [audioSender.dtmfSender insertDtmf :(NSString *)tone
                 duration:(NSTimeInterval) duration interToneGap:(NSTimeInterval)gap];
                 NSLog(@"DTMF Tone played ");
             }];
