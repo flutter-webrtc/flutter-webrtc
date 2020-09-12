@@ -76,7 +76,7 @@ class RTCPeerConnection {
     js.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] =
         js.JsFunction.withThis((_) {
       _iceGatheringState = iceGatheringStateforString(_jsPc.iceGatheringState);
-      onIceGatheringState.call(_iceGatheringState);
+      onIceGatheringState?.call(_iceGatheringState);
     });
 
     _jsPc.onRemoveStream.listen((mediaStreamEvent) {
