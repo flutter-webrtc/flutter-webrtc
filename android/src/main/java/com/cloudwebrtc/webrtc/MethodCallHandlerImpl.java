@@ -256,22 +256,22 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         int gap = call.argument("gap");
         PeerConnection peerConnection = getPeerConnection(peerConnectionId);
         if (peerConnection != null) {
-          RtpSender m_audioSender = null;
+          RtpSender audioSender = null;
           for (RtpSender sender : peerConnection.getSenders()) {
 
             if (sender.track().kind().equals("audio")) {
-             m_audioSender = sender;
+             audioSender = sender;
             } 
           }
-          if (m_audioSender != null) {
-            DtmfSender dtmfSender = m_audioSender.dtmf();
+          if (audioSender != null) {
+            DtmfSender dtmfSender = audioSender.dtmf();
             dtmfSender.insertDtmf(tone, duration, gap);
           }
           result.success("success");
         } else {
           Log.d(TAG, "dtmf() peerConnection is null");
           result
-              .error("dtmf", "getRemoteDescription() peerConnection is null",
+              .error("dtmf", "sendDtmf() peerConnection is null",
                   null);
         }
         break;
