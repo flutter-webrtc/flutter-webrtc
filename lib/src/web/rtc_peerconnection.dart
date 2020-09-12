@@ -25,6 +25,7 @@ typedef AddTrackCallback = void Function(
 typedef RemoveTrackCallback = void Function(
     MediaStream stream, MediaStreamTrack track);
 typedef RTCDataChannelCallback = void Function(RTCDataChannel channel);
+typedef RenegotiationNeededCallback = void Function();
 
 /*
  *  PeerConnection
@@ -76,7 +77,7 @@ class RTCPeerConnection {
     js.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] =
         js.JsFunction.withThis((_) {
       _iceGatheringState = iceGatheringStateforString(_jsPc.iceGatheringState);
-      onIceGatheringState.call(_iceGatheringState);
+      onIceGatheringState?.call(_iceGatheringState);
     });
 
     _jsPc.onRemoveStream.listen((mediaStreamEvent) {
@@ -87,6 +88,11 @@ class RTCPeerConnection {
     _jsPc.onSignalingStateChange.listen((_) {
       _signalingState = signalingStateForString(_jsPc.signalingState);
       onSignalingState?.call(_signalingState);
+    });
+
+    js.JsObject.fromBrowserObject(_jsPc)['negotiationneeded'] =
+        js.JsFunction.withThis(() {
+      onRenegotiationNeeded?.call();
     });
 
     js.JsObject.fromBrowserObject(_jsPc)['ontrack'] =
@@ -116,7 +122,7 @@ class RTCPeerConnection {
   AddTrackCallback onAddTrack;
   RemoveTrackCallback onRemoveTrack;
   RTCDataChannelCallback onDataChannel;
-  dynamic onRenegotiationNeeded;
+  RenegotiationNeededCallback onRenegotiationNeeded;
 
   RTCSignalingState get signalingState => _signalingState;
 

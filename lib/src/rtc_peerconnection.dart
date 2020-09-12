@@ -26,6 +26,7 @@ typedef AddTrackCallback = void Function(
 typedef RemoveTrackCallback = void Function(
     MediaStream stream, MediaStreamTrack track);
 typedef RTCDataChannelCallback = void Function(RTCDataChannel channel);
+typedef RenegotiationNeededCallback = void Function();
 
 /*
  *  PeerConnection
@@ -61,7 +62,6 @@ class RTCPeerConnection {
   AddTrackCallback onAddTrack;
   RemoveTrackCallback onRemoveTrack;
   RTCDataChannelCallback onDataChannel;
-
   RenegotiationNeededCallback onRenegotiationNeeded;
 
   final Map<String, dynamic> defaultSdpConstraints = {
@@ -172,9 +172,7 @@ class RTCPeerConnection {
         onDataChannel?.call(_dataChannel);
         break;
       case 'onRenegotiationNeeded':
-        if (onRenegotiationNeeded != null) {
-          onRenegotiationNeeded();
-        }
+        onRenegotiationNeeded?.call();
         break;
     }
   }
