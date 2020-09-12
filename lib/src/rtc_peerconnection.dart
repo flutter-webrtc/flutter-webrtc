@@ -62,7 +62,7 @@ class RTCPeerConnection {
   RemoveTrackCallback onRemoveTrack;
   RTCDataChannelCallback onDataChannel;
 
-  dynamic onRenegotiationNeeded;
+  RenegotiationNeededCallback onRenegotiationNeeded;
 
   final Map<String, dynamic> defaultSdpConstraints = {
     'mandatory': {
