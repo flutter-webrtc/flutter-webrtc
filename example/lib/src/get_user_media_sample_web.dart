@@ -29,7 +29,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     initRenderers();
     MediaDevices.getSources().then((md) {
       setState(() {
-        cameras = md.where((d) => d['kind'] == 'videoinput');
+        cameras = md.where((d) => d['kind'] == 'videoinput').toList();
       });
     });
   }
