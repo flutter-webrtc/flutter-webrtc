@@ -152,7 +152,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     }
     _srcObject = stream;
     videoElement.srcObject = stream?.jsStream;
-    videoElement.muted = stream?.ownerTag == 'local';
+    videoElement.muted = stream?.ownerTag == 'local' ?? false;
     value = value.copyWith(renderVideo: renderVideo);
   }
 
