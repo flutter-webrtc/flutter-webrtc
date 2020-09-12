@@ -81,20 +81,18 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
   static int _textureCounter = 1;
   final int textureId;
   html.VideoElement videoElement;
-  bool isInitialized = false;
-
   MediaStream _srcObject;
 
   bool get muted => videoElement?.muted ?? true;
 
   set muted(bool mute) => videoElement?.muted = mute;
 
-  bool get renderVideo => srcObject != null;
+  bool get renderVideo => videoElement != null && srcObject != null;
 
-  void initialize() {
+  Future<void> initialize() async {
     videoElement = html.VideoElement()
       //..src = 'https://flutter-webrtc-video-view-RTCVideoRenderer-$textureId'
-      ..autoplay = false
+      ..autoplay = true
       ..controls = false
       ..style.objectFit = 'contain' // contain or cover
       ..style.border = 'none';
@@ -107,15 +105,21 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
         'RTCVideoRenderer-$textureId', (int viewId) => videoElement);
 
     videoElement.onCanPlay.listen((dynamic _) {
-      if (!isInitialized) {
-        isInitialized = true;
-        value = value.copyWith(
-            rotation: 0,
-            width: videoElement.videoWidth.toDouble() ?? 0.0,
-            height: videoElement.videoHeight.toDouble() ?? 0.0,
-            renderVideo: renderVideo);
-      }
-      print('RTCVideoRenderer: videoElement.onCanPlay');
+      value = value.copyWith(
+          rotation: 0,
+          width: videoElement.videoWidth.toDouble() ?? 0.0,
+          height: videoElement.videoHeight.toDouble() ?? 0.0,
+          renderVideo: renderVideo);
+      print('RTCVideoRenderer: videoElement.onCanPlay ${value.toString()}');
+    });
+
+    videoElement.onResize.listen((dynamic _) {
+      value = value.copyWith(
+          rotation: 0,
+          width: videoElement.videoWidth.toDouble() ?? 0.0,
+          height: videoElement.videoHeight.toDouble() ?? 0.0,
+          renderVideo: renderVideo);
+      print('RTCVideoRenderer: videoElement.onResize ${value.toString()}');
     });
 
     // The error event fires when some form of error occurs while attempting to load or perform the media.
@@ -139,6 +143,8 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
   MediaStream get srcObject => _srcObject;
 
   set srcObject(MediaStream stream) {
+    if (videoElement == null) throw 'Call initialize before setting the stream';
+
     if (stream == null) {
       videoElement.srcObject = null;
       _srcObject = null;
@@ -147,28 +153,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     _srcObject = stream;
     videoElement.srcObject = stream?.jsStream;
     videoElement.muted = stream?.ownerTag == 'local';
-    videoElement.play().catchError((e) {
-      // play() attempts to begin playback of the media. It returns
-      // a Promise which can get rejected in case of failure to begin
-      // playback for any reason, such as permission issues.
-      // The rejection handler is called with a DomException.
-      // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play
-      html.DomException exception = e;
-      throw PlatformException(
-        code: exception.name,
-        message: exception.message,
-      );
-    }, test: (e) => e is html.DomException);
     value = value.copyWith(renderVideo: renderVideo);
-  }
-
-  Widget buildVideoElementView(RTCVideoViewObjectFit objFit, bool mirror) {
-    // TODO(cloudwebrtc): Add css style for mirror.
-    videoElement.style.objectFit =
-        objFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
-            ? 'contain'
-            : 'cover';
-    return HtmlElementView(viewType: 'RTCVideoRenderer-$textureId');
   }
 
   @override
@@ -181,7 +166,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
   }
 }
 
-class RTCVideoView extends StatelessWidget {
+class RTCVideoView extends StatefulWidget {
   RTCVideoView(
     this._renderer, {
     Key key,
@@ -194,24 +179,41 @@ class RTCVideoView extends StatelessWidget {
   final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
+  @override
+  _RTCVideoViewState createState() => _RTCVideoViewState();
+}
+
+class _RTCVideoViewState extends State<RTCVideoView> {
+  _RTCVideoViewState();
+
+  @override
+  void initState() {
+    super.initState();
+    widget._renderer?.addListener(() => setState(() {}));
+  }
+
+  Widget buildVideoElementView(RTCVideoViewObjectFit objFit, bool mirror) {
+    // TODO(cloudwebrtc): Add css style for mirror.
+    widget._renderer.videoElement.style.objectFit =
+        objFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
+            ? 'contain'
+            : 'cover';
+    return HtmlElementView(
+        viewType: 'RTCVideoRenderer-${widget._renderer.textureId}');
+  }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) =>
-            _buildVideoView(constraints));
-  }
-
-  Widget _buildVideoView(BoxConstraints constraints) {
-    return Center(
-        child: Container(
-      width: constraints.maxWidth,
-      height: constraints.maxHeight,
-      child: Center(
-        child: _renderer.srcObject != null
-            ? _renderer.buildVideoElementView(objectFit, mirror)
+        builder: (BuildContext context, BoxConstraints constraints) {
+      return Center(
+          child: Container(
+        width: constraints.maxWidth,
+        height: constraints.maxHeight,
+        child: widget._renderer.renderVideo
+            ? buildVideoElementView(widget.objectFit, widget.mirror)
             : Container(),
-      ),
-    ));
+      ));
+    });
   }
 }
