@@ -11,6 +11,8 @@ export 'src/media_stream_track.dart'
     if (dart.library.html) 'src/web/media_stream_track.dart';
 export 'src/rtc_data_channel.dart'
     if (dart.library.html) 'src/web/rtc_data_channel.dart';
+export 'src/rtc_dtmf_sender.dart'
+    if (dart.library.html) 'src/web/rtc_dtmf_sender.dart';
 export 'src/rtc_ice_candidate.dart'
     if (dart.library.html) 'src/web/rtc_ice_candidate.dart';
 export 'src/rtc_peerconnection.dart'

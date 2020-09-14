@@ -8,6 +8,7 @@ import '../rtc_stats_report.dart';
 import 'media_stream.dart';
 import 'media_stream_track.dart';
 import 'rtc_data_channel.dart';
+import 'rtc_dtmf_sender.dart';
 import 'rtc_ice_candidate.dart';
 import 'rtc_session_description.dart';
 
@@ -232,5 +233,10 @@ class RTCPeerConnection {
       final jsOptions = js.JsObject.jsify(options);
       jsutil.callMethod(_jsPc, 'addTransceiver', [type, jsOptions]);
     }
+  }
+
+  RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
+    var jsDtmfSender = _jsPc.createDtmfSender(track.jsTrack);
+    return RTCDTMFSender(jsDtmfSender);
   }
 }
