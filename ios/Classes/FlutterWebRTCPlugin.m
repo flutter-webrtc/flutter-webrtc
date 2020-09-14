@@ -243,11 +243,9 @@
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSString* tone = argsMap[@"tone"];
-        NSString* durationString = argsMap[@"duration"];
-        NSString* gapString = argsMap[@"gap"];
+        int duration = ((NSNumber*)argsMap[@"duration"]).intValue;
+        int interToneGap = ((NSNumber*)argsMap[@"gap"]).intValue;
         
-        double duration = [durationString doubleValue];
-        double gap = [gapString doubleValue];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection) {
    
@@ -260,8 +258,10 @@
             if(audioSender){
             NSOperationQueue *queue = [[NSOperationQueue alloc] init];
             [queue addOperationWithBlock:^{
+                double durationMs = duration / 1000.0;
+		        double interToneGapMs = interToneGap / 1000.0;
                 [audioSender.dtmfSender insertDtmf :(NSString *)tone
-                duration:(NSTimeInterval) duration interToneGap:(NSTimeInterval)gap];
+                duration:(NSTimeInterval) durationMs interToneGap:(NSTimeInterval)interToneGapMs];
                 NSLog(@"DTMF Tone played ");
             }];
             }
