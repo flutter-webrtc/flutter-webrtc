@@ -1,6 +1,13 @@
 # Changelog
 
 --------------------------------------------
+[0.3.3] - 2020.09.14
+
+* Add RTCDTMFSender for mobile, web and macOS.
+* Improve RenegotiationNeededCallback.
+* Refactor RTCVideoView for web and solve the resize problem.
+* Reduce code size.
+
 [0.3.2] - 2020.09.11
 
 * Reorganize the directory structure.
@@ -15,7 +22,6 @@
 
 * [Dart] FIX - missing null check onIceGatheringState (web)
 
---------------------------------------------
 [0.3.0] - 2020.09.05
 
 * [Dart] Improve RTCVideoView.

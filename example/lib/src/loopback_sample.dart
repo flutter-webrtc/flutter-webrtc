@@ -176,6 +176,12 @@ class _MyAppState extends State<LoopBackSample> {
     _timer.cancel();
   }
 
+  void _sendDtmf() async {
+    var dtmfSender =
+        _peerConnection.createDtmfSender(_localStream.getAudioTracks()[0]);
+    await dtmfSender.sendDtmf('123#');
+  }
+
   @override
   Widget build(BuildContext context) {
     var widgets = <Widget>[
@@ -189,6 +195,14 @@ class _MyAppState extends State<LoopBackSample> {
     return Scaffold(
       appBar: AppBar(
         title: Text('LoopBack example'),
+        actions: _inCalling
+            ? <Widget>[
+                IconButton(
+                  icon: Icon(Icons.keyboard),
+                  onPressed: _sendDtmf,
+                ),
+              ]
+            : null,
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {
