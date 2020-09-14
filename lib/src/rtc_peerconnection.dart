@@ -6,6 +6,7 @@ import 'enums.dart';
 import 'media_stream.dart';
 import 'media_stream_track.dart';
 import 'rtc_data_channel.dart';
+import 'rtc_dtmf_sender.dart';
 import 'rtc_ice_candidate.dart';
 import 'rtc_session_description.dart';
 import 'rtc_stats_report.dart';
@@ -48,7 +49,6 @@ class RTCPeerConnection {
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
   RTCIceConnectionState _iceConnectionState;
-
   // public: delegate
   SignalingStateCallback onSignalingState;
   IceGatheringStateCallback onIceGatheringState;
@@ -355,6 +355,10 @@ class RTCPeerConnection {
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::createDataChannel: ${e.message}';
     }
+  }
+
+  RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
+    return RTCDTMFSender(_peerConnectionId);
   }
 
   Future<Null> close() async {
