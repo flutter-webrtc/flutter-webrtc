@@ -36,8 +36,6 @@ class RTCPeerConnection {
     _eventSubscription = _eventChannelFor(_peerConnectionId)
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
-
-    _dtmfSender = RTCDTMFSender(_peerConnectionId);
   }
 
   // private:
@@ -51,7 +49,6 @@ class RTCPeerConnection {
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
   RTCIceConnectionState _iceConnectionState;
-  RTCDTMFSender _dtmfSender;
   // public: delegate
   SignalingStateCallback onSignalingState;
   IceGatheringStateCallback onIceGatheringState;
@@ -77,8 +74,6 @@ class RTCPeerConnection {
   RTCIceGatheringState get iceGatheringState => _iceGatheringState;
 
   RTCIceConnectionState get iceConnectionState => _iceConnectionState;
-
-  RTCDTMFSender get dtmfSender => _dtmfSender;
 
   /*
    * PeerConnection event listener.
@@ -360,6 +355,10 @@ class RTCPeerConnection {
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::createDataChannel: ${e.message}';
     }
+  }
+
+  RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
+    return RTCDTMFSender(_peerConnectionId);
   }
 
   Future<Null> close() async {
