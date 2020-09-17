@@ -108,11 +108,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     _subscriptions.add(
       videoElement.onCanPlay.listen(
         (dynamic _) {
-          value = value.copyWith(
-              rotation: 0,
-              width: videoElement.videoWidth.toDouble() ?? 0.0,
-              height: videoElement.videoHeight.toDouble() ?? 0.0,
-              renderVideo: renderVideo);
+          _updateAllValues();
           print('RTCVideoRenderer: videoElement.onCanPlay ${value.toString()}');
         },
       ),
@@ -121,11 +117,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     _subscriptions.add(
       videoElement.onResize.listen(
         (dynamic _) {
-          value = value.copyWith(
-              rotation: 0,
-              width: videoElement.videoWidth.toDouble() ?? 0.0,
-              height: videoElement.videoHeight.toDouble() ?? 0.0,
-              renderVideo: renderVideo);
+          _updateAllValues();
           print('RTCVideoRenderer: videoElement.onResize ${value.toString()}');
         },
       ),
@@ -158,6 +150,14 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     );
   }
 
+  void _updateAllValues() {
+    value = value.copyWith(
+        rotation: 0,
+        width: videoElement?.videoWidth?.toDouble() ?? 0.0,
+        height: videoElement?.videoHeight?.toDouble() ?? 0.0,
+        renderVideo: renderVideo);
+  }
+
   MediaStream get srcObject => _srcObject;
 
   set srcObject(MediaStream stream) {
@@ -179,9 +179,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     super.dispose();
     await _srcObject?.dispose();
     _srcObject = null;
-    _subscriptions.forEach((s) {
-      s.cancel();
-    });
+    _subscriptions.forEach((s) => s.cancel());
     videoElement.removeAttribute('src');
     videoElement.load();
   }
