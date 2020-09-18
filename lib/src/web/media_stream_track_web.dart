@@ -2,32 +2,37 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js' as js;
 
-class MediaStreamTrack {
-  const MediaStreamTrack(this.jsTrack);
+import '../model/media_stream_track.dart';
+
+class MediaStreamTrackWeb extends MediaStreamTrack {
+  MediaStreamTrackWeb(this.jsTrack);
 
   final html.MediaStreamTrack jsTrack;
 
-  set enabled(bool enabled) => jsTrack.enabled = enabled;
-
-  bool get enabled => jsTrack.enabled;
-
-  String get label => jsTrack.label;
-
-  String get kind => jsTrack.kind;
-
+  @override
   String get id => jsTrack.id;
 
-  ///Future contains isFrontCamera
-  ///Throws error if switching camera failed
+  @override
+  String get kind => jsTrack.kind;
+
+  @override
+  String get label => jsTrack.label;
+
+  @override
+  bool get enabled => jsTrack.enabled;
+
+  @override
   Future<bool> switchCamera() async {
     // TODO(cloudwebrtc): ???
     return false;
   }
 
+  @override
   Future<void> adaptRes(int width, int height) async {
     // TODO(cloudwebrtc): ???
   }
 
+  @override
   void setVolume(double volume) {
     final constraints = jsTrack.getConstraints();
     constraints['volume'] = volume;
@@ -35,14 +40,17 @@ class MediaStreamTrack {
         .callMethod('applyConstraints', [js.JsObject.jsify(constraints)]);
   }
 
+  @override
   void setMicrophoneMute(bool mute) {
     jsTrack.enabled = !mute;
   }
 
+  @override
   void enableSpeakerphone(bool enable) {
     // Should this throw error?
   }
 
+  @override
   Future<dynamic> captureFrame([String filePath]) async {
     final imageCapture = html.ImageCapture(jsTrack);
     final bitmap = await imageCapture.grabFrame();
@@ -57,8 +65,19 @@ class MediaStreamTrack {
     return dataUrl;
   }
 
+  @override
   Future<void> dispose() {
     jsTrack.stop();
-    return Future.value();
+    return super.dispose();
+  }
+
+  @override
+  Future<bool> hasTorch() {
+    return Future.value(false);
+  }
+
+  @override
+  Future<void> setTorch(bool torch) {
+    throw UnimplementedError('The web implementation does not support torch');
   }
 }

@@ -1,8 +1,10 @@
 import 'dart:async';
+
+import 'model/media_stream_track.dart';
 import 'utils.dart';
 
-class MediaStreamTrack {
-  MediaStreamTrack(this._trackId, this._label, this._kind, this._enabled);
+class MediaStreamTrackNative extends MediaStreamTrack {
+  MediaStreamTrackNative(this._trackId, this._label, this._kind, this._enabled);
   final _channel = WebRTC.methodChannel();
   final String _trackId;
   final String _label;
@@ -15,31 +17,37 @@ class MediaStreamTrack {
     _enabled = enabled;
   }
 
+  @override
   bool get enabled => _enabled;
 
+  @override
   String get label => _label;
 
+  @override
   String get kind => _kind;
 
+  @override
   String get id => _trackId;
 
+  @override
   Future<bool> hasTorch() => _channel.invokeMethod(
         'mediaStreamTrackHasTorch',
         <String, dynamic>{'trackId': _trackId},
       );
 
+  @override
   Future<void> setTorch(bool torch) => _channel.invokeMethod(
         'mediaStreamTrackSetTorch',
         <String, dynamic>{'trackId': _trackId, 'torch': torch},
       );
 
-  ///Future contains isFrontCamera
-  ///Throws error if switching camera failed
+  @override
   Future<bool> switchCamera() => _channel.invokeMethod(
         'mediaStreamTrackSwitchCamera',
         <String, dynamic>{'trackId': _trackId},
       );
 
+  @override
   void setVolume(double volume) async {
     await _channel.invokeMethod(
       'setVolume',
@@ -47,6 +55,7 @@ class MediaStreamTrack {
     );
   }
 
+  @override
   void setMicrophoneMute(bool mute) async {
     print('MediaStreamTrack:setMicrophoneMute $mute');
     await _channel.invokeMethod(
@@ -55,6 +64,7 @@ class MediaStreamTrack {
     );
   }
 
+  @override
   void enableSpeakerphone(bool enable) async {
     print('MediaStreamTrack:enableSpeakerphone $enable');
     await _channel.invokeMethod(
@@ -63,7 +73,7 @@ class MediaStreamTrack {
     );
   }
 
-  /// On Flutter Web returns Future<dynamic> which contains data url on success
+  @override
   Future<dynamic> captureFrame([String filePath]) {
     return _channel.invokeMethod<void>(
       'captureFrame',
@@ -71,10 +81,16 @@ class MediaStreamTrack {
     );
   }
 
+  @override
   Future<void> dispose() async {
     await _channel.invokeMethod(
       'trackDispose',
       <String, dynamic>{'trackId': _trackId},
     );
+  }
+
+  @override
+  Future<void> adaptRes(int width, int height) {
+    throw UnimplementedError();
   }
 }

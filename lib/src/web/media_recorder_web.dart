@@ -2,16 +2,17 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js' as js;
 
-import '../enums.dart';
-import 'media_stream.dart';
-import 'media_stream_track.dart';
+import '../model/enums.dart';
+import '../model/media_recorder.dart';
+import '../model/media_stream.dart';
+import '../model/media_stream_track.dart';
+import 'media_stream_web.dart';
 
-class MediaRecorder {
+class MediaRecorderWeb extends MediaRecorder {
   html.MediaRecorder _recorder;
   Completer<String> _completer;
 
-  /// For Android use audioChannel param
-  /// For iOS use audioTrack
+  @override
   Future<void> start(
     String path, {
     MediaStreamTrack videoTrack,
@@ -22,13 +23,14 @@ class MediaRecorder {
     throw 'Use startWeb on Flutter Web!';
   }
 
-  /// Only for Flutter Web
+  @override
   void startWeb(
     MediaStream stream, {
     Function(dynamic blob, bool isLastOne) onDataChunk,
     String mimeType = 'video/webm',
   }) {
-    _recorder = html.MediaRecorder(stream.jsStream, {'mimeType': mimeType});
+    var _native = stream as MediaStreamWeb;
+    _recorder = html.MediaRecorder(_native.jsStream, {'mimeType': mimeType});
     if (onDataChunk == null) {
       var _chunks = <html.Blob>[];
       _completer = Completer<String>();
@@ -58,6 +60,7 @@ class MediaRecorder {
     _recorder.start();
   }
 
+  @override
   Future<dynamic> stop() {
     _recorder?.stop();
     return _completer?.future ?? Future.value();

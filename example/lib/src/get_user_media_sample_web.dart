@@ -17,7 +17,7 @@ class GetUserMediaSample extends StatefulWidget {
 
 class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaStream _localStream;
-  final _localRenderer = RTCVideoRenderer();
+  final _localRenderer = videoRenderer();
   bool _inCalling = false;
   MediaRecorder _mediaRecorder;
   bool get _isRec => _mediaRecorder != null;
@@ -27,7 +27,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   void initState() {
     super.initState();
     initRenderers();
-    MediaDevices.getSources().then((md) {
+    mediaDevices().getSources().then((md) {
       setState(() {
         cameras = md.where((d) => d['kind'] == 'videoinput').toList();
       });
@@ -62,7 +62,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      var stream = await MediaDevices.getUserMedia(mediaConstraints);
+      var stream = await mediaDevices().getUserMedia(mediaConstraints);
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
     } catch (e) {
@@ -88,7 +88,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   void _startRecording() async {
-    _mediaRecorder = MediaRecorder();
+    _mediaRecorder = mediaRecorder();
     setState(() {});
     _mediaRecorder.startWeb(_localStream);
   }

@@ -3,10 +3,13 @@ import 'dart:html' as html;
 import 'dart:js';
 import 'dart:js_util' as jsutil;
 
-import 'media_stream.dart';
+import '../model/media_device.dart';
+import '../model/media_stream.dart';
+import 'media_stream_web.dart';
 
-class MediaDevices {
-  static Future<MediaStream> getUserMedia(
+class MediaDevicesWeb extends MediaDevices {
+  @override
+  Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
     mediaConstraints ??= <String, dynamic>{};
 
@@ -22,13 +25,14 @@ class MediaDevices {
 
       final mediaDevices = html.window.navigator.mediaDevices;
       final jsStream = await mediaDevices.getUserMedia(mediaConstraints);
-      return MediaStream(jsStream, 'local');
+      return MediaStreamWeb(jsStream, 'local');
     } catch (e) {
       throw 'Unable to getUserMedia: ${e.toString()}';
     }
   }
 
-  static Future<MediaStream> getDisplayMedia(
+  @override
+  Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
     try {
       final mediaDevices = html.window.navigator.mediaDevices;
@@ -37,19 +41,20 @@ class MediaDevices {
 
         final jsStream = await jsutil.promiseToFuture<html.MediaStream>(
             jsutil.callMethod(mediaDevices, 'getDisplayMedia', [arg]));
-        return MediaStream(jsStream, 'local');
+        return MediaStreamWeb(jsStream, 'local');
       } else {
         final jsStream = await html.window.navigator.getUserMedia(
             video: {'mediaSource': 'screen'},
             audio: mediaConstraints['audio'] ?? false);
-        return MediaStream(jsStream, 'local');
+        return MediaStreamWeb(jsStream, 'local');
       }
     } catch (e) {
       throw 'Unable to getDisplayMedia: ${e.toString()}';
     }
   }
 
-  static Future<List<dynamic>> getSources() async {
+  @override
+  Future<List<dynamic>> getSources() async {
     final devices = await html.window.navigator.mediaDevices.enumerateDevices();
     final result = <dynamic>[];
     for (final device in devices) {

@@ -4,59 +4,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'enums.dart';
-import 'media_stream.dart';
+import 'model/enums.dart';
+import 'model/media_stream.dart';
+import 'model/rtc_video_renderer.dart';
 import 'utils.dart';
 
-@immutable
-class RTCVideoValue {
-  const RTCVideoValue({
-    this.width = 0.0,
-    this.height = 0.0,
-    this.rotation = 0,
-    this.renderVideo = false,
-  });
-  static const empty = RTCVideoValue();
-  final double width;
-  final double height;
-  final int rotation;
-  final bool renderVideo;
-  double get aspectRatio {
-    if (width == 0.0 || height == 0.0) {
-      return 1.0;
-    }
-    return (rotation == 90 || rotation == 270)
-        ? height / width
-        : width / height;
-  }
-
-  RTCVideoValue copyWith({
-    double width,
-    double height,
-    int rotation,
-    bool renderVideo,
-  }) {
-    return RTCVideoValue(
-      width: width ?? this.width,
-      height: height ?? this.height,
-      rotation: rotation ?? this.rotation,
-      renderVideo: (this.width != 0 && this.height != 0 && renderVideo) ??
-          this.renderVideo,
-    );
-  }
-
-  @override
-  String toString() =>
-      '$runtimeType(width: $width, height: $height, rotation: $rotation)';
-}
-
-class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
-  RTCVideoRenderer() : super(RTCVideoValue.empty);
+class RTCVideoRendererNative extends RTCVideoRenderer {
+  RTCVideoRendererNative();
   final _channel = WebRTC.methodChannel();
   int _textureId;
   MediaStream _srcObject;
   StreamSubscription<dynamic> _eventSubscription;
 
+  @override
   Future<void> initialize() async {
     final response = await _channel
         .invokeMethod<Map<dynamic, dynamic>>('createVideoRenderer', {});
@@ -68,8 +28,10 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
 
   int get textureId => _textureId;
 
+  @override
   MediaStream get srcObject => _srcObject;
 
+  @override
   set srcObject(MediaStream stream) {
     if (textureId == null) throw 'Call initialize before setting the stream';
 
@@ -87,12 +49,13 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
 
   @override
   Future<void> dispose() async {
-    super.dispose();
     await _eventSubscription?.cancel();
     await _channel.invokeMethod(
       'videoRendererDispose',
       <String, dynamic>{'textureId': _textureId},
     );
+
+    return super.dispose();
   }
 
   void eventListener(dynamic event) {
@@ -118,7 +81,16 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     throw e;
   }
 
+  @override
   bool get renderVideo => srcObject != null;
+
+  @override
+  bool get muted => throw UnimplementedError();
+
+  @override
+  set muted(bool mute) {
+    throw UnimplementedError();
+  }
 }
 
 class RTCVideoView extends StatelessWidget {
@@ -131,7 +103,7 @@ class RTCVideoView extends StatelessWidget {
         assert(mirror != null),
         super(key: key);
 
-  final RTCVideoRenderer _renderer;
+  final RTCVideoRendererNative _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
 

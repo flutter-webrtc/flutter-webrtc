@@ -16,7 +16,7 @@ class GetDisplayMediaSample extends StatefulWidget {
 
 class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   MediaStream _localStream;
-  final _localRenderer = RTCVideoRenderer();
+  final _localRenderer = videoRenderer();
   bool _inCalling = false;
   Timer _timer;
   var _counter = 0;
@@ -52,7 +52,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     final mediaConstraints = <String, dynamic>{'audio': false, 'video': true};
 
     try {
-      var stream = await MediaDevices.getDisplayMedia(mediaConstraints);
+      var stream = await mediaDevices().getDisplayMedia(mediaConstraints);
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
     } catch (e) {

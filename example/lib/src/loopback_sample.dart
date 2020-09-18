@@ -14,8 +14,8 @@ class LoopBackSample extends StatefulWidget {
 class _MyAppState extends State<LoopBackSample> {
   MediaStream _localStream;
   RTCPeerConnection _peerConnection;
-  final _localRenderer = RTCVideoRenderer();
-  final _remoteRenderer = RTCVideoRenderer();
+  final _localRenderer = videoRenderer();
+  final _remoteRenderer = videoRenderer();
   bool _inCalling = false;
   Timer _timer;
 
@@ -128,7 +128,7 @@ class _MyAppState extends State<LoopBackSample> {
     if (_peerConnection != null) return;
 
     try {
-      _localStream = await MediaDevices.getUserMedia(mediaConstraints);
+      _localStream = await mediaDevices().getUserMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
       _peerConnection =
           await createPeerConnection(configuration, loopbackConstraints);

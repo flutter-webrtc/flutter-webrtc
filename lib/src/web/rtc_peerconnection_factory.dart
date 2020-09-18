@@ -2,26 +2,77 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html' as html;
 
-import 'media_stream.dart';
-import 'rtc_peerconnection.dart';
+import '../model/factory.dart';
+import '../model/media_device.dart';
+import '../model/media_recorder.dart';
+import '../model/media_stream.dart';
+import '../model/rtc_peerconnection.dart';
+import '../model/rtc_video_renderer.dart';
+import 'media_devices_web.dart';
+import 'media_recorder_web.dart';
+import 'media_stream_web.dart';
+import 'rtc_peerconnection_web.dart';
+import 'rtc_video_view.dart';
 
 Future<RTCPeerConnection> createPeerConnection(
     Map<String, dynamic> configuration,
-    Map<String, dynamic> constraints) async {
-  final constr = (constraints != null && constraints.isNotEmpty)
-      ? constraints
-      : {
-          'mandatory': {},
-          'optional': [
-            {'DtlsSrtpKeyAgreement': true},
-          ],
-        };
-  final jsRtcPc = html.RtcPeerConnection(configuration, constr);
-  final _peerConnectionId = base64Encode(jsRtcPc.toString().codeUnits);
-  return RTCPeerConnection(_peerConnectionId, jsRtcPc);
+    [Map<String, dynamic> constraints]) {
+  return _RTCFactoryWeb.instance
+      .createPeerConnection(configuration, constraints);
 }
 
-Future<MediaStream> createLocalMediaStream(String label) async {
-  final jsMs = html.MediaStream();
-  return MediaStream(jsMs, 'local');
+Future<MediaStream> createLocalMediaStream(String label) {
+  return _RTCFactoryWeb.instance.createLocalMediaStream(label);
+}
+
+MediaDevices mediaDevices() {
+  return _RTCFactoryWeb.instance.mediaDevices();
+}
+
+MediaRecorder mediaRecorder() {
+  return _RTCFactoryWeb.instance.mediaRecorder();
+}
+
+class _RTCFactoryWeb extends RTCFactory {
+  _RTCFactoryWeb._internal();
+
+  static final RTCFactory instance = _RTCFactoryWeb._internal();
+
+  @override
+  Future<RTCPeerConnection> createPeerConnection(
+      Map<String, dynamic> configuration,
+      [Map<String, dynamic> constraints]) async {
+    final constr = (constraints != null && constraints.isNotEmpty)
+        ? constraints
+        : {
+            'mandatory': {},
+            'optional': [
+              {'DtlsSrtpKeyAgreement': true},
+            ],
+          };
+    final jsRtcPc = html.RtcPeerConnection(configuration, constr);
+    final _peerConnectionId = base64Encode(jsRtcPc.toString().codeUnits);
+    return RTCPeerConnectionWeb(_peerConnectionId, jsRtcPc);
+  }
+
+  @override
+  Future<MediaStream> createLocalMediaStream(String label) async {
+    final jsMs = html.MediaStream();
+    return MediaStreamWeb(jsMs, 'local');
+  }
+
+  @override
+  MediaDevices mediaDevices() {
+    return MediaDevicesWeb();
+  }
+
+  @override
+  MediaRecorder mediaRecorder() {
+    return MediaRecorderWeb();
+  }
+
+  @override
+  RTCVideoRenderer videoRenderer() {
+    return RTCVideoRendererWeb();
+  }
 }

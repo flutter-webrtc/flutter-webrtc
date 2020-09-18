@@ -17,7 +17,7 @@ class GetUserMediaSample extends StatefulWidget {
 
 class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaStream _localStream;
-  final _localRenderer = RTCVideoRenderer();
+  final _localRenderer = videoRenderer();
   bool _inCalling = false;
   bool _isTorchOn = false;
   MediaRecorder _mediaRecorder;
@@ -59,7 +59,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      var stream = await MediaDevices.getUserMedia(mediaConstraints);
+      var stream = await mediaDevices().getUserMedia(mediaConstraints);
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
     } catch (e) {
@@ -92,7 +92,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     // TODO(rostopira): request write storage permission
     final storagePath = await getExternalStorageDirectory();
     final filePath = storagePath.path + '/webrtc_sample/test.mp4';
-    _mediaRecorder = MediaRecorder();
+    _mediaRecorder = mediaRecorder();
     setState(() {});
     await _localStream.getMediaTracks();
     final videoTrack = _localStream

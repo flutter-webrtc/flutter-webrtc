@@ -1,15 +1,17 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'enums.dart';
-import 'media_stream.dart';
-import 'media_stream_track.dart';
+import 'model/enums.dart';
+import 'model/media_recorder.dart';
+import 'model/media_stream.dart';
+import 'model/media_stream_track.dart';
 import 'utils.dart';
 
-class MediaRecorder {
+class MediaRecorderNative extends MediaRecorder {
   static final _random = Random();
   final _recorderId = _random.nextInt(0x7FFFFFFF);
 
+  @override
   Future<void> start(String path,
       {MediaStreamTrack videoTrack, RecorderAudioChannel audioChannel
       // TODO(cloudwebrtc): add codec/quality options
@@ -30,12 +32,13 @@ class MediaRecorder {
     });
   }
 
+  @override
   void startWeb(MediaStream stream,
-      {Function(dynamic blob, bool isLastOne) onDataChunk,
-      String mimeType = 'video/mp4;codecs=h264'}) {
+      {Function(dynamic blob, bool isLastOne) onDataChunk, String mimeType}) {
     throw 'It\'s for Flutter Web only';
   }
 
+  @override
   Future<dynamic> stop() async => await WebRTC.methodChannel()
       .invokeMethod('stopRecordToFile', {'recorderId': _recorderId});
 }

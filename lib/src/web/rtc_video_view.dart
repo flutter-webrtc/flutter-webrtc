@@ -3,10 +3,12 @@ import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_webrtc/src/web/media_stream_web.dart';
 
-import '../enums.dart';
 import './ui_fake.dart' if (dart.library.html) 'dart:ui' as ui;
-import 'media_stream.dart';
+import '../model/enums.dart';
+import '../model/media_stream.dart';
+import '../model/rtc_video_renderer.dart';
 
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
@@ -31,52 +33,8 @@ const Map<int, String> _kErrorValueToErrorDescription = {
 const String _kDefaultErrorMessage =
     'No further diagnostic information can be determined or provided.';
 
-@immutable
-class RTCVideoValue {
-  const RTCVideoValue({
-    this.width = 0.0,
-    this.height = 0.0,
-    this.rotation = 0,
-    this.renderVideo = false,
-  });
-  static const RTCVideoValue empty = RTCVideoValue();
-  final double width;
-  final double height;
-  final int rotation;
-  final bool renderVideo;
-  double get aspectRatio {
-    if (width == 0.0 || height == 0.0) {
-      return 1.0;
-    }
-    return (rotation == 90 || rotation == 270)
-        ? height / width
-        : width / height;
-  }
-
-  RTCVideoValue copyWith({
-    double width,
-    double height,
-    int rotation,
-    bool renderVideo,
-  }) {
-    return RTCVideoValue(
-      width: width ?? this.width,
-      height: height ?? this.height,
-      rotation: rotation ?? this.rotation,
-      renderVideo: (this.width != 0 && this.height != 0 && renderVideo) ??
-          this.renderVideo,
-    );
-  }
-
-  @override
-  String toString() =>
-      '$runtimeType(width: $width, height: $height, rotation: $rotation)';
-}
-
-class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
-  RTCVideoRenderer()
-      : textureId = _textureCounter++,
-        super(RTCVideoValue.empty);
+class RTCVideoRendererWeb extends RTCVideoRenderer {
+  RTCVideoRendererWeb() : textureId = _textureCounter++;
 
   static int _textureCounter = 1;
   final int textureId;
@@ -84,12 +42,16 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
   MediaStream _srcObject;
   final _subscriptions = <StreamSubscription>[];
 
+  @override
   bool get muted => videoElement?.muted ?? true;
 
+  @override
   set muted(bool mute) => videoElement?.muted = mute;
 
+  @override
   bool get renderVideo => videoElement != null && srcObject != null;
 
+  @override
   Future<void> initialize() async {
     videoElement = html.VideoElement()
       //..src = 'https://flutter-webrtc-video-view-RTCVideoRenderer-$textureId'
@@ -158,8 +120,10 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
         renderVideo: renderVideo);
   }
 
+  @override
   MediaStream get srcObject => _srcObject;
 
+  @override
   set srcObject(MediaStream stream) {
     if (videoElement == null) throw 'Call initialize before setting the stream';
 
@@ -169,19 +133,21 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
       return;
     }
     _srcObject = stream;
-    videoElement.srcObject = stream?.jsStream;
+    var _native = stream as MediaStreamWeb;
+    videoElement.srcObject = _native.jsStream;
     videoElement.muted = stream?.ownerTag == 'local' ?? false;
     value = value.copyWith(renderVideo: renderVideo);
   }
 
   @override
   Future<void> dispose() async {
-    super.dispose();
     await _srcObject?.dispose();
     _srcObject = null;
     _subscriptions.forEach((s) => s.cancel());
     videoElement.removeAttribute('src');
     videoElement.load();
+
+    return super.dispose();
   }
 }
 
@@ -195,7 +161,7 @@ class RTCVideoView extends StatefulWidget {
         assert(mirror != null),
         super(key: key);
 
-  final RTCVideoRenderer _renderer;
+  final RTCVideoRendererWeb _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
   @override

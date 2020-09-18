@@ -1,10 +1,15 @@
 import 'dart:async';
+
 import 'package:flutter/services.dart';
-import 'media_stream.dart';
+
+import 'media_stream_native.dart';
+import 'model/media_device.dart';
+import 'model/media_stream.dart';
 import 'utils.dart';
 
-class MediaDevices {
-  static Future<MediaStream> getUserMedia(
+class MediaDevicesNative extends MediaDevices {
+  @override
+  Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
     var channel = WebRTC.methodChannel();
     try {
@@ -13,7 +18,7 @@ class MediaDevices {
         <String, dynamic>{'constraints': mediaConstraints},
       );
       String streamId = response['streamId'];
-      var stream = MediaStream(streamId, 'local');
+      var stream = MediaStreamNative(streamId, 'local');
       stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
       return stream;
     } on PlatformException catch (e) {
@@ -21,11 +26,8 @@ class MediaDevices {
     }
   }
 
-/* Implement screen sharing,
- * use MediaProjection for Android and use ReplayKit for iOS
- * TODO(cloudwebrtc): implement for native layer.
- * */
-  static Future<MediaStream> getDisplayMedia(
+  @override
+  Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
     var channel = WebRTC.methodChannel();
     try {
@@ -34,7 +36,7 @@ class MediaDevices {
         <String, dynamic>{'constraints': mediaConstraints},
       );
       String streamId = response['streamId'];
-      var stream = MediaStream(streamId, 'local');
+      var stream = MediaStreamNative(streamId, 'local');
       stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
       return stream;
     } on PlatformException catch (e) {
@@ -42,7 +44,8 @@ class MediaDevices {
     }
   }
 
-  static Future<List<dynamic>> getSources() async {
+  @override
+  Future<List<dynamic>> getSources() async {
     var channel = WebRTC.methodChannel();
     try {
       final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
