@@ -82,6 +82,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
   final int textureId;
   html.VideoElement videoElement;
   MediaStream _srcObject;
+  final _subscriptions = <StreamSubscription>[];
 
   bool get muted => videoElement?.muted ?? true;
 
@@ -104,40 +105,57 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     ui.platformViewRegistry.registerViewFactory(
         'RTCVideoRenderer-$textureId', (int viewId) => videoElement);
 
-    videoElement.onCanPlay.listen((dynamic _) {
-      value = value.copyWith(
-          rotation: 0,
-          width: videoElement.videoWidth.toDouble() ?? 0.0,
-          height: videoElement.videoHeight.toDouble() ?? 0.0,
-          renderVideo: renderVideo);
-      print('RTCVideoRenderer: videoElement.onCanPlay ${value.toString()}');
-    });
+    _subscriptions.add(
+      videoElement.onCanPlay.listen(
+        (dynamic _) {
+          _updateAllValues();
+          print('RTCVideoRenderer: videoElement.onCanPlay ${value.toString()}');
+        },
+      ),
+    );
 
-    videoElement.onResize.listen((dynamic _) {
-      value = value.copyWith(
-          rotation: 0,
-          width: videoElement.videoWidth.toDouble() ?? 0.0,
-          height: videoElement.videoHeight.toDouble() ?? 0.0,
-          renderVideo: renderVideo);
-      print('RTCVideoRenderer: videoElement.onResize ${value.toString()}');
-    });
+    _subscriptions.add(
+      videoElement.onResize.listen(
+        (dynamic _) {
+          _updateAllValues();
+          print('RTCVideoRenderer: videoElement.onResize ${value.toString()}');
+        },
+      ),
+    );
 
     // The error event fires when some form of error occurs while attempting to load or perform the media.
-    videoElement.onError.listen((html.Event _) {
-      // The Event itself (_) doesn't contain info about the actual error.
-      // We need to look at the HTMLMediaElement.error.
-      // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
-      var error = videoElement.error;
-      throw PlatformException(
-        code: _kErrorValueToErrorName[error.code],
-        message: error.message != '' ? error.message : _kDefaultErrorMessage,
-        details: _kErrorValueToErrorDescription[error.code],
-      );
-    });
+    _subscriptions.add(
+      videoElement.onError.listen(
+        (html.Event _) {
+          // The Event itself (_) doesn't contain info about the actual error.
+          // We need to look at the HTMLMediaElement.error.
+          // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
+          var error = videoElement.error;
+          throw PlatformException(
+            code: _kErrorValueToErrorName[error.code],
+            message:
+                error.message != '' ? error.message : _kDefaultErrorMessage,
+            details: _kErrorValueToErrorDescription[error.code],
+          );
+        },
+      ),
+    );
 
-    videoElement.onEnded.listen((dynamic _) {
-      print('RTCVideoRenderer: videoElement.onEnded');
-    });
+    _subscriptions.add(
+      videoElement.onEnded.listen(
+        (dynamic _) {
+          print('RTCVideoRenderer: videoElement.onEnded');
+        },
+      ),
+    );
+  }
+
+  void _updateAllValues() {
+    value = value.copyWith(
+        rotation: 0,
+        width: videoElement?.videoWidth?.toDouble() ?? 0.0,
+        height: videoElement?.videoHeight?.toDouble() ?? 0.0,
+        renderVideo: renderVideo);
   }
 
   MediaStream get srcObject => _srcObject;
@@ -161,6 +179,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     super.dispose();
     await _srcObject?.dispose();
     _srcObject = null;
+    _subscriptions.forEach((s) => s.cancel());
     videoElement.removeAttribute('src');
     videoElement.load();
   }
