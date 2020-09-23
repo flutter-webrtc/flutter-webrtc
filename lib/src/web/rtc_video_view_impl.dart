@@ -3,12 +3,12 @@ import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_webrtc/src/web/media_stream_web.dart';
+import 'package:flutter_webrtc/src/web/media_stream_impl.dart';
 
-import './ui_fake.dart' if (dart.library.html) 'dart:ui' as ui;
-import '../model/enums.dart';
-import '../model/media_stream.dart';
-import '../model/rtc_video_renderer.dart';
+import '../interface/enums.dart';
+import '../interface/media_stream.dart';
+import '../interface/rtc_video_renderer.dart';
+import 'ui_fake.dart' if (dart.library.html) 'dart:ui' as ui;
 
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code

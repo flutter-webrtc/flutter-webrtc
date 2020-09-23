@@ -2,17 +2,17 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html' as html;
 
-import '../model/factory.dart';
-import '../model/media_device.dart';
-import '../model/media_recorder.dart';
-import '../model/media_stream.dart';
-import '../model/rtc_peerconnection.dart';
-import '../model/rtc_video_renderer.dart';
-import 'media_devices_web.dart';
-import 'media_recorder_web.dart';
-import 'media_stream_web.dart';
-import 'rtc_peerconnection_web.dart';
-import 'rtc_video_view.dart';
+import '../interface/factory.dart';
+import '../interface/media_device.dart';
+import '../interface/media_recorder.dart';
+import '../interface/media_stream.dart';
+import '../interface/rtc_peerconnection.dart';
+import '../interface/rtc_video_renderer.dart';
+import 'media_devices_impl.dart';
+import 'media_recorder_impl.dart';
+import 'media_stream_impl.dart';
+import 'rtc_peerconnection_impl.dart';
+import 'rtc_video_view_impl.dart';
 
 Future<RTCPeerConnection> createPeerConnection(
     Map<String, dynamic> configuration,

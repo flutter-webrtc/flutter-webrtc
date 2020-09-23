@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-import 'model/enums.dart';
-import 'model/rtc_data_channel.dart';
+import '../interface/enums.dart';
+import '../interface/rtc_data_channel.dart';
 import 'utils.dart';
 
 final _typeStringToMessageType = <String, MessageType>{

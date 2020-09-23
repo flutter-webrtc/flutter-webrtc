@@ -1,4 +1,7 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'media_device.dart';
+import 'media_recorder.dart';
+import 'media_stream.dart';
+import 'rtc_peerconnection.dart';
 import 'rtc_video_renderer.dart';
 
 abstract class RTCFactory {

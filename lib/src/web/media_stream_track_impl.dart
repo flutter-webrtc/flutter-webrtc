@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js' as js;
 
-import '../model/media_stream_track.dart';
+import '../interface/media_stream_track.dart';
 
 class MediaStreamTrackWeb extends MediaStreamTrack {
   MediaStreamTrackWeb(this.jsTrack);

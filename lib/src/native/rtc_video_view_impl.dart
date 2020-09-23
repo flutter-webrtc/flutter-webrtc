@@ -4,9 +4,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'model/enums.dart';
-import 'model/media_stream.dart';
-import 'model/rtc_video_renderer.dart';
+import '../interface/enums.dart';
+import '../interface/media_stream.dart';
+import '../interface/rtc_video_renderer.dart';
 import 'utils.dart';
 
 class RTCVideoRendererNative extends RTCVideoRenderer {

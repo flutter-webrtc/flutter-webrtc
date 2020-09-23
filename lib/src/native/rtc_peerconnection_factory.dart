@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'media_devives_native.dart';
-import 'media_recorder_native.dart';
-import 'media_stream_native.dart';
-import 'model/factory.dart';
-import 'model/media_device.dart';
-import 'model/media_recorder.dart';
-import 'model/media_stream.dart';
-import 'model/rtc_peerconnection.dart';
-import 'model/rtc_video_renderer.dart';
-import 'rtc_peerconnection_native.dart';
-import 'rtc_video_view.dart';
+import '../interface/factory.dart';
+import '../interface/media_device.dart';
+import '../interface/media_recorder.dart';
+import '../interface/media_stream.dart';
+import '../interface/rtc_peerconnection.dart';
+import '../interface/rtc_video_renderer.dart';
+import 'media_devives_impl.dart';
+import 'media_recorder_impl.dart';
+import 'media_stream_impl.dart';
+import 'rtc_peerconnection_impl.dart';
+import 'rtc_video_view_impl.dart';
 import 'utils.dart';
 
 Future<RTCPeerConnection> createPeerConnection(

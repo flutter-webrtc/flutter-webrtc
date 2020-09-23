@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'model/enums.dart';
-import 'model/media_recorder.dart';
-import 'model/media_stream.dart';
-import 'model/media_stream_track.dart';
+import '../interface/enums.dart';
+import '../interface/media_recorder.dart';
+import '../interface/media_stream.dart';
+import '../interface/media_stream_track.dart';
 import 'utils.dart';
 
 class MediaRecorderNative extends MediaRecorder {

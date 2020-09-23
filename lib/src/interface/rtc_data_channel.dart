@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import '../model/enums.dart';
+import 'enums.dart';
 
 class RTCDataChannelInit {
   bool ordered = true;

@@ -3,19 +3,19 @@ import 'dart:html' as html;
 import 'dart:js' as js;
 import 'dart:js_util' as jsutil;
 
-import '../model/enums.dart';
-import '../model/media_stream.dart';
-import '../model/media_stream_track.dart';
-import '../model/rtc_data_channel.dart';
-import '../model/rtc_dtmf_sender.dart';
-import '../model/rtc_ice_candidate.dart';
-import '../model/rtc_peerconnection.dart';
-import '../model/rtc_session_description.dart';
-import '../model/rtc_stats_report.dart';
-import 'media_stream_track_web.dart';
-import 'media_stream_web.dart';
-import 'rtc_data_channel_web.dart';
-import 'rtc_dtmf_sender_web.dart';
+import '../interface/enums.dart';
+import '../interface/media_stream.dart';
+import '../interface/media_stream_track.dart';
+import '../interface/rtc_data_channel.dart';
+import '../interface/rtc_dtmf_sender.dart';
+import '../interface/rtc_ice_candidate.dart';
+import '../interface/rtc_peerconnection.dart';
+import '../interface/rtc_session_description.dart';
+import '../interface/rtc_stats_report.dart';
+import 'media_stream_impl.dart';
+import 'media_stream_track_impl.dart';
+import 'rtc_data_channel_impl.dart';
+import 'rtc_dtmf_sender_impl.dart';
 
 /*
  *  PeerConnection

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:html' as html;
 
-import '../model/media_stream.dart';
-import '../model/media_stream_track.dart';
-import 'media_stream_track_web.dart';
+import '../interface/media_stream.dart';
+import '../interface/media_stream_track.dart';
+import 'media_stream_track_impl.dart';
 
 class MediaStreamWeb extends MediaStream {
   MediaStreamWeb(this.jsStream, String ownerTag) : super(jsStream.id, ownerTag);

@@ -1,4 +1,4 @@
-import 'model/rtc_dtmf_sender.dart';
+import '../interface/rtc_dtmf_sender.dart';
 import 'utils.dart';
 
 class RTCDTMFSenderNative extends RTCDTMFSender {

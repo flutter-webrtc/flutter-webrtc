@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'model/media_stream_track.dart';
+import '../interface/media_stream_track.dart';
 import 'utils.dart';
 
 class MediaStreamTrackNative extends MediaStreamTrack {

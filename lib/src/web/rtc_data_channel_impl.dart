@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
 
-import '../model/enums.dart';
-import '../model/rtc_data_channel.dart';
+import '../interface/enums.dart';
+import '../interface/rtc_data_channel.dart';
 
 class RTCDataChannelWeb extends RTCDataChannel {
   RTCDataChannelWeb(this._jsDc) {

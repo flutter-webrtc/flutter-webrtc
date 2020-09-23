@@ -2,19 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-import 'model/media_stream.dart';
-import 'model/media_stream_track.dart';
-import 'model/rtc_data_channel.dart';
-import 'model/rtc_dtmf_sender.dart';
-import 'model/rtc_peerconnection.dart';
-import 'media_stream_native.dart';
-import 'media_stream_track_native.dart';
-import 'model/enums.dart';
-import 'model/rtc_ice_candidate.dart';
-import 'model/rtc_session_description.dart';
-import 'model/rtc_stats_report.dart';
-import 'rtc_data_channel_native.dart';
-import 'rtc_dtmf_sender_native.dart';
+import '../interface/enums.dart';
+import '../interface/media_stream.dart';
+import '../interface/media_stream_track.dart';
+import '../interface/rtc_data_channel.dart';
+import '../interface/rtc_dtmf_sender.dart';
+import '../interface/rtc_ice_candidate.dart';
+import '../interface/rtc_peerconnection.dart';
+import '../interface/rtc_session_description.dart';
+import '../interface/rtc_stats_report.dart';
+import 'media_stream_impl.dart';
+import 'media_stream_track_impl.dart';
+import 'rtc_data_channel_impl.dart';
+import 'rtc_dtmf_sender_impl.dart';
 import 'utils.dart';
 
 /*

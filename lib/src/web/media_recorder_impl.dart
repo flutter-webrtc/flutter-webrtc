@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js' as js;
 
-import '../model/enums.dart';
-import '../model/media_recorder.dart';
-import '../model/media_stream.dart';
-import '../model/media_stream_track.dart';
-import 'media_stream_web.dart';
+import '../interface/enums.dart';
+import '../interface/media_recorder.dart';
+import '../interface/media_stream.dart';
+import '../interface/media_stream_track.dart';
+import 'media_stream_impl.dart';
 
 class MediaRecorderWeb extends MediaRecorder {
   html.MediaRecorder _recorder;

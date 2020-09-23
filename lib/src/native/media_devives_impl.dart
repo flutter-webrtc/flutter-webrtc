@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-import 'media_stream_native.dart';
-import 'model/media_device.dart';
-import 'model/media_stream.dart';
+import '../interface/media_device.dart';
+import '../interface/media_stream.dart';
+import 'media_stream_impl.dart';
 import 'utils.dart';
 
 class MediaDevicesNative extends MediaDevices {

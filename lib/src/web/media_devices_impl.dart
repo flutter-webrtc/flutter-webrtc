@@ -3,9 +3,9 @@ import 'dart:html' as html;
 import 'dart:js';
 import 'dart:js_util' as jsutil;
 
-import '../model/media_device.dart';
-import '../model/media_stream.dart';
-import 'media_stream_web.dart';
+import '../interface/media_device.dart';
+import '../interface/media_stream.dart';
+import 'media_stream_impl.dart';
 
 class MediaDevicesWeb extends MediaDevices {
   @override
