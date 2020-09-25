@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'dart:html' as html;
 
 import '../interface/factory.dart';
-import '../interface/media_device.dart';
 import '../interface/media_recorder.dart';
 import '../interface/media_stream.dart';
+import '../interface/navigator.dart';
 import '../interface/rtc_peerconnection.dart';
 import '../interface/rtc_video_renderer.dart';
-import 'media_devices_impl.dart';
 import 'media_recorder_impl.dart';
 import 'media_stream_impl.dart';
+import 'navigator_impl.dart';
 import 'rtc_peerconnection_impl.dart';
 import 'rtc_video_view_impl.dart';
 
@@ -25,8 +25,8 @@ Future<MediaStream> createLocalMediaStream(String label) {
   return _RTCFactoryWeb.instance.createLocalMediaStream(label);
 }
 
-MediaDevices mediaDevices() {
-  return _RTCFactoryWeb.instance.mediaDevices();
+Navigator navigator() {
+  return _RTCFactoryWeb.instance.navigator();
 }
 
 MediaRecorder mediaRecorder() {
@@ -62,8 +62,8 @@ class _RTCFactoryWeb extends RTCFactory {
   }
 
   @override
-  MediaDevices mediaDevices() {
-    return MediaDevicesWeb();
+  Navigator navigator() {
+    return NavigatorWeb();
   }
 
   @override

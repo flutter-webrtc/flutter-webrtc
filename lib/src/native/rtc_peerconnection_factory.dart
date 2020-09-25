@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import '../interface/factory.dart';
-import '../interface/media_device.dart';
 import '../interface/media_recorder.dart';
 import '../interface/media_stream.dart';
+import '../interface/navigator.dart';
 import '../interface/rtc_peerconnection.dart';
 import '../interface/rtc_video_renderer.dart';
-import 'media_devives_impl.dart';
 import 'media_recorder_impl.dart';
 import 'media_stream_impl.dart';
+import 'navigator_impl.dart';
 import 'rtc_peerconnection_impl.dart';
 import 'rtc_video_view_impl.dart';
 import 'utils.dart';
@@ -24,8 +24,8 @@ Future<MediaStream> createLocalMediaStream(String label) async {
   return _RTCFactoryNative.instance.createLocalMediaStream(label);
 }
 
-MediaDevices mediaDevices() {
-  return _RTCFactoryNative.instance.mediaDevices();
+Navigator navigator() {
+  return _RTCFactoryNative.instance.navigator();
 }
 
 MediaRecorder mediaRecorder() {
@@ -77,8 +77,8 @@ class _RTCFactoryNative extends RTCFactory {
   }
 
   @override
-  MediaDevices mediaDevices() {
-    return MediaDevicesNative();
+  Navigator navigator() {
+    return NavigatorNative();
   }
 
   @override

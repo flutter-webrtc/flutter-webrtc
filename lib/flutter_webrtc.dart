@@ -1,7 +1,6 @@
 library flutter_webrtc;
 
 export 'src/interface/enums.dart';
-export 'src/interface/media_device.dart';
 export 'src/interface/media_recorder.dart';
 export 'src/interface/media_stream.dart';
 export 'src/interface/media_stream_track.dart';
@@ -11,6 +10,7 @@ export 'src/interface/rtc_ice_candidate.dart';
 export 'src/interface/rtc_peerconnection.dart';
 export 'src/interface/rtc_session_description.dart';
 export 'src/interface/rtc_stats_report.dart';
+export 'src/media_devices.dart';
 export 'src/native/rtc_peerconnection_factory.dart'
     if (dart.library.html) 'src/web/rtc_peerconnection_factory.dart';
 export 'src/native/rtc_video_view_impl.dart'

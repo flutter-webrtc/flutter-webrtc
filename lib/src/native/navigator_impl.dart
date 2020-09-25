@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-import '../interface/media_device.dart';
 import '../interface/media_stream.dart';
+import '../interface/navigator.dart';
 import 'media_stream_impl.dart';
 import 'utils.dart';
 
-class MediaDevicesNative extends MediaDevices {
+class NavigatorNative extends Navigator {
   @override
   Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {

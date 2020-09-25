@@ -3,11 +3,11 @@ import 'dart:html' as html;
 import 'dart:js';
 import 'dart:js_util' as jsutil;
 
-import '../interface/media_device.dart';
 import '../interface/media_stream.dart';
+import '../interface/navigator.dart';
 import 'media_stream_impl.dart';
 
-class MediaDevicesWeb extends MediaDevices {
+class NavigatorWeb extends Navigator {
   @override
   Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
