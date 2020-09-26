@@ -179,7 +179,7 @@ class _MyAppState extends State<LoopBackSample> {
   void _sendDtmf() async {
     var dtmfSender =
         _peerConnection.createDtmfSender(_localStream.getAudioTracks()[0]);
-    await dtmfSender.sendDtmf('123#');
+    await dtmfSender.insertDTMF('123#');
   }
 
   @override
