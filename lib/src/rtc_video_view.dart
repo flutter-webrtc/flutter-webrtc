@@ -16,7 +16,7 @@ class RTCVideoValue {
     this.rotation = 0,
     this.renderVideo = false,
   });
-  static const RTCVideoValue empty = RTCVideoValue();
+  static const empty = RTCVideoValue();
   final double width;
   final double height;
   final int rotation;
@@ -61,7 +61,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
     final response = await _channel
         .invokeMethod<Map<dynamic, dynamic>>('createVideoRenderer', {});
     _textureId = response['textureId'];
-    _eventSubscription = _eventChannelFor(_textureId)
+    _eventSubscription = EventChannel('FlutterWebRTC/Texture$textureId')
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
   }
@@ -71,17 +71,17 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
   MediaStream get srcObject => _srcObject;
 
   set srcObject(MediaStream stream) {
+    if (textureId == null) throw 'Call initialize before setting the stream';
+
     _srcObject = stream;
     _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
-      'textureId': _textureId,
+      'textureId': textureId,
       'streamId': stream?.id ?? '',
       'ownerTag': stream?.ownerTag ?? ''
     }).then((_) {
-      if (stream == null) {
-        value = RTCVideoValue.empty;
-      } else {
-        value = value.copyWith(renderVideo: renderVideo);
-      }
+      value = (stream == null)
+          ? RTCVideoValue.empty
+          : value.copyWith(renderVideo: renderVideo);
     });
   }
 
@@ -93,10 +93,6 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
       'videoRendererDispose',
       <String, dynamic>{'textureId': _textureId},
     );
-  }
-
-  EventChannel _eventChannelFor(int textureId) {
-    return EventChannel('FlutterWebRTC/Texture$textureId');
   }
 
   void eventListener(dynamic event) {
@@ -142,38 +138,37 @@ class RTCVideoView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        return Center(
-          child: _buildVideoView(constraints),
-        );
-      },
-    );
+        builder: (BuildContext context, BoxConstraints constraints) =>
+            _buildVideoView(constraints));
   }
 
   Widget _buildVideoView(BoxConstraints constraints) {
-    return Container(
-      width: constraints.maxWidth,
-      height: constraints.maxHeight,
-      child: FittedBox(
-        fit: objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
-            ? BoxFit.contain
-            : BoxFit.cover,
-        child: Center(
-          child: ValueListenableBuilder<RTCVideoValue>(
-            valueListenable: _renderer,
-            builder: (BuildContext context, RTCVideoValue value, Widget child) {
-              return SizedBox(
-                width: constraints.maxHeight * value.aspectRatio,
-                height: constraints.maxHeight,
-                child: value.renderVideo ? child : Container(),
-              );
-            },
-            child: Transform(
-              transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
-              alignment: FractionalOffset.center,
-              child: _renderer.textureId != null
-                  ? Texture(textureId: _renderer.textureId)
-                  : Container(),
+    return Center(
+      child: Container(
+        width: constraints.maxWidth,
+        height: constraints.maxHeight,
+        child: FittedBox(
+          fit: objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
+              ? BoxFit.contain
+              : BoxFit.cover,
+          child: Center(
+            child: ValueListenableBuilder<RTCVideoValue>(
+              valueListenable: _renderer,
+              builder:
+                  (BuildContext context, RTCVideoValue value, Widget child) {
+                return SizedBox(
+                  width: constraints.maxHeight * value.aspectRatio,
+                  height: constraints.maxHeight,
+                  child: value.renderVideo ? child : Container(),
+                );
+              },
+              child: Transform(
+                transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
+                alignment: FractionalOffset.center,
+                child: _renderer.textureId != null
+                    ? Texture(textureId: _renderer.textureId)
+                    : Container(),
+              ),
             ),
           ),
         ),

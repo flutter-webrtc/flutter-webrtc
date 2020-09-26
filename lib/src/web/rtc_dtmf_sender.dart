@@ -1,12 +1,8 @@
-import 'package:flutter/services.dart';
-
-import 'utils.dart';
+import 'dart:html' as html;
 
 class RTCDTMFSender {
-  RTCDTMFSender(this._peerConnectionId);
-  // peer connection Id must be defined as a variable where this function will be called.
-  final String _peerConnectionId;
-  final MethodChannel _channel = WebRTC.methodChannel();
+  RTCDTMFSender(this._jsDtmfSender);
+  final html.RtcDtmfSender _jsDtmfSender;
 
   ///  tones:A String containing the DTMF codes to be transmitted to the recipient.
   ///          Specifying an empty string as the tones parameter clears the tone
@@ -20,12 +16,7 @@ class RTCDTMFSender {
   ///          the default is 70 ms.
   Future<void> insertDTMF(String tones,
       {int duration = 100, int interToneGap = 70}) async {
-    await _channel.invokeMethod('sendDtmf', <String, dynamic>{
-      'peerConnectionId': _peerConnectionId,
-      'tone': tones,
-      'duration': duration,
-      'gap': interToneGap,
-    });
+    return _jsDtmfSender.insertDtmf(tones, duration, interToneGap);
   }
 
   /// Compatible with old methods

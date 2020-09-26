@@ -1,7 +1,5 @@
 package com.cloudwebrtc.webrtc;
 
-import static com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils.parseMediaConstraints;
-
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
@@ -9,8 +7,10 @@ import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.util.Log;
 import android.util.LongSparseArray;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
@@ -18,26 +18,11 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
-import com.cloudwebrtc.webrtc.utils.RTCAudioManager;
-import io.flutter.plugin.common.BinaryMessenger;
-import io.flutter.plugin.common.EventChannel;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
-import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.view.TextureRegistry;
-import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
+
 import org.webrtc.AudioTrack;
 import org.webrtc.DefaultVideoDecoderFactory;
 import org.webrtc.DefaultVideoEncoderFactory;
+import org.webrtc.DtmfSender;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
@@ -60,12 +45,33 @@ import org.webrtc.PeerConnection.TcpCandidatePolicy;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.PeerConnectionFactory.InitializationOptions;
 import org.webrtc.PeerConnectionFactory.Options;
+import org.webrtc.RtpSender;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
 import org.webrtc.VideoTrack;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
+
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+
+import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
+import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.view.TextureRegistry;
+import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
+
+import static com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils.parseMediaConstraints;
 
 public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
@@ -247,6 +253,33 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         Map<String, Object> description = call.argument("description");
         peerConnectionSetRemoteDescription(new ConstraintsMap(description), peerConnectionId,
             result);
+        break;
+      }
+      case "sendDtmf": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        String tone = call.argument("tone");
+        int duration = call.argument("duration");
+        int gap = call.argument("gap");
+        PeerConnection peerConnection = getPeerConnection(peerConnectionId);
+        if (peerConnection != null) {
+          RtpSender audioSender = null;
+          for (RtpSender sender : peerConnection.getSenders()) {
+
+            if (sender.track().kind().equals("audio")) {
+             audioSender = sender;
+            } 
+          }
+          if (audioSender != null) {
+            DtmfSender dtmfSender = audioSender.dtmf();
+            dtmfSender.insertDtmf(tone, duration, gap);
+          }
+          result.success("success");
+        } else {
+          Log.d(TAG, "dtmf() peerConnection is null");
+          result
+              .error("dtmf", "sendDtmf() peerConnection is null",
+                  null);
+        }
         break;
       }
       case "addCandidate": {
