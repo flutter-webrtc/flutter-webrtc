@@ -6,6 +6,7 @@ import 'enums.dart';
 import 'media_stream.dart';
 import 'media_stream_track.dart';
 import 'rtc_data_channel.dart';
+import 'rtc_dtmf_sender.dart';
 import 'rtc_ice_candidate.dart';
 import 'rtc_session_description.dart';
 import 'rtc_stats_report.dart';
@@ -25,6 +26,7 @@ typedef AddTrackCallback = void Function(
 typedef RemoveTrackCallback = void Function(
     MediaStream stream, MediaStreamTrack track);
 typedef RTCDataChannelCallback = void Function(RTCDataChannel channel);
+typedef RenegotiationNeededCallback = void Function();
 
 /*
  *  PeerConnection
@@ -47,7 +49,6 @@ class RTCPeerConnection {
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
   RTCIceConnectionState _iceConnectionState;
-
   // public: delegate
   SignalingStateCallback onSignalingState;
   IceGatheringStateCallback onIceGatheringState;
@@ -58,7 +59,7 @@ class RTCPeerConnection {
   AddTrackCallback onAddTrack;
   RemoveTrackCallback onRemoveTrack;
   RTCDataChannelCallback onDataChannel;
-  dynamic onRenegotiationNeeded;
+  RenegotiationNeededCallback onRenegotiationNeeded;
 
   final Map<String, dynamic> defaultSdpConstraints = {
     'mandatory': {
@@ -166,9 +167,7 @@ class RTCPeerConnection {
         onDataChannel?.call(_dataChannel);
         break;
       case 'onRenegotiationNeeded':
-        if (onRenegotiationNeeded != null) {
-          onRenegotiationNeeded();
-        }
+        onRenegotiationNeeded?.call();
         break;
     }
   }
@@ -356,6 +355,10 @@ class RTCPeerConnection {
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::createDataChannel: ${e.message}';
     }
+  }
+
+  RTCDTMFSender createDtmfSender() {
+    return RTCDTMFSender(_peerConnectionId);
   }
 
   Future<Null> close() async {
