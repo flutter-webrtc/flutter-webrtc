@@ -14,7 +14,7 @@ class RTCDTMFSender {
   ///          The browser will enforce a minimum value of 30 ms (that is,
   ///          if you specify a lower value, 30 ms will be used instead);
   ///          the default is 70 ms.
-  Future<void> sendDtmf(String tones,
+  Future<void> insertDtmf(String tones,
       {int duration = 100, int interToneGap = 70}) async {
     return _jsDtmfSender.insertDtmf(tones, duration, interToneGap);
   }
