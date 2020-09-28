@@ -3,6 +3,11 @@ import 'utils.dart';
 
 class MediaStreamTrack {
   MediaStreamTrack(this._trackId, this._label, this._kind, this._enabled);
+  factory MediaStreamTrack.fromMap(Map<dynamic, dynamic> map) {
+    return MediaStreamTrack(
+        map['id'], map['label'], map['kind'], map['enabled']);
+  }
+
   final _channel = WebRTC.methodChannel();
   final String _trackId;
   final String _label;
