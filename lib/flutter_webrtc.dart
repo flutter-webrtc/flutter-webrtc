@@ -4,6 +4,7 @@ export 'src/interface/enums.dart';
 export 'src/interface/media_recorder.dart';
 export 'src/interface/media_stream.dart';
 export 'src/interface/media_stream_track.dart';
+// export 'src/interface/navigator.dart';
 export 'src/interface/rtc_data_channel.dart';
 export 'src/interface/rtc_dtmf_sender.dart';
 export 'src/interface/rtc_ice_candidate.dart';

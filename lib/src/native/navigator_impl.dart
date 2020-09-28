@@ -1,61 +1,24 @@
-import 'dart:async';
-
-import 'package:flutter/services.dart';
-
-import '../interface/media_stream.dart';
-import '../interface/navigator.dart';
-import 'media_stream_impl.dart';
-import 'utils.dart';
+import 'package:flutter_webrtc/src/interface/media_stream.dart';
+import 'package:flutter_webrtc/src/interface/navigator.dart';
+import 'package:flutter_webrtc/src/interface/mediadevices.dart';
+import 'package:flutter_webrtc/src/native/mediadevices_impl.dart';
 
 class NavigatorNative extends Navigator {
   @override
-  Future<MediaStream> getUserMedia(
-      Map<String, dynamic> mediaConstraints) async {
-    var channel = WebRTC.methodChannel();
-    try {
-      final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
-        'getUserMedia',
-        <String, dynamic>{'constraints': mediaConstraints},
-      );
-      String streamId = response['streamId'];
-      var stream = MediaStreamNative(streamId, 'local');
-      stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
-      return stream;
-    } on PlatformException catch (e) {
-      throw 'Unable to getUserMedia: ${e.message}';
-    }
+  Future<MediaStream> getDisplayMedia(Map<String, dynamic> mediaConstraints) {
+    return mediaDevices.getDisplayMedia(mediaConstraints);
   }
 
   @override
-  Future<MediaStream> getDisplayMedia(
-      Map<String, dynamic> mediaConstraints) async {
-    var channel = WebRTC.methodChannel();
-    try {
-      final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
-        'getDisplayMedia',
-        <String, dynamic>{'constraints': mediaConstraints},
-      );
-      String streamId = response['streamId'];
-      var stream = MediaStreamNative(streamId, 'local');
-      stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
-      return stream;
-    } on PlatformException catch (e) {
-      throw 'Unable to getDisplayMedia: ${e.message}';
-    }
+  Future<List> getSources() {
+    return mediaDevices.getSources();
   }
 
   @override
-  Future<List<dynamic>> getSources() async {
-    var channel = WebRTC.methodChannel();
-    try {
-      final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
-        'getSources',
-        <String, dynamic>{},
-      );
-      List<dynamic> sources = response['sources'];
-      return sources;
-    } on PlatformException catch (e) {
-      throw 'Unable to getSources: ${e.message}';
-    }
+  Future<MediaStream> getUserMedia(Map<String, dynamic> mediaConstraints) {
+    return mediaDevices.getUserMedia(mediaConstraints);
   }
+
+  @override
+  MediaDevices get mediaDevices => MediaDeviceNative();
 }

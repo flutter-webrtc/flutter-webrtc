@@ -11,7 +11,7 @@ abstract class RTCFactory {
 
   Future<MediaStream> createLocalMediaStream(String label);
 
-  Navigator navigator();
+  Navigator get navigator;
 
   MediaRecorder mediaRecorder();
 
