@@ -1,5 +1,5 @@
-import 'package:flutter_webrtc/src/interface/media_stream.dart';
-import 'package:flutter_webrtc/src/interface/mediadevices.dart';
+import 'media_stream.dart';
+import 'mediadevices.dart';
 
 abstract class Navigator {
   Future<MediaStream> getUserMedia(Map<String, dynamic> mediaConstraints);
