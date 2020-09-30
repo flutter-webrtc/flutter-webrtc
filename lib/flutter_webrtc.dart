@@ -11,6 +11,7 @@ export 'src/interface/rtc_ice_candidate.dart';
 export 'src/interface/rtc_peerconnection.dart';
 export 'src/interface/rtc_session_description.dart';
 export 'src/interface/rtc_stats_report.dart';
+export 'src/interface/rtc_video_renderer.dart';
 export 'src/media_devices.dart';
 export 'src/native/rtc_peerconnection_factory.dart'
     if (dart.library.html) 'src/web/rtc_peerconnection_factory.dart';
