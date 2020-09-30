@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:html' as html;
 
 import 'package:flutter/services.dart';
-import 'package:flutter_webrtc/src/web/media_stream_impl.dart';
 
 import '../interface/media_stream.dart';
 import '../interface/rtc_video_renderer.dart';
+import 'media_stream_impl.dart';
 import 'ui_fake.dart' if (dart.library.html) 'dart:ui' as ui;
 
 // An error code value to error name Map.

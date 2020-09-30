@@ -1,7 +1,7 @@
-import 'package:flutter_webrtc/src/interface/media_stream.dart';
-import 'package:flutter_webrtc/src/interface/navigator.dart';
-import 'package:flutter_webrtc/src/interface/mediadevices.dart';
-import 'package:flutter_webrtc/src/web/mediadevices_impl.dart';
+import '../interface/media_stream.dart';
+import '../interface/mediadevices.dart';
+import '../interface/navigator.dart';
+import 'mediadevices_impl.dart';
 
 class NavigatorWeb extends Navigator {
   @override
