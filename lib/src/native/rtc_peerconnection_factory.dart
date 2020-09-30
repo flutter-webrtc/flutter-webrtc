@@ -28,7 +28,7 @@ MediaRecorder mediaRecorder() {
   return _RTCFactoryNative.instance.mediaRecorder();
 }
 
-RTCVideoRenderer videoRenderer() {
+VideoRenderer videoRenderer() {
   return _RTCFactoryNative.instance.videoRenderer();
 }
 
@@ -80,7 +80,7 @@ class _RTCFactoryNative extends RTCFactory {
   }
 
   @override
-  RTCVideoRenderer videoRenderer() {
+  VideoRenderer videoRenderer() {
     return RTCVideoRendererNative();
   }
 

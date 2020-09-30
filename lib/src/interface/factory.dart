@@ -15,5 +15,5 @@ abstract class RTCFactory {
 
   MediaRecorder mediaRecorder();
 
-  RTCVideoRenderer videoRenderer();
+  VideoRenderer videoRenderer();
 }

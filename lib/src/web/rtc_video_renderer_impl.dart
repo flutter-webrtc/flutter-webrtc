@@ -31,7 +31,7 @@ const Map<int, String> _kErrorValueToErrorDescription = {
 const String _kDefaultErrorMessage =
     'No further diagnostic information can be determined or provided.';
 
-class RTCVideoRendererWeb extends RTCVideoRenderer {
+class RTCVideoRendererWeb extends VideoRenderer {
   RTCVideoRendererWeb() : textureId = _textureCounter++;
 
   static int _textureCounter = 1;

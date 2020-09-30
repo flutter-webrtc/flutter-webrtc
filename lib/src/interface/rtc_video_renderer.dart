@@ -43,8 +43,8 @@ class RTCVideoValue {
       '$runtimeType(width: $width, height: $height, rotation: $rotation)';
 }
 
-abstract class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
-  RTCVideoRenderer() : super(RTCVideoValue.empty);
+abstract class VideoRenderer extends ValueNotifier<RTCVideoValue> {
+  VideoRenderer() : super(RTCVideoValue.empty);
 
   bool get muted;
 

@@ -6,7 +6,7 @@ import '../interface/media_stream.dart';
 import '../interface/rtc_video_renderer.dart';
 import 'utils.dart';
 
-class RTCVideoRendererNative extends RTCVideoRenderer {
+class RTCVideoRendererNative extends VideoRenderer {
   RTCVideoRendererNative();
   final _channel = WebRTC.methodChannel();
   int _textureId;

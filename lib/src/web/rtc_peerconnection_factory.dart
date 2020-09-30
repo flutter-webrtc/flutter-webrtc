@@ -29,7 +29,7 @@ MediaRecorder mediaRecorder() {
   return _RTCFactoryWeb.instance.mediaRecorder();
 }
 
-RTCVideoRenderer videoRenderer() {
+VideoRenderer videoRenderer() {
   return _RTCFactoryWeb.instance.videoRenderer();
 }
 
@@ -69,7 +69,7 @@ class _RTCFactoryWeb extends RTCFactory {
   }
 
   @override
-  RTCVideoRenderer videoRenderer() {
+  VideoRenderer videoRenderer() {
     return RTCVideoRendererWeb();
   }
 
