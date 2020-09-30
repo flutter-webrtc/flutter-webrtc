@@ -2,6 +2,7 @@ abstract class MediaStreamTrack {
   MediaStreamTrack();
 
   bool get enabled;
+  set enabled(bool b);
 
   String get label;
 

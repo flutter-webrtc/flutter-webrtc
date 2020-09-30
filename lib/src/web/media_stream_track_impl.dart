@@ -22,6 +22,11 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   bool get enabled => jsTrack.enabled;
 
   @override
+  set enabled(bool b) {
+    jsTrack.enabled = b;
+  }
+
+  @override
   Future<bool> switchCamera() async {
     // TODO(cloudwebrtc): ???
     return false;
