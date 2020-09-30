@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import '../flutter_webrtc.dart';
 
 class MediaDevices {
