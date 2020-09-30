@@ -3,7 +3,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../flutter_webrtc.dart';
 import 'interface/rtc_video_renderer.dart' as r;
 
-@Deprecated('Use videoRenderer() instead')
+@Deprecated(
+    'Use videoRenderer() instead if you need an instance of a VideoRenderer()')
 class RTCVideoRenderer extends r.VideoRenderer {
   factory RTCVideoRenderer() => videoRenderer();
 
