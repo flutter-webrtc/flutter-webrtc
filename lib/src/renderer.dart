@@ -8,16 +8,20 @@ class RTCVideoRenderer extends r.VideoRenderer {
   factory RTCVideoRenderer() => videoRenderer();
 
   @override
-  bool muted;
-
-  @override
-  MediaStream srcObject;
-
-  @override
-  Future<void> initialize() {
-    throw UnimplementedError();
-  }
+  Future<void> initialize() => throw UnimplementedError();
 
   @override
   bool get renderVideo => throw UnimplementedError();
+
+  @override
+  bool get muted => throw UnimplementedError();
+
+  @override
+  MediaStream get srcObject => throw UnimplementedError();
+
+  @override
+  set muted(bool mute) => throw UnimplementedError();
+
+  @override
+  set srcObject(MediaStream stream) => throw UnimplementedError();
 }
