@@ -5,9 +5,7 @@ import 'interface/rtc_video_renderer.dart' as r;
 
 @Deprecated('Use videoRenderer() instead')
 class RTCVideoRenderer extends r.VideoRenderer {
-  factory RTCVideoRenderer() {
-    return videoRenderer();
-  }
+  factory RTCVideoRenderer() => videoRenderer();
 
   @override
   bool muted;
