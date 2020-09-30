@@ -1,17 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter_webrtc/src/interface/navigator.dart';
-import 'package:flutter_webrtc/src/native/navigator_impl.dart';
-
 import '../interface/factory.dart';
 import '../interface/media_recorder.dart';
 import '../interface/media_stream.dart';
+import '../interface/navigator.dart';
 import '../interface/rtc_peerconnection.dart';
 import '../interface/rtc_video_renderer.dart';
 import 'media_recorder_impl.dart';
 import 'media_stream_impl.dart';
+import 'navigator_impl.dart';
 import 'rtc_peerconnection_impl.dart';
-import 'rtc_video_view_impl.dart';
+import 'rtc_video_renderer_impl.dart';
 import 'utils.dart';
 
 Future<RTCPeerConnection> createPeerConnection(
