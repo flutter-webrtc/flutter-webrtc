@@ -25,11 +25,15 @@ Future<MediaStream> createLocalMediaStream(String label) {
   return _RTCFactoryWeb.instance.createLocalMediaStream(label);
 }
 
-Navigator get navigator => _RTCFactoryWeb.instance.navigator;
-
 MediaRecorder mediaRecorder() {
   return _RTCFactoryWeb.instance.mediaRecorder();
 }
+
+RTCVideoRenderer videoRenderer() {
+  return _RTCFactoryWeb.instance.videoRenderer();
+}
+
+Navigator get navigator => _RTCFactoryWeb.instance.navigator;
 
 class _RTCFactoryWeb extends RTCFactory {
   _RTCFactoryWeb._internal();
