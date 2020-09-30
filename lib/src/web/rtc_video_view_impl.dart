@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/src/web/rtc_video_renderer_impl.dart';
 
 import '../interface/enums.dart';
-import 'rtc_video_renderer_impl.dart';
+import '../interface/rtc_video_renderer.dart';
 
 class RTCVideoView extends StatefulWidget {
   RTCVideoView(
@@ -13,7 +14,7 @@ class RTCVideoView extends StatefulWidget {
         assert(mirror != null),
         super(key: key);
 
-  final RTCVideoRendererWeb _renderer;
+  final VideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
   @override
@@ -22,7 +23,8 @@ class RTCVideoView extends StatefulWidget {
 
 class _RTCVideoViewState extends State<RTCVideoView> {
   _RTCVideoViewState();
-
+  RTCVideoRendererWeb get videoRenderer =>
+      widget._renderer as RTCVideoRendererWeb;
   @override
   void initState() {
     super.initState();
@@ -31,12 +33,12 @@ class _RTCVideoViewState extends State<RTCVideoView> {
 
   Widget buildVideoElementView(RTCVideoViewObjectFit objFit, bool mirror) {
     // TODO(cloudwebrtc): Add css style for mirror.
-    widget._renderer.videoElement.style.objectFit =
+    videoRenderer.videoElement.style.objectFit =
         objFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
             ? 'contain'
             : 'cover';
     return HtmlElementView(
-        viewType: 'RTCVideoRenderer-${widget._renderer.textureId}');
+        viewType: 'RTCVideoRenderer-${videoRenderer.textureId}');
   }
 
   @override

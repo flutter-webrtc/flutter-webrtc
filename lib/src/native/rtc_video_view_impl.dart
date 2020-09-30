@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/src/native/rtc_video_renderer_impl.dart';
 
 import '../interface/enums.dart';
 import '../interface/rtc_video_renderer.dart';
-import 'rtc_video_renderer_impl.dart';
 
 class RTCVideoView extends StatelessWidget {
   RTCVideoView(
@@ -16,9 +16,12 @@ class RTCVideoView extends StatelessWidget {
         assert(mirror != null),
         super(key: key);
 
-  final RTCVideoRendererNative _renderer;
+  final VideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
+
+  RTCVideoRendererNative get videoRenderer =>
+      _renderer as RTCVideoRendererNative;
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +53,8 @@ class RTCVideoView extends StatelessWidget {
               child: Transform(
                 transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
                 alignment: FractionalOffset.center,
-                child: _renderer.textureId != null
-                    ? Texture(textureId: _renderer.textureId)
+                child: videoRenderer.textureId != null
+                    ? Texture(textureId: videoRenderer.textureId)
                     : Container(),
               ),
             ),
