@@ -14,8 +14,8 @@ class LoopBackSample extends StatefulWidget {
 class _MyAppState extends State<LoopBackSample> {
   MediaStream _localStream;
   RTCPeerConnection _peerConnection;
-  final _localRenderer = videoRenderer();
-  final _remoteRenderer = videoRenderer();
+  final _localRenderer = RTCVideoRenderer();
+  final _remoteRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   Timer _timer;
 

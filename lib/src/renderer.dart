@@ -1,28 +1,31 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../flutter_webrtc.dart';
-import 'interface/rtc_video_renderer.dart' as r;
+import 'interface/rtc_video_renderer.dart';
 
-@Deprecated(
-    'Use videoRenderer() instead if you need an instance of a VideoRenderer()')
-class RTCVideoRenderer extends r.VideoRenderer {
-  factory RTCVideoRenderer() => videoRenderer();
+class RTCVideoRenderer extends VideoRenderer {
+  RTCVideoRenderer() : _delegate = videoRenderer();
 
-  @override
-  Future<void> initialize() => throw UnimplementedError();
+  final VideoRenderer _delegate;
 
   @override
-  bool get renderVideo => throw UnimplementedError();
+  Future<void> initialize() => _delegate.initialize();
 
   @override
-  bool get muted => throw UnimplementedError();
+  bool get renderVideo => _delegate.renderVideo;
 
   @override
-  MediaStream get srcObject => throw UnimplementedError();
+  bool get muted => _delegate.muted;
 
   @override
-  set muted(bool mute) => throw UnimplementedError();
+  MediaStream get srcObject => _delegate.srcObject;
 
   @override
-  set srcObject(MediaStream stream) => throw UnimplementedError();
+  set muted(bool mute) => _delegate.muted = mute;
+
+  @override
+  set srcObject(MediaStream stream) => _delegate.srcObject = stream;
+
+  @override
+  int get textureId => _delegate.textureId;
 }

@@ -32,13 +32,16 @@ const String _kDefaultErrorMessage =
     'No further diagnostic information can be determined or provided.';
 
 class RTCVideoRendererWeb extends VideoRenderer {
-  RTCVideoRendererWeb() : textureId = _textureCounter++;
+  RTCVideoRendererWeb() : _textureId = _textureCounter++;
 
   static int _textureCounter = 1;
-  final int textureId;
+  final int _textureId;
   html.VideoElement videoElement;
   MediaStream _srcObject;
   final _subscriptions = <StreamSubscription>[];
+
+  @override
+  int get textureId => _textureId;
 
   @override
   bool get muted => videoElement?.muted ?? true;

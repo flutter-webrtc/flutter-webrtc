@@ -16,7 +16,7 @@ class GetDisplayMediaSample extends StatefulWidget {
 
 class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   MediaStream _localStream;
-  final _localRenderer = videoRenderer();
+  final _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   Timer _timer;
   var _counter = 0;

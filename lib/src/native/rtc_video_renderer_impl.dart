@@ -23,6 +23,7 @@ class RTCVideoRendererNative extends VideoRenderer {
         .listen(eventListener, onError: errorListener);
   }
 
+  @override
   int get textureId => _textureId;
 
   @override

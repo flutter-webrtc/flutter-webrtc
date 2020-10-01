@@ -17,7 +17,7 @@ class GetUserMediaSample extends StatefulWidget {
 
 class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaStream _localStream;
-  final _localRenderer = videoRenderer();
+  final _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   MediaRecorder _mediaRecorder;
   bool get _isRec => _mediaRecorder != null;

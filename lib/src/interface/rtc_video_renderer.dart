@@ -47,15 +47,14 @@ abstract class VideoRenderer extends ValueNotifier<RTCVideoValue> {
   VideoRenderer() : super(RTCVideoValue.empty);
 
   bool get muted;
-
   set muted(bool mute);
 
   bool get renderVideo;
+  int get textureId;
 
   Future<void> initialize();
 
   MediaStream get srcObject;
-
   set srcObject(MediaStream stream);
 
   @override
