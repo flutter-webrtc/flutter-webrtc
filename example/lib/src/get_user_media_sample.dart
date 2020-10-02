@@ -20,7 +20,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   final _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   bool _isTorchOn = false;
-  IMediaRecorder _mediaRecorder;
+  MediaRecorder _mediaRecorder;
   bool get _isRec => _mediaRecorder != null;
 
   @override
