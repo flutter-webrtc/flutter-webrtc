@@ -19,7 +19,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaStream _localStream;
   final _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
-  MediaRecorder _mediaRecorder;
+  IMediaRecorder _mediaRecorder;
   bool get _isRec => _mediaRecorder != null;
   List<dynamic> cameras;
 
@@ -88,7 +88,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   void _startRecording() async {
-    _mediaRecorder = mediaRecorder();
+    _mediaRecorder = MediaRecorder();
     setState(() {});
     _mediaRecorder.startWeb(_localStream);
   }

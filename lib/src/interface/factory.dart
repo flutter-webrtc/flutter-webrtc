@@ -13,7 +13,7 @@ abstract class RTCFactory {
 
   Navigator get navigator;
 
-  MediaRecorder mediaRecorder();
+  IMediaRecorder mediaRecorder();
 
   VideoRenderer videoRenderer();
 }

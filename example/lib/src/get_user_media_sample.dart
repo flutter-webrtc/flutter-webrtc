@@ -20,7 +20,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   final _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   bool _isTorchOn = false;
-  MediaRecorder _mediaRecorder;
+  IMediaRecorder _mediaRecorder;
   bool get _isRec => _mediaRecorder != null;
 
   @override
@@ -92,7 +92,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     // TODO(rostopira): request write storage permission
     final storagePath = await getExternalStorageDirectory();
     final filePath = storagePath.path + '/webrtc_sample/test.mp4';
-    _mediaRecorder = mediaRecorder();
+    _mediaRecorder = MediaRecorder();
     setState(() {});
     await _localStream.getMediaTracks();
     final videoTrack = _localStream

@@ -8,7 +8,7 @@ import '../interface/media_stream.dart';
 import '../interface/media_stream_track.dart';
 import 'media_stream_impl.dart';
 
-class MediaRecorderWeb extends MediaRecorder {
+class MediaRecorderWeb extends IMediaRecorder {
   html.MediaRecorder _recorder;
   Completer<String> _completer;
 
