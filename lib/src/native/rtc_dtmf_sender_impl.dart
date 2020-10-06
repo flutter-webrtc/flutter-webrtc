@@ -1,7 +1,7 @@
 import '../interface/rtc_dtmf_sender.dart';
 import 'utils.dart';
 
-class RTCDTMFSenderNative extends IRTCDTMFSender {
+class RTCDTMFSenderNative extends RTCDTMFSender {
   RTCDTMFSenderNative(this._peerConnectionId);
   // peer connection Id must be defined as a variable where this function will be called.
   final String _peerConnectionId;

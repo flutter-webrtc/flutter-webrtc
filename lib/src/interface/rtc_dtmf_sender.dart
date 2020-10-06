@@ -1,4 +1,4 @@
-abstract class IRTCDTMFSender {
+abstract class RTCDTMFSender {
   ///  tones:A String containing the DTMF codes to be transmitted to the recipient.
   ///          Specifying an empty string as the tones parameter clears the tone
   ///          buffer, aborting any currently queued tones. A "," character inserts

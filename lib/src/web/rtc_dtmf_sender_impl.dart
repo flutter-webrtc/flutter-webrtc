@@ -2,7 +2,7 @@ import 'dart:html' as html;
 
 import '../interface/rtc_dtmf_sender.dart';
 
-class RTCDTMFSenderWeb extends IRTCDTMFSender {
+class RTCDTMFSenderWeb extends RTCDTMFSender {
   RTCDTMFSenderWeb(this._jsDtmfSender);
   final html.RtcDtmfSender _jsDtmfSender;
 

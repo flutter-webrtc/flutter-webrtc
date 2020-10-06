@@ -356,7 +356,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   }
 
   @override
-  IRTCDTMFSender createDtmfSender(MediaStreamTrack track) {
+  RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
     return RTCDTMFSenderNative(_peerConnectionId);
   }
 

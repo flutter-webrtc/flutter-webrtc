@@ -236,7 +236,7 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   }
 
   @override
-  IRTCDTMFSender createDtmfSender(MediaStreamTrack track) {
+  RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
     var _native = track as MediaStreamTrackWeb;
     var jsDtmfSender = _jsPc.createDtmfSender(_native.jsTrack);
     return RTCDTMFSenderWeb(jsDtmfSender);

@@ -81,5 +81,5 @@ abstract class RTCPeerConnection {
   //'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
   void addTransceiver(String type, Map<String, String> options);
 
-  IRTCDTMFSender createDtmfSender(MediaStreamTrack track);
+  RTCDTMFSender createDtmfSender(MediaStreamTrack track);
 }
