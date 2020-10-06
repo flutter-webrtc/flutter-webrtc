@@ -7,7 +7,7 @@ import '../interface/media_stream.dart';
 import '../interface/media_stream_track.dart';
 import 'utils.dart';
 
-class MediaRecorderNative extends IMediaRecorder {
+class MediaRecorderNative extends MediaRecorder {
   static final _random = Random();
   final _recorderId = _random.nextInt(0x7FFFFFFF);
 

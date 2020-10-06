@@ -2,7 +2,7 @@ import 'enums.dart';
 import 'media_stream.dart';
 import 'media_stream_track.dart';
 
-abstract class IMediaRecorder {
+abstract class MediaRecorder {
   /// For Android use audioChannel param
   /// For iOS use audioTrack
   Future<void> start(

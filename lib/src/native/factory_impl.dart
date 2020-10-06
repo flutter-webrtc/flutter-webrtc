@@ -54,7 +54,7 @@ class RTCFactoryNative extends RTCFactory {
   }
 
   @override
-  IMediaRecorder mediaRecorder() {
+  MediaRecorder mediaRecorder() {
     return MediaRecorderNative();
   }
 

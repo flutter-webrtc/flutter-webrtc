@@ -18,7 +18,7 @@ Future<MediaStream> createLocalMediaStream(String label) async {
   return RTCFactoryNative.instance.createLocalMediaStream(label);
 }
 
-IMediaRecorder mediaRecorder() {
+MediaRecorder mediaRecorder() {
   return RTCFactoryNative.instance.mediaRecorder();
 }
 

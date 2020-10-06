@@ -45,7 +45,7 @@ class RTCFactoryWeb extends RTCFactory {
   }
 
   @override
-  IMediaRecorder mediaRecorder() {
+  MediaRecorder mediaRecorder() {
     return MediaRecorderWeb();
   }
 
