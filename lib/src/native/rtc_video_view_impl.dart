@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/src/native/rtc_video_renderer_impl.dart';
 
 import '../interface/enums.dart';
 import '../interface/rtc_video_renderer.dart';
+import 'rtc_video_renderer_impl.dart';
 
 class RTCVideoView extends StatelessWidget {
   RTCVideoView(
