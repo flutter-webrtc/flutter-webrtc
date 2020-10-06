@@ -47,10 +47,13 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
     'optional': [],
   };
 
+  @override
   RTCSignalingState get signalingState => _signalingState;
 
+  @override
   RTCIceGatheringState get iceGatheringState => _iceGatheringState;
 
+  @override
   RTCIceConnectionState get iceConnectionState => _iceConnectionState;
 
   /*

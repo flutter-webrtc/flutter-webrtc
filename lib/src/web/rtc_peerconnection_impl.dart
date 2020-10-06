@@ -102,10 +102,13 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   RTCIceGatheringState _iceGatheringState;
   RTCIceConnectionState _iceConnectionState;
 
+  @override
   RTCSignalingState get signalingState => _signalingState;
 
+  @override
   RTCIceGatheringState get iceGatheringState => _iceGatheringState;
 
+  @override
   RTCIceConnectionState get iceConnectionState => _iceConnectionState;
 
   @override

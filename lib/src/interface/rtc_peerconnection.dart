@@ -39,11 +39,11 @@ abstract class RTCPeerConnection {
   RTCDataChannelCallback onDataChannel;
   RenegotiationNeededCallback onRenegotiationNeeded;
 
-  // RTCSignalingState get signalingState => _signalingState;
+  RTCSignalingState get signalingState;
 
-  // RTCIceGatheringState get iceGatheringState => _iceGatheringState;
+  RTCIceGatheringState get iceGatheringState;
 
-  // RTCIceConnectionState get iceConnectionState => _iceConnectionState;
+  RTCIceConnectionState get iceConnectionState;
 
   Future<void> dispose();
 
