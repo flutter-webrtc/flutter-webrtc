@@ -194,10 +194,8 @@ class RTCPeerConnection {
         break;
       case 'onAddTrack2':
         var streamsParams = map['mediaStreams'] as List<Map<String, dynamic>>;
-        var mediaStreams = <MediaStream>[];
-        streamsParams.forEach((element) {
-          mediaStreams.add(MediaStream.fromMap(element));
-        });
+        var mediaStreams =
+            streamsParams.map((e) => MediaStream.fromMap(e)).toList();
         onAddTrack2?.call(
             RTCRtpReceiver.fromMap(map['receiver']), mediaStreams);
         break;

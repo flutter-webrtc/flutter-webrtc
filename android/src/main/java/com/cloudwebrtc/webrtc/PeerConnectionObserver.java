@@ -582,24 +582,21 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     @Nullable
     private Map<String, Object> mediaStreamToMap(MediaStream stream){
         ConstraintsMap params = new ConstraintsMap();
-
         params.putString("streamId", stream.getId());
         params.putString("ownerTag", id);
         ConstraintsArray audioTracks = new ConstraintsArray();
         ConstraintsArray videoTracks = new ConstraintsArray();
 
-        for (int i = 0; i < stream.audioTracks.size(); i++) {
-            MediaStreamTrack track = stream.videoTracks.get(i);
+        for (MediaStreamTrack track : stream.audioTracks) {
             audioTracks.pushMap(new ConstraintsMap(mediaTrackToMap(track)));
         }
-        for (int i = 0; i < stream.videoTracks.size(); i++) {
-            MediaStreamTrack track = stream.videoTracks.get(i);
+
+        for (MediaStreamTrack track : stream.videoTracks) {
             videoTracks.pushMap(new ConstraintsMap(mediaTrackToMap(track)));
         }
 
         params.putArray("audioTracks", audioTracks.toArrayList());
         params.putArray("videoTracks", videoTracks.toArrayList());
-
         return params.toMap();
     }
 
