@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html' as html;
 
+import 'package:flutter_webrtc/src/interface/rtc_dtmf_sender.dart';
+import 'package:flutter_webrtc/src/web/rtc_dtmf_sender_impl.dart';
+
 import '../interface/factory.dart';
 import '../interface/media_recorder.dart';
 import '../interface/media_stream.dart';
