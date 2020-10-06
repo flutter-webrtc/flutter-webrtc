@@ -4,6 +4,10 @@ import 'utils.dart';
 
 class MediaStream {
   MediaStream(this._streamId, this._ownerTag);
+  factory MediaStream.fromMap(Map<dynamic, dynamic> map) {
+    return MediaStream(map['streamId'], map['ownerTag'])
+      ..setMediaTracks(map['audioTracks'], map['videoTracks']);
+  }
   final _channel = WebRTC.methodChannel();
   final String _streamId;
   final String _ownerTag;
@@ -15,14 +19,12 @@ class MediaStream {
   void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
     _audioTracks.clear();
     audioTracks.forEach((track) {
-      _audioTracks.add(MediaStreamTrack(
-          track['id'], track['label'], track['kind'], track['enabled']));
+      _audioTracks.add(MediaStreamTrack.fromMap(track));
     });
 
     _videoTracks.clear();
     videoTracks.forEach((track) {
-      _videoTracks.add(MediaStreamTrack(
-          track['id'], track['label'], track['kind'], track['enabled']));
+      _videoTracks.add(MediaStreamTrack.fromMap(track));
     });
   }
 

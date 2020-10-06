@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:html';
 
 import 'package:flutter/services.dart';
 
@@ -190,6 +191,15 @@ class RTCPeerConnection {
       /// Unified-Plan
       case 'onTrack':
         onTrack?.call(RTCRtpTransceiver.fromMap(map['transceiver']));
+        break;
+      case 'onAddTrack2':
+        var streamsParams = map['mediaStreams'] as List<Map<String, dynamic>>;
+        var mediaStreams = <MediaStream>[];
+        streamsParams.forEach((element) {
+          mediaStreams.add(MediaStream.fromMap(element));
+        });
+        onAddTrack2?.call(
+            RTCRtpReceiver.fromMap(map['receiver']), mediaStreams);
         break;
     }
   }

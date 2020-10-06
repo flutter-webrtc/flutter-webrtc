@@ -275,6 +275,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     ConstraintsMap params = new ConstraintsMap();
     params.putString("event", "onAddStream");
     params.putString("streamId", streamId);
+    params.putString("ownerTag", id);
 
     ConstraintsArray audioTracks = new ConstraintsArray();
     ConstraintsArray videoTracks = new ConstraintsArray();
@@ -343,26 +344,39 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
   @Override
   public void onAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams) {
-    Log.d(TAG, "onAddTrack");
-    for (MediaStream stream : mediaStreams) {
-      String streamId = stream.getId();
-      MediaStreamTrack track = receiver.track();
-      ConstraintsMap params = new ConstraintsMap();
-      params.putString("event", "onAddTrack");
-      params.putString("streamId", streamId);
-      params.putString("trackId", track.id());
+      Log.d(TAG, "onAddTrack");
+      // for plan-b
+      for (MediaStream stream : mediaStreams) {
+          String streamId = stream.getId();
+          MediaStreamTrack track = receiver.track();
+          ConstraintsMap params = new ConstraintsMap();
+          params.putString("event", "onAddTrack");
+          params.putString("streamId", streamId);
+          params.putString("ownerTag", id);
+          params.putString("trackId", track.id());
 
-      String trackId = track.id();
-      ConstraintsMap trackInfo = new ConstraintsMap();
-      trackInfo.putString("id", trackId);
-      trackInfo.putString("label", track.kind());
-      trackInfo.putString("kind", track.kind());
-      trackInfo.putBoolean("enabled", track.enabled());
-      trackInfo.putString("readyState", track.state().toString());
-      trackInfo.putBoolean("remote", true);
-      params.putMap("track", trackInfo.toMap());
+          String trackId = track.id();
+          ConstraintsMap trackInfo = new ConstraintsMap();
+          trackInfo.putString("id", trackId);
+          trackInfo.putString("label", track.kind());
+          trackInfo.putString("kind", track.kind());
+          trackInfo.putBoolean("enabled", track.enabled());
+          trackInfo.putString("readyState", track.state().toString());
+          trackInfo.putBoolean("remote", true);
+          params.putMap("track", trackInfo.toMap());
+          sendEvent(params);
+      }
+      // For unified-plan
+      ConstraintsMap params = new ConstraintsMap();
+      ConstraintsArray streams = new ConstraintsArray();
+      for(int i = 0; i< mediaStreams.length; i++){
+          MediaStream stream = mediaStreams[i];
+          streams.pushMap(new ConstraintsMap(mediaStreamToMap(stream)));
+      }
+      params.putArray("mediaStreams", streams.toArrayList());
+      params.putMap("receiver", rtpReceiverToMap(receiver));
+      params.putString("event", "onAddTrack2");
       sendEvent(params);
-    }
   }
 
   @Override
@@ -565,14 +579,39 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       return info.toMap();
   }
 
+    @Nullable
+    private Map<String, Object> mediaStreamToMap(MediaStream stream){
+        ConstraintsMap params = new ConstraintsMap();
+
+        params.putString("streamId", stream.getId());
+        params.putString("ownerTag", id);
+        ConstraintsArray audioTracks = new ConstraintsArray();
+        ConstraintsArray videoTracks = new ConstraintsArray();
+
+        for (int i = 0; i < stream.audioTracks.size(); i++) {
+            MediaStreamTrack track = stream.videoTracks.get(i);
+            audioTracks.pushMap(new ConstraintsMap(mediaTrackToMap(track)));
+        }
+        for (int i = 0; i < stream.videoTracks.size(); i++) {
+            MediaStreamTrack track = stream.videoTracks.get(i);
+            videoTracks.pushMap(new ConstraintsMap(mediaTrackToMap(track)));
+        }
+
+        params.putArray("audioTracks", audioTracks.toArrayList());
+        params.putArray("videoTracks", videoTracks.toArrayList());
+
+        return params.toMap();
+    }
+
   @Nullable
   private Map<String, Object> mediaTrackToMap(MediaStreamTrack track){
       ConstraintsMap info = new ConstraintsMap();
       if(track != null){
           info.putString("trackId", track.id());
-          info.putString("label",track.id());
+          info.putString("label",track.getClass() == VideoTrack.class? "video": "audio");
           info.putString("kind",track.kind());
           info.putBoolean("enabled", track.enabled());
+          info.putString("readyState", track.state().toString());
       }
       return info.toMap();
   }
@@ -686,5 +725,24 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       }
       transceivers.put(transceiver.getMid(), transceiver);
       result.success(transceiverToMap(transceiver));
+  }
+
+  public void rtpTransceiverSetDirection(String direction, String transceiverId, Result result) {
+      RtpTransceiver transceiver = transceivers.get(transceiverId);
+      if (transceiver == null) {
+          result.error("rtpTransceiverSetDirection", "rtpTransceiverSetDirection() transceiver is null", null);
+      }
+      transceiver.setDirection(typStringToTransceiverDirection(direction));
+      result.success(null);
+  }
+
+  public void rtpTransceiverGetCurrentDirection(String transceiverId, Result result) {
+      RtpTransceiver transceiver = transceivers.get(transceiverId);
+      if (transceiver == null) {
+          result.error("rtpTransceiverSetDirection", "rtpTransceiverSetDirection() transceiver is null", null);
+      }
+      ConstraintsMap params = new ConstraintsMap();
+      params.putString("result", transceiverDirectionString(transceiver.getDirection()));
+      result.success(params.toMap());
   }
 }
