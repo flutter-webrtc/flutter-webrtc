@@ -50,22 +50,6 @@ class RTCRtpReceiver {
     _peerConnectionId = id;
   }
 
-  /// Currently, doesn't support changing any parameters, but may in the future.
-  Future<bool> setParameters(RTCRtpParameters parameters) async {
-    _parameters = parameters;
-    try {
-      final response = await _channel
-          .invokeMethod('rtpReceiverSetParameters', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'rtpReceiverId': _id,
-        'parameters': parameters.toMap()
-      });
-      return response['result'];
-    } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpReceiver::setParameters: ${e.message}';
-    }
-  }
-
   /// The WebRTC specification only defines RTCRtpParameters in terms of senders,
   /// but this API also applies them to receivers, similar to ORTC:
   /// http://ortc.org/wp-content/uploads/2016/03/ortc.html#rtcrtpparameters*.

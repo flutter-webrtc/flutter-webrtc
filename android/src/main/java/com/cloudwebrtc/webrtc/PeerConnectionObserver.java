@@ -56,6 +56,12 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     eventChannel.setStreamHandler(this);
   }
 
+  static private void resultError(String method, String error, Result result) {
+      String errorMsg = method + "(): " + error;
+      result.error(method, errorMsg,null);
+      Log.d(TAG, errorMsg);
+  }
+
   @Override
   public void onListen(Object o, EventChannel.EventSink sink) {
     eventSink = new AnyThreadSink(sink);
@@ -117,17 +123,15 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     // breakages).
     int dataChannelId = init.id;
     if (dataChannel != null && -1 != dataChannelId) {
-      dataChannels.put(dataChannelId, dataChannel);
-      registerDataChannelObserver(dataChannelId, dataChannel);
+        dataChannels.put(dataChannelId, dataChannel);
+        registerDataChannelObserver(dataChannelId, dataChannel);
 
-      ConstraintsMap params = new ConstraintsMap();
-      params.putInt("id", dataChannel.id());
-      params.putString("label", dataChannel.label());
-      result.success(params.toMap());
+        ConstraintsMap params = new ConstraintsMap();
+        params.putInt("id", dataChannel.id());
+        params.putString("label", dataChannel.label());
+        result.success(params.toMap());
     } else {
-      result.error("createDataChannel",
-          "Can't create data-channel for id: " + dataChannelId,
-          null);
+        resultError("createDataChannel", "Can't create data-channel for id: " + dataChannelId, result);
     }
   }
 
@@ -192,10 +196,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           },
           track);
     } else {
-      Log.e(TAG, "peerConnectionGetStats() MediaStreamTrack not found for id: " + trackId);
-      result.error("peerConnectionGetStats",
-          "peerConnectionGetStats() MediaStreamTrack not found for id: " + trackId,
-          null);
+        resultError("peerConnectionGetStats","MediaStreamTrack not found for id: " + trackId, result);
     }
   }
 
@@ -520,6 +521,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       return RtpTransceiver.RtpTransceiverDirection.INACTIVE;
   }
 
+  private RtpParameters MapToRtpParameters(Map<String, Object> parameters) {
+      RtpParameters rtpParameters = null;
+      return rtpParameters;
+  }
+
   private Map<String, Object> rtpParametersToMap(RtpParameters rtpParameters){
       ConstraintsMap info = new ConstraintsMap();
       info.putString("transactionId", rtpParameters.transactionId);
@@ -684,7 +690,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   public void removeTrack(String senderId, Result result){
       RtpSender sender = senders.get(senderId);
       if(sender == null){
-          result.error("removeTrack", "removeTrack() sender is null", null);
+          resultError("removeTrack", "sender is null", result);
           return;
       }
       boolean res = peerConnection.removeTrack(sender);
@@ -729,7 +735,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   public void rtpTransceiverSetDirection(String direction, String transceiverId, Result result) {
       RtpTransceiver transceiver = transceivers.get(transceiverId);
       if (transceiver == null) {
-          result.error("rtpTransceiverSetDirection", "rtpTransceiverSetDirection() transceiver is null", null);
+          resultError("rtpTransceiverSetDirection", "transceiver is null", result);
+          return;
       }
       transceiver.setDirection(typStringToTransceiverDirection(direction));
       result.success(null);
@@ -738,10 +745,49 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   public void rtpTransceiverGetCurrentDirection(String transceiverId, Result result) {
       RtpTransceiver transceiver = transceivers.get(transceiverId);
       if (transceiver == null) {
-          result.error("rtpTransceiverSetDirection", "rtpTransceiverSetDirection() transceiver is null", null);
+          resultError("rtpTransceiverGetCurrentDirection", "transceiver is null", result);
+          return;
       }
       ConstraintsMap params = new ConstraintsMap();
       params.putString("result", transceiverDirectionString(transceiver.getDirection()));
       result.success(params.toMap());
   }
+
+    public void rtpTransceiverStop(String transceiverId, Result result) {
+        RtpTransceiver transceiver = transceivers.get(transceiverId);
+        if (transceiver == null) {
+            resultError("rtpTransceiverStop", "transceiver is null", result);
+            return;
+        }
+        transceiver.stop();
+        result.success(null);
+    }
+
+    public void rtpSenderSetParameters(String rtpSenderId, Map<String, Object> parameters, Result result) {
+        RtpSender sender = senders.get(rtpSenderId);
+        if (sender == null) {
+            resultError("rtpSenderSetParameters", "sender is null", result);
+            return;
+        }
+        sender.setParameters(MapToRtpParameters(parameters));
+    }
+
+    public void rtpSenderSetTrack(String rtpSenderId, MediaStreamTrack track, Result result, boolean replace) {
+        RtpSender sender = senders.get(rtpSenderId);
+        if (sender == null) {
+            resultError("rtpSenderSetTrack", "sender is null", result);
+            return;
+        }
+        sender.setTrack(track, replace );
+    }
+
+    public void rtpSenderDispose(String rtpSenderId, Result result) {
+        RtpSender sender = senders.get(rtpSenderId);
+        if (sender == null) {
+            resultError("rtpSenderDispose", "sender is null", result);
+            return;
+        }
+        sender.dispose();
+        senders.remove(rtpSenderId);
+    }
 }

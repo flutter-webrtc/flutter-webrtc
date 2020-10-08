@@ -84,6 +84,7 @@ class RTCRtpSender {
   Future<void> dispose() async {
     try {
       await _channel.invokeMethod('rtpSenderDispose', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
       });
     } on PlatformException catch (e) {
