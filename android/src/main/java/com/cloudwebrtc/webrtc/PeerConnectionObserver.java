@@ -9,6 +9,7 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,9 +31,7 @@ import org.webrtc.StatsReport;
 import org.webrtc.VideoTrack;
 
 class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.StreamHandler {
-
   private final static String TAG = FlutterWebRTCPlugin.TAG;
-
   private final SparseArray<DataChannel> dataChannels = new SparseArray<>();
   private BinaryMessenger messenger;
   private final String id;
@@ -43,7 +42,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   final Map<String, RtpSender> senders = new HashMap<String, RtpSender>();
   final Map<String, RtpReceiver> receivers = new HashMap<String, RtpReceiver>();
   private final StateProvider stateProvider;
-
   private final EventChannel eventChannel;
   private EventChannel.EventSink eventSink;
 
@@ -578,8 +576,22 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           if (codec.numChannels != null) {
               map.putInt("numChannels", codec.numChannels);
           }
-          map.putMap("numTemporalLayers", new HashMap<String, Object>(codec.parameters));
-          //map.putString("kind", codec.kind);
+          map.putMap("parameters", new HashMap<String, Object>(codec.parameters));
+          try {
+              Field field = codec.getClass().getDeclaredField("kind");
+              field.setAccessible(true);
+              if (field.get(codec).equals(MediaStreamTrack.MediaType.MEDIA_TYPE_AUDIO)) {
+                  map.putString("kind", "audio");
+              } else if(field.get(codec).equals(MediaStreamTrack.MediaType.MEDIA_TYPE_VIDEO)) {
+                  map.putString("kind", "video");
+              }
+          } catch (NoSuchFieldException e1) {
+              e1.printStackTrace();
+          } catch (IllegalArgumentException e1) {
+              e1.printStackTrace();
+          } catch (IllegalAccessException e1) {
+              e1.printStackTrace();
+          }
           codecs.pushMap(map);
       }
 

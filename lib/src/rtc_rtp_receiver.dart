@@ -1,10 +1,7 @@
 import 'dart:async';
-import 'package:flutter/services.dart';
 
 import 'media_stream_track.dart';
 import 'rtc_rtp_parameters.dart';
-
-import 'utils.dart';
 
 enum RTCRtpMediaType {
   RTCRtpMediaTypeAudio,
@@ -37,18 +34,12 @@ class RTCRtpReceiver {
   }
 
   /// private:
-  final MethodChannel _channel = WebRTC.methodChannel();
-  String _peerConnectionId;
   String _id;
   MediaStreamTrack _track;
   RTCRtpParameters _parameters;
 
   /// public:
   OnFirstPacketReceivedCallback onFirstPacketReceived;
-
-  set peerConnectionId(String id) {
-    _peerConnectionId = id;
-  }
 
   /// The WebRTC specification only defines RTCRtpParameters in terms of senders,
   /// but this API also applies them to receivers, similar to ORTC:
