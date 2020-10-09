@@ -1,9 +1,4 @@
-import 'dart:html' as html;
-
-class RTCDTMFSender {
-  RTCDTMFSender(this._jsDtmfSender);
-  final html.RtcDtmfSender _jsDtmfSender;
-
+abstract class RTCDTMFSender {
   ///  tones:A String containing the DTMF codes to be transmitted to the recipient.
   ///          Specifying an empty string as the tones parameter clears the tone
   ///          buffer, aborting any currently queued tones. A "," character inserts
@@ -15,11 +10,10 @@ class RTCDTMFSender {
   ///          if you specify a lower value, 30 ms will be used instead);
   ///          the default is 70 ms.
   Future<void> insertDTMF(String tones,
-      {int duration = 100, int interToneGap = 70}) async {
-    return _jsDtmfSender.insertDtmf(tones, duration, interToneGap);
-  }
+      {int duration = 100, int interToneGap = 70});
 
   /// Compatible with old methods
+  @Deprecated('Use method insertDTMF instead')
   Future<void> sendDtmf(String tones,
           {int duration = 100, int interToneGap = 70}) =>
       insertDTMF(tones, duration: duration, interToneGap: interToneGap);
