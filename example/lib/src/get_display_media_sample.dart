@@ -52,7 +52,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     final mediaConstraints = <String, dynamic>{'audio': false, 'video': true};
 
     try {
-      var stream = await MediaDevices.getDisplayMedia(mediaConstraints);
+      var stream = await navigator.getDisplayMedia(mediaConstraints);
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
     } catch (e) {

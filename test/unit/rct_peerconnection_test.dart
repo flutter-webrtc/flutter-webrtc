@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:flutter_webrtc/src/rtc_peerconnection.dart';
+import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +24,7 @@ void main() {
   test(
       'Validate that not setting any public delegate this will not break the implementation by throwing NPE',
       () {
-    final rct = RTCPeerConnection('', {});
+    final rct = RTCPeerConnectionNative('', {});
     final events = [
       'signalingState',
       'iceGatheringState',
