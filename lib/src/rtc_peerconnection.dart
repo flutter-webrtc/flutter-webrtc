@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/services.dart';
 
 import 'enums.dart';
@@ -12,12 +13,15 @@ import 'rtc_rtp_sender.dart';
 import 'rtc_rtp_transceiver.dart';
 import 'rtc_session_description.dart';
 import 'rtc_stats_report.dart';
+import 'rtc_track_event.dart';
 import 'utils.dart';
 
 /*
  * Delegate for PeerConnection.
  */
 typedef SignalingStateCallback = void Function(RTCSignalingState state);
+typedef PeerConnectionStateCallback = void Function(
+    RTCPeerConnectionState state);
 typedef IceGatheringStateCallback = void Function(RTCIceGatheringState state);
 typedef IceConnectionStateCallback = void Function(RTCIceConnectionState state);
 typedef IceCandidateCallback = void Function(RTCIceCandidate candidate);
@@ -33,7 +37,7 @@ typedef RenegotiationNeededCallback = void Function();
 /// Unified-Plan
 typedef UnifiedPlanAddTrackCallback = void Function(RTCRtpReceiver receiver,
     [List<MediaStream> mediaStreams]);
-typedef UnifiedPlanTrackCallback = void Function(RTCRtpTransceiver transceiver);
+typedef UnifiedPlanTrackCallback = void Function(RTCTrackEvent event);
 
 /*
  *  PeerConnection
@@ -57,10 +61,12 @@ class RTCPeerConnection {
   RTCDataChannel _dataChannel;
   Map<String, dynamic> _configuration;
   RTCSignalingState _signalingState;
+  RTCPeerConnectionState _connectionState;
   RTCIceGatheringState _iceGatheringState;
   RTCIceConnectionState _iceConnectionState;
   // public: delegate
   SignalingStateCallback onSignalingState;
+  PeerConnectionStateCallback onConnectionState;
   IceGatheringStateCallback onIceGatheringState;
   IceConnectionStateCallback onIceConnectionState;
   IceCandidateCallback onIceCandidate;
@@ -91,6 +97,12 @@ class RTCPeerConnection {
 
   RTCIceConnectionState get iceConnectionState => _iceConnectionState;
 
+  RTCPeerConnectionState get connectionState => _connectionState;
+
+  Future<RTCSessionDescription> get localDescription => getLocalDescription();
+
+  Future<RTCSessionDescription> get remoteDescription => getRemoteDescription();
+
   /*
    * PeerConnection event listener.
    */
@@ -101,6 +113,10 @@ class RTCPeerConnection {
       case 'signalingState':
         _signalingState = signalingStateForString(map['state']);
         onSignalingState?.call(_signalingState);
+        break;
+      case 'peerConnectionState':
+        _connectionState = peerConnectionStateForString(map['state']);
+        onConnectionState?.call(_connectionState);
         break;
       case 'iceGatheringState':
         _iceGatheringState = iceGatheringStateforString(map['state']);
@@ -188,7 +204,7 @@ class RTCPeerConnection {
 
       /// Unified-Plan
       case 'onTrack':
-        onTrack?.call(RTCRtpTransceiver.fromMap(map['transceiver']));
+        onTrack?.call(RTCTrackEvent.fromMap(map));
         break;
       case 'onAddTrack2':
         var streamsParams = map['mediaStreams'] as List<Map<String, dynamic>>;
@@ -463,32 +479,15 @@ class RTCPeerConnection {
     }
   }
 
-  Future<RTCRtpTransceiver> addTransceiver(MediaStreamTrack track,
-      [RTCRtpTransceiverInit init]) async {
+  Future<RTCRtpTransceiver> addTransceiver(
+      {MediaStreamTrack track, String kind, RTCRtpTransceiverInit init}) async {
     try {
       final response =
           await _channel.invokeMethod('addTransceiver', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
-        'trackId': track.id,
-        'transceiverInit': init?.toMap()
-      });
-      var transceiver = RTCRtpTransceiver.fromMap(response);
-      transceiver.peerConnectionId = _peerConnectionId;
-      _transceivers.add(transceiver);
-      return transceiver;
-    } on PlatformException catch (e) {
-      throw 'Unable to RTCPeerConnection::addTransceiver: ${e.message}';
-    }
-  }
-
-  Future<RTCRtpTransceiver> addTransceiverOfType(RTCRtpMediaType mediaType,
-      [RTCRtpTransceiverInit init]) async {
-    try {
-      final response =
-          await _channel.invokeMethod('addTransceiverOfType', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'mediaType': typeRTCRtpMediaTypetoString[mediaType],
-        'transceiverInit': init?.toMap()
+        if (track != null) 'trackId': track.id,
+        if (kind != null) 'mediaType': typeRTCRtpMediaTypetoString[kind],
+        if (init != null) 'transceiverInit': init.toMap()
       });
       var transceiver = RTCRtpTransceiver.fromMap(response);
       transceiver.peerConnectionId = _peerConnectionId;

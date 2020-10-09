@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_webrtc/src/rtc_rtp_parameters.dart';
 
 import 'rtc_rtp_receiver.dart';
 import 'rtc_rtp_sender.dart';
@@ -29,16 +30,22 @@ final typeRtpTransceiverDirectionToString =
   RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionInactive: 'inactive',
 };
 
+List<RTCRtpEncoding> listToRtpEncodings(List<Map<String, dynamic>> list) {
+  return list.map((e) => RTCRtpEncoding.fromMap(e)).toList();
+}
+
 class RTCRtpTransceiverInit {
-  RTCRtpTransceiverInit(this.direction, this.streamIds);
+  RTCRtpTransceiverInit(this.direction, this.sendEncodings, this.streamIds);
 
   factory RTCRtpTransceiverInit.fromMap(Map<dynamic, dynamic> map) {
     return RTCRtpTransceiverInit(
         typeStringToRtpTransceiverDirection[map['direction']],
+        listToRtpEncodings(map['sendEncodings']),
         map['streamIds']);
   }
   RTCRtpTransceiverDirection direction;
   List<String> streamIds;
+  List<RTCRtpEncoding> sendEncodings;
 
   Map<String, dynamic> toMap() {
     return {

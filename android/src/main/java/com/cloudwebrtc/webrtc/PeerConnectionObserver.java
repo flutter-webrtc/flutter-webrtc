@@ -437,7 +437,16 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     sendEvent(params);
   }
 
-  @Nullable
+    @Override
+    public void onConnectionChange(PeerConnection.PeerConnectionState connectionState) {
+        Log.d(TAG, "onConnectionChange" + connectionState.name());
+        ConstraintsMap params = new ConstraintsMap();
+        params.putString("event", "peerConnectionState");
+        params.putString("state", connectionStateString(connectionState));
+        sendEvent(params);
+    }
+
+    @Nullable
   private String iceConnectionStateString(PeerConnection.IceConnectionState iceConnectionState) {
     switch (iceConnectionState) {
       case NEW:
@@ -489,6 +498,25 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     }
     return null;
   }
+
+    @Nullable
+    private String connectionStateString(PeerConnection.PeerConnectionState connectionState) {
+        switch (connectionState) {
+            case NEW:
+                return "new";
+            case CONNECTING:
+                return "connecting";
+            case CONNECTED:
+                return "connected";
+            case DISCONNECTED:
+                return "disconnected";
+            case FAILED:
+                return "failed";
+            case CLOSED:
+                return "closed";
+        }
+        return null;
+    }
 
   @Nullable
   private String transceiverDirectionString(RtpTransceiver.RtpTransceiverDirection direction) {

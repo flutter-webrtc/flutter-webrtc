@@ -19,6 +19,15 @@ enum RTCSignalingState {
   RTCSignalingStateClosed
 }
 
+enum RTCPeerConnectionState {
+  RTCPeerConnectionStateClosed,
+  RTCPeerConnectionStateFailed,
+  RTCPeerConnectionStateDisconnected,
+  RTCPeerConnectionStateNew,
+  RTCPeerConnectionStateConnecting,
+  RTCPeerConnectionStateConnected
+}
+
 enum RTCIceGatheringState {
   RTCIceGatheringStateNew,
   RTCIceGatheringStateGathering,
@@ -105,4 +114,23 @@ RTCDataChannelState rtcDataChannelStateForString(String state) {
       return RTCDataChannelState.RTCDataChannelClosed;
   }
   return RTCDataChannelState.RTCDataChannelClosed;
+}
+
+RTCPeerConnectionState peerConnectionStateForString(String state) {
+  switch (state) {
+    case 'new':
+      return RTCPeerConnectionState.RTCPeerConnectionStateNew;
+    case 'connecting':
+      return RTCPeerConnectionState.RTCPeerConnectionStateConnecting;
+    case 'connected':
+      return RTCPeerConnectionState.RTCPeerConnectionStateConnected;
+    case 'closed':
+      return RTCPeerConnectionState.RTCPeerConnectionStateClosed;
+    case 'disconnected':
+      return RTCPeerConnectionState.RTCPeerConnectionStateDisconnected;
+    case 'failed':
+      return RTCPeerConnectionState.RTCPeerConnectionStateFailed;
+  }
+
+  return RTCPeerConnectionState.RTCPeerConnectionStateClosed;
 }

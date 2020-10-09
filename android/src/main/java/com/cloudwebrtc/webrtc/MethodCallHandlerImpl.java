@@ -580,16 +580,16 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       case "addTransceiver": {
         String peerConnectionId = call.argument("peerConnectionId");
-        String trackId = call.argument("trackId");
         Map<String, Object> transceiverInit = call.argument("transceiverInit");
-        addTransceiver(peerConnectionId, trackId, transceiverInit, result);
-        break;
-      }
-      case "addTransceiverOfType": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String mediaType = call.argument("mediaType");
-        Map<String, Object> transceiverInit = call.argument("transceiverInit");
-        addTransceiverOfType(peerConnectionId, mediaType, transceiverInit, result);
+        if(call.hasArgument("trackId")) {
+          String trackId = call.argument("trackId");
+          addTransceiver(peerConnectionId, trackId, transceiverInit, result);
+        } else  if(call.hasArgument("")) {
+          String mediaType = call.argument("mediaType");
+          addTransceiverOfType(peerConnectionId, mediaType, transceiverInit, result);
+        } else {
+          resultError("addTransceiver", "Incomplete parameters", result);
+        }
         break;
       }
       case "rtpTransceiverSetDirection": {

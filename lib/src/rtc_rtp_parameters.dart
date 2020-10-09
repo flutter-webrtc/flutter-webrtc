@@ -40,25 +40,25 @@ class RTCRTPCodec {
 
 class RTCRtpEncoding {
   RTCRtpEncoding(
-      this.rid,
+      {this.rid,
       this.active,
       this.maxBitrateBps,
       this.maxFramerate,
       this.minBitrateBps,
       this.numTemporalLayers,
       this.scaleResolutionDownBy,
-      this.ssrc);
+      this.ssrc});
 
   factory RTCRtpEncoding.fromMap(Map<dynamic, dynamic> map) {
     return RTCRtpEncoding(
-        map['rid'],
-        map['active'],
-        map['maxBitrateBps'],
-        map['maxFramerate'],
-        map['minBitrateBps'],
-        map['numTemporalLayers'],
-        map['scaleResolutionDownBy'],
-        map['ssrc']);
+        rid: map['rid'],
+        active: map['active'],
+        maxBitrateBps: map['maxBitrateBps'],
+        maxFramerate: map['maxFramerate'],
+        minBitrateBps: map['minBitrateBps'],
+        numTemporalLayers: map['numTemporalLayers'],
+        scaleResolutionDownBy: map['scaleResolutionDownBy'],
+        ssrc: map['ssrc']);
   }
 
   /// If non-null, this represents the RID that identifies this encoding layer.
@@ -106,9 +106,10 @@ class RTCRtpEncoding {
 }
 
 class RTCHeaderExtension {
-  RTCHeaderExtension(this.uri, this.id, this.encrypted);
+  RTCHeaderExtension({this.uri, this.id, this.encrypted});
   factory RTCHeaderExtension.fromMap(Map<dynamic, dynamic> map) {
-    return RTCHeaderExtension(map['uri'], map['id'], map['encrypted']);
+    return RTCHeaderExtension(
+        uri: map['uri'], id: map['id'], encrypted: map['encrypted']);
   }
 
   /// The URI of the RTP header extension, as defined in RFC5285.
