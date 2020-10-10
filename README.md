@@ -68,7 +68,7 @@ The project is inseparable from the contributors of the community.
 - [CloudWebRTC](https://github.com/cloudwebrtc) - Original Author
 - [RainwayApp](https://github.com/rainwayapp) - Sponsor
 - [亢少军](https://github.com/kangshaojun) - Sponsor
-- [Ion](https://github.com/pion/ion) - Sponsor
+- [ION](https://github.com/pion/ion) - Sponsor
 
 ### Example
 For more examples, please refer to [flutter-webrtc-demo](https://github.com/cloudwebrtc/flutter-webrtc-demo/).
