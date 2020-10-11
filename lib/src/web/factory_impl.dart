@@ -51,7 +51,7 @@ class RTCFactoryWeb extends RTCFactory {
 
   @override
   VideoRenderer videoRenderer() {
-    return RTCVideoRendererWeb();
+    return RTCVideoRenderer();
   }
 
   @override

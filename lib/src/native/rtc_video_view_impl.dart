@@ -20,8 +20,8 @@ class RTCVideoView extends StatelessWidget {
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
 
-  RTCVideoRendererNative get videoRenderer =>
-      _renderer as RTCVideoRendererNative;
+  RTCVideoRenderer get videoRenderer =>
+      _renderer as RTCVideoRenderer;
 
   @override
   Widget build(BuildContext context) {

@@ -23,8 +23,8 @@ class RTCVideoView extends StatefulWidget {
 
 class _RTCVideoViewState extends State<RTCVideoView> {
   _RTCVideoViewState();
-  RTCVideoRendererWeb get videoRenderer =>
-      widget._renderer as RTCVideoRendererWeb;
+  RTCVideoRenderer get videoRenderer =>
+      widget._renderer as RTCVideoRenderer;
   @override
   void initState() {
     super.initState();
