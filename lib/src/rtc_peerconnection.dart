@@ -35,8 +35,6 @@ typedef RTCDataChannelCallback = void Function(RTCDataChannel channel);
 typedef RenegotiationNeededCallback = void Function();
 
 /// Unified-Plan
-typedef UnifiedPlanAddTrackCallback = void Function(RTCRtpReceiver receiver,
-    [List<MediaStream> mediaStreams]);
 typedef UnifiedPlanTrackCallback = void Function(RTCTrackEvent event);
 
 /*
@@ -78,10 +76,7 @@ class RTCPeerConnection {
   RenegotiationNeededCallback onRenegotiationNeeded;
 
   /// Unified-Plan
-  // TODO(cloudwebrtc): for unified-plan.
-  UnifiedPlanAddTrackCallback onAddTrack2;
   UnifiedPlanTrackCallback onTrack;
-  UnifiedPlanTrackCallback onRemoveTrack2;
 
   final Map<String, dynamic> defaultSdpConstraints = {
     'mandatory': {
@@ -203,9 +198,6 @@ class RTCPeerConnection {
         break;
 
       /// Unified-Plan
-      case 'onTrack2':
-        //onTrack?.call(RTCTrackEvent.fromMap(map));
-        break;
       case 'onTrack':
         var params = map['streams'] as List<dynamic>;
         var streams = params.map((e) => MediaStream.fromMap(e)).toList();
@@ -213,8 +205,6 @@ class RTCPeerConnection {
             receiver: RTCRtpReceiver.fromMap(map['receiver']),
             track: MediaStreamTrack.fromMap(map['track']),
             streams: streams));
-
-        //RTCRtpReceiver.fromMap(map['receiver']), mediaStreams);
         break;
     }
   }
