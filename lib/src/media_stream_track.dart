@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'utils.dart';
 
+typedef StreamTrackCallback = Function();
+
 class MediaStreamTrack {
   MediaStreamTrack(this._trackId, this._label, this._kind, this._enabled);
   factory MediaStreamTrack.fromMap(Map<dynamic, dynamic> map) {
@@ -13,6 +15,8 @@ class MediaStreamTrack {
   final String _label;
   final String _kind;
   bool _enabled;
+  StreamTrackCallback onended;
+  StreamTrackCallback onmute;
 
   set enabled(bool enabled) {
     _channel.invokeMethod('mediaStreamTrackSetEnable',

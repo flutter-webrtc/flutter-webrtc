@@ -3,7 +3,7 @@ import 'dart:async';
 import 'media_stream_track.dart';
 import 'utils.dart';
 
-typedef MediaTrackTrackCallback = void Function(MediaStreamTrack track);
+typedef MediaTrackCallback = void Function(MediaStreamTrack track);
 
 class MediaStream {
   MediaStream(this._streamId, this._ownerTag);
@@ -18,8 +18,8 @@ class MediaStream {
   final _videoTracks = <MediaStreamTrack>[];
   String get ownerTag => _ownerTag;
   String get id => _streamId;
-  MediaTrackTrackCallback onAddTrack;
-  MediaTrackTrackCallback onRemoveTrack;
+  MediaTrackCallback onAddTrack;
+  MediaTrackCallback onRemoveTrack;
 
   void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
     _audioTracks.clear();
