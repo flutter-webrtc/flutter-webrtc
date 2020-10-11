@@ -1319,8 +1319,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void peerConnectionSetLocalDescription(ConstraintsMap sdpMap, final String id,
       final Result result) {
     PeerConnection peerConnection = getPeerConnection(id);
-
-    Log.d(TAG, "peerConnectionSetLocalDescription() start");
     if (peerConnection != null) {
       SessionDescription sdp = new SessionDescription(
           Type.fromCanonicalForm(sdpMap.getString("type")),
@@ -1349,15 +1347,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     } else {
       resultError("peerConnectionSetLocalDescription", "WEBRTC_SET_LOCAL_DESCRIPTION_ERROR: peerConnection is null", result);
     }
-    Log.d(TAG, "peerConnectionSetLocalDescription() end");
   }
 
   public void peerConnectionSetRemoteDescription(final ConstraintsMap sdpMap, final String id,
       final Result result) {
     PeerConnection peerConnection = getPeerConnection(id);
-    // final String d = sdpMap.getString("type");
-
-    Log.d(TAG, "peerConnectionSetRemoteDescription() start");
     if (peerConnection != null) {
       SessionDescription sdp = new SessionDescription(
           Type.fromCanonicalForm(sdpMap.getString("type")),
@@ -1386,14 +1380,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     } else {
       resultError("peerConnectionSetRemoteDescription", "WEBRTC_SET_REMOTE_DESCRIPTION_ERROR: peerConnection is null", result);
     }
-    Log.d(TAG, "peerConnectionSetRemoteDescription() end");
   }
 
   public void peerConnectionAddICECandidate(ConstraintsMap candidateMap, final String id,
       final Result result) {
     boolean res = false;
     PeerConnection peerConnection = getPeerConnection(id);
-    Log.d(TAG, "peerConnectionAddICECandidate() start");
     if (peerConnection != null) {
       IceCandidate candidate = new IceCandidate(
           candidateMap.getString("sdpMid"),
@@ -1405,7 +1397,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       resultError("peerConnectionAddICECandidate", "peerConnection is null", result);
     }
     result.success(res);
-    Log.d(TAG, "peerConnectionAddICECandidate() end");
   }
 
   public void peerConnectionGetStats(String trackId, String id, final Result result) {

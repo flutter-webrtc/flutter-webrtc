@@ -203,15 +203,18 @@ class RTCPeerConnection {
         break;
 
       /// Unified-Plan
-      case 'onTrack':
-        onTrack?.call(RTCTrackEvent.fromMap(map));
+      case 'onTrack2':
+        //onTrack?.call(RTCTrackEvent.fromMap(map));
         break;
-      case 'onAddTrack2':
-        var streamsParams = map['mediaStreams'] as List<Map<String, dynamic>>;
-        var mediaStreams =
-            streamsParams.map((e) => MediaStream.fromMap(e)).toList();
-        onAddTrack2?.call(
-            RTCRtpReceiver.fromMap(map['receiver']), mediaStreams);
+      case 'onTrack':
+        var params = map['streams'] as List<dynamic>;
+        var streams = params.map((e) => MediaStream.fromMap(e)).toList();
+        onTrack?.call(RTCTrackEvent(
+            receiver: RTCRtpReceiver.fromMap(map['receiver']),
+            track: MediaStreamTrack.fromMap(map['track']),
+            streams: streams));
+
+        //RTCRtpReceiver.fromMap(map['receiver']), mediaStreams);
         break;
     }
   }

@@ -342,6 +342,19 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   @Override
+  public void onTrack(RtpTransceiver transceiver) {
+      /*
+      ConstraintsMap params = new ConstraintsMap();
+      params.putString("event", "onTrack");
+      params.putMap("transceiver", transceiverToMap(transceiver));
+      params.putMap("receiver", rtpReceiverToMap(transceiver.getReceiver()));
+      params.putMap("track", mediaTrackToMap(transceiver.getReceiver().track()));
+      params.putArray("streams", new ConstraintsArray().toArrayList());
+      sendEvent(params);
+      */
+  }
+
+  @Override
   public void onAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams) {
       Log.d(TAG, "onAddTrack");
       // for plan-b
@@ -365,6 +378,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           params.putMap("track", trackInfo.toMap());
           sendEvent(params);
       }
+
       // For unified-plan
       ConstraintsMap params = new ConstraintsMap();
       ConstraintsArray streams = new ConstraintsArray();
@@ -372,9 +386,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           MediaStream stream = mediaStreams[i];
           streams.pushMap(new ConstraintsMap(mediaStreamToMap(stream)));
       }
-      params.putArray("mediaStreams", streams.toArrayList());
+
+      params.putString("event", "onTrack");
+      params.putArray("streams", streams.toArrayList());
+      params.putMap("track", mediaTrackToMap(receiver.track()));
       params.putMap("receiver", rtpReceiverToMap(receiver));
-      params.putString("event", "onAddTrack2");
       sendEvent(params);
   }
 
@@ -697,14 +713,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       info.putMap("sender", rtpSenderToMap(transceiver.getSender()));
       info.putMap("receiver", rtpReceiverToMap(transceiver.getReceiver()));
       return info.toMap();
-  }
-
-  @Override
-  public void onTrack(RtpTransceiver transceiver) {
-      ConstraintsMap params = new ConstraintsMap();
-      params.putString("event", "onTrack");
-      params.putMap("transceiver", transceiverToMap(transceiver));
-      sendEvent(params);
   }
 
   public void createSender(String kind, String streamId, Result result){

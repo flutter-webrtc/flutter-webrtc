@@ -19,9 +19,11 @@ export 'src/rtc_peerconnection.dart'
     if (dart.library.html) 'src/web/rtc_peerconnection.dart';
 export 'src/rtc_peerconnection_factory.dart'
     if (dart.library.html) 'src/web/rtc_peerconnection_factory.dart';
+export 'src/rtc_rtp_transceiver.dart';
 export 'src/rtc_session_description.dart'
     if (dart.library.html) 'src/web/rtc_session_description.dart';
 export 'src/rtc_stats_report.dart';
+export 'src/rtc_track_event.dart';
 export 'src/rtc_video_view.dart'
     if (dart.library.html) 'src/web/rtc_video_view.dart';
 export 'src/utils.dart' if (dart.library.html) 'src/web/utils.dart';

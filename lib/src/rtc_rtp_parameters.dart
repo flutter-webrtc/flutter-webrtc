@@ -1,12 +1,22 @@
 import 'rtc_rtcp_parameters.dart';
 
 class RTCRTPCodec {
-  RTCRTPCodec(this.payloadType, this.name, this.kind, this.clockRate,
-      this.numChannels, this.parameters);
+  RTCRTPCodec(
+      {this.payloadType,
+      this.name,
+      this.kind,
+      this.clockRate,
+      this.numChannels,
+      this.parameters});
 
   factory RTCRTPCodec.fromMap(Map<dynamic, dynamic> map) {
-    return RTCRTPCodec(map['payloadType'], map['name'], map['kind'],
-        map['clockRate'], map['numChannels'], map['parameters']);
+    return RTCRTPCodec(
+        payloadType: map['payloadType'],
+        name: map['name'],
+        kind: map['kind'],
+        clockRate: map['clockRate'],
+        numChannels: map['numChannels'] ?? 1,
+        parameters: map['parameters']);
   }
   // Payload type used to identify this codec in RTP packets.
   int payloadType;
@@ -24,7 +34,7 @@ class RTCRTPCodec {
   int numChannels;
 
   /// The "format specific parameters" field from the "a=fmtp" line in the SDP
-  Map<String, String> parameters;
+  Map<dynamic, dynamic> parameters;
 
   Map<String, dynamic> toMap() {
     return {

@@ -7,27 +7,25 @@ import 'rtc_rtp_receiver.dart';
 import 'rtc_rtp_sender.dart';
 import 'utils.dart';
 
-enum RTCRtpTransceiverDirection {
-  RTCRtpTransceiverDirectionSendRecv,
-  RTCRtpTransceiverDirectionSendOnly,
-  RTCRtpTransceiverDirectionRecvOnly,
-  RTCRtpTransceiverDirectionInactive,
+enum TransceiverDirection {
+  SendRecv,
+  SendOnly,
+  RecvOnly,
+  Inactive,
 }
 
-final typeStringToRtpTransceiverDirection =
-    <String, RTCRtpTransceiverDirection>{
-  'sendrecv': RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionSendRecv,
-  'sendonly': RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionSendOnly,
-  'recvonly': RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionRecvOnly,
-  'inactive': RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionInactive,
+final typeStringToRtpTransceiverDirection = <String, TransceiverDirection>{
+  'sendrecv': TransceiverDirection.SendRecv,
+  'sendonly': TransceiverDirection.SendOnly,
+  'recvonly': TransceiverDirection.RecvOnly,
+  'inactive': TransceiverDirection.Inactive,
 };
 
-final typeRtpTransceiverDirectionToString =
-    <RTCRtpTransceiverDirection, String>{
-  RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionSendRecv: 'sendrecv',
-  RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionSendOnly: 'sendonly',
-  RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionRecvOnly: 'recvonly',
-  RTCRtpTransceiverDirection.RTCRtpTransceiverDirectionInactive: 'inactive',
+final typeRtpTransceiverDirectionToString = <TransceiverDirection, String>{
+  TransceiverDirection.SendRecv: 'sendrecv',
+  TransceiverDirection.SendOnly: 'sendonly',
+  TransceiverDirection.RecvOnly: 'recvonly',
+  TransceiverDirection.Inactive: 'inactive',
 };
 
 List<RTCRtpEncoding> listToRtpEncodings(List<Map<String, dynamic>> list) {
@@ -35,15 +33,15 @@ List<RTCRtpEncoding> listToRtpEncodings(List<Map<String, dynamic>> list) {
 }
 
 class RTCRtpTransceiverInit {
-  RTCRtpTransceiverInit(this.direction, this.sendEncodings, this.streamIds);
+  RTCRtpTransceiverInit({this.direction, this.sendEncodings, this.streamIds});
 
   factory RTCRtpTransceiverInit.fromMap(Map<dynamic, dynamic> map) {
     return RTCRtpTransceiverInit(
-        typeStringToRtpTransceiverDirection[map['direction']],
-        listToRtpEncodings(map['sendEncodings']),
-        map['streamIds']);
+        direction: typeStringToRtpTransceiverDirection[map['direction']],
+        sendEncodings: listToRtpEncodings(map['sendEncodings']),
+        streamIds: map['streamIds']);
   }
-  RTCRtpTransceiverDirection direction;
+  TransceiverDirection direction;
   List<String> streamIds;
   List<RTCRtpEncoding> sendEncodings;
 
@@ -73,7 +71,7 @@ class RTCRtpTransceiver {
   String _peerConnectionId;
   String _id;
   bool _stop;
-  RTCRtpTransceiverDirection _direction;
+  TransceiverDirection _direction;
   String _mid;
   RTCRtpSender _sender;
   RTCRtpReceiver _receiver;
@@ -82,7 +80,7 @@ class RTCRtpTransceiver {
     _peerConnectionId = id;
   }
 
-  RTCRtpTransceiverDirection get currentDirection => _direction;
+  TransceiverDirection get currentDirection => _direction;
 
   String get mid => _mid;
 
@@ -94,7 +92,7 @@ class RTCRtpTransceiver {
 
   String get transceiverId => _id;
 
-  Future<void> setDirection(RTCRtpTransceiverDirection direction) async {
+  Future<void> setDirection(TransceiverDirection direction) async {
     try {
       await _channel
           .invokeMethod('rtpTransceiverSetDirection', <String, dynamic>{
@@ -107,7 +105,7 @@ class RTCRtpTransceiver {
     }
   }
 
-  Future<RTCRtpTransceiverDirection> getCurrentDirection() async {
+  Future<TransceiverDirection> getCurrentDirection() async {
     try {
       final response = await _channel.invokeMethod(
           'rtpTransceiverGetCurrentDirection', <String, dynamic>{
