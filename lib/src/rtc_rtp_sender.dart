@@ -60,7 +60,8 @@ class RTCRtpSender {
     }
   }
 
-  Future<void> setTrack(MediaStreamTrack track, bool takeOwnership) async {
+  Future<void> setTrack(MediaStreamTrack track,
+      {bool takeOwnership = true}) async {
     try {
       await _channel.invokeMethod('rtpSenderSetTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,

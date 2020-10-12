@@ -152,8 +152,24 @@ class _MyAppState extends State<LoopBackSample> {
 
       _localStream = await MediaDevices.getUserMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
-      //await _peerConnection.addStream(_localStream);
 
+      /* old API
+      await _peerConnection.addStream(_localStream);
+      // or
+      var rtpSender =
+          await _peerConnection.createSender('audio', _localStream.id);
+      await rtpSender.setTrack(_localStream.getAudioTracks()[0]);
+      rtpSender = await _peerConnection.createSender('video', _localStream.id);
+      await rtpSender.setTrack(_localStream.getVideoTracks()[0]);
+      */
+
+      // Unified-Plan
+      _localStream.getTracks().forEach((track) {
+        _peerConnection.addTrack(track, [_localStream]);
+      });
+
+      // or
+      /*
       await _peerConnection.addTransceiver(
         track: _localStream.getAudioTracks()[0],
         init: RTCRtpTransceiverInit(
@@ -166,7 +182,10 @@ class _MyAppState extends State<LoopBackSample> {
         init: RTCRtpTransceiverInit(
             direction: TransceiverDirection.SendRecv, streams: [_localStream]),
       );
+      */
+
       /*
+      // Unified-Plan Simulcast
       await _peerConnection.addTransceiver(
           track: _localStream.getVideoTracks()[0],
           init: RTCRtpTransceiverInit(
@@ -205,10 +224,13 @@ class _MyAppState extends State<LoopBackSample> {
       //change for loopback.
       description.type = 'answer';
       await _peerConnection.setRemoteDescription(description);
-      /*
+
+      /* Unfied-Plan replaceTrack
       var stream = await MediaDevices.getDisplayMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
       await transceiver.sender.replaceTrack(stream.getVideoTracks()[0]);
+      // do re-negotiation ....
+
       */
     } catch (e) {
       print(e.toString());

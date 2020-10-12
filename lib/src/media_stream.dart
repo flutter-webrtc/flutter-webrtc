@@ -70,6 +70,10 @@ class MediaStream {
     }
   }
 
+  List<MediaStreamTrack> getTracks() {
+    return <MediaStreamTrack>[..._audioTracks, ..._videoTracks];
+  }
+
   List<MediaStreamTrack> getAudioTracks() {
     return _audioTracks;
   }

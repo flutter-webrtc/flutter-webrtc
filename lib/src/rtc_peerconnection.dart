@@ -422,13 +422,13 @@ class RTCPeerConnection {
   }
 
   Future<RTCRtpSender> addTrack(MediaStreamTrack track,
-      [List<String> streamIds]) async {
+      [List<MediaStream> streams]) async {
     try {
       final response =
           await _channel.invokeMethod('addTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'trackId': track.id,
-        'streamIds': streamIds
+        'streamIds': streams.map((e) => e.id).toList()
       });
       var sender = RTCRtpSender.fromMap(response);
       _senders.add(sender);
