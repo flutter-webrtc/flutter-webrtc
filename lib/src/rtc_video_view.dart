@@ -72,17 +72,20 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue> {
 
   set srcObject(MediaStream stream) {
     if (textureId == null) throw 'Call initialize before setting the stream';
-
     _srcObject = stream;
-    _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
-      'textureId': textureId,
-      'streamId': stream?.id ?? '',
-      'ownerTag': stream?.ownerTag ?? ''
-    }).then((_) {
-      value = (stream == null)
-          ? RTCVideoValue.empty
-          : value.copyWith(renderVideo: renderVideo);
-    });
+    try {
+      _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
+        'textureId': textureId,
+        'streamId': stream?.id ?? '',
+        'ownerTag': stream?.ownerTag ?? ''
+      }).then((_) {
+        value = (stream == null)
+            ? RTCVideoValue.empty
+            : value.copyWith(renderVideo: renderVideo);
+      });
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
   @override

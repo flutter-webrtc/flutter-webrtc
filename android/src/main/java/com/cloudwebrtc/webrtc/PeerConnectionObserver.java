@@ -574,16 +574,33 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   private RtpParameters.Encoding mapToEncoding(Map<String, Object> parameters) {
-      Boolean active = true;
+      RtpParameters.Encoding encoding = new RtpParameters.Encoding((String)parameters.get("rid"), true, 1.0);
+
       if( parameters.get("active") != null) {
-          active = (Boolean) parameters.get("active");
-      }
-      Double scaleResolutionDownBy = 1.0;
-      if( parameters.get("scaleResolutionDownBy") != null) {
-          scaleResolutionDownBy = (Double) parameters.get("scaleResolutionDownBy");
+          encoding.active = (Boolean) parameters.get("active");
       }
 
-      return new RtpParameters.Encoding((String)parameters.get("rid"),active, scaleResolutionDownBy);
+      if( parameters.get("ssrc") != null) {
+          encoding.ssrc = ((Integer) parameters.get("ssrc")).longValue();
+      }
+
+      if( parameters.get("minBitrateBps") != null) {
+          encoding.minBitrateBps = (Integer) parameters.get("minBitrateBps");
+      }
+
+      if( parameters.get("minBitrateBps") != null) {
+          encoding.minBitrateBps = (Integer) parameters.get("minBitrateBps");
+      }
+
+      if( parameters.get("numTemporalLayers") != null) {
+          encoding.numTemporalLayers = (Integer) parameters.get("numTemporalLayers");
+      }
+
+      if( parameters.get("scaleResolutionDownBy") != null) {
+          encoding.scaleResolutionDownBy = (Double) parameters.get("scaleResolutionDownBy");
+      }
+
+      return  encoding;
   }
 
   private RtpTransceiver.RtpTransceiverInit mapToRtpTransceiverInit(Map<String, Object> parameters) {
@@ -798,6 +815,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           transceiver = peerConnection.addTransceiver(track);
       }
       transceivers.put(transceiver.getMid(), transceiver);
+      senders.put(transceiver.getSender().id(), transceiver.getSender());
+      receivers.put(transceiver.getReceiver().id(), transceiver.getReceiver());
       result.success(transceiverToMap(transceiver));
   }
 
@@ -809,6 +828,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           transceiver = peerConnection.addTransceiver(stringToMediaType(mediaType));
       }
       transceivers.put(transceiver.getMid(), transceiver);
+      senders.put(transceiver.getSender().id(), transceiver.getSender());
+      receivers.put(transceiver.getReceiver().id(), transceiver.getReceiver());
       result.success(transceiverToMap(transceiver));
   }
 
@@ -850,6 +871,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             return;
         }
         sender.setParameters(MapToRtpParameters(parameters));
+        result.success(null);
     }
 
     public void rtpSenderSetTrack(String rtpSenderId, MediaStreamTrack track, Result result, boolean replace) {
@@ -859,6 +881,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             return;
         }
         sender.setTrack(track, replace );
+        result.success(null);
     }
 
     public void rtpSenderDispose(String rtpSenderId, Result result) {
@@ -869,5 +892,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         }
         sender.dispose();
         senders.remove(rtpSenderId);
+        result.success(null);
     }
 }

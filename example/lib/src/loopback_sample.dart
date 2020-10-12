@@ -70,7 +70,10 @@ class _MyAppState extends State<LoopBackSample> {
     print(state);
   }
 
-  void _onAddStream(MediaStream stream) {}
+  void _onAddStream(MediaStream stream) {
+    print('New stream: ' + stream.id);
+    _remoteRenderer.srcObject = stream;
+  }
 
   void _onRemoveStream(MediaStream stream) {
     _remoteRenderer.srcObject = null;
@@ -149,6 +152,7 @@ class _MyAppState extends State<LoopBackSample> {
 
       _localStream = await MediaDevices.getUserMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
+      //await _peerConnection.addStream(_localStream);
 
       await _peerConnection.addTransceiver(
         track: _localStream.getAudioTracks()[0],
@@ -156,15 +160,13 @@ class _MyAppState extends State<LoopBackSample> {
             direction: TransceiverDirection.SendRecv, streams: [_localStream]),
       );
 
-      /*
-      await _peerConnection.addTransceiver(
+      // ignore: unused_local_variable
+      var transceiver = await _peerConnection.addTransceiver(
         track: _localStream.getVideoTracks()[0],
         init: RTCRtpTransceiverInit(
-            direction: TransceiverDirection.SendRecv,
-            streamIds: [_localStream.id]),
+            direction: TransceiverDirection.SendRecv, streams: [_localStream]),
       );
-      */
-
+      /*
       await _peerConnection.addTransceiver(
           track: _localStream.getVideoTracks()[0],
           init: RTCRtpTransceiverInit(
@@ -174,25 +176,28 @@ class _MyAppState extends State<LoopBackSample> {
               // for firefox order matters... first high resolution, then scaled resolutions...
               RTCRtpEncoding(
                 rid: 'f',
+                numTemporalLayers: 3,
               ),
               RTCRtpEncoding(
                 rid: 'h',
+                numTemporalLayers: 3,
                 scaleResolutionDownBy: 2.0,
               ),
               RTCRtpEncoding(
                 rid: 'q',
+                numTemporalLayers: 3,
                 scaleResolutionDownBy: 4.0,
               ),
             ],
           ));
-      await _peerConnection.addTransceiver(
-          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
-      await _peerConnection.addTransceiver(
-          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
-      await _peerConnection.addTransceiver(
-          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
 
-      //await _peerConnection.addStream(_localStream);
+      await _peerConnection.addTransceiver(
+          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
+      await _peerConnection.addTransceiver(
+          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
+      await _peerConnection.addTransceiver(
+          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
+      */
       var description = await _peerConnection.createOffer(offerSdpConstraints);
       var sdp = description.sdp;
       print('sdp = $sdp');
@@ -200,6 +205,11 @@ class _MyAppState extends State<LoopBackSample> {
       //change for loopback.
       description.type = 'answer';
       await _peerConnection.setRemoteDescription(description);
+      /*
+      var stream = await MediaDevices.getDisplayMedia(mediaConstraints);
+      _localRenderer.srcObject = _localStream;
+      await transceiver.sender.replaceTrack(stream.getVideoTracks()[0]);
+      */
     } catch (e) {
       print(e.toString());
     }

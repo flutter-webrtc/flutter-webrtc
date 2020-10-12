@@ -7,16 +7,18 @@ import 'rtc_rtp_parameters.dart';
 import 'utils.dart';
 
 class RTCRtpSender {
-  RTCRtpSender(
-      this._id, this._track, this._dtmf, this._parameters, this._ownsTrack);
+  RTCRtpSender(this._id, this._track, this._dtmf, this._parameters,
+      this._ownsTrack, this._peerConnectionId);
 
-  factory RTCRtpSender.fromMap(Map<dynamic, dynamic> map) {
+  factory RTCRtpSender.fromMap(Map<dynamic, dynamic> map,
+      {String peerConnectionId}) {
     return RTCRtpSender(
         map['senderId'],
         MediaStreamTrack.fromMap(map['track']),
-        RTCDTMFSender(map['peerConnectionId']),
+        RTCDTMFSender(peerConnectionId),
         RTCRtpParameters.fromMap(map['rtpParameters']),
-        map['ownsTrack']);
+        map['ownsTrack'],
+        peerConnectionId);
   }
 
   final MethodChannel _channel = WebRTC.methodChannel();

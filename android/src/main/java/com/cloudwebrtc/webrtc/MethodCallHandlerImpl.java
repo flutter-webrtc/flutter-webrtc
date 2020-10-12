@@ -413,15 +413,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       case "videoRendererSetSrcObject": {
         int textureId = call.argument("textureId");
         String streamId = call.argument("streamId");
-        String peerConnectionId = call.argument("ownerTag");
+        String ownerTag = call.argument("ownerTag");
         FlutterRTCVideoRenderer render = renders.get(textureId);
-
         if (render == null) {
           resultError("videoRendererSetSrcObject",  "render [" + textureId + "] not found !", result);
           return;
         }
-
-        MediaStream stream = getStreamForId(streamId, peerConnectionId);
+        MediaStream stream = null;
+        if (ownerTag.equals("local")) {
+          stream = localStreams.get(streamId);
+        } else  {
+          stream = getStreamForId(streamId, ownerTag);
+        }
         render.setStream(stream);
         result.success(null);
         break;
@@ -971,22 +974,22 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   MediaStream getStreamForId(String id, String peerConnectionId) {
-    MediaStream stream = localStreams.get(id);
-
-    if (stream == null) {
-      if (peerConnectionId.length() > 0) {
-        PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+    MediaStream stream = null;
+    if (peerConnectionId.length() > 0) {
+      PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+      stream = pco.remoteStreams.get(id);
+    } else {
+      for (Entry<String, PeerConnectionObserver> entry : mPeerConnectionObservers
+              .entrySet()) {
+        PeerConnectionObserver pco = entry.getValue();
         stream = pco.remoteStreams.get(id);
-      } else {
-        for (Entry<String, PeerConnectionObserver> entry : mPeerConnectionObservers
-            .entrySet()) {
-          PeerConnectionObserver pco = entry.getValue();
-          stream = pco.remoteStreams.get(id);
-          if (stream != null) {
-            break;
-          }
+        if (stream != null) {
+          break;
         }
       }
+    }
+    if (stream == null) {
+      stream = localStreams.get(id);
     }
 
     return stream;

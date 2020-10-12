@@ -484,8 +484,8 @@ class RTCPeerConnection {
         if (kind != null) 'mediaType': typeRTCRtpMediaTypetoString[kind],
         if (init != null) 'transceiverInit': init.toMap()
       });
-      var transceiver = RTCRtpTransceiver.fromMap(response);
-      transceiver.peerConnectionId = _peerConnectionId;
+      var transceiver = RTCRtpTransceiver.fromMap(response,
+          peerConnectionId: _peerConnectionId);
       _transceivers.add(transceiver);
       return transceiver;
     } on PlatformException catch (e) {
