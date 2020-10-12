@@ -584,7 +584,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         if(call.hasArgument("trackId")) {
           String trackId = call.argument("trackId");
           addTransceiver(peerConnectionId, trackId, transceiverInit, result);
-        } else  if(call.hasArgument("")) {
+        } else  if(call.hasArgument("mediaType")) {
           String mediaType = call.argument("mediaType");
           addTransceiverOfType(peerConnectionId, mediaType, transceiverInit, result);
         } else {

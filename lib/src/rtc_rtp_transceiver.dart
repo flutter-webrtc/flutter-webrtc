@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_webrtc/src/rtc_rtp_parameters.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
+import 'rtc_rtp_parameters.dart';
 import 'rtc_rtp_receiver.dart';
 import 'rtc_rtp_sender.dart';
 import 'utils.dart';
@@ -33,22 +34,26 @@ List<RTCRtpEncoding> listToRtpEncodings(List<Map<String, dynamic>> list) {
 }
 
 class RTCRtpTransceiverInit {
-  RTCRtpTransceiverInit({this.direction, this.sendEncodings, this.streamIds});
+  RTCRtpTransceiverInit({this.direction, this.sendEncodings, this.streams});
 
   factory RTCRtpTransceiverInit.fromMap(Map<dynamic, dynamic> map) {
     return RTCRtpTransceiverInit(
         direction: typeStringToRtpTransceiverDirection[map['direction']],
         sendEncodings: listToRtpEncodings(map['sendEncodings']),
-        streamIds: map['streamIds']);
+        streams: (map['streams'] as List<dynamic>)
+            .map((e) => MediaStream.fromMap(map))
+            .toList());
   }
   TransceiverDirection direction;
-  List<String> streamIds;
+  List<MediaStream> streams;
   List<RTCRtpEncoding> sendEncodings;
 
   Map<String, dynamic> toMap() {
     return {
       'direction': typeRtpTransceiverDirectionToString[direction],
-      'streamIds': streamIds
+      if (streams != null) 'streamIds': streams.map((e) => e.id).toList(),
+      if (sendEncodings != null)
+        'sendEncodings': sendEncodings.map((e) => e.toMap()).toList(),
     };
   }
 }

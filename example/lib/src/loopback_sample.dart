@@ -17,7 +17,7 @@ class _MyAppState extends State<LoopBackSample> {
   final _localRenderer = RTCVideoRenderer();
   final _remoteRenderer = RTCVideoRenderer();
   bool _inCalling = false;
-  Timer _timer;
+  //Timer _timer;
 
   @override
   void initState() {
@@ -153,19 +153,49 @@ class _MyAppState extends State<LoopBackSample> {
       await _peerConnection.addTransceiver(
         track: _localStream.getAudioTracks()[0],
         init: RTCRtpTransceiverInit(
-            direction: TransceiverDirection.SendRecv,
-            streamIds: [_localStream.id]),
+            direction: TransceiverDirection.SendRecv, streams: [_localStream]),
       );
+
+      /*
       await _peerConnection.addTransceiver(
         track: _localStream.getVideoTracks()[0],
         init: RTCRtpTransceiverInit(
             direction: TransceiverDirection.SendRecv,
             streamIds: [_localStream.id]),
       );
+      */
+
+      await _peerConnection.addTransceiver(
+          track: _localStream.getVideoTracks()[0],
+          init: RTCRtpTransceiverInit(
+            direction: TransceiverDirection.SendOnly,
+            streams: [_localStream],
+            sendEncodings: [
+              // for firefox order matters... first high resolution, then scaled resolutions...
+              RTCRtpEncoding(
+                rid: 'f',
+              ),
+              RTCRtpEncoding(
+                rid: 'h',
+                scaleResolutionDownBy: 2.0,
+              ),
+              RTCRtpEncoding(
+                rid: 'q',
+                scaleResolutionDownBy: 4.0,
+              ),
+            ],
+          ));
+      await _peerConnection.addTransceiver(
+          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
+      await _peerConnection.addTransceiver(
+          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
+      await _peerConnection.addTransceiver(
+          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
 
       //await _peerConnection.addStream(_localStream);
       var description = await _peerConnection.createOffer(offerSdpConstraints);
-      print(description.sdp);
+      var sdp = description.sdp;
+      print('sdp = $sdp');
       await _peerConnection.setLocalDescription(description);
       //change for loopback.
       description.type = 'answer';

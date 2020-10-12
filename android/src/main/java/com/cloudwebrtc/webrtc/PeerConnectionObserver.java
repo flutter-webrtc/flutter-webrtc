@@ -11,6 +11,7 @@ import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -549,7 +550,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       return null;
   }
 
-  private RtpTransceiver.RtpTransceiverDirection typStringToTransceiverDirection(String direction) {
+  private RtpTransceiver.RtpTransceiverDirection stringToTransceiverDirection(String direction) {
       switch (direction) {
           case "sendrecv":
               return RtpTransceiver.RtpTransceiverDirection.SEND_RECV;
@@ -561,6 +562,46 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
               return RtpTransceiver.RtpTransceiverDirection.INACTIVE;
       }
       return RtpTransceiver.RtpTransceiverDirection.INACTIVE;
+  }
+
+  private MediaStreamTrack.MediaType stringToMediaType(String mediaType) {
+      MediaStreamTrack.MediaType type = MediaStreamTrack.MediaType.MEDIA_TYPE_AUDIO;
+      if(mediaType.equals("audio"))
+          type = MediaStreamTrack.MediaType.MEDIA_TYPE_AUDIO;
+      else if(mediaType.equals("video"))
+          type = MediaStreamTrack.MediaType.MEDIA_TYPE_VIDEO;
+      return type;
+  }
+
+  private RtpParameters.Encoding mapToEncoding(Map<String, Object> parameters) {
+      Boolean active = true;
+      if( parameters.get("active") != null) {
+          active = (Boolean) parameters.get("active");
+      }
+      Double scaleResolutionDownBy = 1.0;
+      if( parameters.get("scaleResolutionDownBy") != null) {
+          scaleResolutionDownBy = (Double) parameters.get("scaleResolutionDownBy");
+      }
+
+      return new RtpParameters.Encoding((String)parameters.get("rid"),active, scaleResolutionDownBy);
+  }
+
+  private RtpTransceiver.RtpTransceiverInit mapToRtpTransceiverInit(Map<String, Object> parameters) {
+      List<String> streamIds =  (List)parameters.get("streamIds");
+      List<Map<String, Object>> encodingsParams = (List<Map<String, Object>>)parameters.get("sendEncodings");
+      String direction = (String)parameters.get("direction");
+      List<RtpParameters.Encoding> sendEncodings = new ArrayList<>();
+      RtpTransceiver.RtpTransceiverInit init = null;
+      if(encodingsParams != null) {
+          for (int i=0;i< encodingsParams.size();i++){
+              Map<String, Object> params = encodingsParams.get(i);
+              sendEncodings.add(mapToEncoding(params));
+          }
+          init = new RtpTransceiver.RtpTransceiverInit(stringToTransceiverDirection(direction) ,streamIds, sendEncodings);
+      } else {
+          init = new RtpTransceiver.RtpTransceiverInit(stringToTransceiverDirection(direction) ,streamIds);
+      }
+      return  init;
   }
 
   private RtpParameters MapToRtpParameters(Map<String, Object> parameters) {
@@ -606,7 +647,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           if (encoding.scaleResolutionDownBy != null) {
               map.putDouble("scaleResolutionDownBy", encoding.scaleResolutionDownBy);
           }
-          map.putLong("ssrc", encoding.ssrc);
+          if (encoding.ssrc != null) {
+              map.putLong("ssrc", encoding.ssrc);
+          }
           encodings.pushMap(map);
       }
       info.putArray("encodings", encodings.toArrayList());
@@ -750,10 +793,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   public void addTransceiver(MediaStreamTrack track, Map<String, Object> transceiverInit,  Result result) {
       RtpTransceiver  transceiver;
       if(transceiverInit != null){
-          List<String> streamIds =  (List)transceiverInit.get("streamIds");
-          String direction = (String)transceiverInit.get("direction");
-          RtpTransceiver.RtpTransceiverInit init = new RtpTransceiver.RtpTransceiverInit(typStringToTransceiverDirection(direction) ,streamIds);
-          transceiver = peerConnection.addTransceiver(track, init);
+          transceiver = peerConnection.addTransceiver(track, mapToRtpTransceiverInit(transceiverInit));
       } else {
           transceiver = peerConnection.addTransceiver(track);
       }
@@ -762,19 +802,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   public void addTransceiverOfType(String mediaType, Map<String, Object> transceiverInit,  Result result) {
-      MediaStreamTrack.MediaType type = MediaStreamTrack.MediaType.MEDIA_TYPE_AUDIO;
-      if(mediaType == "audio")
-          type = MediaStreamTrack.MediaType.MEDIA_TYPE_AUDIO;
-      else if(mediaType == "video")
-          type = MediaStreamTrack.MediaType.MEDIA_TYPE_VIDEO;
       RtpTransceiver  transceiver;
       if(transceiverInit != null){
-          List<String> streamIds =  (List)transceiverInit.get("streamIds");
-          String direction = (String)transceiverInit.get("direction");
-          RtpTransceiver.RtpTransceiverInit init = new RtpTransceiver.RtpTransceiverInit(typStringToTransceiverDirection(direction) ,streamIds);
-          transceiver = peerConnection.addTransceiver(type, init);
+          transceiver = peerConnection.addTransceiver(stringToMediaType(mediaType), mapToRtpTransceiverInit(transceiverInit));
       } else {
-          transceiver = peerConnection.addTransceiver(type);
+          transceiver = peerConnection.addTransceiver(stringToMediaType(mediaType));
       }
       transceivers.put(transceiver.getMid(), transceiver);
       result.success(transceiverToMap(transceiver));
@@ -786,7 +818,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           resultError("rtpTransceiverSetDirection", "transceiver is null", result);
           return;
       }
-      transceiver.setDirection(typStringToTransceiverDirection(direction));
+      transceiver.setDirection(stringToTransceiverDirection(direction));
       result.success(null);
   }
 

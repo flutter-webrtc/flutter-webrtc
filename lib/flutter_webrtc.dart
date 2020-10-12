@@ -19,6 +19,9 @@ export 'src/rtc_peerconnection.dart'
     if (dart.library.html) 'src/web/rtc_peerconnection.dart';
 export 'src/rtc_peerconnection_factory.dart'
     if (dart.library.html) 'src/web/rtc_peerconnection_factory.dart';
+export 'src/rtc_rtp_parameters.dart';
+export 'src/rtc_rtp_receiver.dart';
+export 'src/rtc_rtp_sender.dart';
 export 'src/rtc_rtp_transceiver.dart';
 export 'src/rtc_session_description.dart'
     if (dart.library.html) 'src/web/rtc_session_description.dart';

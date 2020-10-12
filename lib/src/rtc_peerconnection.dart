@@ -473,7 +473,9 @@ class RTCPeerConnection {
   }
 
   Future<RTCRtpTransceiver> addTransceiver(
-      {MediaStreamTrack track, String kind, RTCRtpTransceiverInit init}) async {
+      {MediaStreamTrack track,
+      RTCRtpMediaType kind,
+      RTCRtpTransceiverInit init}) async {
     try {
       final response =
           await _channel.invokeMethod('addTransceiver', <String, dynamic>{

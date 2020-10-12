@@ -91,11 +91,11 @@ class RTCRtpEncoding {
   int maxFramerate;
 
   /// The number of temporal layers for video.
-  int numTemporalLayers;
+  int numTemporalLayers = 1;
 
   /// If non-null, scale the width and height down by this factor for video. If null,
   /// implementation default scaling factor will be used.
-  double scaleResolutionDownBy;
+  double scaleResolutionDownBy = 1.0;
 
   /// SSRC to be used by this encoding.
   /// Can't be changed between getParameters/setParameters.
@@ -103,14 +103,15 @@ class RTCRtpEncoding {
 
   Map<String, dynamic> toMap() {
     return {
-      'rid': rid,
-      'active': active,
-      'maxBitrateBps': maxBitrateBps,
-      'maxFramerate': maxFramerate,
-      'minBitrateBps': minBitrateBps,
-      'numTemporalLayers': numTemporalLayers,
-      'scaleResolutionDownBy': scaleResolutionDownBy,
-      'ssrc': ssrc,
+      if (rid != null) 'rid': rid,
+      if (active != null) 'active': active,
+      if (maxBitrateBps != null) 'maxBitrateBps': maxBitrateBps,
+      if (maxFramerate != null) 'maxFramerate': maxFramerate,
+      if (minBitrateBps != null) 'minBitrateBps': minBitrateBps,
+      if (numTemporalLayers != null) 'numTemporalLayers': numTemporalLayers,
+      if (scaleResolutionDownBy != null)
+        'scaleResolutionDownBy': scaleResolutionDownBy,
+      if (ssrc != null) 'ssrc': ssrc,
     };
   }
 }
