@@ -47,7 +47,7 @@
         _speakerOn = NO;
         self.viewController = viewController;
     }
-    
+    //RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
     RTCDefaultVideoDecoderFactory *decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
     RTCDefaultVideoEncoderFactory *encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
     
@@ -730,7 +730,7 @@
             details:nil]);
             return;
         }
-        transcevier.direction = [self stringToTransceiverDirection:direction];
+        [transcevier setDirection:[self stringToTransceiverDirection:direction] error:nil];
         result(nil);
     } else if ([@"rtpTransceiverGetCurrentDirection" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
@@ -769,7 +769,7 @@
             details:nil]);
             return;
         }
-        [transcevier stop];
+        [transcevier stopInternal];
         result(nil);
     } else if ([@"rtpSenderSetParameters" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
@@ -1151,13 +1151,12 @@
     for (RTCRtpEncodingParameters* encoding in parameters.encodings) {
         [encodings addObject:@{
             @"active": @(encoding.isActive),
-            @"minBitrateBps": encoding.minBitrateBps? encoding.minBitrateBps : @(0),
-            @"maxBitrateBps": encoding.maxBitrateBps? encoding.maxBitrateBps : @(0),
+            @"minBitrateBps": encoding.minBitrateBps? encoding.minBitrateBps : [NSNumber numberWithInt:0],
+            @"maxBitrateBps": encoding.maxBitrateBps? encoding.maxBitrateBps : [NSNumber numberWithInt:0],
             @"maxFramerate": encoding.maxFramerate? encoding.maxFramerate : @(30),
             @"numTemporalLayers": encoding.numTemporalLayers? encoding.numTemporalLayers : @(1),
-            @"scaleResolutionDownBy": encoding.scaleResolutionDownBy? encoding.scaleResolutionDownBy : @(1.0),
-            @"ssrc": encoding.ssrc ? encoding.ssrc : 0,
-            @"networkPriority": encoding.networkPriority? @(encoding.networkPriority) : @(0.0)
+            @"scaleResolutionDownBy": encoding.scaleResolutionDownBy? @(encoding.scaleResolutionDownBy.doubleValue) : [NSNumber numberWithDouble:1.0],
+            @"ssrc": encoding.ssrc ? encoding.ssrc : [NSNumber numberWithLong:0]
         }];
     }
 
@@ -1281,6 +1280,8 @@
     encoding.isActive = YES;
     encoding.scaleResolutionDownBy = [NSNumber numberWithDouble:1.0];
     encoding.numTemporalLayers = [NSNumber numberWithInt:1];
+    encoding.networkPriority = RTCPriorityLow;
+    encoding.bitratePriority = 1.0;
     [encoding setRid:map[@"rid"]];
     
     if(map[@"active"] != nil) {
@@ -1319,11 +1320,11 @@
     init.streamIds = streamIds;
     
     if(encodingsParams != nil) {
-        NSMutableArray *sendEncodings =  [NSMutableArray array];
+        NSArray<RTCRtpEncodingParameters *> *sendEncodings = [[NSArray alloc] init];
         for (NSDictionary* map in encodingsParams){
-            [sendEncodings addObject:[self mapToEncoding:map]];
+            sendEncodings = [sendEncodings arrayByAddingObject:[self mapToEncoding:map]];
         }
-        init.sendEncodings = sendEncodings;
+        [init setSendEncodings:sendEncodings];
     }
     return  init;
 }

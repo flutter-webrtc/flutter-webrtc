@@ -72,7 +72,7 @@ class _MyAppState extends State<LoopBackSample> {
 
   void _onAddStream(MediaStream stream) {
     print('New stream: ' + stream.id);
-    _remoteRenderer.srcObject = stream;
+    //_remoteRenderer.srcObject = stream;
   }
 
   void _onRemoveStream(MediaStream stream) {
@@ -162,20 +162,20 @@ class _MyAppState extends State<LoopBackSample> {
       rtpSender = await _peerConnection.createSender('video', _localStream.id);
       await rtpSender.setTrack(_localStream.getVideoTracks()[0]);
       */
-
+      /*
       // Unified-Plan
       _localStream.getTracks().forEach((track) {
         _peerConnection.addTrack(track, [_localStream]);
       });
-
+      */
       // or
-      /*
+
       await _peerConnection.addTransceiver(
         track: _localStream.getAudioTracks()[0],
         init: RTCRtpTransceiverInit(
             direction: TransceiverDirection.SendRecv, streams: [_localStream]),
       );
-
+      /*
       // ignore: unused_local_variable
       var transceiver = await _peerConnection.addTransceiver(
         track: _localStream.getVideoTracks()[0],
@@ -184,32 +184,34 @@ class _MyAppState extends State<LoopBackSample> {
       );
       */
 
-      /*
       // Unified-Plan Simulcast
       await _peerConnection.addTransceiver(
           track: _localStream.getVideoTracks()[0],
           init: RTCRtpTransceiverInit(
-            direction: TransceiverDirection.SendOnly,
+            direction: TransceiverDirection.SendRecv,
             streams: [_localStream],
             sendEncodings: [
               // for firefox order matters... first high resolution, then scaled resolutions...
               RTCRtpEncoding(
                 rid: 'f',
+                maxBitrateBps: 900000,
                 numTemporalLayers: 3,
               ),
               RTCRtpEncoding(
                 rid: 'h',
                 numTemporalLayers: 3,
+                maxBitrateBps: 300000,
                 scaleResolutionDownBy: 2.0,
               ),
               RTCRtpEncoding(
                 rid: 'q',
                 numTemporalLayers: 3,
+                maxBitrateBps: 100000,
                 scaleResolutionDownBy: 4.0,
               ),
             ],
           ));
-
+      /*
       await _peerConnection.addTransceiver(
           kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
       await _peerConnection.addTransceiver(
