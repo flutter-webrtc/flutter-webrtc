@@ -26,5 +26,8 @@
 @property (nonatomic) int _targetFps;
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId peerConnectionId:(NSString *)peerConnectionId;
+- (NSDictionary*)mediaStreamToMap:(RTCMediaStream *)stream ownerTag:(NSString*)ownerTag;
+- (NSDictionary*)mediaTrackToMap:(RTCMediaStreamTrack*)track;
+- (NSDictionary*)receiverToMap:(RTCRtpReceiver*)receiver;
 
 @end

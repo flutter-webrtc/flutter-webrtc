@@ -206,6 +206,32 @@ class RTCPeerConnection {
             track: MediaStreamTrack.fromMap(map['track']),
             streams: streams));
         break;
+
+      /// Other
+      case 'onSelectedCandidatePairChanged':
+
+        /// class RTCIceCandidatePair {
+        ///   RTCIceCandidatePair(this.local, this.remote, this.lastReceivedMs, this.reason);
+        ///   factory RTCIceCandidatePair.fromMap(Map<dynamic, dynamic> map) {
+        ///      return RTCIceCandidatePair(
+        ///             RTCIceCandidate.fromMap(map['local']),
+        ///             RTCIceCandidate.fromMap(map['remote']),
+        ///             map['lastReceivedMs'],
+        ///             map['reason']);
+        ///   }
+        ///   RTCIceCandidate local;
+        ///   RTCIceCandidate remote;
+        ///   int lastReceivedMs;
+        ///   String reason;
+        /// }
+        ///
+        /// typedef SelectedCandidatePairChangedCallback = void Function(RTCIceCandidatePair pair);
+        /// SelectedCandidatePairChangedCallback onSelectedCandidatePairChanged;
+        ///
+        /// RTCIceCandidatePair iceCandidatePair = RTCIceCandidatePair.fromMap(map);
+        /// onSelectedCandidatePairChanged?.call(iceCandidatePair);
+
+        break;
     }
   }
 

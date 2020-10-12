@@ -3,17 +3,7 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCDataChannel.h"
 
-#import <WebRTC/RTCConfiguration.h>
-#import <WebRTC/RTCIceCandidate.h>
-#import <WebRTC/RTCIceServer.h>
-#import <WebRTC/RTCMediaConstraints.h>
-#import <WebRTC/RTCIceCandidate.h>
-#import <WebRTC/RTCLegacyStatsReport.h>
-#import <WebRTC/RTCSessionDescription.h>
-#import <WebRTC/RTCConfiguration.h>
-#import <WebRTC/RTCAudioTrack.h>
-#import <WebRTC/RTCVideoTrack.h>
-#import <WebRTC/RTCMediaStream.h>
+#import <WebRTC/WebRTC.h>
 
 @implementation RTCPeerConnection (Flutter)
 
@@ -497,6 +487,70 @@
                     @"id": dataChannelId,
                     @"label": dataChannel.label
                     });
+    }
+}
+
+/** Called any time the PeerConnectionState changes. */
+- (void)peerConnection:(RTCPeerConnection *)peerConnection
+didChangeConnectionState:(RTCPeerConnectionState)newState {
+    
+}
+
+- (void)peerConnection:(RTCPeerConnection *)peerConnection
+didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
+    
+}
+
+/** Called when a receiver and its track are created. */
+- (void)peerConnection:(RTCPeerConnection *)peerConnection
+        didAddReceiver:(RTCRtpReceiver *)rtpReceiver
+               streams:(NSArray<RTCMediaStream *> *)mediaStreams {
+    // For unified-plan
+    NSMutableArray* streams = [NSMutableArray array];
+    for(RTCMediaStream *stream in mediaStreams) {
+        [streams addObject:[self mediaStreamToMap:stream ownerTag:peerConnection.flutterId]];
+    }
+    FlutterEventSink eventSink = peerConnection.eventSink;
+    if(eventSink){
+        eventSink(@{
+            @"event": @"onTrack",
+            @"track": [self mediaTrackToMap:rtpReceiver.track],
+            @"receiver": [self receiverToMap:rtpReceiver],
+            @"streams": streams,
+                  });
+    }
+}
+
+/** Called when the receiver and its track are removed. */
+- (void)peerConnection:(RTCPeerConnection *)peerConnection
+     didRemoveReceiver:(RTCRtpReceiver *)rtpReceiver {
+    
+}
+
+/** Called when the selected ICE candidate pair is changed. */
+- (void)peerConnection:(RTCPeerConnection *)peerConnection
+    didChangeLocalCandidate:(RTCIceCandidate *)local
+            remoteCandidate:(RTCIceCandidate *)remote
+             lastReceivedMs:(int)lastDataReceivedMs
+          changeReason:(NSString *)reason {
+    
+    FlutterEventSink eventSink = peerConnection.eventSink;
+    if(eventSink){
+        eventSink(@{
+                    @"event" : @"onSelectedCandidatePairChanged",
+                    @"local" : @{
+                            @"candidate": local.sdp,
+                            @"sdpMLineIndex": @(local.sdpMLineIndex),
+                            @"sdpMid": local.sdpMid
+                    },
+                    @"remote" : @{
+                            @"candidate": remote.sdp,
+                            @"sdpMLineIndex": @(remote.sdpMLineIndex),
+                            @"sdpMid": remote.sdpMid
+                    },
+                    @"reason": reason,
+                    @"lastDataReceivedMs": @(lastDataReceivedMs)
+                  });
     }
 }
 
