@@ -175,15 +175,15 @@ class _MyAppState extends State<LoopBackSample> {
         init: RTCRtpTransceiverInit(
             direction: TransceiverDirection.SendRecv, streams: [_localStream]),
       );
-      /*
+
       // ignore: unused_local_variable
       var transceiver = await _peerConnection.addTransceiver(
         track: _localStream.getVideoTracks()[0],
         init: RTCRtpTransceiverInit(
             direction: TransceiverDirection.SendRecv, streams: [_localStream]),
       );
-      */
 
+      /*
       // Unified-Plan Simulcast
       await _peerConnection.addTransceiver(
           track: _localStream.getVideoTracks()[0],
@@ -220,7 +220,7 @@ class _MyAppState extends State<LoopBackSample> {
           kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
           init:
               RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly));
-
+      */
       var description = await _peerConnection.createOffer(offerSdpConstraints);
       var sdp = description.sdp;
       print('sdp = $sdp');

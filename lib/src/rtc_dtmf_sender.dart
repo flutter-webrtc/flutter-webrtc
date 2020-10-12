@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'utils.dart';
 
 class RTCDTMFSender {
-  RTCDTMFSender(this._peerConnectionId);
+  RTCDTMFSender(this._peerConnectionId, this._rtpSenderId);
   // peer connection Id must be defined as a variable where this function will be called.
+  final String _rtpSenderId;
   final String _peerConnectionId;
   final MethodChannel _channel = WebRTC.methodChannel();
 
@@ -22,6 +23,7 @@ class RTCDTMFSender {
       {int duration = 100, int interToneGap = 70}) async {
     await _channel.invokeMethod('sendDtmf', <String, dynamic>{
       'peerConnectionId': _peerConnectionId,
+      'rtpSenderId': _rtpSenderId,
       'tone': tones,
       'duration': duration,
       'gap': interToneGap,

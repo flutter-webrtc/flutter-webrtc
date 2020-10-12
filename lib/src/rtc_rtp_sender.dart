@@ -15,7 +15,7 @@ class RTCRtpSender {
     return RTCRtpSender(
         map['senderId'],
         MediaStreamTrack.fromMap(map['track']),
-        RTCDTMFSender(peerConnectionId),
+        RTCDTMFSender(peerConnectionId, map['senderId']),
         RTCRtpParameters.fromMap(map['rtpParameters']),
         map['ownsTrack'],
         peerConnectionId);

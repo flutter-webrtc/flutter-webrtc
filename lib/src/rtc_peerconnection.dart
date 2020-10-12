@@ -421,7 +421,7 @@ class RTCPeerConnection {
   }
 
   RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
-    return RTCDTMFSender(_peerConnectionId);
+    return RTCDTMFSender(_peerConnectionId, '');
   }
 
   /// Unified-Plan.
