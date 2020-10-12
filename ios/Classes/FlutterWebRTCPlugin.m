@@ -447,10 +447,27 @@
         NSNumber *textureId = argsMap[@"textureId"];
         FlutterRTCVideoRenderer *render = self.renders[textureId];
         NSString *streamId = argsMap[@"streamId"];
-        NSString *peerConnectionId = argsMap[@"ownerTag"];
-        if(render){
-            [self setStreamId:streamId view:render peerConnectionId:peerConnectionId];
+        NSString *ownerTag = argsMap[@"ownerTag"];
+        if(!render) {
+            result([FlutterError errorWithCode:@"videoRendererSetSrcObject: render is nil" message:nil details:nil]);
+            return;
         }
+        RTCMediaStream *stream = nil;
+        RTCVideoTrack* videoTrack = nil;
+        if([ownerTag isEqualToString:@"local"]){
+            stream = _localStreams[streamId];
+        }
+        if(!stream){
+            stream = [self streamForId:streamId peerConnectionId:ownerTag];
+        }
+        if(stream){
+            NSArray *videoTracks = stream ? stream.videoTracks : nil;
+            videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
+            if (!videoTrack) {
+                NSLog(@"Not found video track for RTCMediaStream: %@", streamId);
+            }
+        }
+        [self rendererSetSrcObject:render stream:videoTrack];
         result(nil);
     } else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;

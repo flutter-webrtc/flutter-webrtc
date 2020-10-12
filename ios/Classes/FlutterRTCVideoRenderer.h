@@ -28,6 +28,6 @@
 - (FlutterRTCVideoRenderer *)createWithTextureRegistry:(id<FlutterTextureRegistry>)registry
                        messenger:(NSObject<FlutterBinaryMessenger>*)messenger;
 
--(void)setStreamId:(NSString*)streamId view:(FlutterRTCVideoRenderer*)view peerConnectionId:(NSString *)peerConnectionId;
+-(void)rendererSetSrcObject:(FlutterRTCVideoRenderer*)renderer stream:(RTCVideoTrack*)videoTrack;
 
 @end
