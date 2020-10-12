@@ -1285,7 +1285,7 @@
     [encoding setRid:map[@"rid"]];
     
     if(map[@"active"] != nil) {
-        [encoding setIsActive:map[@"active"]];
+        [encoding setIsActive:((NSNumber*)map[@"active"]).boolValue];
     }
     
     if(map[@"minBitrateBps"] != nil) {

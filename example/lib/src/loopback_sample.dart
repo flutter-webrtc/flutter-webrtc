@@ -188,7 +188,7 @@ class _MyAppState extends State<LoopBackSample> {
       await _peerConnection.addTransceiver(
           track: _localStream.getVideoTracks()[0],
           init: RTCRtpTransceiverInit(
-            direction: TransceiverDirection.SendRecv,
+            direction: TransceiverDirection.SendOnly,
             streams: [_localStream],
             sendEncodings: [
               // for firefox order matters... first high resolution, then scaled resolutions...
@@ -211,14 +211,16 @@ class _MyAppState extends State<LoopBackSample> {
               ),
             ],
           ));
-      /*
+
       await _peerConnection.addTransceiver(
           kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
       await _peerConnection.addTransceiver(
           kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
       await _peerConnection.addTransceiver(
-          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
-      */
+          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
+          init:
+              RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly));
+
       var description = await _peerConnection.createOffer(offerSdpConstraints);
       var sdp = description.sdp;
       print('sdp = $sdp');
