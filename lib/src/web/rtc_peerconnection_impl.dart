@@ -86,7 +86,7 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
     js.JsObject.fromBrowserObject(_jsPc)['connectionstatechange'] =
         js.JsFunction.withThis((_, state) {
       _connectionState = peerConnectionStateForString(state);
-      onConnectionState.call(_connectionState);
+      onConnectionState?.call(_connectionState);
     });
 
     js.JsObject.fromBrowserObject(_jsPc)['negotiationneeded'] =
