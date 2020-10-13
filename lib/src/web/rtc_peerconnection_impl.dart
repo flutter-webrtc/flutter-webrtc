@@ -83,6 +83,12 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
       onSignalingState?.call(_signalingState);
     });
 
+    js.JsObject.fromBrowserObject(_jsPc)['connectionstatechange'] =
+        js.JsFunction.withThis((_, state) {
+      _connectionState = peerConnectionStateForString(state);
+      onConnectionState.call(_connectionState);
+    });
+
     js.JsObject.fromBrowserObject(_jsPc)['negotiationneeded'] =
         js.JsFunction.withThis(() {
       onRenegotiationNeeded?.call();
@@ -104,6 +110,7 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
   RTCIceConnectionState _iceConnectionState;
+  RTCPeerConnectionState _connectionState;
 
   @override
   RTCSignalingState get signalingState => _signalingState;
@@ -113,6 +120,9 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   RTCIceConnectionState get iceConnectionState => _iceConnectionState;
+
+  @override
+  RTCPeerConnectionState get connectionState => _connectionState;
 
   @override
   Future<void> dispose() {
@@ -265,6 +275,9 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   @override
   Future<RTCRtpSender> addTrack(MediaStreamTrack track,
       [List<MediaStream> streams]) {
+    var _track = track as MediaStreamTrackWeb;
+    var _stream = streams[0] as MediaStreamWeb;
+    _jsPc.addTrack(_track.jsTrack, _stream.jsStream);
     // TODO: implement addTrack
     throw UnimplementedError();
   }
@@ -274,10 +287,6 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
     // TODO: implement closeSender
     throw UnimplementedError();
   }
-
-  @override
-  // TODO: implement connectionState
-  RTCPeerConnectionState get connectionState => throw UnimplementedError();
 
   @override
   Future<RTCRtpSender> createSender(String kind, String streamId) {
