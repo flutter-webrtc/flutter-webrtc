@@ -1,5 +1,11 @@
+typedef StreamTrackCallback = Function();
+
 abstract class MediaStreamTrack {
   MediaStreamTrack();
+
+  StreamTrackCallback onEnded;
+
+  StreamTrackCallback onMute;
 
   bool get enabled;
   set enabled(bool b);

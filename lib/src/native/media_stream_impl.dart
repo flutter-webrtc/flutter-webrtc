@@ -8,6 +8,12 @@ import 'utils.dart';
 class MediaStreamNative extends MediaStream {
   MediaStreamNative(String streamId, String ownerTag)
       : super(streamId, ownerTag);
+
+  factory MediaStreamNative.fromMap(Map<dynamic, dynamic> map) {
+    return MediaStreamNative(map['streamId'], map['ownerTag'])
+      ..setMediaTracks(map['audioTracks'], map['videoTracks']);
+  }
+
   final _channel = WebRTC.methodChannel();
 
   final _audioTracks = <MediaStreamTrack>[];
@@ -25,6 +31,11 @@ class MediaStreamNative extends MediaStream {
       _videoTracks.add(MediaStreamTrackNative(
           track['id'], track['label'], track['kind'], track['enabled']));
     });
+  }
+
+  @override
+  List<MediaStreamTrack> getTracks() {
+    return <MediaStreamTrack>[..._audioTracks, ..._videoTracks];
   }
 
   @override

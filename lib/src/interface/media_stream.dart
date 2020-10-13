@@ -1,9 +1,15 @@
 import 'media_stream_track.dart';
 
+typedef MediaTrackCallback = void Function(MediaStreamTrack track);
+
 abstract class MediaStream {
   MediaStream(this._id, this._ownerTag);
   final String _id;
   final String _ownerTag;
+
+  MediaTrackCallback onAddTrack;
+
+  MediaTrackCallback onRemoveTrack;
 
   String get id => _id;
 
@@ -15,6 +21,8 @@ abstract class MediaStream {
 
   Future<void> removeTrack(MediaStreamTrack track,
       {bool removeFromNative = true});
+
+  List<MediaStreamTrack> getTracks();
 
   List<MediaStreamTrack> getAudioTracks();
 

@@ -50,4 +50,9 @@ class MediaStreamWeb extends MediaStream {
     jsStream.getVideoTracks().forEach((track) => track.stop());
     return super.dispose();
   }
+
+  @override
+  List<MediaStreamTrack> getTracks() {
+    return <MediaStreamTrack>[...getAudioTracks(), ...getVideoTracks()];
+  }
 }

@@ -9,12 +9,19 @@ import '../interface/rtc_data_channel.dart';
 import '../interface/rtc_dtmf_sender.dart';
 import '../interface/rtc_ice_candidate.dart';
 import '../interface/rtc_peerconnection.dart';
+import '../interface/rtc_rtp_receiver.dart';
+import '../interface/rtc_rtp_sender.dart';
+import '../interface/rtc_rtp_transceiver.dart';
 import '../interface/rtc_session_description.dart';
 import '../interface/rtc_stats_report.dart';
+import '../interface/rtc_track_event.dart';
 import 'media_stream_impl.dart';
 import 'media_stream_track_impl.dart';
 import 'rtc_data_channel_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
+import 'rtc_rtp_receiver_impl.dart';
+import 'rtc_rtp_sender_impl.dart';
+import 'rtc_rtp_transceiver_impl.dart';
 import 'utils.dart';
 
 /*
@@ -33,11 +40,15 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   StreamSubscription<dynamic> _eventSubscription;
   final _localStreams = <MediaStream>[];
   final _remoteStreams = <MediaStream>[];
+  final List<RTCRtpSender> _senders = <RTCRtpSender>[];
+  final List<RTCRtpReceiver> _receivers = <RTCRtpReceiver>[];
+  final List<RTCRtpTransceiver> _transceivers = <RTCRtpTransceiver>[];
   RTCDataChannelNative _dataChannel;
   Map<String, dynamic> _configuration;
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
   RTCIceConnectionState _iceConnectionState;
+  RTCPeerConnectionState _connectionState;
 
   final Map<String, dynamic> defaultSdpConstraints = {
     'mandatory': {
@@ -56,6 +67,13 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   @override
   RTCIceConnectionState get iceConnectionState => _iceConnectionState;
 
+  @override
+  RTCPeerConnectionState get connectionState => _connectionState;
+
+  Future<RTCSessionDescription> get localDescription => getLocalDescription();
+
+  Future<RTCSessionDescription> get remoteDescription => getRemoteDescription();
+
   /*
    * PeerConnection event listener.
    */
@@ -66,6 +84,10 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       case 'signalingState':
         _signalingState = signalingStateForString(map['state']);
         onSignalingState?.call(_signalingState);
+        break;
+      case 'peerConnectionState':
+        _connectionState = peerConnectionStateForString(map['state']);
+        onConnectionState?.call(_connectionState);
         break;
       case 'iceGatheringState':
         _iceGatheringState = iceGatheringStateforString(map['state']);
@@ -150,6 +172,43 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         break;
       case 'onRenegotiationNeeded':
         onRenegotiationNeeded?.call();
+        break;
+
+      /// Unified-Plan
+      case 'onTrack':
+        var params = map['streams'] as List<dynamic>;
+        var streams = params.map((e) => MediaStreamNative.fromMap(e)).toList();
+        onTrack?.call(RTCTrackEvent(
+          receiver: RTCRtpReceiverNative.fromMap(map['receiver']),
+          streams: streams,
+          track: MediaStreamTrackNative.fromMap(map['track']),
+        ));
+        break;
+
+      /// Other
+      case 'onSelectedCandidatePairChanged':
+
+        /// class RTCIceCandidatePair {
+        ///   RTCIceCandidatePair(this.local, this.remote, this.lastReceivedMs, this.reason);
+        ///   factory RTCIceCandidatePair.fromMap(Map<dynamic, dynamic> map) {
+        ///      return RTCIceCandidatePair(
+        ///             RTCIceCandidate.fromMap(map['local']),
+        ///             RTCIceCandidate.fromMap(map['remote']),
+        ///             map['lastReceivedMs'],
+        ///             map['reason']);
+        ///   }
+        ///   RTCIceCandidate local;
+        ///   RTCIceCandidate remote;
+        ///   int lastReceivedMs;
+        ///   String reason;
+        /// }
+        ///
+        /// typedef SelectedCandidatePairChangedCallback = void Function(RTCIceCandidatePair pair);
+        /// SelectedCandidatePairChangedCallback onSelectedCandidatePairChanged;
+        ///
+        /// RTCIceCandidatePair iceCandidatePair = RTCIceCandidatePair.fromMap(map);
+        /// onSelectedCandidatePairChanged?.call(iceCandidatePair);
+
         break;
     }
   }
@@ -357,7 +416,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
   @override
   RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
-    return RTCDTMFSenderNative(_peerConnectionId);
+    return RTCDTMFSenderNative(_peerConnectionId, '');
   }
 
   @override
@@ -371,9 +430,107 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
     }
   }
 
+  /// Unified-Plan.
   @override
-  void addTransceiver(String type, Map<String, String> options) {
-    throw UnimplementedError(
-        'addTransceiver(String, Map<String, String>) is not implemented for the native');
+  List<RTCRtpSender> get senders => _senders;
+
+  @override
+  List<RTCRtpReceiver> get receivers => _receivers;
+
+  @override
+  List<RTCRtpTransceiver> get transceivers => _transceivers;
+
+  @override
+  Future<RTCRtpSender> createSender(String kind, String streamId) async {
+    try {
+      final response = await _channel.invokeMethod(
+          'createSender', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'kind': kind,
+        'streamId': streamId
+      });
+      var sender = RTCRtpSenderNative.fromMap(response);
+      _senders.add(sender);
+      return sender;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::createSender: ${e.message}';
+    }
+  }
+
+  @override
+  Future<RTCRtpSender> addTrack(MediaStreamTrack track,
+      [List<MediaStream> streams]) async {
+    try {
+      final response =
+          await _channel.invokeMethod('addTrack', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'trackId': track.id,
+        'streamIds': streams.map((e) => e.id).toList()
+      });
+      var sender = RTCRtpSenderNative.fromMap(response);
+      _senders.add(sender);
+      return sender;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::addTrack: ${e.message}';
+    }
+  }
+
+  @override
+  Future<bool> removeTrack(RTCRtpSender sender) async {
+    try {
+      final response = await _channel.invokeMethod(
+          'removeTrack', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'senderId': sender.senderId
+      });
+      bool result = response['result'];
+      _senders.removeWhere((item) {
+        return sender.senderId == item.senderId;
+      });
+      return result;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::removeTrack: ${e.message}';
+    }
+  }
+
+  @override
+  Future<bool> closeSender(RTCRtpSender sender) async {
+    try {
+      final response = await _channel.invokeMethod(
+          'closeSender', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'senderId': sender.senderId
+      });
+      bool result = response['result'];
+      _senders.removeWhere((item) {
+        return sender.senderId == item.senderId;
+      });
+      return result;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::removeTrack: ${e.message}';
+    }
+  }
+
+  @override
+  Future<RTCRtpTransceiver> addTransceiver(
+      {MediaStreamTrack track,
+      RTCRtpMediaType kind,
+      RTCRtpTransceiverInit init}) async {
+    try {
+      final response =
+          await _channel.invokeMethod('addTransceiver', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        if (track != null) 'trackId': track.id,
+        if (kind != null) 'mediaType': typeRTCRtpMediaTypetoString[kind],
+        if (init != null)
+          'transceiverInit': RTCRtpTransceiverInitNative.initToMap(init)
+      });
+      var transceiver = RTCRtpTransceiverNative.fromMap(response,
+          peerConnectionId: _peerConnectionId);
+      _transceivers.add(transceiver);
+      return transceiver;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::addTransceiver: ${e.message}';
+    }
   }
 }
