@@ -431,7 +431,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   }
 
   /// Unified-Plan.
-  /// @override
+  @override
   List<RTCRtpSender> get senders => _senders;
 
   @override

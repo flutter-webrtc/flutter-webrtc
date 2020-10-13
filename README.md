@@ -42,6 +42,12 @@ Ensure the following permission is present in your Android Manifest file, locate
 <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 ```
 
+If you need to use a Bluetooth device, please add:
+```xml
+<uses-permission android:name="android.permission.BLUETOOTH" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+```
+
 The Flutter project template adds it, so it may already be there.
 
 Also you will need to set your build settings to Java 8, because official WebRTC jar now uses static methods in `EglBase` interface. Just add this to your app level `build.gradle`:
@@ -62,6 +68,7 @@ The project is inseparable from the contributors of the community.
 - [CloudWebRTC](https://github.com/cloudwebrtc) - Original Author
 - [RainwayApp](https://github.com/rainwayapp) - Sponsor
 - [亢少军](https://github.com/kangshaojun) - Sponsor
+- [ION](https://github.com/pion/ion) - Sponsor
 
 ### Example
 For more examples, please refer to [flutter-webrtc-demo](https://github.com/cloudwebrtc/flutter-webrtc-demo/).

@@ -3,12 +3,6 @@ import 'dart:html' as html;
 import 'dart:js' as js;
 import 'dart:js_util' as jsutil;
 
-import 'package:flutter_webrtc/src/interface/rtc_rtp_transceiver.dart';
-
-import 'package:flutter_webrtc/src/interface/rtc_rtp_sender.dart';
-
-import 'package:flutter_webrtc/src/interface/rtc_rtp_receiver.dart';
-
 import '../interface/enums.dart';
 import '../interface/media_stream.dart';
 import '../interface/media_stream_track.dart';
@@ -16,6 +10,9 @@ import '../interface/rtc_data_channel.dart';
 import '../interface/rtc_dtmf_sender.dart';
 import '../interface/rtc_ice_candidate.dart';
 import '../interface/rtc_peerconnection.dart';
+import '../interface/rtc_rtp_receiver.dart';
+import '../interface/rtc_rtp_sender.dart';
+import '../interface/rtc_rtp_transceiver.dart';
 import '../interface/rtc_session_description.dart';
 import '../interface/rtc_stats_report.dart';
 import 'media_stream_impl.dart';
