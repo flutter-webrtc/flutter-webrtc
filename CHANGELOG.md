@@ -7,7 +7,7 @@
 * Add PeerConnectionState and add RTCTrackEvent..
 * [Android] Upgrade GoogleWebRTC@android to 1.0.32006.
 * [iOS] Upgrade GoogleWebRTC@ios to 1.1.31999.
-* Api standardization across implementation (#364), thanks fo @wer-mathurin.
+* Api standardization across implementation (#364), thanks @wer-mathurin.
 
 [0.3.3] - 2020.09.14
 
