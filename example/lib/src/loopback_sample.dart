@@ -150,7 +150,8 @@ class _MyAppState extends State<LoopBackSample> {
 
       _peerConnection.onTrack = _onTrack;
 
-      _localStream = await MediaDevices.getUserMedia(mediaConstraints);
+      _localStream =
+          await navigator.mediaDevices.getUserMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
 
       /* old API

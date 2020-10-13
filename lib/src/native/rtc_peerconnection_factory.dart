@@ -9,21 +9,21 @@ import 'factory_impl.dart';
 
 Future<RTCPeerConnection> createPeerConnection(
     Map<String, dynamic> configuration,
-    [Map<String, dynamic> constraints]) {
-  return RTCFactoryWeb.instance
+    [Map<String, dynamic> constraints = const {}]) async {
+  return RTCFactoryNative.instance
       .createPeerConnection(configuration, constraints);
 }
 
-Future<MediaStream> createLocalMediaStream(String label) {
-  return RTCFactoryWeb.instance.createLocalMediaStream(label);
+Future<MediaStream> createLocalMediaStream(String label) async {
+  return RTCFactoryNative.instance.createLocalMediaStream(label);
 }
 
 MediaRecorder mediaRecorder() {
-  return RTCFactoryWeb.instance.mediaRecorder();
+  return RTCFactoryNative.instance.mediaRecorder();
 }
 
 VideoRenderer videoRenderer() {
-  return RTCFactoryWeb.instance.videoRenderer();
+  return RTCFactoryNative.instance.videoRenderer();
 }
 
-Navigator get navigator => RTCFactoryWeb.instance.navigator;
+Navigator get navigator => RTCFactoryNative.instance.navigator;

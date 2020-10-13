@@ -1,41 +1,26 @@
-import 'dart:async';
-import 'dart:math';
+import '../flutter_webrtc.dart';
+import 'interface/enums.dart';
+import 'interface/media_recorder.dart' as _interface;
+import 'interface/media_stream.dart';
+import 'interface/media_stream_track.dart';
 
-import 'enums.dart';
-import 'media_stream.dart';
-import 'media_stream_track.dart';
-import 'utils.dart';
+class MediaRecorder extends _interface.MediaRecorder {
+  MediaRecorder() : _delegate = mediaRecorder();
+  final MediaRecorder _delegate;
 
-class MediaRecorder {
-  static final _random = Random();
-  final _recorderId = _random.nextInt(0x7FFFFFFF);
-
+  @override
   Future<void> start(String path,
-      {MediaStreamTrack videoTrack, RecorderAudioChannel audioChannel
-      // TODO(cloudwebrtc): add codec/quality options
-      }) async {
-    if (path == null) {
-      throw ArgumentError.notNull('path');
-    }
+          {MediaStreamTrack videoTrack, RecorderAudioChannel audioChannel}) =>
+      _delegate.start(path, videoTrack: videoTrack, audioChannel: audioChannel);
 
-    if (audioChannel == null && videoTrack == null) {
-      throw Exception('Neither audio nor video track were provided');
-    }
+  @override
+  Future stop() => _delegate.stop();
 
-    await WebRTC.methodChannel().invokeMethod('startRecordToFile', {
-      'path': path,
-      'audioChannel': audioChannel?.index,
-      'videoTrackId': videoTrack?.id,
-      'recorderId': _recorderId
-    });
-  }
-
-  void startWeb(MediaStream stream,
-      {Function(dynamic blob, bool isLastOne) onDataChunk,
-      String mimeType = 'video/mp4;codecs=h264'}) {
-    throw 'It\'s for Flutter Web only';
-  }
-
-  Future<dynamic> stop() async => await WebRTC.methodChannel()
-      .invokeMethod('stopRecordToFile', {'recorderId': _recorderId});
+  @override
+  void startWeb(
+    MediaStream stream, {
+    Function(dynamic blob, bool isLastOne) onDataChunk,
+    String mimeType,
+  }) =>
+      _delegate.startWeb(stream, onDataChunk: onDataChunk, mimeType: mimeType);
 }
