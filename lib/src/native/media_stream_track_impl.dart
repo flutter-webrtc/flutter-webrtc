@@ -5,6 +5,10 @@ import 'utils.dart';
 
 class MediaStreamTrackNative extends MediaStreamTrack {
   MediaStreamTrackNative(this._trackId, this._label, this._kind, this._enabled);
+  factory MediaStreamTrackNative.fromMap(Map<dynamic, dynamic> map) {
+    return MediaStreamTrackNative(
+        map['id'], map['label'], map['kind'], map['enabled']);
+  }
   final _channel = WebRTC.methodChannel();
   final String _trackId;
   final String _label;

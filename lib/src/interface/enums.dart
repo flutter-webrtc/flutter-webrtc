@@ -25,6 +25,15 @@ enum RTCIceGatheringState {
   RTCIceGatheringStateComplete
 }
 
+enum RTCPeerConnectionState {
+  RTCPeerConnectionStateClosed,
+  RTCPeerConnectionStateFailed,
+  RTCPeerConnectionStateDisconnected,
+  RTCPeerConnectionStateNew,
+  RTCPeerConnectionStateConnecting,
+  RTCPeerConnectionStateConnected
+}
+
 enum RTCIceConnectionState {
   RTCIceConnectionStateNew,
   RTCIceConnectionStateChecking,
@@ -40,6 +49,44 @@ enum RTCVideoViewObjectFit {
   RTCVideoViewObjectFitContain,
   RTCVideoViewObjectFitCover,
 }
+enum RTCRtpMediaType {
+  RTCRtpMediaTypeAudio,
+  RTCRtpMediaTypeVideo,
+  RTCRtpMediaTypeData,
+}
+
+final typeRTCRtpMediaTypetoString = <RTCRtpMediaType, String>{
+  RTCRtpMediaType.RTCRtpMediaTypeAudio: 'audio',
+  RTCRtpMediaType.RTCRtpMediaTypeVideo: 'video',
+  RTCRtpMediaType.RTCRtpMediaTypeData: 'data',
+};
+
+final typeStringToRTCRtpMediaType = <String, RTCRtpMediaType>{
+  'audio': RTCRtpMediaType.RTCRtpMediaTypeAudio,
+  'video': RTCRtpMediaType.RTCRtpMediaTypeVideo,
+  'data': RTCRtpMediaType.RTCRtpMediaTypeData,
+};
+
+enum TransceiverDirection {
+  SendRecv,
+  SendOnly,
+  RecvOnly,
+  Inactive,
+}
+
+final typeStringToRtpTransceiverDirection = <String, TransceiverDirection>{
+  'sendrecv': TransceiverDirection.SendRecv,
+  'sendonly': TransceiverDirection.SendOnly,
+  'recvonly': TransceiverDirection.RecvOnly,
+  'inactive': TransceiverDirection.Inactive,
+};
+
+final typeRtpTransceiverDirectionToString = <TransceiverDirection, String>{
+  TransceiverDirection.SendRecv: 'sendrecv',
+  TransceiverDirection.SendOnly: 'sendonly',
+  TransceiverDirection.RecvOnly: 'recvonly',
+  TransceiverDirection.Inactive: 'inactive',
+};
 
 RTCIceConnectionState iceConnectionStateForString(String state) {
   switch (state) {
@@ -105,4 +152,23 @@ RTCDataChannelState rtcDataChannelStateForString(String state) {
       return RTCDataChannelState.RTCDataChannelClosed;
   }
   return RTCDataChannelState.RTCDataChannelClosed;
+}
+
+RTCPeerConnectionState peerConnectionStateForString(String state) {
+  switch (state) {
+    case 'new':
+      return RTCPeerConnectionState.RTCPeerConnectionStateNew;
+    case 'connecting':
+      return RTCPeerConnectionState.RTCPeerConnectionStateConnecting;
+    case 'connected':
+      return RTCPeerConnectionState.RTCPeerConnectionStateConnected;
+    case 'closed':
+      return RTCPeerConnectionState.RTCPeerConnectionStateClosed;
+    case 'disconnected':
+      return RTCPeerConnectionState.RTCPeerConnectionStateDisconnected;
+    case 'failed':
+      return RTCPeerConnectionState.RTCPeerConnectionStateFailed;
+  }
+
+  return RTCPeerConnectionState.RTCPeerConnectionStateClosed;
 }

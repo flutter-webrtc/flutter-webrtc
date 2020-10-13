@@ -4,10 +4,16 @@ import 'media_stream_track.dart';
 import 'rtc_data_channel.dart';
 import 'rtc_dtmf_sender.dart';
 import 'rtc_ice_candidate.dart';
+import 'rtc_rtp_receiver.dart';
+import 'rtc_rtp_sender.dart';
+import 'rtc_rtp_transceiver.dart';
 import 'rtc_session_description.dart';
 import 'rtc_stats_report.dart';
+import 'rtc_track_event.dart';
 
 typedef SignalingStateCallback = void Function(RTCSignalingState state);
+typedef PeerConnectionStateCallback = void Function(
+    RTCPeerConnectionState state);
 typedef IceGatheringStateCallback = void Function(RTCIceGatheringState state);
 typedef IceConnectionStateCallback = void Function(RTCIceConnectionState state);
 typedef IceCandidateCallback = void Function(RTCIceCandidate candidate);
@@ -20,15 +26,15 @@ typedef RemoveTrackCallback = void Function(
 typedef RTCDataChannelCallback = void Function(RTCDataChannel channel);
 typedef RenegotiationNeededCallback = void Function();
 
+/// Unified-Plan
+typedef UnifiedPlanTrackCallback = void Function(RTCTrackEvent event);
+
 abstract class RTCPeerConnection {
   RTCPeerConnection();
 
-  // RTCSignalingState _signalingState;
-  // RTCIceGatheringState _iceGatheringState;
-  // RTCIceConnectionState _iceConnectionState;
-
   // public: delegate
   SignalingStateCallback onSignalingState;
+  PeerConnectionStateCallback onConnectionState;
   IceGatheringStateCallback onIceGatheringState;
   IceConnectionStateCallback onIceConnectionState;
   IceCandidateCallback onIceCandidate;
@@ -39,11 +45,16 @@ abstract class RTCPeerConnection {
   RTCDataChannelCallback onDataChannel;
   RenegotiationNeededCallback onRenegotiationNeeded;
 
+  /// Unified-Plan
+  UnifiedPlanTrackCallback onTrack;
+
   RTCSignalingState get signalingState;
 
   RTCIceGatheringState get iceGatheringState;
 
   RTCIceConnectionState get iceConnectionState;
+
+  RTCPeerConnectionState get connectionState;
 
   Future<void> dispose();
 
@@ -78,8 +89,27 @@ abstract class RTCPeerConnection {
 
   Future<void> close();
 
-  //'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
-  void addTransceiver(String type, Map<String, String> options);
-
   RTCDTMFSender createDtmfSender(MediaStreamTrack track);
+
+  /// Unified-Plan.
+  List<RTCRtpSender> get senders;
+
+  List<RTCRtpReceiver> get receivers;
+
+  List<RTCRtpTransceiver> get transceivers;
+
+  Future<RTCRtpSender> createSender(String kind, String streamId);
+
+  Future<RTCRtpSender> addTrack(MediaStreamTrack track,
+      [List<MediaStream> streams]);
+
+  Future<bool> removeTrack(RTCRtpSender sender);
+
+  Future<bool> closeSender(RTCRtpSender sender);
+
+  /// 'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
+  Future<RTCRtpTransceiver> addTransceiver(
+      {MediaStreamTrack track,
+      RTCRtpMediaType kind,
+      RTCRtpTransceiverInit init});
 }

@@ -10,6 +10,9 @@ import '../interface/rtc_data_channel.dart';
 import '../interface/rtc_dtmf_sender.dart';
 import '../interface/rtc_ice_candidate.dart';
 import '../interface/rtc_peerconnection.dart';
+import '../interface/rtc_rtp_receiver.dart';
+import '../interface/rtc_rtp_sender.dart';
+import '../interface/rtc_rtp_transceiver.dart';
 import '../interface/rtc_session_description.dart';
 import '../interface/rtc_stats_report.dart';
 import 'media_stream_impl.dart';
@@ -80,6 +83,12 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
       onSignalingState?.call(_signalingState);
     });
 
+    js.JsObject.fromBrowserObject(_jsPc)['connectionstatechange'] =
+        js.JsFunction.withThis((_, state) {
+      _connectionState = peerConnectionStateForString(state);
+      onConnectionState?.call(_connectionState);
+    });
+
     js.JsObject.fromBrowserObject(_jsPc)['negotiationneeded'] =
         js.JsFunction.withThis(() {
       onRenegotiationNeeded?.call();
@@ -101,6 +110,7 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
   RTCIceConnectionState _iceConnectionState;
+  RTCPeerConnectionState _connectionState;
 
   @override
   RTCSignalingState get signalingState => _signalingState;
@@ -110,6 +120,9 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   RTCIceConnectionState get iceConnectionState => _iceConnectionState;
+
+  @override
+  RTCPeerConnectionState get connectionState => _connectionState;
 
   @override
   Future<void> dispose() {
@@ -226,15 +239,6 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
     return Future.value();
   }
 
-  //'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
-  @override
-  void addTransceiver(String type, Map<String, String> options) {
-    if (jsutil.hasProperty(_jsPc, 'addTransceiver')) {
-      final jsOptions = js.JsObject.jsify(options);
-      jsutil.callMethod(_jsPc, 'addTransceiver', [type, jsOptions]);
-    }
-  }
-
   @override
   RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
     var _native = track as MediaStreamTrackWeb;
@@ -257,4 +261,63 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   RTCSessionDescription _sessionFromJs(html.RtcSessionDescription sd) =>
       RTCSessionDescription(sd.sdp, sd.type);
+
+  /*
+  //'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
+  @override
+  void addTransceiver(String type, Map<String, String> options) {
+    if (jsutil.hasProperty(_jsPc, 'addTransceiver')) {
+      final jsOptions = js.JsObject.jsify(options);
+      jsutil.callMethod(_jsPc, 'addTransceiver', [type, jsOptions]);
+    }
+  }
+   */
+  @override
+  Future<RTCRtpSender> addTrack(MediaStreamTrack track,
+      [List<MediaStream> streams]) {
+    var _track = track as MediaStreamTrackWeb;
+    var _stream = streams[0] as MediaStreamWeb;
+    _jsPc.addTrack(_track.jsTrack, _stream.jsStream);
+    // TODO: implement addTrack
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> closeSender(RTCRtpSender sender) {
+    // TODO: implement closeSender
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<RTCRtpSender> createSender(String kind, String streamId) {
+    // TODO: implement createSender
+    throw UnimplementedError();
+  }
+
+  @override
+  // TODO: implement receivers
+  List<RTCRtpReceiver> get receivers => throw UnimplementedError();
+
+  @override
+  Future<bool> removeTrack(RTCRtpSender sender) {
+    // TODO: implement removeTrack
+    throw UnimplementedError();
+  }
+
+  @override
+  // TODO: implement senders
+  List<RTCRtpSender> get senders => throw UnimplementedError();
+
+  @override
+  // TODO: implement transceivers
+  List<RTCRtpTransceiver> get transceivers => throw UnimplementedError();
+
+  @override
+  Future<RTCRtpTransceiver> addTransceiver(
+      {MediaStreamTrack track,
+      RTCRtpMediaType kind,
+      RTCRtpTransceiverInit init}) {
+    // TODO: implement addTransceiver
+    throw UnimplementedError();
+  }
 }
