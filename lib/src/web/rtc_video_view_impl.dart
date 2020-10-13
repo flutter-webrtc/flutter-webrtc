@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/src/web/rtc_video_renderer_impl.dart';
 
 import '../interface/enums.dart';
-import '../interface/rtc_video_renderer.dart';
+import '../rtc_video_renderer.dart';
+import '../web/rtc_video_renderer_impl.dart';
 
 class RTCVideoView extends StatefulWidget {
   RTCVideoView(
@@ -14,7 +14,7 @@ class RTCVideoView extends StatefulWidget {
         assert(mirror != null),
         super(key: key);
 
-  final VideoRenderer _renderer;
+  final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
   @override
@@ -24,11 +24,11 @@ class RTCVideoView extends StatefulWidget {
 class _RTCVideoViewState extends State<RTCVideoView> {
   _RTCVideoViewState();
   RTCVideoRendererWeb get videoRenderer =>
-      widget._renderer as RTCVideoRendererWeb;
+      widget._renderer.delegate as RTCVideoRendererWeb;
   @override
   void initState() {
     super.initState();
-    widget._renderer?.addListener(() => setState(() {}));
+    widget._renderer?.delegate?.addListener(() => setState(() {}));
   }
 
   Widget buildVideoElementView(RTCVideoViewObjectFit objFit, bool mirror) {

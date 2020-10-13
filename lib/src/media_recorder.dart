@@ -1,11 +1,8 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:flutter_webrtc/src/interface/media_stream_track.dart';
-
-import 'package:flutter_webrtc/src/interface/media_stream.dart';
-
-import 'package:flutter_webrtc/src/interface/enums.dart';
-
+import '../flutter_webrtc.dart';
+import 'interface/enums.dart';
 import 'interface/media_recorder.dart' as _interface;
+import 'interface/media_stream.dart';
+import 'interface/media_stream_track.dart';
 
 class MediaRecorder extends _interface.MediaRecorder {
   MediaRecorder() : _delegate = mediaRecorder();

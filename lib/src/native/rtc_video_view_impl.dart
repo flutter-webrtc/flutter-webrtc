@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../interface/enums.dart';
 import '../interface/rtc_video_renderer.dart';
+import '../rtc_video_renderer.dart';
 import 'rtc_video_renderer_impl.dart';
 
 class RTCVideoView extends StatelessWidget {
@@ -16,12 +17,12 @@ class RTCVideoView extends StatelessWidget {
         assert(mirror != null),
         super(key: key);
 
-  final VideoRenderer _renderer;
+  final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
 
   RTCVideoRendererNative get videoRenderer =>
-      _renderer as RTCVideoRendererNative;
+      _renderer.delegate as RTCVideoRendererNative;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +42,7 @@ class RTCVideoView extends StatelessWidget {
               : BoxFit.cover,
           child: Center(
             child: ValueListenableBuilder<RTCVideoValue>(
-              valueListenable: _renderer,
+              valueListenable: videoRenderer,
               builder:
                   (BuildContext context, RTCVideoValue value, Widget child) {
                 return SizedBox(
