@@ -19,3 +19,5 @@ example/ios/Runner/GeneratedPluginRegistrant.m
 example/ios/Runner/GeneratedPluginRegistrant.h
 example/ios/Flutter/Generated.xcconfig
 example/ios/Flutter/flutter_export_environment.sh
+.vscode/launch.json
+example/.vscode/launch.json
