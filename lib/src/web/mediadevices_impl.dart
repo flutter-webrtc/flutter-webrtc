@@ -24,8 +24,20 @@ class MediaDevicesWeb extends MediaDevices {
       mediaConstraints.putIfAbsent('audio', () => false);
 
       final mediaDevices = html.window.navigator.mediaDevices;
-      final jsStream = await mediaDevices.getUserMedia(mediaConstraints);
-      return MediaStreamWeb(jsStream, 'local');
+
+      if (jsutil.hasProperty(mediaDevices, 'getUserMedia')) {
+        var args = jsutil.jsify(mediaConstraints);
+        final jsStream = await jsutil.promiseToFuture<html.MediaStream>(
+            jsutil.callMethod(mediaDevices, 'getUserMedia', [args]));
+
+        return MediaStreamWeb(jsStream, 'local');
+      } else {
+        final jsStream = await html.window.navigator.getUserMedia(
+          audio: mediaConstraints['audio'],
+          video: mediaConstraints['video'],
+        );
+        return MediaStreamWeb(jsStream, 'local');
+      }
     } catch (e) {
       throw 'Unable to getUserMedia: ${e.toString()}';
     }
@@ -56,13 +68,16 @@ class MediaDevicesWeb extends MediaDevices {
   @override
   Future<List<dynamic>> getSources() async {
     final devices = await html.window.navigator.mediaDevices.enumerateDevices();
+
     final result = <dynamic>[];
     for (final device in devices) {
+      var input = device as html.MediaDeviceInfo;
+      // info
       result.add(<String, String>{
-        'deviceId': device.deviceId,
-        'groupId': device.groupId,
-        'kind': device.kind,
-        'label': device.label
+        'deviceId': input.deviceId,
+        'groupId': input.groupId,
+        'kind': input.kind,
+        'label': input.label
       });
     }
     return result;
