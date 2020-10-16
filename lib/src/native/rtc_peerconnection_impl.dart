@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
@@ -177,8 +176,6 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
       /// Unified-Plan
       case 'onTrack':
-        print(JsonEncoder().convert(map));
-        //print(map.toString());
         var params = map['streams'] as List<dynamic>;
         var streams = params.map((e) => MediaStreamNative.fromMap(e)).toList();
         var transceiver = map['transceiver'] != null
