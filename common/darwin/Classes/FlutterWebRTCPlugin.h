@@ -30,5 +30,6 @@
 - (NSDictionary*)mediaStreamToMap:(RTCMediaStream *)stream ownerTag:(NSString*)ownerTag;
 - (NSDictionary*)mediaTrackToMap:(RTCMediaStreamTrack*)track;
 - (NSDictionary*)receiverToMap:(RTCRtpReceiver*)receiver;
+- (NSDictionary*)transceiverToMap:(RTCRtpTransceiver*)transceiver;
 
 @end

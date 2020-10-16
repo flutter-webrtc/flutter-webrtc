@@ -512,12 +512,20 @@ didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
     }
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
-        eventSink(@{
-            @"event": @"onTrack",
-            @"track": [self mediaTrackToMap:rtpReceiver.track],
-            @"receiver": [self receiverToMap:rtpReceiver],
-            @"streams": streams,
-                  });
+        NSMutableDictionary *event = [NSMutableDictionary  dictionary];
+        [event addEntriesFromDictionary:@{
+        @"event": @"onTrack",
+        @"track": [self mediaTrackToMap:rtpReceiver.track],
+        @"receiver": [self receiverToMap:rtpReceiver],
+        @"streams": streams,
+        }];
+        
+        for(RTCRtpTransceiver *transceiver in  peerConnection.transceivers) {
+            if(transceiver.receiver != nil && [transceiver.receiver.receiverId isEqualToString:rtpReceiver.receiverId]) {
+                [event setValue:[self transceiverToMap:transceiver] forKey:@"transceiver"];
+            }
+        }
+        eventSink(event);
     }
 }
 

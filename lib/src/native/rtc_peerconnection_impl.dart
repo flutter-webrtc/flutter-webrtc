@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
@@ -176,13 +177,19 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
       /// Unified-Plan
       case 'onTrack':
+        print(JsonEncoder().convert(map));
+        //print(map.toString());
         var params = map['streams'] as List<dynamic>;
         var streams = params.map((e) => MediaStreamNative.fromMap(e)).toList();
+        var transceiver = map['transceiver'] != null
+            ? RTCRtpTransceiverNative.fromMap(map['transceiver'],
+                peerConnectionId: _peerConnectionId)
+            : null;
         onTrack?.call(RTCTrackEvent(
-          receiver: RTCRtpReceiverNative.fromMap(map['receiver']),
-          streams: streams,
-          track: MediaStreamTrackNative.fromMap(map['track']),
-        ));
+            receiver: RTCRtpReceiverNative.fromMap(map['receiver']),
+            streams: streams,
+            track: MediaStreamTrackNative.fromMap(map['track']),
+            transceiver: transceiver));
         break;
 
       /// Other
