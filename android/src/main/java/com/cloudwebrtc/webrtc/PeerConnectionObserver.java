@@ -429,6 +429,13 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       params.putArray("streams", streams.toArrayList());
       params.putMap("track", mediaTrackToMap(receiver.track()));
       params.putMap("receiver", rtpReceiverToMap(receiver));
+
+      List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
+      for( RtpTransceiver transceiver : transceivers ) {
+            if(transceiver.getReceiver() != null && receiver.id().equals(transceiver.getReceiver().id())) {
+                params.putMap("transceiver", transceiverToMap(transceiver));
+            }
+      }
       sendEvent(params);
   }
 
