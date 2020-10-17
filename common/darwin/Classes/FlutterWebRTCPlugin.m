@@ -1228,7 +1228,7 @@
     }
 
     for (RTCMediaStreamTrack* track in stream.videoTracks) {
-        [audioTracks addObject:[self mediaTrackToMap:track]];
+        [videoTracks addObject:[self mediaTrackToMap:track]];
     }
 
     return @{
