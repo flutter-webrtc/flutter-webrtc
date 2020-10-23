@@ -21,3 +21,4 @@ example/ios/Flutter/Generated.xcconfig
 example/ios/Flutter/flutter_export_environment.sh
 .vscode/launch.json
 example/.vscode/launch.json
+.dart_tool/package_config_subset

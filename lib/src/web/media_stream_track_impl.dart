@@ -5,7 +5,14 @@ import 'dart:js' as js;
 import '../interface/media_stream_track.dart';
 
 class MediaStreamTrackWeb extends MediaStreamTrack {
-  MediaStreamTrackWeb(this.jsTrack);
+  MediaStreamTrackWeb(this.jsTrack) {
+    jsTrack.onEnded.listen((event) {
+      onEnded?.call();
+    });
+    jsTrack.onMute.listen((event) {
+      onMute?.call();
+    });
+  }
 
   final html.MediaStreamTrack jsTrack;
 

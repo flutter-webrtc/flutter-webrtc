@@ -53,6 +53,11 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
 
     try {
       var stream = await navigator.getDisplayMedia(mediaConstraints);
+      stream.getVideoTracks()[0].onEnded = () {
+        print(
+            'By adding a listener on onEnded you can: 1) catch stop video sharing on Web');
+      };
+
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
     } catch (e) {
