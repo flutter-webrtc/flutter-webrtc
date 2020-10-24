@@ -70,6 +70,10 @@ class _MyAppState extends State<LoopBackSample> {
     print(state);
   }
 
+  void _onPeerConnectionState(RTCPeerConnectionState state) {
+    print(state);
+  }
+
   void _onAddStream(MediaStream stream) {
     print('New stream: ' + stream.id);
     //_remoteRenderer.srcObject = stream;
@@ -143,6 +147,7 @@ class _MyAppState extends State<LoopBackSample> {
       _peerConnection.onSignalingState = _onSignalingState;
       _peerConnection.onIceGatheringState = _onIceGatheringState;
       _peerConnection.onIceConnectionState = _onIceConnectionState;
+      _peerConnection.onConnectionState = _onPeerConnectionState;
       _peerConnection.onAddStream = _onAddStream;
       _peerConnection.onRemoveStream = _onRemoveStream;
       _peerConnection.onIceCandidate = _onCandidate;
