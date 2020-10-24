@@ -498,16 +498,16 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     sendEvent(params);
   }
 
-    @Override
-    public void onConnectionChange(PeerConnection.PeerConnectionState connectionState) {
-        Log.d(TAG, "onConnectionChange" + connectionState.name());
-        ConstraintsMap params = new ConstraintsMap();
-        params.putString("event", "peerConnectionState");
-        params.putString("state", connectionStateString(connectionState));
-        sendEvent(params);
-    }
+  @Override
+  public void onConnectionChange(PeerConnection.PeerConnectionState connectionState) {
+    Log.d(TAG, "onConnectionChange" + connectionState.name());
+    ConstraintsMap params = new ConstraintsMap();
+    params.putString("event", "peerConnectionState");
+    params.putString("state", connectionStateString(connectionState));
+    sendEvent(params);
+  }
 
-    @Nullable
+  @Nullable
   private String iceConnectionStateString(PeerConnection.IceConnectionState iceConnectionState) {
     switch (iceConnectionState) {
       case NEW:
