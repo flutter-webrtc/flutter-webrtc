@@ -38,13 +38,15 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private BinaryMessenger messenger;
   private final String id;
   private PeerConnection peerConnection;
+  private PeerConnection.RTCConfiguration configuration;
   final Map<String, MediaStream> remoteStreams = new HashMap<>();
   final Map<String, MediaStreamTrack> remoteTracks = new HashMap<>();
   private final StateProvider stateProvider;
   private final EventChannel eventChannel;
   private EventChannel.EventSink eventSink;
 
-  PeerConnectionObserver(StateProvider stateProvider, BinaryMessenger messenger, String id) {
+  PeerConnectionObserver(PeerConnection.RTCConfiguration configuration, StateProvider stateProvider, BinaryMessenger messenger, String id) {
+    this.configuration = configuration;
     this.stateProvider = stateProvider;
     this.messenger = messenger;
     this.id = id;
@@ -430,11 +432,13 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       params.putMap("track", mediaTrackToMap(receiver.track()));
       params.putMap("receiver", rtpReceiverToMap(receiver));
 
-      List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
-      for( RtpTransceiver transceiver : transceivers ) {
-            if(transceiver.getReceiver() != null && receiver.id().equals(transceiver.getReceiver().id())) {
-                params.putMap("transceiver", transceiverToMap(transceiver));
-            }
+      if(this.configuration.sdpSemantics == PeerConnection.SdpSemantics.UNIFIED_PLAN) {
+          List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
+          for( RtpTransceiver transceiver : transceivers ) {
+              if(transceiver.getReceiver() != null && receiver.id().equals(transceiver.getReceiver().id())) {
+                  params.putMap("transceiver", transceiverToMap(transceiver));
+              }
+          }
       }
       sendEvent(params);
   }

@@ -916,10 +916,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   public String peerConnectionInit(ConstraintsMap configuration, ConstraintsMap constraints) {
     String peerConnectionId = getNextStreamUUID();
-    PeerConnectionObserver observer = new PeerConnectionObserver(this, messenger, peerConnectionId);
+    RTCConfiguration conf =  parseRTCConfiguration(configuration);
+    PeerConnectionObserver observer = new PeerConnectionObserver(conf,this, messenger, peerConnectionId);
     PeerConnection peerConnection
         = mFactory.createPeerConnection(
-        parseRTCConfiguration(configuration),
+        conf,
         parseMediaConstraints(constraints),
         observer);
     observer.setPeerConnection(peerConnection);

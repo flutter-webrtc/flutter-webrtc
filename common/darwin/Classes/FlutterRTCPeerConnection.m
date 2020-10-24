@@ -537,11 +537,14 @@ didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
         @"streams": streams,
         }];
         
-        for(RTCRtpTransceiver *transceiver in  peerConnection.transceivers) {
-            if(transceiver.receiver != nil && [transceiver.receiver.receiverId isEqualToString:rtpReceiver.receiverId]) {
-                [event setValue:[self transceiverToMap:transceiver] forKey:@"transceiver"];
+        if(peerConnection.configuration.sdpSemantics == RTCSdpSemanticsUnifiedPlan) {
+            for(RTCRtpTransceiver *transceiver in  peerConnection.transceivers) {
+                if(transceiver.receiver != nil && [transceiver.receiver.receiverId isEqualToString:rtpReceiver.receiverId]) {
+                    [event setValue:[self transceiverToMap:transceiver] forKey:@"transceiver"];
+                }
             }
         }
+        
         eventSink(event);
     }
 }
