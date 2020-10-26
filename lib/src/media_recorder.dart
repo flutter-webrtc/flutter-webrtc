@@ -6,7 +6,7 @@ import 'interface/media_stream_track.dart';
 
 class MediaRecorder extends _interface.MediaRecorder {
   MediaRecorder() : _delegate = mediaRecorder();
-  final MediaRecorder _delegate;
+  final _interface.MediaRecorder _delegate;
 
   @override
   Future<void> start(String path,
