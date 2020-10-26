@@ -1,12 +1,10 @@
 *.iml
 .idea
 .DS_Store
-.packages
 .vscode/.DS_Store
 example/pubspec.lock
 pubspec.lock
 example/ios/Podfile.lock
-build
 GeneratedPluginRegistrant.java
 example/android/.gradle
 example/android/gradle*
@@ -21,4 +19,35 @@ example/ios/Flutter/Generated.xcconfig
 example/ios/Flutter/flutter_export_environment.sh
 .vscode/launch.json
 example/.vscode/launch.json
-.dart_tool/package_config_subset
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/android/.gradle/
+
+
+android/.classpath
+android/.settings/org.eclipse.buildship.core.prefs
