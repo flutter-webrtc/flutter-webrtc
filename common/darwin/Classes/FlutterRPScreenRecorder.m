@@ -22,26 +22,36 @@
 	[screenRecorder setMicrophoneEnabled:NO];
 
 	if (![screenRecorder isAvailable]) {
-		NSLog(@"Screen recorder is not available!");
+		NSLog(@"FlutterRPScreenRecorder.startCapture: Screen recorder is not available!");
 		return;
 	}
 	
-	[screenRecorder startCaptureWithHandler:^(CMSampleBufferRef  _Nonnull sampleBuffer, RPSampleBufferType bufferType, NSError * _Nullable error) {
-        if (bufferType == RPSampleBufferTypeVideo) {// We want video only now
-			[self handleSourceBuffer:sampleBuffer sampleType:bufferType];
-		}
-	} completionHandler:^(NSError * _Nullable error) {
-		if (error != nil)
-            NSLog(@"!!! startCaptureWithHandler/completionHandler %@ !!!", error);
-	}];
+    if (@available(iOS 11.0, *)) {
+        [screenRecorder startCaptureWithHandler:^(CMSampleBufferRef  _Nonnull sampleBuffer, RPSampleBufferType bufferType, NSError * _Nullable error) {
+            if (bufferType == RPSampleBufferTypeVideo) {// We want video only now
+                [self handleSourceBuffer:sampleBuffer sampleType:bufferType];
+            }
+        } completionHandler:^(NSError * _Nullable error) {
+            if (error != nil)
+                NSLog(@"!!! startCaptureWithHandler/completionHandler %@ !!!", error);
+        }];
+    } else {
+        // Fallback on earlier versions
+        NSLog(@"FlutterRPScreenRecorder.startCapture: Screen recorder is not available in versions lower than iOS 11 !");
+    }
 }
 
 -(void)stopCapture
 {
-	[screenRecorder stopCaptureWithHandler:^(NSError * _Nullable error) {
-        if (error != nil)
-            NSLog(@"!!! stopCaptureWithHandler/completionHandler %@ !!!", error);
-	}];
+    if (@available(iOS 11.0, *)) {
+        [screenRecorder stopCaptureWithHandler:^(NSError * _Nullable error) {
+            if (error != nil)
+                NSLog(@"!!! stopCaptureWithHandler/completionHandler %@ !!!", error);
+        }];
+    } else {
+        // Fallback on earlier versions
+        NSLog(@"FlutterRPScreenRecorder.stopCapture: Screen recorder is not available in versions lower than iOS 11 !");
+    }
 }
 
 -(void)handleSourceBuffer:(CMSampleBufferRef)sampleBuffer sampleType:(RPSampleBufferType)sampleType
@@ -59,7 +69,7 @@
     size_t width = CVPixelBufferGetWidth(pixelBuffer);
     size_t height = CVPixelBufferGetHeight(pixelBuffer);
 
-    [source adaptOutputFormatToWidth:width/2 height:height/2 fps:8];
+    [source adaptOutputFormatToWidth:(int)(width/2) height:(int)(height/2) fps:8];
     
     RTCCVPixelBuffer *rtcPixelBuffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBuffer];
     int64_t timeStampNs =

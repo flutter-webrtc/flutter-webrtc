@@ -39,7 +39,7 @@
     objc_setAssociatedObject(self, @selector(eventChannel), eventChannel, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-- (NSMutableDictionary<NSString *, RTCDataChannel *> *)dataChannels
+- (NSMutableDictionary<NSNumber *, RTCDataChannel *> *)dataChannels
 {
     return objc_getAssociatedObject(self, _cmd);
 }
@@ -176,9 +176,9 @@
     [peerConnection.remoteTracks removeAllObjects];
     
     // Clean up peerConnection's dataChannels.
-    NSMutableDictionary<NSString *, RTCDataChannel *> *dataChannels
+    NSMutableDictionary<NSNumber *, RTCDataChannel *> *dataChannels
     = peerConnection.dataChannels;
-    for (NSString *dataChannelId in dataChannels) {
+    for (NSNumber *dataChannelId in dataChannels) {
         dataChannels[dataChannelId].delegate = nil;
         // There is no need to close the RTCDataChannel because it is owned by the
         // RTCPeerConnection and the latter will close the former.
@@ -328,7 +328,8 @@
 }
 
 #pragma mark - RTCPeerConnectionDelegate methods
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeSignalingState:(RTCSignalingState)newState {
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){

@@ -76,8 +76,8 @@
 
 
 - (void)didSessionRouteChange:(NSNotification *)notification {
-  NSDictionary *interuptionDict = notification.userInfo;
 #if TARGET_OS_IPHONE
+  NSDictionary *interuptionDict = notification.userInfo;
   NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
 
   switch (routeChangeReason) {
@@ -324,7 +324,7 @@
     } else if ([@"dataChannelSend" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-        NSString* dataChannelId = argsMap[@"dataChannelId"];
+        NSNumber* dataChannelId = argsMap[@"dataChannelId"];
         NSString* type = argsMap[@"type"];
         id data = argsMap[@"data"];
         
@@ -443,7 +443,6 @@
         }
         result(nil);
     } else if ([@"createVideoRenderer" isEqualToString:call.method]){
-        NSDictionary* argsMap = call.arguments;
         FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures
                                           messenger:_messenger];
         self.renders[@(render.textureId)] = render;
@@ -1126,9 +1125,6 @@
         if (json[@"ordered"]) {
             init.isOrdered = [json[@"ordered"] boolValue];
         }
-        if (json[@"maxRetransmitTime"]) {
-            init.maxRetransmitTimeMs = [json[@"maxRetransmitTime"] integerValue];
-        }
         if (json[@"maxRetransmits"]) {
             init.maxRetransmits = [json[@"maxRetransmits"] intValue];
         }
@@ -1396,7 +1392,12 @@
             return @"recvonly";
         case RTCRtpTransceiverDirectionInactive:
             return @"inactive";
-    }
+#if TARGET_OS_IPHONE
+        case RTCRtpTransceiverDirectionStopped:
+            return @"stopped";
+#endif
+               break;
+       }
     return nil;
 }
 
@@ -1411,5 +1412,4 @@
     };
     return params;
 }
-
 @end
