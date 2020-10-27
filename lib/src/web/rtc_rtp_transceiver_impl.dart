@@ -11,7 +11,6 @@ import '../interface/rtc_rtp_sender.dart';
 import '../interface/rtc_rtp_transceiver.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
-import 'utils.dart';
 
 List<RTCRtpEncoding> listToRtpEncodings(List<Map<String, dynamic>> list) {
   return list.map((e) => RTCRtpEncoding.fromMap(e)).toList();
@@ -63,8 +62,6 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   }
 
   Object _jsTransceiver;
-  final MethodChannel _channel = WebRTC.methodChannel();
-  String _peerConnectionId;
   String _id;
   bool _stop;
   TransceiverDirection _direction;
@@ -72,9 +69,7 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   RTCRtpSender _sender;
   RTCRtpReceiver _receiver;
 
-  set peerConnectionId(String id) {
-    _peerConnectionId = id;
-  }
+  set peerConnectionId(String id) {}
 
   @override
   TransceiverDirection get currentDirection => _direction;
@@ -97,12 +92,8 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   @override
   Future<void> setDirection(TransceiverDirection direction) async {
     try {
-      await _channel
-          .invokeMethod('rtpTransceiverSetDirection', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'transceiverId': _id,
-        'direction': typeRtpTransceiverDirectionToString[direction]
-      });
+      jsutil.callMethod(_jsTransceiver, 'setDirection',
+          [typeRtpTransceiverDirectionToString[direction]]);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpTransceiver::setDirection: ${e.message}';
     }
@@ -111,12 +102,8 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   @override
   Future<TransceiverDirection> getCurrentDirection() async {
     try {
-      final response = await _channel.invokeMethod(
-          'rtpTransceiverGetCurrentDirection', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'transceiverId': _id
-      });
-      _direction = typeStringToRtpTransceiverDirection[response['result']];
+      var result = jsutil.callMethod(_jsTransceiver, 'getCurrentDirection', []);
+      _direction = typeStringToRtpTransceiverDirection[result['result']];
       return _direction;
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpTransceiver::getCurrentDirection: ${e.message}';
@@ -126,10 +113,7 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   @override
   Future<void> stop() async {
     try {
-      await _channel.invokeMethod('rtpTransceiverStop', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'transceiverId': _id
-      });
+      jsutil.callMethod(_jsTransceiver, 'stop', []);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpTransceiver::stop: ${e.message}';
     }

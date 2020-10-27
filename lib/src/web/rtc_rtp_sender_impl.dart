@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
 
 import 'package:flutter/material.dart';
@@ -13,8 +14,14 @@ import 'rtc_dtmf_sender_impl.dart';
 import 'utils.dart';
 
 class RTCRtpSenderWeb extends RTCRtpSender {
-  RTCRtpSenderWeb(this._id, this._track, this._dtmf, this._parameters,
-      this._ownsTrack, this._peerConnectionId);
+  RTCRtpSenderWeb(
+      this._id, this._track, this._dtmf, this._parameters, this._ownsTrack,
+      [String peerConnectionId]);
+
+  factory RTCRtpSenderWeb.fromJsSender(html.RtcRtpSender sender) {
+    // TODO(cloudwebrtc): add ...
+    return null;
+  }
 
   factory RTCRtpSenderWeb.fromJsObject(Object jsObject,
       {String peerConnectionId}) {
@@ -31,30 +38,24 @@ class RTCRtpSenderWeb extends RTCRtpSender {
         ownsTrack,
         peerConnectionId);
   }
-
-  final MethodChannel _channel = WebRTC.methodChannel();
-  String _peerConnectionId;
+  html.RtcRtpSender _jsSender;
+  Object _jsObject;
   String _id;
   MediaStreamTrack _track;
   RTCDTMFSender _dtmf;
   RTCRtpParameters _parameters;
   bool _ownsTrack = false;
 
-  set peerConnectionId(String id) {
-    _peerConnectionId = id;
-  }
+  html.RtcRtpSender get jsSender => _jsSender;
+
+  set peerConnectionId(String id) {}
 
   @override
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     _parameters = parameters;
     try {
-      final response = await _channel
-          .invokeMethod('rtpSenderSetParameters', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'rtpSenderId': _id,
-        'parameters': parameters.toMap()
-      });
-      return response['result'];
+      return jsutil.callMethod(
+          _jsObject, 'setParameters', [jsutil.jsify(parameters.toMap())]);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::setParameters: ${e.message}';
     }
@@ -63,11 +64,8 @@ class RTCRtpSenderWeb extends RTCRtpSender {
   @override
   Future<void> replaceTrack(MediaStreamTrack track) async {
     try {
-      await _channel.invokeMethod('rtpSenderReplaceTrack', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'rtpSenderId': _id,
-        'trackId': track.id
-      });
+      return jsutil.callMethod(
+          _jsObject, 'replaceTrack', [(track as MediaStreamTrackWeb).jsTrack]);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::replaceTrack: ${e.message}';
     }
@@ -77,12 +75,8 @@ class RTCRtpSenderWeb extends RTCRtpSender {
   Future<void> setTrack(MediaStreamTrack track,
       {bool takeOwnership = true}) async {
     try {
-      await _channel.invokeMethod('rtpSenderSetTrack', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'rtpSenderId': _id,
-        'trackId': track.id,
-        'takeOwnership': takeOwnership,
-      });
+      return jsutil.callMethod(
+          _jsObject, 'setTrack', [(track as MediaStreamTrackWeb).jsTrack]);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
     }
@@ -107,10 +101,7 @@ class RTCRtpSenderWeb extends RTCRtpSender {
   @mustCallSuper
   Future<void> dispose() async {
     try {
-      await _channel.invokeMethod('rtpSenderDispose', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'rtpSenderId': _id,
-      });
+      jsutil.callMethod(_jsObject, 'stop', []);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
     }

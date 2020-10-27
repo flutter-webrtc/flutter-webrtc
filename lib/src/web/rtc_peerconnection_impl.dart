@@ -21,6 +21,7 @@ import 'media_stream_impl.dart';
 import 'media_stream_track_impl.dart';
 import 'rtc_data_channel_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
+import 'rtc_rtp_sender_impl.dart';
 
 /*
  *  PeerConnection
@@ -108,6 +109,9 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   final _localStreams = <String, MediaStream>{};
   final _remoteStreams = <String, MediaStream>{};
   final _configuration = <String, dynamic>{};
+  final List<RTCRtpSender> _senders = <RTCRtpSender>[];
+  final List<RTCRtpReceiver> _receivers = <RTCRtpReceiver>[];
+  final List<RTCRtpTransceiver> _transceivers = <RTCRtpTransceiver>[];
 
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
@@ -264,55 +268,42 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   RTCSessionDescription _sessionFromJs(html.RtcSessionDescription sd) =>
       RTCSessionDescription(sd.sdp, sd.type);
 
-  /*
-  //'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
-  @override
-  void addTransceiver(String type, Map<String, String> options) {
-    if (jsutil.hasProperty(_jsPc, 'addTransceiver')) {
-      final jsOptions = js.JsObject.jsify(options);
-      jsutil.callMethod(_jsPc, 'addTransceiver', [type, jsOptions]);
-    }
-  }
-   */
   @override
   Future<RTCRtpSender> addTrack(MediaStreamTrack track,
-      [List<MediaStream> streams]) {
+      [List<MediaStream> streams]) async {
     var _track = track as MediaStreamTrackWeb;
     var _stream = streams[0] as MediaStreamWeb;
-    _jsPc.addTrack(_track.jsTrack, _stream.jsStream);
-    // TODO: implement addTrack
-    throw UnimplementedError();
+    var sender = _jsPc.addTrack(_track.jsTrack, _stream.jsStream);
+    return RTCRtpSenderWeb.fromJsObject(sender);
   }
 
   @override
-  Future<bool> closeSender(RTCRtpSender sender) {
-    // TODO: implement closeSender
-    throw UnimplementedError();
+  Future<bool> closeSender(RTCRtpSender sender) async {
+    var webSender = sender as RTCRtpSenderWeb;
+    await webSender.dispose();
+    return true;
   }
 
   @override
   Future<RTCRtpSender> createSender(String kind, String streamId) {
-    // TODO: implement createSender
     throw UnimplementedError();
   }
 
   @override
-  // TODO: implement receivers
-  List<RTCRtpReceiver> get receivers => throw UnimplementedError();
+  List<RTCRtpReceiver> get receivers => _receivers;
 
   @override
-  Future<bool> removeTrack(RTCRtpSender sender) {
-    // TODO: implement removeTrack
-    throw UnimplementedError();
+  Future<bool> removeTrack(RTCRtpSender sender) async {
+    var webSender = sender as RTCRtpSenderWeb;
+    _jsPc.removeTrack(webSender.jsSender);
+    return true;
   }
 
   @override
-  // TODO: implement senders
-  List<RTCRtpSender> get senders => throw UnimplementedError();
+  List<RTCRtpSender> get senders => _senders;
 
   @override
-  // TODO: implement transceivers
-  List<RTCRtpTransceiver> get transceivers => throw UnimplementedError();
+  List<RTCRtpTransceiver> get transceivers => _transceivers;
 
   @override
   Future<RTCRtpTransceiver> addTransceiver(
