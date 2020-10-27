@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:js_util' as jsutil;
 
 import 'package:flutter/services.dart';
 
@@ -8,7 +9,6 @@ import '../interface/rtc_rtp_parameters.dart';
 import '../interface/rtc_rtp_receiver.dart';
 import '../interface/rtc_rtp_sender.dart';
 import '../interface/rtc_rtp_transceiver.dart';
-import 'media_stream_impl.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
 import 'utils.dart';
@@ -17,24 +17,21 @@ List<RTCRtpEncoding> listToRtpEncodings(List<Map<String, dynamic>> list) {
   return list.map((e) => RTCRtpEncoding.fromMap(e)).toList();
 }
 
-class RTCRtpTransceiverInitNative extends RTCRtpTransceiverInit {
-  RTCRtpTransceiverInitNative(TransceiverDirection direction,
+class RTCRtpTransceiverInitWeb extends RTCRtpTransceiverInit {
+  RTCRtpTransceiverInitWeb(TransceiverDirection direction,
       List<MediaStream> streams, List<RTCRtpEncoding> sendEncodings)
       : super(
             direction: direction,
             streams: streams,
             sendEncodings: sendEncodings);
 
-  factory RTCRtpTransceiverInitNative.fromMap(Map<dynamic, dynamic> map) {
-    return RTCRtpTransceiverInitNative(
+  factory RTCRtpTransceiverInitWeb.fromMap(Map<dynamic, dynamic> map) {
+    return RTCRtpTransceiverInitWeb(
         typeStringToRtpTransceiverDirection[map['direction']],
-        (map['streams'] as List<dynamic>)
-            .map((e) => MediaStreamNative.fromMap(map))
-            .toList(),
+        (map['streams'] as List<dynamic>).map((e) => e).toList(),
         listToRtpEncodings(map['sendEncodings']));
   }
 
-  @override
   Map<String, dynamic> toMap() {
     return {
       'direction': typeRtpTransceiverDirectionToString[direction],
@@ -45,23 +42,27 @@ class RTCRtpTransceiverInitNative extends RTCRtpTransceiverInit {
   }
 }
 
-class RTCRtpTransceiverNative extends RTCRtpTransceiver {
-  RTCRtpTransceiverNative(this._id, this._direction, this._mid, this._sender,
-      this._receiver, _peerConnectionId);
+class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
+  RTCRtpTransceiverWeb(this._jsTransceiver, this._direction, this._mid,
+      this._sender, this._receiver, _peerConnectionId);
 
-  factory RTCRtpTransceiverNative.fromMap(Map<dynamic, dynamic> map,
+  factory RTCRtpTransceiverWeb.fromJsObject(Object jsTransceiver,
       {String peerConnectionId}) {
-    var transceiver = RTCRtpTransceiverNative(
-        map['transceiverId'],
-        typeStringToRtpTransceiverDirection[map['direction']],
-        map['mid'],
-        RTCRtpSenderNative.fromMap(map['sender'],
+    var direction = jsutil.getProperty(jsTransceiver, 'direction');
+    var transceiver = RTCRtpTransceiverWeb(
+        jsTransceiver,
+        typeStringToRtpTransceiverDirection[direction],
+        jsutil.getProperty(jsTransceiver, 'mid'),
+        RTCRtpSenderWeb.fromJsObject(
+            jsutil.getProperty(jsTransceiver, 'sender'),
             peerConnectionId: peerConnectionId),
-        RTCRtpReceiverNative.fromMap(map['receiver']),
+        RTCRtpReceiverWeb.fromJsObject(
+            jsutil.getProperty(jsTransceiver, 'receiver')),
         peerConnectionId);
     return transceiver;
   }
 
+  Object _jsTransceiver;
   final MethodChannel _channel = WebRTC.methodChannel();
   String _peerConnectionId;
   String _id;

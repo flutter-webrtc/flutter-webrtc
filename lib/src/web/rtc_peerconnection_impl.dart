@@ -3,6 +3,8 @@ import 'dart:html' as html;
 import 'dart:js' as js;
 import 'dart:js_util' as jsutil;
 
+import 'package:flutter_webrtc/src/web/rtc_rtp_transceiver_impl.dart';
+
 import '../interface/enums.dart';
 import '../interface/media_stream.dart';
 import '../interface/media_stream_track.dart';
@@ -316,8 +318,20 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   Future<RTCRtpTransceiver> addTransceiver(
       {MediaStreamTrack track,
       RTCRtpMediaType kind,
-      RTCRtpTransceiverInit init}) {
-    // TODO: implement addTransceiver
-    throw UnimplementedError();
+      RTCRtpTransceiverInit init}) async {
+    var kindType = (kind != null) ? typeRTCRtpMediaTypetoString[kind] : null;
+    var jsTrack =
+        (track != null) ? (track as MediaStreamTrackWeb).jsTrack : null;
+
+    if (jsutil.hasProperty(_jsPc, 'addTransceiver')) {
+      final jsOptions =
+          js.JsObject.jsify(RTCRtpTransceiverInit.initToMap(init));
+      // trackOrKind
+      Object jsTransceiver = jsutil.callMethod(
+          _jsPc, 'addTransceiver', [kindType ?? jsTrack, jsOptions]);
+      return RTCRtpTransceiverWeb.fromJsObject(jsTransceiver,
+          peerConnectionId: _peerConnectionId);
+    }
+    return null;
   }
 }

@@ -14,6 +14,10 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
     });
   }
 
+  factory MediaStreamTrackWeb.fromJsObject(Object jsObject) {
+    return null; //MediaStreamTrackWeb(jsObject);
+  }
+
   final html.MediaStreamTrack jsTrack;
 
   @override

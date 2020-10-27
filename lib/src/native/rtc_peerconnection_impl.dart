@@ -527,7 +527,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         if (track != null) 'trackId': track.id,
         if (kind != null) 'mediaType': typeRTCRtpMediaTypetoString[kind],
         if (init != null)
-          'transceiverInit': RTCRtpTransceiverInitNative.initToMap(init)
+          'transceiverInit': RTCRtpTransceiverInit.initToMap(init)
       });
       var transceiver = RTCRtpTransceiverNative.fromMap(response,
           peerConnectionId: _peerConnectionId);
