@@ -99,7 +99,7 @@
 }
 
 -(void)dataChannelSend:(nonnull NSString *)peerConnectionId
-                    dataChannelId:(nonnull NSString *)dataChannelId
+                    dataChannelId:(nonnull NSNumber *)dataChannelId
                              data:(id)data
                              type:(NSString *)type
 {
@@ -130,7 +130,6 @@
 // Called when the data channel state has changed.
 - (void)dataChannelDidChangeState:(RTCDataChannel*)channel
 {
-    RTCPeerConnection *peerConnection = self.peerConnections[channel.peerConnectionId];
     FlutterEventSink eventSink = channel.eventSink;
     if(eventSink) {
         eventSink(@{ @"event" : @"dataChannelStateChanged",
@@ -152,7 +151,7 @@
         data = [[NSString alloc] initWithData:buffer.data
                                      encoding:NSUTF8StringEncoding];
     }
-    RTCPeerConnection *peerConnection = self.peerConnections[channel.peerConnectionId];
+
     FlutterEventSink eventSink = channel.eventSink;
     if(eventSink) {
         eventSink(@{ @"event" : @"dataChannelReceiveMessage",

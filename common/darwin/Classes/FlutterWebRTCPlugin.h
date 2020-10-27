@@ -8,6 +8,7 @@
 #import <WebRTC/WebRTC.h>
 
 @class FlutterRTCVideoRenderer;
+@class FlutterRTCFrameCapturer;
 
 @interface FlutterWebRTCPlugin : NSObject<FlutterPlugin, RTCPeerConnectionDelegate>
 
@@ -21,6 +22,7 @@
 #endif
 @property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
 @property (nonatomic, strong) RTCCameraVideoCapturer *videoCapturer;
+@property (nonatomic, strong) FlutterRTCFrameCapturer *frameCapturer;
 @property (nonatomic) BOOL _usingFrontCamera;
 @property (nonatomic) int _targetWidth;
 @property (nonatomic) int _targetHeight;

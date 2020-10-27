@@ -101,9 +101,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       if (config.hasKey("ordered")) {
         init.ordered = config.getBoolean("ordered");
       }
-      if (config.hasKey("maxRetransmitTime")) {
-        init.maxRetransmitTimeMs = config.getInt("maxRetransmitTime");
-      }
       if (config.hasKey("maxRetransmits")) {
         init.maxRetransmits = config.getInt("maxRetransmits");
       }
