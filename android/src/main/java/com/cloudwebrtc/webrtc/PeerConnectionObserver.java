@@ -163,7 +163,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     RtpSender getRtpSenderById(String id) {
         List<RtpSender> senders = peerConnection.getSenders();
         for(RtpSender sender : senders) {
-            if (id == sender.id()){
+            if (id.equals(sender.id())){
                 return sender;
             }
         }
@@ -777,7 +777,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private Map<String, Object> mediaTrackToMap(MediaStreamTrack track){
       ConstraintsMap info = new ConstraintsMap();
       if(track != null){
-          info.putString("trackId", track.id());
+          info.putString("id", track.id());
           info.putString("label",track.getClass() == VideoTrack.class? "video": "audio");
           info.putString("kind",track.kind());
           info.putBoolean("enabled", track.enabled());
