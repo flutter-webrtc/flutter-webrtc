@@ -670,9 +670,57 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       return  init;
   }
 
-  private RtpParameters MapToRtpParameters(Map<String, Object> parameters) {
-      RtpParameters rtpParameters = null;
-      return rtpParameters;
+  private RtpParameters updateRtpParameters(Map<String, Object> newParameters, RtpParameters parameters){
+    List<Map<String, Object>> encodings = (List<Map<String, Object>>) newParameters.get("encodings");
+    final Iterator encodingsIterator = encodings.iterator();
+    final Iterator nativeEncodingsIterator = parameters.encodings.iterator();
+    while(encodingsIterator.hasNext() && nativeEncodingsIterator.hasNext()){
+      final RtpParameters.Encoding nativeEncoding = (RtpParameters.Encoding) nativeEncodingsIterator.next();
+      final Map<String, Object> encoding = (Map<String, Object>) encodingsIterator.next();
+      if(encoding.containsKey("active")){
+        nativeEncoding.active =  (Boolean) encoding.get("active");
+      }
+      if (encoding.containsKey("maxBitrateBps")) {
+          nativeEncoding.maxBitrateBps = (Integer) encoding.get("maxBitrateBps");
+      }
+      if (encoding.containsKey("minBitrateBps")) {
+        nativeEncoding.minBitrateBps = (Integer) encoding.get("minBitrateBps");
+      }
+      if (encoding.containsKey("maxFramerate")) {
+        nativeEncoding.maxFramerate = (Integer) encoding.get("maxFramerate");
+      }
+      if (encoding.containsKey("numTemporalLayers")) {
+        nativeEncoding.numTemporalLayers = (Integer) encoding.get("numTemporalLayers");
+      }
+      if (encoding.containsKey("scaleResolutionDownBy") ) {
+        nativeEncoding.scaleResolutionDownBy = (Double) encoding.get("scaleResolutionDownBy");
+      }
+    }
+
+    List<Map<String, Object>> codecs = (List<Map<String, Object>>)  newParameters.get("codecs");
+    final Iterator codecsIterator = codecs.iterator();
+    final Iterator nativeCodecsIterator = parameters.codecs.iterator();
+    while(codecsIterator.hasNext() && nativeCodecsIterator.hasNext()){
+      final RtpParameters.Codec nativeCodec = (RtpParameters.Codec) nativeCodecsIterator.next();
+      final Map<String, Object> codec = (Map<String, Object>) codecsIterator.next();
+      if(codec.containsKey("name")) {
+        nativeCodec.name = (String) codec.get("name");
+      }
+      if(codec.containsKey("payloadType")){
+        nativeCodec.payloadType  = (int) codec.get("payloadType");
+      }
+      if(codec.containsKey("clockRate")){
+        nativeCodec.clockRate  = (Integer) codec.get("clockRate");
+      }
+      if (codec.containsKey("numChannels")) {
+          nativeCodec.numChannels = (Integer) codec.get("numChannels");
+      }
+      if(codec.containsKey("parameters")){
+        nativeCodec.parameters =  (Map<String, String>) codec.get("parameters");
+      }
+    }
+
+    return parameters;
   }
 
   private Map<String, Object> rtpParametersToMap(RtpParameters rtpParameters){
@@ -919,8 +967,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             resultError("rtpSenderSetParameters", "sender is null", result);
             return;
         }
-        sender.setParameters(MapToRtpParameters(parameters));
-        result.success(null);
+        final RtpParameters updatedParameters = updateRtpParameters(parameters, sender.getParameters());
+        final Boolean success = sender.setParameters(updatedParameters);
+        ConstraintsMap params = new ConstraintsMap();
+        params.putBoolean("result", success);
+        result.success(params.toMap());
     }
 
     public void rtpSenderSetTrack(String rtpSenderId, MediaStreamTrack track, Result result, boolean replace) {
