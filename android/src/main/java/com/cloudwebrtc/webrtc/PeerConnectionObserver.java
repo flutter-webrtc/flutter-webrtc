@@ -697,28 +697,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       }
     }
 
-    List<Map<String, Object>> codecs = (List<Map<String, Object>>)  newParameters.get("codecs");
-    final Iterator codecsIterator = codecs.iterator();
-    final Iterator nativeCodecsIterator = parameters.codecs.iterator();
-    while(codecsIterator.hasNext() && nativeCodecsIterator.hasNext()){
-      final RtpParameters.Codec nativeCodec = (RtpParameters.Codec) nativeCodecsIterator.next();
-      final Map<String, Object> codec = (Map<String, Object>) codecsIterator.next();
-      if(codec.containsKey("name")) {
-        nativeCodec.name = (String) codec.get("name");
-      }
-      if(codec.containsKey("payloadType")){
-        nativeCodec.payloadType  = (int) codec.get("payloadType");
-      }
-      if(codec.containsKey("clockRate")){
-        nativeCodec.clockRate  = (Integer) codec.get("clockRate");
-      }
-      if (codec.containsKey("numChannels")) {
-          nativeCodec.numChannels = (Integer) codec.get("numChannels");
-      }
-      if(codec.containsKey("parameters")){
-        nativeCodec.parameters =  (Map<String, String>) codec.get("parameters");
-      }
-    }
 
     return parameters;
   }
