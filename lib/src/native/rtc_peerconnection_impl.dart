@@ -472,6 +472,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         'streamIds': streams.map((e) => e.id).toList()
       });
       var sender = RTCRtpSenderNative.fromMap(response);
+      sender.peerConnectionId = _peerConnectionId;
       _senders.add(sender);
       return sender;
     } on PlatformException catch (e) {
