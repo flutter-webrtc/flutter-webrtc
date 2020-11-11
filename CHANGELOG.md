@@ -1,6 +1,20 @@
 # Changelog
 
 --------------------------------------------
+[0.4.1] - 2020.11.11
+
+* Add transceiver to onTrack events.
+* Remove unnecessary log printing.
+* Fixed a crash caused by using GetTransceivers under non-unified-plan,
+  close #389.
+* FIX - Invalid type inference (#392)
+* [Web]Add onEnded and onMuted for Web (#387)
+* [Darwin]Fix PeerConnectionState for darwin.
+* [Darwin] Fix compilation warning under darwin.
+* [Android] Fixed 'Sender is null' issue when removing track. (#401)
+* [iOS] fix removeTrack methodChannel response, onTrack's `stream` and `track` not being registered in native.
+* [Darwin/Android] `RtpSender` `setParameters` functionality.
+
 [0.4.0] - 2020.10.14
 
 * Support Unified-Plan for Android/iOS/macOS.
