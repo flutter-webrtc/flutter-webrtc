@@ -482,7 +482,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             }
           }
           AudioChannel audioChannel = null;
-          if (call.hasArgument("audioChannel")) {
+          if (call.hasArgument("audioChannel")
+                  && call.argument("audioChannel") != null) {
             audioChannel = AudioChannel.values()[(Integer) call.argument("audioChannel")];
           }
           Integer recorderId = call.argument("recorderId");
