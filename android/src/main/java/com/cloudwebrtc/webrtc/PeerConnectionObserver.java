@@ -658,6 +658,15 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       String direction = (String)parameters.get("direction");
       List<RtpParameters.Encoding> sendEncodings = new ArrayList<>();
       RtpTransceiver.RtpTransceiverInit init = null;
+
+      if(streamIds == null) {
+          streamIds = new List<String>();
+      }
+
+      if(direction == null) {
+          direction = "sendrecv";
+      }
+
       if(encodingsParams != null) {
           for (int i=0;i< encodingsParams.size();i++){
               Map<String, Object> params = encodingsParams.get(i);
