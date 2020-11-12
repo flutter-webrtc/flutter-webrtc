@@ -1339,9 +1339,15 @@
     NSString* direction = map[@"direction"];
     
     RTCRtpTransceiverInit* init = [RTCRtpTransceiverInit alloc];
-    init.direction = [self stringToTransceiverDirection:direction];
-    init.streamIds = streamIds;
-    
+
+    if(direction != nil) {
+        init.direction = [self stringToTransceiverDirection:direction];
+    }
+
+    if(streamIds != nil) {
+        init.streamIds = streamIds;
+    }
+
     if(encodingsParams != nil) {
         NSArray<RTCRtpEncodingParameters *> *sendEncodings = [[NSArray alloc] init];
         for (NSDictionary* map in encodingsParams){
