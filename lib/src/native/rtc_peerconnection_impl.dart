@@ -272,7 +272,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
   @override
   Future<RTCSessionDescription> createAnswer(
-      Map<String, dynamic> constraints) async {
+      [Map<String, dynamic> constraints]) async {
     try {
       final response = await _channel.invokeMethod<Map<dynamic, dynamic>>(
           'createAnswer', <String, dynamic>{
