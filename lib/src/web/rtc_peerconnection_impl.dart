@@ -149,14 +149,14 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   Future<RTCSessionDescription> createOffer(
-      Map<String, dynamic> constraints) async {
+      [Map<String, dynamic> constraints]) async {
     final offer = await _jsPc.createOffer(constraints);
     return _sessionFromJs(offer);
   }
 
   @override
   Future<RTCSessionDescription> createAnswer(
-      Map<String, dynamic> constraints) async {
+      [Map<String, dynamic> constraints]) async {
     final answer = await _jsPc.createAnswer(constraints);
     return _sessionFromJs(answer);
   }

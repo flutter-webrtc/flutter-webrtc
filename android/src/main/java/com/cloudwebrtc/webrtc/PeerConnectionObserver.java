@@ -163,7 +163,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     RtpSender getRtpSenderById(String id) {
         List<RtpSender> senders = peerConnection.getSenders();
         for(RtpSender sender : senders) {
-            if (id == sender.id()){
+            if (id.equals(sender.id())){
                 return sender;
             }
         }
@@ -658,6 +658,15 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       String direction = (String)parameters.get("direction");
       List<RtpParameters.Encoding> sendEncodings = new ArrayList<>();
       RtpTransceiver.RtpTransceiverInit init = null;
+
+      if(streamIds == null) {
+          streamIds = new List<String>();
+      }
+
+      if(direction == null) {
+          direction = "sendrecv";
+      }
+
       if(encodingsParams != null) {
           for (int i=0;i< encodingsParams.size();i++){
               Map<String, Object> params = encodingsParams.get(i);
@@ -670,9 +679,35 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       return  init;
   }
 
-  private RtpParameters MapToRtpParameters(Map<String, Object> parameters) {
-      RtpParameters rtpParameters = null;
-      return rtpParameters;
+  private RtpParameters updateRtpParameters(Map<String, Object> newParameters, RtpParameters parameters){
+    List<Map<String, Object>> encodings = (List<Map<String, Object>>) newParameters.get("encodings");
+    final Iterator encodingsIterator = encodings.iterator();
+    final Iterator nativeEncodingsIterator = parameters.encodings.iterator();
+    while(encodingsIterator.hasNext() && nativeEncodingsIterator.hasNext()){
+      final RtpParameters.Encoding nativeEncoding = (RtpParameters.Encoding) nativeEncodingsIterator.next();
+      final Map<String, Object> encoding = (Map<String, Object>) encodingsIterator.next();
+      if(encoding.containsKey("active")){
+        nativeEncoding.active =  (Boolean) encoding.get("active");
+      }
+      if (encoding.containsKey("maxBitrateBps")) {
+          nativeEncoding.maxBitrateBps = (Integer) encoding.get("maxBitrateBps");
+      }
+      if (encoding.containsKey("minBitrateBps")) {
+        nativeEncoding.minBitrateBps = (Integer) encoding.get("minBitrateBps");
+      }
+      if (encoding.containsKey("maxFramerate")) {
+        nativeEncoding.maxFramerate = (Integer) encoding.get("maxFramerate");
+      }
+      if (encoding.containsKey("numTemporalLayers")) {
+        nativeEncoding.numTemporalLayers = (Integer) encoding.get("numTemporalLayers");
+      }
+      if (encoding.containsKey("scaleResolutionDownBy") ) {
+        nativeEncoding.scaleResolutionDownBy = (Double) encoding.get("scaleResolutionDownBy");
+      }
+    }
+
+
+    return parameters;
   }
 
   private Map<String, Object> rtpParametersToMap(RtpParameters rtpParameters){
@@ -777,7 +812,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private Map<String, Object> mediaTrackToMap(MediaStreamTrack track){
       ConstraintsMap info = new ConstraintsMap();
       if(track != null){
-          info.putString("trackId", track.id());
+          info.putString("id", track.id());
           info.putString("label",track.getClass() == VideoTrack.class? "video": "audio");
           info.putString("kind",track.kind());
           info.putBoolean("enabled", track.enabled());
@@ -919,8 +954,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             resultError("rtpSenderSetParameters", "sender is null", result);
             return;
         }
-        sender.setParameters(MapToRtpParameters(parameters));
-        result.success(null);
+        final RtpParameters updatedParameters = updateRtpParameters(parameters, sender.getParameters());
+        final Boolean success = sender.setParameters(updatedParameters);
+        ConstraintsMap params = new ConstraintsMap();
+        params.putBoolean("result", success);
+        result.success(params.toMap());
     }
 
     public void rtpSenderSetTrack(String rtpSenderId, MediaStreamTrack track, Result result, boolean replace) {

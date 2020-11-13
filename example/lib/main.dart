@@ -1,8 +1,10 @@
 import 'dart:core';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_plugin/flutter_foreground_plugin.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'src/data_channel_sample.dart';
@@ -15,8 +17,33 @@ import 'src/route_item.dart';
 void main() {
   if (WebRTC.platformIsDesktop) {
     debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
+  } else if(Platform.isAndroid) {
+    WidgetsFlutterBinding.ensureInitialized();
+    startForegroundService();
   }
   runApp(MyApp());
+}
+
+startForegroundService() async {
+  await FlutterForegroundPlugin.setServiceMethodInterval(seconds: 5);
+  await FlutterForegroundPlugin.setServiceMethod(globalForegroundService);
+  await FlutterForegroundPlugin.startForegroundService(
+    holdWakeLock: false,
+    onStarted: () {
+      print("Foreground on Started");
+    },
+    onStopped: () {
+      print("Foreground on Stopped");
+    },
+    title: "Tcamera",
+    content: "Tcamera sharing your screen.",
+    iconName: "ic_stat_mobile_screen_share",
+  );
+  return true;
+}
+
+void globalForegroundService() {
+  debugPrint("current datetime is ${DateTime.now()}");
 }
 
 class MyApp extends StatefulWidget {

@@ -272,7 +272,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
   @override
   Future<RTCSessionDescription> createAnswer(
-      Map<String, dynamic> constraints) async {
+      [Map<String, dynamic> constraints]) async {
     try {
       final response = await _channel.invokeMethod<Map<dynamic, dynamic>>(
           'createAnswer', <String, dynamic>{
@@ -472,6 +472,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         'streamIds': streams.map((e) => e.id).toList()
       });
       var sender = RTCRtpSenderNative.fromMap(response);
+      sender.peerConnectionId = _peerConnectionId;
       _senders.add(sender);
       return sender;
     } on PlatformException catch (e) {

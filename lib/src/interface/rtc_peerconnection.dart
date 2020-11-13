@@ -62,9 +62,10 @@ abstract class RTCPeerConnection {
 
   Future<void> setConfiguration(Map<String, dynamic> configuration);
 
-  Future<RTCSessionDescription> createOffer(Map<String, dynamic> constraints);
+  Future<RTCSessionDescription> createOffer([Map<String, dynamic> constraints]);
 
-  Future<RTCSessionDescription> createAnswer(Map<String, dynamic> constraints);
+  Future<RTCSessionDescription> createAnswer(
+      [Map<String, dynamic> constraints]);
 
   Future<void> addStream(MediaStream stream);
 
