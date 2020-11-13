@@ -1,24 +1,20 @@
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:js' as js;
 
 import '../interface/media_stream_track.dart';
 
+import 'package:dart_webrtc/dart_webrtc.dart' as js;
+
 class MediaStreamTrackWeb extends MediaStreamTrack {
   MediaStreamTrackWeb(this.jsTrack) {
-    jsTrack.onEnded.listen((event) {
+    jsTrack.onended = (event) {
       onEnded?.call();
-    });
-    jsTrack.onMute.listen((event) {
+    };
+    jsTrack.onmute = (event) {
       onMute?.call();
-    });
+    };
   }
 
-  factory MediaStreamTrackWeb.fromJsObject(Object jsObject) {
-    return null; //MediaStreamTrackWeb(jsObject);
-  }
-
-  final html.MediaStreamTrack jsTrack;
+  final js.MediaStreamTrack jsTrack;
 
   @override
   String get id => jsTrack.id;
@@ -52,8 +48,7 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   void setVolume(double volume) {
     final constraints = jsTrack.getConstraints();
     constraints['volume'] = volume;
-    js.JsObject.fromBrowserObject(jsTrack)
-        .callMethod('applyConstraints', [js.JsObject.jsify(constraints)]);
+    jsTrack.applyConstraints(constraints);
   }
 
   @override
@@ -68,6 +63,8 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
 
   @override
   Future<dynamic> captureFrame([String filePath]) async {
+    // TODO(cloudwebrtc): ...
+    /*
     final imageCapture = html.ImageCapture(jsTrack);
     final bitmap = await imageCapture.grabFrame();
     final html.CanvasElement canvas = html.Element.canvas();
@@ -79,6 +76,7 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
     final dataUrl = canvas.toDataUrl();
     bitmap.close();
     return dataUrl;
+    */
   }
 
   @override

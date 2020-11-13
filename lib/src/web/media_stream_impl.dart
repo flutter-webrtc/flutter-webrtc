@@ -1,14 +1,13 @@
 import 'dart:async';
-import 'dart:collection';
-import 'dart:html' as html;
 
 import '../interface/media_stream.dart';
 import '../interface/media_stream_track.dart';
+import 'package:dart_webrtc/dart_webrtc.dart' as js;
 import 'media_stream_track_impl.dart';
 
 class MediaStreamWeb extends MediaStream {
   MediaStreamWeb(this.jsStream, String ownerTag) : super(jsStream.id, ownerTag);
-  final html.MediaStream jsStream;
+  final js.MediaStream jsStream;
 
   @override
   Future<void> getMediaTracks() {

@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 
 import '../interface/media_stream.dart';
 import '../interface/rtc_video_renderer.dart';
-import 'media_stream_impl.dart';
+
+import 'package:dart_webrtc/dart_webrtc.dart' as js;
+
 import 'ui_fake.dart' if (dart.library.html) 'dart:ui' as ui;
 
 // An error code value to error name Map.
@@ -36,7 +38,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
 
   static int _textureCounter = 1;
   final int _textureId;
-  html.VideoElement videoElement;
+  js.RTCVideoElement videoElement;
   MediaStream _srcObject;
   final _subscriptions = <StreamSubscription>[];
 
@@ -54,15 +56,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
 
   @override
   Future<void> initialize() async {
-    videoElement = html.VideoElement()
-      //..src = 'https://flutter-webrtc-video-view-RTCVideoRenderer-$textureId'
-      ..autoplay = true
-      ..controls = false
-      ..style.objectFit = 'contain' // contain or cover
-      ..style.border = 'none';
-
-    // Allows Safari iOS to play the video inline
-    videoElement.setAttribute('playsinline', 'true');
+    videoElement = js.RTCVideoElement();
 
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
@@ -127,15 +121,13 @@ class RTCVideoRendererWeb extends VideoRenderer {
   @override
   set srcObject(MediaStream stream) {
     if (videoElement == null) throw 'Call initialize before setting the stream';
-
     if (stream == null) {
       videoElement.srcObject = null;
       _srcObject = null;
       return;
     }
     _srcObject = stream;
-    var _native = stream as MediaStreamWeb;
-    videoElement.srcObject = _native.jsStream;
+    videoElement.srcObject = stream as js.MediaStream;
     videoElement.muted = stream?.ownerTag == 'local' ?? false;
     value = value.copyWith(renderVideo: renderVideo);
   }

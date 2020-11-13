@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:js' as js;
-import 'dart:js_util' as jsutil;
 
-import 'package:flutter_webrtc/src/web/rtc_rtp_transceiver_impl.dart';
+import 'package:dart_webrtc/dart_webrtc.dart' as js;
 
 import '../interface/enums.dart';
 import '../interface/media_stream.dart';
@@ -21,97 +18,100 @@ import 'media_stream_impl.dart';
 import 'media_stream_track_impl.dart';
 import 'rtc_data_channel_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
+import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
+import 'rtc_rtp_transceiver_impl.dart';
+
+js.RTCConfiguration rtcConfigurationFromMap(Map<String, dynamic> map) {
+  // TODO:
+  return js.RTCConfiguration();
+}
+
+Map<String, dynamic> rtcConfigurationToMap(js.RTCConfiguration configuration) {
+  // TODO:
+  return {};
+}
+
+js.RTCOfferOptions rtcOfferOptionsFromMap(Map<String, dynamic> map) {
+  return js.RTCOfferOptions();
+}
+
+js.RTCAnswerOptions rtcAnswerOptionsFromMap(Map<String, dynamic> map) {
+  return js.RTCAnswerOptions();
+}
 
 /*
  *  PeerConnection
  */
 class RTCPeerConnectionWeb extends RTCPeerConnection {
   RTCPeerConnectionWeb(this._peerConnectionId, this._jsPc) {
-    _jsPc.onAddStream.listen((mediaStreamEvent) {
+    _jsPc.onaddstream = (js.MediaStreamEvent mediaStreamEvent) {
       final jsStream = mediaStreamEvent.stream;
       final _remoteStream = _remoteStreams.putIfAbsent(
           jsStream.id, () => MediaStreamWeb(jsStream, _peerConnectionId));
 
       onAddStream?.call(_remoteStream);
 
-      jsStream.onAddTrack.listen((mediaStreamTrackEvent) {
-        final jsTrack =
-            (mediaStreamTrackEvent as html.MediaStreamTrackEvent).track;
+      jsStream.onaddtrack = (js.MediaStreamTrackEvent mediaStreamTrackEvent) {
+        final jsTrack = mediaStreamTrackEvent.track;
         final track = MediaStreamTrackWeb(jsTrack);
         _remoteStream.addTrack(track, addToNative: false).then((_) {
           onAddTrack?.call(_remoteStream, track);
         });
-      });
+      };
 
-      jsStream.onRemoveTrack.listen((mediaStreamTrackEvent) {
-        final jsTrack =
-            (mediaStreamTrackEvent as html.MediaStreamTrackEvent).track;
+      jsStream.onremovetrack =
+          (js.MediaStreamTrackEvent mediaStreamTrackEvent) {
+        final jsTrack = mediaStreamTrackEvent.track;
         final track = MediaStreamTrackWeb(jsTrack);
         _remoteStream.removeTrack(track, removeFromNative: false).then((_) {
           onRemoveTrack?.call(_remoteStream, track);
         });
-      });
-    });
+      };
+    };
 
-    _jsPc.onDataChannel.listen((dataChannelEvent) {
-      onDataChannel?.call(RTCDataChannelWeb(dataChannelEvent.channel));
-    });
+    _jsPc.ondatachannel = (js.RTCDataChannelEvent event) {
+      onDataChannel?.call(RTCDataChannelWeb(event.channel));
+    };
 
-    _jsPc.onIceCandidate.listen((iceEvent) {
-      if (iceEvent.candidate != null) {
-        onIceCandidate?.call(_iceFromJs(iceEvent.candidate));
-      }
-    });
+    _jsPc.onicecandidate = (js.RTCPeerConnectionIceEvent event) {
+      onIceCandidate?.call(_candidateFromJs(event.candidate));
+    };
 
-    _jsPc.onIceConnectionStateChange.listen((_) {
-      _iceConnectionState =
-          iceConnectionStateForString(_jsPc.iceConnectionState);
-      onIceConnectionState?.call(_iceConnectionState);
-    });
+    _jsPc.oniceconnectionstatechange = (js.RTCIceConnectionState state) {
+      onIceConnectionState?.call(state as RTCIceConnectionState);
+    };
 
-    js.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] =
-        js.JsFunction.withThis((_) {
-      _iceGatheringState = iceGatheringStateforString(_jsPc.iceGatheringState);
-      onIceGatheringState?.call(_iceGatheringState);
-    });
+    _jsPc.onicegatheringstatechange = (js.RTCIceGatheringState state) {
+      onIceGatheringState?.call(state as RTCIceGatheringState);
+    };
 
-    _jsPc.onRemoveStream.listen((mediaStreamEvent) {
+    _jsPc.onremovestream = (js.MediaStreamEvent mediaStreamEvent) {
       final _remoteStream = _remoteStreams.remove(mediaStreamEvent.stream.id);
       onRemoveStream?.call(_remoteStream);
-    });
+    };
 
-    _jsPc.onSignalingStateChange.listen((_) {
-      _signalingState = signalingStateForString(_jsPc.signalingState);
-      onSignalingState?.call(_signalingState);
-    });
+    _jsPc.onsignalingstatechange = (js.RTCSignalingState state) {
+      onSignalingState?.call(state as RTCSignalingState);
+    };
 
-    js.JsObject.fromBrowserObject(_jsPc)['connectionstatechange'] =
-        js.JsFunction.withThis((_, state) {
-      _connectionState = peerConnectionStateForString(state);
-      onConnectionState?.call(_connectionState);
-    });
+    _jsPc.onconnectionstatechange = (js.RTCPeerConnectionState state) {
+      onConnectionState?.call(state as RTCPeerConnectionState);
+    };
 
-    js.JsObject.fromBrowserObject(_jsPc)['negotiationneeded'] =
-        js.JsFunction.withThis(() {
+    _jsPc.onnegotiationneeded = (event) {
       onRenegotiationNeeded?.call();
-    });
+    };
 
-    js.JsObject.fromBrowserObject(_jsPc)['ontrack'] =
-        js.JsFunction.withThis((_, trackEvent) {
-      // TODO(rostopira):  trackEvent is JsObject conforming to RTCTrackEvent,
-      // https://developer.mozilla.org/en-US/docs/Web/API/RTCTrackEvent
-      print('ontrack arg: $trackEvent');
-    });
+    _jsPc.ontrack = (js.RTCTrackEvent event) {
+      print('ontrack arg: $event');
+    };
   }
+
   final String _peerConnectionId;
-  final html.RtcPeerConnection _jsPc;
+  final js.RTCPeerConnection _jsPc;
   final _localStreams = <String, MediaStream>{};
   final _remoteStreams = <String, MediaStream>{};
-  final _configuration = <String, dynamic>{};
-  final List<RTCRtpSender> _senders = <RTCRtpSender>[];
-  final List<RTCRtpReceiver> _receivers = <RTCRtpReceiver>[];
-  final List<RTCRtpTransceiver> _transceivers = <RTCRtpTransceiver>[];
 
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
@@ -137,27 +137,27 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   }
 
   @override
-  Map<String, dynamic> get getConfiguration => _configuration;
+  Map<String, dynamic> get getConfiguration =>
+      rtcConfigurationToMap(_jsPc.getConfiguration());
 
   @override
-  Future<void> setConfiguration(Map<String, dynamic> configuration) {
-    _configuration.addAll(configuration);
-
-    _jsPc.setConfiguration(configuration);
-    return Future.value();
+  Future<void> setConfiguration(Map<String, dynamic> configuration) async {
+    _jsPc.setConfiguration(rtcConfigurationFromMap(configuration));
   }
 
   @override
   Future<RTCSessionDescription> createOffer(
       [Map<String, dynamic> constraints]) async {
-    final offer = await _jsPc.createOffer(constraints);
+    final offer =
+        await _jsPc.createOffer(options: rtcOfferOptionsFromMap(constraints));
     return _sessionFromJs(offer);
   }
 
   @override
   Future<RTCSessionDescription> createAnswer(
       [Map<String, dynamic> constraints]) async {
-    final answer = await _jsPc.createAnswer(constraints);
+    final answer =
+        await _jsPc.createAnswer(options: rtcAnswerOptionsFromMap(constraints));
     return _sessionFromJs(answer);
   }
 
@@ -200,17 +200,16 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   Future<void> addCandidate(RTCIceCandidate candidate) async {
-    await jsutil.promiseToFuture(
-        jsutil.callMethod(_jsPc, 'addIceCandidate', [_iceToJs(candidate)]));
+    await _jsPc.addIceCandidate(_candidateToJs(candidate));
   }
 
   @override
   Future<List<StatsReport>> getStats([MediaStreamTrack track]) async {
-    final stats = await _jsPc.getStats();
+    final stats = _jsPc.getStats();
     var report = <StatsReport>[];
-    stats.forEach((key, value) {
-      report.add(
-          StatsReport(value['id'], value['type'], value['timestamp'], value));
+    stats.forEach((String key, js.RTCStats value) {
+      var map = value as Map<String, dynamic>;
+      report.add(StatsReport(map['id'], map['type'], map['timestamp'], map));
     });
     return report;
   }
@@ -229,13 +228,14 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   Future<RTCDataChannel> createDataChannel(
-      String label, RTCDataChannelInit dataChannelDict) {
+      String label, RTCDataChannelInit dataChannelDict) async {
     final map = dataChannelDict.toMap();
     if (dataChannelDict.binaryType == 'binary') {
       map['binaryType'] = 'arraybuffer'; // Avoid Blob in data channel
     }
 
-    final jsDc = _jsPc.createDataChannel(label, map);
+    final jsDc = await _jsPc.createDataChannel(
+        label: label, init: js.RTCDataChannelInit());
     return Future.value(RTCDataChannelWeb(jsDc));
   }
 
@@ -247,82 +247,72 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
-    var _native = track as MediaStreamTrackWeb;
-    var jsDtmfSender = _jsPc.createDtmfSender(_native.jsTrack);
-    return RTCDTMFSenderWeb(jsDtmfSender);
+    return RTCDTMFSenderWeb(_jsPc.createDTMFSender());
   }
 
-  //
-  // utility section
-  //
-
-  RTCIceCandidate _iceFromJs(html.RtcIceCandidate candidate) => RTCIceCandidate(
-        candidate.candidate,
-        candidate.sdpMid,
-        candidate.sdpMLineIndex,
-      );
-
-  html.RtcIceCandidate _iceToJs(RTCIceCandidate c) =>
-      html.RtcIceCandidate(c.toMap());
-
-  RTCSessionDescription _sessionFromJs(html.RtcSessionDescription sd) =>
+  RTCSessionDescription _sessionFromJs(js.RTCSessionDescription sd) =>
       RTCSessionDescription(sd.sdp, sd.type);
+
+  RTCIceCandidate _candidateFromJs(js.RTCIceCandidate cand) =>
+      RTCIceCandidate(cand.candidate, cand.sdpMid, cand.sdpMLineIndex);
+
+  js.RTCIceCandidate _candidateToJs(RTCIceCandidate cand) => js.RTCIceCandidate(
+      candidate: cand.candidate,
+      sdpMid: cand.sdpMid,
+      sdpMLineIndex: cand.sdpMlineIndex);
 
   @override
   Future<RTCRtpSender> addTrack(MediaStreamTrack track,
       [List<MediaStream> streams]) async {
-    var _track = track as MediaStreamTrackWeb;
-    var _stream = streams[0] as MediaStreamWeb;
-    var sender = _jsPc.addTrack(_track.jsTrack, _stream.jsStream);
-    return RTCRtpSenderWeb.fromJsObject(sender);
+    var _native = track as MediaStreamTrackWeb;
+    var jsRtpSender = await _jsPc.addTrack(track: _native.jsTrack, streams: []);
+    return RTCRtpSenderWeb.fromJsSender(jsRtpSender);
   }
 
   @override
   Future<bool> closeSender(RTCRtpSender sender) async {
-    var webSender = sender as RTCRtpSenderWeb;
-    await webSender.dispose();
+    //_jsPc.closeSender((sender as RTCRtpSenderWeb).jsSender);
     return true;
   }
 
   @override
-  Future<RTCRtpSender> createSender(String kind, String streamId) {
-    throw UnimplementedError();
+  Future<RTCRtpSender> createSender(String kind, String streamId) async {
+    var jsRtpSender = await _jsPc.addTrack(
+        //kind: typeRTCRtpMediaTypetoString[kind],
+        );
+    return RTCRtpSenderWeb.fromJsSender(jsRtpSender);
   }
 
   @override
-  List<RTCRtpReceiver> get receivers => _receivers;
+  List<RTCRtpReceiver> get receivers =>
+      _jsPc.receivers.map((e) => RTCRtpReceiverWeb(e)).toList();
 
   @override
-  Future<bool> removeTrack(RTCRtpSender sender) async {
-    var webSender = sender as RTCRtpSenderWeb;
-    _jsPc.removeTrack(webSender.jsSender);
-    return true;
+  List<RTCRtpSender> get senders =>
+      _jsPc.senders.map((e) => RTCRtpSenderWeb.fromJsSender(e)).toList();
+
+  @override
+  List<RTCRtpTransceiver> get transceivers => _jsPc.transceivers
+      .map((e) => RTCRtpTransceiverWeb.fromJsObject(e))
+      .toList();
+
+  @override
+  Future<bool> removeTrack(RTCRtpSender sender) {
+    var _native = sender as RTCRtpSenderWeb;
+    _jsPc.removeTrack(_native.jsSender);
+    return Future.value(true);
   }
-
-  @override
-  List<RTCRtpSender> get senders => _senders;
-
-  @override
-  List<RTCRtpTransceiver> get transceivers => _transceivers;
 
   @override
   Future<RTCRtpTransceiver> addTransceiver(
       {MediaStreamTrack track,
       RTCRtpMediaType kind,
       RTCRtpTransceiverInit init}) async {
-    var kindType = (kind != null) ? typeRTCRtpMediaTypetoString[kind] : null;
-    var jsTrack =
-        (track != null) ? (track as MediaStreamTrackWeb).jsTrack : null;
-
-    if (jsutil.hasProperty(_jsPc, 'addTransceiver')) {
-      final jsOptions =
-          js.JsObject.jsify(RTCRtpTransceiverInit.initToMap(init));
-      // trackOrKind
-      Object jsTransceiver = jsutil.callMethod(
-          _jsPc, 'addTransceiver', [kindType ?? jsTrack, jsOptions]);
-      return RTCRtpTransceiverWeb.fromJsObject(jsTransceiver,
-          peerConnectionId: _peerConnectionId);
-    }
-    return null;
+    var _nativeTrack = track as MediaStreamTrackWeb;
+    var _jsTransceiver = await _jsPc.addTransceiver(
+        init: js.RTCRtpTransceiverInit(),
+        kind: typeRTCRtpMediaTypetoString[kind],
+        track: _nativeTrack.jsTrack);
+    return RTCRtpTransceiverWeb(_jsTransceiver, _peerConnectionId);
   }
 }

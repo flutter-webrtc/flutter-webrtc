@@ -19,16 +19,6 @@ class RTCRtpTransceiverInit {
   TransceiverDirection direction;
   List<MediaStream> streams;
   List<RTCRtpEncoding> sendEncodings;
-
-  static Map<String, dynamic> initToMap(RTCRtpTransceiverInit init) {
-    return {
-      'direction': typeRtpTransceiverDirectionToString[init.direction],
-      if (init.streams != null)
-        'streamIds': init.streams.map((e) => e.id).toList(),
-      if (init.sendEncodings != null)
-        'sendEncodings': init.sendEncodings.map((e) => e.toMap()).toList(),
-    };
-  }
 }
 
 abstract class RTCRtpTransceiver {

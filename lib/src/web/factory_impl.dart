@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html' as html;
+
+import 'package:dart_webrtc/dart_webrtc.dart' as js;
 
 import '../interface/factory.dart';
 import '../interface/media_recorder.dart';
@@ -30,14 +31,15 @@ class RTCFactoryWeb extends RTCFactory {
               {'DtlsSrtpKeyAgreement': true},
             ],
           };
-    final jsRtcPc = html.RtcPeerConnection(configuration, constr);
+    final jsRtcPc =
+        js.RTCPeerConnection(configuration: rtcConfigurationFromMap(constr));
     final _peerConnectionId = base64Encode(jsRtcPc.toString().codeUnits);
     return RTCPeerConnectionWeb(_peerConnectionId, jsRtcPc);
   }
 
   @override
   Future<MediaStream> createLocalMediaStream(String label) async {
-    final jsMs = html.MediaStream();
+    final jsMs = js.MediaStream(js.MediaStreamJs());
     return MediaStreamWeb(jsMs, 'local');
   }
 

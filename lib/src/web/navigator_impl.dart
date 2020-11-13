@@ -5,19 +5,15 @@ import 'mediadevices_impl.dart';
 
 class NavigatorWeb extends Navigator {
   @override
-  Future<MediaStream> getDisplayMedia(Map<String, dynamic> mediaConstraints) {
-    return mediaDevices.getDisplayMedia(mediaConstraints);
-  }
+  Future<MediaStream> getDisplayMedia(Map<String, dynamic> mediaConstraints) =>
+      mediaDevices.getDisplayMedia(mediaConstraints);
 
   @override
-  Future<List> getSources() {
-    return mediaDevices.getSources();
-  }
+  Future<List> getSources() => mediaDevices.getSources();
 
   @override
-  Future<MediaStream> getUserMedia(Map<String, dynamic> mediaConstraints) {
-    return mediaDevices.getUserMedia(mediaConstraints);
-  }
+  Future<MediaStream> getUserMedia(Map<String, dynamic> mediaConstraints) =>
+      mediaDevices.getUserMedia(mediaConstraints);
 
   @override
   MediaDevices get mediaDevices => MediaDevicesWeb();

@@ -1,38 +1,42 @@
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:js_util' as jsutil;
+import 'package:js/js_util.dart' as jsutil;
+import 'dart:html';
 
 import '../interface/enums.dart';
 import '../interface/rtc_data_channel.dart';
+
+import 'package:dart_webrtc/dart_webrtc.dart' as js;
 
 class RTCDataChannelWeb extends RTCDataChannel {
   RTCDataChannelWeb(this._jsDc) {
     stateChangeStream = _stateChangeController.stream;
     messageStream = _messageController.stream;
-    _jsDc.onClose.listen((_) {
+    _jsDc.onclose = () {
       _state = RTCDataChannelState.RTCDataChannelClosed;
       _stateChangeController.add(_state);
       if (onDataChannelState != null) {
         onDataChannelState(_state);
       }
-    });
-    _jsDc.onOpen.listen((_) {
+    };
+
+    _jsDc.onopen = () {
       _state = RTCDataChannelState.RTCDataChannelOpen;
       _stateChangeController.add(_state);
       if (onDataChannelState != null) {
         onDataChannelState(_state);
       }
-    });
-    _jsDc.onMessage.listen((event) async {
+    };
+
+    _jsDc.onmessage = (event) async {
       var msg = await _parse(event.data);
       _messageController.add(msg);
       if (onMessage != null) {
         onMessage(msg);
       }
-    });
+    };
   }
 
-  final html.RtcDataChannel _jsDc;
+  final js.RTCDataChannel _jsDc;
   RTCDataChannelState _state = RTCDataChannelState.RTCDataChannelConnecting;
 
   @override
@@ -46,7 +50,7 @@ class RTCDataChannelWeb extends RTCDataChannel {
   Future<RTCDataChannelMessage> _parse(dynamic data) async {
     if (data is String) return RTCDataChannelMessage(data);
     dynamic arrayBuffer;
-    if (data is html.Blob) {
+    if (data is Blob) {
       // This should never happen actually
       arrayBuffer = await jsutil
           .promiseToFuture(jsutil.callMethod(data, 'arrayBuffer', []));

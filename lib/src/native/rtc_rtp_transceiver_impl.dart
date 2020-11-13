@@ -43,6 +43,16 @@ class RTCRtpTransceiverInitNative extends RTCRtpTransceiverInit {
         'sendEncodings': sendEncodings.map((e) => e.toMap()).toList(),
     };
   }
+
+  static Map<String, dynamic> initToMap(RTCRtpTransceiverInit init) {
+    return {
+      'direction': typeRtpTransceiverDirectionToString[init.direction],
+      if (init.streams != null)
+        'streamIds': init.streams.map((e) => e.id).toList(),
+      if (init.sendEncodings != null)
+        'sendEncodings': init.sendEncodings.map((e) => e.toMap()).toList(),
+    };
+  }
 }
 
 class RTCRtpTransceiverNative extends RTCRtpTransceiver {

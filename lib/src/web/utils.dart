@@ -9,7 +9,3 @@ class WebRTC {
 
   static MethodChannel methodChannel() => throw UnimplementedError;
 }
-
-Map<String, dynamic> convertToDart(Object jsObject) {
-  return {};
-}

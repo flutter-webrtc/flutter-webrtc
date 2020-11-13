@@ -30,7 +30,7 @@ class MediaRecorderWeb extends MediaRecorder {
     String mimeType = 'video/webm',
   }) {
     var _native = stream as MediaStreamWeb;
-    _recorder = html.MediaRecorder(_native.jsStream, {'mimeType': mimeType});
+    _recorder = html.MediaRecorder(null, {'mimeType': mimeType});
     if (onDataChunk == null) {
       var _chunks = <html.Blob>[];
       _completer = Completer<String>();
