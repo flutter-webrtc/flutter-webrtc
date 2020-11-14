@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:dart_webrtc/dart_webrtc.dart' as js;
+import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 import 'package:flutter/services.dart';
 
 import '../interface/media_stream_track.dart';
@@ -13,20 +13,20 @@ import 'rtc_dtmf_sender_impl.dart';
 class RTCRtpSenderWeb extends RTCRtpSender {
   RTCRtpSenderWeb(this._jsRtpSender, this._ownsTrack);
 
-  factory RTCRtpSenderWeb.fromJsSender(js.RTCRtpSender jsRtpSender) {
+  factory RTCRtpSenderWeb.fromJsSender(dart_webrtc.RTCRtpSender jsRtpSender) {
     return RTCRtpSenderWeb(jsRtpSender, jsRtpSender.track != null);
   }
 
-  js.RTCRtpSender _jsRtpSender;
+  dart_webrtc.RTCRtpSender _jsRtpSender;
   bool _ownsTrack = false;
 
-  js.RTCRtpSender get jsSender => _jsRtpSender;
+  dart_webrtc.RTCRtpSender get jsSender => _jsRtpSender;
 
   @override
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     try {
-      return _jsRtpSender
-          .setParameters(js.rtpEncodingParametersFromMap(parameters.toMap()));
+      return _jsRtpSender.setParameters(
+          dart_webrtc.rtpEncodingParametersFromMap(parameters.toMap()));
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::setParameters: ${e.message}';
     }
@@ -55,7 +55,7 @@ class RTCRtpSenderWeb extends RTCRtpSender {
 
   @override
   RTCRtpParameters get parameters => RTCRtpParameters.fromMap(
-      js.rtpEncodingParametersToMap(_jsRtpSender.getParameters()));
+      dart_webrtc.rtpEncodingParametersToMap(_jsRtpSender.getParameters()));
 
   @override
   MediaStreamTrack get track => MediaStreamTrackWeb(_jsRtpSender.track);

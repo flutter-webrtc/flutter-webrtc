@@ -20,8 +20,10 @@ class MediaDevicesWeb extends MediaDevices {
       }
       mediaConstraints.putIfAbsent('video', () => false);
       mediaConstraints.putIfAbsent('audio', () => false);
-      var jsStream = await _mediaDevices.getUserMedia(js.MediaStreamConstraints(
-          audio: mediaConstraints['audio'], video: mediaConstraints['video']));
+      var jsStream = await _mediaDevices.getUserMedia(
+          constraints: js.MediaStreamConstraints(
+              audio: mediaConstraints['audio'],
+              video: mediaConstraints['video']));
       return MediaStreamWeb(jsStream, 'local');
     } catch (e) {
       throw 'Unable to getUserMedia: ${e.toString()}';
@@ -34,8 +36,10 @@ class MediaDevicesWeb extends MediaDevices {
     try {
       mediaConstraints.putIfAbsent('video', () => false);
       mediaConstraints.putIfAbsent('audio', () => false);
-      var jsStream = await _mediaDevices.getUserMedia(js.MediaStreamConstraints(
-          audio: mediaConstraints['audio'], video: mediaConstraints['video']));
+      var jsStream = await _mediaDevices.getDisplayMedia(
+          constraints: js.MediaStreamConstraints(
+              audio: mediaConstraints['audio'],
+              video: mediaConstraints['video']));
       return MediaStreamWeb(jsStream, 'local');
     } catch (e) {
       throw 'Unable to getDisplayMedia: ${e.toString()}';

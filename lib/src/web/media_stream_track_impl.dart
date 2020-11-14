@@ -1,20 +1,21 @@
 import 'dart:async';
+import 'package:js/js.dart';
+
+import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 
 import '../interface/media_stream_track.dart';
 
-import 'package:dart_webrtc/dart_webrtc.dart' as js;
-
 class MediaStreamTrackWeb extends MediaStreamTrack {
   MediaStreamTrackWeb(this.jsTrack) {
-    jsTrack.onended = (event) {
+    jsTrack.onended = allowInterop((event) {
       onEnded?.call();
-    };
-    jsTrack.onmute = (event) {
+    });
+    jsTrack.onmute = allowInterop((event) {
       onMute?.call();
-    };
+    });
   }
 
-  final js.MediaStreamTrack jsTrack;
+  final dart_webrtc.MediaStreamTrack jsTrack;
 
   @override
   String get id => jsTrack.id;
@@ -80,9 +81,9 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   }
 
   @override
-  Future<void> dispose() {
+  Future<void> dispose() async {
+    await super.dispose();
     jsTrack.stop();
-    return super.dispose();
   }
 
   @override

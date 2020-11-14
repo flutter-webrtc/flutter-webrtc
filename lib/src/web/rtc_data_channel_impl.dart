@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'package:js/js_util.dart' as jsutil;
 import 'dart:html';
+
+import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
+import 'package:js/js_util.dart' as jsutil;
 
 import '../interface/enums.dart';
 import '../interface/rtc_data_channel.dart';
-
-import 'package:dart_webrtc/dart_webrtc.dart' as js;
 
 class RTCDataChannelWeb extends RTCDataChannel {
   RTCDataChannelWeb(this._jsDc) {
@@ -36,7 +36,7 @@ class RTCDataChannelWeb extends RTCDataChannel {
     };
   }
 
-  final js.RTCDataChannel _jsDc;
+  final dart_webrtc.RTCDataChannel _jsDc;
   RTCDataChannelState _state = RTCDataChannelState.RTCDataChannelConnecting;
 
   @override

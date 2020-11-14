@@ -1,9 +1,10 @@
+import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
+
 import '../interface/rtc_dtmf_sender.dart';
-import 'package:dart_webrtc/dart_webrtc.dart' as js;
 
 class RTCDTMFSenderWeb extends RTCDTMFSender {
   RTCDTMFSenderWeb(this._jsDtmfSender);
-  final js.RTCDTMFSender _jsDtmfSender;
+  final dart_webrtc.RTCDTMFSender _jsDtmfSender;
 
   @override
   Future<void> insertDTMF(String tones,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:js_util' as jsutil;
 
+import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 import 'package:flutter/services.dart';
 
 import '../interface/enums.dart';
@@ -9,7 +10,6 @@ import '../interface/rtc_rtp_parameters.dart';
 import '../interface/rtc_rtp_receiver.dart';
 import '../interface/rtc_rtp_sender.dart';
 import '../interface/rtc_rtp_transceiver.dart';
-import 'package:dart_webrtc/dart_webrtc.dart' as js;
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
 
@@ -51,7 +51,7 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
     return transceiver;
   }
 
-  js.RTCRtpTransceiver _jsTransceiver;
+  dart_webrtc.RTCRtpTransceiver _jsTransceiver;
 
   @override
   TransceiverDirection get currentDirection =>
