@@ -183,12 +183,14 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   Future<void> setLocalDescription(RTCSessionDescription description) async {
-    await _jsPc.setLocalDescription(description.toMap());
+    await _jsPc.setLocalDescription(dart_webrtc.RTCSessionDescription(
+        sdp: description.sdp, type: description.type));
   }
 
   @override
   Future<void> setRemoteDescription(RTCSessionDescription description) async {
-    await _jsPc.setRemoteDescription(description.toMap());
+    await _jsPc.setRemoteDescription(dart_webrtc.RTCSessionDescription(
+        sdp: description.sdp, type: description.type));
   }
 
   @override

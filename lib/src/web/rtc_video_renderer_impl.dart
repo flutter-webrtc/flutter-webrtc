@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:html' as html;
 
-import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 import 'package:flutter/services.dart';
 
 import '../interface/media_stream.dart';
@@ -42,6 +41,8 @@ class RTCVideoRendererWeb extends VideoRenderer {
   final _subscriptions = <StreamSubscription>[];
 
   set objectFit(String fit) => _videoElement.style.objectFit = fit;
+
+  set mirror(bool mirror) => print('TODO: add mirror => $mirror');
 
   @override
   int get textureId => _textureId;
@@ -124,6 +125,15 @@ class RTCVideoRendererWeb extends VideoRenderer {
         renderVideo: renderVideo);
   }
 
+  html.MediaStream _convertToHtmlMediaStream(MediaStream stream) {
+    var htmlStream = html.MediaStream();
+    var jsStream = (stream as MediaStreamWeb).jsStream;
+    jsStream.getTracks().forEach((track) {
+      htmlStream.addTrack(track as html.MediaStreamTrack);
+    });
+    return htmlStream;
+  }
+
   @override
   MediaStream get srcObject => _srcObject;
 
@@ -138,17 +148,9 @@ class RTCVideoRendererWeb extends VideoRenderer {
       return;
     }
     _srcObject = stream;
-    _videoElement.srcObject = convertToHtmlMediaStream(stream);
+    _videoElement.srcObject = _convertToHtmlMediaStream(stream);
+    _videoElement.muted = stream.ownerTag == 'local';
     value = value.copyWith(renderVideo: renderVideo);
-  }
-
-  html.MediaStream convertToHtmlMediaStream(MediaStreamWeb stream) {
-    var htmlStream = html.MediaStream();
-    var _native = stream.jsStream;
-    _native.getTracks().forEach((track) {
-      htmlStream.addTrack(track as html.MediaStreamTrack);
-    });
-    return htmlStream;
   }
 
   @override
