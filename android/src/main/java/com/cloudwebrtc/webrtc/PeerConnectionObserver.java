@@ -660,7 +660,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       RtpTransceiver.RtpTransceiverInit init = null;
 
       if(streamIds == null) {
-          streamIds = new List<String>();
+          streamIds = new ArrayList<String>();
       }
 
       if(direction == null) {
