@@ -84,6 +84,10 @@ class _MyAppState extends State<LoopBackSample> {
   }
 
   void _onCandidate(RTCIceCandidate candidate) {
+    if (candidate == null) {
+      print('onCandidate: complete!');
+      return;
+    }
     print('onCandidate: ' + candidate.candidate);
     _peerConnection.addCandidate(candidate);
   }

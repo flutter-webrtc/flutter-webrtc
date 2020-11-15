@@ -3,6 +3,7 @@ import 'dart:html';
 
 import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 import 'package:js/js_util.dart' as jsutil;
+import 'package:js/js.dart';
 
 import '../interface/enums.dart';
 import '../interface/rtc_data_channel.dart';
@@ -11,29 +12,26 @@ class RTCDataChannelWeb extends RTCDataChannel {
   RTCDataChannelWeb(this._jsDc) {
     stateChangeStream = _stateChangeController.stream;
     messageStream = _messageController.stream;
-    _jsDc.onclose = () {
+    _jsDc.onclose = allowInterop((dart_webrtc.Event event) {
       _state = RTCDataChannelState.RTCDataChannelClosed;
       _stateChangeController.add(_state);
-      if (onDataChannelState != null) {
-        onDataChannelState(_state);
-      }
-    };
+      onDataChannelState?.call(_state);
+    });
 
-    _jsDc.onopen = () {
+    _jsDc.onopen = allowInterop((dart_webrtc.Event event) {
       _state = RTCDataChannelState.RTCDataChannelOpen;
       _stateChangeController.add(_state);
-      if (onDataChannelState != null) {
-        onDataChannelState(_state);
-      }
-    };
+      onDataChannelState?.call(_state);
+    });
 
-    _jsDc.onmessage = (event) async {
+    _jsDc.onmessage = allowInterop((dart_webrtc.MessageEvent event) async {
+      if (event == null || event.data == null) {
+        return;
+      }
       var msg = await _parse(event.data);
       _messageController.add(msg);
-      if (onMessage != null) {
-        onMessage(msg);
-      }
-    };
+      onMessage?.call(msg);
+    });
   }
 
   final dart_webrtc.RTCDataChannel _jsDc;
@@ -62,13 +60,12 @@ class RTCDataChannelWeb extends RTCDataChannel {
 
   @override
   Future<void> send(RTCDataChannelMessage message) {
-    if (!message.isBinary) {
-      _jsDc.send(message.text);
-    } else {
-      // This may just work
-      _jsDc.sendByteBuffer(message.binary.buffer);
-      // If not, convert to ArrayBuffer/Blob
+    try {
+      _jsDc.send(message.isBinary ? message.binary : message.text);
+    } catch (e) {
+      print(e.toString());
     }
+
     return Future.value();
   }
 

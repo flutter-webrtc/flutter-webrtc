@@ -38,7 +38,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   void deactivate() {
     super.deactivate();
     if (_inCalling) {
-      _hangUp();
+      _stop();
     }
     _localRenderer.dispose();
   }
@@ -75,13 +75,20 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     });
   }
 
-  void _hangUp() async {
+  Future<void> _stop() async {
     try {
-      await _localStream.dispose();
+      if (_localStream != null) {
+        await _localStream.dispose();
+        _localStream = null;
+      }
       _localRenderer.srcObject = null;
     } catch (e) {
       print(e.toString());
     }
+  }
+
+  void _hangUp() async {
+    await _stop();
     setState(() {
       _inCalling = false;
     });

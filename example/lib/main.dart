@@ -17,33 +17,33 @@ import 'src/route_item.dart';
 void main() {
   if (WebRTC.platformIsDesktop) {
     debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
-  } else if(Platform.isAndroid) {
+  } else if (WebRTC.platformIsAndroid) {
     WidgetsFlutterBinding.ensureInitialized();
     startForegroundService();
   }
   runApp(MyApp());
 }
 
-startForegroundService() async {
+Future<bool> startForegroundService() async {
   await FlutterForegroundPlugin.setServiceMethodInterval(seconds: 5);
   await FlutterForegroundPlugin.setServiceMethod(globalForegroundService);
   await FlutterForegroundPlugin.startForegroundService(
     holdWakeLock: false,
     onStarted: () {
-      print("Foreground on Started");
+      print('Foreground on Started');
     },
     onStopped: () {
-      print("Foreground on Stopped");
+      print('Foreground on Stopped');
     },
-    title: "Tcamera",
-    content: "Tcamera sharing your screen.",
-    iconName: "ic_stat_mobile_screen_share",
+    title: 'Tcamera',
+    content: 'Tcamera sharing your screen.',
+    iconName: 'ic_stat_mobile_screen_share',
   );
   return true;
 }
 
 void globalForegroundService() {
-  debugPrint("current datetime is ${DateTime.now()}");
+  debugPrint('current datetime is ${DateTime.now()}');
 }
 
 class MyApp extends StatefulWidget {

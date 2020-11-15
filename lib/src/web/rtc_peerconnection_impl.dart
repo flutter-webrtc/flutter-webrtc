@@ -77,7 +77,8 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
     };
 
     _jsPc.onicecandidate = (dart_webrtc.RTCPeerConnectionIceEvent event) {
-      onIceCandidate?.call(_candidateFromJs(event.candidate));
+      onIceCandidate?.call(
+          event.candidate != null ? _candidateFromJs(event.candidate) : null);
     };
 
     _jsPc.oniceconnectionstatechange =
@@ -242,10 +243,18 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
     if (dataChannelDict.binaryType == 'binary') {
       map['binaryType'] = 'arraybuffer'; // Avoid Blob in data channel
     }
-
     final jsDc = await _jsPc.createDataChannel(
-        label: label, init: dart_webrtc.RTCDataChannelInit());
+        label: label, init: _convertToJsInit(dataChannelDict));
     return Future.value(RTCDataChannelWeb(jsDc));
+  }
+
+  dart_webrtc.RTCDataChannelInit _convertToJsInit(RTCDataChannelInit init) {
+    return dart_webrtc.RTCDataChannelInit(
+        id: init.id,
+        ordered: init.ordered,
+        maxRetransmits: init.maxRetransmits,
+        negotiated: init.negotiated,
+        protocol: init.protocol);
   }
 
   @override

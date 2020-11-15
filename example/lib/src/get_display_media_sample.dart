@@ -31,7 +31,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   void deactivate() {
     super.deactivate();
     if (_inCalling) {
-      _hangUp();
+      _stop();
     }
     if (_timer != null) _timer.cancel();
     _localRenderer.dispose();
@@ -72,13 +72,20 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     _timer = Timer.periodic(Duration(milliseconds: 100), handleTimer);
   }
 
-  void _hangUp() async {
+  Future<void> _stop() async {
     try {
-      await _localStream.dispose();
+      if (_localStream != null) {
+        await _localStream.dispose();
+        _localStream = null;
+      }
       _localRenderer.srcObject = null;
     } catch (e) {
       print(e.toString());
     }
+  }
+
+  Future<void> _hangUp() async {
+    await _stop();
     setState(() {
       _inCalling = false;
     });
