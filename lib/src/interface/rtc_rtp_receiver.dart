@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'enums.dart';
 import 'media_stream_track.dart';
 import 'rtc_rtp_parameters.dart';

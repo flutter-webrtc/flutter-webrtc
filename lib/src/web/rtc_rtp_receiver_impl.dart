@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 
 import '../interface/media_stream_track.dart';

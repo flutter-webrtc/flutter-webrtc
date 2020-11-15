@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import '../interface/media_stream_track.dart';
 import '../interface/rtc_rtp_parameters.dart';
 import '../interface/rtc_rtp_receiver.dart';

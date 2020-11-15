@@ -99,8 +99,7 @@ abstract class RTCPeerConnection {
 
   List<RTCRtpTransceiver> get transceivers;
 
-  Future<RTCRtpSender> addTrack(MediaStreamTrack track,
-      [List<MediaStream> streams]);
+  Future<RTCRtpSender> addTrack(MediaStreamTrack track, [MediaStream stream]);
 
   Future<bool> removeTrack(RTCRtpSender sender);
 

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:js_util' as jsutil;
 
 import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 import 'package:flutter/services.dart';
@@ -76,8 +75,7 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   @override
   Future<void> setDirection(TransceiverDirection direction) async {
     try {
-      jsutil.callMethod(_jsTransceiver, 'setDirection',
-          [typeRtpTransceiverDirectionToString[direction]]);
+      _jsTransceiver.direction = typeRtpTransceiverDirectionToString[direction];
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpTransceiver::setDirection: ${e.message}';
     }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:js';
 import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 
@@ -25,22 +24,50 @@ import 'rtc_rtp_transceiver_impl.dart';
 import 'rtc_track_event_impl.dart';
 
 dart_webrtc.RTCConfiguration rtcConfigurationFromMap(Map<String, dynamic> map) {
-  // TODO:
-  return dart_webrtc.RTCConfiguration();
+  return dart_webrtc.RTCConfiguration(
+      iceServers: (map['iceServers'] as List)
+          .map((e) => dart_webrtc.RTCIceServer(
+              urls: e['urls'] ?? e['url'],
+              username: e['username'],
+              credential: e['credential']))
+          .toList(),
+      iceTransportPolicy: map['iceTransportPolicy'] ?? 'all',
+      bundlePolicy: map['bundlePolicy'] ?? 'max-compat',
+      peerIdentity: map['peerIdentity'],
+      iceCandidatePoolSize: map['iceCandidatePoolSize'],
+      sdpSemantics: map['sdpSemantics'] ?? 'unified-plan');
 }
 
 Map<String, dynamic> rtcConfigurationToMap(
     dart_webrtc.RTCConfiguration configuration) {
-  // TODO:
-  return {};
+  return {
+    'iceServers': configuration.iceServers
+        .map((e) => {
+              'urls': e.urls,
+              'username': e.username,
+              'credential': e.credential
+            })
+        .toList(),
+    'iceCandidatePoolSize': configuration.iceCandidatePoolSize,
+    'bundlePolicy': configuration.bundlePolicy,
+    'peerIdentity': configuration.peerIdentity,
+    'iceTransportPolicy': configuration.iceTransportPolicy,
+  };
 }
 
 dart_webrtc.RTCOfferOptions rtcOfferOptionsFromMap(Map<String, dynamic> map) {
-  return dart_webrtc.RTCOfferOptions();
+  return dart_webrtc.RTCOfferOptions(
+      offerToReceiveAudio:
+          map['offerToReceiveAudio'] ?? map['mandatory']['OfferToReceiveAudio'],
+      offerToReceiveVideo:
+          map['offerToReceiveVideo'] ?? map['mandatory']['OfferToReceiveAudio'],
+      iceRestart: map['iceRestart'] ?? map['mandatory']['iceRestart']);
 }
 
 dart_webrtc.RTCAnswerOptions rtcAnswerOptionsFromMap(Map<String, dynamic> map) {
-  return dart_webrtc.RTCAnswerOptions();
+  return dart_webrtc.RTCAnswerOptions(
+      voiceActivityDetection: map['voiceActivityDetection'] ??
+          map['mandatory']['voiceActivityDetection']);
 }
 
 /*
@@ -293,12 +320,10 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   Future<RTCRtpSender> addTrack(MediaStreamTrack track,
-      [List<MediaStream> streams]) async {
+      [MediaStream stream]) async {
     var _native = track as MediaStreamTrackWeb;
     var jsRtpSender = await _jsPc.addTrack(
-        track: _native.jsTrack,
-        streams:
-            streams.map((e) => (e as MediaStreamWeb).jsStream.js).toList());
+        track: _native.jsTrack, stream: (stream as MediaStreamWeb).jsStream.js);
     return RTCRtpSenderWeb.fromJsSender(jsRtpSender);
   }
 
@@ -327,12 +352,34 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
       {MediaStreamTrack track,
       RTCRtpMediaType kind,
       RTCRtpTransceiverInit init}) async {
-    var _nativeTrack = track as MediaStreamTrackWeb;
-    var _jsTransceiver = await _jsPc.addTransceiver(
-        init: dart_webrtc.RTCRtpTransceiverInit(),
-        kind: typeRTCRtpMediaTypetoString[kind],
-        track: _nativeTrack.jsTrack);
+    var _jsTransceiver;
+    if (track != null) {
+      var _nativeTrack = track as MediaStreamTrackWeb;
+      _jsTransceiver = await _jsPc.addTransceiver(
+          init: _convertToJsTtpTransceiverInit(init),
+          track: _nativeTrack.jsTrack);
+    } else if (kind != null) {
+      _jsTransceiver = await _jsPc.addTransceiver(
+          init: _convertToJsTtpTransceiverInit(init),
+          kind: typeRTCRtpMediaTypetoString[kind]);
+    }
     return RTCRtpTransceiverWeb(_jsTransceiver, _peerConnectionId);
+  }
+
+  dart_webrtc.RTCRtpTransceiverInit _convertToJsTtpTransceiverInit(
+      RTCRtpTransceiverInit init) {
+    return dart_webrtc.RTCRtpTransceiverInit(
+        direction: typeRtpTransceiverDirectionToString[init.direction],
+        streams: init.streams != null
+            ? init.streams
+                .map((e) => (e as MediaStreamWeb).jsStream.js)
+                .toList()
+            : [],
+        sendEncodings: init.sendEncodings != null
+            ? init.sendEncodings
+                .map((e) => dart_webrtc.rtpEncodingParametersFromMap(e.toMap()))
+                .toList()
+            : []);
   }
 
   String _iceConnectionStateToString(dart_webrtc.RTCIceConnectionState state) {

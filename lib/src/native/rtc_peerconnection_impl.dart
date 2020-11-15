@@ -446,13 +446,13 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
   @override
   Future<RTCRtpSender> addTrack(MediaStreamTrack track,
-      [List<MediaStream> streams]) async {
+      [MediaStream stream]) async {
     try {
       final response =
           await _channel.invokeMethod('addTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'trackId': track.id,
-        'streamIds': streams.map((e) => e.id).toList()
+        'streamIds': [stream.id]
       });
       var sender = RTCRtpSenderNative.fromMap(response);
       sender.peerConnectionId = _peerConnectionId;

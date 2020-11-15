@@ -32,7 +32,7 @@ class RTCFactoryWeb extends RTCFactory {
             ],
           };
     final jsRtcPc = dart_webrtc.RTCPeerConnection(
-        configuration: rtcConfigurationFromMap(constr));
+        configuration: rtcConfigurationFromMap({...constr, ...configuration}));
     final _peerConnectionId = base64Encode(jsRtcPc.toString().codeUnits);
     return RTCPeerConnectionWeb(_peerConnectionId, jsRtcPc);
   }
