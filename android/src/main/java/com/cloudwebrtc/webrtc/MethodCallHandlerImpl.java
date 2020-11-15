@@ -1129,7 +1129,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void mediaStreamAddTrack(final String streaemId, final String trackId, Result result) {
     MediaStream mediaStream = localStreams.get(streaemId);
     if (mediaStream != null) {
-      MediaStreamTrack track = localTracks.get(trackId);
+      MediaStreamTrack track = getTrackForId(trackId);//localTracks.get(trackId);
       if (track != null) {
         if (track.kind().equals("audio")) {
           mediaStream.addTrack((AudioTrack) track);
@@ -1137,10 +1137,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           mediaStream.addTrack((VideoTrack) track);
         }
       } else {
-        resultError("mediaStreamAddTrack", "mediaStreamAddTrack() track [" + trackId + "] is null", result);
+        resultError("mediaStreamAddTrack", "mediaStreamAddTrack() tracking [" + trackId + "] is null", result);
       }
     } else {
-      resultError("mediaStreamAddTrack", "mediaStreamAddTrack() track [" + trackId + "] is null", result);
+      resultError("mediaStreamAddTrack", "mediaStreamAddTrack() streamId [" + streaemId + "] is null", result);
     }
     result.success(null);
   }
