@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:html';
+import 'dart:js';
+import 'dart:js_util' as jsutil;
 
 import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
-import 'package:js/js_util.dart' as jsutil;
-import 'package:js/js.dart';
 
 import '../interface/enums.dart';
 import '../interface/rtc_data_channel.dart';
