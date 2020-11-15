@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import '../interface/media_stream_track.dart';
 import '../interface/rtc_rtp_parameters.dart';
 import '../interface/rtc_rtp_receiver.dart';
@@ -30,7 +28,4 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
 
   @override
   String get receiverId => _id;
-
-  @override
-  Future<void> dispose() async {}
 }

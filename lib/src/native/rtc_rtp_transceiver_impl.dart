@@ -34,7 +34,6 @@ class RTCRtpTransceiverInitNative extends RTCRtpTransceiverInit {
         listToRtpEncodings(map['sendEncodings']));
   }
 
-  @override
   Map<String, dynamic> toMap() {
     return {
       'direction': typeRtpTransceiverDirectionToString[direction],

@@ -556,19 +556,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         }
         break;
       }
-      case "createSender": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String kind = call.argument("kind");
-        String streamId = call.argument("streamId");
-        createSender(peerConnectionId, kind, streamId, result);
-        break;
-      }
-      case "closeSender": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String senderId = call.argument("senderId");
-        stopSender(peerConnectionId, senderId, result);
-        break;
-      }
       case "addTrack": {
         String peerConnectionId = call.argument("peerConnectionId");
         String trackId = call.argument("trackId");
@@ -1491,24 +1478,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   public void setActivity(Activity activity) {
     this.activity = activity;
-  }
-
-  public void createSender(String peerConnectionId, String kind, String streamId, Result result) {
-    PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
-    if (pco == null || pco.getPeerConnection() == null) {
-      resultError("createSender", "peerConnection is null", result);
-    } else {
-      pco.createSender(kind, streamId, result);
-    }
-  }
-
-  public void stopSender(String peerConnectionId, String senderId, Result result) {
-      PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
-      if (pco == null || pco.getPeerConnection() == null) {
-        resultError("stopSender", "peerConnection is null", result);
-      } else {
-        pco.closeSender(senderId, result);
-      }
   }
 
   public void addTrack(String peerConnectionId, String trackId, List<String> streamIds, Result result){

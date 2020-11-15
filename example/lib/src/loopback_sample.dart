@@ -17,7 +17,7 @@ class _MyAppState extends State<LoopBackSample> {
   final _localRenderer = RTCVideoRenderer();
   final _remoteRenderer = RTCVideoRenderer();
   bool _inCalling = false;
-  //Timer _timer;
+  Timer _timer;
 
   @override
   void initState() {
@@ -84,6 +84,10 @@ class _MyAppState extends State<LoopBackSample> {
   }
 
   void _onCandidate(RTCIceCandidate candidate) {
+    if (candidate == null) {
+      print('onCandidate: complete!');
+      return;
+    }
     print('onCandidate: ' + candidate.candidate);
     _peerConnection.addCandidate(candidate);
   }
@@ -161,14 +165,6 @@ class _MyAppState extends State<LoopBackSample> {
 
       /* old API
       await _peerConnection.addStream(_localStream);
-      // or
-      var rtpSender =
-          await _peerConnection.createSender('audio', _localStream.id);
-      await rtpSender.setTrack(_localStream.getAudioTracks()[0]);
-      rtpSender = await _peerConnection.createSender('video', _localStream.id);
-      await rtpSender.setTrack(_localStream.getVideoTracks()[0]);
-      */
-      /*
       // Unified-Plan
       _localStream.getTracks().forEach((track) {
         _peerConnection.addTrack(track, [_localStream]);
@@ -247,7 +243,7 @@ class _MyAppState extends State<LoopBackSample> {
     }
     if (!mounted) return;
 
-    //_timer = Timer.periodic(Duration(seconds: 1), handleStatsReport);
+    _timer = Timer.periodic(Duration(seconds: 1), handleStatsReport);
 
     setState(() {
       _inCalling = true;
@@ -267,7 +263,7 @@ class _MyAppState extends State<LoopBackSample> {
     setState(() {
       _inCalling = false;
     });
-    //_timer.cancel();
+    _timer.cancel();
   }
 
   void _sendDtmf() async {
