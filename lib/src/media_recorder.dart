@@ -20,7 +20,8 @@ class MediaRecorder extends _interface.MediaRecorder {
   void startWeb(
     MediaStream stream, {
     Function(dynamic blob, bool isLastOne) onDataChunk,
-    String mimeType = 'video/webm',
+    String mimeType,
   }) =>
-      _delegate.startWeb(stream, onDataChunk: onDataChunk, mimeType: mimeType);
+      _delegate.startWeb(stream,
+          onDataChunk: onDataChunk, mimeType: mimeType ?? 'video/webm');
 }

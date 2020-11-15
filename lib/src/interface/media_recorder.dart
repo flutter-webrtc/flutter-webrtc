@@ -15,7 +15,7 @@ abstract class MediaRecorder {
   void startWeb(
     MediaStream stream, {
     Function(dynamic blob, bool isLastOne) onDataChunk,
-    String mimeType = 'video/webm',
+    String mimeType,
   });
 
   Future<dynamic> stop();
