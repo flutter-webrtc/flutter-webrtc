@@ -10,5 +10,9 @@ class WebRTC {
 
   static bool get platformIsMobile => Platform.isIOS || Platform.isAndroid;
 
+  static bool get platformIsIOS => Platform.isIOS;
+
+  static bool get platformIsAndroid => Platform.isAndroid;
+
   static bool get platformIsWeb => false;
 }

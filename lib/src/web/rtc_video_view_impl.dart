@@ -32,8 +32,8 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   }
 
   Widget buildVideoElementView(RTCVideoViewObjectFit objFit, bool mirror) {
-    // TODO(cloudwebrtc): Add css style for mirror.
-    videoRenderer.videoElement.style.objectFit =
+    videoRenderer.mirror = mirror;
+    videoRenderer.objectFit =
         objFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
             ? 'contain'
             : 'cover';

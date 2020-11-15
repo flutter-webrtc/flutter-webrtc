@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'enums.dart';
 import 'media_stream_track.dart';
 import 'rtc_rtp_parameters.dart';
@@ -21,6 +19,4 @@ abstract class RTCRtpReceiver {
   MediaStreamTrack get track;
 
   String get receiverId;
-
-  Future<void> dispose();
 }

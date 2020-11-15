@@ -5,6 +5,10 @@ class WebRTC {
 
   static bool get platformIsMobile => false;
 
+  static bool get platformIsIOS => false;
+
+  static bool get platformIsAndroid => false;
+
   static bool get platformIsWeb => true;
 
   static MethodChannel methodChannel() => throw UnimplementedError;

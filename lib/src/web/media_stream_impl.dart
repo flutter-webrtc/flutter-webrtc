@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'dart:collection';
-import 'dart:html' as html;
+import 'package:dart_webrtc/dart_webrtc.dart' as js;
 
 import '../interface/media_stream.dart';
 import '../interface/media_stream_track.dart';
@@ -8,7 +7,7 @@ import 'media_stream_track_impl.dart';
 
 class MediaStreamWeb extends MediaStream {
   MediaStreamWeb(this.jsStream, String ownerTag) : super(jsStream.id, ownerTag);
-  final html.MediaStream jsStream;
+  final js.MediaStream jsStream;
 
   @override
   Future<void> getMediaTracks() {
@@ -33,27 +32,25 @@ class MediaStreamWeb extends MediaStream {
     }
   }
 
-  final Map<String, MediaStreamTrack> _audioTracks = {};
-  final Map<String, MediaStreamTrack> _videoTracks = {};
+  final _audioTracks = <MediaStreamTrack>[];
+  final _videoTracks = <MediaStreamTrack>[];
 
   @override
   List<MediaStreamTrack> getAudioTracks() {
-    jsStream.getAudioTracks().forEach((jsTrack) => _audioTracks.putIfAbsent(
-          jsTrack.id,
-          () => MediaStreamTrackWeb(jsTrack),
-        ));
-
-    return _audioTracks.values.toList();
+    _audioTracks.clear();
+    jsStream.getAudioTracks().forEach((track) {
+      _audioTracks.add(MediaStreamTrackWeb(track));
+    });
+    return _audioTracks;
   }
 
   @override
   List<MediaStreamTrack> getVideoTracks() {
-    jsStream.getVideoTracks().forEach((jsTrack) => _videoTracks.putIfAbsent(
-          jsTrack.id,
-          () => MediaStreamTrackWeb(jsTrack),
-        ));
-
-    return _videoTracks.values.toList();
+    _videoTracks.clear();
+    jsStream.getVideoTracks().forEach((track) {
+      _videoTracks.add(MediaStreamTrackWeb(track));
+    });
+    return _videoTracks;
   }
 
   @override
