@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'dart:js';
 import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 
 import '../interface/enums.dart';
@@ -21,6 +21,7 @@ import 'rtc_dtmf_sender_impl.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
 import 'rtc_rtp_transceiver_impl.dart';
+import 'rtc_track_event_impl.dart';
 
 dart_webrtc.RTCConfiguration rtcConfigurationFromMap(Map<String, dynamic> map) {
   // TODO:
@@ -49,27 +50,29 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
     _jsPc.onaddstream = (dart_webrtc.MediaStreamEvent mediaStreamEvent) {
       final jsStream = mediaStreamEvent.stream;
       final _remoteStream = _remoteStreams.putIfAbsent(
-          jsStream.id, () => MediaStreamWeb(jsStream, _peerConnectionId));
+          jsStream.id,
+          () => MediaStreamWeb(
+              dart_webrtc.MediaStream(jsStream), _peerConnectionId));
 
       onAddStream?.call(_remoteStream);
 
-      jsStream.onaddtrack =
+      jsStream.onaddtrack = allowInterop(
           (dart_webrtc.MediaStreamTrackEvent mediaStreamTrackEvent) {
         final jsTrack = mediaStreamTrackEvent.track;
         final track = MediaStreamTrackWeb(jsTrack);
         _remoteStream.addTrack(track, addToNative: false).then((_) {
           onAddTrack?.call(_remoteStream, track);
         });
-      };
+      });
 
-      jsStream.onremovetrack =
+      jsStream.onremovetrack = allowInterop(
           (dart_webrtc.MediaStreamTrackEvent mediaStreamTrackEvent) {
         final jsTrack = mediaStreamTrackEvent.track;
         final track = MediaStreamTrackWeb(jsTrack);
         _remoteStream.removeTrack(track, removeFromNative: false).then((_) {
           onRemoveTrack?.call(_remoteStream, track);
         });
-      };
+      });
     };
 
     _jsPc.ondatachannel = (dart_webrtc.RTCDataChannelEvent event) {
@@ -112,7 +115,15 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
     };
 
     _jsPc.ontrack = (dart_webrtc.RTCTrackEvent event) {
-      print('ontrack arg: $event');
+      onTrack?.call(RTCTrackEventWeb(
+        track: MediaStreamTrackWeb(event.track),
+        receiver: RTCRtpReceiverWeb(event.receiver),
+        streams: event.streams
+            .map((e) =>
+                MediaStreamWeb(dart_webrtc.MediaStream(e), _peerConnectionId))
+            .toList(),
+        transceiver: RTCRtpTransceiverWeb(event.transceiver, _peerConnectionId),
+      ));
     };
   }
 
