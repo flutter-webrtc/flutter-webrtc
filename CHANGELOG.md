@@ -1,6 +1,16 @@
 # Changelog
 
 --------------------------------------------
+[0.5.0] - 2020.11.18
+
+* [Web] Add Unified-Plan for Flutter Web.
+* [Web] Add video frame mirror support for web.
+* [Web] Support Simulcast for web.
+* [Web] Use dart-webrtc as flutter web plugin.
+* [Android/Darwin] Fix crash when unset streamIds in RtpTransceiverInit.
+* [Dart]Change the constraints of createOffer/createAnswer as optional.
+* [iOS]Fix adding track to stream igal committed (#413)
+
 [0.4.1] - 2020.11.11
 
 * Add transceiver to onTrack events.
