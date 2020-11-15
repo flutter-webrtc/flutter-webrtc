@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:js/js_util.dart';
+import 'dart:js_util';
 import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 import 'package:flutter/services.dart';
 
