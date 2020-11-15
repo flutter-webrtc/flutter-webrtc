@@ -9,7 +9,8 @@ WebRTC plugin for Flutter Mobile/Desktop/Web
 | Audio/Video | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | [WIP] | |
 | Data Channel | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | [WIP] | |
 | Screen Capture | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | | | |
-| Unified-Plan | :heavy_check_mark: | :heavy_check_mark: | | :heavy_check_mark: | | | |
+| Unified-Plan | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | | |
+| Simulcast | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | | |
 | MediaRecorder| :warning: | :warning: | :heavy_check_mark: | | | | |
 
 ## Usage
