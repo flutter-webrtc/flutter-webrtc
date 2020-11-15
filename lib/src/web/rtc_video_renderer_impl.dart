@@ -127,15 +127,6 @@ class RTCVideoRendererWeb extends VideoRenderer {
         renderVideo: renderVideo);
   }
 
-  html.MediaStream _convertToHtmlMediaStream(MediaStream stream) {
-    var htmlStream = html.MediaStream();
-    var jsStream = (stream as MediaStreamWeb).jsStream;
-    jsStream.getTracks().forEach((track) {
-      htmlStream.addTrack(track as html.MediaStreamTrack);
-    });
-    return htmlStream;
-  }
-
   @override
   MediaStream get srcObject => _srcObject;
 
@@ -150,7 +141,8 @@ class RTCVideoRendererWeb extends VideoRenderer {
       return;
     }
     _srcObject = stream;
-    _videoElement.srcObject = _convertToHtmlMediaStream(stream);
+    var jsStream = (stream as MediaStreamWeb).jsStream;
+    _videoElement.srcObject = jsStream.htmlStream;
     _videoElement.muted = stream.ownerTag == 'local';
     value = value.copyWith(renderVideo: renderVideo);
   }

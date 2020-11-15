@@ -82,11 +82,13 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
     _jsPc.oniceconnectionstatechange =
         (dart_webrtc.RTCIceConnectionState state) {
-      onIceConnectionState?.call(state as RTCIceConnectionState);
+      onIceConnectionState?.call(
+          iceConnectionStateForString(_iceConnectionStateToString(state)));
     };
 
     _jsPc.onicegatheringstatechange = (dart_webrtc.RTCIceGatheringState state) {
-      onIceGatheringState?.call(state as RTCIceGatheringState);
+      onIceGatheringState
+          ?.call(iceGatheringStateforString(_iceGatheringStateToString(state)));
     };
 
     _jsPc.onremovestream = (dart_webrtc.MediaStreamEvent mediaStreamEvent) {
@@ -95,11 +97,13 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
     };
 
     _jsPc.onsignalingstatechange = (dart_webrtc.RTCSignalingState state) {
-      onSignalingState?.call(state as RTCSignalingState);
+      onSignalingState
+          ?.call(signalingStateForString(_signalingStateToString(state)));
     };
 
     _jsPc.onconnectionstatechange = (dart_webrtc.RTCPeerConnectionState state) {
-      onConnectionState?.call(state as RTCPeerConnectionState);
+      onConnectionState?.call(
+          peerConnectionStateForString(_peerConnectionStateToString(state)));
     };
 
     _jsPc.onnegotiationneeded = (event) {
@@ -320,5 +324,78 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
         kind: typeRTCRtpMediaTypetoString[kind],
         track: _nativeTrack.jsTrack);
     return RTCRtpTransceiverWeb(_jsTransceiver, _peerConnectionId);
+  }
+
+  String _iceConnectionStateToString(dart_webrtc.RTCIceConnectionState state) {
+    switch (state) {
+      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateNew:
+        return 'new';
+      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateChecking:
+        return 'checking';
+      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateConnected:
+        return 'connected';
+      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateCompleted:
+        return 'completed';
+      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateFailed:
+        return 'failed';
+      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateDisconnected:
+        return 'disconnected';
+      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateClosed:
+        return 'closed';
+      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateCount:
+        return 'count';
+    }
+    return 'closed';
+  }
+
+  String _iceGatheringStateToString(dart_webrtc.RTCIceGatheringState state) {
+    switch (state) {
+      case dart_webrtc.RTCIceGatheringState.RTCIceGatheringStateNew:
+        return 'new';
+      case dart_webrtc.RTCIceGatheringState.RTCIceGatheringStateGathering:
+        return 'gathering';
+      case dart_webrtc.RTCIceGatheringState.RTCIceGatheringStateComplete:
+        return 'complete';
+    }
+    return 'new';
+  }
+
+  String _signalingStateToString(dart_webrtc.RTCSignalingState state) {
+    switch (state) {
+      case dart_webrtc.RTCSignalingState.RTCSignalingStateStable:
+        return 'stable';
+      case dart_webrtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer:
+        return 'have-local-offer';
+      case dart_webrtc.RTCSignalingState.RTCSignalingStateHaveLocalPrAnswer:
+        return 'have-local-pranswer';
+      case dart_webrtc.RTCSignalingState.RTCSignalingStateHaveRemoteOffer:
+        return 'have-remote-offer';
+      case dart_webrtc.RTCSignalingState.RTCSignalingStateHaveRemotePrAnswer:
+        return 'have-remote-pranswer';
+      case dart_webrtc.RTCSignalingState.RTCSignalingStateClosed:
+        return 'closed';
+    }
+    return 'closed';
+  }
+
+  String _peerConnectionStateToString(
+      dart_webrtc.RTCPeerConnectionState state) {
+    switch (state) {
+      case dart_webrtc.RTCPeerConnectionState.RTCPeerConnectionStateNew:
+        return 'new';
+      case dart_webrtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting:
+        return 'connecting';
+      case dart_webrtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected:
+        return 'connected';
+      case dart_webrtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed:
+        return 'closed';
+      case dart_webrtc
+          .RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
+        return 'disconnected';
+      case dart_webrtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed:
+        return 'failed';
+    }
+
+    return 'closed';
   }
 }

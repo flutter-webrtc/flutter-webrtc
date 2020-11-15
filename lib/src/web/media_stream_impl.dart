@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:dart_webrtc/dart_webrtc.dart' as js;
 
 import '../interface/media_stream.dart';

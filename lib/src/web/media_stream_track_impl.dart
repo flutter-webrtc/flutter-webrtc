@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:js/js.dart';
+import 'dart:html' as html;
 
 import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 
@@ -64,9 +65,7 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
 
   @override
   Future<dynamic> captureFrame([String filePath]) async {
-    // TODO(cloudwebrtc): ...
-    /*
-    final imageCapture = html.ImageCapture(jsTrack);
+    final imageCapture = html.ImageCapture(jsTrack as html.MediaStreamTrack);
     final bitmap = await imageCapture.grabFrame();
     final html.CanvasElement canvas = html.Element.canvas();
     canvas.width = bitmap.width;
@@ -77,7 +76,6 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
     final dataUrl = canvas.toDataUrl();
     bitmap.close();
     return dataUrl;
-    */
   }
 
   @override
