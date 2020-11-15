@@ -867,19 +867,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       return candidateParams.toMap();
   }
 
-  public void createSender(String kind, String streamId, Result result){
-      RtpSender sender = peerConnection.createSender(kind, streamId);
-      result.success(rtpSenderToMap(sender));
-  }
-
-  public void closeSender(String senderId, Result result) {
-      RtpSender sender = getRtpSenderById(senderId);
-      sender.dispose();
-      Map<String, Object> params = new HashMap<>();
-      params.put("result", true);
-      result.success(params);
-  }
-
   public void addTrack(MediaStreamTrack track, List<String> streamIds, Result result){
       RtpSender sender = peerConnection.addTrack(track, streamIds);
       result.success(rtpSenderToMap(sender));

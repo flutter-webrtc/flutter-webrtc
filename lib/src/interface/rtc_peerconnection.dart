@@ -99,14 +99,10 @@ abstract class RTCPeerConnection {
 
   List<RTCRtpTransceiver> get transceivers;
 
-  Future<RTCRtpSender> createSender(String kind, String streamId);
-
   Future<RTCRtpSender> addTrack(MediaStreamTrack track,
       [List<MediaStream> streams]);
 
   Future<bool> removeTrack(RTCRtpSender sender);
-
-  Future<bool> closeSender(RTCRtpSender sender);
 
   /// 'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
   Future<RTCRtpTransceiver> addTransceiver(

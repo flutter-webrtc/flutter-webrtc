@@ -21,6 +21,4 @@ abstract class RTCRtpReceiver {
   MediaStreamTrack get track;
 
   String get receiverId;
-
-  Future<void> dispose();
 }

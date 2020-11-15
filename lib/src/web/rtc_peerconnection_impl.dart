@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js';
 import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 
@@ -226,13 +227,12 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   Future<List<StatsReport>> getStats([MediaStreamTrack track]) async {
-    final stats = _jsPc.getStats();
-    var report = <StatsReport>[];
-    stats.forEach((String key, dart_webrtc.RTCStats value) {
-      var map = value as Map<String, dynamic>;
-      report.add(StatsReport(map['id'], map['type'], map['timestamp'], map));
+    final stats = await _jsPc.getStats();
+    var reports = <StatsReport>[];
+    stats.values.forEach((String key, dart_webrtc.RTCStats value) {
+      reports.add(StatsReport.fromMap(value.values));
     });
-    return report;
+    return reports;
   }
 
   @override
@@ -295,22 +295,18 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   Future<RTCRtpSender> addTrack(MediaStreamTrack track,
       [List<MediaStream> streams]) async {
     var _native = track as MediaStreamTrackWeb;
-    var jsRtpSender = await _jsPc.addTrack(track: _native.jsTrack, streams: []);
-    return RTCRtpSenderWeb.fromJsSender(jsRtpSender);
-  }
-
-  @override
-  Future<bool> closeSender(RTCRtpSender sender) async {
-    //_jsPc.closeSender((sender as RTCRtpSenderWeb).jsSender);
-    return true;
-  }
-
-  @override
-  Future<RTCRtpSender> createSender(String kind, String streamId) async {
     var jsRtpSender = await _jsPc.addTrack(
-        //kind: typeRTCRtpMediaTypetoString[kind],
-        );
+        track: _native.jsTrack,
+        streams:
+            streams.map((e) => (e as MediaStreamWeb).jsStream.js).toList());
     return RTCRtpSenderWeb.fromJsSender(jsRtpSender);
+  }
+
+  @override
+  Future<bool> removeTrack(RTCRtpSender sender) {
+    var _native = sender as RTCRtpSenderWeb;
+    _jsPc.removeTrack(_native.jsSender);
+    return Future.value(true);
   }
 
   @override
@@ -325,13 +321,6 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   List<RTCRtpTransceiver> get transceivers => _jsPc.transceivers
       .map((e) => RTCRtpTransceiverWeb.fromJsObject(e))
       .toList();
-
-  @override
-  Future<bool> removeTrack(RTCRtpSender sender) {
-    var _native = sender as RTCRtpSenderWeb;
-    _jsPc.removeTrack(_native.jsSender);
-    return Future.value(true);
-  }
 
   @override
   Future<RTCRtpTransceiver> addTransceiver(

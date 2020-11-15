@@ -30,7 +30,4 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
 
   @override
   String get receiverId => _id;
-
-  @override
-  Future<void> dispose() async {}
 }

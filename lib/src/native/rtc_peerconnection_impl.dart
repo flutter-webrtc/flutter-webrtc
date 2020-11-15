@@ -445,23 +445,6 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   List<RTCRtpTransceiver> get transceivers => _transceivers;
 
   @override
-  Future<RTCRtpSender> createSender(String kind, String streamId) async {
-    try {
-      final response = await _channel.invokeMethod(
-          'createSender', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'kind': kind,
-        'streamId': streamId
-      });
-      var sender = RTCRtpSenderNative.fromMap(response);
-      _senders.add(sender);
-      return sender;
-    } on PlatformException catch (e) {
-      throw 'Unable to RTCPeerConnection::createSender: ${e.message}';
-    }
-  }
-
-  @override
   Future<RTCRtpSender> addTrack(MediaStreamTrack track,
       [List<MediaStream> streams]) async {
     try {
@@ -485,24 +468,6 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
     try {
       final response = await _channel.invokeMethod(
           'removeTrack', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'senderId': sender.senderId
-      });
-      bool result = response['result'];
-      _senders.removeWhere((item) {
-        return sender.senderId == item.senderId;
-      });
-      return result;
-    } on PlatformException catch (e) {
-      throw 'Unable to RTCPeerConnection::removeTrack: ${e.message}';
-    }
-  }
-
-  @override
-  Future<bool> closeSender(RTCRtpSender sender) async {
-    try {
-      final response = await _channel.invokeMethod(
-          'closeSender', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'senderId': sender.senderId
       });

@@ -25,7 +25,4 @@ class RTCRtpReceiverWeb extends RTCRtpReceiver {
 
   @override
   String get receiverId => _jsRtpReceiver?.track?.id ?? '';
-
-  @override
-  Future<void> dispose() async {}
 }

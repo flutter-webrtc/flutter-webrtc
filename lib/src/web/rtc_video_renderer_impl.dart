@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:html' as html;
 
 import 'package:flutter/services.dart';
-import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 
 import '../interface/media_stream.dart';
 import '../interface/rtc_video_renderer.dart';
