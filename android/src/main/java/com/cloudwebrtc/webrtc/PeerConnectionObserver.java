@@ -153,7 +153,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     RtpTransceiver getRtpTransceiverById(String id) {
         List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
         for(RtpTransceiver transceiver : transceivers) {
-            if (id == transceiver.getMid()){
+            if (id.equals(transceiver.getMid())){
                 return transceiver;
             }
         }
@@ -173,7 +173,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     RtpReceiver getRtpReceiverById(String id) {
         List<RtpReceiver> receivers = peerConnection.getReceivers();
         for(RtpReceiver receiver : receivers) {
-            if (id == receiver.id()){
+            if (id.equals(receiver.id())){
                 return receiver;
             }
         }
