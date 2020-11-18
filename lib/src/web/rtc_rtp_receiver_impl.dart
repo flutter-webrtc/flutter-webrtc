@@ -1,9 +1,9 @@
+import 'dart:js_util' as jsutil;
+
 import '../interface/media_stream_track.dart';
 import '../interface/rtc_rtp_parameters.dart';
 import '../interface/rtc_rtp_receiver.dart';
 import 'media_stream_track_impl.dart';
-
-import 'dart:js_util' as jsutil;
 
 class RTCRtpReceiverWeb extends RTCRtpReceiver {
   RTCRtpReceiverWeb(this._jsRtpReceiver);
@@ -24,10 +24,4 @@ class RTCRtpReceiverWeb extends RTCRtpReceiver {
 
   @override
   String get receiverId => jsutil.getProperty(_jsRtpReceiver, 'receiverId');
-
-  @override
-  Future<void> dispose() {
-    // TODO: implement dispose
-    throw UnimplementedError();
-  }
 }
