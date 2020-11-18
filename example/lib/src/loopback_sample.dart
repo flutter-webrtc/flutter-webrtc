@@ -196,19 +196,19 @@ class _MyAppState extends State<LoopBackSample> {
               // for firefox order matters... first high resolution, then scaled resolutions...
               RTCRtpEncoding(
                 rid: 'f',
-                maxBitrateBps: 900000,
+                maxBitrate: 900000,
                 numTemporalLayers: 3,
               ),
               RTCRtpEncoding(
                 rid: 'h',
                 numTemporalLayers: 3,
-                maxBitrateBps: 300000,
+                maxBitrate: 300000,
                 scaleResolutionDownBy: 2.0,
               ),
               RTCRtpEncoding(
                 rid: 'q',
                 numTemporalLayers: 3,
-                maxBitrateBps: 100000,
+                maxBitrate: 100000,
                 scaleResolutionDownBy: 4.0,
               ),
             ],

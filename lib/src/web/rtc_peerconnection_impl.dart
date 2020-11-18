@@ -1,6 +1,10 @@
 import 'dart:async';
-import 'dart:js';
-import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
+import 'dart:html' as html;
+import 'dart:js' as js;
+import 'dart:js_util' as jsutil;
+
+import 'package:flutter_webrtc/src/interface/rtc_track_event.dart';
+import 'package:flutter_webrtc/src/web/rtc_rtp_transceiver_impl.dart';
 
 import '../interface/enums.dart';
 import '../interface/media_stream.dart';
@@ -20,145 +24,98 @@ import 'rtc_data_channel_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
-import 'rtc_rtp_transceiver_impl.dart';
-import 'rtc_track_event_impl.dart';
-
-dart_webrtc.RTCConfiguration rtcConfigurationFromMap(Map<String, dynamic> map) {
-  return dart_webrtc.RTCConfiguration(
-      iceServers: (map['iceServers'] as List)
-          .map((e) => dart_webrtc.RTCIceServer(
-              urls: e['urls'] ?? e['url'],
-              username: e['username'],
-              credential: e['credential']))
-          .toList(),
-      iceTransportPolicy: map['iceTransportPolicy'] ?? 'all',
-      bundlePolicy: map['bundlePolicy'] ?? 'max-compat',
-      peerIdentity: map['peerIdentity'],
-      iceCandidatePoolSize: map['iceCandidatePoolSize'],
-      sdpSemantics: map['sdpSemantics'] ?? 'unified-plan');
-}
-
-Map<String, dynamic> rtcConfigurationToMap(
-    dart_webrtc.RTCConfiguration configuration) {
-  return {
-    'iceServers': configuration.iceServers
-        .map((e) => {
-              'urls': e.urls,
-              'username': e.username,
-              'credential': e.credential
-            })
-        .toList(),
-    'iceCandidatePoolSize': configuration.iceCandidatePoolSize,
-    'bundlePolicy': configuration.bundlePolicy,
-    'peerIdentity': configuration.peerIdentity,
-    'iceTransportPolicy': configuration.iceTransportPolicy,
-  };
-}
-
-dart_webrtc.RTCOfferOptions rtcOfferOptionsFromMap(Map<String, dynamic> map) {
-  return dart_webrtc.RTCOfferOptions(
-      offerToReceiveAudio:
-          map['offerToReceiveAudio'] ?? map['mandatory']['OfferToReceiveAudio'],
-      offerToReceiveVideo:
-          map['offerToReceiveVideo'] ?? map['mandatory']['OfferToReceiveAudio'],
-      iceRestart: map['iceRestart'] ?? map['mandatory']['iceRestart']);
-}
-
-dart_webrtc.RTCAnswerOptions rtcAnswerOptionsFromMap(Map<String, dynamic> map) {
-  return dart_webrtc.RTCAnswerOptions(
-      voiceActivityDetection: map['voiceActivityDetection'] ??
-          map['mandatory']['voiceActivityDetection']);
-}
 
 /*
  *  PeerConnection
  */
 class RTCPeerConnectionWeb extends RTCPeerConnection {
   RTCPeerConnectionWeb(this._peerConnectionId, this._jsPc) {
-    _jsPc.onaddstream = (dart_webrtc.MediaStreamEvent mediaStreamEvent) {
+    _jsPc.onAddStream.listen((mediaStreamEvent) {
       final jsStream = mediaStreamEvent.stream;
       final _remoteStream = _remoteStreams.putIfAbsent(
-          jsStream.id,
-          () => MediaStreamWeb(
-              dart_webrtc.MediaStream(jsStream), _peerConnectionId));
+          jsStream.id, () => MediaStreamWeb(jsStream, _peerConnectionId));
 
       onAddStream?.call(_remoteStream);
 
-      jsStream.onaddtrack = allowInterop(
-          (dart_webrtc.MediaStreamTrackEvent mediaStreamTrackEvent) {
-        final jsTrack = mediaStreamTrackEvent.track;
+      jsStream.onAddTrack.listen((mediaStreamTrackEvent) {
+        final jsTrack =
+            (mediaStreamTrackEvent as html.MediaStreamTrackEvent).track;
         final track = MediaStreamTrackWeb(jsTrack);
         _remoteStream.addTrack(track, addToNative: false).then((_) {
           onAddTrack?.call(_remoteStream, track);
         });
       });
 
-      jsStream.onremovetrack = allowInterop(
-          (dart_webrtc.MediaStreamTrackEvent mediaStreamTrackEvent) {
-        final jsTrack = mediaStreamTrackEvent.track;
+      jsStream.onRemoveTrack.listen((mediaStreamTrackEvent) {
+        final jsTrack =
+            (mediaStreamTrackEvent as html.MediaStreamTrackEvent).track;
         final track = MediaStreamTrackWeb(jsTrack);
         _remoteStream.removeTrack(track, removeFromNative: false).then((_) {
           onRemoveTrack?.call(_remoteStream, track);
         });
       });
-    };
+    });
 
-    _jsPc.ondatachannel = (dart_webrtc.RTCDataChannelEvent event) {
-      onDataChannel?.call(RTCDataChannelWeb(event.channel));
-    };
+    _jsPc.onDataChannel.listen((dataChannelEvent) {
+      onDataChannel?.call(RTCDataChannelWeb(dataChannelEvent.channel));
+    });
 
-    _jsPc.onicecandidate = (dart_webrtc.RTCPeerConnectionIceEvent event) {
-      onIceCandidate?.call(
-          event.candidate != null ? _candidateFromJs(event.candidate) : null);
-    };
+    _jsPc.onIceCandidate.listen((iceEvent) {
+      if (iceEvent.candidate != null) {
+        onIceCandidate?.call(_iceFromJs(iceEvent.candidate));
+      }
+    });
 
-    _jsPc.oniceconnectionstatechange =
-        (dart_webrtc.RTCIceConnectionState state) {
-      onIceConnectionState?.call(
-          iceConnectionStateForString(_iceConnectionStateToString(state)));
-    };
+    _jsPc.onIceConnectionStateChange.listen((_) {
+      _iceConnectionState =
+          iceConnectionStateForString(_jsPc.iceConnectionState);
+      onIceConnectionState?.call(_iceConnectionState);
+    });
 
-    _jsPc.onicegatheringstatechange = (dart_webrtc.RTCIceGatheringState state) {
-      onIceGatheringState
-          ?.call(iceGatheringStateforString(_iceGatheringStateToString(state)));
-    };
+    js.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] =
+        js.JsFunction.withThis((_) {
+      _iceGatheringState = iceGatheringStateforString(_jsPc.iceGatheringState);
+      onIceGatheringState?.call(_iceGatheringState);
+    });
 
-    _jsPc.onremovestream = (dart_webrtc.MediaStreamEvent mediaStreamEvent) {
+    _jsPc.onRemoveStream.listen((mediaStreamEvent) {
       final _remoteStream = _remoteStreams.remove(mediaStreamEvent.stream.id);
       onRemoveStream?.call(_remoteStream);
-    };
+    });
 
-    _jsPc.onsignalingstatechange = (dart_webrtc.RTCSignalingState state) {
-      onSignalingState
-          ?.call(signalingStateForString(_signalingStateToString(state)));
-    };
+    _jsPc.onSignalingStateChange.listen((_) {
+      _signalingState = signalingStateForString(_jsPc.signalingState);
+      onSignalingState?.call(_signalingState);
+    });
 
-    _jsPc.onconnectionstatechange = (dart_webrtc.RTCPeerConnectionState state) {
-      onConnectionState?.call(
-          peerConnectionStateForString(_peerConnectionStateToString(state)));
-    };
+    js.JsObject.fromBrowserObject(_jsPc)['connectionstatechange'] =
+        js.JsFunction.withThis((_, state) {
+      _connectionState = peerConnectionStateForString(state);
+      onConnectionState?.call(_connectionState);
+    });
 
-    _jsPc.onnegotiationneeded = (event) {
+    js.JsObject.fromBrowserObject(_jsPc)['negotiationneeded'] =
+        js.JsFunction.withThis(() {
       onRenegotiationNeeded?.call();
-    };
+    });
 
-    _jsPc.ontrack = (dart_webrtc.RTCTrackEvent event) {
-      onTrack?.call(RTCTrackEventWeb(
-        track: MediaStreamTrackWeb(event.track),
-        receiver: RTCRtpReceiverWeb(event.receiver),
-        streams: event.streams
-            .map((e) =>
-                MediaStreamWeb(dart_webrtc.MediaStream(e), _peerConnectionId))
-            .toList(),
-        transceiver: RTCRtpTransceiverWeb(event.transceiver, _peerConnectionId),
-      ));
-    };
+    _jsPc.onTrack.listen((trackEvent) {
+      onTrack?.call(RTCTrackEvent(
+          track: MediaStreamTrackWeb(trackEvent.track),
+          receiver: RTCRtpReceiverWeb(trackEvent.receiver),
+          transceiver: RTCRtpTransceiverWeb.fromJsObject(
+              jsutil.getProperty(trackEvent, 'transceiver')),
+          streams: trackEvent.streams
+              .map((e) => MediaStreamWeb(e, _peerConnectionId))
+              .toList()));
+    });
   }
 
   final String _peerConnectionId;
-  final dart_webrtc.RTCPeerConnection _jsPc;
+  final html.RtcPeerConnection _jsPc;
   final _localStreams = <String, MediaStream>{};
   final _remoteStreams = <String, MediaStream>{};
+  final _configuration = <String, dynamic>{};
 
   RTCSignalingState _signalingState;
   RTCIceGatheringState _iceGatheringState;
@@ -184,27 +141,27 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   }
 
   @override
-  Map<String, dynamic> get getConfiguration =>
-      rtcConfigurationToMap(_jsPc.getConfiguration());
+  Map<String, dynamic> get getConfiguration => _configuration;
 
   @override
-  Future<void> setConfiguration(Map<String, dynamic> configuration) async {
-    _jsPc.setConfiguration(rtcConfigurationFromMap(configuration));
+  Future<void> setConfiguration(Map<String, dynamic> configuration) {
+    _configuration.addAll(configuration);
+
+    _jsPc.setConfiguration(configuration);
+    return Future.value();
   }
 
   @override
   Future<RTCSessionDescription> createOffer(
       [Map<String, dynamic> constraints]) async {
-    final offer =
-        await _jsPc.createOffer(options: rtcOfferOptionsFromMap(constraints));
+    final offer = await _jsPc.createOffer(constraints);
     return _sessionFromJs(offer);
   }
 
   @override
   Future<RTCSessionDescription> createAnswer(
       [Map<String, dynamic> constraints]) async {
-    final answer =
-        await _jsPc.createAnswer(options: rtcAnswerOptionsFromMap(constraints));
+    final answer = await _jsPc.createAnswer(constraints);
     return _sessionFromJs(answer);
   }
 
@@ -227,14 +184,12 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   Future<void> setLocalDescription(RTCSessionDescription description) async {
-    await _jsPc.setLocalDescription(dart_webrtc.RTCSessionDescription(
-        sdp: description.sdp, type: description.type));
+    await _jsPc.setLocalDescription(description.toMap());
   }
 
   @override
   Future<void> setRemoteDescription(RTCSessionDescription description) async {
-    await _jsPc.setRemoteDescription(dart_webrtc.RTCSessionDescription(
-        sdp: description.sdp, type: description.type));
+    await _jsPc.setRemoteDescription(description.toMap());
   }
 
   @override
@@ -249,17 +204,28 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   Future<void> addCandidate(RTCIceCandidate candidate) async {
-    await _jsPc.addIceCandidate(_candidateToJs(candidate));
+    try {
+      Completer completer = Completer<void>();
+      var success = js.allowInterop(() => completer.complete());
+      var failure = js.allowInterop((e) => completer.completeError(e));
+      jsutil.callMethod(
+          _jsPc, 'addIceCandidate', [_iceToJs(candidate), success, failure]);
+
+      return completer.future;
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
   @override
   Future<List<StatsReport>> getStats([MediaStreamTrack track]) async {
     final stats = await _jsPc.getStats();
-    var reports = <StatsReport>[];
-    stats.values.forEach((String key, dart_webrtc.RTCStats value) {
-      reports.add(StatsReport.fromMap(value.values));
+    var report = <StatsReport>[];
+    stats.forEach((key, value) {
+      report.add(
+          StatsReport(value['id'], value['type'], value['timestamp'], value));
     });
-    return reports;
+    return report;
   }
 
   @override
@@ -276,23 +242,14 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   Future<RTCDataChannel> createDataChannel(
-      String label, RTCDataChannelInit dataChannelDict) async {
+      String label, RTCDataChannelInit dataChannelDict) {
     final map = dataChannelDict.toMap();
     if (dataChannelDict.binaryType == 'binary') {
       map['binaryType'] = 'arraybuffer'; // Avoid Blob in data channel
     }
-    final jsDc = await _jsPc.createDataChannel(
-        label: label, init: _convertToJsInit(dataChannelDict));
-    return Future.value(RTCDataChannelWeb(jsDc));
-  }
 
-  dart_webrtc.RTCDataChannelInit _convertToJsInit(RTCDataChannelInit init) {
-    return dart_webrtc.RTCDataChannelInit(
-        id: init.id,
-        ordered: init.ordered,
-        maxRetransmits: init.maxRetransmits,
-        negotiated: init.negotiated,
-        protocol: init.protocol);
+    final jsDc = _jsPc.createDataChannel(label, map);
+    return Future.value(RTCDataChannelWeb(jsDc));
   }
 
   @override
@@ -303,155 +260,74 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
-    return RTCDTMFSenderWeb(_jsPc.createDTMFSender());
+    var _native = track as MediaStreamTrackWeb;
+    var jsDtmfSender = _jsPc.createDtmfSender(_native.jsTrack);
+    return RTCDTMFSenderWeb(jsDtmfSender);
   }
 
-  RTCSessionDescription _sessionFromJs(dart_webrtc.RTCSessionDescription sd) =>
+  //
+  // utility section
+  //
+
+  RTCIceCandidate _iceFromJs(html.RtcIceCandidate candidate) => RTCIceCandidate(
+        candidate.candidate,
+        candidate.sdpMid,
+        candidate.sdpMLineIndex,
+      );
+
+  html.RtcIceCandidate _iceToJs(RTCIceCandidate c) =>
+      html.RtcIceCandidate(c.toMap());
+
+  RTCSessionDescription _sessionFromJs(html.RtcSessionDescription sd) =>
       RTCSessionDescription(sd.sdp, sd.type);
-
-  RTCIceCandidate _candidateFromJs(dart_webrtc.RTCIceCandidate cand) =>
-      RTCIceCandidate(cand.candidate, cand.sdpMid, cand.sdpMLineIndex);
-
-  dart_webrtc.RTCIceCandidate _candidateToJs(RTCIceCandidate cand) =>
-      dart_webrtc.RTCIceCandidate(
-          candidate: cand.candidate,
-          sdpMid: cand.sdpMid,
-          sdpMLineIndex: cand.sdpMlineIndex);
 
   @override
   Future<RTCRtpSender> addTrack(MediaStreamTrack track,
       [MediaStream stream]) async {
-    var _native = track as MediaStreamTrackWeb;
-    var jsRtpSender = await _jsPc.addTrack(
-        track: _native.jsTrack, stream: (stream as MediaStreamWeb).jsStream.js);
-    return RTCRtpSenderWeb.fromJsSender(jsRtpSender);
+    var jStream = (stream as MediaStreamWeb).jsStream;
+    var jsTrack = (track as MediaStreamTrackWeb).jsTrack;
+    var sender = _jsPc.addTrack(jsTrack, jStream);
+    return RTCRtpSenderWeb.fromJsSender(sender);
   }
 
   @override
-  Future<bool> removeTrack(RTCRtpSender sender) {
-    var _native = sender as RTCRtpSenderWeb;
-    _jsPc.removeTrack(_native.jsSender);
-    return Future.value(true);
+  List<RTCRtpReceiver> get receivers {
+    var receivers = jsutil.getProperty(_jsPc, 'receivers');
+    return receivers.map((e) => RTCRtpReceiverWeb(e)).toList();
   }
 
   @override
-  List<RTCRtpReceiver> get receivers =>
-      _jsPc.receivers.map((e) => RTCRtpReceiverWeb(e)).toList();
+  Future<bool> removeTrack(RTCRtpSender sender) async {
+    var nativeSender = sender as RTCRtpSenderWeb;
+    var nativeTrack = nativeSender.track as MediaStreamTrackWeb;
+    return jsutil.callMethod(_jsPc, 'removeTrack', [nativeTrack.jsTrack]);
+  }
 
   @override
-  List<RTCRtpSender> get senders =>
-      _jsPc.senders.map((e) => RTCRtpSenderWeb.fromJsSender(e)).toList();
+  List<RTCRtpSender> get senders {
+    var senders = jsutil.getProperty(_jsPc, 'senders');
+    return senders.map((e) => RTCRtpSenderWeb.fromJsSender(e)).toList();
+  }
 
   @override
-  List<RTCRtpTransceiver> get transceivers => _jsPc.transceivers
-      .map((e) => RTCRtpTransceiverWeb.fromJsObject(e))
-      .toList();
+  List<RTCRtpTransceiver> get transceivers {
+    var transceivers = jsutil.getProperty(_jsPc, 'transceivers');
+    return transceivers
+        .map((e) => RTCRtpTransceiverWeb.fromJsObject(e))
+        .toList();
+  }
 
+  //'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
   @override
   Future<RTCRtpTransceiver> addTransceiver(
       {MediaStreamTrack track,
       RTCRtpMediaType kind,
       RTCRtpTransceiverInit init}) async {
-    var _jsTransceiver;
-    if (track != null) {
-      var _nativeTrack = track as MediaStreamTrackWeb;
-      _jsTransceiver = await _jsPc.addTransceiver(
-          init: _convertToJsTtpTransceiverInit(init),
-          track: _nativeTrack.jsTrack);
-    } else if (kind != null) {
-      _jsTransceiver = await _jsPc.addTransceiver(
-          init: _convertToJsTtpTransceiverInit(init),
-          kind: typeRTCRtpMediaTypetoString[kind]);
-    }
-    return RTCRtpTransceiverWeb(_jsTransceiver, _peerConnectionId);
-  }
-
-  dart_webrtc.RTCRtpTransceiverInit _convertToJsTtpTransceiverInit(
-      RTCRtpTransceiverInit init) {
-    return dart_webrtc.RTCRtpTransceiverInit(
-        direction: typeRtpTransceiverDirectionToString[init.direction],
-        streams: init.streams != null
-            ? init.streams
-                .map((e) => (e as MediaStreamWeb).jsStream.js)
-                .toList()
-            : [],
-        sendEncodings: init.sendEncodings != null
-            ? init.sendEncodings
-                .map((e) => dart_webrtc.rtpEncodingParametersFromMap(e.toMap()))
-                .toList()
-            : []);
-  }
-
-  String _iceConnectionStateToString(dart_webrtc.RTCIceConnectionState state) {
-    switch (state) {
-      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateNew:
-        return 'new';
-      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateChecking:
-        return 'checking';
-      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateConnected:
-        return 'connected';
-      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateCompleted:
-        return 'completed';
-      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateFailed:
-        return 'failed';
-      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateDisconnected:
-        return 'disconnected';
-      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateClosed:
-        return 'closed';
-      case dart_webrtc.RTCIceConnectionState.RTCIceConnectionStateCount:
-        return 'count';
-    }
-    return 'closed';
-  }
-
-  String _iceGatheringStateToString(dart_webrtc.RTCIceGatheringState state) {
-    switch (state) {
-      case dart_webrtc.RTCIceGatheringState.RTCIceGatheringStateNew:
-        return 'new';
-      case dart_webrtc.RTCIceGatheringState.RTCIceGatheringStateGathering:
-        return 'gathering';
-      case dart_webrtc.RTCIceGatheringState.RTCIceGatheringStateComplete:
-        return 'complete';
-    }
-    return 'new';
-  }
-
-  String _signalingStateToString(dart_webrtc.RTCSignalingState state) {
-    switch (state) {
-      case dart_webrtc.RTCSignalingState.RTCSignalingStateStable:
-        return 'stable';
-      case dart_webrtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer:
-        return 'have-local-offer';
-      case dart_webrtc.RTCSignalingState.RTCSignalingStateHaveLocalPrAnswer:
-        return 'have-local-pranswer';
-      case dart_webrtc.RTCSignalingState.RTCSignalingStateHaveRemoteOffer:
-        return 'have-remote-offer';
-      case dart_webrtc.RTCSignalingState.RTCSignalingStateHaveRemotePrAnswer:
-        return 'have-remote-pranswer';
-      case dart_webrtc.RTCSignalingState.RTCSignalingStateClosed:
-        return 'closed';
-    }
-    return 'closed';
-  }
-
-  String _peerConnectionStateToString(
-      dart_webrtc.RTCPeerConnectionState state) {
-    switch (state) {
-      case dart_webrtc.RTCPeerConnectionState.RTCPeerConnectionStateNew:
-        return 'new';
-      case dart_webrtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting:
-        return 'connecting';
-      case dart_webrtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected:
-        return 'connected';
-      case dart_webrtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed:
-        return 'closed';
-      case dart_webrtc
-          .RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
-        return 'disconnected';
-      case dart_webrtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed:
-        return 'failed';
-    }
-
-    return 'closed';
+    var kindOrTrack = kind ?? (track as MediaStreamTrackWeb).jsTrack;
+    final jsOptions = jsutil.jsify(RTCRtpTransceiverInitWeb.initToMap(init));
+    var transceiver =
+        jsutil.callMethod(_jsPc, 'addTransceiver', [kindOrTrack, jsOptions]);
+    return RTCRtpTransceiverWeb.fromJsObject(transceiver,
+        peerConnectionId: _peerConnectionId);
   }
 }
