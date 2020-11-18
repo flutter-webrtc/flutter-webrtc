@@ -1,22 +1,20 @@
 import 'dart:async';
 import 'dart:html' as html;
-import 'dart:js';
-
-import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
+import 'dart:js' as js;
 
 import '../interface/media_stream_track.dart';
 
 class MediaStreamTrackWeb extends MediaStreamTrack {
   MediaStreamTrackWeb(this.jsTrack) {
-    jsTrack.onended = allowInterop((event) {
+    jsTrack.onEnded.listen((event) {
       onEnded?.call();
     });
-    jsTrack.onmute = allowInterop((event) {
+    jsTrack.onMute.listen((event) {
       onMute?.call();
     });
   }
 
-  final dart_webrtc.MediaStreamTrack jsTrack;
+  final html.MediaStreamTrack jsTrack;
 
   @override
   String get id => jsTrack.id;
@@ -50,7 +48,8 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   void setVolume(double volume) {
     final constraints = jsTrack.getConstraints();
     constraints['volume'] = volume;
-    jsTrack.applyConstraints(constraints);
+    js.JsObject.fromBrowserObject(jsTrack)
+        .callMethod('applyConstraints', [js.JsObject.jsify(constraints)]);
   }
 
   @override
@@ -65,7 +64,7 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
 
   @override
   Future<dynamic> captureFrame([String filePath]) async {
-    final imageCapture = html.ImageCapture(jsTrack as html.MediaStreamTrack);
+    final imageCapture = html.ImageCapture(jsTrack);
     final bitmap = await imageCapture.grabFrame();
     final html.CanvasElement canvas = html.Element.canvas();
     canvas.width = bitmap.width;
@@ -79,9 +78,9 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   }
 
   @override
-  Future<void> dispose() async {
-    await super.dispose();
+  Future<void> dispose() {
     jsTrack.stop();
+    return super.dispose();
   }
 
   @override

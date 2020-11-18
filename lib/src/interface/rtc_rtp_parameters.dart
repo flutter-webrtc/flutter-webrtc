@@ -52,9 +52,9 @@ class RTCRtpEncoding {
   RTCRtpEncoding(
       {this.rid,
       this.active,
-      this.maxBitrateBps,
+      this.maxBitrate,
       this.maxFramerate,
-      this.minBitrateBps,
+      this.minBitrate,
       this.numTemporalLayers,
       this.scaleResolutionDownBy,
       this.ssrc});
@@ -63,9 +63,9 @@ class RTCRtpEncoding {
     return RTCRtpEncoding(
         rid: map['rid'],
         active: map['active'],
-        maxBitrateBps: map['maxBitrateBps'],
+        maxBitrate: map['maxBitrate'],
         maxFramerate: map['maxFramerate'],
-        minBitrateBps: map['minBitrateBps'],
+        minBitrate: map['minBitrate'],
         numTemporalLayers: map['numTemporalLayers'],
         scaleResolutionDownBy: map['scaleResolutionDownBy'],
         ssrc: map['ssrc']);
@@ -82,10 +82,10 @@ class RTCRtpEncoding {
   /// If non-null, this represents the Transport Independent Application
   /// Specific maximum bandwidth defined in RFC3890. If null, there is no
   /// maximum bitrate.
-  int maxBitrateBps;
+  int maxBitrate;
 
   /// The minimum bitrate in bps for video.
-  int minBitrateBps;
+  int minBitrate;
 
   /// The max framerate in fps for video.
   int maxFramerate;
@@ -105,9 +105,9 @@ class RTCRtpEncoding {
     return {
       if (rid != null) 'rid': rid,
       if (active != null) 'active': active,
-      if (maxBitrateBps != null) 'maxBitrateBps': maxBitrateBps,
+      if (maxBitrate != null) 'maxBitrate': maxBitrate,
       if (maxFramerate != null) 'maxFramerate': maxFramerate,
-      if (minBitrateBps != null) 'minBitrateBps': minBitrateBps,
+      if (minBitrate != null) 'minBitrate': minBitrate,
       if (numTemporalLayers != null) 'numTemporalLayers': numTemporalLayers,
       if (scaleResolutionDownBy != null)
         'scaleResolutionDownBy': scaleResolutionDownBy,

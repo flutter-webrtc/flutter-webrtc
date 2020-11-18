@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'dart:html';
-import 'dart:js';
+import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
-
-import 'package:dart_webrtc/dart_webrtc.dart' as dart_webrtc;
 
 import '../interface/enums.dart';
 import '../interface/rtc_data_channel.dart';
@@ -12,29 +9,30 @@ class RTCDataChannelWeb extends RTCDataChannel {
   RTCDataChannelWeb(this._jsDc) {
     stateChangeStream = _stateChangeController.stream;
     messageStream = _messageController.stream;
-    _jsDc.onclose = allowInterop((dart_webrtc.Event event) {
+    _jsDc.onClose.listen((_) {
       _state = RTCDataChannelState.RTCDataChannelClosed;
       _stateChangeController.add(_state);
-      onDataChannelState?.call(_state);
+      if (onDataChannelState != null) {
+        onDataChannelState(_state);
+      }
     });
-
-    _jsDc.onopen = allowInterop((dart_webrtc.Event event) {
+    _jsDc.onOpen.listen((_) {
       _state = RTCDataChannelState.RTCDataChannelOpen;
       _stateChangeController.add(_state);
-      onDataChannelState?.call(_state);
-    });
-
-    _jsDc.onmessage = allowInterop((dart_webrtc.MessageEvent event) async {
-      if (event == null || event.data == null) {
-        return;
+      if (onDataChannelState != null) {
+        onDataChannelState(_state);
       }
+    });
+    _jsDc.onMessage.listen((event) async {
       var msg = await _parse(event.data);
       _messageController.add(msg);
-      onMessage?.call(msg);
+      if (onMessage != null) {
+        onMessage(msg);
+      }
     });
   }
 
-  final dart_webrtc.RTCDataChannel _jsDc;
+  final html.RtcDataChannel _jsDc;
   RTCDataChannelState _state = RTCDataChannelState.RTCDataChannelConnecting;
 
   @override
@@ -48,7 +46,7 @@ class RTCDataChannelWeb extends RTCDataChannel {
   Future<RTCDataChannelMessage> _parse(dynamic data) async {
     if (data is String) return RTCDataChannelMessage(data);
     dynamic arrayBuffer;
-    if (data is Blob) {
+    if (data is html.Blob) {
       // This should never happen actually
       arrayBuffer = await jsutil
           .promiseToFuture(jsutil.callMethod(data, 'arrayBuffer', []));
@@ -60,12 +58,13 @@ class RTCDataChannelWeb extends RTCDataChannel {
 
   @override
   Future<void> send(RTCDataChannelMessage message) {
-    try {
-      _jsDc.send(message.isBinary ? message.binary : message.text);
-    } catch (e) {
-      print(e.toString());
+    if (!message.isBinary) {
+      _jsDc.send(message.text);
+    } else {
+      // This may just work
+      _jsDc.sendByteBuffer(message.binary.buffer);
+      // If not, convert to ArrayBuffer/Blob
     }
-
     return Future.value();
   }
 

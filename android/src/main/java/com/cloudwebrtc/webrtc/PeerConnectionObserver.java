@@ -352,7 +352,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     sendEvent(params);
   }
 
-
   void sendEvent(ConstraintsMap event) {
     if (eventSink != null) {
       eventSink.success(event.toMap());
@@ -629,12 +628,12 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           encoding.ssrc = ((Integer) parameters.get("ssrc")).longValue();
       }
 
-      if( parameters.get("minBitrateBps") != null) {
-          encoding.minBitrateBps = (Integer) parameters.get("minBitrateBps");
+      if( parameters.get("minBitrate") != null) {
+          encoding.minBitrateBps = (Integer) parameters.get("minBitrate");
       }
 
-      if( parameters.get("maxBitrateBps") != null) {
-          encoding.maxBitrateBps = (Integer) parameters.get("maxBitrateBps");
+      if( parameters.get("maxBitrate") != null) {
+          encoding.maxBitrateBps = (Integer) parameters.get("maxBitrate");
       }
 
       if( parameters.get("maxFramerate") != null) {
@@ -689,11 +688,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       if(encoding.containsKey("active")){
         nativeEncoding.active =  (Boolean) encoding.get("active");
       }
-      if (encoding.containsKey("maxBitrateBps")) {
-          nativeEncoding.maxBitrateBps = (Integer) encoding.get("maxBitrateBps");
+      if (encoding.containsKey("maxBitrate")) {
+        nativeEncoding.maxBitrateBps = (Integer) encoding.get("maxBitrate");
       }
-      if (encoding.containsKey("minBitrateBps")) {
-        nativeEncoding.minBitrateBps = (Integer) encoding.get("minBitrateBps");
+      if (encoding.containsKey("minBitrate")) {
+        nativeEncoding.minBitrateBps = (Integer) encoding.get("minBitrate");
       }
       if (encoding.containsKey("maxFramerate")) {
         nativeEncoding.maxFramerate = (Integer) encoding.get("maxFramerate");
@@ -705,8 +704,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         nativeEncoding.scaleResolutionDownBy = (Double) encoding.get("scaleResolutionDownBy");
       }
     }
-
-
     return parameters;
   }
 
@@ -734,7 +731,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           ConstraintsMap map = new ConstraintsMap();
           map.putBoolean("active",encoding.active);
           if (encoding.maxBitrateBps != null) {
-              map.putInt("maxBitrateBps", encoding.maxBitrateBps);
+              map.putInt("maxBitrate", encoding.maxBitrateBps);
           }
           if (encoding.minBitrateBps != null) {
               map.putInt("minBitrateBps", encoding.minBitrateBps);

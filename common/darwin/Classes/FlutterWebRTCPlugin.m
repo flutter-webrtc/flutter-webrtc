@@ -1132,7 +1132,7 @@
         [encodings addObject:@{
             @"active": @(encoding.isActive),
             @"minBitrateBps": encoding.minBitrateBps? encoding.minBitrateBps : [NSNumber numberWithInt:0],
-            @"maxBitrateBps": encoding.maxBitrateBps? encoding.maxBitrateBps : [NSNumber numberWithInt:0],
+            @"maxBitrate": encoding.maxBitrateBps? encoding.maxBitrateBps : [NSNumber numberWithInt:0],
             @"maxFramerate": encoding.maxFramerate? encoding.maxFramerate : @(30),
             @"numTemporalLayers": encoding.numTemporalLayers? encoding.numTemporalLayers : @(1),
             @"scaleResolutionDownBy": encoding.scaleResolutionDownBy? @(encoding.scaleResolutionDownBy.doubleValue) : [NSNumber numberWithDouble:1.0],
@@ -1270,12 +1270,12 @@
         [encoding setIsActive:((NSNumber*)map[@"active"]).boolValue];
     }
     
-    if(map[@"minBitrateBps"] != nil) {
-        [encoding setMinBitrateBps:(NSNumber*)map[@"minBitrateBps"]];
+    if(map[@"minBitrate"] != nil) {
+        [encoding setMinBitrateBps:(NSNumber*)map[@"minBitrate"]];
     }
     
-    if(map[@"maxBitrateBps"] != nil) {
-        [encoding setMaxBitrateBps:(NSNumber*)map[@"maxBitrateBps"]];
+    if(map[@"maxBitrate"] != nil) {
+        [encoding setMaxBitrateBps:(NSNumber*)map[@"maxBitrate"]];
     }
     
     if(map[@"maxFramerate"] != nil) {
@@ -1350,8 +1350,8 @@
         if([encoding objectForKey:@"active"]){
             nativeEncoding.isActive =  [encoding objectForKey:@"active"];
         }
-        if([encoding objectForKey:@"maxBitrateBps"]){
-            nativeEncoding.maxBitrateBps =  [encoding objectForKey:@"maxBitrateBps"];
+        if([encoding objectForKey:@"maxBitrate"]){
+            nativeEncoding.maxBitrateBps =  [encoding objectForKey:@"maxBitrate"];
         }
         if([encoding objectForKey:@"minBitrateBps"]){
             nativeEncoding.minBitrateBps =  [encoding objectForKey:@"minBitrateBps"];
