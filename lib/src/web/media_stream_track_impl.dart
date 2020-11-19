@@ -78,9 +78,8 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   }
 
   @override
-  Future<void> dispose() {
+  Future<void> dispose() async {
     jsTrack.stop();
-    return super.dispose();
   }
 
   @override

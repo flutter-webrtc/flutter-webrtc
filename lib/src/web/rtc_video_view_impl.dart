@@ -28,7 +28,9 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   @override
   void initState() {
     super.initState();
-    widget._renderer?.delegate?.addListener(() => setState(() {}));
+    widget._renderer?.delegate?.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   Widget buildVideoElementView(RTCVideoViewObjectFit objFit, bool mirror) {
