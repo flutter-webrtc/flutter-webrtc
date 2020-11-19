@@ -8,6 +8,7 @@ abstract class MediaStreamTrack {
   StreamTrackCallback onMute;
 
   bool get enabled;
+
   set enabled(bool b);
 
   String get label;
@@ -31,9 +32,8 @@ abstract class MediaStreamTrack {
   Future<dynamic> captureFrame([String filePath]);
 
   Future<bool> hasTorch();
+
   Future<void> setTorch(bool torch);
 
-  Future<void> dispose() {
-    return Future.value();
-  }
+  Future<void> dispose();
 }

@@ -37,22 +37,20 @@ class MediaStreamWeb extends MediaStream {
 
   @override
   List<MediaStreamTrack> getAudioTracks() {
-    jsStream.getAudioTracks().forEach((jsTrack) => _audioTracks.putIfAbsent(
-          jsTrack.id,
-          () => MediaStreamTrackWeb(jsTrack),
-        ));
-
-    return _audioTracks.values.toList();
+    var audioTracks = <MediaStreamTrack>[];
+    jsStream
+        .getAudioTracks()
+        .forEach((jsTrack) => audioTracks.add(MediaStreamTrackWeb(jsTrack)));
+    return audioTracks;
   }
 
   @override
   List<MediaStreamTrack> getVideoTracks() {
-    jsStream.getVideoTracks().forEach((jsTrack) => _videoTracks.putIfAbsent(
-          jsTrack.id,
-          () => MediaStreamTrackWeb(jsTrack),
-        ));
-
-    return _videoTracks.values.toList();
+    var audioTracks = <MediaStreamTrack>[];
+    jsStream
+        .getVideoTracks()
+        .forEach((jsTrack) => audioTracks.add(MediaStreamTrackWeb(jsTrack)));
+    return audioTracks;
   }
 
   @override
@@ -60,7 +58,6 @@ class MediaStreamWeb extends MediaStream {
     getTracks().forEach((element) {
       element.dispose();
     });
-
     return super.dispose();
   }
 
