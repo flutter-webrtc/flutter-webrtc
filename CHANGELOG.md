@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.5.2] - 2020.11.19
+
+* Improve web code
+
 [0.5.1] - 2020.11.19
 
 * Improve unfied-plan API for web.
