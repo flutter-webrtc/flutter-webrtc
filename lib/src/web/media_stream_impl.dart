@@ -32,9 +32,6 @@ class MediaStreamWeb extends MediaStream {
     }
   }
 
-  final Map<String, MediaStreamTrack> _audioTracks = {};
-  final Map<String, MediaStreamTrack> _videoTracks = {};
-
   @override
   List<MediaStreamTrack> getAudioTracks() {
     var audioTracks = <MediaStreamTrack>[];
