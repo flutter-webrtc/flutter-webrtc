@@ -17,4 +17,6 @@ abstract class RTCDTMFSender {
   Future<void> sendDtmf(String tones,
           {int duration = 100, int interToneGap = 70}) =>
       insertDTMF(tones, duration: duration, interToneGap: interToneGap);
+
+  Future<bool> canInsertDtmf();
 }

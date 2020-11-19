@@ -19,4 +19,12 @@ class RTCDTMFSenderNative extends RTCDTMFSender {
       'gap': interToneGap,
     });
   }
+
+  @override
+  Future<bool> canInsertDtmf() async {
+    return await _channel.invokeMethod('canInsertDtmf', <String, dynamic>{
+      'peerConnectionId': _peerConnectionId,
+      'rtpSenderId': _rtpSenderId
+    });
+  }
 }

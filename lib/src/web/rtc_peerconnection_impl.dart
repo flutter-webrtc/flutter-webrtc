@@ -298,23 +298,37 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   }
 
   @override
-  Future<List<RTCRtpSender>> getSenders() {
-    var senders = jsutil.getProperty(_jsPc, 'senders');
-    return senders.map((e) => RTCRtpSenderWeb.fromJsSender(e)).toList();
+  Future<List<RTCRtpSender>> getSenders() async {
+    var senders = jsutil.callMethod(_jsPc, 'getSenders', []);
+    var list = <RTCRtpSender>[];
+    senders.forEach((e) {
+      list.add(RTCRtpSenderWeb.fromJsSender(e));
+    });
+    return list;
   }
 
   @override
-  Future<List<RTCRtpReceiver>> getReceivers() {
-    var receivers = jsutil.getProperty(_jsPc, 'receivers');
-    return receivers.map((e) => RTCRtpReceiverWeb(e)).toList();
+  Future<List<RTCRtpReceiver>> getReceivers() async {
+    var receivers = jsutil.callMethod(_jsPc, 'getReceivers', []);
+
+    var list = <RTCRtpReceiver>[];
+    receivers.forEach((e) {
+      list.add(RTCRtpReceiverWeb(e));
+    });
+
+    return list;
   }
 
   @override
-  Future<List<RTCRtpTransceiver>> getTransceivers() {
-    var transceivers = jsutil.getProperty(_jsPc, 'transceivers');
-    return transceivers
-        .map((e) => RTCRtpTransceiverWeb.fromJsObject(e))
-        .toList();
+  Future<List<RTCRtpTransceiver>> getTransceivers() async {
+    var transceivers = jsutil.callMethod(_jsPc, 'getTransceivers', []);
+
+    var list = <RTCRtpTransceiver>[];
+    transceivers.forEach((e) {
+      list.add(RTCRtpTransceiverWeb.fromJsObject(e));
+    });
+
+    return list;
   }
 
   //'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }

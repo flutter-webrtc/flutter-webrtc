@@ -42,6 +42,7 @@ class _MyAppState extends State<LoopBackSample> {
 
   void handleStatsReport(Timer timer) async {
     if (_peerConnection != null) {
+/*
       var reports = await _peerConnection.getStats();
       reports.forEach((report) {
         print('report => { ');
@@ -55,13 +56,17 @@ class _MyAppState extends State<LoopBackSample> {
         print('    }');
         print('}');
       });
+*/
       /*
       var senders = await _peerConnection.getSenders();
-      print(senders.toString());
+      var canInsertDTMF = await senders[0].dtmfSender.canInsertDtmf();
+      print(canInsertDTMF);
+      await senders[0].dtmfSender.insertDTMF('1');
       var receivers = await _peerConnection.getReceivers();
-      print(receivers.toString());
+      print(receivers[0].track.id);
       var transceivers = await _peerConnection.getTransceivers();
-      print(transceivers.toString());
+      print(transceivers[0].sender.parameters);
+      print(transceivers[0].receiver.parameters);
       */
     }
   }
@@ -186,14 +191,15 @@ class _MyAppState extends State<LoopBackSample> {
             direction: TransceiverDirection.SendRecv, streams: [_localStream]),
       );
 
+      /*
       // ignore: unused_local_variable
       var transceiver = await _peerConnection.addTransceiver(
         track: _localStream.getVideoTracks()[0],
         init: RTCRtpTransceiverInit(
             direction: TransceiverDirection.SendRecv, streams: [_localStream]),
       );
+      */
 
-      /*
       // Unified-Plan Simulcast
       await _peerConnection.addTransceiver(
           track: _localStream.getVideoTracks()[0],
@@ -221,7 +227,7 @@ class _MyAppState extends State<LoopBackSample> {
               ),
             ],
           ));
-
+      /*
       await _peerConnection.addTransceiver(
           kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
       await _peerConnection.addTransceiver(

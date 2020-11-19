@@ -104,7 +104,7 @@ class RTCRtpEncoding {
   Map<String, dynamic> toMap() {
     return {
       if (rid != null) 'rid': rid,
-      if (active != null) 'active': active,
+      'active': active ?? true,
       if (maxBitrate != null) 'maxBitrate': maxBitrate,
       if (maxFramerate != null) 'maxFramerate': maxFramerate,
       if (minBitrate != null) 'minBitrate': minBitrate,
@@ -142,8 +142,12 @@ class RTCHeaderExtension {
 }
 
 class RTCRtpParameters {
-  RTCRtpParameters(this.transactionId, this.rtcp, this.headerExtensions,
-      this.encodings, this.codecs);
+  RTCRtpParameters(
+      {this.transactionId,
+      this.rtcp,
+      this.headerExtensions,
+      this.encodings,
+      this.codecs});
 
   factory RTCRtpParameters.fromMap(Map<dynamic, dynamic> map) {
     var encodings = <RTCRtpEncoding>[];
@@ -163,7 +167,11 @@ class RTCRtpParameters {
     });
     var rtcp = RTCRTCPParameters.fromMap(map['rtcp']);
     return RTCRtpParameters(
-        map['transactionId'], rtcp, headerExtensions, encodings, codecs);
+        transactionId: map['transactionId'],
+        rtcp: rtcp,
+        headerExtensions: headerExtensions,
+        encodings: encodings,
+        codecs: codecs);
   }
 
   String transactionId;
