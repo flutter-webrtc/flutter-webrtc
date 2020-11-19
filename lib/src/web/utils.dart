@@ -11,5 +11,6 @@ class WebRTC {
 
   static bool get platformIsWeb => true;
 
-  static MethodChannel methodChannel() => throw UnimplementedError;
+  static MethodChannel methodChannel() =>
+      throw UnimplementedError('No need to use methodChannel in the web!');
 }

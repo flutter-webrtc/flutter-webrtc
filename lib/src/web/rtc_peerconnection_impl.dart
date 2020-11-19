@@ -291,12 +291,6 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   }
 
   @override
-  List<RTCRtpReceiver> get receivers {
-    var receivers = jsutil.getProperty(_jsPc, 'receivers');
-    return receivers.map((e) => RTCRtpReceiverWeb(e)).toList();
-  }
-
-  @override
   Future<bool> removeTrack(RTCRtpSender sender) async {
     var nativeSender = sender as RTCRtpSenderWeb;
     var nativeTrack = nativeSender.track as MediaStreamTrackWeb;
@@ -304,13 +298,19 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   }
 
   @override
-  List<RTCRtpSender> get senders {
+  Future<List<RTCRtpSender>> getSenders() {
     var senders = jsutil.getProperty(_jsPc, 'senders');
     return senders.map((e) => RTCRtpSenderWeb.fromJsSender(e)).toList();
   }
 
   @override
-  List<RTCRtpTransceiver> get transceivers {
+  Future<List<RTCRtpReceiver>> getReceivers() {
+    var receivers = jsutil.getProperty(_jsPc, 'receivers');
+    return receivers.map((e) => RTCRtpReceiverWeb(e)).toList();
+  }
+
+  @override
+  Future<List<RTCRtpTransceiver>> getTransceivers() {
     var transceivers = jsutil.getProperty(_jsPc, 'transceivers');
     return transceivers
         .map((e) => RTCRtpTransceiverWeb.fromJsObject(e))
@@ -324,7 +324,8 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
       RTCRtpMediaType kind,
       RTCRtpTransceiverInit init}) async {
     var kindOrTrack = kind ?? (track as MediaStreamTrackWeb).jsTrack;
-    final jsOptions = jsutil.jsify(RTCRtpTransceiverInitWeb.initToMap(init));
+    final jsOptions = jsutil
+        .jsify(init != null ? RTCRtpTransceiverInitWeb.initToMap(init) : {});
     var transceiver =
         jsutil.callMethod(_jsPc, 'addTransceiver', [kindOrTrack, jsOptions]);
     return RTCRtpTransceiverWeb.fromJsObject(transceiver,

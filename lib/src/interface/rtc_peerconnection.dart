@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'enums.dart';
 import 'media_stream.dart';
 import 'media_stream_track.dart';
@@ -93,11 +95,17 @@ abstract class RTCPeerConnection {
   RTCDTMFSender createDtmfSender(MediaStreamTrack track);
 
   /// Unified-Plan.
-  List<RTCRtpSender> get senders;
+  Future<List<RTCRtpSender>> getSenders();
 
-  List<RTCRtpReceiver> get receivers;
+  Future<List<RTCRtpSender>> get senders => getSenders();
 
-  List<RTCRtpTransceiver> get transceivers;
+  Future<List<RTCRtpReceiver>> getReceivers();
+
+  Future<List<RTCRtpReceiver>> get receivers => getReceivers();
+
+  Future<List<RTCRtpTransceiver>> getTransceivers();
+
+  Future<List<RTCRtpTransceiver>> get transceivers => getTransceivers();
 
   Future<RTCRtpSender> addTrack(MediaStreamTrack track, [MediaStream stream]);
 

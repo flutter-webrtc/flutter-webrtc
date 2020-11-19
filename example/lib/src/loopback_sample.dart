@@ -55,6 +55,14 @@ class _MyAppState extends State<LoopBackSample> {
         print('    }');
         print('}');
       });
+      /*
+      var senders = await _peerConnection.getSenders();
+      print(senders.toString());
+      var receivers = await _peerConnection.getReceivers();
+      print(receivers.toString());
+      var transceivers = await _peerConnection.getTransceivers();
+      print(transceivers.toString());
+      */
     }
   }
 

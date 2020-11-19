@@ -734,7 +734,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
               map.putInt("maxBitrate", encoding.maxBitrateBps);
           }
           if (encoding.minBitrateBps != null) {
-              map.putInt("minBitrateBps", encoding.minBitrateBps);
+              map.putInt("minBitrate", encoding.minBitrateBps);
           }
           if (encoding.maxFramerate != null) {
               map.putInt("maxFramerate", encoding.maxFramerate);
@@ -963,5 +963,38 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         }
         sender.dispose();
         result.success(null);
+    }
+
+    public void getSenders(Result result) {
+      List<RtpSender> senders = peerConnection.getSenders();
+      ConstraintsArray sendersParams = new ConstraintsArray();
+      for(RtpSender sender : senders){
+        sendersParams.pushMap(new ConstraintsMap(rtpSenderToMap(sender)));
+      }
+      ConstraintsMap params = new ConstraintsMap();
+      params.putArray("senders", sendersParams.toArrayList());
+      result.success(params.toMap());
+    }
+  
+    public void getReceivers(Result result) {
+      List<RtpReceiver> receivers = peerConnection.getReceivers();
+      ConstraintsArray receiversParams = new ConstraintsArray();
+      for(RtpReceiver receiver : receivers){
+        receiversParams.pushMap(new ConstraintsMap(rtpReceiverToMap(receiver)));
+      }
+      ConstraintsMap params = new ConstraintsMap();
+      params.putArray("receivers", receiversParams.toArrayList());
+      result.success(params.toMap());
+    }
+  
+    public void getTransceivers(Result result) {
+      List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
+      ConstraintsArray transceiversParams = new ConstraintsArray();
+      for(RtpTransceiver receiver : transceivers){
+        transceiversParams.pushMap(new ConstraintsMap(transceiverToMap(receiver)));
+      }
+      ConstraintsMap params = new ConstraintsMap();
+      params.putArray("transceivers", transceiversParams.toArrayList());
+      result.success(params.toMap());
     }
 }

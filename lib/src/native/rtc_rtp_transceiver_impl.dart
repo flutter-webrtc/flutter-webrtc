@@ -71,6 +71,14 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
     return transceiver;
   }
 
+  static List<RTCRtpTransceiverNative> fromMaps(List<dynamic> map,
+      {String peerConnectionId}) {
+    return map
+        .map((e) => RTCRtpTransceiverNative.fromMap(e,
+            peerConnectionId: peerConnectionId))
+        .toList();
+  }
+
   final MethodChannel _channel = WebRTC.methodChannel();
   String _peerConnectionId;
   String _id;

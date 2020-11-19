@@ -26,6 +26,14 @@ class RTCRtpSenderNative extends RTCRtpSender {
         peerConnectionId);
   }
 
+  static List<RTCRtpSenderNative> fromMaps(List<dynamic> map,
+      {String peerConnectionId}) {
+    return map
+        .map((e) =>
+            RTCRtpSenderNative.fromMap(e, peerConnectionId: peerConnectionId))
+        .toList();
+  }
+
   final MethodChannel _channel = WebRTC.methodChannel();
   String _peerConnectionId;
   String _id;
@@ -33,11 +41,6 @@ class RTCRtpSenderNative extends RTCRtpSender {
   RTCDTMFSender _dtmf;
   RTCRtpParameters _parameters;
   bool _ownsTrack = false;
-
-  set peerConnectionId(String id) {
-    _peerConnectionId = id;
-  }
-
   @override
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     _parameters = parameters;
