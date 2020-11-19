@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.5.1] - 2020.11.19
+
+* Improve unfied-plan API for web.
+* Add getTransceivers,getSenders, getReceivers methods.
+
 [0.5.0+1] - 2020.11.18
 
 * Remove dart-webrtc and reuse the code in dart:html
