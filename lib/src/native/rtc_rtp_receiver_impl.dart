@@ -12,6 +12,10 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
     return RTCRtpReceiverNative(map['receiverId'], track, parameters);
   }
 
+  static List<RTCRtpReceiverNative> fromMaps(List<dynamic> map) {
+    return map.map((e) => RTCRtpReceiverNative.fromMap(e)).toList();
+  }
+
   /// private:
   String _id;
   MediaStreamTrack _track;

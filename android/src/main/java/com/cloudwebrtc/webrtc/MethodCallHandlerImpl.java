@@ -629,6 +629,21 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         rtpSenderDispose(peerConnectionId, rtpSenderId, result);
         break;
       }
+      case "getSenders": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        getSenders(peerConnectionId, result);
+        break;
+      }
+      case "getReceivers": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        getReceivers(peerConnectionId, result);
+        break;
+      }
+      case "getTransceivers": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        getTransceivers(peerConnectionId, result);
+        break;
+      }
       default:
         result.notImplemented();
         break;
@@ -1570,6 +1585,33 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       resultError("rtpSenderDispose", "peerConnection is null", result);
     } else {
       pco.rtpSenderDispose(rtpSenderId, result);
+    }
+  }
+
+  public void getSenders(String peerConnectionId, Result result) {
+    PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+    if (pco == null || pco.getPeerConnection() == null) {
+      resultError("getSenders", "peerConnection is null", result);
+    } else {
+      pco.getSenders(result);
+    }
+  }
+
+  public void getReceivers(String peerConnectionId, Result result) {
+    PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+    if (pco == null || pco.getPeerConnection() == null) {
+      resultError("getReceivers", "peerConnection is null", result);
+    } else {
+      pco.getReceivers(result);
+    }
+  }
+
+  public void getTransceivers(String peerConnectionId, Result result) {
+    PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+    if (pco == null || pco.getPeerConnection() == null) {
+      resultError("getTransceivers", "peerConnection is null", result);
+    } else {
+      pco.getTransceivers(result);
     }
   }
 

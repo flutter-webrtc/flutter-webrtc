@@ -7,7 +7,13 @@
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wprotocol"
+
 @implementation FlutterWebRTCPlugin {
+    
+#pragma clang diagnostic pop
+
     FlutterMethodChannel *_methodChannel;
     id _registry;
     id _messenger;
@@ -852,7 +858,58 @@
         }
         [peerConnection removeTrack:sender];
         result(nil);
-    }  else {
+    } else if ([@"getSenders" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        if(peerConnection == nil) {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+            message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+            details:nil]);
+            return;
+        }
+        
+        NSMutableArray *senders = [NSMutableArray array];
+        for (RTCRtpSender *sender in peerConnection.senders) {
+            [senders addObject:[self rtpSenderToMap:sender]];
+        }
+
+        result(@{ @"senders":senders});
+    } else if ([@"getReceivers" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        if(peerConnection == nil) {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+            message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+            details:nil]);
+            return;
+        }
+        
+        NSMutableArray *receivers = [NSMutableArray array];
+        for (RTCRtpReceiver *receiver in peerConnection.receivers) {
+            [receivers addObject:[self receiverToMap:receiver]];
+        }
+
+        result(@{ @"receivers":receivers});
+    } else if ([@"getTransceivers" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        if(peerConnection == nil) {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+            message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+            details:nil]);
+            return;
+        }
+        
+        NSMutableArray *transceivers = [NSMutableArray array];
+        for (RTCRtpTransceiver *transceiver in peerConnection.transceivers) {
+            [transceivers addObject:[self transceiverToMap:transceiver]];
+        }
+
+        result(@{ @"transceivers":transceivers});
+    } else {
         result(FlutterMethodNotImplemented);
     }
 }
@@ -1131,7 +1188,7 @@
     for (RTCRtpEncodingParameters* encoding in parameters.encodings) {
         [encodings addObject:@{
             @"active": @(encoding.isActive),
-            @"minBitrateBps": encoding.minBitrateBps? encoding.minBitrateBps : [NSNumber numberWithInt:0],
+            @"minBitrate": encoding.minBitrateBps? encoding.minBitrateBps : [NSNumber numberWithInt:0],
             @"maxBitrate": encoding.maxBitrateBps? encoding.maxBitrateBps : [NSNumber numberWithInt:0],
             @"maxFramerate": encoding.maxFramerate? encoding.maxFramerate : @(30),
             @"numTemporalLayers": encoding.numTemporalLayers? encoding.numTemporalLayers : @(1),
@@ -1348,19 +1405,19 @@
         RTCRtpEncodingParameters *nativeEncoding = [nativeEncodings objectAtIndex:i];
         NSDictionary *encoding = [encodings objectAtIndex:i];
         if([encoding objectForKey:@"active"]){
-            nativeEncoding.isActive =  [encoding objectForKey:@"active"];
+            nativeEncoding.isActive =  [[encoding objectForKey:@"active"] boolValue];
         }
         if([encoding objectForKey:@"maxBitrate"]){
             nativeEncoding.maxBitrateBps =  [encoding objectForKey:@"maxBitrate"];
         }
-        if([encoding objectForKey:@"minBitrateBps"]){
-            nativeEncoding.minBitrateBps =  [encoding objectForKey:@"minBitrateBps"];
+        if([encoding objectForKey:@"minBitrate"]){
+            nativeEncoding.minBitrateBps =  [encoding objectForKey:@"minBitrate"];
         }
         if([encoding objectForKey:@"maxFramerate"]){
             nativeEncoding.maxFramerate =  [encoding objectForKey:@"maxFramerate"];
         }
         if([encoding objectForKey:@"numTemporalLayers"]){
-            nativeEncoding.isActive =  [encoding objectForKey:@"numTemporalLayers"];
+            nativeEncoding.numTemporalLayers =  [encoding objectForKey:@"numTemporalLayers"];
         }
         if([encoding objectForKey:@"scaleResolutionDownBy"]){
             nativeEncoding.scaleResolutionDownBy =  [encoding objectForKey:@"scaleResolutionDownBy"];
