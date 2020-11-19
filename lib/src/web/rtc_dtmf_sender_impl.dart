@@ -11,4 +11,9 @@ class RTCDTMFSenderWeb extends RTCDTMFSender {
       {int duration = 100, int interToneGap = 70}) async {
     return _jsDtmfSender.insertDtmf(tones, duration, interToneGap);
   }
+
+  @override
+  Future<bool> canInsertDtmf() async {
+    return _jsDtmfSender.canInsertDtmf;
+  }
 }

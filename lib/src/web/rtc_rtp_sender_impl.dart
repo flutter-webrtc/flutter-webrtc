@@ -1,6 +1,7 @@
 import 'dart:async';
-
+import 'dart:html';
 import 'dart:js_util' as jsutil;
+
 import 'package:flutter/services.dart';
 
 import '../interface/media_stream_track.dart';
@@ -9,30 +10,17 @@ import '../interface/rtc_rtp_parameters.dart';
 import '../interface/rtc_rtp_sender.dart';
 import 'media_stream_track_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
+import 'rtc_rtp_parameters_impl.dart';
 
 class RTCRtpSenderWeb extends RTCRtpSender {
   RTCRtpSenderWeb(this._jsRtpSender, this._ownsTrack);
 
-  factory RTCRtpSenderWeb.fromJsSender(Object jsRtpSender) {
-    return RTCRtpSenderWeb(
-        jsRtpSender, jsutil.getProperty(jsRtpSender, 'track') != null);
+  factory RTCRtpSenderWeb.fromJsSender(RtcRtpSender jsRtpSender) {
+    return RTCRtpSenderWeb(jsRtpSender, jsRtpSender.track != null);
   }
 
-  Object _jsRtpSender;
+  RtcRtpSender _jsRtpSender;
   bool _ownsTrack = false;
-
-  Object get jsSender => _jsRtpSender;
-
-  @override
-  Future<bool> setParameters(RTCRtpParameters parameters) async {
-    try {
-      var jsParameters = jsutil.callMethod(_jsRtpSender, 'getParameters', []);
-      return await jsutil.promiseToFuture<bool>(jsutil.callMethod(
-          _jsRtpSender, 'setParameters', [jsutil.jsify(jsParameters)]));
-    } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpSender::setParameters: ${e.message}';
-    }
-  }
 
   @override
   Future<void> replaceTrack(MediaStreamTrack track) async {
@@ -56,8 +44,23 @@ class RTCRtpSenderWeb extends RTCRtpSender {
   }
 
   @override
-  RTCRtpParameters get parameters => RTCRtpParameters.fromMap(
-      jsutil.callMethod(_jsRtpSender, 'getParameters', []));
+  RTCRtpParameters get parameters {
+    var parameters = jsutil.callMethod(_jsRtpSender, 'getParameters', []);
+    return RTCRtpParametersWeb.fromJsObject(parameters);
+  }
+
+  @override
+  Future<bool> setParameters(RTCRtpParameters parameters) async {
+    try {
+      var oldParameters = jsutil.callMethod(_jsRtpSender, 'getParameters', []);
+      jsutil.setProperty(oldParameters, 'encodings',
+          jsutil.jsify(parameters.encodings.map((e) => e.toMap()).toList()));
+      return await jsutil.promiseToFuture<bool>(
+          jsutil.callMethod(_jsRtpSender, 'setParameters', [oldParameters]));
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpSender::setParameters: ${e.message}';
+    }
+  }
 
   @override
   MediaStreamTrack get track =>
