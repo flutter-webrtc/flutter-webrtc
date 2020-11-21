@@ -265,7 +265,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     self._targetHeight = 720;
     self._targetFps = 30;
     
-    id mandatory = videoConstraints[@"mandatory"];
+    if (!videoDevice && [constraints[@"video"] boolValue] == YES) {
+        videoDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    }
+    
+    id mandatory = [videoConstraints isKindOfClass:[NSDictionary class]]? videoConstraints[@"mandatory"] : nil ;
+
     // constraints.video.mandatory
     if(mandatory && [mandatory isKindOfClass:[NSDictionary class]])
     {

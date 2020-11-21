@@ -255,8 +255,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       final response = await _channel
           .invokeMethod<Map<dynamic, dynamic>>('createOffer', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
-        'constraints':
-            constraints.isEmpty ? defaultSdpConstraints : constraints,
+        'constraints': constraints ?? defaultSdpConstraints
       });
 
       String sdp = response['sdp'];
@@ -274,8 +273,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       final response = await _channel.invokeMethod<Map<dynamic, dynamic>>(
           'createAnswer', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
-        'constraints':
-            constraints.isEmpty ? defaultSdpConstraints : constraints,
+        'constraints': constraints ?? defaultSdpConstraints
       });
       String sdp = response['sdp'];
       String type = response['type'];
