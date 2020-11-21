@@ -10,6 +10,10 @@ class RTCVideoRenderer {
 
   Future<void> initialize() => _delegate.initialize();
 
+  int get videoWidth => _delegate.videoWidth;
+
+  int get videoHeight => _delegate.videoHeight;
+
   bool get renderVideo => _delegate.renderVideo;
 
   bool get muted => _delegate.muted;

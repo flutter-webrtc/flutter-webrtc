@@ -46,6 +46,12 @@ class RTCVideoRendererWeb extends VideoRenderer {
       _videoElement.style.transform = 'rotateY(${mirror ? "180" : "0"}deg)';
 
   @override
+  int get videoWidth => value.width.toInt();
+
+  @override
+  int get videoHeight => value.height.toInt();
+
+  @override
   int get textureId => _textureId;
 
   @override
