@@ -219,7 +219,15 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   @override
   Future<List<StatsReport>> getStats([MediaStreamTrack track]) async {
-    final stats = await _jsPc.getStats();
+    var stats;
+    if (track != null) {
+      var jsTrack = (track as MediaStreamTrackWeb).jsTrack;
+      stats = await jsutil.promiseToFuture<dynamic>(
+          jsutil.callMethod(_jsPc, 'getStats', [jsTrack]));
+    } else {
+      stats = await _jsPc.getStats();
+    }
+
     var report = <StatsReport>[];
     stats.forEach((key, value) {
       report.add(
