@@ -3,6 +3,7 @@ import 'dart:html';
 import 'dart:js_util' as jsutil;
 
 import 'package:flutter/services.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../interface/media_stream_track.dart';
 import '../interface/rtc_dtmf_sender.dart';
@@ -60,6 +61,18 @@ class RTCRtpSenderWeb extends RTCRtpSender {
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::setParameters: ${e.message}';
     }
+  }
+
+  @override
+  Future<List<StatsReport>> getStats() async {
+    var stats = await jsutil.promiseToFuture<dynamic>(
+        jsutil.callMethod(_jsRtpSender, 'getStats', []));
+    var report = <StatsReport>[];
+    stats.forEach((key, value) {
+      report.add(
+          StatsReport(value['id'], value['type'], value['timestamp'], value));
+    });
+    return report;
   }
 
   @override

@@ -23,7 +23,8 @@ class RTCTrackEventNative extends RTCTrackEvent {
     var streams =
         streamsParams.map((e) => MediaStreamNative.fromMap(e)).toList();
     return RTCTrackEventNative(
-        RTCRtpReceiverNative.fromMap(map['receiver']),
+        RTCRtpReceiverNative.fromMap(map['receiver'],
+            peerConnectionId: peerConnectionId),
         streams,
         MediaStreamTrackNative.fromMap(map['track']),
         RTCRtpTransceiverNative.fromMap(map['transceiver'],

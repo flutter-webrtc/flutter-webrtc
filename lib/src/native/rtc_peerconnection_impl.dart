@@ -180,7 +180,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
                 peerConnectionId: _peerConnectionId)
             : null;
         onTrack?.call(RTCTrackEvent(
-            receiver: RTCRtpReceiverNative.fromMap(map['receiver']),
+            receiver: RTCRtpReceiverNative.fromMap(map['receiver'],
+                peerConnectionId: _peerConnectionId),
             streams: streams,
             track: MediaStreamTrackNative.fromMap(map['track']),
             transceiver: transceiver));
@@ -447,7 +448,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
     try {
       final response = await _channel.invokeMethod('getReceivers',
           <String, dynamic>{'peerConnectionId': _peerConnectionId});
-      return RTCRtpReceiverNative.fromMaps(response['receivers']);
+      return RTCRtpReceiverNative.fromMaps(response['receivers'],
+          peerConnectionId: _peerConnectionId);
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::addTrack: ${e.message}';
     }

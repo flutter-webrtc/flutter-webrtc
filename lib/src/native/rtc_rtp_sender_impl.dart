@@ -7,6 +7,7 @@ import '../interface/media_stream_track.dart';
 import '../interface/rtc_dtmf_sender.dart';
 import '../interface/rtc_rtp_parameters.dart';
 import '../interface/rtc_rtp_sender.dart';
+import '../interface/rtc_stats_report.dart';
 import 'media_stream_track_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
 import 'utils.dart';
@@ -41,6 +42,29 @@ class RTCRtpSenderNative extends RTCRtpSender {
   RTCDTMFSender _dtmf;
   RTCRtpParameters _parameters;
   bool _ownsTrack = false;
+
+  @override
+  Future<List<StatsReport>> getStats() async {
+    try {
+      final response = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+          'getStats', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'track': track.id
+      });
+      var stats = <StatsReport>[];
+      if (response != null) {
+        List<dynamic> reports = response['stats'];
+        reports.forEach((report) {
+          stats.add(StatsReport(report['id'], report['type'],
+              report['timestamp'], report['values']));
+        });
+      }
+      return stats;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::getStats: ${e.message}';
+    }
+  }
+
   @override
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     _parameters = parameters;
