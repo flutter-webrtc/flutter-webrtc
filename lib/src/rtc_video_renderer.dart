@@ -8,6 +8,8 @@ class RTCVideoRenderer {
 
   VideoRenderer get delegate => _delegate;
 
+  set onResize(Function func) => _delegate.onResize = func;
+
   Future<void> initialize() => _delegate.initialize();
 
   int get videoWidth => _delegate.videoWidth;
