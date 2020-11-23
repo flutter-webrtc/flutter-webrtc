@@ -1365,9 +1365,9 @@
     }
 
     if(encodingsParams != nil) {
-        NSArray<RTCRtpEncodingParameters *> *sendEncodings = [[NSArray alloc] init];
+        NSMutableArray<RTCRtpEncodingParameters *> *sendEncodings = [[NSMutableArray alloc] init];
         for (NSDictionary* map in encodingsParams){
-            sendEncodings = [sendEncodings arrayByAddingObject:[self mapToEncoding:map]];
+            [sendEncodings insertObject:[self mapToEncoding:map] atIndex:0];
         }
         [init setSendEncodings:sendEncodings];
     }
