@@ -68,12 +68,14 @@ class RTCVideoRendererNative extends VideoRenderer {
       case 'didTextureChangeRotation':
         value =
             value.copyWith(rotation: map['rotation'], renderVideo: renderVideo);
+        onResize?.call();
         break;
       case 'didTextureChangeVideoSize':
         value = value.copyWith(
             width: 0.0 + map['width'],
             height: 0.0 + map['height'],
             renderVideo: renderVideo);
+        onResize?.call();
         break;
       case 'didFirstFrameRendered':
         break;

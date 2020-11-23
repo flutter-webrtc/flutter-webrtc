@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.5.6] - 2020.11.21
+
+* [Android/Darwin/Web] Add onResize event for RTCVideoRenderer.
+
 [0.5.5] - 2020.11.21
 
 * [Android/Darwin] Fix Simulcast issue.

@@ -92,6 +92,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
       _videoElement.onResize.listen(
         (dynamic _) {
           _updateAllValues();
+          onResize?.call();
           //print('RTCVideoRenderer: videoElement.onResize ${value.toString()}');
         },
       ),

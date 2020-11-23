@@ -46,6 +46,8 @@ class RTCVideoValue {
 abstract class VideoRenderer extends ValueNotifier<RTCVideoValue> {
   VideoRenderer() : super(RTCVideoValue.empty);
 
+  Function onResize;
+
   int get videoWidth;
 
   int get videoHeight;
