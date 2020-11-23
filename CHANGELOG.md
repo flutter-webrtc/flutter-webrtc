@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.5.5] - 2020.11.21
+
+* [Android/Darwin] Fix Simulcast issue.
+
 [0.5.4] - 2020.11.21
 
 * [Native/Web] Add videoWidth/videoHeight getter for RTCVideoRenderer.
