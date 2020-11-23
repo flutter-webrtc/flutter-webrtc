@@ -66,7 +66,8 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
         map['mid'],
         RTCRtpSenderNative.fromMap(map['sender'],
             peerConnectionId: peerConnectionId),
-        RTCRtpReceiverNative.fromMap(map['receiver']),
+        RTCRtpReceiverNative.fromMap(map['receiver'],
+            peerConnectionId: peerConnectionId),
         peerConnectionId);
     return transceiver;
   }
