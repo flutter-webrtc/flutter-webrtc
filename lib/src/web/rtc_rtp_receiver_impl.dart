@@ -1,3 +1,4 @@
+import 'dart:html';
 import 'dart:js_util' as jsutil;
 
 import '../interface/media_stream_track.dart';
@@ -11,7 +12,7 @@ class RTCRtpReceiverWeb extends RTCRtpReceiver {
   RTCRtpReceiverWeb(this._jsRtpReceiver);
 
   /// private:
-  final Object _jsRtpReceiver;
+  final RtcRtpReceiver _jsRtpReceiver;
 
   @override
   Future<List<StatsReport>> getStats() async {
@@ -35,8 +36,7 @@ class RTCRtpReceiverWeb extends RTCRtpReceiver {
   }
 
   @override
-  MediaStreamTrack get track =>
-      MediaStreamTrackWeb(jsutil.getProperty(_jsRtpReceiver, 'track'));
+  MediaStreamTrack get track => MediaStreamTrackWeb(_jsRtpReceiver.track);
 
   @override
   String get receiverId => jsutil.getProperty(_jsRtpReceiver, 'receiverId');

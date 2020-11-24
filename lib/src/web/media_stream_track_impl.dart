@@ -6,12 +6,9 @@ import '../interface/media_stream_track.dart';
 
 class MediaStreamTrackWeb extends MediaStreamTrack {
   MediaStreamTrackWeb(this.jsTrack) {
-    jsTrack.onEnded.listen((event) {
-      onEnded?.call();
-    });
-    jsTrack.onMute.listen((event) {
-      onMute?.call();
-    });
+    jsTrack.onEnded.listen((event) => onEnded?.call());
+    jsTrack.onMute.listen((event) => onMute?.call());
+    jsTrack.onUnmute.listen((event) => onUnMute?.call());
   }
 
   final html.MediaStreamTrack jsTrack;
@@ -27,6 +24,9 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
 
   @override
   bool get enabled => jsTrack.enabled;
+
+  @override
+  bool get muted => jsTrack.muted;
 
   @override
   set enabled(bool b) {

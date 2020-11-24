@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
+
 import '../interface/media_stream_track.dart';
 import 'utils.dart';
 
@@ -15,11 +17,14 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   final String _kind;
   bool _enabled;
 
+  bool _muted = false;
+
   @override
   set enabled(bool enabled) {
     _channel.invokeMethod('mediaStreamTrackSetEnable',
         <String, dynamic>{'trackId': _trackId, 'enabled': enabled});
     _enabled = enabled;
+    _muted = enabled;
   }
 
   @override
@@ -33,6 +38,9 @@ class MediaStreamTrackNative extends MediaStreamTrack {
 
   @override
   String get id => _trackId;
+
+  @override
+  bool get muted => _muted;
 
   @override
   Future<bool> hasTorch() => _channel.invokeMethod(
@@ -63,10 +71,18 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   @override
   void setMicrophoneMute(bool mute) async {
     print('MediaStreamTrack:setMicrophoneMute $mute');
-    await _channel.invokeMethod(
-      'setMicrophoneMute',
-      <String, dynamic>{'trackId': _trackId, 'mute': mute},
-    );
+
+    try {
+      await _channel.invokeMethod(
+        'setMicrophoneMute',
+        <String, dynamic>{'trackId': _trackId, 'mute': mute},
+      );
+
+      _muted = mute;
+      mute ? onMute?.call() : onUnMute?.call();
+    } on PlatformException catch (e) {
+      throw 'Unable to MediaStreamTrack::setMicrophoneMute: ${e.message}';
+    }
   }
 
   @override

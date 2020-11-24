@@ -95,4 +95,14 @@ class MediaStreamNative extends MediaStream {
       <String, dynamic>{'streamId': id},
     );
   }
+
+  @override
+  // TODO(cloudwebrtc)
+  bool get active => throw UnimplementedError();
+
+  @override
+  MediaStream clone() {
+    // TODO(cloudwebrtc)
+    throw UnimplementedError();
+  }
 }
