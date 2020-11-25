@@ -53,9 +53,22 @@ class MediaDeviceNative extends MediaDevices {
         <String, dynamic>{},
       );
       List<dynamic> sources = response['sources'];
+
       return sources;
     } on PlatformException catch (e) {
       throw 'Unable to getSources: ${e.message}';
     }
+  }
+
+  @override
+  Future<List<MediaDeviceInfo>> enumerateDevices() async {
+    var _source = await getSources();
+    return _source.map(
+      (e) => MediaDeviceInfo(
+          deviceId: e['deviceId'],
+          groupId: e['groupId'],
+          kind: e['kind'],
+          label: e['label']),
+    );
   }
 }

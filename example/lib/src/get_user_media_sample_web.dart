@@ -27,6 +27,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   void initState() {
     super.initState();
     initRenderers();
+    navigator.mediaDevices.getSupportedConstraints();
     navigator.getSources().then((md) {
       setState(() {
         cameras = md.where((d) => d['kind'] == 'videoinput').toList();
