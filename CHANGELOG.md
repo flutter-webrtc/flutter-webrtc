@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.5.7] - 2020.11.21
+
+* [Web] Fix events callback for peerconnection.
+
 [0.5.6] - 2020.11.21
 
 * [Android/Darwin/Web] Add onResize event for RTCVideoRenderer.
