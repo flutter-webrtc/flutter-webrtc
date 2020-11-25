@@ -103,7 +103,8 @@ class MediaStreamTrackNative extends MediaStreamTrack {
     if (constraints == null) return Future.value();
 
     var _current = getConstraints();
-    if (_current['volume'] != constraints['volume']) {
+    if (constraints.containsKey('volume') &&
+        _current['volume'] != constraints['volume']) {
       setVolume(constraints['volume']);
     }
 
