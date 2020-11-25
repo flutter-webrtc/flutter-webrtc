@@ -104,6 +104,11 @@ class MediaStreamTrackNative extends MediaStreamTrack {
 
   @override
   Future<void> dispose() async {
+    return stop();
+  }
+
+  @override
+  Future<void> stop() async {
     await _channel.invokeMethod(
       'trackDispose',
       <String, dynamic>{'trackId': _trackId},

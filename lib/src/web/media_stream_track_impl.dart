@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:html' as html;
-import 'dart:js' as js;
+import 'dart:js_util' as js;
 
 import '../interface/media_stream_track.dart';
 
@@ -34,32 +34,21 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   }
 
   @override
-  Future<bool> switchCamera() async {
-    // TODO(cloudwebrtc): ???
-    return false;
+  Map<String, dynamic> getConstraints() {
+    return jsTrack.getConstraints();
   }
 
   @override
-  Future<void> adaptRes(int width, int height) async {
-    // TODO(cloudwebrtc): ???
-  }
+  Future<void> applyConstraints([Map<String, dynamic> constraints]) async {
+    // Wait for: https://github.com/dart-lang/sdk/commit/1a861435579a37c297f3be0cf69735d5b492bc6c
+    // to be merged to use jsTrack.applyConstraints() directly
+    final arg = js.jsify(constraints);
 
-  @override
-  void setVolume(double volume) {
-    final constraints = jsTrack.getConstraints();
-    constraints['volume'] = volume;
-    js.JsObject.fromBrowserObject(jsTrack)
-        .callMethod('applyConstraints', [js.JsObject.jsify(constraints)]);
-  }
-
-  @override
-  void setMicrophoneMute(bool mute) {
-    jsTrack.enabled = !mute;
-  }
-
-  @override
-  void enableSpeakerphone(bool enable) {
-    // Should this throw error?
+    final _val = await js.promiseToFuture<void>(
+        js.callMethod(jsTrack, 'applyConstraints', [arg]));
+    // js.JsObject.fromBrowserObject(jsTrack)
+    //     .callMethod('applyConstraints', [js.JsObject.jsify(constraints)]);
+    return _val;
   }
 
   @override
@@ -79,6 +68,11 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
 
   @override
   Future<void> dispose() async {
+    return stop();
+  }
+
+  @override
+  Future<void> stop() async {
     jsTrack.stop();
   }
 

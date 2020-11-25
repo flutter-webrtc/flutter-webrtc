@@ -1,3 +1,5 @@
+import 'package:flutter_webrtc/src/helper.dart';
+
 typedef StreamTrackCallback = Function();
 
 abstract class MediaStreamTrack {
@@ -38,23 +40,70 @@ abstract class MediaStreamTrack {
   /// Returns true if the track is muted, and false otherwise.
   bool get muted;
 
+  /// Returns a map containing the set of constraints most recently established
+  /// for the track using a prior call to applyConstraints().
+  ///
+  /// These constraints indicate values and ranges of values that the Web site
+  /// or application has specified are required or acceptable for the included
+  /// constrainable properties.
+  Map<String, dynamic> getConstraints() {
+    throw UnimplementedError();
+  }
+
+  /// Applies a set of constraints to the track.
+  ///
+  /// These constraints let the Web site or app establish ideal values and
+  /// acceptable ranges of values for the constrainable properties of the track,
+  /// such as frame rate, dimensions, echo cancelation, and so forth.
+  Future<void> applyConstraints([Map<String, dynamic> constraints]) {
+    throw UnimplementedError();
+  }
+
+  // MediaStreamTrack clone();
+
+  Future<void> stop();
+
   /// Future contains isFrontCamera
   /// Throws error if switching camera failed
-  Future<bool> switchCamera();
+  Future<bool> switchCamera() {
+    throw UnimplementedError();
+  }
 
-  Future<void> adaptRes(int width, int height);
+  @deprecated
+  Future<void> adaptRes(int width, int height) {
+    throw UnimplementedError();
+  }
 
-  void setVolume(double volume);
+  void setVolume(double volume) {
+    Helper.setVolume(volume, this);
+  }
 
-  void setMicrophoneMute(bool mute);
+  void setMicrophoneMute(bool mute) {
+    Helper.setMicrophoneMute(mute, this);
+  }
 
-  void enableSpeakerphone(bool enable);
+  void enableSpeakerphone(bool enable) {
+    throw UnimplementedError();
+  }
 
-  Future<dynamic> captureFrame([String filePath]);
+  Future<dynamic> captureFrame([String filePath]) {
+    throw UnimplementedError();
+  }
 
-  Future<bool> hasTorch();
+  Future<bool> hasTorch() {
+    throw UnimplementedError();
+  }
 
-  Future<void> setTorch(bool torch);
+  Future<void> setTorch(bool torch) {
+    throw UnimplementedError();
+  }
 
+  @Deprecated('use stop() instead')
   Future<void> dispose();
 }
+
+// TODO(wer_mathurin): Need to implement missing API
+// readonly attribute MediaStreamTrackState readyState;
+// MediaTrackCapabilities getCapabilities();
+//
+// MediaTrackSettings getSettings();
