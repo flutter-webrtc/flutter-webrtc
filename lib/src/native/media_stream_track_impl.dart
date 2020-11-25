@@ -61,15 +61,11 @@ class MediaStreamTrackNative extends MediaStreamTrack {
       );
 
   @override
-  void setVolume(double volume) async {
-    await _channel.invokeMethod(
-      'setVolume',
-      <String, dynamic>{'trackId': _trackId, 'volume': volume},
-    );
+  set muted(bool b) {
+    _setMicrophoneMute(b);
   }
 
-  @override
-  void setMicrophoneMute(bool mute) async {
+  void _setMicrophoneMute(bool mute) async {
     print('MediaStreamTrack:setMicrophoneMute $mute');
 
     try {
@@ -113,10 +109,5 @@ class MediaStreamTrackNative extends MediaStreamTrack {
       'trackDispose',
       <String, dynamic>{'trackId': _trackId},
     );
-  }
-
-  @override
-  Future<void> adaptRes(int width, int height) {
-    throw UnimplementedError();
   }
 }

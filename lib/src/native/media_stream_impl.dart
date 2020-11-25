@@ -97,12 +97,12 @@ class MediaStreamNative extends MediaStream {
   }
 
   @override
-  // TODO(cloudwebrtc)
+  // TODO(cloudwebrtc): Implement
   bool get active => throw UnimplementedError();
 
   @override
   MediaStream clone() {
-    // TODO(cloudwebrtc)
+    // TODO(cloudwebrtc): Implement
     throw UnimplementedError();
   }
 }

@@ -76,7 +76,7 @@ class MediaDevicesWeb extends MediaDevices {
           groupId: input.groupId,
           kind: input.kind,
           label: input.label);
-    });
+    }).toList();
   }
 
   @override

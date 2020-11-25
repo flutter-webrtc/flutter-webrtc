@@ -28,9 +28,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     super.initState();
     initRenderers();
 
-    navigator.getSources().then((md) {
+    navigator.mediaDevices.enumerateDevices().then((md) {
       setState(() {
-        cameras = md.where((d) => d['kind'] == 'videoinput').toList();
+        cameras = md.where((d) => d.kind == 'videoinput').toList();
       });
     });
   }

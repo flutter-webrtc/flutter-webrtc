@@ -40,6 +40,8 @@ abstract class MediaStreamTrack {
   /// Returns true if the track is muted, and false otherwise.
   bool get muted;
 
+  set muted(bool b);
+
   /// Returns a map containing the set of constraints most recently established
   /// for the track using a prior call to applyConstraints().
   ///
@@ -58,6 +60,13 @@ abstract class MediaStreamTrack {
   Future<void> applyConstraints([Map<String, dynamic> constraints]) {
     throw UnimplementedError();
   }
+
+  // TODO(wermathurin): This ticket is related to the implementation of jsTrack.getCapabilities(),
+  //  https://github.com/dart-lang/sdk/issues/44319.
+  //
+  // MediaTrackCapabilities getCapabilities() {
+  //   throw UnimplementedError();
+  // }
 
   // MediaStreamTrack clone();
 
@@ -79,7 +88,7 @@ abstract class MediaStreamTrack {
   }
 
   void setMicrophoneMute(bool mute) {
-    Helper.setMicrophoneMute(mute, this);
+    muted = mute;
   }
 
   void enableSpeakerphone(bool enable) {
@@ -102,7 +111,7 @@ abstract class MediaStreamTrack {
   Future<void> dispose();
 }
 
-// TODO(wer_mathurin): Need to implement missing API
+// TODO(wermathurin): Need to implement missing API
 // readonly attribute MediaStreamTrackState readyState;
 // MediaTrackCapabilities getCapabilities();
 //

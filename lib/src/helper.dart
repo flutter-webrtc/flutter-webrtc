@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'interface/media_stream.dart';
@@ -27,19 +28,21 @@ class Helper {
     return navigator.mediaDevices.getUserMedia(mediaConstraints);
   }
 
-  static Future<void> setVolume(double volume, MediaStreamTrack track) {
+  static Future<void> setVolume(double volume, MediaStreamTrack track) async {
     if (track.kind == 'audio') {
-      final constraints = track.getConstraints();
-      constraints['volume'] = volume;
-      return track.applyConstraints(constraints);
+      if (kIsWeb) {
+        final constraints = track.getConstraints();
+        constraints['volume'] = volume;
+        await track.applyConstraints(constraints);
+      } else {
+        var _channel = WebRTC.methodChannel();
+        await _channel.invokeMethod(
+          'setVolume',
+          <String, dynamic>{'trackId': track.id, 'volume': volume},
+        );
+      }
     }
 
     return Future.value();
-  }
-
-  static void setMicrophoneMute(bool mute, MediaStreamTrack track) {
-    if (track.kind == 'audio') {
-      track.enabled = mute;
-    }
   }
 }

@@ -34,13 +34,18 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   }
 
   @override
+  set muted(bool b) {
+    jsTrack.enabled = b;
+  }
+
+  @override
   Map<String, dynamic> getConstraints() {
     return jsTrack.getConstraints();
   }
 
   @override
   Future<void> applyConstraints([Map<String, dynamic> constraints]) async {
-    // Wait for: https://github.com/dart-lang/sdk/commit/1a861435579a37c297f3be0cf69735d5b492bc6c
+    // TODO(wermathurin): Wait for: https://github.com/dart-lang/sdk/commit/1a861435579a37c297f3be0cf69735d5b492bc6c
     // to be merged to use jsTrack.applyConstraints() directly
     final arg = js.jsify(constraints);
 
@@ -50,6 +55,13 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
     //     .callMethod('applyConstraints', [js.JsObject.jsify(constraints)]);
     return _val;
   }
+
+  // @override
+  // MediaTrackCapabilities getCapabilities() {
+  //   var _converted = jsTrack.getCapabilities();
+  //   print(_converted['aspectRatio'].runtimeType);
+  //   return null;
+  // }
 
   @override
   Future<dynamic> captureFrame([String filePath]) async {
