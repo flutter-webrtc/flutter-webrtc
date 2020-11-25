@@ -27,13 +27,19 @@ class Helper {
     return navigator.mediaDevices.getUserMedia(mediaConstraints);
   }
 
-  static void setVolume(double volume, MediaStreamTrack track) {
-    final constraints = track.getConstraints();
-    constraints['volume'] = volume;
-    track.applyConstraints(constraints);
+  static Future<void> setVolume(double volume, MediaStreamTrack track) {
+    if (track.kind == 'audio') {
+      final constraints = track.getConstraints();
+      constraints['volume'] = volume;
+      return track.applyConstraints(constraints);
+    }
+
+    return Future.value();
   }
 
   static void setMicrophoneMute(bool mute, MediaStreamTrack track) {
-    track.enabled = mute;
+    if (track.kind == 'audio') {
+      track.enabled = mute;
+    }
   }
 }
