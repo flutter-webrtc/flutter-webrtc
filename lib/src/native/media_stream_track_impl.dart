@@ -99,6 +99,18 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   }
 
   @override
+  Future<void> applyConstraints([Map<String, dynamic> constraints]) {
+    if (constraints == null) return Future.value();
+
+    var _current = getConstraints();
+    if (_current['volume'] != constraints['volume']) {
+      setVolume(constraints['volume']);
+    }
+
+    return Future.value();
+  }
+
+  @override
   Future<void> dispose() async {
     return stop();
   }
