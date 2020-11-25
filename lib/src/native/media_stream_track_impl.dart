@@ -24,7 +24,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
     _channel.invokeMethod('mediaStreamTrackSetEnable',
         <String, dynamic>{'trackId': _trackId, 'enabled': enabled});
     _enabled = enabled;
-    _muted = enabled;
+    _muted = !enabled;
   }
 
   @override
