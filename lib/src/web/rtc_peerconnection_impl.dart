@@ -72,11 +72,10 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
       onIceConnectionState?.call(_iceConnectionState);
     });
 
-    js.JsObject.fromBrowserObject(_jsPc)['onicegatheringstatechange'] =
-        js.JsFunction.withThis((_) {
+    jsutil.setProperty(_jsPc, 'onicegatheringstatechange', js.allowInterop((_) {
       _iceGatheringState = iceGatheringStateforString(_jsPc.iceGatheringState);
       onIceGatheringState?.call(_iceGatheringState);
-    });
+    }));
 
     _jsPc.onRemoveStream.listen((mediaStreamEvent) {
       final _remoteStream = _remoteStreams.remove(mediaStreamEvent.stream.id);
@@ -88,14 +87,12 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
       onSignalingState?.call(_signalingState);
     });
 
-    js.JsObject.fromBrowserObject(_jsPc)['connectionstatechange'] =
-        js.JsFunction.withThis((_, state) {
-      _connectionState = peerConnectionStateForString(state);
+    _jsPc.onIceConnectionStateChange.listen((_) {
+      _connectionState = peerConnectionStateForString(_jsPc.iceConnectionState);
       onConnectionState?.call(_connectionState);
     });
 
-    js.JsObject.fromBrowserObject(_jsPc)['negotiationneeded'] =
-        js.JsFunction.withThis(() {
+    _jsPc.onNegotiationNeeded.listen((_) {
       onRenegotiationNeeded?.call();
     });
 
