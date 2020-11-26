@@ -24,7 +24,11 @@ class MediaStreamTrackNative extends MediaStreamTrack {
     _channel.invokeMethod('mediaStreamTrackSetEnable',
         <String, dynamic>{'trackId': _trackId, 'enabled': enabled});
     _enabled = enabled;
-    _muted = !enabled;
+
+    if (kind == 'audio') {
+      _muted = !enabled;
+      muted ? onMute?.call() : onUnMute?.call();
+    }
   }
 
   @override
@@ -59,27 +63,6 @@ class MediaStreamTrackNative extends MediaStreamTrack {
         'mediaStreamTrackSwitchCamera',
         <String, dynamic>{'trackId': _trackId},
       );
-
-  @override
-  set muted(bool b) {
-    _setMicrophoneMute(b);
-  }
-
-  void _setMicrophoneMute(bool mute) async {
-    print('MediaStreamTrack:setMicrophoneMute $mute');
-
-    try {
-      await _channel.invokeMethod(
-        'setMicrophoneMute',
-        <String, dynamic>{'trackId': _trackId, 'mute': mute},
-      );
-
-      _muted = mute;
-      mute ? onMute?.call() : onUnMute?.call();
-    } on PlatformException catch (e) {
-      throw 'Unable to MediaStreamTrack::setMicrophoneMute: ${e.message}';
-    }
-  }
 
   @override
   void enableSpeakerphone(bool enable) async {

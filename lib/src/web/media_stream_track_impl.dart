@@ -34,11 +34,6 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   }
 
   @override
-  set muted(bool b) {
-    jsTrack.enabled = b;
-  }
-
-  @override
   Map<String, dynamic> getConstraints() {
     return jsTrack.getConstraints();
   }
@@ -51,11 +46,10 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
 
     final _val = await js.promiseToFuture<void>(
         js.callMethod(jsTrack, 'applyConstraints', [arg]));
-    // js.JsObject.fromBrowserObject(jsTrack)
-    //     .callMethod('applyConstraints', [js.JsObject.jsify(constraints)]);
     return _val;
   }
 
+  // TODO(wermathurin): https://github.com/dart-lang/sdk/issues/44319
   // @override
   // MediaTrackCapabilities getCapabilities() {
   //   var _converted = jsTrack.getCapabilities();

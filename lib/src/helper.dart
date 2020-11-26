@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'interface/media_stream.dart';
@@ -44,5 +45,23 @@ class Helper {
     }
 
     return Future.value();
+  }
+
+  static void setMicrophoneMute(bool mute, MediaStreamTrack track) async {
+    if (track.kind != 'audio') {
+      throw 'The is not an audio track => $track';
+    }
+
+    if (!kIsWeb) {
+      try {
+        await WebRTC.methodChannel().invokeMethod(
+          'setMicrophoneMute',
+          <String, dynamic>{'trackId': track.id, 'mute': mute},
+        );
+      } on PlatformException catch (e) {
+        throw 'Unable to MediaStreamTrack::setMicrophoneMute: ${e.message}';
+      }
+    }
+    track.enabled = mute;
   }
 }

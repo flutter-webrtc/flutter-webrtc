@@ -40,8 +40,6 @@ abstract class MediaStreamTrack {
   /// Returns true if the track is muted, and false otherwise.
   bool get muted;
 
-  set muted(bool b);
-
   /// Returns a map containing the set of constraints most recently established
   /// for the track using a prior call to applyConstraints().
   ///
@@ -88,7 +86,7 @@ abstract class MediaStreamTrack {
   }
 
   void setMicrophoneMute(bool mute) {
-    muted = mute;
+    Helper.setMicrophoneMute(mute, this);
   }
 
   void enableSpeakerphone(bool enable) {
@@ -109,10 +107,15 @@ abstract class MediaStreamTrack {
 
   @Deprecated('use stop() instead')
   Future<void> dispose();
+
+  @override
+  String toString() {
+    return 'Track(id: $id, kind: $kind, label: $label, enabled: $enabled, muted: $muted)';
+  }
 }
 
 // TODO(wermathurin): Need to implement missing API
+
 // readonly attribute MediaStreamTrackState readyState;
 // MediaTrackCapabilities getCapabilities();
-//
 // MediaTrackSettings getSettings();
