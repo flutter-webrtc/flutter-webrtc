@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
 import '../interface/media_stream_track.dart';
 import 'utils.dart';
 
@@ -57,10 +59,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
       );
 
   @override
-  Future<bool> switchCamera() => _channel.invokeMethod(
-        'mediaStreamTrackSwitchCamera',
-        <String, dynamic>{'trackId': _trackId},
-      );
+  Future<bool> switchCamera() => Helper.switchCamera(this);
 
   @override
   void enableSpeakerphone(bool enable) async {

@@ -97,6 +97,12 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     return Scaffold(
       appBar: AppBar(
         title: Text('GetUserMedia API Test'),
+        actions: [
+          ElevatedButton(
+            child: Text('switch camera'),
+            onPressed: _switchCamera,
+          )
+        ],
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {
@@ -122,5 +128,11 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
         child: Icon(_inCalling ? Icons.call_end : Icons.phone),
       ),
     );
+  }
+
+  void _switchCamera() {
+    setState(() async {
+      await Helper.switchCamera(_localStream.getVideoTracks()[0]);
+    });
   }
 }

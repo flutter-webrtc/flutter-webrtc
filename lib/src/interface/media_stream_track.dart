@@ -70,8 +70,8 @@ abstract class MediaStreamTrack {
 
   Future<void> stop();
 
-  /// Future contains isFrontCamera
   /// Throws error if switching camera failed
+  @Deprecated('use Helper.switchCamera() instead')
   Future<bool> switchCamera() {
     throw UnimplementedError();
   }
