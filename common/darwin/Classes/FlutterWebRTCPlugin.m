@@ -994,7 +994,6 @@
     if (!track) {
         for (RTCPeerConnection *peerConnection in _peerConnections.allValues) {
             track = peerConnection.remoteTracks[trackId];
-            
             if (!track) {
                 for (RTCRtpTransceiver *transceiver in peerConnection.transceivers) {
                     if (transceiver.receiver.track != nil && [transceiver.receiver.track.trackId isEqual:trackId]) {
@@ -1003,7 +1002,6 @@
                     }
                 }
             }
-            
             if (track) {
                 break;
             }

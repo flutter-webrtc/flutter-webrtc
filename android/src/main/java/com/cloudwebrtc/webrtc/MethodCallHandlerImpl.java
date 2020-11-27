@@ -979,7 +979,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   MediaStream getStreamForId(String id, String peerConnectionId) {
     MediaStream stream = null;
-    Log.d(TAG, "££££££ getStreamForId: id: " + id + " peerConnectionId:" + peerConnectionId);
     if (peerConnectionId.length() > 0) {
       PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
       if (pco != null) {
