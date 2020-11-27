@@ -1001,12 +1001,13 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     protected MediaStreamTrack getTransceiversTrack(String trackId) {
         MediaStreamTrack track = null;
         List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
-        //Log.d(TAG, "££££££ getTrackForId: transceivers: " + transceivers.size());
+        Log.d(TAG, "££££££ getTrackForId: transceivers: " + transceivers.size());
         for (RtpTransceiver transceiver : transceivers) {
             RtpReceiver receiver = transceiver.getReceiver();
-            //Log.d(TAG, "££££££ getTrackForId: receiver is null: " + (receiver == null));
+            Log.d(TAG, "££££££ getTrackForId: receiver is null: " + (receiver == null));
             if (receiver != null) {
                 if (receiver.track() != null && receiver.track().id().equals(trackId)) {
+                    Log.d(TAG, "££££££ found track " + trackId + "  is null: " + (receiver == null));
                     track = receiver.track();
                     break;
                 }
