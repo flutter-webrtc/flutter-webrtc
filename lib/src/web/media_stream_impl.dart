@@ -62,4 +62,12 @@ class MediaStreamWeb extends MediaStream {
   List<MediaStreamTrack> getTracks() {
     return <MediaStreamTrack>[...getAudioTracks(), ...getVideoTracks()];
   }
+
+  @override
+  bool get active => jsStream.active;
+
+  @override
+  MediaStream clone() {
+    return MediaStreamWeb(jsStream.clone(), ownerTag);
+  }
 }

@@ -4,6 +4,7 @@ import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/src/interface/mediadevices.dart';
 
 /*
  * getUserMedia sample
@@ -20,6 +21,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   final _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   MediaRecorder _mediaRecorder;
+
+  List<MediaDeviceInfo> _cameras;
   bool get _isRec => _mediaRecorder != null;
   List<dynamic> cameras;
 
@@ -27,9 +30,10 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   void initState() {
     super.initState();
     initRenderers();
-    navigator.getSources().then((md) {
+
+    navigator.mediaDevices.enumerateDevices().then((md) {
       setState(() {
-        cameras = md.where((d) => d['kind'] == 'videoinput').toList();
+        cameras = md.where((d) => d.kind == 'videoinput').toList();
       });
     });
   }
@@ -62,7 +66,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      var stream = await navigator.getUserMedia(mediaConstraints);
+      var stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+      _cameras = await Helper.cameras;
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
     } catch (e) {
@@ -142,6 +147,21 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                   icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
                   onPressed: _isRec ? _stopRecording : _startRecording,
                 ),
+                PopupMenuButton<String>(
+                  onSelected: _switchCamera,
+                  itemBuilder: (BuildContext context) {
+                    return _cameras.map((device) {
+                      return PopupMenuItem<String>(
+                        value: device.deviceId,
+                        child: Text(device.label),
+                      );
+                    }).toList();
+                  },
+                ),
+                // IconButton(
+                //   icon: Icon(Icons.settings),
+                //   onPressed: _switchCamera,
+                // )
               ]
             : null,
       ),
@@ -164,5 +184,11 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
         child: Icon(_inCalling ? Icons.call_end : Icons.phone),
       ),
     );
+  }
+
+  void _switchCamera(String deviceId) async {
+    await Helper.switchCamera(
+        _localStream.getVideoTracks()[0], deviceId, _localStream);
+    setState(() {});
   }
 }

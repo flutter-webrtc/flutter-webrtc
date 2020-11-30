@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
 import '../interface/media_stream_track.dart';
 import 'utils.dart';
 
@@ -15,11 +17,18 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   final String _kind;
   bool _enabled;
 
+  bool _muted = false;
+
   @override
   set enabled(bool enabled) {
     _channel.invokeMethod('mediaStreamTrackSetEnable',
         <String, dynamic>{'trackId': _trackId, 'enabled': enabled});
     _enabled = enabled;
+
+    if (kind == 'audio') {
+      _muted = !enabled;
+      muted ? onMute?.call() : onUnMute?.call();
+    }
   }
 
   @override
@@ -35,6 +44,9 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   String get id => _trackId;
 
   @override
+  bool get muted => _muted;
+
+  @override
   Future<bool> hasTorch() => _channel.invokeMethod(
         'mediaStreamTrackHasTorch',
         <String, dynamic>{'trackId': _trackId},
@@ -47,27 +59,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
       );
 
   @override
-  Future<bool> switchCamera() => _channel.invokeMethod(
-        'mediaStreamTrackSwitchCamera',
-        <String, dynamic>{'trackId': _trackId},
-      );
-
-  @override
-  void setVolume(double volume) async {
-    await _channel.invokeMethod(
-      'setVolume',
-      <String, dynamic>{'trackId': _trackId, 'volume': volume},
-    );
-  }
-
-  @override
-  void setMicrophoneMute(bool mute) async {
-    print('MediaStreamTrack:setMicrophoneMute $mute');
-    await _channel.invokeMethod(
-      'setMicrophoneMute',
-      <String, dynamic>{'trackId': _trackId, 'mute': mute},
-    );
-  }
+  Future<bool> switchCamera() => Helper.switchCamera(this);
 
   @override
   void enableSpeakerphone(bool enable) async {
@@ -87,15 +79,28 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   }
 
   @override
+  Future<void> applyConstraints([Map<String, dynamic> constraints]) {
+    if (constraints == null) return Future.value();
+
+    var _current = getConstraints();
+    if (constraints.containsKey('volume') &&
+        _current['volume'] != constraints['volume']) {
+      setVolume(constraints['volume']);
+    }
+
+    return Future.value();
+  }
+
+  @override
   Future<void> dispose() async {
+    return stop();
+  }
+
+  @override
+  Future<void> stop() async {
     await _channel.invokeMethod(
       'trackDispose',
       <String, dynamic>{'trackId': _trackId},
     );
-  }
-
-  @override
-  Future<void> adaptRes(int width, int height) {
-    throw UnimplementedError();
   }
 }

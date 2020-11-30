@@ -1,17 +1,14 @@
 import 'dart:async';
 import 'dart:html' as html;
-import 'dart:js' as js;
+import 'dart:js_util' as js;
 
 import '../interface/media_stream_track.dart';
 
 class MediaStreamTrackWeb extends MediaStreamTrack {
   MediaStreamTrackWeb(this.jsTrack) {
-    jsTrack.onEnded.listen((event) {
-      onEnded?.call();
-    });
-    jsTrack.onMute.listen((event) {
-      onMute?.call();
-    });
+    jsTrack.onEnded.listen((event) => onEnded?.call());
+    jsTrack.onMute.listen((event) => onMute?.call());
+    jsTrack.onUnmute.listen((event) => onUnMute?.call());
   }
 
   final html.MediaStreamTrack jsTrack;
@@ -29,38 +26,36 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   bool get enabled => jsTrack.enabled;
 
   @override
+  bool get muted => jsTrack.muted;
+
+  @override
   set enabled(bool b) {
     jsTrack.enabled = b;
   }
 
   @override
-  Future<bool> switchCamera() async {
-    // TODO(cloudwebrtc): ???
-    return false;
+  Map<String, dynamic> getConstraints() {
+    return jsTrack.getConstraints();
   }
 
   @override
-  Future<void> adaptRes(int width, int height) async {
-    // TODO(cloudwebrtc): ???
+  Future<void> applyConstraints([Map<String, dynamic> constraints]) async {
+    // TODO(wermathurin): Wait for: https://github.com/dart-lang/sdk/commit/1a861435579a37c297f3be0cf69735d5b492bc6c
+    // to be merged to use jsTrack.applyConstraints() directly
+    final arg = js.jsify(constraints);
+
+    final _val = await js.promiseToFuture<void>(
+        js.callMethod(jsTrack, 'applyConstraints', [arg]));
+    return _val;
   }
 
-  @override
-  void setVolume(double volume) {
-    final constraints = jsTrack.getConstraints();
-    constraints['volume'] = volume;
-    js.JsObject.fromBrowserObject(jsTrack)
-        .callMethod('applyConstraints', [js.JsObject.jsify(constraints)]);
-  }
-
-  @override
-  void setMicrophoneMute(bool mute) {
-    jsTrack.enabled = !mute;
-  }
-
-  @override
-  void enableSpeakerphone(bool enable) {
-    // Should this throw error?
-  }
+  // TODO(wermathurin): https://github.com/dart-lang/sdk/issues/44319
+  // @override
+  // MediaTrackCapabilities getCapabilities() {
+  //   var _converted = jsTrack.getCapabilities();
+  //   print(_converted['aspectRatio'].runtimeType);
+  //   return null;
+  // }
 
   @override
   Future<dynamic> captureFrame([String filePath]) async {
@@ -79,6 +74,11 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
 
   @override
   Future<void> dispose() async {
+    return stop();
+  }
+
+  @override
+  Future<void> stop() async {
     jsTrack.stop();
   }
 
