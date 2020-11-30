@@ -1,5 +1,6 @@
 library flutter_webrtc;
 
+export 'src/helper.dart';
 export 'src/interface/enums.dart';
 export 'src/interface/media_stream.dart';
 export 'src/interface/media_stream_track.dart';

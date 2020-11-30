@@ -20,7 +20,7 @@ class RTCRtpSenderWeb extends RTCRtpSender {
     return RTCRtpSenderWeb(jsRtpSender, jsRtpSender.track != null);
   }
 
-  RtcRtpSender _jsRtpSender;
+  final RtcRtpSender _jsRtpSender;
   bool _ownsTrack = false;
 
   @override
@@ -76,8 +76,7 @@ class RTCRtpSenderWeb extends RTCRtpSender {
   }
 
   @override
-  MediaStreamTrack get track =>
-      MediaStreamTrackWeb(jsutil.getProperty(_jsRtpSender, 'track'));
+  MediaStreamTrack get track => MediaStreamTrackWeb(_jsRtpSender.track);
 
   @override
   String get senderId => jsutil.getProperty(_jsRtpSender, 'senderId');

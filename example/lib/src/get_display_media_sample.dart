@@ -97,6 +97,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     return Scaffold(
       appBar: AppBar(
         title: Text('GetUserMedia API Test'),
+        actions: [],
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {
