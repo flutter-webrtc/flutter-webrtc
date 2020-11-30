@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../interface/media_stream.dart';
 import '../interface/rtc_video_renderer.dart';
@@ -91,10 +92,27 @@ class RTCVideoRendererNative extends VideoRenderer {
   bool get renderVideo => srcObject != null;
 
   @override
-  bool get muted => throw UnimplementedError();
+  bool get muted => _srcObject?.getAudioTracks()[0]?.muted ?? true;
 
   @override
   set muted(bool mute) {
-    throw UnimplementedError();
+    if (_srcObject == null) {
+      throw Exception('Can\'t be muted: The MediaStream is null');
+    }
+    if (_srcObject.ownerTag != 'local') {
+      throw Exception(
+          'You\'re trying to mute a remote track, this is not supported');
+    }
+    if (_srcObject.getAudioTracks()[0] == null) {
+      throw Exception('Can\'t be muted: The MediaStreamTrack is null');
+    }
+
+    Helper.setMicrophoneMute(mute, _srcObject.getAudioTracks()[0]);
+  }
+
+  @override
+  Future<bool> audioOutput(String deviceId) {
+    // TODO(cloudwebrtc): related to https://github.com/flutter-webrtc/flutter-webrtc/issues/395
+    throw UnimplementedError('This is not implement yet');
   }
 }
