@@ -4,7 +4,6 @@ import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:flutter_webrtc/src/interface/mediadevices.dart';
 
 /*
  * getUserMedia sample

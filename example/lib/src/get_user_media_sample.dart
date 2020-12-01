@@ -23,6 +23,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaRecorder _mediaRecorder;
   bool get _isRec => _mediaRecorder != null;
 
+  List<MediaDeviceInfo> _mediaDevicesList;
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +62,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
 
     try {
       var stream = await navigator.getUserMedia(mediaConstraints);
+      _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
     } catch (e) {
@@ -172,6 +175,21 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                   icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
                   onPressed: _isRec ? _stopRecording : _startRecording,
                 ),
+                PopupMenuButton<String>(
+                  onSelected: _selectAudioOutput,
+                  itemBuilder: (BuildContext context) {
+                    return _mediaDevicesList
+                        .where((device) => device.kind == 'audiooutput')
+                        .map((device) {
+                      if (device.kind == 'audiooutput') {
+                        return PopupMenuItem<String>(
+                          value: device.deviceId,
+                          child: Text(device.label),
+                        );
+                      }
+                    }).toList();
+                  },
+                ),
               ]
             : null,
       ),
@@ -194,5 +212,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
         child: Icon(_inCalling ? Icons.call_end : Icons.phone),
       ),
     );
+  }
+
+  void _selectAudioOutput(String deviceId) {
+    _localRenderer.audioOutput = deviceId;
   }
 }
