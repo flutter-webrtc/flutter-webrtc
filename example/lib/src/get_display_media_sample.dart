@@ -49,7 +49,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> _makeCall() async {
-    final mediaConstraints = <String, dynamic>{'audio': false, 'video': true};
+    final mediaConstraints = <String, dynamic>{'audio': true, 'video': true};
 
     try {
       var stream = await navigator.getDisplayMedia(mediaConstraints);

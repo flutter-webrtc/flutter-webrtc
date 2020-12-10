@@ -49,8 +49,7 @@ class MediaDevicesWeb extends MediaDevices {
     try {
       final mediaDevices = html.window.navigator.mediaDevices;
       if (jsutil.hasProperty(mediaDevices, 'getDisplayMedia')) {
-        final arg = JsObject.jsify(mediaConstraints);
-
+        final arg = jsutil.jsify(mediaConstraints);
         final jsStream = await jsutil.promiseToFuture<html.MediaStream>(
             jsutil.callMethod(mediaDevices, 'getDisplayMedia', [arg]));
         return MediaStreamWeb(jsStream, 'local');
