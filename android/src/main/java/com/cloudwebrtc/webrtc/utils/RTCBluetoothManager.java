@@ -324,6 +324,12 @@ public class RTCBluetoothManager {
       Log.e(TAG, "BT SCO connection fails - no more attempts");
       return false;
     }
+    List<BluetoothDevice> devices = bluetoothHeadset.getConnectedDevices();
+    if (!devices.isEmpty()) {
+      bluetoothDevice = devices.get(0);
+      bluetoothState = State.HEADSET_AVAILABLE;
+    } 
+    
     if (bluetoothState != State.HEADSET_AVAILABLE) {
       Log.e(TAG, "BT SCO connection fails - no headset available");
       return false;
