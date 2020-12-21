@@ -352,15 +352,15 @@ public class RTCAudioManager {
   public void setDefaultAudioDevice(AudioDevice defaultDevice) {
     ThreadUtils.checkIsOnMainThread();
     switch (defaultDevice) {
+      case EARPIECE:
+      if (hasEarpiece()) {
+        defaultAudioDevice = defaultDevice;
+      } else {
+        defaultAudioDevice = AudioDevice.SPEAKER_PHONE;
+      }
+      break;
       case SPEAKER_PHONE:
         defaultAudioDevice = defaultDevice;
-        break;
-      case EARPIECE:
-        if (hasEarpiece()) {
-          defaultAudioDevice = defaultDevice;
-        } else {
-          defaultAudioDevice = AudioDevice.SPEAKER_PHONE;
-        }
         break;
       default:
         Log.e(TAG, "Invalid default audio device selection");
@@ -404,9 +404,13 @@ public class RTCAudioManager {
 
   /** Sets the speaker phone mode. */
   public void setSpeakerphoneOn(boolean on) {
-    boolean wasOn = audioManager.isSpeakerphoneOn();
-    if (wasOn == on) {
-      return;
+    final RTCBluetoothManager.State btManagerState = bluetoothManager.getState();
+    final boolean isBTAvailable =  
+    btManagerState == RTCBluetoothManager.State.SCO_CONNECTED
+        || btManagerState == RTCBluetoothManager.State.SCO_CONNECTING
+        || btManagerState == RTCBluetoothManager.State.HEADSET_AVAILABLE;
+    if(!on && isBTAvailable){
+        bluetoothManager.startScoAudio();
     }
     audioManager.setSpeakerphoneOn(on);
   }
