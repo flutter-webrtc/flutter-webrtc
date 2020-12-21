@@ -404,6 +404,10 @@ public class RTCAudioManager {
 
   /** Sets the speaker phone mode. */
   public void setSpeakerphoneOn(boolean on) {
+    boolean wasOn = audioManager.isSpeakerphoneOn();
+    if (wasOn == on) {
+      return;
+    }
     final RTCBluetoothManager.State btManagerState = bluetoothManager.getState();
     final boolean isBTAvailable =  
     btManagerState == RTCBluetoothManager.State.SCO_CONNECTED
