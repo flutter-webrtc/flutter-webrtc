@@ -69,6 +69,10 @@ android {
 
 If necessary, in the same `build.gradle` you will need to increase `minSdkVersion` of `defaultConfig` up to `21` (currently default Flutter generator set it to `16`).
 
+### Important reminder
+When you compile the release apk, you need to add the following operations,
+[Setup Proguard Rules](https://github.com/flutter-webrtc/flutter-webrtc/commit/d32dab13b5a0bed80dd9d0f98990f107b9b514f4)
+
 ## Contributing
 
 The project is inseparable from the contributors of the community.
