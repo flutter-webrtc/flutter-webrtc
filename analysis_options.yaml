@@ -1,0 +1,48 @@
+include: package:pedantic/analysis_options.yaml
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_empty_else
+    - await_only_futures
+    - avoid_returning_null_for_void
+    - camel_case_extensions
+    - camel_case_types
+    - cancel_subscriptions
+    - directives_ordering
+    - flutter_style_todos
+    - sort_constructors_first
+    - sort_unnamed_constructors_first
+    - sort_pub_dependencies
+    - type_init_formals
+    - unnecessary_brace_in_string_interps
+    - unnecessary_const
+    - unnecessary_new
+    - unnecessary_getters_setters
+    - unnecessary_null_aware_assignments
+    - unnecessary_null_in_if_null_operators
+    - unnecessary_overrides
+    - unnecessary_parenthesis
+    - unnecessary_statements
+    - unnecessary_string_interpolations
+    - unnecessary_this
+    - unrelated_type_equality_checks
+    - use_rethrow_when_possible
+    - valid_regexps
+    - void_checks
+  
+analyzer:
+  errors:
+    # treat missing required parameters as a warning (not a hint)
+    missing_required_param: warning
+    # treat missing returns as a warning (not a hint)
+    missing_return: warning
+    # allow having TODOs in the code
+    todo: ignore
+    # allow self-reference to deprecated members (we do this because otherwise we have
+    # to annotate every member in every test, assert, etc, when we deprecate something)
+    deprecated_member_use_from_same_package: ignore
+    # Ignore analyzer hints for updating pubspecs when using Future or
+    # Stream and not importing dart:async
+    # Please see https://github.com/flutter/flutter/pull/24528 for details.
+    sdk_version_async_exported_from_core: ignore
