@@ -13,7 +13,7 @@ class RTCVideoView extends StatelessWidget {
     Key key,
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirror = false,
-    this.filterQuality = FilterQuality.low
+    this.filterQuality = FilterQuality.low,
   })  : assert(objectFit != null),
         assert(mirror != null),
         assert(filterQuality != null),
@@ -58,7 +58,10 @@ class RTCVideoView extends StatelessWidget {
                 transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
                 alignment: FractionalOffset.center,
                 child: videoRenderer.textureId != null
-                    ? Texture(textureId: videoRenderer.textureId, filterQuality: filterQuality)
+                    ? Texture(
+                        textureId: videoRenderer.textureId,
+                        filterQuality: filterQuality,
+                      )
                     : Container(),
               ),
             ),
