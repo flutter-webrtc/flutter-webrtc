@@ -24,6 +24,8 @@ class RTCVideoRenderer {
 
   set muted(bool mute) => _delegate.muted = mute;
 
+  set audioOutput(String deviceId) => _delegate.audioOutput(deviceId);
+
   set srcObject(MediaStream stream) => _delegate.srcObject = stream;
 
   int get textureId => _delegate.textureId;
