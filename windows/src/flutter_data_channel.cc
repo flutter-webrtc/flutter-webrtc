@@ -34,20 +34,25 @@ void FlutterDataChannel::CreateDataChannel(
     const std::string &label, const EncodableMap &dataChannelDict,
     RTCPeerConnection *pc,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
+
   RTCDataChannelInit init;
   init.id = GetValue<int>(dataChannelDict.find(EncodableValue("id"))->second);
+
   init.ordered =
       GetValue<bool>(dataChannelDict.find(EncodableValue("ordered"))->second);
-  init.maxRetransmitTime =
-      GetValue<int>(dataChannelDict.find(EncodableValue("maxRetransmitTime"))
-          ->second);
-  init.maxRetransmits =
-      GetValue<int>(dataChannelDict.find(EncodableValue("maxRetransmits"))->second);
-  std::string protocol = {
-      dataChannelDict.find(EncodableValue("protocol"))->second.IsNull()
-          ? "sctp"
-          : GetValue<std::string>(dataChannelDict.find(EncodableValue("protocol"))
-                ->second)};
+
+  if (dataChannelDict.find(EncodableValue("maxRetransmits")) != dataChannelDict.end()) {
+      init.maxRetransmits = GetValue<int>(
+          dataChannelDict.find(EncodableValue("maxRetransmits"))->second);
+  }
+  
+  std::string protocol = "sctp";
+
+  if (dataChannelDict.find(EncodableValue("protocol")) ==
+      dataChannelDict.end()) {
+    protocol = GetValue<std::string>(
+        dataChannelDict.find(EncodableValue("protocol"))->second); 
+  }
 
   strncpy(init.protocol, protocol.c_str(), protocol.size());
 
@@ -67,8 +72,8 @@ void FlutterDataChannel::CreateDataChannel(
   base_->data_channel_observers_[data_channel->id()] = std::move(observer);
 
   EncodableMap params;
-  params[EncodableValue("id")] = data_channel->id();
-  params[EncodableValue("label")] = data_channel->label();
+  params[EncodableValue("id")] = EncodableValue(data_channel->id());
+  params[EncodableValue("label")] = EncodableValue(data_channel->label());
   result->Success(EncodableValue(params));
 }
 
@@ -126,9 +131,9 @@ static const char *DataStateString(RTCDataChannelState state) {
 void FlutterRTCDataChannelObserver::OnStateChange(RTCDataChannelState state) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
-    params[EncodableValue("event")] = "dataChannelStateChanged";
-    params[EncodableValue("id")] = data_channel_->id();
-    params[EncodableValue("state")] = DataStateString(state);
+    params[EncodableValue("event")] = EncodableValue("dataChannelStateChanged");
+    params[EncodableValue("id")] = EncodableValue(data_channel_->id());
+    params[EncodableValue("state")] = EncodableValue(DataStateString(state));
     event_sink_->Success(EncodableValue(params));
   }
 }
@@ -138,9 +143,10 @@ void FlutterRTCDataChannelObserver::OnMessage(const char *buffer, int length,
 
   if (event_sink_ != nullptr) {
     EncodableMap params;
-    params[EncodableValue("event")] = "dataChannelReceiveMessage";
-    params[EncodableValue("id")] = data_channel_->id();
-    params[EncodableValue("type")] = binary ? "binary" : "text";
+    params[EncodableValue("event")] =
+        EncodableValue ("dataChannelReceiveMessage");
+    params[EncodableValue("id")] = EncodableValue(data_channel_->id());
+    params[EncodableValue("type")] = EncodableValue(binary ? "binary" : "text");
     std::string str(buffer, length);
     params[EncodableValue("data")] = binary ? EncodableValue(std::vector<uint8_t>(str.begin(), str.end())) : EncodableValue(str);
     event_sink_->Success(EncodableValue(params));
