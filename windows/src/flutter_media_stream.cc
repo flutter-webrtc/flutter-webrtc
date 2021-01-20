@@ -45,8 +45,7 @@ void FlutterMediaStream::GetUserMedia(
   }
 
   base_->local_streams_[uuid] = stream;
-  const EncodableValue res(params);
-  result->Success(&res);
+  result->Success(EncodableValue(params));
 }
 
 void addDefaultAudioConstraints(
@@ -197,7 +196,7 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
 
 void FlutterMediaStream::GetSources(
     std::unique_ptr<MethodResult<EncodableValue>> result) {
-  EncodableList array;
+  EncodableList sources;
 
   int nb_audio_devices = base_->audio_device_->RecordingDevices();
   char strNameUTF8[128];
@@ -210,8 +209,7 @@ void FlutterMediaStream::GetSources(
     audio[EncodableValue("deviceId")] = std::string(strGuidUTF8);
     audio[EncodableValue("facing")] = "";
     audio[EncodableValue("kind")] = "audioinput";
-
-    array.push_back(EncodableValue(audio));
+    sources.push_back(EncodableValue(audio));
   }
 
   nb_audio_devices = base_->audio_device_->PlayoutDevices();
@@ -222,7 +220,7 @@ void FlutterMediaStream::GetSources(
     audio[EncodableValue("deviceId")] = std::string(strNameUTF8);
     audio[EncodableValue("facing")] = "";
     audio[EncodableValue("kind")] = "audiooutput";
-    array.push_back(EncodableValue(audio));
+    sources.push_back(EncodableValue(audio));
   }
 
   int nb_video_devices = base_->video_device_->NumberOfDevices();
@@ -233,9 +231,11 @@ void FlutterMediaStream::GetSources(
     video[EncodableValue("deviceId")] = std::string(strNameUTF8);
     video[EncodableValue("facing")] = i == 1 ? "front" : "back";
     video[EncodableValue("kind")] = "videoinput";
-    array.push_back(EncodableValue(video));
+    sources.push_back(EncodableValue(video));
   }
-  result->Success(EncodableValue(array));
+  EncodableMap params;
+  params[EncodableValue("sources")] = sources;
+  result->Success(EncodableValue(params));
 }
 
 void FlutterMediaStream::MediaStreamGetTracks(
