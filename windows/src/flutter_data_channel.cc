@@ -35,24 +35,24 @@ void FlutterDataChannel::CreateDataChannel(
     RTCPeerConnection *pc,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   RTCDataChannelInit init;
-  init.id = dataChannelDict.find(EncodableValue("id"))->second.IntValue();
+  init.id = GetValue<int>(dataChannelDict.find(EncodableValue("id"))->second);
   init.ordered =
-      dataChannelDict.find(EncodableValue("ordered"))->second.BoolValue();
+      GetValue<bool>(dataChannelDict.find(EncodableValue("ordered"))->second);
   init.maxRetransmitTime =
-      dataChannelDict.find(EncodableValue("maxRetransmitTime"))
-          ->second.IntValue();
+      GetValue<int>(dataChannelDict.find(EncodableValue("maxRetransmitTime"))
+          ->second);
   init.maxRetransmits =
-      dataChannelDict.find(EncodableValue("maxRetransmits"))->second.IntValue();
+      GetValue<int>(dataChannelDict.find(EncodableValue("maxRetransmits"))->second);
   std::string protocol = {
       dataChannelDict.find(EncodableValue("protocol"))->second.IsNull()
           ? "sctp"
-          : dataChannelDict.find(EncodableValue("protocol"))
-                ->second.StringValue()};
+          : GetValue<std::string>(dataChannelDict.find(EncodableValue("protocol"))
+                ->second)};
 
   strncpy(init.protocol, protocol.c_str(), protocol.size());
 
   init.negotiated =
-      dataChannelDict.find(EncodableValue("negotiated"))->second.BoolValue();
+      GetValue<bool>(dataChannelDict.find(EncodableValue("negotiated"))->second);
 
   scoped_refptr<RTCDataChannel> data_channel =
       pc->CreateDataChannel(label.c_str(), &init);
@@ -69,7 +69,7 @@ void FlutterDataChannel::CreateDataChannel(
   EncodableMap params;
   params[EncodableValue("id")] = data_channel->id();
   params[EncodableValue("label")] = data_channel->label();
-  result->Success(&EncodableValue(params));
+  result->Success(EncodableValue(params));
 }
 
 void FlutterDataChannel::DataChannelSend(
@@ -77,11 +77,11 @@ void FlutterDataChannel::DataChannelSend(
     const EncodableValue &data,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   bool is_binary = type == "binary";
-  if (is_binary && data.IsByteList()) { 
-    std::vector<uint8_t> binary = data.ByteListValue();
+  if (is_binary && TypeIs<std::vector<uint8_t>>(data)) { 
+    std::vector<uint8_t> binary = GetValue<std::vector<uint8_t>>(data);
     data_channel->Send((const char *)&binary[0], (int)binary.size(), true);
   } else {
-    std::string str = data.StringValue();
+    std::string str = GetValue<std::string>(data);
     data_channel->Send(str.data(), (int)str.size(), false);
   }
   result->Success(nullptr);
@@ -129,7 +129,7 @@ void FlutterRTCDataChannelObserver::OnStateChange(RTCDataChannelState state) {
     params[EncodableValue("event")] = "dataChannelStateChanged";
     params[EncodableValue("id")] = data_channel_->id();
     params[EncodableValue("state")] = DataStateString(state);
-    event_sink_->Success(&EncodableValue(params));
+    event_sink_->Success(EncodableValue(params));
   }
 }
 
@@ -143,7 +143,7 @@ void FlutterRTCDataChannelObserver::OnMessage(const char *buffer, int length,
     params[EncodableValue("type")] = binary ? "binary" : "text";
     std::string str(buffer, length);
     params[EncodableValue("data")] = binary ? EncodableValue(std::vector<uint8_t>(str.begin(), str.end())) : EncodableValue(str);
-    event_sink_->Success(&EncodableValue(params));
+    event_sink_->Success(EncodableValue(params));
   }
 }
 }  // namespace flutter_webrtc_plugin

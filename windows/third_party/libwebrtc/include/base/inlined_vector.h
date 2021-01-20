@@ -18,6 +18,10 @@
 #include <stdexcept>
 #endif
 
+#ifdef WIN32
+#pragma warning(disable : 4172)
+#endif
+
 namespace bsp {
 namespace detail {
 	template<class T, int Capacity> class static_vector {

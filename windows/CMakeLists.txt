@@ -6,6 +6,8 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 # not be changed
 set(PLUGIN_NAME "flutter_webrtc_plugin")
 
+add_definitions(-DLIB_WEBRTC_API_DLL)
+
 add_library(${PLUGIN_NAME} SHARED
   "flutter_webrtc_plugin.cc"
   "src/flutter_data_channel.cc"
@@ -31,10 +33,14 @@ target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
 target_include_directories(${PLUGIN_NAME} INTERFACE
   "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
-target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
+target_link_libraries(${PLUGIN_NAME} PRIVATE 
+  flutter
+  flutter_wrapper_plugin
+  "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libwebrtc/lib/libwebrtc.dll.lib"
+)
 
 # List of absolute paths to libraries that should be bundled with the plugin
 set(flutter_webrtc_bundled_libraries
-  ""
+  "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libwebrtc/lib/libwebrtc.dll"
   PARENT_SCOPE
 )

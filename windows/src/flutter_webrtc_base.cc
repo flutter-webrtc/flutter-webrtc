@@ -70,20 +70,20 @@ void FlutterWebRTCBase::ParseConstraints(
   for (auto kv : src) {
     EncodableValue k = kv.first;
     EncodableValue v = kv.second;
-    std::string key(k.StringValue());
+    std::string key = GetValue<std::string>(k);
     std::string value;
-    if (v.IsList() || v.IsMap()) {
-    } else if (v.IsString()) {
-      value = v.StringValue();
-    } else if (v.IsDouble()) {
-      value = std::to_string(v.DoubleValue());
-    } else if (v.IsInt()) {
-      value = std::to_string(v.IntValue());
-    } else if (v.IsBool()) {
-      value = v.BoolValue() ? RTCMediaConstraints::kValueTrue
+    if (TypeIs<EncodableList>(v) || TypeIs<EncodableMap>(v)) {
+    } else if (TypeIs<std::string>(v)) {
+      value = GetValue<std::string>(k);
+    } else if (TypeIs<double>(v)) {
+      value = std::to_string(GetValue<double>(v));
+    } else if (TypeIs<int>(v)) {
+      value = std::to_string(GetValue<int>(v));
+    } else if (TypeIs<bool>(v)) {
+      value = GetValue<bool>(k) ? RTCMediaConstraints::kValueTrue
                             : RTCMediaConstraints::kValueFalse;
     } else {
-      value = std::to_string(v.IntValue());
+      value = std::to_string(GetValue<int>(v));
     }
     if (type == kMandatory)
       mediaConstraints->AddMandatoryConstraint(key.c_str(), value.c_str());
@@ -99,7 +99,7 @@ scoped_refptr<RTCMediaConstraints> FlutterWebRTCBase::ParseMediaConstraints(
 
   if (constraints.find(EncodableValue("mandatory")) != constraints.end()) {
     auto it = constraints.find(EncodableValue("mandatory"));
-    const EncodableMap mandatory = it->second.MapValue();
+    const EncodableMap mandatory = GetValue<EncodableMap>(it->second);
     ParseConstraints(mandatory, media_constraints, kMandatory);
   } else {
     // Log.d(TAG, "mandatory constraints are not a map");
@@ -108,18 +108,14 @@ scoped_refptr<RTCMediaConstraints> FlutterWebRTCBase::ParseMediaConstraints(
   auto it = constraints.find(EncodableValue("optional"));
   if (it != constraints.end()) {
     const EncodableValue optional = it->second;
-    switch (optional.type()) {
-      case EncodableValue::Type::kMap: {
-        ParseConstraints(optional.MapValue(), media_constraints, kOptional);
-      } break;
-      case EncodableValue::Type::kList: {
-        const EncodableList list = optional.ListValue();
-        for (size_t i = 0; i < list.size(); i++) {
-          ParseConstraints(list[i].MapValue(), media_constraints, kOptional);
-        }
-      } break;
-      default:
-        break;
+    if (TypeIs<EncodableMap>(optional)) {
+      ParseConstraints(GetValue<EncodableMap>(optional), media_constraints,
+                       kOptional);
+    } else if (TypeIs<EncodableList>(optional)) {
+      const EncodableList list = GetValue<EncodableList>(optional);
+      for (size_t i = 0; i < list.size(); i++) {
+        ParseConstraints(GetValue<EncodableMap>(list[i]), media_constraints, kOptional);
+      }
     }
   } else {
     // Log.d(TAG, "optional constraints are not an array");
@@ -133,60 +129,60 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
   size_t size = iceServersArray.size();
   for (size_t i = 0; i < size; i++) {
     IceServer &ice_server = ice_servers[i];
-    EncodableMap iceServerMap = iceServersArray[i].MapValue();
+    EncodableMap iceServerMap = GetValue<EncodableMap>(iceServersArray[i]);
     bool hasUsernameAndCredential =
         iceServerMap.find(EncodableValue("username")) != iceServerMap.end() &&
         iceServerMap.find(EncodableValue("credential")) != iceServerMap.end();
     auto it = iceServerMap.find(EncodableValue("url"));
-    if (it != iceServerMap.end() && it->second.IsString()) {
+    if (it != iceServerMap.end() && TypeIs<std::string>(it->second)) {
       if (hasUsernameAndCredential) {
         std::string username =
-            iceServerMap.find(EncodableValue("username"))->second.StringValue();
+             GetValue<std::string>(iceServerMap.find(EncodableValue("username"))->second);
         std::string credential =
-            iceServerMap.find(EncodableValue("credential"))
-                ->second.StringValue();
-        std::string uri = it->second.StringValue();
+             GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
+                ->second);
+        std::string uri =  GetValue<std::string>(it->second);
         strncpy(ice_server.username, username.c_str(), username.size());
         strncpy(ice_server.password, credential.c_str(), credential.size());
         strncpy(ice_server.uri, uri.c_str(), uri.size());
       } else {
-        std::string uri = it->second.StringValue();
+        std::string uri = GetValue<std::string>(it->second);
         strncpy(ice_server.uri, uri.c_str(), uri.size());
       }
     }
     it = iceServerMap.find(EncodableValue("urls"));
     if (it != iceServerMap.end()) {
-      if (it->second.IsString()) {
+      if (TypeIs<std::string>(it->second)) {
         if (hasUsernameAndCredential) {
-          std::string username = iceServerMap.find(EncodableValue("username"))
-                                     ->second.StringValue();
+          std::string username =  GetValue<std::string>(iceServerMap.find(EncodableValue("username"))
+                                     ->second);
           std::string credential =
-              iceServerMap.find(EncodableValue("credential"))
-                  ->second.StringValue();
-          std::string uri = it->second.StringValue();
+               GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
+                  ->second);
+          std::string uri =  GetValue<std::string>(it->second);
           strncpy(ice_server.username, username.c_str(), username.size());
           strncpy(ice_server.password, credential.c_str(), credential.size());
           strncpy(ice_server.uri, uri.c_str(), uri.size());
         } else {
-          std::string uri = it->second.StringValue();
+          std::string uri =  GetValue<std::string>(it->second);
           strncpy(ice_server.uri, uri.c_str(), uri.size());
         }
       }
-      if (it->second.IsList()) {
-        const EncodableList urls = it->second.ListValue();
+      if (TypeIs<EncodableList>(it->second)) {
+        const EncodableList urls = GetValue<EncodableList>(it->second);
         for (auto url : urls) {
-          const EncodableMap map = url.MapValue();
+          const EncodableMap map = GetValue<EncodableMap>(url);
           std::string value;
           auto it2 = map.find(EncodableValue("url"));
           if (it2 != map.end()) {
-            value = it2->second.StringValue();
+            value =  GetValue<std::string>(it2->second);
             if (hasUsernameAndCredential) {
               std::string username =
-                  iceServerMap.find(EncodableValue("username"))
-                      ->second.StringValue();
+                   GetValue<std::string>(iceServerMap.find(EncodableValue("username"))
+                      ->second);
               std::string credential =
-                  iceServerMap.find(EncodableValue("credential"))
-                      ->second.StringValue();
+                  GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
+                      ->second);
               strncpy(ice_server.username, username.c_str(), username.size());
               strncpy(ice_server.password, credential.c_str(),
                       credential.size());
@@ -206,13 +202,13 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap &map,
                                               RTCConfiguration &conf) {
   auto it = map.find(EncodableValue("iceServers"));
   if (it != map.end()) {
-    const EncodableList iceServersArray = it->second.ListValue();
+    const EncodableList iceServersArray = GetValue<EncodableList>(it->second);
     CreateIceServers(iceServersArray, conf.ice_servers);
   }
   // iceTransportPolicy (public API)
   it = map.find(EncodableValue("iceTransportPolicy"));
-  if (it != map.end() && it->second.IsString()) {
-    std::string v = it->second.StringValue();
+  if (it != map.end() && TypeIs<std::string>(it->second)) {
+    std::string v = GetValue<std::string>(it->second);
     if (v == "all")  // public
       conf.type = kAll;
     else if (v == "relay")
@@ -225,8 +221,8 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap &map,
 
   // bundlePolicy (public api)
   it = map.find(EncodableValue("bundlePolicy"));
-  if (it != map.end() && it->second.IsString()) {
-    std::string v = it->second.StringValue();
+  if (it != map.end() && TypeIs<std::string>(it->second)) {
+    std::string v = GetValue<std::string>(it->second);
     if (v == "balanced")  // public
       conf.bundle_policy = kBundlePolicyBalanced;
     else if (v == "max-compat")  // public
@@ -237,8 +233,8 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap &map,
 
   // rtcpMuxPolicy (public api)
   it = map.find(EncodableValue("rtcpMuxPolicy"));
-  if (it != map.end() && it->second.IsString()) {
-    std::string v = it->second.StringValue();
+  if (it != map.end() && TypeIs<std::string>(it->second)) {
+    std::string v = GetValue<std::string>(it->second);
     if (v == "negotiate")  // public
       conf.rtcp_mux_policy = kRtcpMuxPolicyNegotiate;
     else if (v == "require")  // public
@@ -249,9 +245,8 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap &map,
   // FIXME: certificates of type sequence<RTCCertificate> (public API)
   // iceCandidatePoolSize of type unsigned short, defaulting to 0
   it = map.find(EncodableValue("iceCandidatePoolSize"));
-  if (it != map.end() && it->second.IsInt()) {
-    int v = it->second.IntValue();
-    conf.ice_candidate_pool_size = v;
+  if (it != map.end()) {
+    conf.ice_candidate_pool_size = GetValue<int>(it->second);
   }
 
   return true;

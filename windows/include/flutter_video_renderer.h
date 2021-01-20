@@ -12,14 +12,13 @@ namespace flutter_webrtc_plugin {
 using namespace libwebrtc;
 using namespace flutter;
 
-class FlutterVideoRenderer
-    : public Texture,
-      public RTCVideoRenderer<scoped_refptr<RTCVideoFrame>> {
+class FlutterVideoRenderer: public RTCVideoRenderer<scoped_refptr<RTCVideoFrame>> {
  public:
   FlutterVideoRenderer(TextureRegistrar *registrar, BinaryMessenger *messenger);
 
-  virtual const PixelBuffer *CopyPixelBuffer(size_t width,
-                                               size_t height) override;
+  virtual const FlutterDesktopPixelBuffer* CopyPixelBuffer(
+      size_t width,
+      size_t height) const;
 
   virtual void OnFrame(scoped_refptr<RTCVideoFrame> frame) override;
 
@@ -40,9 +39,10 @@ class FlutterVideoRenderer
   int64_t texture_id_ = -1;
   scoped_refptr<RTCVideoTrack> track_ = nullptr;
   scoped_refptr<RTCVideoFrame> frame_;
-  std::shared_ptr<PixelBuffer> pixel_buffer_;
-  std::shared_ptr<uint8_t> rgb_buffer_;
-  std::mutex mutex_;
+  std::unique_ptr<flutter::TextureVariant> texture_;
+  std::shared_ptr<FlutterDesktopPixelBuffer> pixel_buffer_;
+  mutable std::shared_ptr<uint8_t> rgb_buffer_;
+  mutable std::mutex mutex_;
   RTCVideoFrame::VideoRotation rotation_ = RTCVideoFrame::kVideoRotation_0;
 };
 

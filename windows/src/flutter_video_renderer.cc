@@ -5,7 +5,16 @@ namespace flutter_webrtc_plugin {
 FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar *registrar,
                                            BinaryMessenger *messenger)
     : registrar_(registrar) {
-  texture_id_ = registrar_->RegisterTexture(this);
+
+    texture_ =
+      std::make_unique<flutter::TextureVariant>(flutter::PixelBufferTexture(
+          [this](size_t width,
+                 size_t height) -> const FlutterDesktopPixelBuffer* {
+            return this->CopyPixelBuffer(width, height);
+          }));
+
+  texture_id_ = registrar_->RegisterTexture(texture_.get());
+
   std::string event_channel =
       "FlutterWebRTC/Texture" + std::to_string(texture_id_);
   event_channel_.reset(new EventChannel<EncodableValue>(
@@ -28,8 +37,9 @@ FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar *registrar,
   event_channel_->SetStreamHandler(std::move(handler));
 }
 
-const PixelBuffer *FlutterVideoRenderer::CopyPixelBuffer(size_t width,
-                                                           size_t height) {
+const FlutterDesktopPixelBuffer* FlutterVideoRenderer::CopyPixelBuffer(
+    size_t width,
+    size_t height) const {
   mutex_.lock();
   if (pixel_buffer_.get() && frame_.get()) {
     if (pixel_buffer_->width != frame_->width() ||
@@ -58,9 +68,9 @@ void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
       EncodableMap params;
       params[EncodableValue("event")] = "didFirstFrameRendered";
       params[EncodableValue("id")] = texture_id_;
-      event_sink_->Success(&EncodableValue(params));
+      event_sink_->Success(EncodableValue(params));
     }
-    pixel_buffer_.reset(new PixelBuffer());
+    pixel_buffer_.reset(new FlutterDesktopPixelBuffer());
     pixel_buffer_->width = 0;
     pixel_buffer_->height = 0;
     first_frame_rendered = true;
@@ -71,7 +81,7 @@ void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
       params[EncodableValue("event")] = "didTextureChangeRotation";
       params[EncodableValue("id")] = texture_id_;
       params[EncodableValue("rotation")] = (int32_t)frame->rotation();
-      event_sink_->Success(&EncodableValue(params));
+      event_sink_->Success(EncodableValue(params));
     }
     rotation_ = frame->rotation();
   }
@@ -83,7 +93,7 @@ void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
       params[EncodableValue("id")] = texture_id_;
       params[EncodableValue("width")] = (int32_t)frame->width();
       params[EncodableValue("height")] = (int32_t)frame->height();
-      event_sink_->Success(&EncodableValue(params));
+      event_sink_->Success(EncodableValue(params));
     }
     last_frame_size_ = {(size_t)frame->width(), (size_t)frame->height()};
   }
@@ -115,7 +125,7 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
   renderers_[texture_id] = std::move(texture);
   EncodableMap params;
   params[EncodableValue("textureId")] = texture_id;
-  result->Success(&EncodableValue(params));
+  result->Success(EncodableValue(params));
 }
 
 void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,

@@ -19,17 +19,12 @@ void FlutterMediaStream::GetUserMedia(
   auto it = constraints.find(EncodableValue("audio"));
   if (it != constraints.end()) {
     EncodableValue audio = it->second;
-    switch (audio.type()) {
-      case EncodableValue::Type::kBool:
-        if (audio.BoolValue()) {
-          GetUserAudio(constraints, stream, params);
-        }
-        break;
-      case EncodableValue::Type::kMap:
+    if (TypeIs<bool>(audio)) {
+      if (true == GetValue<bool>(audio)) {
         GetUserAudio(constraints, stream, params);
-        break;
-      default:
-        break;
+      }
+    } else if (TypeIs<EncodableMap>(audio)) {
+      GetUserAudio(constraints, stream, params);
     }
   } else {
 	  params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
@@ -38,17 +33,12 @@ void FlutterMediaStream::GetUserMedia(
   it = constraints.find(EncodableValue("video"));
   if (it != constraints.end()) {
     EncodableValue video = it->second;
-    switch (video.type()) {
-      case EncodableValue::Type::kBool:
-        if (video.BoolValue()) {
-          GetUserVideo(constraints, stream, params);
-        }
-        break;
-      case EncodableValue::Type::kMap:
-        GetUserVideo(constraints, stream, params);
-        break;
-      default:
-        break;
+     if (TypeIs<bool>(video)) {
+       if (true == GetValue<bool>(video)) {
+         GetUserVideo(constraints, stream, params);
+       }
+     } else if (TypeIs<EncodableMap>(video)) {
+       GetUserVideo(constraints, stream, params);
     }
   } else {
 	  params[EncodableValue("videoTracks")] = EncodableValue(EncodableList());
@@ -75,13 +65,15 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
   scoped_refptr<RTCMediaConstraints> audioConstraints;
   auto it = constraints.find(EncodableValue("audio"));
   if (it != constraints.end()) {
-    if (it->second.IsBool()) {
+    EncodableValue audio = it->second;
+    if (TypeIs<bool>(audio)) {
       audioConstraints = RTCMediaConstraints::Create();
       addDefaultAudioConstraints(audioConstraints);
-      enable_audio = it->second.BoolValue();
+      enable_audio = GetValue<bool>(audio);
     }
-    if (it->second.IsMap()) {
-      audioConstraints = base_->ParseMediaConstraints(it->second.MapValue());
+    if (TypeIs<EncodableMap>(audio)) {
+      audioConstraints =
+          base_->ParseMediaConstraints(GetValue<EncodableMap>(audio));
       enable_audio = true;
     }
   }
@@ -113,21 +105,22 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
 std::string getFacingMode(const EncodableMap& mediaConstraints) {
   return mediaConstraints.find(EncodableValue("facingMode")) !=
                  mediaConstraints.end()
-             ? mediaConstraints.find(EncodableValue("facingMode"))
-                   ->second.StringValue()
+             ? GetValue<std::string>(mediaConstraints.find(EncodableValue("facingMode"))
+                   ->second)
              : "";
 }
 
 std::string getSourceIdConstraint(const EncodableMap& mediaConstraints) {
   auto it = mediaConstraints.find(EncodableValue("optional"));
-  if (it != mediaConstraints.end() && it->second.IsList()) {
-    EncodableList optional = it->second.ListValue();
+  if (it != mediaConstraints.end() &&
+      TypeIs<EncodableList>(it->second)) {
+    EncodableList optional = GetValue<EncodableList>(it->second);
     for (size_t i = 0, size = optional.size(); i < size; i++) {
-      if (optional[i].IsMap()) {
-        EncodableMap option = optional[i].MapValue();
+      if (TypeIs<EncodableMap>(optional[i])) {
+        EncodableMap option = GetValue<EncodableMap>(optional[i]);
         auto it2 = option.find(EncodableValue("sourceId"));
-        if (it2 != option.end() && it2->second.IsString()) {
-          return it2->second.StringValue();
+        if (it2 != option.end() && TypeIs<std::string>(it2->second)) {
+          return GetValue<std::string>(it2->second);
         }
       }
     }
@@ -141,11 +134,11 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   EncodableMap video_constraints;
   EncodableMap video_mandatory;
   auto it = constraints.find(EncodableValue("video"));
-  if (it != constraints.end() && it->second.IsMap()) {
-    EncodableMap video_map = it->second.MapValue();
+  if (it != constraints.end() && TypeIs<EncodableMap>(it->second)) {
+    EncodableMap video_map =   GetValue<EncodableMap>(it->second);
     if (video_map.find(EncodableValue("mandatory")) != video_map.end()) {
       video_mandatory =
-          video_map.find(EncodableValue("mandatory"))->second.MapValue();
+          GetValue<EncodableMap>(video_map.find(EncodableValue("mandatory"))->second);
     }
   }
 
@@ -242,7 +235,7 @@ void FlutterMediaStream::GetSources(
     video[EncodableValue("kind")] = "videoinput";
     array.push_back(EncodableValue(video));
   }
-  result->Success(&EncodableValue(array));
+  result->Success(EncodableValue(array));
 }
 
 void FlutterMediaStream::MediaStreamGetTracks(
@@ -278,7 +271,7 @@ void FlutterMediaStream::MediaStreamGetTracks(
     }
     params[EncodableValue("videoTracks")] = videoTracks;
 
-    result->Success(&EncodableValue("params"));
+    result->Success(EncodableValue("params"));
   } else {
     result->Error("MediaStreamGetTracksFailed",
                   "MediaStreamGetTracks() media stream is null !");

@@ -16,6 +16,11 @@
 #include "base/refcount.h"
 #include "base/scoped_ref_ptr.h"
 
+#ifdef WIN32
+#undef strncpy
+#define strncpy strncpy_s
+#endif
+
 namespace libwebrtc {
 
 enum MediaSecurityType { kSRTP_None = 0, kSDES_SRTP, kDTLS_SRTP };

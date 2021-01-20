@@ -43,7 +43,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
       std::unique_ptr<flutter::MethodChannel<EncodableValue>> channel)
       : channel_(std::move(channel)),
         messenger_(registrar->messenger()),
-        textures_(registrar->textures()) {
+        textures_(registrar->texture_registrar()) {
     webrtc_ = std::make_unique<FlutterWebRTC>(this);
   }
 
