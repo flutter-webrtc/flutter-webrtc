@@ -43,19 +43,23 @@ inline EncodableValue findEncodableValue(const EncodableMap &map,
 
 inline EncodableMap findMap(const EncodableMap &map, const std::string &key) {
   auto it = map.find(EncodableValue(key));
-  if (it != map.end() && it->second.IsMap()) return it->second.MapValue();
+  if (it != map.end() && it.second.type() == typeid(EncodableMap))
+    return std::get<EncodableMap>(it->second);
   return EncodableMap();
 }
 
 inline std::string findString(const EncodableMap &map, const std::string &key) {
   auto it = map.find(EncodableValue(key));
-  if (it != map.end() && it->second.IsString()) return it->second.StringValue();
+  if (it != map.end() && it.second.type() == typeid(std::string)) {
+    return std::get<std::string>(it->second);
+  }
   return std::string();
 }
 
 inline int findInt(const EncodableMap &map, const std::string &key) {
   auto it = map.find(EncodableValue(key));
-  if (it != map.end() && it->second.IsInt()) return it->second.IntValue();
+  if (it != map.end() && it.second.type() == typeid(int))
+    return std::get<int>(it->second);
   return -1;
 }
 

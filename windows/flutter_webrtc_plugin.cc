@@ -1,4 +1,4 @@
-#include "flutter_webrtc_plugin.h"
+#include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
 
 #include <flutter/standard_message_codec.h>
 
