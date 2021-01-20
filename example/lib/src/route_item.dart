@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-typedef void RouteCallback(BuildContext context);
+typedef RouteCallback = void Function(BuildContext context);
 
 class RouteItem {
   RouteItem({

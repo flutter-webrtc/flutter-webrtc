@@ -17,7 +17,7 @@ function create() {
         echo "Create flutter project: name=$FLUTTER_APP_PROJECT_NAME, org=$FLUTTER_APP_ORG ..."
         flutter config --enable-macos-desktop
         flutter config --enable-web
-        flutter create --android-language java --androidx --ios-language objc --project-name $FLUTTER_APP_PROJECT_NAME --org $FLUTTER_APP_ORG .
+        flutter create --android-language java --ios-language objc --project-name $FLUTTER_APP_PROJECT_NAME --org $FLUTTER_APP_ORG .
         add_permission_label
     else
         echo "Project [$FLUTTER_APP_PROJECT_NAME] already exists!"
@@ -37,7 +37,7 @@ function add_permission_label() {
     echo ""
     echo "Add permission labels to AndroidManifest.xml."
     echo ""
-    python add-line.py -i ../android/app/build.gradle -s 'minSdkVersion 16' -t 'minSdkVersion 18' -r
+    python add-line.py -i ../android/app/build.gradle -s 'minSdkVersion 16' -t 'minSdkVersion 21' -r
     python add-line.py -i ../android/app/src/main/AndroidManifest.xml -s "<application" -t '    <uses-permission android:name="android.permission.CAMERA" />'
     python add-line.py -i ../android/app/src/main/AndroidManifest.xml -s "<application" -t '    <uses-permission android:name="android.permission.RECORD_AUDIO" />'
     python add-line.py -i ../android/app/src/main/AndroidManifest.xml -s "<application" -t '    <uses-permission android:name="android.permission.WAKE_LOCK" />'
@@ -45,6 +45,7 @@ function add_permission_label() {
     python add-line.py -i ../android/app/src/main/AndroidManifest.xml -s "<application" -t '    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />'
     python add-line.py -i ../android/app/src/main/AndroidManifest.xml -s "<application" -t '    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />'
     python add-line.py -i ../android/app/src/main/AndroidManifest.xml -s "<application" -t '    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />'
+    python add-line.py -i ../android/app/src/main/AndroidManifest.xml -s "<application" -t '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />'
     echo ""
     echo "Add permission labels to macOS."
     echo ""

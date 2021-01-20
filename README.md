@@ -1,18 +1,22 @@
 # Flutter-WebRTC
+
 [![Financial Contributors on Open Collective](https://opencollective.com/flutter-webrtc/all/badge.svg?label=financial+contributors)](https://opencollective.com/flutter-webrtc) [![pub package](https://img.shields.io/pub/v/flutter_webrtc.svg)](https://pub.dartlang.org/packages/flutter_webrtc) [![Gitter](https://badges.gitter.im/flutter-webrtc/Lobby.svg)](https://gitter.im/flutter-webrtc/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 WebRTC plugin for Flutter Mobile/Desktop/Web
 
 ## Functionality
+
 | Feature | Android | iOS | [Web](https://flutter.dev/web) | macOS | Windows | Linux | [Fuchsia](https://fuchsia.googlesource.com/) |
 | :-------------: | :-------------:| :-----: | :-----: | :-----: | :-----: | :-----: | :-----: |
 | Audio/Video | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | [WIP] | |
 | Data Channel | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | [WIP] | |
 | Screen Capture | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | | | |
-| Unified-Plan | | |  | | | | |
+| Unified-Plan | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | | |
+| Simulcast | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | | |
 | MediaRecorder| :warning: | :warning: | :heavy_check_mark: | | | | |
 
 ## Usage
+
 Add `flutter_webrtc` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
 
 ### iOS
@@ -42,9 +46,17 @@ Ensure the following permission is present in your Android Manifest file, locate
 <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 ```
 
+If you need to use a Bluetooth device, please add:
+
+```xml
+<uses-permission android:name="android.permission.BLUETOOTH" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+```
+
 The Flutter project template adds it, so it may already be there.
 
 Also you will need to set your build settings to Java 8, because official WebRTC jar now uses static methods in `EglBase` interface. Just add this to your app level `build.gradle`:
+
 ```groovy
 android {
     //...
@@ -55,15 +67,24 @@ android {
 }
 ```
 
-If necessary, in the same `build.gradle` you will need to increase `minSdkVersion` of `defaultConfig` up to `18` (currently default Flutter generator set it to `16`).
+If necessary, in the same `build.gradle` you will need to increase `minSdkVersion` of `defaultConfig` up to `21` (currently default Flutter generator set it to `16`).
+
+### Important reminder
+When you compile the release apk, you need to add the following operations,
+[Setup Proguard Rules](https://github.com/flutter-webrtc/flutter-webrtc/commit/d32dab13b5a0bed80dd9d0f98990f107b9b514f4)
 
 ## Contributing
+
 The project is inseparable from the contributors of the community.
+
 - [CloudWebRTC](https://github.com/cloudwebrtc) - Original Author
 - [RainwayApp](https://github.com/rainwayapp) - Sponsor
 - [亢少军](https://github.com/kangshaojun) - Sponsor
+- [ION](https://github.com/pion/ion) - Sponsor
+- [reSipWebRTC](https://github.com/reSipWebRTC) - Sponsor
 
 ### Example
+
 For more examples, please refer to [flutter-webrtc-demo](https://github.com/cloudwebrtc/flutter-webrtc-demo/).
 
 ## Contributors

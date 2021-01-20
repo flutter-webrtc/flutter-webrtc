@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/webrtc.dart';
-import 'dart:core';
 import 'dart:async';
+import 'dart:core';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 /*
  * getDisplayMedia sample
@@ -10,34 +11,33 @@ class GetDisplayMediaSample extends StatefulWidget {
   static String tag = 'get_display_media_sample';
 
   @override
-  _GetDisplayMediaSampleState createState() =>
-      new _GetDisplayMediaSampleState();
+  _GetDisplayMediaSampleState createState() => _GetDisplayMediaSampleState();
 }
 
 class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   MediaStream _localStream;
-  final _localRenderer = new RTCVideoRenderer();
+  final _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   Timer _timer;
   var _counter = 0;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     initRenderers();
   }
 
   @override
-  deactivate() {
+  void deactivate() {
     super.deactivate();
     if (_inCalling) {
-      _hangUp();
+      _stop();
     }
     if (_timer != null) _timer.cancel();
     _localRenderer.dispose();
   }
 
-  initRenderers() async {
+  Future<void> initRenderers() async {
     await _localRenderer.initialize();
   }
 
@@ -48,14 +48,16 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
-  _makeCall() async {
-    final Map<String, dynamic> mediaConstraints = {
-      "audio": false,
-      "video": true
-    };
+  Future<void> _makeCall() async {
+    final mediaConstraints = <String, dynamic>{'audio': true, 'video': true};
 
     try {
       var stream = await navigator.getDisplayMedia(mediaConstraints);
+      stream.getVideoTracks()[0].onEnded = () {
+        print(
+            'By adding a listener on onEnded you can: 1) catch stop video sharing on Web');
+      };
+
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
     } catch (e) {
@@ -67,16 +69,23 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
       _inCalling = true;
     });
 
-    _timer = new Timer.periodic(Duration(milliseconds: 100), handleTimer);
+    _timer = Timer.periodic(Duration(milliseconds: 100), handleTimer);
   }
 
-  _hangUp() async {
+  Future<void> _stop() async {
     try {
-      await _localStream.dispose();
+      if (_localStream != null) {
+        await _localStream.dispose();
+        _localStream = null;
+      }
       _localRenderer.srcObject = null;
     } catch (e) {
       print(e.toString());
     }
+  }
+
+  Future<void> _hangUp() async {
+    await _stop();
     setState(() {
       _inCalling = false;
     });
@@ -85,32 +94,33 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('GetUserMedia API Test'),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('GetUserMedia API Test'),
+        actions: [],
       ),
-      body: new OrientationBuilder(
+      body: OrientationBuilder(
         builder: (context, orientation) {
-          return new Center(
-            child: new Stack(children: <Widget>[
-              new Center(
-                child: new Text('counter: ' + _counter.toString()),
+          return Center(
+            child: Stack(children: <Widget>[
+              Center(
+                child: Text('counter: ' + _counter.toString()),
               ),
-              new Container(
-                margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+              Container(
+                margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
                 child: RTCVideoView(_localRenderer),
-                decoration: new BoxDecoration(color: Colors.black54),
+                decoration: BoxDecoration(color: Colors.black54),
               )
             ]),
           );
         },
       ),
-      floatingActionButton: new FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         onPressed: _inCalling ? _hangUp : _makeCall,
         tooltip: _inCalling ? 'Hangup' : 'Call',
-        child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
+        child: Icon(_inCalling ? Icons.call_end : Icons.phone),
       ),
     );
   }

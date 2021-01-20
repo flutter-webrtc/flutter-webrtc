@@ -1,8 +1,8 @@
-import 'dart:io';
 import 'dart:core';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:path_provider/path_provider.dart';
 
 /*
@@ -12,25 +12,27 @@ class GetUserMediaSample extends StatefulWidget {
   static String tag = 'get_usermedia_sample';
 
   @override
-  _GetUserMediaSampleState createState() => new _GetUserMediaSampleState();
+  _GetUserMediaSampleState createState() => _GetUserMediaSampleState();
 }
 
 class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaStream _localStream;
-  final _localRenderer = new RTCVideoRenderer();
+  final _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   bool _isTorchOn = false;
   MediaRecorder _mediaRecorder;
-  get _isRec => _mediaRecorder != null;
+  bool get _isRec => _mediaRecorder != null;
+
+  List<MediaDeviceInfo> _mediaDevicesList;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     initRenderers();
   }
 
   @override
-  deactivate() {
+  void deactivate() {
     super.deactivate();
     if (_inCalling) {
       _hangUp();
@@ -38,31 +40,31 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     _localRenderer.dispose();
   }
 
-  initRenderers() async {
+  void initRenderers() async {
     await _localRenderer.initialize();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
-  _makeCall() async {
-    final Map<String, dynamic> mediaConstraints = {
-      "audio": false,
-      "video": {
-        "mandatory": {
-          "minWidth":
+  void _makeCall() async {
+    final mediaConstraints = <String, dynamic>{
+      'audio': false,
+      'video': {
+        'mandatory': {
+          'minWidth':
               '1280', // Provide your own width, height and frame rate here
-          "minHeight": '720',
-          "minFrameRate": '30',
+          'minHeight': '720',
+          'minFrameRate': '30',
         },
-        "facingMode": "user",
-        "optional": [],
+        'facingMode': 'user',
+        'optional': [],
       }
     };
 
     try {
       var stream = await navigator.getUserMedia(mediaConstraints);
+      _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
-      _localRenderer.mirror = true;
     } catch (e) {
       print(e.toString());
     }
@@ -73,7 +75,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     });
   }
 
-  _hangUp() async {
+  void _hangUp() async {
     try {
       await _localStream.dispose();
       _localRenderer.srcObject = null;
@@ -85,12 +87,12 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     });
   }
 
-  _startRecording() async {
+  void _startRecording() async {
     if (Platform.isIOS) {
-      print("Recording is not available on iOS");
+      print('Recording is not available on iOS');
       return;
     }
-    //TODO(rostopira): request write storage permission
+    // TODO(rostopira): request write storage permission
     final storagePath = await getExternalStorageDirectory();
     final filePath = storagePath.path + '/webrtc_sample/test.mp4';
     _mediaRecorder = MediaRecorder();
@@ -98,43 +100,43 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     await _localStream.getMediaTracks();
     final videoTrack = _localStream
         .getVideoTracks()
-        .firstWhere((track) => track.kind == "video");
+        .firstWhere((track) => track.kind == 'video');
     await _mediaRecorder.start(
       filePath,
       videoTrack: videoTrack,
     );
   }
 
-  _stopRecording() async {
+  void _stopRecording() async {
     await _mediaRecorder?.stop();
     setState(() {
       _mediaRecorder = null;
     });
   }
 
-  _toggleTorch() async {
+  void _toggleTorch() async {
     final videoTrack = _localStream
         .getVideoTracks()
-        .firstWhere((track) => track.kind == "video");
+        .firstWhere((track) => track.kind == 'video');
     final has = await videoTrack.hasTorch();
     if (has) {
-      print("[TORCH] Current camera supports torch mode");
+      print('[TORCH] Current camera supports torch mode');
       setState(() => _isTorchOn = !_isTorchOn);
       await videoTrack.setTorch(_isTorchOn);
-      print("[TORCH] Torch state is now ${_isTorchOn ? "on" : "off"}");
+      print('[TORCH] Torch state is now ${_isTorchOn ? 'on' : 'off'}');
     } else {
-      print("[TORCH] Current camera does not support torch mode");
+      print('[TORCH] Current camera does not support torch mode');
     }
   }
 
-  _toggleCamera() async {
+  void _toggleCamera() async {
     final videoTrack = _localStream
         .getVideoTracks()
-        .firstWhere((track) => track.kind == "video");
+        .firstWhere((track) => track.kind == 'video');
     await videoTrack.switchCamera();
   }
 
-  _captureFrame() async {
+  void _captureFrame() async {
     String filePath;
     if (Platform.isAndroid) {
       final storagePath = await getExternalStorageDirectory();
@@ -146,54 +148,73 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
 
     final videoTrack = _localStream
         .getVideoTracks()
-        .firstWhere((track) => track.kind == "video");
-    videoTrack.captureFrame(filePath);
+        .firstWhere((track) => track.kind == 'video');
+    await videoTrack.captureFrame(filePath);
   }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('GetUserMedia API Test'),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('GetUserMedia API Test'),
         actions: _inCalling
             ? <Widget>[
-                new IconButton(
+                IconButton(
                   icon: Icon(_isTorchOn ? Icons.flash_off : Icons.flash_on),
                   onPressed: _toggleTorch,
                 ),
-                new IconButton(
+                IconButton(
                   icon: Icon(Icons.switch_video),
                   onPressed: _toggleCamera,
                 ),
-                new IconButton(
+                IconButton(
                   icon: Icon(Icons.camera),
                   onPressed: _captureFrame,
                 ),
-                new IconButton(
+                IconButton(
                   icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
                   onPressed: _isRec ? _stopRecording : _startRecording,
+                ),
+                PopupMenuButton<String>(
+                  onSelected: _selectAudioOutput,
+                  itemBuilder: (BuildContext context) {
+                    return _mediaDevicesList
+                        .where((device) => device.kind == 'audiooutput')
+                        .map((device) {
+                      if (device.kind == 'audiooutput') {
+                        return PopupMenuItem<String>(
+                          value: device.deviceId,
+                          child: Text(device.label),
+                        );
+                      }
+                    }).toList();
+                  },
                 ),
               ]
             : null,
       ),
-      body: new OrientationBuilder(
+      body: OrientationBuilder(
         builder: (context, orientation) {
-          return new Center(
-            child: new Container(
-              margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+          return Center(
+            child: Container(
+              margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
-              child: RTCVideoView(_localRenderer),
-              decoration: new BoxDecoration(color: Colors.black54),
+              child: RTCVideoView(_localRenderer, mirror: true),
+              decoration: BoxDecoration(color: Colors.black54),
             ),
           );
         },
       ),
-      floatingActionButton: new FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         onPressed: _inCalling ? _hangUp : _makeCall,
         tooltip: _inCalling ? 'Hangup' : 'Call',
-        child: new Icon(_inCalling ? Icons.call_end : Icons.phone),
+        child: Icon(_inCalling ? Icons.call_end : Icons.phone),
       ),
     );
+  }
+
+  void _selectAudioOutput(String deviceId) {
+    _localRenderer.audioOutput = deviceId;
   }
 }
