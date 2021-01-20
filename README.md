@@ -8,8 +8,8 @@ WebRTC plugin for Flutter Mobile/Desktop/Web
 
 | Feature | Android | iOS | [Web](https://flutter.dev/web) | macOS | Windows | Linux | [Fuchsia](https://fuchsia.googlesource.com/) |
 | :-------------: | :-------------:| :-----: | :-----: | :-----: | :-----: | :-----: | :-----: |
-| Audio/Video | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | [WIP] | |
-| Data Channel | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | [WIP] | |
+| Audio/Video | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | |
+| Data Channel | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | |
 | Screen Capture | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | | | |
 | Unified-Plan | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | | |
 | Simulcast | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | | |
