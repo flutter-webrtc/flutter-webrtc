@@ -89,7 +89,7 @@ class _MyAppState extends State<LoopBackSample> {
 
   void _onAddStream(MediaStream stream) {
     print('New stream: ' + stream.id);
-    //_remoteRenderer.srcObject = stream;
+    _remoteRenderer.srcObject = stream;
   }
 
   void _onRemoveStream(MediaStream stream) {
@@ -175,7 +175,7 @@ class _MyAppState extends State<LoopBackSample> {
       _localStream =
           await navigator.mediaDevices.getUserMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
-
+      await _peerConnection.addStream(_localStream);
       /* old API
       await _peerConnection.addStream(_localStream);
       // Unified-Plan
@@ -184,13 +184,13 @@ class _MyAppState extends State<LoopBackSample> {
       });
       */
       // or
-
+      /*
       await _peerConnection.addTransceiver(
         track: _localStream.getAudioTracks()[0],
         init: RTCRtpTransceiverInit(
             direction: TransceiverDirection.SendRecv, streams: [_localStream]),
       );
-
+      */
       /*
       // ignore: unused_local_variable
       var transceiver = await _peerConnection.addTransceiver(
@@ -200,6 +200,7 @@ class _MyAppState extends State<LoopBackSample> {
       );
       */
 
+      /*
       // Unified-Plan Simulcast
       await _peerConnection.addTransceiver(
           track: _localStream.getVideoTracks()[0],
@@ -227,7 +228,7 @@ class _MyAppState extends State<LoopBackSample> {
               ),
             ],
           ));
-      /*
+      
       await _peerConnection.addTransceiver(
           kind: RTCRtpMediaType.RTCRtpMediaTypeVideo);
       await _peerConnection.addTransceiver(
