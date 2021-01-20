@@ -74,13 +74,13 @@ void FlutterWebRTCBase::ParseConstraints(
     std::string value;
     if (TypeIs<EncodableList>(v) || TypeIs<EncodableMap>(v)) {
     } else if (TypeIs<std::string>(v)) {
-      value = GetValue<std::string>(k);
+      value = GetValue<std::string>(v);
     } else if (TypeIs<double>(v)) {
       value = std::to_string(GetValue<double>(v));
     } else if (TypeIs<int>(v)) {
       value = std::to_string(GetValue<int>(v));
     } else if (TypeIs<bool>(v)) {
-      value = GetValue<bool>(k) ? RTCMediaConstraints::kValueTrue
+      value = GetValue<bool>(v) ? RTCMediaConstraints::kValueTrue
                             : RTCMediaConstraints::kValueFalse;
     } else {
       value = std::to_string(GetValue<int>(v));
