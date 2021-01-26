@@ -1,6 +1,17 @@
 # Changelog
 
 --------------------------------------------
+[0.5.8] - 2021.01.26
+
+* [Web] Support selecting audio output.
+* [Web] Fix issue for getDisplayMedia with audio.
+* [Windows] Add Windows Support.
+* [macOS] Fix compile error for macos.
+* [Dart] Add FilterQuality to RTCVideoView.
+* [iOS/Android] Unified plan gettracks.
+* [iOS/Android] Bluetooth switching enabled when switching `enableSpeakerphone` value (if they are connected). #201 (#435)
+* [Android] Increase necessary Android min SDK version after add Unified-Plan API.
+
 [0.5.7] - 2020.11.21
 
 * [Web] Fix events callback for peerconnection.
