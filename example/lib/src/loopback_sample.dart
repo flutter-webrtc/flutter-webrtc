@@ -19,6 +19,9 @@ class _MyAppState extends State<LoopBackSample> {
   bool _inCalling = false;
   Timer _timer;
 
+  String get sdpSemantics =>
+      WebRTC.platformIsWindows ? 'plan-b' : 'unified-plan';
+
   @override
   void initState() {
     super.initState();
@@ -137,7 +140,7 @@ class _MyAppState extends State<LoopBackSample> {
       'iceServers': [
         {'url': 'stun:stun.l.google.com:19302'},
       ],
-      'sdpSemantics': 'unified-plan'
+      'sdpSemantics': sdpSemantics
     };
 
     final offerSdpConstraints = <String, dynamic>{
@@ -170,20 +173,22 @@ class _MyAppState extends State<LoopBackSample> {
       _peerConnection.onIceCandidate = _onCandidate;
       _peerConnection.onRenegotiationNeeded = _onRenegotiationNeeded;
 
-      _peerConnection.onTrack = _onTrack;
-
       _localStream =
           await navigator.mediaDevices.getUserMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;
-      await _peerConnection.addStream(_localStream);
-      /* old API
-      await _peerConnection.addStream(_localStream);
-      // Unified-Plan
-      _localStream.getTracks().forEach((track) {
-        _peerConnection.addTrack(track, [_localStream]);
-      });
-      */
-      // or
+
+      switch (sdpSemantics) {
+        case 'plan-b':
+          await _peerConnection.addStream(_localStream);
+          break;
+        case 'unified-plan':
+          _peerConnection.onTrack = _onTrack;
+          _localStream.getTracks().forEach((track) {
+            _peerConnection.addTrack(track, _localStream);
+          });
+          break;
+      }
+
       /*
       await _peerConnection.addTransceiver(
         track: _localStream.getAudioTracks()[0],
@@ -251,7 +256,6 @@ class _MyAppState extends State<LoopBackSample> {
       _localRenderer.srcObject = _localStream;
       await transceiver.sender.replaceTrack(stream.getVideoTracks()[0]);
       // do re-negotiation ....
-
       */
     } catch (e) {
       print(e.toString());
