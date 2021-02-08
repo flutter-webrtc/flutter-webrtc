@@ -342,7 +342,8 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
       {MediaStreamTrack track,
       RTCRtpMediaType kind,
       RTCRtpTransceiverInit init}) async {
-    var kindOrTrack = kind ?? (track as MediaStreamTrackWeb).jsTrack;
+    var kindLabel = kind != null ? typeRTCRtpMediaTypetoString[kind] : null;
+    var kindOrTrack = kindLabel ?? (track as MediaStreamTrackWeb).jsTrack;
     final jsOptions = jsutil
         .jsify(init != null ? RTCRtpTransceiverInitWeb.initToMap(init) : {});
     var transceiver =
