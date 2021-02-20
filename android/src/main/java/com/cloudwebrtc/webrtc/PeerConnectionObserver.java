@@ -999,6 +999,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     }
 
     protected MediaStreamTrack getTransceiversTrack(String trackId) {
+        if(this.configuration.sdpSemantics != PeerConnection.SdpSemantics.UNIFIED_PLAN) {
+            return null;
+        }
         MediaStreamTrack track = null;
         List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
         for (RtpTransceiver transceiver : transceivers) {
