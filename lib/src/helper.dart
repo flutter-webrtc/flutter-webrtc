@@ -117,6 +117,6 @@ class Helper {
         throw 'Unable to MediaStreamTrack::setMicrophoneMute: ${e.message}';
       }
     }
-    track.enabled = mute;
+    track.enabled = !mute;
   }
 }
