@@ -6,6 +6,9 @@ daysUntilClose: 7
 exemptLabels:
   - pinned
   - security
+  - 🐛bug
+  - 🚀enhancement
+  - 😭help%20wanted
 # Label to use when marking an issue as stale
 staleLabel: wontfix
 # Comment to post when marking an issue as stale. Set to `false` to disable
