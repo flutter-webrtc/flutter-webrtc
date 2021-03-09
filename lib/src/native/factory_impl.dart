@@ -48,6 +48,9 @@ class RTCFactoryNative extends RTCFactory {
         'constraints': constraints.isEmpty ? defaultConstraints : constraints
       },
     );
+    if (response == null) {
+      throw Exception('createPeerConnection return null, something wrong');
+    }
 
     String peerConnectionId = response['peerConnectionId'];
     return RTCPeerConnectionNative(peerConnectionId, configuration);

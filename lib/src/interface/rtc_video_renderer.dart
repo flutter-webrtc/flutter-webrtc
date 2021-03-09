@@ -24,17 +24,16 @@ class RTCVideoValue {
   }
 
   RTCVideoValue copyWith({
-    double width,
-    double height,
-    int rotation,
-    bool renderVideo,
+    double? width,
+    double? height,
+    int? rotation,
+    bool renderVideo = true,
   }) {
     return RTCVideoValue(
       width: width ?? this.width,
       height: height ?? this.height,
       rotation: rotation ?? this.rotation,
-      renderVideo: (this.width != 0 && this.height != 0 && renderVideo) ??
-          this.renderVideo,
+      renderVideo: this.width != 0 && this.height != 0 && renderVideo,
     );
   }
 
@@ -46,7 +45,7 @@ class RTCVideoValue {
 abstract class VideoRenderer extends ValueNotifier<RTCVideoValue> {
   VideoRenderer() : super(RTCVideoValue.empty);
 
-  Function onResize;
+  Function? onResize;
 
   int get videoWidth;
 
@@ -63,8 +62,8 @@ abstract class VideoRenderer extends ValueNotifier<RTCVideoValue> {
 
   Future<void> initialize();
 
-  MediaStream get srcObject;
-  set srcObject(MediaStream stream);
+  MediaStream? get srcObject;
+  set srcObject(MediaStream? stream);
 
   @override
   @mustCallSuper

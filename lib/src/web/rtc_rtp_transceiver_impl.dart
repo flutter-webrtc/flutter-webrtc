@@ -26,18 +26,25 @@ class RTCRtpTransceiverInitWeb extends RTCRtpTransceiverInit {
             sendEncodings: sendEncodings);
 
   factory RTCRtpTransceiverInitWeb.fromMap(Map<dynamic, dynamic> map) {
+    if (map['direction'] == null) {
+      throw Exception('You must provide a direction');
+    }
+    if (map['streams'] == null) {
+      throw Exception('You must provide the streams');
+    }
+
     return RTCRtpTransceiverInitWeb(
-        typeStringToRtpTransceiverDirection[map['direction']],
-        (map['streams'] as List<dynamic>).map((e) => e).toList(),
+        typeStringToRtpTransceiverDirection[map['direction']]!,
+        (map['streams'] as List<MediaStream>).map((e) => e).toList(),
         listToRtpEncodings(map['sendEncodings']));
   }
 
   Map<String, dynamic> toMap() {
     return {
       'direction': typeRtpTransceiverDirectionToString[direction],
-      if (streams != null) 'streamIds': streams.map((e) => e.id).toList(),
+      if (streams != null) 'streamIds': streams!.map((e) => e.id).toList(),
       if (sendEncodings != null)
-        'sendEncodings': sendEncodings.map((e) => e.toMap()).toList(),
+        'sendEncodings': sendEncodings!.map((e) => e.toMap()).toList(),
     };
   }
 
@@ -45,10 +52,10 @@ class RTCRtpTransceiverInitWeb extends RTCRtpTransceiverInit {
     return {
       'direction': typeRtpTransceiverDirectionToString[init.direction],
       'streams': init.streams != null
-          ? init.streams.map((e) => (e as MediaStreamWeb).jsStream).toList()
+          ? init.streams!.map((e) => (e as MediaStreamWeb).jsStream).toList()
           : [],
       'sendEncodings': init.sendEncodings != null
-          ? init.sendEncodings.map((e) => e.toMap()).toList()
+          ? init.sendEncodings!.map((e) => e.toMap()).toList()
           : [],
     };
   }
@@ -58,7 +65,7 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   RTCRtpTransceiverWeb(this._jsTransceiver, _peerConnectionId);
 
   factory RTCRtpTransceiverWeb.fromJsObject(Object jsTransceiver,
-      {String peerConnectionId}) {
+      {String? peerConnectionId}) {
     var transceiver = RTCRtpTransceiverWeb(jsTransceiver, peerConnectionId);
     return transceiver;
   }
@@ -66,7 +73,7 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   Object _jsTransceiver;
 
   @override
-  TransceiverDirection get currentDirection =>
+  TransceiverDirection? get currentDirection =>
       typeStringToRtpTransceiverDirection[
           jsutil.getProperty(_jsTransceiver, 'direction')];
 
@@ -101,7 +108,7 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   Future<TransceiverDirection> getCurrentDirection() async {
     try {
       var direction = jsutil.getProperty(_jsTransceiver, 'direction');
-      return typeStringToRtpTransceiverDirection[direction];
+      return Future.value(typeStringToRtpTransceiverDirection[direction]);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpTransceiver::getCurrentDirection: ${e.message}';
     }

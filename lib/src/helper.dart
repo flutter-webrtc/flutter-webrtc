@@ -43,9 +43,9 @@ class Helper {
   }
 
   /// For web implementation, make sure to pass the target deviceId
-  static Future<bool> switchCamera(MediaStreamTrack track,
-      [String deviceId, MediaStream stream]) async {
-    if (track?.kind != 'video') {
+  static Future<bool?> switchCamera(MediaStreamTrack track,
+      [String? deviceId, MediaStream? stream]) async {
+    if (track.kind != 'video') {
       throw 'The is not a video track => $track';
     }
 

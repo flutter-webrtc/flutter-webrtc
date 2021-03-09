@@ -120,10 +120,10 @@ abstract class MediaDevices {
 /// cameras, headsets, and so forth.
 class MediaDeviceInfo {
   MediaDeviceInfo({
-    required this.kind,
-    required this.label,
-    required this.groupId,
-    required this.deviceId,
+    this.kind,
+    this.label,
+    this.groupId,
+    this.deviceId,
   });
 
   /// Returns a String that is an identifier for the represented device that
@@ -131,18 +131,18 @@ class MediaDeviceInfo {
   /// and unique to the origin of the calling application. It is reset when
   /// the user clears cookies (for Private Browsing, a different identifier
   /// is used that is not persisted across sessions).
-  final String deviceId;
+  final String? deviceId;
 
   /// Returns a String that is a group identifier. Two devices have the same
   /// group identifier if they belong to the same physical device
   /// — for example a monitor with both a built-in camera and a microphone.
-  final String groupId;
+  final String? groupId;
 
   /// Returns an enumerated value that is either 'videoinput', 'audioinput' or
   /// 'audiooutput'.
-  final String kind;
+  final String? kind;
 
   /// Returns a String that is a label describing this device
   /// (for example "External USB Webcam").
-  final String label;
+  final String? label;
 }
