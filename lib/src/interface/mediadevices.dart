@@ -120,10 +120,10 @@ abstract class MediaDevices {
 /// cameras, headsets, and so forth.
 class MediaDeviceInfo {
   MediaDeviceInfo({
-    this.kind,
-    this.label,
-    this.groupId,
-    this.deviceId,
+    required this.kind,
+    required this.label,
+    required this.groupId,
+    required this.deviceId,
   });
 
   /// Returns a String that is an identifier for the represented device that
