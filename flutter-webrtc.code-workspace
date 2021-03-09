@@ -8,5 +8,7 @@
 			"name": "example"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"java.configuration.updateBuildConfiguration": "disabled"
+	}
 }

@@ -20,13 +20,13 @@ abstract class MediaStreamTrack {
   String get kind;
 
   /// Callback for onmute event
-  StreamTrackCallback onMute;
+  StreamTrackCallback? onMute;
 
   /// Callback for unmute event
-  StreamTrackCallback onUnMute;
+  StreamTrackCallback? onUnMute;
 
   /// Callback foronended event
-  StreamTrackCallback onEnded;
+  StreamTrackCallback? onEnded;
 
   /// Returns the enable state of [MediaStreamTrack]
   bool get enabled;
@@ -55,7 +55,7 @@ abstract class MediaStreamTrack {
   /// These constraints let the Web site or app establish ideal values and
   /// acceptable ranges of values for the constrainable properties of the track,
   /// such as frame rate, dimensions, echo cancelation, and so forth.
-  Future<void> applyConstraints([Map<String, dynamic> constraints]) {
+  Future<void> applyConstraints([Map<String, dynamic>? constraints]) {
     throw UnimplementedError();
   }
 
@@ -93,7 +93,7 @@ abstract class MediaStreamTrack {
     throw UnimplementedError();
   }
 
-  Future<dynamic> captureFrame([String filePath]) {
+  Future<dynamic> captureFrame([String? filePath]) {
     throw UnimplementedError();
   }
 

@@ -9,10 +9,10 @@ abstract class MediaStream {
   final String _ownerTag;
 
   /// The event type of this event handler is addtrack.
-  MediaTrackCallback onAddTrack;
+  MediaTrackCallback? onAddTrack;
 
   /// The event type of this event handler is removetrack.
-  MediaTrackCallback onRemoveTrack;
+  MediaTrackCallback? onRemoveTrack;
 
   String get id => _id;
 
@@ -44,12 +44,9 @@ abstract class MediaStream {
   /// The list represents a snapshot of all the [MediaStreamTrack]  objects in this stream's track set whose kind is equal to 'video'.
   List<MediaStreamTrack> getVideoTracks();
 
-  /// Returns either a [MediaStreamTrack] object from this stream's track set whose id is equal to trackId, or null, if no such track exists.
+  /// Returns either a [MediaStreamTrack] object from this stream's track set whose id is equal to trackId, or [StateError], if no such track exists.
   MediaStreamTrack getTrackById(String trackId) {
-    return getTracks().firstWhere(
-      (element) => element.id == trackId,
-      orElse: () => null,
-    );
+    return getTracks().firstWhere((element) => element.id == trackId);
   }
 
   /// Clones the given [MediaStream] and all its tracks.
