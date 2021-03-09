@@ -29,13 +29,13 @@ abstract class MediaStreamTrack {
   StreamTrackCallback? onEnded;
 
   /// Returns the enable state of [MediaStreamTrack]
-  bool? get enabled;
+  bool get enabled;
 
   /// Set the enable state of [MediaStreamTrack]
   ///
   /// Note: After a [MediaStreamTrack] has ended, setting the enable state
   /// will not change the ended state.
-  set enabled(bool? b);
+  set enabled(bool b);
 
   /// Returns true if the track is muted, and false otherwise.
   bool? get muted;

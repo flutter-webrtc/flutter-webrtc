@@ -73,7 +73,7 @@ abstract class RTCDataChannel {
   RTCDataChannelOnMessageCallback? onMessage;
 
   /// Get current state.
-  RTCDataChannelState get state;
+  RTCDataChannelState? get state;
 
   /// Stream of state change events. Emits the new state on change.
   /// Closes when the [RTCDataChannel] is closed.

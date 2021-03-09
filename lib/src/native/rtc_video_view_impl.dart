@@ -44,7 +44,7 @@ class RTCVideoView extends StatelessWidget {
             child: ValueListenableBuilder<RTCVideoValue>(
               valueListenable: videoRenderer,
               builder:
-                  (BuildContext context, RTCVideoValue value, Widget child) {
+                  (BuildContext context, RTCVideoValue value, Widget? child) {
                 return SizedBox(
                   width: constraints.maxHeight * value.aspectRatio,
                   height: constraints.maxHeight,
@@ -57,7 +57,7 @@ class RTCVideoView extends StatelessWidget {
                 child: videoRenderer.textureId != null &&
                         videoRenderer.srcObject != null
                     ? Texture(
-                        textureId: videoRenderer.textureId,
+                        textureId: videoRenderer.textureId!,
                         filterQuality: filterQuality,
                       )
                     : Container(),

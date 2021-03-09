@@ -28,7 +28,7 @@ class RTCVideoRenderer {
 
   set srcObject(MediaStream? stream) => _delegate.srcObject = stream;
 
-  int get textureId => _delegate.textureId;
+  int? get textureId => _delegate.textureId;
 
   Future<void> dispose() async {
     return _delegate.dispose();

@@ -17,4 +17,18 @@ class WebRTC {
   static bool get platformIsAndroid => Platform.isAndroid;
 
   static bool get platformIsWeb => false;
+
+  static Future<T> invokeMethod<T, P>(String methodName,
+      [dynamic? param]) async {
+    var response = await _channel.invokeMethod<T>(
+      methodName,
+      param,
+    );
+
+    if (response == null) {
+      throw Exception('Invoke method: $methodName return a null response');
+    }
+
+    return response;
+  }
 }

@@ -23,7 +23,7 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   String? get label => jsTrack.label;
 
   @override
-  bool? get enabled => jsTrack.enabled;
+  bool get enabled => jsTrack.enabled ?? false;
 
   @override
   bool? get muted => jsTrack.muted;

@@ -58,7 +58,7 @@ abstract class VideoRenderer extends ValueNotifier<RTCVideoValue> {
   Future<bool> audioOutput(String deviceId);
 
   bool get renderVideo;
-  int get textureId;
+  int? get textureId;
 
   Future<void> initialize();
 

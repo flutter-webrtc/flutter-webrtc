@@ -11,10 +11,7 @@ class RTCVideoView extends StatefulWidget {
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirror = false,
     this.filterQuality = FilterQuality.low,
-  })  : assert(objectFit != null),
-        assert(mirror != null),
-        assert(filterQuality != null),
-        super(key: key);
+  }) : super(key: key);
 
   final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
