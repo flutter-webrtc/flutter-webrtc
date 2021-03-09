@@ -71,10 +71,12 @@ class MediaDevicesWeb extends MediaDevices {
     return devices.map((e) {
       var input = e as html.MediaDeviceInfo;
       return MediaDeviceInfo(
-          deviceId: input.deviceId,
-          groupId: input.groupId,
-          kind: input.kind,
-          label: input.label);
+        deviceId:
+            input.deviceId ?? 'Generated Device Id :(${devices.indexOf(e)})',
+        groupId: input.groupId,
+        kind: input.kind,
+        label: input.label ?? 'Generated label :(${devices.indexOf(e)})',
+      );
     }).toList();
   }
 

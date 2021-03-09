@@ -121,9 +121,9 @@ abstract class MediaDevices {
 class MediaDeviceInfo {
   MediaDeviceInfo({
     this.kind,
-    this.label,
+    required this.label,
     this.groupId,
-    this.deviceId,
+    required this.deviceId,
   });
 
   /// Returns a String that is an identifier for the represented device that
@@ -131,7 +131,7 @@ class MediaDeviceInfo {
   /// and unique to the origin of the calling application. It is reset when
   /// the user clears cookies (for Private Browsing, a different identifier
   /// is used that is not persisted across sessions).
-  final String? deviceId;
+  final String deviceId;
 
   /// Returns a String that is a group identifier. Two devices have the same
   /// group identifier if they belong to the same physical device
@@ -144,5 +144,5 @@ class MediaDeviceInfo {
 
   /// Returns a String that is a label describing this device
   /// (for example "External USB Webcam").
-  final String? label;
+  final String label;
 }

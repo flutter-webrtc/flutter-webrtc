@@ -6,12 +6,12 @@ import 'rtc_rtp_transceiver.dart';
 class RTCTrackEvent {
   RTCTrackEvent({
     this.receiver,
-    this.streams,
-    this.track,
+    required this.streams,
+    required this.track,
     this.transceiver,
   });
   final RTCRtpReceiver? receiver;
-  final List<MediaStream>? streams;
-  final MediaStreamTrack? track;
+  final List<MediaStream> streams;
+  final MediaStreamTrack track;
   final RTCRtpTransceiver? transceiver;
 }

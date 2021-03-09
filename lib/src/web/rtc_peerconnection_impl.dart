@@ -124,9 +124,11 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
             receiver: RTCRtpReceiverWeb(trackEvent.receiver!),
             transceiver: RTCRtpTransceiverWeb.fromJsObject(
                 jsutil.getProperty(trackEvent, 'transceiver')),
-            streams: trackEvent.streams
-                ?.map((e) => MediaStreamWeb(e, _peerConnectionId))
-                .toList(),
+            streams: (trackEvent.streams != null)
+                ? trackEvent.streams!
+                    .map((e) => MediaStreamWeb(e, _peerConnectionId))
+                    .toList()
+                : [],
           ),
         );
       }

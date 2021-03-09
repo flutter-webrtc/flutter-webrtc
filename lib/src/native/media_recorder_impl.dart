@@ -22,8 +22,8 @@ class MediaRecorderNative extends MediaRecorder {
 
     await WebRTC.methodChannel().invokeMethod('startRecordToFile', {
       'path': path,
-      'audioChannel': audioChannel!.index,
-      'videoTrackId': videoTrack!.id,
+      if (audioChannel != null) 'audioChannel': audioChannel.index,
+      if (videoTrack != null) 'videoTrackId': videoTrack.id,
       'recorderId': _recorderId
     });
   }
