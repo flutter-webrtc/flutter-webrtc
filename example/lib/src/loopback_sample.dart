@@ -106,9 +106,17 @@ class _MyAppState extends State<LoopBackSample> {
 
   void _onTrack(RTCTrackEvent event) {
     print('onTrack');
-    if (event.track.kind == 'video' && (event.streams.isNotEmpty)) {
-      print('New stream: ' + event.streams[0].id);
-      _remoteRenderer.srcObject = event.streams[0];
+  }
+
+  void _onAddTrack(MediaStream stream, MediaStreamTrack track) {
+    if (track.kind == 'video') {
+      _remoteRenderer.srcObject = stream;
+    }
+  }
+
+  void _onRemoveTrack(MediaStream stream, MediaStreamTrack track) {
+    if (track.kind == 'video') {
+      _remoteRenderer.srcObject = null;
     }
   }
 
@@ -164,8 +172,6 @@ class _MyAppState extends State<LoopBackSample> {
       _peerConnection!.onIceGatheringState = _onIceGatheringState;
       _peerConnection!.onIceConnectionState = _onIceConnectionState;
       _peerConnection!.onConnectionState = _onPeerConnectionState;
-      _peerConnection!.onAddStream = _onAddStream;
-      _peerConnection!.onRemoveStream = _onRemoveStream;
       _peerConnection!.onIceCandidate = _onCandidate;
       _peerConnection!.onRenegotiationNeeded = _onRenegotiationNeeded;
 
@@ -175,10 +181,14 @@ class _MyAppState extends State<LoopBackSample> {
 
       switch (sdpSemantics) {
         case 'plan-b':
+          _peerConnection!.onAddStream = _onAddStream;
+          _peerConnection!.onRemoveStream = _onRemoveStream;
           await _peerConnection!.addStream(_localStream!);
           break;
         case 'unified-plan':
           _peerConnection!.onTrack = _onTrack;
+          _peerConnection!.onAddTrack = _onAddTrack;
+          _peerConnection!.onRemoveTrack = _onRemoveTrack;
           _localStream!.getTracks().forEach((track) {
             _peerConnection!.addTrack(track, _localStream!);
           });
@@ -247,6 +257,7 @@ class _MyAppState extends State<LoopBackSample> {
       description.type = 'answer';
       await _peerConnection!.setRemoteDescription(description);
 
+      // _peerConnection!.getStats();
       /* Unfied-Plan replaceTrack
       var stream = await MediaDevices.getDisplayMedia(mediaConstraints);
       _localRenderer.srcObject = _localStream;

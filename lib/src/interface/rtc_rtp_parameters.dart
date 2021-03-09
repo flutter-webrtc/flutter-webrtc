@@ -92,11 +92,11 @@ class RTCRtpEncoding {
   int? maxFramerate;
 
   /// The number of temporal layers for video.
-  int numTemporalLayers;
+  int? numTemporalLayers;
 
   /// If non-null, scale the width and height down by this factor for video. If null,
   /// implementation default scaling factor will be used.
-  double scaleResolutionDownBy;
+  double? scaleResolutionDownBy;
 
   /// SSRC to be used by this encoding.
   /// Can't be changed between getParameters/setParameters.
