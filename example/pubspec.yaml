@@ -12,7 +12,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.0
 
-  flutter_foreground_plugin: ^0.6.0
+  flutter_foreground_plugin: ^0.8.0
 
 
   flutter_webrtc:
