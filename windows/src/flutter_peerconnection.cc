@@ -181,7 +181,7 @@ static const char *signalingStateString(RTCSignalingState state) {
 void FlutterPeerConnectionObserver::OnSignalingState(RTCSignalingState state) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
-    params[EncodableValue("event")] = "iceConnectionState";
+    params[EncodableValue("event")] = "signalingState";
     params[EncodableValue("state")] = signalingStateString(state);
     event_sink_->Success(EncodableValue(params));
   }
@@ -213,7 +213,7 @@ void FlutterPeerConnectionObserver::OnIceConnectionState(
     RTCIceConnectionState state) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
-    params[EncodableValue("event")] = "signalingState";
+    params[EncodableValue("event")] = "iceConnectionState";
     params[EncodableValue("state")] = iceConnectionStateString(state);
     event_sink_->Success(EncodableValue(params));
   }
