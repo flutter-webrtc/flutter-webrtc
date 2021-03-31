@@ -627,6 +627,7 @@ class GetUserMediaImpl {
         result.success(successResult.toMap());
     }
 
+    private boolean isFacing=true;
     private VideoTrack getUserVideo(ConstraintsMap constraints) {
         ConstraintsMap videoConstraintsMap = null;
         ConstraintsMap videoConstraintsMandatory = null;
@@ -657,7 +658,7 @@ class GetUserMediaImpl {
         }
 
         String facingMode = getFacingMode(videoConstraintsMap);
-        boolean isFacing = facingMode == null || !facingMode.equals("environment");
+        isFacing = facingMode == null || !facingMode.equals("environment");
         String sourceId = getSourceIdConstraint(videoConstraintsMap);
 
         VideoCapturer videoCapturer = createVideoCapturer(cameraEnumerator, isFacing, sourceId);
@@ -761,19 +762,37 @@ class GetUserMediaImpl {
             return;
         }
 
-        CameraVideoCapturer cameraVideoCapturer = (CameraVideoCapturer) videoCapturer;
-        cameraVideoCapturer.switchCamera(
-                new CameraVideoCapturer.CameraSwitchHandler() {
-                    @Override
-                    public void onCameraSwitchDone(boolean b) {
-                        result.success(b);
-                    }
+        CameraEnumerator cameraEnumerator;
 
-                    @Override
-                    public void onCameraSwitchError(String s) {
-                        resultError("switchCamera", "Switching camera failed: " + id, result);
-                    }
-                });
+        if (Camera2Enumerator.isSupported(applicationContext)) {
+            Log.d(TAG, "Creating video capturer using Camera2 API.");
+            cameraEnumerator = new Camera2Enumerator(applicationContext);
+        } else {
+            Log.d(TAG, "Creating video capturer using Camera1 API.");
+            cameraEnumerator = new Camera1Enumerator(false);
+        }
+        // if sourceId given, use specified sourceId first
+        final String[] deviceNames = cameraEnumerator.getDeviceNames();
+        for (String name : deviceNames) {
+            if (cameraEnumerator.isFrontFacing(name) == !isFacing) {
+                CameraVideoCapturer cameraVideoCapturer = (CameraVideoCapturer) videoCapturer;
+                cameraVideoCapturer.switchCamera(
+                        new CameraVideoCapturer.CameraSwitchHandler() {
+                            @Override
+                            public void onCameraSwitchDone(boolean b) {
+                                isFacing=!isFacing;
+                                result.success(b);
+                            }
+
+                            @Override
+                            public void onCameraSwitchError(String s) {
+                                resultError("switchCamera", "Switching camera failed: " + id, result);
+                            }
+                        },name);
+                return;
+            }
+        }
+        resultError("switchCamera", "Switching camera failed: " + id, result);
     }
 
     /**
