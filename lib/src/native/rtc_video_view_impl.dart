@@ -40,6 +40,7 @@ class RTCVideoView extends StatelessWidget {
         width: constraints.maxWidth,
         height: constraints.maxHeight,
         child: FittedBox(
+          clipBehavior: Clip.hardEdge,
           fit: objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
               ? BoxFit.contain
               : BoxFit.cover,
