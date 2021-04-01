@@ -101,7 +101,6 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     _mediaRecorder = MediaRecorder();
     setState(() {});
 
-    await _localStream!.getMediaTracks();
     final videoTrack = _localStream!
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');
@@ -141,7 +140,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     final videoTrack = _localStream!
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');
-    await videoTrack.switchCamera();
+    await Helper.switchCamera(videoTrack);
   }
 
   void _captureFrame() async {

@@ -123,7 +123,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
         builder: (context) => AlertDialog(
               content: Image.network(frame, height: 720, width: 1280),
               actions: <Widget>[
-                FlatButton(
+                TextButton(
                   child: Text('OK'),
                   onPressed: Navigator.of(context, rootNavigator: true).pop,
                 )

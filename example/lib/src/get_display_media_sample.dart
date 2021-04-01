@@ -52,7 +52,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     final mediaConstraints = <String, dynamic>{'audio': true, 'video': true};
 
     try {
-      var stream = await navigator.getDisplayMedia(mediaConstraints);
+      var stream = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
       stream.getVideoTracks()[0].onEnded = () {
         print(
             'By adding a listener on onEnded you can: 1) catch stop video sharing on Web');
