@@ -212,8 +212,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
               margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
-              child: RTCVideoView(_localRenderer, mirror: true),
               decoration: BoxDecoration(color: Colors.black54),
+              child: RTCVideoView(_localRenderer, mirror: true),
             ),
           );
         },

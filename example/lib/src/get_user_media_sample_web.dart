@@ -109,6 +109,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       _mediaRecorder = null;
     });
     print(objectUrl);
+    // ignore: unsafe_html
     html.window.open(objectUrl, '_blank');
   }
 
@@ -124,8 +125,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
               content: Image.network(frame, height: 720, width: 1280),
               actions: <Widget>[
                 TextButton(
-                  child: Text('OK'),
                   onPressed: Navigator.of(context, rootNavigator: true).pop,
+                  child: Text('OK'),
                 )
               ],
             ));
@@ -175,8 +176,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
               margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
-              child: RTCVideoView(_localRenderer, mirror: true),
               decoration: BoxDecoration(color: Colors.black54),
+              child: RTCVideoView(_localRenderer, mirror: true),
             ),
           );
         },

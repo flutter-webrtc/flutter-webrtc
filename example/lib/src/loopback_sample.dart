@@ -106,6 +106,9 @@ class _MyAppState extends State<LoopBackSample> {
 
   void _onTrack(RTCTrackEvent event) {
     print('onTrack');
+    if (event.track.kind == 'video') {
+      _remoteRenderer.srcObject = event.streams[0];
+    }
   }
 
   void _onAddTrack(MediaStream stream, MediaStreamTrack track) {

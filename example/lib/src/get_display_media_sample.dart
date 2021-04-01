@@ -52,7 +52,8 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     final mediaConstraints = <String, dynamic>{'audio': true, 'video': true};
 
     try {
-      var stream = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
+      var stream =
+          await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
       stream.getVideoTracks()[0].onEnded = () {
         print(
             'By adding a listener on onEnded you can: 1) catch stop video sharing on Web');
@@ -108,8 +109,8 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
                 margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
-                child: RTCVideoView(_localRenderer),
                 decoration: BoxDecoration(color: Colors.black54),
+                child: RTCVideoView(_localRenderer),
               )
             ]),
           );
