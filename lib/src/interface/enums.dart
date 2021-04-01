@@ -88,7 +88,7 @@ final typeRtpTransceiverDirectionToString = <TransceiverDirection, String>{
   TransceiverDirection.Inactive: 'inactive',
 };
 
-RTCIceConnectionState iceConnectionStateForString(String state) {
+RTCIceConnectionState iceConnectionStateForString(String? state) {
   switch (state) {
     case 'new':
       return RTCIceConnectionState.RTCIceConnectionStateNew;
@@ -110,7 +110,7 @@ RTCIceConnectionState iceConnectionStateForString(String state) {
   return RTCIceConnectionState.RTCIceConnectionStateClosed;
 }
 
-RTCIceGatheringState iceGatheringStateforString(String state) {
+RTCIceGatheringState iceGatheringStateforString(String? state) {
   switch (state) {
     case 'new':
       return RTCIceGatheringState.RTCIceGatheringStateNew;
@@ -122,7 +122,7 @@ RTCIceGatheringState iceGatheringStateforString(String state) {
   return RTCIceGatheringState.RTCIceGatheringStateNew;
 }
 
-RTCSignalingState signalingStateForString(String state) {
+RTCSignalingState signalingStateForString(String? state) {
   switch (state) {
     case 'stable':
       return RTCSignalingState.RTCSignalingStateStable;
@@ -154,7 +154,7 @@ RTCDataChannelState rtcDataChannelStateForString(String state) {
   return RTCDataChannelState.RTCDataChannelClosed;
 }
 
-RTCPeerConnectionState peerConnectionStateForString(String state) {
+RTCPeerConnectionState peerConnectionStateForString(String? state) {
   switch (state) {
     case 'new':
       return RTCPeerConnectionState.RTCPeerConnectionStateNew;

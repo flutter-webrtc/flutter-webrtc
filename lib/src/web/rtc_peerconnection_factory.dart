@@ -9,7 +9,7 @@ import 'factory_impl.dart';
 
 Future<RTCPeerConnection> createPeerConnection(
     Map<String, dynamic> configuration,
-    [Map<String, dynamic> constraints]) {
+    [Map<String, dynamic>? constraints]) {
   return RTCFactoryWeb.instance
       .createPeerConnection(configuration, constraints);
 }

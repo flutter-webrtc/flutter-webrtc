@@ -9,16 +9,16 @@ import '../interface/media_stream_track.dart';
 import 'media_stream_impl.dart';
 
 class MediaRecorderWeb extends MediaRecorder {
-  html.MediaRecorder _recorder;
-  Completer<String> _completer;
+  late html.MediaRecorder _recorder;
+  late Completer<String> _completer;
 
   @override
   Future<void> start(
     String path, {
-    MediaStreamTrack videoTrack,
-    MediaStreamTrack audioTrack,
-    RecorderAudioChannel audioChannel,
-    int rotation,
+    MediaStreamTrack? videoTrack,
+    MediaStreamTrack? audioTrack,
+    RecorderAudioChannel? audioChannel,
+    int? rotation,
   }) {
     throw 'Use startWeb on Flutter Web!';
   }
@@ -26,7 +26,7 @@ class MediaRecorderWeb extends MediaRecorder {
   @override
   void startWeb(
     MediaStream stream, {
-    Function(dynamic blob, bool isLastOne) onDataChunk,
+    Function(dynamic blob, bool isLastOne)? onDataChunk,
     String mimeType = 'video/webm',
   }) {
     var _native = stream as MediaStreamWeb;
@@ -41,13 +41,11 @@ class MediaRecorderWeb extends MediaRecorder {
         }
         if (_recorder.state == 'inactive') {
           final blob = html.Blob(_chunks, mimeType);
-          _completer?.complete(html.Url.createObjectUrlFromBlob(blob));
-          _completer = null;
+          _completer.complete(html.Url.createObjectUrlFromBlob(blob));
         }
       });
       _recorder.onError.listen((error) {
-        _completer?.completeError(error);
-        _completer = null;
+        _completer.completeError(error);
       });
     } else {
       _recorder.addEventListener('dataavailable', (html.Event event) {
@@ -62,7 +60,7 @@ class MediaRecorderWeb extends MediaRecorder {
 
   @override
   Future<dynamic> stop() {
-    _recorder?.stop();
-    return _completer?.future ?? Future.value();
+    _recorder.stop();
+    return _completer.future;
   }
 }

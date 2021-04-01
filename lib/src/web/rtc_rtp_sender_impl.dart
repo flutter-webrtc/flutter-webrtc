@@ -54,8 +54,11 @@ class RTCRtpSenderWeb extends RTCRtpSender {
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     try {
       var oldParameters = jsutil.callMethod(_jsRtpSender, 'getParameters', []);
-      jsutil.setProperty(oldParameters, 'encodings',
-          jsutil.jsify(parameters.encodings.map((e) => e.toMap()).toList()));
+      jsutil.setProperty(
+          oldParameters,
+          'encodings',
+          jsutil.jsify(
+              parameters.encodings?.map((e) => e.toMap()).toList() ?? []));
       return await jsutil.promiseToFuture<bool>(
           jsutil.callMethod(_jsRtpSender, 'setParameters', [oldParameters]));
     } on PlatformException catch (e) {
@@ -76,7 +79,7 @@ class RTCRtpSenderWeb extends RTCRtpSender {
   }
 
   @override
-  MediaStreamTrack get track => MediaStreamTrackWeb(_jsRtpSender.track);
+  MediaStreamTrack get track => MediaStreamTrackWeb(_jsRtpSender.track!);
 
   @override
   String get senderId => jsutil.getProperty(_jsRtpSender, 'senderId');

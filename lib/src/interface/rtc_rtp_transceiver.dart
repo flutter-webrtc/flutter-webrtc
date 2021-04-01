@@ -16,15 +16,15 @@ class RTCRtpTransceiverInit {
     this.streams,
     this.sendEncodings,
   });
-  TransceiverDirection direction;
-  List<MediaStream> streams;
-  List<RTCRtpEncoding> sendEncodings;
+  TransceiverDirection? direction;
+  List<MediaStream>? streams;
+  List<RTCRtpEncoding>? sendEncodings;
 }
 
 abstract class RTCRtpTransceiver {
   RTCRtpTransceiver();
 
-  TransceiverDirection get currentDirection;
+  TransceiverDirection? get currentDirection;
 
   String get mid;
 

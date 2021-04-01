@@ -20,15 +20,15 @@ class RTCVideoRenderer {
 
   bool get muted => _delegate.muted;
 
-  MediaStream get srcObject => _delegate.srcObject;
+  MediaStream? get srcObject => _delegate.srcObject;
 
   set muted(bool mute) => _delegate.muted = mute;
 
   set audioOutput(String deviceId) => _delegate.audioOutput(deviceId);
 
-  set srcObject(MediaStream stream) => _delegate.srcObject = stream;
+  set srcObject(MediaStream? stream) => _delegate.srcObject = stream;
 
-  int get textureId => _delegate.textureId;
+  int? get textureId => _delegate.textureId;
 
   Future<void> dispose() async {
     return _delegate.dispose();

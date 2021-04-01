@@ -14,35 +14,35 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   final html.MediaStreamTrack jsTrack;
 
   @override
-  String get id => jsTrack.id;
+  String? get id => jsTrack.id;
 
   @override
-  String get kind => jsTrack.kind;
+  String? get kind => jsTrack.kind;
 
   @override
-  String get label => jsTrack.label;
+  String? get label => jsTrack.label;
 
   @override
-  bool get enabled => jsTrack.enabled;
+  bool get enabled => jsTrack.enabled ?? false;
 
   @override
-  bool get muted => jsTrack.muted;
+  bool? get muted => jsTrack.muted;
 
   @override
-  set enabled(bool b) {
+  set enabled(bool? b) {
     jsTrack.enabled = b;
   }
 
   @override
   Map<String, dynamic> getConstraints() {
-    return jsTrack.getConstraints();
+    return jsTrack.getConstraints() as Map<String, dynamic>;
   }
 
   @override
-  Future<void> applyConstraints([Map<String, dynamic> constraints]) async {
+  Future<void> applyConstraints([Map<String, dynamic>? constraints]) async {
     // TODO(wermathurin): Wait for: https://github.com/dart-lang/sdk/commit/1a861435579a37c297f3be0cf69735d5b492bc6c
     // to be merged to use jsTrack.applyConstraints() directly
-    final arg = js.jsify(constraints);
+    final arg = js.jsify(constraints ?? {});
 
     final _val = await js.promiseToFuture<void>(
         js.callMethod(jsTrack, 'applyConstraints', [arg]));
@@ -58,14 +58,14 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   // }
 
   @override
-  Future<dynamic> captureFrame([String filePath]) async {
+  Future<dynamic> captureFrame([String? filePath]) async {
     final imageCapture = html.ImageCapture(jsTrack);
     final bitmap = await imageCapture.grabFrame();
-    final html.CanvasElement canvas = html.Element.canvas();
+    final canvas = html.CanvasElement();
     canvas.width = bitmap.width;
     canvas.height = bitmap.height;
-    final html.ImageBitmapRenderingContext renderer =
-        canvas.getContext('bitmaprenderer');
+    final renderer =
+        canvas.getContext('bitmaprenderer') as html.ImageBitmapRenderingContext;
     renderer.transferFromImageBitmap(bitmap);
     final dataUrl = canvas.toDataUrl();
     bitmap.close();

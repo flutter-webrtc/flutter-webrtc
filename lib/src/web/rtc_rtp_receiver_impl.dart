@@ -36,7 +36,7 @@ class RTCRtpReceiverWeb extends RTCRtpReceiver {
   }
 
   @override
-  MediaStreamTrack get track => MediaStreamTrackWeb(_jsRtpReceiver.track);
+  MediaStreamTrack get track => MediaStreamTrackWeb(_jsRtpReceiver.track!);
 
   @override
   String get receiverId => jsutil.getProperty(_jsRtpReceiver, 'receiverId');

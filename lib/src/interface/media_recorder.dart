@@ -7,14 +7,14 @@ abstract class MediaRecorder {
   /// For iOS use audioTrack
   Future<void> start(
     String path, {
-    MediaStreamTrack videoTrack,
-    RecorderAudioChannel audioChannel,
+    MediaStreamTrack? videoTrack,
+    RecorderAudioChannel? audioChannel,
   });
 
   /// Only for Flutter Web
   void startWeb(
     MediaStream stream, {
-    Function(dynamic blob, bool isLastOne) onDataChunk,
+    Function(dynamic blob, bool isLastOne)? onDataChunk,
     String mimeType,
   });
 

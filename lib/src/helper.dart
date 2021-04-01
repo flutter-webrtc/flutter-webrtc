@@ -44,16 +44,16 @@ class Helper {
 
   /// For web implementation, make sure to pass the target deviceId
   static Future<bool> switchCamera(MediaStreamTrack track,
-      [String deviceId, MediaStream stream]) async {
-    if (track?.kind != 'video') {
+      [String? deviceId, MediaStream? stream]) async {
+    if (track.kind != 'video') {
       throw 'The is not a video track => $track';
     }
 
     if (!kIsWeb) {
-      return WebRTC.methodChannel().invokeMethod(
+      return WebRTC.methodChannel().invokeMethod<bool>(
         'mediaStreamTrackSwitchCamera',
         <String, dynamic>{'trackId': track.id},
-      );
+      ).then((value) => value ?? false);
     }
 
     if (deviceId == null) throw 'You need to specify the deviceId';

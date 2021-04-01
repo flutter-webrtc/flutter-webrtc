@@ -14,6 +14,6 @@ class RTCDTMFSenderWeb extends RTCDTMFSender {
 
   @override
   Future<bool> canInsertDtmf() async {
-    return _jsDtmfSender.canInsertDtmf;
+    return _jsDtmfSender.canInsertDtmf ?? false;
   }
 }

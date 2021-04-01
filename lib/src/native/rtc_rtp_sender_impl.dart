@@ -17,7 +17,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
       this._ownsTrack, this._peerConnectionId);
 
   factory RTCRtpSenderNative.fromMap(Map<dynamic, dynamic> map,
-      {String peerConnectionId}) {
+      {required String peerConnectionId}) {
     return RTCRtpSenderNative(
         map['senderId'],
         MediaStreamTrackNative.fromMap(map['track']),
@@ -28,7 +28,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
   }
 
   static List<RTCRtpSenderNative> fromMaps(List<dynamic> map,
-      {String peerConnectionId}) {
+      {required String peerConnectionId}) {
     return map
         .map((e) =>
             RTCRtpSenderNative.fromMap(e, peerConnectionId: peerConnectionId))
