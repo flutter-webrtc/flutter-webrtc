@@ -6,9 +6,14 @@ class WebRTC {
   static MethodChannel methodChannel() => _channel;
 
   static bool get platformIsDesktop =>
-      Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+      Platform.isWindows ||
+      Platform.isLinux ||
+      Platform.isMacOS ||
+      Platform.isLinux;
 
   static bool get platformIsWindows => Platform.isWindows;
+
+  static bool get platformIsLinux => Platform.isLinux;
 
   static bool get platformIsMobile => Platform.isIOS || Platform.isAndroid;
 
