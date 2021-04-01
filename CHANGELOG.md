@@ -1,6 +1,17 @@
 # Changelog
 
 --------------------------------------------
+[0.6.0] - 2021.04.01
+
+* [Sponsorship] Thanks for Stream sponsorship (#475)
+* [Android] Fixed a crash when switching cameras on Huawei devices.
+* [Windows] Correct signalingState & iceConnectionState event name on Windows. (#502)
+* [Dart] Clip behaviour. (#511)
+* [Dart] null-safety (@wer-mathurin Thanks for the hard work).
+* [Dart] Fix setMicrophoneMute (#466)
+* [Web] Fix pc.addTransceiver method, fix RTCRtpMediaType to string, fix (#437)
+* [Android] fix sdpSemantics issue (#478)
+
 [0.6.0-nullsafety.0] - 2021.03.22
 
 * [Dart] null-safety (@wer-mathurin Thanks for the hard work).
