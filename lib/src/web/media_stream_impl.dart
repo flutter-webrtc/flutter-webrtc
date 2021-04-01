@@ -55,7 +55,7 @@ class MediaStreamWeb extends MediaStream {
   @override
   Future<void> dispose() async {
     getTracks().forEach((element) {
-      element.dispose();
+      element.stop();
     });
     return super.dispose();
   }
