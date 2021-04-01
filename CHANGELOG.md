@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.6.1] - 2021.04.02
+
+* [Darwin] Fixed getting crash when call setLocalDescription multiple time.
+* [Dart] Get more pub scores.
+
 [0.6.0] - 2021.04.01
 
 * [Sponsorship] Thanks for Stream sponsorship (#475)
