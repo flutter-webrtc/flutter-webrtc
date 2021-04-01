@@ -25,6 +25,10 @@ class RTCFactoryNative extends RTCFactory {
     final response = await _channel
         .invokeMethod<Map<dynamic, dynamic>>('createLocalMediaStream');
 
+    if (response == null) {
+      throw Exception('createLocalMediaStream return null, something wrong');
+    }
+
     return MediaStreamNative(response['streamId'], label);
   }
 
@@ -32,8 +36,6 @@ class RTCFactoryNative extends RTCFactory {
   Future<RTCPeerConnection> createPeerConnection(
       Map<String, dynamic> configuration,
       [Map<String, dynamic> constraints = const {}]) async {
-    var channel = WebRTC.methodChannel();
-
     var defaultConstraints = <String, dynamic>{
       'mandatory': {},
       'optional': [
@@ -41,7 +43,7 @@ class RTCFactoryNative extends RTCFactory {
       ],
     };
 
-    final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
+    final response = await WebRTC.invokeMethod(
       'createPeerConnection',
       <String, dynamic>{
         'configuration': configuration,

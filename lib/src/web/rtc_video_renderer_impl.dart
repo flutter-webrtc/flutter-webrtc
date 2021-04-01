@@ -37,8 +37,14 @@ class RTCVideoRendererWeb extends VideoRenderer {
 
   static int _textureCounter = 1;
   final int _textureId;
-  html.VideoElement _videoElement;
-  MediaStream _srcObject;
+  final html.VideoElement _videoElement = html.VideoElement()
+    ..autoplay = true
+    ..muted = false
+    ..controls = false
+    ..style.objectFit = 'contain'
+    ..style.border = 'none'
+    ..setAttribute('playsinline', 'true');
+  MediaStream? _srcObject;
   final _subscriptions = <StreamSubscription>[];
 
   set objectFit(String fit) => _videoElement.style.objectFit = fit;
@@ -56,25 +62,26 @@ class RTCVideoRendererWeb extends VideoRenderer {
   int get textureId => _textureId;
 
   @override
-  bool get muted => _videoElement?.muted ?? true;
+  bool get muted => _videoElement.muted;
 
   @override
-  set muted(bool mute) => _videoElement?.muted = mute;
+  set muted(bool mute) => _videoElement.muted = mute;
 
   @override
-  bool get renderVideo => _videoElement != null && _srcObject != null;
+  bool get renderVideo => _srcObject != null;
 
   @override
   Future<void> initialize() async {
-    _videoElement = html.VideoElement()
-      ..autoplay = true
-      ..muted = false
-      ..controls = false
-      ..style.objectFit = 'contain'
-      ..style.border = 'none';
+    // _videoElement = html.VideoElement()
+    //   ..autoplay = true
+    //   ..muted = false
+    //   ..controls = false
+    //   ..style.objectFit = 'contain'
+    //   ..style.border = 'none'
+    //   ..setAttribute('playsinline', 'true');
 
-    // Allows Safari iOS to play the video inline
-    _videoElement.setAttribute('playsinline', 'true');
+    // // Allows Safari iOS to play the video inline
+    // _videoElement.setAttribute('playsinline', 'true');
 
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
@@ -109,10 +116,13 @@ class RTCVideoRendererWeb extends VideoRenderer {
           var error = _videoElement.error;
           print('RTCVideoRenderer: videoElement.onError, ${error.toString()}');
           throw PlatformException(
-            code: _kErrorValueToErrorName[error.code],
+            code: _kErrorValueToErrorName[
+                    error?.code ?? html.MediaError.MEDIA_ERR_ABORTED] ??
+                '',
             message:
-                error.message != '' ? error.message : _kDefaultErrorMessage,
-            details: _kErrorValueToErrorDescription[error.code],
+                error?.message != '' ? error?.message : _kDefaultErrorMessage,
+            details: _kErrorValueToErrorDescription[
+                error?.code ?? html.MediaError.MEDIA_ERR_ABORTED],
           );
         },
       ),
@@ -130,19 +140,16 @@ class RTCVideoRendererWeb extends VideoRenderer {
   void _updateAllValues() {
     value = value.copyWith(
         rotation: 0,
-        width: _videoElement?.videoWidth?.toDouble() ?? 0.0,
-        height: _videoElement?.videoHeight?.toDouble() ?? 0.0,
+        width: _videoElement.videoWidth.toDouble(),
+        height: _videoElement.videoHeight.toDouble(),
         renderVideo: renderVideo);
   }
 
   @override
-  MediaStream get srcObject => _srcObject;
+  MediaStream? get srcObject => _srcObject;
 
   @override
-  set srcObject(MediaStream stream) {
-    if (_videoElement == null) {
-      throw 'Call initialize before setting the stream';
-    }
+  set srcObject(MediaStream? stream) {
     if (stream == null) {
       _videoElement.srcObject = null;
       _srcObject = null;

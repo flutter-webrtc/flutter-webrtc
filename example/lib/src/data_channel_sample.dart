@@ -12,13 +12,13 @@ class DataChannelSample extends StatefulWidget {
 }
 
 class _DataChannelSampleState extends State<DataChannelSample> {
-  RTCPeerConnection _peerConnection;
+  RTCPeerConnection? _peerConnection;
   bool _inCalling = false;
 
-  RTCDataChannelInit _dataChannelDict;
-  RTCDataChannel _dataChannel;
+  RTCDataChannelInit? _dataChannelDict;
+  RTCDataChannel? _dataChannel;
 
-  String _sdp;
+  String _sdp = '';
 
   @override
   void initState() {
@@ -38,11 +38,11 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   }
 
   void _onCandidate(RTCIceCandidate candidate) {
-    print('onCandidate: ' + candidate.candidate);
-    _peerConnection.addCandidate(candidate);
+    print('onCandidate: ${candidate.candidate}');
+    _peerConnection?.addCandidate(candidate);
     setState(() {
       _sdp += '\n';
-      _sdp += candidate.candidate;
+      _sdp += candidate.candidate ?? '';
     });
   }
 
@@ -101,29 +101,29 @@ class _DataChannelSampleState extends State<DataChannelSample> {
       _peerConnection =
           await createPeerConnection(configuration, loopbackConstraints);
 
-      _peerConnection.onSignalingState = _onSignalingState;
-      _peerConnection.onIceGatheringState = _onIceGatheringState;
-      _peerConnection.onIceConnectionState = _onIceConnectionState;
-      _peerConnection.onIceCandidate = _onCandidate;
-      _peerConnection.onRenegotiationNeeded = _onRenegotiationNeeded;
+      _peerConnection!.onSignalingState = _onSignalingState;
+      _peerConnection!.onIceGatheringState = _onIceGatheringState;
+      _peerConnection!.onIceConnectionState = _onIceConnectionState;
+      _peerConnection!.onIceCandidate = _onCandidate;
+      _peerConnection!.onRenegotiationNeeded = _onRenegotiationNeeded;
 
       _dataChannelDict = RTCDataChannelInit();
-      _dataChannelDict.id = 1;
-      _dataChannelDict.ordered = true;
-      _dataChannelDict.maxRetransmitTime = -1;
-      _dataChannelDict.maxRetransmits = -1;
-      _dataChannelDict.protocol = 'sctp';
-      _dataChannelDict.negotiated = false;
+      _dataChannelDict!.id = 1;
+      _dataChannelDict!.ordered = true;
+      _dataChannelDict!.maxRetransmitTime = -1;
+      _dataChannelDict!.maxRetransmits = -1;
+      _dataChannelDict!.protocol = 'sctp';
+      _dataChannelDict!.negotiated = false;
 
-      _dataChannel = await _peerConnection.createDataChannel(
-          'dataChannel', _dataChannelDict);
-      _peerConnection.onDataChannel = _onDataChannel;
+      _dataChannel = await _peerConnection!
+          .createDataChannel('dataChannel', _dataChannelDict!);
+      _peerConnection!.onDataChannel = _onDataChannel;
 
-      var description = await _peerConnection.createOffer(offerSdpConstraints);
+      var description = await _peerConnection!.createOffer(offerSdpConstraints);
       print(description.sdp);
-      await _peerConnection.setLocalDescription(description);
+      await _peerConnection!.setLocalDescription(description);
 
-      _sdp = description.sdp;
+      _sdp = description.sdp ?? '';
       //change for loopback.
       //description.type = 'answer';
       //_peerConnection.setRemoteDescription(description);
@@ -139,8 +139,8 @@ class _DataChannelSampleState extends State<DataChannelSample> {
 
   void _hangUp() async {
     try {
-      await _dataChannel.close();
-      await _peerConnection.close();
+      await _dataChannel?.close();
+      await _peerConnection?.close();
       _peerConnection = null;
     } catch (e) {
       print(e.toString());

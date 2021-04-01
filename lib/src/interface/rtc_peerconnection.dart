@@ -35,28 +35,28 @@ abstract class RTCPeerConnection {
   RTCPeerConnection();
 
   // public: delegate
-  SignalingStateCallback onSignalingState;
-  PeerConnectionStateCallback onConnectionState;
-  IceGatheringStateCallback onIceGatheringState;
-  IceConnectionStateCallback onIceConnectionState;
-  IceCandidateCallback onIceCandidate;
-  AddStreamCallback onAddStream;
-  RemoveStreamCallback onRemoveStream;
-  AddTrackCallback onAddTrack;
-  RemoveTrackCallback onRemoveTrack;
-  RTCDataChannelCallback onDataChannel;
-  RenegotiationNeededCallback onRenegotiationNeeded;
+  SignalingStateCallback? onSignalingState;
+  PeerConnectionStateCallback? onConnectionState;
+  IceGatheringStateCallback? onIceGatheringState;
+  IceConnectionStateCallback? onIceConnectionState;
+  IceCandidateCallback? onIceCandidate;
+  AddStreamCallback? onAddStream;
+  RemoveStreamCallback? onRemoveStream;
+  AddTrackCallback? onAddTrack;
+  RemoveTrackCallback? onRemoveTrack;
+  RTCDataChannelCallback? onDataChannel;
+  RenegotiationNeededCallback? onRenegotiationNeeded;
 
   /// Unified-Plan
-  UnifiedPlanTrackCallback onTrack;
+  UnifiedPlanTrackCallback? onTrack;
 
-  RTCSignalingState get signalingState;
+  RTCSignalingState? get signalingState;
 
-  RTCIceGatheringState get iceGatheringState;
+  RTCIceGatheringState? get iceGatheringState;
 
-  RTCIceConnectionState get iceConnectionState;
+  RTCIceConnectionState? get iceConnectionState;
 
-  RTCPeerConnectionState get connectionState;
+  RTCPeerConnectionState? get connectionState;
 
   Future<void> dispose();
 
@@ -81,7 +81,7 @@ abstract class RTCPeerConnection {
 
   Future<void> addCandidate(RTCIceCandidate candidate);
 
-  Future<List<StatsReport>> getStats([MediaStreamTrack track]);
+  Future<List<StatsReport>> getStats([MediaStreamTrack? track]);
 
   List<MediaStream> getLocalStreams();
 

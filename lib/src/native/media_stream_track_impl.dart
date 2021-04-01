@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+// import 'package:flutter_webrtc/flutter_webrtc.dart';
+
+import '../helper.dart';
 
 import '../interface/media_stream_track.dart';
 import 'utils.dart';
@@ -47,10 +49,10 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   bool get muted => _muted;
 
   @override
-  Future<bool> hasTorch() => _channel.invokeMethod(
+  Future<bool> hasTorch() => _channel.invokeMethod<bool>(
         'mediaStreamTrackHasTorch',
         <String, dynamic>{'trackId': _trackId},
-      );
+      ).then((value) => value ?? false);
 
   @override
   Future<void> setTorch(bool torch) => _channel.invokeMethod(
@@ -71,7 +73,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   }
 
   @override
-  Future<dynamic> captureFrame([String filePath]) {
+  Future<dynamic> captureFrame([String? filePath]) {
     return _channel.invokeMethod<void>(
       'captureFrame',
       <String, dynamic>{'trackId': _trackId, 'path': filePath},
@@ -79,7 +81,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   }
 
   @override
-  Future<void> applyConstraints([Map<String, dynamic> constraints]) {
+  Future<void> applyConstraints([Map<String, dynamic>? constraints]) {
     if (constraints == null) return Future.value();
 
     var _current = getConstraints();

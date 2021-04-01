@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.6.0-nullsafety.0] - 2021.03.22
+
+* [Dart] null-safety (@wer-mathurin Thanks for the hard work).
+
 [0.5.8] - 2021.01.26
 
 * [Web] Support selecting audio output.

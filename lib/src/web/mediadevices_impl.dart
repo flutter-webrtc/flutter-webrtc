@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:html' as html;
-import 'dart:js';
 import 'dart:js_util' as jsutil;
 
 import '../interface/media_stream.dart';
@@ -11,8 +10,6 @@ class MediaDevicesWeb extends MediaDevices {
   @override
   Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
-    mediaConstraints ??= <String, dynamic>{};
-
     try {
       if (mediaConstraints['video'] is Map) {
         if (mediaConstraints['video']['facingMode'] != null) {
@@ -24,6 +21,7 @@ class MediaDevicesWeb extends MediaDevices {
       mediaConstraints.putIfAbsent('audio', () => false);
 
       final mediaDevices = html.window.navigator.mediaDevices;
+      if (mediaDevices == null) throw Exception('MediaDevices is null');
 
       if (jsutil.hasProperty(mediaDevices, 'getUserMedia')) {
         var args = jsutil.jsify(mediaConstraints);
@@ -48,6 +46,8 @@ class MediaDevicesWeb extends MediaDevices {
       Map<String, dynamic> mediaConstraints) async {
     try {
       final mediaDevices = html.window.navigator.mediaDevices;
+      if (mediaDevices == null) throw Exception('MediaDevices is null');
+
       if (jsutil.hasProperty(mediaDevices, 'getDisplayMedia')) {
         final arg = jsutil.jsify(mediaConstraints);
         final jsStream = await jsutil.promiseToFuture<html.MediaStream>(
@@ -71,21 +71,26 @@ class MediaDevicesWeb extends MediaDevices {
     return devices.map((e) {
       var input = e as html.MediaDeviceInfo;
       return MediaDeviceInfo(
-          deviceId: input.deviceId,
-          groupId: input.groupId,
-          kind: input.kind,
-          label: input.label);
+        deviceId:
+            input.deviceId ?? 'Generated Device Id :(${devices.indexOf(e)})',
+        groupId: input.groupId,
+        kind: input.kind,
+        label: input.label ?? 'Generated label :(${devices.indexOf(e)})',
+      );
     }).toList();
   }
 
   @override
   Future<List<dynamic>> getSources() async {
-    return await html.window.navigator.mediaDevices.enumerateDevices();
+    return html.window.navigator.mediaDevices?.enumerateDevices() ??
+        Future.value([]);
   }
 
   @override
   MediaTrackSupportedConstraints getSupportedConstraints() {
     final mediaDevices = html.window.navigator.mediaDevices;
+    if (mediaDevices == null) throw Exception('Mediadevices is null');
+
     var _mapConstraints = mediaDevices.getSupportedConstraints();
 
     return MediaTrackSupportedConstraints(

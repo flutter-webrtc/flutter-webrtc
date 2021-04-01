@@ -16,14 +16,14 @@ class GetUserMediaSample extends StatefulWidget {
 }
 
 class _GetUserMediaSampleState extends State<GetUserMediaSample> {
-  MediaStream _localStream;
+  MediaStream? _localStream;
   final _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   bool _isTorchOn = false;
-  MediaRecorder _mediaRecorder;
+  MediaRecorder? _mediaRecorder;
   bool get _isRec => _mediaRecorder != null;
 
-  List<MediaDeviceInfo> _mediaDevicesList;
+  List<MediaDeviceInfo>? _mediaDevicesList;
 
   @override
   void initState() {
@@ -61,7 +61,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      var stream = await navigator.getUserMedia(mediaConstraints);
+      var stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
       _localStream = stream;
       _localRenderer.srcObject = _localStream;
@@ -77,31 +77,35 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
 
   void _hangUp() async {
     try {
-      await _localStream.dispose();
+      await _localStream?.dispose();
       _localRenderer.srcObject = null;
+      setState(() {
+        _inCalling = false;
+      });
     } catch (e) {
       print(e.toString());
     }
-    setState(() {
-      _inCalling = false;
-    });
   }
 
   void _startRecording() async {
+    if (_localStream == null) throw Exception('Stream is not initialized');
     if (Platform.isIOS) {
       print('Recording is not available on iOS');
       return;
     }
     // TODO(rostopira): request write storage permission
     final storagePath = await getExternalStorageDirectory();
+    if (storagePath == null) throw Exception('Can\'t find storagePath');
+
     final filePath = storagePath.path + '/webrtc_sample/test.mp4';
     _mediaRecorder = MediaRecorder();
     setState(() {});
-    await _localStream.getMediaTracks();
-    final videoTrack = _localStream
+
+    await _localStream!.getMediaTracks();
+    final videoTrack = _localStream!
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');
-    await _mediaRecorder.start(
+    await _mediaRecorder!.start(
       filePath,
       videoTrack: videoTrack,
     );
@@ -115,7 +119,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   void _toggleTorch() async {
-    final videoTrack = _localStream
+    if (_localStream == null) throw Exception('Stream is not initialized');
+
+    final videoTrack = _localStream!
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');
     final has = await videoTrack.hasTorch();
@@ -130,23 +136,29 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   void _toggleCamera() async {
-    final videoTrack = _localStream
+    if (_localStream == null) throw Exception('Stream is not initialized');
+
+    final videoTrack = _localStream!
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');
     await videoTrack.switchCamera();
   }
 
   void _captureFrame() async {
+    if (_localStream == null) throw Exception('Stream is not initialized');
+
     String filePath;
     if (Platform.isAndroid) {
       final storagePath = await getExternalStorageDirectory();
+      if (storagePath == null) throw Exception('Can\'t find storagePath');
+
       filePath = storagePath.path + '/webrtc_sample/test.jpg';
     } else {
       final storagePath = await getApplicationDocumentsDirectory();
       filePath = storagePath.path + '/test${DateTime.now()}.jpg';
     }
 
-    final videoTrack = _localStream
+    final videoTrack = _localStream!
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');
     await videoTrack.captureFrame(filePath);
@@ -178,16 +190,17 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                 PopupMenuButton<String>(
                   onSelected: _selectAudioOutput,
                   itemBuilder: (BuildContext context) {
-                    return _mediaDevicesList
-                        .where((device) => device.kind == 'audiooutput')
-                        .map((device) {
-                      if (device.kind == 'audiooutput') {
+                    if (_mediaDevicesList != null) {
+                      return _mediaDevicesList!
+                          .where((device) => device.kind == 'audiooutput')
+                          .map((device) {
                         return PopupMenuItem<String>(
                           value: device.deviceId,
                           child: Text(device.label),
                         );
-                      }
-                    }).toList();
+                      }).toList();
+                    }
+                    return [];
                   },
                 ),
               ]

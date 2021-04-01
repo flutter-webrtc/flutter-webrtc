@@ -12,23 +12,17 @@ class RTCDataChannelWeb extends RTCDataChannel {
     _jsDc.onClose.listen((_) {
       _state = RTCDataChannelState.RTCDataChannelClosed;
       _stateChangeController.add(_state);
-      if (onDataChannelState != null) {
-        onDataChannelState(_state);
-      }
+      onDataChannelState?.call(_state);
     });
     _jsDc.onOpen.listen((_) {
       _state = RTCDataChannelState.RTCDataChannelOpen;
       _stateChangeController.add(_state);
-      if (onDataChannelState != null) {
-        onDataChannelState(_state);
-      }
+      onDataChannelState?.call(_state);
     });
     _jsDc.onMessage.listen((event) async {
       var msg = await _parse(event.data);
       _messageController.add(msg);
-      if (onMessage != null) {
-        onMessage(msg);
-      }
+      onMessage?.call(msg);
     });
   }
 

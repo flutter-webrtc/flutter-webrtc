@@ -10,14 +10,11 @@ import 'rtc_video_renderer_impl.dart';
 class RTCVideoView extends StatelessWidget {
   RTCVideoView(
     this._renderer, {
-    Key key,
+    Key? key,
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirror = false,
     this.filterQuality = FilterQuality.low,
-  })  : assert(objectFit != null),
-        assert(mirror != null),
-        assert(filterQuality != null),
-        super(key: key);
+  }) : super(key: key);
 
   final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
@@ -48,7 +45,7 @@ class RTCVideoView extends StatelessWidget {
             child: ValueListenableBuilder<RTCVideoValue>(
               valueListenable: videoRenderer,
               builder:
-                  (BuildContext context, RTCVideoValue value, Widget child) {
+                  (BuildContext context, RTCVideoValue value, Widget? child) {
                 return SizedBox(
                   width: constraints.maxHeight * value.aspectRatio,
                   height: constraints.maxHeight,
@@ -61,7 +58,7 @@ class RTCVideoView extends StatelessWidget {
                 child: videoRenderer.textureId != null &&
                         videoRenderer.srcObject != null
                     ? Texture(
-                        textureId: videoRenderer.textureId,
+                        textureId: videoRenderer.textureId!,
                         filterQuality: filterQuality,
                       )
                     : Container(),

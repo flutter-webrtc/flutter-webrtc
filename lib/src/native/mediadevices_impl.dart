@@ -17,6 +17,10 @@ class MediaDeviceNative extends MediaDevices {
         'getUserMedia',
         <String, dynamic>{'constraints': mediaConstraints},
       );
+      if (response == null) {
+        throw Exception('getUserMedia return null, something wrong');
+      }
+
       String streamId = response['streamId'];
       var stream = MediaStreamNative(streamId, 'local');
       stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
@@ -35,6 +39,9 @@ class MediaDeviceNative extends MediaDevices {
         'getDisplayMedia',
         <String, dynamic>{'constraints': mediaConstraints},
       );
+      if (response == null) {
+        throw Exception('getDisplayMedia return null, something wrong');
+      }
       String streamId = response['streamId'];
       var stream = MediaStreamNative(streamId, 'local');
       stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
@@ -46,12 +53,12 @@ class MediaDeviceNative extends MediaDevices {
 
   @override
   Future<List<dynamic>> getSources() async {
-    var channel = WebRTC.methodChannel();
     try {
-      final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
+      final response = await WebRTC.invokeMethod(
         'getSources',
         <String, dynamic>{},
       );
+
       List<dynamic> sources = response['sources'];
 
       return sources;
