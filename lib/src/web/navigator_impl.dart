@@ -11,7 +11,7 @@ class NavigatorWeb extends Navigator {
 
   @override
   Future<List> getSources() {
-    return mediaDevices.getSources();
+    return mediaDevices.enumerateDevices();
   }
 
   @override
