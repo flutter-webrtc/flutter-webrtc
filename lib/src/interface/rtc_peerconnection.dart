@@ -81,7 +81,7 @@ abstract class RTCPeerConnection {
 
   Future<void> addCandidate(RTCIceCandidate candidate);
 
-  Future<List<StatsReport>> getStats([MediaStreamTrack track]);
+  Future<List<StatsReport>> getStats([MediaStreamTrack? track]);
 
   List<MediaStream> getLocalStreams();
 

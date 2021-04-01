@@ -3,7 +3,7 @@ import 'dart:core';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
-// import 'package:flutter_foreground_plugin/flutter_foreground_plugin.dart';
+import 'package:flutter_foreground_plugin/flutter_foreground_plugin.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'src/data_channel_sample.dart';
@@ -24,20 +24,20 @@ void main() {
 }
 
 Future<bool> startForegroundService() async {
-  // await FlutterForegroundPlugin.setServiceMethodInterval(seconds: 5);
-  // await FlutterForegroundPlugin.setServiceMethod(globalForegroundService);
-  // await FlutterForegroundPlugin.startForegroundService(
-  //   holdWakeLock: false,
-  //   onStarted: () {
-  //     print('Foreground on Started');
-  //   },
-  //   onStopped: () {
-  //     print('Foreground on Stopped');
-  //   },
-  //   title: 'Tcamera',
-  //   content: 'Tcamera sharing your screen.',
-  //   iconName: 'ic_stat_mobile_screen_share',
-  // );
+  await FlutterForegroundPlugin.setServiceMethodInterval(seconds: 5);
+  await FlutterForegroundPlugin.setServiceMethod(globalForegroundService);
+  await FlutterForegroundPlugin.startForegroundService(
+    holdWakeLock: false,
+    onStarted: () {
+      print('Foreground on Started');
+    },
+    onStopped: () {
+      print('Foreground on Stopped');
+    },
+    title: 'Tcamera',
+    content: 'Tcamera sharing your screen.',
+    iconName: 'ic_stat_mobile_screen_share',
+  );
   return true;
 }
 
