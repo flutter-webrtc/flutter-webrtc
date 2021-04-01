@@ -628,6 +628,12 @@
             return;
         }
         RTCRtpSender* sender = [peerConnection addTrack:track streamIds:streamIds];
+        if(sender == nil) {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+            message:[NSString stringWithFormat:@"Error: peerConnection.addTrack failed!"]
+            details:nil]);
+            return;
+        }
         result([self rtpSenderToMap:sender]);
     } else if ([@"removeTrack" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
