@@ -10,7 +10,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter:
     sdk: flutter
-  flutter_foreground_plugin: ^0.8.0
+  flutter_background: ^1.0.0
   flutter_webrtc:
     path: ../
   # Required for MediaRecorder example
