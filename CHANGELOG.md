@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.6.2] - 2021.04.02
+
+* [Dart] Use enumerateDevices instead of getSources.
+* [Android] Use flutter_background to fix screen capture example.
+
 [0.6.1] - 2021.04.02
 
 * [Darwin] Fixed getting crash when call setLocalDescription multiple time.
