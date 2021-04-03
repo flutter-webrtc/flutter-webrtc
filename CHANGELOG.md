@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.6.3] - 2021.04.03
+
+* [Dart] Change RTCRtpSender.track to nullable.
+* [Web] Fix RTCVideoView/Renderer pauses when changing child in IndexedStack.
+
 [0.6.2] - 2021.04.02
 
 * [Dart] Use enumerateDevices instead of getSources.
