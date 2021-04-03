@@ -88,6 +88,12 @@ class RTCVideoRendererWeb extends VideoRenderer {
         'RTCVideoRenderer-$textureId', (int viewId) => _videoElement);
 
     _subscriptions.add(
+      _videoElement.onPause.listen((event) {
+        _videoElement.play();
+      })
+    );
+
+    _subscriptions.add(
       _videoElement.onCanPlay.listen(
         (dynamic _) {
           _updateAllValues();
