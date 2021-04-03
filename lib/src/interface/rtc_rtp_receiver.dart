@@ -19,7 +19,7 @@ abstract class RTCRtpReceiver {
   /// http://ortc.org/wp-content/uploads/2016/03/ortc.html#rtcrtpparameters*.
   RTCRtpParameters get parameters;
 
-  MediaStreamTrack get track;
+  MediaStreamTrack? get track;
 
   String get receiverId;
 }

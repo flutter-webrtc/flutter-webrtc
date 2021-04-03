@@ -20,7 +20,7 @@ abstract class RTCRtpSender {
 
   RTCRtpParameters get parameters;
 
-  MediaStreamTrack get track;
+  MediaStreamTrack? get track;
 
   String get senderId;
 
