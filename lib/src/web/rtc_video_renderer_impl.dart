@@ -87,11 +87,9 @@ class RTCVideoRendererWeb extends VideoRenderer {
     ui.platformViewRegistry.registerViewFactory(
         'RTCVideoRenderer-$textureId', (int viewId) => _videoElement);
 
-    _subscriptions.add(
-      _videoElement.onPause.listen((event) {
-        _videoElement.play();
-      })
-    );
+    _subscriptions.add(_videoElement.onPause.listen((event) {
+      _videoElement.play();
+    }));
 
     _subscriptions.add(
       _videoElement.onCanPlay.listen(
