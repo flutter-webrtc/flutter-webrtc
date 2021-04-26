@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.webrtc.EglBase;
 import org.webrtc.MediaStream;
+import org.webrtc.MediaStreamTrack;
 import org.webrtc.RendererCommon.RendererEvents;
 import org.webrtc.VideoTrack;
 
@@ -23,13 +24,14 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
     private final SurfaceTexture texture;
     private TextureRegistry.SurfaceTextureEntry entry;
     private int id = -1;
+    private MediaStream mediaStream;
 
-    public void Dispose(){
+    public void Dispose() {
         //destroy
-        if(surfaceTextureRenderer != null) {
+        if (surfaceTextureRenderer != null) {
             surfaceTextureRenderer.release();
         }
-        if(eventChannel != null)
+        if (eventChannel != null)
             eventChannel.setStreamHandler(null);
 
         eventSink = null;
@@ -43,9 +45,9 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
     private RendererEvents rendererEvents;
 
     private void listenRendererEvents() {
-    rendererEvents = new RendererEvents() {
+        rendererEvents = new RendererEvents() {
             private int _rotation = -1;
-            private  int _width = 0, _height = 0;
+            private int _width = 0, _height = 0;
 
             @Override
             public void onFirstFrameRendered() {
@@ -60,8 +62,8 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
                     int videoWidth, int videoHeight,
                     int rotation) {
 
-                if(eventSink != null) {
-                    if(_width != videoWidth || _height != videoHeight) {
+                if (eventSink != null) {
+                    if (_width != videoWidth || _height != videoHeight) {
                         ConstraintsMap params = new ConstraintsMap();
                         params.putString("event", "didTextureChangeVideoSize");
                         params.putInt("id", id);
@@ -72,7 +74,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
                         eventSink.success(params.toMap());
                     }
 
-                    if(_rotation != rotation) {
+                    if (_rotation != rotation) {
                         ConstraintsMap params2 = new ConstraintsMap();
                         params2.putString("event", "didTextureChangeRotation");
                         params2.putInt("id", id);
@@ -84,6 +86,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             }
         };
     }
+
     private SurfaceTextureRenderer surfaceTextureRenderer;
 
     /**
@@ -105,11 +108,11 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         this.entry = entry;
     }
 
-    public void setEventChannel(EventChannel eventChannel){
+    public void setEventChannel(EventChannel eventChannel) {
         this.eventChannel = eventChannel;
     }
 
-    public void setId(int id){
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -137,11 +140,11 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * specified {@code mediaStream}.
      *
      * @param mediaStream The {@code MediaStream} to be rendered by this
-     * {@code FlutterRTCVideoRenderer} or {@code null}.
+     *                    {@code FlutterRTCVideoRenderer} or {@code null}.
      */
     public void setStream(MediaStream mediaStream) {
         VideoTrack videoTrack;
-
+        this.mediaStream = mediaStream;
         if (mediaStream == null) {
             videoTrack = null;
         } else {
@@ -157,9 +160,9 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * Sets the {@code VideoTrack} to be rendered by this {@code FlutterRTCVideoRenderer}.
      *
      * @param videoTrack The {@code VideoTrack} to be rendered by this
-     * {@code FlutterRTCVideoRenderer} or {@code null}.
+     *                   {@code FlutterRTCVideoRenderer} or {@code null}.
      */
-    private void setVideoTrack(VideoTrack videoTrack) {
+    public void setVideoTrack(VideoTrack videoTrack) {
         VideoTrack oldValue = this.videoTrack;
 
         if (oldValue != videoTrack) {
@@ -202,4 +205,17 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         }
     }
 
+    public boolean checkMediaStream(String id) {
+        if (null == id || null == mediaStream) {
+            return false;
+        }
+        return id.equals(mediaStream.getId());
+    }
+
+    public boolean checkVideoTrack(String id) {
+        if (null == id || null == videoTrack) {
+            return false;
+        }
+        return id.equals(videoTrack.id());
+    }
 }
