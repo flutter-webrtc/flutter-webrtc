@@ -217,12 +217,18 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   }
 
   @override
-  Future<RTCSessionDescription> getLocalDescription() async {
+  Future<RTCSessionDescription?> getLocalDescription() async {
+    if (null == _jsPc.localDescription) {
+      return null;
+    }
     return _sessionFromJs(_jsPc.localDescription);
   }
 
   @override
-  Future<RTCSessionDescription> getRemoteDescription() async {
+  Future<RTCSessionDescription?> getRemoteDescription() async {
+    if (null == _jsPc.remoteDescription) {
+      return null;
+    }
     return _sessionFromJs(_jsPc.remoteDescription);
   }
 
@@ -323,8 +329,8 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   @override
   Future<bool> removeTrack(RTCRtpSender sender) async {
     var nativeSender = sender as RTCRtpSenderWeb;
-    var nativeTrack = nativeSender.track as MediaStreamTrackWeb;
-    return jsutil.callMethod(_jsPc, 'removeTrack', [nativeTrack.jsTrack]);
+    // var nativeTrack = nativeSender.track as MediaStreamTrackWeb;
+    return jsutil.callMethod(_jsPc, 'removeTrack', [nativeSender.jsRtpSender]);
   }
 
   @override

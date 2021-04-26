@@ -22,6 +22,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaRecorder? _mediaRecorder;
 
   List<MediaDeviceInfo>? _cameras;
+
   bool get _isRec => _mediaRecorder != null;
   List<dynamic>? cameras;
 
@@ -122,7 +123,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-              content: Image.network(frame, height: 720, width: 1280),
+              content:
+                  Image.memory(frame.asUint8List(), height: 720, width: 1280),
               actions: <Widget>[
                 TextButton(
                   onPressed: Navigator.of(context, rootNavigator: true).pop,
