@@ -79,7 +79,12 @@ class RTCRtpSenderWeb extends RTCRtpSender {
   }
 
   @override
-  MediaStreamTrack get track => MediaStreamTrackWeb(_jsRtpSender.track!);
+  MediaStreamTrack? get track {
+    if (null != _jsRtpSender.track) {
+      return MediaStreamTrackWeb(_jsRtpSender.track!);
+    }
+    return null;
+  }
 
   @override
   String get senderId => jsutil.getProperty(_jsRtpSender, 'senderId');
@@ -93,4 +98,6 @@ class RTCRtpSenderWeb extends RTCRtpSender {
 
   @override
   Future<void> dispose() async {}
+
+  RtcRtpSender get jsRtpSender => _jsRtpSender;
 }
