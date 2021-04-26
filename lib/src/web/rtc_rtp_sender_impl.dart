@@ -93,4 +93,6 @@ class RTCRtpSenderWeb extends RTCRtpSender {
 
   @override
   Future<void> dispose() async {}
+
+  RtcRtpSender get jsRtpSender => _jsRtpSender;
 }
