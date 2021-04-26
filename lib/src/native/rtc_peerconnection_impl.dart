@@ -67,9 +67,9 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   @override
   RTCPeerConnectionState? get connectionState => _connectionState;
 
-  Future<RTCSessionDescription> get localDescription => getLocalDescription();
+  Future<RTCSessionDescription?> get localDescription => getLocalDescription();
 
-  Future<RTCSessionDescription> get remoteDescription => getRemoteDescription();
+  Future<RTCSessionDescription?> get remoteDescription => getRemoteDescription();
 
   /*
    * PeerConnection event listener.
@@ -321,13 +321,16 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   }
 
   @override
-  Future<RTCSessionDescription> getLocalDescription() async {
+  Future<RTCSessionDescription?> getLocalDescription() async {
     try {
       final response =
           await WebRTC.invokeMethod('getLocalDescription', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
       });
 
+      if (null == response) {
+        return null;
+      }
       String sdp = response['sdp'];
       String type = response['type'];
       return RTCSessionDescription(sdp, type);
@@ -337,13 +340,16 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   }
 
   @override
-  Future<RTCSessionDescription> getRemoteDescription() async {
+  Future<RTCSessionDescription?> getRemoteDescription() async {
     try {
       final response =
           await WebRTC.invokeMethod('getRemoteDescription', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
       });
 
+      if (null == response) {
+        return null;
+      }
       String sdp = response['sdp'];
       String type = response['type'];
       return RTCSessionDescription(sdp, type);
