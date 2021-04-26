@@ -73,19 +73,21 @@ abstract class RTCPeerConnection {
 
   Future<void> removeStream(MediaStream stream);
 
-  Future<RTCSessionDescription> getLocalDescription();
+  Future<RTCSessionDescription?> getLocalDescription();
+
   Future<void> setLocalDescription(RTCSessionDescription description);
 
-  Future<RTCSessionDescription> getRemoteDescription();
+  Future<RTCSessionDescription?> getRemoteDescription();
+
   Future<void> setRemoteDescription(RTCSessionDescription description);
 
   Future<void> addCandidate(RTCIceCandidate candidate);
 
   Future<List<StatsReport>> getStats([MediaStreamTrack? track]);
 
-  List<MediaStream> getLocalStreams();
+  List<MediaStream?> getLocalStreams();
 
-  List<MediaStream> getRemoteStreams();
+  List<MediaStream?> getRemoteStreams();
 
   Future<RTCDataChannel> createDataChannel(
       String label, RTCDataChannelInit dataChannelDict);

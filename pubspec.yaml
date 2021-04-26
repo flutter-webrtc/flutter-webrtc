@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  path_provider: ^2.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
