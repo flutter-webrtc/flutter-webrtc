@@ -115,8 +115,13 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         break;
       case 'onRemoveStream':
         String streamId = map['streamId'];
-        var stream = _remoteStreams.firstWhere((it) => it.id == streamId);
-        onRemoveStream?.call(stream);
+
+        for(var item in _remoteStreams){
+          if(item.id == streamId){
+            onRemoveStream?.call(item);
+            break;
+          }
+        }
         _remoteStreams.removeWhere((it) => it.id == streamId);
         break;
       case 'onAddTrack':
@@ -148,11 +153,15 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         break;
       case 'onRemoveTrack':
         String streamId = map['streamId'];
-        var stream = _remoteStreams.firstWhere((it) => it.id == streamId);
-        Map<dynamic, dynamic> track = map['track'];
-        var oldTrack = MediaStreamTrackNative(
-            map['trackId'], track['label'], track['kind'], track['enabled']);
-        onRemoveTrack?.call(stream, oldTrack);
+        for(var item in _remoteStreams){
+          if(item.id == streamId){
+            Map<dynamic, dynamic> track = map['track'];
+            var oldTrack = MediaStreamTrackNative(
+                map['trackId'], track['label'], track['kind'], track['enabled']);
+            onRemoveTrack?.call(item, oldTrack);
+            break;
+          }
+        }
         break;
       case 'didOpenDataChannel':
         int dataChannelId = map['id'];
