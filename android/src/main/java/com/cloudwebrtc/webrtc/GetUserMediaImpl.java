@@ -471,7 +471,10 @@ class GetUserMediaImpl {
                                         new MediaProjection.Callback() {
                                             @Override
                                             public void onStop() {
-                                                resultError("MediaProjection.Callback()", "User revoked permission to capture the screen.", result);
+                                                super.onStop();
+                                                // After Huawei P30 and Android 10 version test, the onstop method is called, which will not affect the next process, 
+                                                // and there is no need to call the resulterror method
+                                                //resultError("MediaProjection.Callback()", "User revoked permission to capture the screen.", result);
                                             }
                                         });
                         if (videoCapturer == null) {
