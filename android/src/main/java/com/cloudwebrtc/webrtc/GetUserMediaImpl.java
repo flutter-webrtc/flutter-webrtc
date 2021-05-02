@@ -495,6 +495,7 @@ class GetUserMediaImpl {
                         info.width = wm.getDefaultDisplay().getWidth();
                         info.height = wm.getDefaultDisplay().getHeight();
                         info.fps = DEFAULT_FPS;
+                        info.isScreenCapture = true;
                         info.capturer = videoCapturer;
 
                         videoCapturer.startCapture(info.width, info.height, info.fps);
@@ -1024,7 +1025,7 @@ class GetUserMediaImpl {
 
     public void reStartCamera(IsCameraEnabled getCameraId) {
         for (Map.Entry<String, VideoCapturerInfo> item : mVideoCapturers.entrySet()) {
-            if (getCameraId.isEnabled(item.getKey())) {
+            if (!item.getValue().isScreenCapture && getCameraId.isEnabled(item.getKey())) {
                 item.getValue().capturer.startCapture(
                         item.getValue().width,
                         item.getValue().height,
@@ -1043,5 +1044,6 @@ class GetUserMediaImpl {
         int width;
         int height;
         int fps;
+        boolean isScreenCapture = false;
     }
 }
