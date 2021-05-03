@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_webrtc/src/helper.dart';
 
 typedef StreamTrackCallback = Function();
@@ -93,7 +95,7 @@ abstract class MediaStreamTrack {
     throw UnimplementedError();
   }
 
-  Future<dynamic> captureFrame([String? filePath]) {
+  Future<ByteBuffer> captureFrame() {
     throw UnimplementedError();
   }
 
