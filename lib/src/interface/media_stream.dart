@@ -45,8 +45,13 @@ abstract class MediaStream {
   List<MediaStreamTrack> getVideoTracks();
 
   /// Returns either a [MediaStreamTrack] object from this stream's track set whose id is equal to trackId, or [StateError], if no such track exists.
-  MediaStreamTrack getTrackById(String trackId) {
-    return getTracks().firstWhere((element) => element.id == trackId);
+  MediaStreamTrack? getTrackById(String trackId) {
+    for (var item in getTracks()) {
+      if (item.id == trackId) {
+        return item;
+      }
+    }
+    return null;
   }
 
   /// Clones the given [MediaStream] and all its tracks.
