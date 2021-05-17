@@ -60,7 +60,6 @@ import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnectionFactory;
-import org.webrtc.ScreenCapturerAndroid;
 import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoSource;
@@ -466,7 +465,7 @@ class GetUserMediaImpl {
                         MediaStreamTrack[] tracks = new MediaStreamTrack[1];
                         VideoCapturer videoCapturer = null;
                         videoCapturer =
-                                new ScreenCapturerAndroid(
+                                new OrientationAwareScreenCapturer(
                                         mediaProjectionData,
                                         new MediaProjection.Callback() {
                                             @Override
@@ -502,7 +501,7 @@ class GetUserMediaImpl {
                         info.capturer = videoCapturer;
 
                         videoCapturer.startCapture(info.width, info.height, info.fps);
-                        Log.d(TAG, "ScreenCapturerAndroid.startCapture: " + info.width + "x" + info.height + "@" + info.fps);
+                        Log.d(TAG, "OrientationAwareScreenCapturer.startCapture: " + info.width + "x" + info.height + "@" + info.fps);
 
                         String trackId = stateProvider.getNextTrackUUID();
                         mVideoCapturers.put(trackId, info);
