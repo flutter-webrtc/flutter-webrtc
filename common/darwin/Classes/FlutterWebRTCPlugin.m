@@ -1203,7 +1203,7 @@
 
   // pruneTurnPorts (private api)
   if (json[@"pruneTurnPorts"] != nil && [json[@"pruneTurnPorts"] isKindOfClass:[NSNumber class]]) {
-    NSNumber* pruneTurnPorts = json[@"audioJitterBufferFastAccelerate"];
+    NSNumber* pruneTurnPorts = json[@"pruneTurnPorts"];
     config.shouldPruneTurnPorts = [pruneTurnPorts boolValue];
   }
 
