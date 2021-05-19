@@ -1142,8 +1142,8 @@
   }
 
   // candidateNetworkPolicy (private api)
-  if (json[@"candidateNetworkPolicy" != nil &&
-           [json[@"candidateNetworkPolicy"] isKindOfClass:[NSString class]]]) {
+  if (json[@"candidateNetworkPolicy"] != nil &&
+           [json[@"candidateNetworkPolicy"] isKindOfClass:[NSString class]]) {
     NSString* candidateNetworkPolicy = json[@"candidateNetworkPolicy"];
     if ([candidateNetworkPolicy isEqualToString:@"all"]) {
       config.candidateNetworkPolicy = RTCCandidateNetworkPolicyAll;
@@ -1153,7 +1153,7 @@
   }
 
   // KeyType (private api)
-  if (json[@"keyType" != nil && [json[@"keyType"] isKindOfClass:[NSString class]]]) {
+  if (json[@"keyType"] != nil && [json[@"keyType"] isKindOfClass:[NSString class]]) {
     NSString* keyType = json[@"keyType"];
     if ([keyType isEqualToString:@"RSA"]) {
       config.keyType = RTCEncryptionKeyTypeRSA;
@@ -1163,8 +1163,8 @@
   }
 
   // continualGatheringPolicy (private api)
-  if (json[@"continualGatheringPolicy" != nil &&
-           [json[@"continualGatheringPolicy"] isKindOfClass:[NSString class]]]) {
+  if (json[@"continualGatheringPolicy"] != nil &&
+           [json[@"continualGatheringPolicy"] isKindOfClass:[NSString class]]) {
     NSString* continualGatheringPolicy = json[@"continualGatheringPolicy"];
     if ([continualGatheringPolicy isEqualToString:@"gather_once"]) {
       config.continualGatheringPolicy = RTCContinualGatheringPolicyGatherOnce;
@@ -1174,49 +1174,49 @@
   }
 
   // audioJitterBufferMaxPackets (private api)
-  if (json[@"audioJitterBufferMaxPackets" != nil &&
-           [json[@"audioJitterBufferMaxPackets"] isKindOfClass:[NSNumber class]]]) {
+  if (json[@"audioJitterBufferMaxPackets"] != nil &&
+           [json[@"audioJitterBufferMaxPackets"] isKindOfClass:[NSNumber class]]) {
     NSNumber* audioJitterBufferMaxPackets = json[@"audioJitterBufferMaxPackets"];
     config.audioJitterBufferMaxPackets = [audioJitterBufferMaxPackets intValue];
   }
 
   // iceConnectionReceivingTimeout (private api)
-  if (json[@"iceConnectionReceivingTimeout" != nil &&
-           [json[@"iceConnectionReceivingTimeout"] isKindOfClass:[NSNumber class]]]) {
+  if (json[@"iceConnectionReceivingTimeout"] != nil &&
+           [json[@"iceConnectionReceivingTimeout"] isKindOfClass:[NSNumber class]]) {
     NSNumber* iceConnectionReceivingTimeout = json[@"iceConnectionReceivingTimeout"];
     config.iceConnectionReceivingTimeout = [iceConnectionReceivingTimeout intValue];
   }
 
   // iceBackupCandidatePairPingInterval (private api)
-  if (json[@"iceBackupCandidatePairPingInterval" != nil &&
-           [json[@"iceBackupCandidatePairPingInterval"] isKindOfClass:[NSNumber class]]]) {
+  if (json[@"iceBackupCandidatePairPingInterval"] != nil &&
+           [json[@"iceBackupCandidatePairPingInterval"] isKindOfClass:[NSNumber class]]) {
     NSNumber* iceBackupCandidatePairPingInterval = json[@"iceConnectionReceivingTimeout"];
     config.iceBackupCandidatePairPingInterval = [iceBackupCandidatePairPingInterval intValue];
   }
 
   // audioJitterBufferFastAccelerate (private api)
-  if (json[@"audioJitterBufferFastAccelerate" != nil &&
-           [json[@"audioJitterBufferFastAccelerate"] isKindOfClass:[NSNumber class]]]) {
+  if (json[@"audioJitterBufferFastAccelerate"] != nil &&
+           [json[@"audioJitterBufferFastAccelerate"] isKindOfClass:[NSNumber class]]) {
     NSNumber* audioJitterBufferFastAccelerate = json[@"audioJitterBufferFastAccelerate"];
     config.audioJitterBufferFastAccelerate = [audioJitterBufferFastAccelerate boolValue];
   }
 
   // pruneTurnPorts (private api)
-  if (json[@"pruneTurnPorts" != nil && [json[@"pruneTurnPorts"] isKindOfClass:[NSNumber class]]]) {
+  if (json[@"pruneTurnPorts"] != nil && [json[@"pruneTurnPorts"] isKindOfClass:[NSNumber class]]) {
     NSNumber* pruneTurnPorts = json[@"audioJitterBufferFastAccelerate"];
     config.shouldPruneTurnPorts = [pruneTurnPorts boolValue];
   }
 
   // presumeWritableWhenFullyRelayed (private api)
-  if (json[@"presumeWritableWhenFullyRelayed" != nil &&
-           [json[@"presumeWritableWhenFullyRelayed"] isKindOfClass:[NSNumber class]]]) {
+  if (json[@"presumeWritableWhenFullyRelayed"] != nil &&
+           [json[@"presumeWritableWhenFullyRelayed"] isKindOfClass:[NSNumber class]]) {
     NSNumber* presumeWritableWhenFullyRelayed = json[@"presumeWritableWhenFullyRelayed"];
     config.shouldPresumeWritableWhenFullyRelayed = [presumeWritableWhenFullyRelayed boolValue];
   }
 
   // cryptoOptions (private api)
-  if (json[@"cryptoOptions" != nil &&
-           [json[@"cryptoOptions"] isKindOfClass:[NSDictionary class]]]) {
+  if (json[@"cryptoOptions"] != nil &&
+           [json[@"cryptoOptions"] isKindOfClass:[NSDictionary class]]) {
     id options = json[@"cryptoOptions"];
     BOOL srtpEnableGcmCryptoSuites = NO;
     BOOL sframeRequireFrameEncryption = NO;
@@ -1229,20 +1229,20 @@
       srtpEnableGcmCryptoSuites = [value boolValue];
     }
 
-    if (options[@"requireFrameEncryption" != nil &&
-                [options[@"requireFrameEncryption"] isKindOfClass:[NSNumber class]]]) {
+    if (options[@"requireFrameEncryption"] != nil &&
+                [options[@"requireFrameEncryption"] isKindOfClass:[NSNumber class]]) {
       NSNumber* value = options[@"requireFrameEncryption"];
       sframeRequireFrameEncryption = [value boolValue];
     }
 
-    if (options[@"enableEncryptedRtpHeaderExtensions" != nil &&
-                [options[@"enableEncryptedRtpHeaderExtensions"] isKindOfClass:[NSNumber class]]]) {
+    if (options[@"enableEncryptedRtpHeaderExtensions"] != nil &&
+                [options[@"enableEncryptedRtpHeaderExtensions"] isKindOfClass:[NSNumber class]]) {
       NSNumber* value = options[@"enableEncryptedRtpHeaderExtensions"];
       srtpEnableEncryptedRtpHeaderExtensions = [value boolValue];
     }
 
-    if (options[@"enableAes128Sha1_32CryptoCipher" != nil &&
-                [options[@"enableAes128Sha1_32CryptoCipher"] isKindOfClass:[NSNumber class]]]) {
+    if (options[@"enableAes128Sha1_32CryptoCipher"] != nil &&
+                [options[@"enableAes128Sha1_32CryptoCipher"] isKindOfClass:[NSNumber class]]) {
       NSNumber* value = options[@"enableAes128Sha1_32CryptoCipher"];
       srtpEnableAes128Sha1_32CryptoCipher = [value boolValue];
     }
