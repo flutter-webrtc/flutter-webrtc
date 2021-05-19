@@ -1121,15 +1121,6 @@
     }
   }
 
-  if (json[@"tcpCandidatePolicy"] != nil && [json[@"tcpCandidatePolicy"] isKindOfClass:[NSString class]]) {
-    NSString *tcpCandidatePolicy = json[@"tcpCandidatePolicy"];
-    if ([tcpCandidatePolicy isEqualToString:@"enabled"]) {
-      config.tcpCandidatePolicy = RTCTcpCandidatePolicyEnabled;
-    } else if ([tcpCandidatePolicy isEqualToString:@"disabled"]) {
-      config.tcpCandidatePolicy = RTCTcpCandidatePolicyDisabled;
-    }
-  }
-
   if (json[@"sdpSemantics"] != nil && [json[@"sdpSemantics"] isKindOfClass:[NSString class]]) {
     NSString *sdpSemantics = json[@"sdpSemantics"];
     if ([sdpSemantics isEqualToString:@"plan-b"]) {
@@ -1137,6 +1128,130 @@
     } else if ([sdpSemantics isEqualToString:@"unified-plan"]) {
       config.sdpSemantics = RTCSdpSemanticsUnifiedPlan;
     }
+  }
+
+  // === below is private api in webrtc ===
+  if (json[@"tcpCandidatePolicy"] != nil &&
+      [json[@"tcpCandidatePolicy"] isKindOfClass:[NSString class]]) {
+    NSString* tcpCandidatePolicy = json[@"tcpCandidatePolicy"];
+    if ([tcpCandidatePolicy isEqualToString:@"enabled"]) {
+      config.tcpCandidatePolicy = RTCTcpCandidatePolicyEnabled;
+    } else if ([tcpCandidatePolicy isEqualToString:@"disabled"]) {
+      config.tcpCandidatePolicy = RTCTcpCandidatePolicyDisabled;
+    }
+  }
+
+  // candidateNetworkPolicy (private api)
+  if (json[@"candidateNetworkPolicy"] != nil &&
+           [json[@"candidateNetworkPolicy"] isKindOfClass:[NSString class]]) {
+    NSString* candidateNetworkPolicy = json[@"candidateNetworkPolicy"];
+    if ([candidateNetworkPolicy isEqualToString:@"all"]) {
+      config.candidateNetworkPolicy = RTCCandidateNetworkPolicyAll;
+    } else if ([candidateNetworkPolicy isEqualToString:@"low_cost"]) {
+      config.candidateNetworkPolicy = RTCCandidateNetworkPolicyLowCost;
+    }
+  }
+
+  // KeyType (private api)
+  if (json[@"keyType"] != nil && [json[@"keyType"] isKindOfClass:[NSString class]]) {
+    NSString* keyType = json[@"keyType"];
+    if ([keyType isEqualToString:@"RSA"]) {
+      config.keyType = RTCEncryptionKeyTypeRSA;
+    } else if ([keyType isEqualToString:@"ECDSA"]) {
+      config.keyType = RTCEncryptionKeyTypeECDSA;
+    }
+  }
+
+  // continualGatheringPolicy (private api)
+  if (json[@"continualGatheringPolicy"] != nil &&
+           [json[@"continualGatheringPolicy"] isKindOfClass:[NSString class]]) {
+    NSString* continualGatheringPolicy = json[@"continualGatheringPolicy"];
+    if ([continualGatheringPolicy isEqualToString:@"gather_once"]) {
+      config.continualGatheringPolicy = RTCContinualGatheringPolicyGatherOnce;
+    } else if ([continualGatheringPolicy isEqualToString:@"gather_continually"]) {
+      config.continualGatheringPolicy = RTCContinualGatheringPolicyGatherContinually;
+    }
+  }
+
+  // audioJitterBufferMaxPackets (private api)
+  if (json[@"audioJitterBufferMaxPackets"] != nil &&
+           [json[@"audioJitterBufferMaxPackets"] isKindOfClass:[NSNumber class]]) {
+    NSNumber* audioJitterBufferMaxPackets = json[@"audioJitterBufferMaxPackets"];
+    config.audioJitterBufferMaxPackets = [audioJitterBufferMaxPackets intValue];
+  }
+
+  // iceConnectionReceivingTimeout (private api)
+  if (json[@"iceConnectionReceivingTimeout"] != nil &&
+           [json[@"iceConnectionReceivingTimeout"] isKindOfClass:[NSNumber class]]) {
+    NSNumber* iceConnectionReceivingTimeout = json[@"iceConnectionReceivingTimeout"];
+    config.iceConnectionReceivingTimeout = [iceConnectionReceivingTimeout intValue];
+  }
+
+  // iceBackupCandidatePairPingInterval (private api)
+  if (json[@"iceBackupCandidatePairPingInterval"] != nil &&
+           [json[@"iceBackupCandidatePairPingInterval"] isKindOfClass:[NSNumber class]]) {
+    NSNumber* iceBackupCandidatePairPingInterval = json[@"iceConnectionReceivingTimeout"];
+    config.iceBackupCandidatePairPingInterval = [iceBackupCandidatePairPingInterval intValue];
+  }
+
+  // audioJitterBufferFastAccelerate (private api)
+  if (json[@"audioJitterBufferFastAccelerate"] != nil &&
+           [json[@"audioJitterBufferFastAccelerate"] isKindOfClass:[NSNumber class]]) {
+    NSNumber* audioJitterBufferFastAccelerate = json[@"audioJitterBufferFastAccelerate"];
+    config.audioJitterBufferFastAccelerate = [audioJitterBufferFastAccelerate boolValue];
+  }
+
+  // pruneTurnPorts (private api)
+  if (json[@"pruneTurnPorts"] != nil && [json[@"pruneTurnPorts"] isKindOfClass:[NSNumber class]]) {
+    NSNumber* pruneTurnPorts = json[@"pruneTurnPorts"];
+    config.shouldPruneTurnPorts = [pruneTurnPorts boolValue];
+  }
+
+  // presumeWritableWhenFullyRelayed (private api)
+  if (json[@"presumeWritableWhenFullyRelayed"] != nil &&
+           [json[@"presumeWritableWhenFullyRelayed"] isKindOfClass:[NSNumber class]]) {
+    NSNumber* presumeWritableWhenFullyRelayed = json[@"presumeWritableWhenFullyRelayed"];
+    config.shouldPresumeWritableWhenFullyRelayed = [presumeWritableWhenFullyRelayed boolValue];
+  }
+
+  // cryptoOptions (private api)
+  if (json[@"cryptoOptions"] != nil &&
+           [json[@"cryptoOptions"] isKindOfClass:[NSDictionary class]]) {
+    id options = json[@"cryptoOptions"];
+    BOOL srtpEnableGcmCryptoSuites = NO;
+    BOOL sframeRequireFrameEncryption = NO;
+    BOOL srtpEnableEncryptedRtpHeaderExtensions = NO;
+    BOOL srtpEnableAes128Sha1_32CryptoCipher = NO;
+
+    if (options[@"enableGcmCryptoSuites" != nil &&
+                [options[@"enableGcmCryptoSuites"] isKindOfClass:[NSNumber class]]]) {
+      NSNumber* value = options[@"enableGcmCryptoSuites"];
+      srtpEnableGcmCryptoSuites = [value boolValue];
+    }
+
+    if (options[@"requireFrameEncryption"] != nil &&
+                [options[@"requireFrameEncryption"] isKindOfClass:[NSNumber class]]) {
+      NSNumber* value = options[@"requireFrameEncryption"];
+      sframeRequireFrameEncryption = [value boolValue];
+    }
+
+    if (options[@"enableEncryptedRtpHeaderExtensions"] != nil &&
+                [options[@"enableEncryptedRtpHeaderExtensions"] isKindOfClass:[NSNumber class]]) {
+      NSNumber* value = options[@"enableEncryptedRtpHeaderExtensions"];
+      srtpEnableEncryptedRtpHeaderExtensions = [value boolValue];
+    }
+
+    if (options[@"enableAes128Sha1_32CryptoCipher"] != nil &&
+                [options[@"enableAes128Sha1_32CryptoCipher"] isKindOfClass:[NSNumber class]]) {
+      NSNumber* value = options[@"enableAes128Sha1_32CryptoCipher"];
+      srtpEnableAes128Sha1_32CryptoCipher = [value boolValue];
+    }
+
+    config.cryptoOptions = [[RTCCryptoOptions alloc]
+             initWithSrtpEnableGcmCryptoSuites:srtpEnableGcmCryptoSuites
+           srtpEnableAes128Sha1_32CryptoCipher:srtpEnableAes128Sha1_32CryptoCipher
+        srtpEnableEncryptedRtpHeaderExtensions:srtpEnableEncryptedRtpHeaderExtensions
+                  sframeRequireFrameEncryption:(BOOL)sframeRequireFrameEncryption];
   }
 
   return config;

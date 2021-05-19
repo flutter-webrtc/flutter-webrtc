@@ -20,6 +20,7 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 
 import org.webrtc.AudioTrack;
+import org.webrtc.CryptoOptions;
 import org.webrtc.DefaultVideoDecoderFactory;
 import org.webrtc.DefaultVideoEncoderFactory;
 import org.webrtc.DtmfSender;
@@ -924,7 +925,17 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             final boolean v = map.getBoolean("presumeWritableWhenFullyRelayed");
             conf.presumeWritableWhenFullyRelayed = v;
         }
-
+        // cryptoOptions
+        if (map.hasKey("cryptoOptions")
+                && map.getType("cryptoOptions") == ObjectType.Map) {
+            final ConstraintsMap cryptoOptions = map.getMap("cryptoOptions");
+            conf.cryptoOptions = CryptoOptions.builder()
+                    .setEnableGcmCryptoSuites(cryptoOptions.hasKey("enableGcmCryptoSuites") && cryptoOptions.getBoolean("enableGcmCryptoSuites"))
+                    .setRequireFrameEncryption(cryptoOptions.hasKey("requireFrameEncryption") && cryptoOptions.getBoolean("requireFrameEncryption"))
+                    .setEnableEncryptedRtpHeaderExtensions(cryptoOptions.hasKey("enableEncryptedRtpHeaderExtensions") && cryptoOptions.getBoolean("enableEncryptedRtpHeaderExtensions"))
+                    .setEnableAes128Sha1_32CryptoCipher(cryptoOptions.hasKey("enableAes128Sha1_32CryptoCipher") && cryptoOptions.getBoolean("enableAes128Sha1_32CryptoCipher"))
+                    .createCryptoOptions();
+        }
         return conf;
     }
 

@@ -147,17 +147,6 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   void _captureFrame() async {
     if (_localStream == null) throw Exception('Stream is not initialized');
 
-    String filePath;
-    if (Platform.isAndroid) {
-      final storagePath = await getExternalStorageDirectory();
-      if (storagePath == null) throw Exception('Can\'t find storagePath');
-
-      filePath = storagePath.path + '/webrtc_sample/test.jpg';
-    } else {
-      final storagePath = await getApplicationDocumentsDirectory();
-      filePath = storagePath.path + '/test${DateTime.now()}.jpg';
-    }
-
     final videoTrack = _localStream!
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');

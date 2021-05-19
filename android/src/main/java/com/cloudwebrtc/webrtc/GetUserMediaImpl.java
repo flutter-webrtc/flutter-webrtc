@@ -60,7 +60,6 @@ import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnectionFactory;
-import org.webrtc.ScreenCapturerAndroid;
 import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoSource;
@@ -466,12 +465,15 @@ class GetUserMediaImpl {
                         MediaStreamTrack[] tracks = new MediaStreamTrack[1];
                         VideoCapturer videoCapturer = null;
                         videoCapturer =
-                                new ScreenCapturerAndroid(
+                                new OrientationAwareScreenCapturer(
                                         mediaProjectionData,
                                         new MediaProjection.Callback() {
                                             @Override
                                             public void onStop() {
-                                                resultError("MediaProjection.Callback()", "User revoked permission to capture the screen.", result);
+                                                super.onStop();
+                                                // After Huawei P30 and Android 10 version test, the onstop method is called, which will not affect the next process, 
+                                                // and there is no need to call the resulterror method
+                                                //resultError("MediaProjection.Callback()", "User revoked permission to capture the screen.", result);
                                             }
                                         });
                         if (videoCapturer == null) {
@@ -495,10 +497,11 @@ class GetUserMediaImpl {
                         info.width = wm.getDefaultDisplay().getWidth();
                         info.height = wm.getDefaultDisplay().getHeight();
                         info.fps = DEFAULT_FPS;
+                        info.isScreenCapture = true;
                         info.capturer = videoCapturer;
 
                         videoCapturer.startCapture(info.width, info.height, info.fps);
-                        Log.d(TAG, "ScreenCapturerAndroid.startCapture: " + info.width + "x" + info.height + "@" + info.fps);
+                        Log.d(TAG, "OrientationAwareScreenCapturer.startCapture: " + info.width + "x" + info.height + "@" + info.fps);
 
                         String trackId = stateProvider.getNextTrackUUID();
                         mVideoCapturers.put(trackId, info);
@@ -1024,7 +1027,7 @@ class GetUserMediaImpl {
 
     public void reStartCamera(IsCameraEnabled getCameraId) {
         for (Map.Entry<String, VideoCapturerInfo> item : mVideoCapturers.entrySet()) {
-            if (getCameraId.isEnabled(item.getKey())) {
+            if (!item.getValue().isScreenCapture && getCameraId.isEnabled(item.getKey())) {
                 item.getValue().capturer.startCapture(
                         item.getValue().width,
                         item.getValue().height,
@@ -1043,5 +1046,6 @@ class GetUserMediaImpl {
         int width;
         int height;
         int fps;
+        boolean isScreenCapture = false;
     }
 }
