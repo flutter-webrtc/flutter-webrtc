@@ -33,9 +33,9 @@ const String _kDefaultErrorMessage =
     'No further diagnostic information can be determined or provided.';
 
 class RTCVideoRendererWeb extends VideoRenderer {
-  html.AudioElement? _audioElement;
-
   RTCVideoRendererWeb() : _textureId = _textureCounter++;
+
+  html.AudioElement? _audioElement;
 
   static int _textureCounter = 1;
 
@@ -47,7 +47,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
 
   final int _textureId;
 
-  bool _mirror = false;
+  bool mirror = false;
 
   final _subscriptions = <StreamSubscription>[];
 
@@ -56,13 +56,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
   bool _muted = false;
 
   set objectFit(String fit) =>
-      findHtmlView()?.style?.objectFit = _objectFit = fit;
-
-  bool get mirror => _mirror;
-
-  set mirror(bool mirror) {
-    _mirror = mirror;
-  }
+      findHtmlView()?.style.objectFit = _objectFit = fit;
 
   @override
   int get videoWidth => value.width.toInt();
@@ -86,8 +80,8 @@ class RTCVideoRendererWeb extends VideoRenderer {
     var element = findHtmlView();
     value = value.copyWith(
       rotation: 0,
-      width: element?.videoWidth?.toDouble() ?? 0.0,
-      height: element?.videoHeight?.toDouble() ?? 0.0,
+      width: element?.videoWidth.toDouble() ?? 0.0,
+      height: element?.videoHeight.toDouble() ?? 0.0,
       renderVideo: renderVideo,
     );
   }
@@ -204,7 +198,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
         ..style.objectFit = _objectFit
         ..style.border = 'none'
         ..srcObject = _videoStream
-        ..id = "video_$id"
+        ..id = 'video_$id'
         ..setAttribute('playsinline', 'true');
 
       _subscriptions.add(

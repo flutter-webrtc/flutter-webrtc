@@ -156,9 +156,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
               content:
                   Image.memory(frame.asUint8List(), height: 720, width: 1280),
               actions: <Widget>[
-                FlatButton(
-                  child: Text('OK'),
+                TextButton(
                   onPressed: Navigator.of(context, rootNavigator: true).pop,
+                  child: Text('OK'),
                 )
               ],
             ));
