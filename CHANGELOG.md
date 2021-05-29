@@ -1,22 +1,5 @@
 # Changelog
 
---------------------------------------------
-[0.10.3] - 2024-04-09
-
-* [iOS/macOS] Fix compilation warning for iOS/macOS.
-
-[0.10.2] - 2024-04-08
-
-* [Native/Web] feat: add keyRingSize/discardFrameWhenCryptorNotReady to KeyProviderOptions.
-
-[0.10.1] - 2024-04-08
-
-* [Web] fix renderer issue for web.
-
-[0.10.0] - 2024-04-08
-
-* [Web] move to package:web.
-
 [0.9.48+hotfix.1] - 2024-02-05
 
 * [Android] bump version for libwebrtc.
