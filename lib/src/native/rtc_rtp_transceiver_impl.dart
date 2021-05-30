@@ -67,9 +67,9 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   factory RTCRtpTransceiverNative.fromMap(Map<dynamic, dynamic> map,
       {required String peerConnectionId}) {
     var transceiver = RTCRtpTransceiverNative(
-        map['transceiverId'],
+        map['transceiverId'] ?? '',
         typeStringToRtpTransceiverDirection[map['direction']]!,
-        map['mid'],
+        map['mid'] ?? '',
         RTCRtpSenderNative.fromMap(map['sender'],
             peerConnectionId: peerConnectionId),
         RTCRtpReceiverNative.fromMap(map['receiver'],
