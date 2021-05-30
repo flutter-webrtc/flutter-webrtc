@@ -85,8 +85,9 @@ class MediaStreamTrackNative extends MediaStreamTrack {
         'path': filePath.path + '/captureFrame.png'
       },
     );
-    return File(filePath.path + '/captureFrame.png').readAsBytes().then((
-        value) => value.buffer);
+    return File(filePath.path + '/captureFrame.png')
+        .readAsBytes()
+        .then((value) => value.buffer);
   }
 
   @override
