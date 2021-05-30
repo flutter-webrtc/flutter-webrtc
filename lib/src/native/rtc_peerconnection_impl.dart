@@ -69,7 +69,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
   Future<RTCSessionDescription?> get localDescription => getLocalDescription();
 
-  Future<RTCSessionDescription?> get remoteDescription => getRemoteDescription();
+  Future<RTCSessionDescription?> get remoteDescription =>
+      getRemoteDescription();
 
   /*
    * PeerConnection event listener.
@@ -116,8 +117,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       case 'onRemoveStream':
         String streamId = map['streamId'];
 
-        for(var item in _remoteStreams){
-          if(item.id == streamId){
+        for (var item in _remoteStreams) {
+          if (item.id == streamId) {
             onRemoveStream?.call(item);
             break;
           }
@@ -153,11 +154,11 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         break;
       case 'onRemoveTrack':
         String streamId = map['streamId'];
-        for(var item in _remoteStreams){
-          if(item.id == streamId){
+        for (var item in _remoteStreams) {
+          if (item.id == streamId) {
             Map<dynamic, dynamic> track = map['track'];
-            var oldTrack = MediaStreamTrackNative(
-                map['trackId'], track['label'], track['kind'], track['enabled']);
+            var oldTrack = MediaStreamTrackNative(map['trackId'],
+                track['label'], track['kind'], track['enabled']);
             onRemoveTrack?.call(item, oldTrack);
             break;
           }
