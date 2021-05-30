@@ -86,8 +86,8 @@ class RTCVideoRendererWeb extends VideoRenderer {
     var element = findHtmlView();
     value = value.copyWith(
       rotation: 0,
-      width: element?.videoWidth?.toDouble() ?? 0.0,
-      height: element?.videoHeight?.toDouble() ?? 0.0,
+      width: element?.videoWidth.toDouble() ?? 0.0,
+      height: element?.videoHeight.toDouble() ?? 0.0,
       renderVideo: renderVideo,
     );
   }
@@ -97,6 +97,13 @@ class RTCVideoRendererWeb extends VideoRenderer {
 
   @override
   set srcObject(MediaStream? stream) {
+
+    if(stream == null) {
+      findHtmlView()?.srcObject = null;
+      _audioElement?.srcObject = _audioStream;
+      return;
+    }
+
     _srcObject = stream as MediaStreamWeb;
 
     if (null != _srcObject) {
@@ -127,6 +134,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
       }
       _audioElement?.srcObject = _audioStream;
     }
+
     findHtmlView()?.srcObject = _videoStream;
 
     value = value.copyWith(renderVideo: renderVideo);
