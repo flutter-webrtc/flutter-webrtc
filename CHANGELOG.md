@@ -1,6 +1,17 @@
 # Changelog
 
 --------------------------------------------
+[0.6.4] - 2021.05.02
+
+* [Android] Fix getting screen capture on Huawei only successful in the first time. (#523)
+* [Android] Add configuration "cryptoOptions" in parseRTCConfiguration().
+* [Dart] Change getLocalDescription,getRemoteDescription,RTCRtpSenderWeb.track returns to nullable.
+* [Dart] Fixed bug in RTCPeerConnectionWeb.removeTrack.
+* [Dart] Change MediaStreamTrack.captureFrame returns to ByteBuffer to compatible with web API.
+* [Dart]  Do null safety check in onRemoveStream,onRemoveTrack and MediaStream.getTrackById.
+* [Android] Add reStartCamera method when the camera is preempted by other apps.
+* [Web] Refactored RTCVideoRendererWeb and RTCVideoViewWeb, using video and audio HTML tags to render audio and video streams separately.
+
 [0.6.3] - 2021.04.03
 
 * [Dart] Change RTCRtpSender.track to nullable.
