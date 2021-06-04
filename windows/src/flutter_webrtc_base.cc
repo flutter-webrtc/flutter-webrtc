@@ -249,6 +249,15 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap &map,
     conf.ice_candidate_pool_size = GetValue<int>(it->second);
   }
 
+  // rtcpMuxPolicy (public api)
+  it = map.find(EncodableValue("sdpSemantics"));
+  if (it != map.end() && TypeIs<std::string>(it->second)) {
+    std::string v = GetValue<std::string>(it->second);
+    if (v == "plan-b")  // public
+      conf.sdp_semantics = SdpSemantics::kPlanB;
+    else if (v == "unified-plan")  // public
+      conf.sdp_semantics = SdpSemantics::kUnifiedPlan;
+  }
   return true;
 }
 

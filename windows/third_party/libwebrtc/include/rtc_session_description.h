@@ -27,6 +27,6 @@ LIB_WEBRTC_API scoped_refptr<RTCSessionDescription> CreateRTCSessionDescription(
     const char* sdp,
     SdpParseError* error);
 
-};  // namespace libwebrtc
+} // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_SESSION_DESCRIPTION_HXX

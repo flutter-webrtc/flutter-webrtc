@@ -28,6 +28,6 @@ class RTCVideoDevice : public RefCountInterface {
   virtual ~RTCVideoDevice() {}
 };
 
-};  // namespace libwebrtc
+} // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_VIDEO_DEVICE_HXX

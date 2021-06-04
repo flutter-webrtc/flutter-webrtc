@@ -107,6 +107,13 @@ typedef fixed_size_function<void()> OnSetSdpSuccess;
 
 typedef fixed_size_function<void(const char* error)> OnSetSdpFailure;
 
+typedef fixed_size_function<void(const char* sdp, const char* type)>
+    OnGetSdpSuccess;
+
+typedef fixed_size_function<void(const char* error)> OnGetSdpFailure;
+
+
+
 class RTCPeerConnectionObserver {
  public:
   virtual void OnSignalingState(RTCSignalingState state) = 0;
@@ -165,6 +172,13 @@ class RTCPeerConnection : public RefCountInterface {
                                     OnSetSdpSuccess success,
                                     OnSetSdpFailure failure) = 0;
 
+  
+  virtual void GetLocalDescription(OnGetSdpSuccess success,
+                                    OnGetSdpFailure failure) = 0;
+
+  virtual void GetRemoteDescription(OnGetSdpSuccess success,
+                                    OnGetSdpFailure failure) = 0;
+
   virtual void AddCandidate(const char* mid,
                             int midx,
                             const char* candiate) = 0;
@@ -188,6 +202,6 @@ class RTCPeerConnection : public RefCountInterface {
   virtual ~RTCPeerConnection() {}
 };
 
-};  // namespace libwebrtc
+} // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_PEERCONNECTION_HXX

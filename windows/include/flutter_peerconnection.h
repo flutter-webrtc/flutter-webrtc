@@ -75,6 +75,14 @@ class FlutterPeerConnection {
       RTCSessionDescription *sdp, RTCPeerConnection *pc,
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
+  virtual void GetLocalDescription(
+      RTCPeerConnection* pc,
+      std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  virtual void GetRemoteDescription(
+      RTCPeerConnection* pc,
+      std::unique_ptr<MethodResult<EncodableValue>> resulte);
+
   void AddIceCandidate(RTCIceCandidate *candidate, RTCPeerConnection *pc,
                        std::unique_ptr<MethodResult<EncodableValue>> result);
 

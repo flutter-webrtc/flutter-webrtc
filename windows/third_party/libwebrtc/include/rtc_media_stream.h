@@ -41,6 +41,6 @@ class RTCMediaStream : public RefCountInterface {
 
 typedef Vector<scoped_refptr<RTCMediaStream>> MediaStreamVector;
 
-};  // namespace libwebrtc
+} // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_MEDIA_STREAM_HXX

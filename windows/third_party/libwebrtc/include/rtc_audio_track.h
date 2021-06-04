@@ -11,6 +11,6 @@ class RTCAudioTrack : public RTCMediaTrack {
   virtual ~RTCAudioTrack() {}
 };
 
-};  // namespace libwebrtc
+} // namespace libwebrtc
 
 #endif //LIB_WEBRTC_RTC_AUDIO_TRACK_HXX

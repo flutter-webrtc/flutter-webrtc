@@ -52,6 +52,6 @@ class RTCDataChannel : public RefCountInterface {
   virtual ~RTCDataChannel() {}
 };
 
-};  // namespace libwebrtc
+} // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_DATA_CHANNEL_HXX

@@ -104,6 +104,41 @@ void FlutterPeerConnection::SetRemoteDescription(
       });
 }
 
+void FlutterPeerConnection::GetLocalDescription(
+    RTCPeerConnection* pc,
+    std::unique_ptr<MethodResult<EncodableValue>> resulte) {
+  std::shared_ptr<MethodResult<EncodableValue>> result_ptr(resulte.release());
+  pc->GetLocalDescription(
+      [result_ptr](const char* sdp, const char* type) {
+        EncodableMap params;
+        params[EncodableValue("sdp")] = sdp;
+        params[EncodableValue("type")] = type;
+        result_ptr->Success(EncodableValue(params));
+      },
+      [result_ptr](const std::string& error) {
+        result_ptr->Error("GetLocalDescription", error);
+      }
+  );
+}
+
+void FlutterPeerConnection::GetRemoteDescription(
+    RTCPeerConnection* pc,
+    std::unique_ptr<MethodResult<EncodableValue>> resulte) {
+  std::shared_ptr<MethodResult<EncodableValue>> result_ptr(resulte.release());
+  pc->GetRemoteDescription(
+      [result_ptr](const char* sdp, const char* type) {
+        EncodableMap params;
+        params[EncodableValue("sdp")] = sdp;
+        params[EncodableValue("type")] = type;
+        result_ptr->Success(EncodableValue(params));
+      },
+      [result_ptr](const std::string& error) {
+         result_ptr->Error("GetRemoteDescription", error);
+      }
+  );
+}
+
+
 void FlutterPeerConnection::AddIceCandidate(
     RTCIceCandidate *candidate, RTCPeerConnection *pc,
     std::unique_ptr<MethodResult<EncodableValue>> result) {

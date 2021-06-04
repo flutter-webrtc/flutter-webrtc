@@ -21,6 +21,6 @@ class RTCVideoTrack : public RTCMediaTrack {
   ~RTCVideoTrack() {}
 };
 
-};  // namespace libwebrtc
+} // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_VIDEO_TRACK_HXX

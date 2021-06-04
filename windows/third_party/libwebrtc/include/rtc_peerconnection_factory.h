@@ -51,6 +51,6 @@ class RTCPeerConnectionFactory : public RefCountInterface {
   virtual scoped_refptr<RTCMediaStream> CreateStream(const char* stream_id) = 0;
 };
 
-};  // namespace libwebrtc
+} // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_PEERCONNECTION_FACTORY_HXX

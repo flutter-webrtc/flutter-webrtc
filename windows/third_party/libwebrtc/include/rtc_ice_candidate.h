@@ -25,6 +25,6 @@ LIB_WEBRTC_API scoped_refptr<RTCIceCandidate> CreateRTCIceCandidate(
     int sdp_mline_index,
     SdpParseError* error);
 
-};  // namespace libwebrtc
+} // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_ICE_CANDIDATE_HXX

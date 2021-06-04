@@ -327,6 +327,43 @@ void FlutterWebRTC::HandleMethodCall(
     const std::string track_id = findString(params, "trackId");
     MediaStreamTrackSwitchCamera(track_id, std::move(result));
   } else if (method_call.method_name().compare("setVolume") == 0) {
+
+  } else if (method_call.method_name().compare("getLocalDescription") == 0) {
+      if (!method_call.arguments()) {
+        result->Error("Bad Arguments", "Null constraints arguments received");
+        return;
+      }
+      const EncodableMap params =
+          GetValue<EncodableMap>(*method_call.arguments());
+      const std::string peerConnectionId =
+          findString(params, "peerConnectionId");
+      const EncodableMap constraints = findMap(params, "description");
+      RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+      if (pc == nullptr) {
+        result->Error("GetLocalDescription",
+                      "GetLocalDescription() peerConnection is null");
+        return;
+      }
+
+      GetLocalDescription(pc, std::move(result));  
+  } else if (method_call.method_name().compare("getRemoteDescription") == 0) {
+      if (!method_call.arguments()) {
+        result->Error("Bad Arguments", "Null constraints arguments received");
+        return;
+      }
+      const EncodableMap params =
+          GetValue<EncodableMap>(*method_call.arguments());
+      const std::string peerConnectionId =
+          findString(params, "peerConnectionId");
+      const EncodableMap constraints = findMap(params, "description");
+      RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+      if (pc == nullptr) {
+        result->Error("GetRemoteDescription",
+                      "GetRemoteDescription() peerConnection is null");
+        return;
+      }
+
+      GetRemoteDescription(pc, std::move(result));
   } else {
     result->NotImplemented();
   }

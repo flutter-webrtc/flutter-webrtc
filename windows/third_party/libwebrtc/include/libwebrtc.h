@@ -17,6 +17,6 @@ class LibWebRTC {
   LIB_WEBRTC_API static void Terminate();
 };
 
-};  // namespace libwebrtc
+} // namespace libwebrtc
 
 #endif //LIB_WEBRTC_HXX
