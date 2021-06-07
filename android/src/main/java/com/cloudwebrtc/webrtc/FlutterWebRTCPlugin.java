@@ -94,7 +94,9 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
         methodCallHandler.setActivity(null);
         if (this.observer != null) {
             this.lifecycle.removeObserver(this.observer);
-            this.application.unregisterActivityLifecycleCallbacks(this.observer);
+            if (this.application!=null) {
+                this.application.unregisterActivityLifecycleCallbacks(this.observer);
+            }
         }
         this.lifecycle = null;
     }
