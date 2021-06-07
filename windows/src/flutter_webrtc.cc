@@ -364,6 +364,151 @@ void FlutterWebRTC::HandleMethodCall(
       }
 
       GetRemoteDescription(pc, std::move(result));
+  } else if (method_call.method_name().compare("mediaStreamAddTrack") == 0) {
+      if (!method_call.arguments()) {
+        result->Error("Bad Arguments", "Null constraints arguments received");
+        return;
+      }
+      const EncodableMap params =
+         GetValue<EncodableMap>(*method_call.arguments());
+
+      const std::string streamId = findString(params, "streamId");
+      const std::string trackId = findString(params, "trackId");
+   
+      scoped_refptr<RTCMediaStream> stream = MediaStreamForId(streamId);
+      if (stream == nullptr) {
+        result->Error("MediaStreamAddTrack",
+                      "MediaStreamAddTrack() stream is null");
+        return;
+      }
+
+      scoped_refptr<RTCMediaStream> track = MediaTracksForId(trackId);
+      if (track == nullptr) {
+        result->Error("MediaStreamAddTrack",
+                      "MediaStreamAddTrack() track is null");
+        return;
+      }
+
+      MediaStreamAddTrack(stream, track, std::move(result));
+
+      for (int i = 0; i < renders_.size(); i++) {
+        FlutterVideoRenderer* renderer = renders_.at(i).get();
+        if (renderer->CheckMediaStream(streamId)) {
+          renderer->SetVideoTrack(track);
+        }
+      }
+; } else if (method_call.method_name().compare("mediaStreamRemoveTrack") == 0) {
+      if (!method_call.arguments()) {
+        result->Error("Bad Arguments", "Null constraints arguments received");
+        return;
+      }
+      const EncodableMap params =
+         GetValue<EncodableMap>(*method_call.arguments());
+
+      const std::string streamId = findString(params, "streamId");
+      const std::string trackId = findString(params, "trackId");
+   
+      scoped_refptr<RTCMediaStream> stream = MediaStreamForId(streamId);
+      if (stream == nullptr) {
+        result->Error("MediaStreamRemoveTrack",
+                      "MediaStreamRemoveTrack() stream is null");
+        return;
+      }
+
+      scoped_refptr<RTCMediaStream> track = MediaTracksForId(trackId);
+      if (track == nullptr) {
+        result->Error("MediaStreamRemoveTrack",
+                      "MediaStreamRemoveTrack() track is null");
+        return;
+      }
+
+      MediaStreamRemoveTrack(stream, track, std::move(result));
+
+      for (int i = 0; i < renders_.size(); i++) {
+        FlutterVideoRenderer* renderer = renders_.at(i).get();
+        if (renderer->CheckVideoTrack(streamId)) {
+          renderer->SetVideoTrack(nullptr);
+        }
+      }
+;
+  } else if (method_call.method_name().compare("addTrack") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+    const std::string trackId = findString(params, "trackId");
+    const EncodableList streamIds = findList(params, "streamIds");
+
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("AddTrack",
+                    "AddTrack() peerConnection is null");
+      return;
+    }
+
+    scoped_refptr<RTCMediaStream> track = MediaTracksForId(trackId);
+    if (track == nullptr) {
+      result->Error("AddTrack",
+                    "AddTrack() track is null");
+      return;
+    }
+;  
+    std::list<std::string> listId;
+    for (EncodableValue value : streamIds) {
+       listId.push_back(GetValue<std::string>(value));
+    }
+
+    AddTrack(pc, track, listId, std::move(result));
+
+  } else if (method_call.method_name().compare("removeTrack") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+    const std::string senderId = findString(params, "senderId");
+ 
+
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("removeTrack", "removeTrack() peerConnection is null");
+      return;
+    }
+
+    RemoveTrack(pc, senderId, std::move(result));
+
+} else if (method_call.method_name().compare("addTransceiver") == 0) {
+      if (!method_call.arguments()) {
+        result->Error("Bad Arguments", "Null constraints arguments received");
+        return;
+      }
+      const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+      const std::string peerConnectionId = findString(params, "peerConnectionId");
+      const EncodableMap transceiverInit = findMap(params, "transceiverInit");
+
+      RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+      if (pc == nullptr) {
+        result->Error("addTransceiver",
+                      "addTransceiver() peerConnection is null");
+        return;
+      }
+
+       const std::string trackId =  findString(transceiverInit, "trackId");
+      RTCMediaTrack* track = MediaTrackForId(trackId);
+       if (nullptr == track) {
+         result->Error("AddTransceiver",
+                       "AddTransceiver() peerCtrackonnection is null");
+         return;
+       }
+
+       AddTransceiver(pc, trackId, transceiverInit, std::move(result));
   } else {
     result->NotImplemented();
   }

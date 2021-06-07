@@ -10,8 +10,11 @@
 #include "rtc_session_description.h"
 #include "rtc_video_source.h"
 #include "rtc_video_track.h"
+#include "rtc_transceiver_direction.h"
+#include "rtc_transceiver.h"
 
 #include <string.h>
+#include <include/rtp_transceiver_interface.h>
 
 namespace libwebrtc {
 
@@ -197,6 +200,15 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual bool GetStats(const RTCVideoTrack* track,
                         scoped_refptr<TrackStatsObserver> observer) = 0;
+
+  virtual bool AddTransceiver(scoped_refptr<RTCMediaTrack> track,
+                              const RtpTransceiverInit& init) = 0;
+
+  virtual scoped_refptr<RtpSender> AddTrack(
+      scoped_refptr<RTCMediaTrack> track, 
+                             std::list<std::string> streamIds) = 0;
+
+  virtual bool RemoveTrack(std::string senderId) = 0;
 
  protected:
   virtual ~RTCPeerConnection() {}

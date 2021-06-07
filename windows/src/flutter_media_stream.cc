@@ -247,6 +247,7 @@ void FlutterMediaStream::MediaStreamGetTracks(
     EncodableMap params;
     EncodableList audioTracks;
     for (auto track : stream->GetAudioTracks()) {
+      base_->media_tracks_[track->id()] = track;
       EncodableMap info;
       info[EncodableValue("id")] = track->id();
       info[EncodableValue("label")] = track->id();
@@ -260,6 +261,7 @@ void FlutterMediaStream::MediaStreamGetTracks(
 
     EncodableList videoTracks;
     for (auto track : stream->GetVideoTracks()) {
+      base_->media_tracks_[track->id()] = track;
       EncodableMap info;
       info[EncodableValue("id")] = track->id();
       info[EncodableValue("label")] = track->id();
@@ -285,12 +287,16 @@ void FlutterMediaStream::MediaStreamDispose(
   AudioTrackVector audio_tracks = stream->GetAudioTracks();
   size_t track_size = audio_tracks.size();
   for (size_t i = 0; i < track_size; i++) {
-    stream->RemoveTrack(audio_tracks.at(i));
+    scoped_refptr<RTCAudioTrack> track = audio_tracks.at(i);
+    stream->RemoveTrack(track);
+    base_->media_tracks_.erase(track->id());
   }
   VideoTrackVector video_tracks = stream->GetVideoTracks();
   track_size = video_tracks.size();
   for (size_t i = 0; i < track_size; i++) {
-    stream->RemoveTrack(video_tracks.at(i));
+    scoped_refptr<RTCVideoTrack> track = video_tracks.at(i);
+    stream->RemoveTrack(track);
+    base_->media_tracks_.erase(track->id());
   }
   base_->RemoveStreamForId(stream_id);
   result->Success();

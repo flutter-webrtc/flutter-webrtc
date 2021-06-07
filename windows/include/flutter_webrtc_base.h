@@ -66,6 +66,13 @@ inline EncodableMap findMap(const EncodableMap &map, const std::string &key) {
   return EncodableMap();
 }
 
+inline EncodableList findList(const EncodableMap &map, const std::string &key) {
+  auto it = map.find(EncodableValue(key));
+  if (it != map.end() && TypeIs<EncodableMap>(it->second))
+    return GetValue<EncodableList>(it->second);
+  return EncodableList();
+}
+
 inline std::string findString(const EncodableMap &map, const std::string &key) {
   auto it = map.find(EncodableValue(key));
   if (it != map.end() && TypeIs<std::string>(it->second))
@@ -106,9 +113,18 @@ class FlutterWebRTCBase {
 
   RTCPeerConnection *PeerConnectionForId(const std::string &id);
 
-  void RemovePeerConnectionForId(const std::string &id);
+  void RemovePeerConnectionForId(const std::string& id);
 
-  scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string &id);
+  RTCMediaTrack* MediaTrackForId(const std::string& id);
+
+  void RemoveMediaTrackForId(const std::string& id);
+
+  FlutterPeerConnectionObserver* PeerConnectionObserversForId(
+      const std::string& id);
+
+  void RemovePeerConnectionObserversForId(const std::string& id);
+
+  scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id);
 
   void RemoveStreamForId(const std::string &id);
 
@@ -119,7 +135,11 @@ class FlutterWebRTCBase {
       const EncodableMap &constraints);
 
   bool ParseRTCConfiguration(const EncodableMap &map,
-                             RTCConfiguration &configuration);
+                             RTCConfiguration& configuration);
+
+  scoped_refptr<RTCMediaTrack> MediaTracksForId(const std::string& id);
+
+  void RemoveTracksForId(const std::string& id);
 
  private:
   void ParseConstraints(const EncodableMap &src,

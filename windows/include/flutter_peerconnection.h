@@ -75,19 +75,49 @@ class FlutterPeerConnection {
       RTCSessionDescription *sdp, RTCPeerConnection *pc,
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  virtual void GetLocalDescription(
+   void GetLocalDescription(
       RTCPeerConnection* pc,
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  virtual void GetRemoteDescription(
+   void GetRemoteDescription(
       RTCPeerConnection* pc,
-      std::unique_ptr<MethodResult<EncodableValue>> resulte);
+       std::unique_ptr<MethodResult<EncodableValue>> resulte);
+
+   void AddTransceiver(RTCPeerConnection* pc,
+                       std::string trackId,
+                       const  EncodableMap &transceiverInit,
+                       std::unique_ptr<MethodResult<EncodableValue>> resulte);
+
 
   void AddIceCandidate(RTCIceCandidate *candidate, RTCPeerConnection *pc,
                        std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void GetStats(const std::string &track_id, RTCPeerConnection *pc,
                 std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void MediaStreamAddTrack(
+      scoped_refptr<RTCMediaStream> stream,
+      scoped_refptr<RTCMediaTrack> track,
+      std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void MediaStreamRemoveTrack(
+      scoped_refptr<RTCMediaStream> stream,
+      scoped_refptr<RTCMediaTrack> track,
+      std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void AddTrack(RTCPeerConnection* pc,
+                scoped_refptr<RTCMediaTrack> track,
+                std::list<std::string> streamIds,
+                std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void RemoveTrack(RTCPeerConnection* pc,
+                   std::string senderId,
+                   std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  
+
+
+
 
  private:
   FlutterWebRTCBase *base_;

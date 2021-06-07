@@ -138,6 +138,26 @@ void FlutterPeerConnection::GetRemoteDescription(
   );
 }
 
+void FlutterPeerConnection::AddTransceiver(
+    RTCPeerConnection* pc,
+    std::string trackId,
+    const EncodableMap *transceiverInit,
+    std::unique_ptr<MethodResult<EncodableValue>> resulte) {
+  std::shared_ptr<MethodResult<EncodableValue>> result_ptr(resulte.release());
+
+  pc->GetRemoteDescription(
+      [result_ptr](const char* sdp, const char* type) {
+        EncodableMap params;
+        params[EncodableValue("sdp")] = sdp;
+        params[EncodableValue("type")] = type;
+        result_ptr->Success(EncodableValue(params));
+      },
+      [result_ptr](const std::string& error) {
+         result_ptr->Error("GetRemoteDescription", error);
+      }
+  );
+}
+
 
 void FlutterPeerConnection::AddIceCandidate(
     RTCIceCandidate *candidate, RTCPeerConnection *pc,
@@ -150,6 +170,67 @@ void FlutterPeerConnection::AddIceCandidate(
 void FlutterPeerConnection::GetStats(
     const std::string &track_id, RTCPeerConnection *pc,
     std::unique_ptr<MethodResult<EncodableValue>> result) {}
+
+
+void FlutterPeerConnection::MediaStreamAddTrack(
+    scoped_refptr<RTCMediaStream> stream,
+    scoped_refptr<RTCMediaTrack> track, 
+    std::unique_ptr<MethodResult<EncodableValue>> result) {
+
+  std::string kind = track->kind();
+  if ("audio" == kind) {
+    stream->AddTrack(scoped_refptr<RTCAudioTrack>(track));
+  } else if ("video" == kind) {
+    stream->AddTrack(scoped_refptr<RTCVideoTrack>(track));
+  }
+
+  result->Success(nullptr);
+}
+
+void FlutterPeerConnection::MediaStreamRemoveTrack(
+    scoped_refptr<RTCMediaStream> stream,
+    scoped_refptr<RTCMediaTrack> track, 
+    std::unique_ptr<MethodResult<EncodableValue>> result) {
+
+  std::string kind = track->kind();
+  if ("audio" == kind) {
+    stream->RemoveTrack(scoped_refptr<RTCAudioTrack>(track));
+  } else if ("video" == kind) {
+    stream->RemoveTrack(scoped_refptr<RTCVideoTrack>(track));
+  }
+
+  result->Success(nullptr);
+}
+
+void FlutterPeerConnection::AddTrack(
+    RTCPeerConnection* pc,
+    scoped_refptr<RTCMediaTrack> track, 
+    std::list<std::string> streamIds,
+    std::unique_ptr<MethodResult<EncodableValue>> result) {
+
+   pc->AddTrack(track, streamIds);
+
+  result->Success(nullptr);
+}
+
+void FlutterPeerConnection::RemoveTrack(
+    RTCPeerConnection* pc,
+    std::string senderId, 
+    std::unique_ptr<MethodResult<EncodableValue>> result) {
+
+   pc->RemoveTrack(senderId);
+
+  result->Success(nullptr);
+}
+
+
+
+
+
+
+
+
+
 
 FlutterPeerConnectionObserver::FlutterPeerConnectionObserver(
     FlutterWebRTCBase *base, scoped_refptr<RTCPeerConnection> peerconnection,
