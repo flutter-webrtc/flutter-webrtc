@@ -330,7 +330,8 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   Future<bool> removeTrack(RTCRtpSender sender) async {
     var nativeSender = sender as RTCRtpSenderWeb;
     // var nativeTrack = nativeSender.track as MediaStreamTrackWeb;
-    return jsutil.callMethod(_jsPc, 'removeTrack', [nativeSender.jsRtpSender]);
+    jsutil.callMethod(_jsPc, 'removeTrack', [nativeSender.jsRtpSender]);
+    return Future<bool>.value(true);
   }
 
   @override

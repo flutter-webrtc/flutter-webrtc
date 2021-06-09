@@ -59,8 +59,9 @@ class RTCRtpSenderWeb extends RTCRtpSender {
           'encodings',
           jsutil.jsify(
               parameters.encodings?.map((e) => e.toMap()).toList() ?? []));
-      return await jsutil.promiseToFuture<bool>(
+      await jsutil.promiseToFuture<void>(
           jsutil.callMethod(_jsRtpSender, 'setParameters', [oldParameters]));
+      return Future<bool>.value(true);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::setParameters: ${e.message}';
     }
