@@ -15,6 +15,7 @@
 #include "base/inlined_vector.h"
 #include "base/refcount.h"
 #include "base/scoped_ref_ptr.h"
+#include <string.h>
 
 #ifdef WIN32
 #undef strncpy
@@ -87,6 +88,8 @@ struct SdpParseError {
 };
 
 #define Vector bsp::inlined_vector
+
+#define String std::string
 
 } // namespace libwebrtc
 

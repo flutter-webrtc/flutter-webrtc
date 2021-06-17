@@ -1,7 +1,6 @@
 #ifndef LIB_WEBRTC_RTC_PEERCONNECTION_HXX
 #define LIB_WEBRTC_RTC_PEERCONNECTION_HXX
 
-#include "rtc_types.h"
 #include "rtc_audio_track.h"
 #include "rtc_data_channel.h"
 #include "rtc_ice_candidate.h"
@@ -10,11 +9,8 @@
 #include "rtc_session_description.h"
 #include "rtc_video_source.h"
 #include "rtc_video_track.h"
-#include "rtc_transceiver_direction.h"
-#include "rtc_transceiver.h"
-
-#include <string.h>
-#include <include/rtp_transceiver_interface.h>
+#include "rtc_rtp_sender.h"
+#include "rtc_rtp_transceiver.h"
 
 namespace libwebrtc {
 
@@ -115,7 +111,13 @@ typedef fixed_size_function<void(const char* sdp, const char* type)>
 
 typedef fixed_size_function<void(const char* error)> OnGetSdpFailure;
 
+typedef fixed_size_function<void(scoped_refptr<RTCRtpTransceiver> transceiver,
+    const char* message)>
+    OnAddTransceiver;
 
+typedef fixed_size_function<void(scoped_refptr<RTCRtpSender> render,
+                                 const char* message)>
+    OnAddTrack;
 
 class RTCPeerConnectionObserver {
  public:
@@ -175,9 +177,8 @@ class RTCPeerConnection : public RefCountInterface {
                                     OnSetSdpSuccess success,
                                     OnSetSdpFailure failure) = 0;
 
-  
   virtual void GetLocalDescription(OnGetSdpSuccess success,
-                                    OnGetSdpFailure failure) = 0;
+                                   OnGetSdpFailure failure) = 0;
 
   virtual void GetRemoteDescription(OnGetSdpSuccess success,
                                     OnGetSdpFailure failure) = 0;
@@ -201,14 +202,20 @@ class RTCPeerConnection : public RefCountInterface {
   virtual bool GetStats(const RTCVideoTrack* track,
                         scoped_refptr<TrackStatsObserver> observer) = 0;
 
-  virtual bool AddTransceiver(scoped_refptr<RTCMediaTrack> track,
-                              const RtpTransceiverInit& init) = 0;
+  virtual void AddTransceiver(scoped_refptr<RTCMediaTrack> track,
+                              scoped_refptr<RTCRtpTransceiverInit> init,
+                              OnAddTransceiver onAdd) = 0;
 
-  virtual scoped_refptr<RtpSender> AddTrack(
-      scoped_refptr<RTCMediaTrack> track, 
-                             std::list<std::string> streamIds) = 0;
+  virtual void AddTransceiver(scoped_refptr<RTCMediaTrack> track,
+                              OnAddTransceiver onAdd) = 0;
 
-  virtual bool RemoveTrack(std::string senderId) = 0;
+  virtual void AddTrack(scoped_refptr<RTCMediaTrack> track,
+                        const Vector<std::string>& streamIds,
+                        OnAddTrack onAdd) = 0;
+
+  virtual bool RemoveTrack(scoped_refptr<RTCRtpSender> render) = 0;
+
+  virtual Vector<scoped_refptr<RTCRtpSender>> GetSenders() = 0;
 
  protected:
   virtual ~RTCPeerConnection() {}
