@@ -7,11 +7,11 @@ WebRTC plugin for Flutter Mobile/Desktop/Web
 </br>
 <p align="center">
 <strong>Sponsored with 💖 &nbsp by</strong><br />
-<a href="https://getstream.io/?utm_source=github.com/flutter-webrtc/flutter-webrtc&utm_medium=github&utm_campaign=oss_sponsorship" target="_blank">
+<a href="https://getstream.io/chat/flutter/tutorial/?utm_source=https://github.com/flutter-webrtc/flutter-webrtc&utm_medium=github&utm_content=developer&utm_term=flutter" target="_blank">
 <img src="https://stream-blog-v2.imgix.net/blog/wp-content/uploads/f7401112f41742c4e173c30d4f318cb8/stream_logo_white.png?w=350" alt="Stream Chat" style="margin: 8px" />
 </a>
 <br />
-Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/chat/flutter/tutorial/?utm_source=github.com/flutter-webrtc/flutter-webrtc&utm_medium=github&utm_campaign=oss_sponsorship" target="_blank">Try the Flutter Chat tutorial</a> 💬
+Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/chat/flutter/tutorial/?utm_source=https://github.com/flutter-webrtc/flutter-webrtc&utm_medium=github&utm_content=developer&utm_term=flutter" target="_blank">Try the Flutter Chat tutorial</a> 💬
 </p>
 
 </br>
