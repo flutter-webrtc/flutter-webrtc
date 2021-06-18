@@ -1,6 +1,15 @@
 # Changelog
 
 --------------------------------------------
+[0.6.5] - 2021.06.18
+
+* [Android] Falling back to the first available camera fix #580
+* [Android] Fix application exit null-pointer exception (#582)
+* [Dart] Add label getter to DataChannel Interface (#585)
+* [Dart] Fix exception raised at RTCPeerConnection.removeTrack and RTCRtpSender.setParameters (#588)
+* [Dart] Fix: null check (#595)
+* [Dart] Fix: null check for RTCRtpTransceiverNative.fromMap
+
 [0.6.4] - 2021.05.02
 
 * [Android] Fix getting screen capture on Huawei only successful in the first time. (#523)

@@ -21,7 +21,7 @@ class MediaStreamNative extends MediaStream {
 
   void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
     _audioTracks.clear();
-    
+
     if (audioTracks != null) {
       audioTracks.forEach((track) {
         _audioTracks.add(MediaStreamTrackNative(
