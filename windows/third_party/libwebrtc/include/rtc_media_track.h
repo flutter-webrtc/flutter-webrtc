@@ -8,6 +8,12 @@ namespace libwebrtc {
 /*Media Track interface*/
 class RTCMediaTrack : public RefCountInterface {
  public:
+  enum RTCTrackState {
+    kLive,
+    kEnded,
+  };
+  virtual RTCTrackState state() const = 0;
+
   /*track type: audio/video*/
   virtual const char* kind() const = 0;
 

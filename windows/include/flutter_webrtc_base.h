@@ -25,11 +25,6 @@
 #include "rtc_video_device.h"
 #include "uuidxx.h"
 
-#ifdef WIN32
-#undef strncpy
-#define strncpy strncpy_s
-#endif
-
 namespace flutter_webrtc_plugin {
 
 using namespace libwebrtc;
@@ -68,7 +63,7 @@ inline EncodableMap findMap(const EncodableMap &map, const std::string &key) {
 
 inline EncodableList findList(const EncodableMap &map, const std::string &key) {
   auto it = map.find(EncodableValue(key));
-  if (it != map.end() && TypeIs<EncodableMap>(it->second))
+  if (it != map.end() && TypeIs<EncodableList>(it->second))
     return GetValue<EncodableList>(it->second);
   return EncodableList();
 }
@@ -157,7 +152,7 @@ class FlutterWebRTCBase {
 
   std::map<std::string, scoped_refptr<RTCPeerConnection>> peerconnections_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
-  std::map<std::string, scoped_refptr<RTCMediaTrack>> media_tracks_;
+  std::map<std::string, scoped_refptr<RTCMediaTrack>> local_tracks_;
   std::map<std::string, scoped_refptr<RTCDataChannel>> data_channels_;
   std::map<int64_t, std::shared_ptr<FlutterVideoRenderer>> renders_;
   std::map<int, std::shared_ptr<FlutterRTCDataChannelObserver>>

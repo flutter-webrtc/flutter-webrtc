@@ -210,7 +210,7 @@ class RTCPeerConnection : public RefCountInterface {
                               OnAddTransceiver onAdd) = 0;
 
   virtual void AddTrack(scoped_refptr<RTCMediaTrack> track,
-                        const Vector<std::string>& streamIds,
+                        OnVectorString streamIds,
                         OnAddTrack onAdd) = 0;
 
   virtual bool RemoveTrack(scoped_refptr<RTCRtpSender> render) = 0;

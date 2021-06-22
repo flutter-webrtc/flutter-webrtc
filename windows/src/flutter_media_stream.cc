@@ -98,6 +98,8 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
     audioTracks.push_back(EncodableValue(track_info));
     params[EncodableValue("audioTracks")] = EncodableValue(audioTracks);
     stream->AddTrack(track);
+
+    base_->local_tracks_[track->id()] = track;
   }
 }
 
@@ -191,7 +193,10 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   info[EncodableValue("enabled")] = track->enabled();
   videoTracks.push_back(EncodableValue(info));
   params[EncodableValue("videoTracks")] = EncodableValue(videoTracks);
+
   stream->AddTrack(track);
+
+  base_->local_tracks_[track->id()] = track;
 }
 
 void FlutterMediaStream::GetSources(
@@ -247,7 +252,7 @@ void FlutterMediaStream::MediaStreamGetTracks(
     EncodableMap params;
     EncodableList audioTracks;
     for (auto track : stream->GetAudioTracks()) {
-      base_->media_tracks_[track->id()] = track;
+      base_->local_tracks_[track->id()] = track;
       EncodableMap info;
       info[EncodableValue("id")] = track->id();
       info[EncodableValue("label")] = track->id();
@@ -261,7 +266,7 @@ void FlutterMediaStream::MediaStreamGetTracks(
 
     EncodableList videoTracks;
     for (auto track : stream->GetVideoTracks()) {
-      base_->media_tracks_[track->id()] = track;
+      base_->local_tracks_[track->id()] = track;
       EncodableMap info;
       info[EncodableValue("id")] = track->id();
       info[EncodableValue("label")] = track->id();
@@ -289,14 +294,14 @@ void FlutterMediaStream::MediaStreamDispose(
   for (size_t i = 0; i < track_size; i++) {
     scoped_refptr<RTCAudioTrack> track = audio_tracks.at(i);
     stream->RemoveTrack(track);
-    base_->media_tracks_.erase(track->id());
+    base_->local_tracks_.erase(track->id());
   }
   VideoTrackVector video_tracks = stream->GetVideoTracks();
   track_size = video_tracks.size();
   for (size_t i = 0; i < track_size; i++) {
     scoped_refptr<RTCVideoTrack> track = video_tracks.at(i);
     stream->RemoveTrack(track);
-    base_->media_tracks_.erase(track->id());
+    base_->local_tracks_.erase(track->id());
   }
   base_->RemoveStreamForId(stream_id);
   result->Success();

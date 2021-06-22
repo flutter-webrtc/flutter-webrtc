@@ -29,18 +29,9 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
       scoped_refptr<RTCDataChannel> data_channel) override;
   virtual void OnRenegotiationNeeded() override;
 
-  scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id) {
-    auto it = remote_streams_.find(id);
-    if (it != remote_streams_.end())
-      return (*it).second;
-    return nullptr;
-  }
+  scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id);
 
-  void RemoveStreamForId(const std::string& id) {
-    auto it = remote_streams_.find(id);
-    if (it != remote_streams_.end())
-      remote_streams_.erase(it);
-  }
+  void RemoveStreamForId(const std::string& id);
 
  private:
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
@@ -93,11 +84,34 @@ class FlutterPeerConnection {
   scoped_refptr<RTCRtpTransceiverInit> mapToRtpTransceiverInit(
       const EncodableMap& transceiverInit);
 
-  RTCRtpTransceiverDirection stringToTransceiverDirection(String direction);
+  RTCRtpTransceiverDirection stringToTransceiverDirection(
+      std::string direction);
 
   
   libwebrtc::scoped_refptr<libwebrtc::RTCRtpEncodingParameters> mapToEncoding(
       const EncodableMap& parameters);
+
+  std::string transceiverDirectionString(RTCRtpTransceiverDirection direction);
+
+  EncodableMap rtpParametersToMap(
+      libwebrtc::scoped_refptr<libwebrtc::RTCRtpParameters> rtpParameters);
+
+  std::string RTCMediaTypeToString(RTCMediaType type);
+
+  EncodableMap dtmfSenderToMap(
+      libwebrtc::scoped_refptr<libwebrtc::RTCDtmfSender> dtmfSender,
+      std::string id);
+
+  EncodableMap rtpSenderToMap(
+      libwebrtc::scoped_refptr<libwebrtc::RTCRtpSender> sender);
+
+  std::string trackStateToString(libwebrtc::RTCMediaTrack::RTCTrackState state);
+
+  EncodableMap mediaTrackToMap(
+      libwebrtc::scoped_refptr<libwebrtc::RTCMediaTrack> track);
+
+  EncodableMap rtpReceiverToMap(
+      libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver> receiver);
 
   EncodableMap transceiverToMap(scoped_refptr<RTCRtpTransceiver> transceiver);
 
@@ -184,6 +198,10 @@ class FlutterPeerConnection {
                 scoped_refptr<RTCMediaTrack> track,
                 std::list<std::string> streamIds,
                 std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  libwebrtc::scoped_refptr<libwebrtc::RTCRtpSender> GetRtpSenderById(
+      RTCPeerConnection* pc,
+      std::string id);
 
   void RemoveTrack(RTCPeerConnection* pc,
                    std::string senderId,

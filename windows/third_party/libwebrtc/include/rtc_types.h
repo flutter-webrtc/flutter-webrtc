@@ -11,11 +11,14 @@
 #define LIB_WEBRTC_API
 #endif
 
+#include <string.h>
+
+#include <map>
+
 #include "base/fixed_size_function.h"
 #include "base/inlined_vector.h"
 #include "base/refcount.h"
 #include "base/scoped_ref_ptr.h"
-#include <string.h>
 
 #ifdef WIN32
 #undef strncpy
@@ -89,8 +92,17 @@ struct SdpParseError {
 
 #define Vector bsp::inlined_vector
 
-#define String std::string
+typedef fixed_size_function<void(char* p, size_t size)> OnString;
 
-} // namespace libwebrtc
+typedef fixed_size_function<void(OnString str)> OnVectorString;
+
+typedef fixed_size_function<
+    void(char* key, size_t key_size, char* val, size_t val_size)>
+    OnStringAndString;
+
+typedef fixed_size_function<void(OnStringAndString str)> OnMapStringAndString;
+
+
+}  // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_TYPES_HXX
