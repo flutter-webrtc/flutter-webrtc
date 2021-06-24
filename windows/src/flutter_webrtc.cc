@@ -335,6 +335,7 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string stream_id = findString(params, "streamId");
     int64_t texture_id = findLongInt(params, "textureId");
+
     SetMediaStream(texture_id, stream_id);
     result->Success(nullptr);
   } else if (method_call.method_name().compare(

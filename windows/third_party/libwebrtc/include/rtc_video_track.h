@@ -21,6 +21,8 @@ class RTCVideoTrack : public RTCMediaTrack {
   ~RTCVideoTrack() {}
 };
 
+typedef fixed_size_function<void(scoped_refptr<RTCVideoTrack> val)>
+    OnRTCVideoTrack;
 } // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_VIDEO_TRACK_HXX

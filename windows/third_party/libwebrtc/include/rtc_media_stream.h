@@ -7,11 +7,10 @@
 
 namespace libwebrtc {
 
-typedef Vector<scoped_refptr<RTCAudioTrack>> AudioTrackVector;
-typedef Vector<scoped_refptr<RTCVideoTrack>> VideoTrackVector;
-
 class RTCMediaStream : public RefCountInterface {
  public:
+  virtual void GetId(OnString on) = 0;
+
   virtual bool AddTrack(scoped_refptr<RTCAudioTrack> track) = 0;
 
   virtual bool AddTrack(scoped_refptr<RTCVideoTrack> track) = 0;
@@ -21,10 +20,10 @@ class RTCMediaStream : public RefCountInterface {
   virtual bool RemoveTrack(scoped_refptr<RTCVideoTrack> track) = 0;
 
   /*获取所有音频轨道*/
-  virtual AudioTrackVector GetAudioTracks() = 0;
+  virtual void GetAudioTracks(OnRTCAudioTrack on) = 0;
 
   /*获取所有视频轨道*/
-  virtual VideoTrackVector GetVideoTracks() = 0;
+  virtual void GetVideoTracks(OnRTCVideoTrack on) = 0;
 
   virtual scoped_refptr<RTCAudioTrack> FindAudioTrack(
       const char* track_id) = 0;
@@ -39,7 +38,10 @@ class RTCMediaStream : public RefCountInterface {
   ~RTCMediaStream() {}
 };
 
-typedef Vector<scoped_refptr<RTCMediaStream>> MediaStreamVector;
+typedef fixed_size_function<void(scoped_refptr<RTCMediaStream> val)>
+    OnRTCMediaStream;
+typedef fixed_size_function<void(OnRTCMediaStream on)> OnVectorRTCMediaStream;
+
 
 } // namespace libwebrtc
 

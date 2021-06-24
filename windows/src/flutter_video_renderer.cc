@@ -146,17 +146,21 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
 }
 
 void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
-                                                 const std::string &stream_id) {
-  scoped_refptr<RTCMediaStream> stream = base_->MediaStreamForId(stream_id);
+                                                 const std::string& stream_id) {
+  scoped_refptr<RTCMediaStream> stream =
+      base_->MediaStreamForId(stream_id);
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
     FlutterVideoRenderer *renderer = it->second.get();
     if (stream.get()) {
-      VideoTrackVector tracks = stream->GetVideoTracks();
-      if (tracks.size() > 0) {
-        renderer->SetVideoTrack(tracks.at(0));
-        renderer->media_stream_id = stream_id;
-      }
+      bool isFast = true;
+      stream->GetVideoTracks([&](scoped_refptr<RTCVideoTrack> track) {
+        if (isFast) {
+          isFast = false;
+          renderer->SetVideoTrack(track);
+          renderer->media_stream_id = stream_id;
+        }
+      });
     } else {
       renderer->SetVideoTrack(nullptr);
     }

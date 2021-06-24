@@ -15,7 +15,9 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger *messenger,
   memset(&configuration_.ice_servers, 0, sizeof(configuration_.ice_servers));
 }
 
-FlutterWebRTCBase::~FlutterWebRTCBase() { LibWebRTC::Terminate(); }
+FlutterWebRTCBase::~FlutterWebRTCBase() {
+  LibWebRTC::Terminate();
+}
 
 std::string FlutterWebRTCBase::GenerateUUID() {
   return uuidxx::uuid::Generate().ToString(false);
@@ -68,8 +70,7 @@ void FlutterWebRTCBase::RemovePeerConnectionObserversForId(
 }
 
 scoped_refptr<RTCMediaStream> FlutterWebRTCBase::MediaStreamForId(
-    const std::string &id) {
-
+    const std::string& id) {
   auto it = local_streams_.find(id);
   if (it != local_streams_.end()) {
     return (*it).second;

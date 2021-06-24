@@ -12,7 +12,8 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
   FlutterPeerConnectionObserver(FlutterWebRTCBase* base,
                                 scoped_refptr<RTCPeerConnection> peerconnection,
                                 BinaryMessenger* messenger,
-                                const std::string& channel_name);
+                                const std::string& channel_name,
+                                std::string &peerConnectionId);
 
   virtual void OnSignalingState(RTCSignalingState state) override;
   virtual void OnIceGatheringState(RTCIceGatheringState state) override;
@@ -21,10 +22,10 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
       scoped_refptr<RTCIceCandidate> candidate) override;
   virtual void OnAddStream(scoped_refptr<RTCMediaStream> stream) override;
   virtual void OnRemoveStream(scoped_refptr<RTCMediaStream> stream) override;
-  virtual void OnAddTrack(scoped_refptr<RTCMediaStream> stream,
-                          scoped_refptr<RTCMediaTrack> track) override;
-  virtual void OnRemoveTrack(scoped_refptr<RTCMediaStream> stream,
-                             scoped_refptr<RTCMediaTrack> track) override;
+  virtual void OnAddTrack(OnVectorRTCMediaStream on,
+                          scoped_refptr<RTCRtpReceiver> receiver) override;
+  /*virtual void OnRemoveTrack(scoped_refptr<RTCMediaStream> stream,
+                             scoped_refptr<RTCMediaTrack> track) override;*/
   virtual void OnDataChannel(
       scoped_refptr<RTCDataChannel> data_channel) override;
   virtual void OnRenegotiationNeeded() override;
@@ -33,12 +34,18 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
 
   void RemoveStreamForId(const std::string& id);
 
+  virtual void OnTrack(scoped_refptr<RTCRtpTransceiver> transceiver) override;
+
+  virtual void OnRemoveTrack(scoped_refptr<RTCRtpReceiver> receiver) override;
+
  private:
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
   std::unique_ptr<EventSink<EncodableValue>> event_sink_;
   scoped_refptr<RTCPeerConnection> peerconnection_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> remote_streams_;
   FlutterWebRTCBase* base_;
+  std::string id_;
+
 };
 
 class FlutterPeerConnection {
@@ -91,32 +98,6 @@ class FlutterPeerConnection {
   libwebrtc::scoped_refptr<libwebrtc::RTCRtpEncodingParameters> mapToEncoding(
       const EncodableMap& parameters);
 
-  std::string transceiverDirectionString(RTCRtpTransceiverDirection direction);
-
-  EncodableMap rtpParametersToMap(
-      libwebrtc::scoped_refptr<libwebrtc::RTCRtpParameters> rtpParameters);
-
-  std::string RTCMediaTypeToString(RTCMediaType type);
-
-  EncodableMap dtmfSenderToMap(
-      libwebrtc::scoped_refptr<libwebrtc::RTCDtmfSender> dtmfSender,
-      std::string id);
-
-  EncodableMap rtpSenderToMap(
-      libwebrtc::scoped_refptr<libwebrtc::RTCRtpSender> sender);
-
-  std::string trackStateToString(libwebrtc::RTCMediaTrack::RTCTrackState state);
-
-  EncodableMap mediaTrackToMap(
-      libwebrtc::scoped_refptr<libwebrtc::RTCMediaTrack> track);
-
-  EncodableMap rtpReceiverToMap(
-      libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver> receiver);
-
-  EncodableMap transceiverToMap(scoped_refptr<RTCRtpTransceiver> transceiver);
-
-
-
   void AddTransceiver(RTCPeerConnection* pc,
                       RTCMediaTrack* track,
                       const EncodableMap& transceiverInit,
@@ -143,6 +124,10 @@ class FlutterPeerConnection {
       std::string rtpSenderId,
       std::unique_ptr<MethodResult<EncodableValue>> resulte);
 
+  scoped_refptr<RTCRtpParameters> updateRtpParameters(
+      EncodableMap newParameters,
+      scoped_refptr<RTCRtpParameters> parameters);
+
   void RtpSenderSetParameters(
       RTCPeerConnection* pc,
       std::string rtpSenderId,
@@ -166,6 +151,9 @@ class FlutterPeerConnection {
   void CaptureFrame(RTCVideoTrack* track,
                     std::string path,
                     std::unique_ptr<MethodResult<EncodableValue>> resulte);
+
+  scoped_refptr<RTCRtpTransceiver> getRtpTransceiverById(RTCPeerConnection* pc,
+                                                         std::string id);
 
   void RtpTransceiverSetDirection(
       RTCPeerConnection* pc,

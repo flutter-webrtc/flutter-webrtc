@@ -251,7 +251,7 @@ void FlutterMediaStream::MediaStreamGetTracks(
   if (stream) {
     EncodableMap params;
     EncodableList audioTracks;
-    for (auto track : stream->GetAudioTracks()) {
+    stream->GetAudioTracks([&](scoped_refptr<RTCAudioTrack> track) {
       base_->local_tracks_[track->id()] = track;
       EncodableMap info;
       info[EncodableValue("id")] = track->id();
@@ -261,11 +261,11 @@ void FlutterMediaStream::MediaStreamGetTracks(
       info[EncodableValue("remote")] = true;
       info[EncodableValue("readyState")] = "live";
       audioTracks.push_back(EncodableValue(info));
-    }
+    });
     params[EncodableValue("audioTracks")] = audioTracks;
 
     EncodableList videoTracks;
-    for (auto track : stream->GetVideoTracks()) {
+    stream->GetVideoTracks([&](scoped_refptr<RTCVideoTrack> track) {
       base_->local_tracks_[track->id()] = track;
       EncodableMap info;
       info[EncodableValue("id")] = track->id();
@@ -275,7 +275,8 @@ void FlutterMediaStream::MediaStreamGetTracks(
       info[EncodableValue("remote")] = true;
       info[EncodableValue("readyState")] = "live";
       videoTracks.push_back(EncodableValue("info"));
-    }
+    });
+
     params[EncodableValue("videoTracks")] = videoTracks;
 
     result->Success(EncodableValue("params"));
@@ -289,14 +290,21 @@ void FlutterMediaStream::MediaStreamDispose(
     const std::string& stream_id,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   scoped_refptr<RTCMediaStream> stream = base_->MediaStreamForId(stream_id);
-  AudioTrackVector audio_tracks = stream->GetAudioTracks();
+  std::vector<scoped_refptr<RTCAudioTrack>> audio_tracks;
+  stream->GetAudioTracks(
+      [&](scoped_refptr<RTCAudioTrack> val) { audio_tracks.push_back(val); });
+
   size_t track_size = audio_tracks.size();
   for (size_t i = 0; i < track_size; i++) {
     scoped_refptr<RTCAudioTrack> track = audio_tracks.at(i);
     stream->RemoveTrack(track);
     base_->local_tracks_.erase(track->id());
   }
-  VideoTrackVector video_tracks = stream->GetVideoTracks();
+
+   std::vector<scoped_refptr<RTCVideoTrack>> video_tracks;
+  stream->GetVideoTracks(
+       [&](scoped_refptr<RTCVideoTrack> val) { video_tracks.push_back(val); });
+
   track_size = video_tracks.size();
   for (size_t i = 0; i < track_size; i++) {
     scoped_refptr<RTCVideoTrack> track = video_tracks.at(i);

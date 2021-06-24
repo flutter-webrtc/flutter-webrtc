@@ -6,11 +6,11 @@
 #include "rtc_ice_candidate.h"
 #include "rtc_media_stream.h"
 #include "rtc_mediaconstraints.h"
+#include "rtc_rtp_sender.h"
+#include "rtc_rtp_transceiver.h"
 #include "rtc_session_description.h"
 #include "rtc_video_source.h"
 #include "rtc_video_track.h"
-#include "rtc_rtp_sender.h"
-#include "rtc_rtp_transceiver.h"
 
 namespace libwebrtc {
 
@@ -112,7 +112,7 @@ typedef fixed_size_function<void(const char* sdp, const char* type)>
 typedef fixed_size_function<void(const char* error)> OnGetSdpFailure;
 
 typedef fixed_size_function<void(scoped_refptr<RTCRtpTransceiver> transceiver,
-    const char* message)>
+                                 const char* message)>
     OnAddTransceiver;
 
 typedef fixed_size_function<void(scoped_refptr<RTCRtpSender> render,
@@ -133,15 +133,19 @@ class RTCPeerConnectionObserver {
 
   virtual void OnRemoveStream(scoped_refptr<RTCMediaStream> stream) = 0;
 
-  virtual void OnAddTrack(scoped_refptr<RTCMediaStream> stream,
-                          scoped_refptr<RTCMediaTrack> track) = 0;
+  virtual void OnAddTrack(OnVectorRTCMediaStream on,
+                          scoped_refptr<RTCRtpReceiver> receiver) = 0;
 
-  virtual void OnRemoveTrack(scoped_refptr<RTCMediaStream> stream,
-                             scoped_refptr<RTCMediaTrack> track) = 0;
+  //virtual void OnRemoveTrack(OnVectorRTCMediaStream on,
+  //                           scoped_refptr<RTCMediaTrack> track) = 0;
 
   virtual void OnDataChannel(scoped_refptr<RTCDataChannel> data_channel) = 0;
 
   virtual void OnRenegotiationNeeded() = 0;
+
+  virtual void OnTrack(scoped_refptr<RTCRtpTransceiver> transceiver) = 0;
+
+  virtual void OnRemoveTrack(scoped_refptr<RTCRtpReceiver> receiver) = 0;
 
  protected:
   virtual ~RTCPeerConnectionObserver() {}
@@ -192,9 +196,9 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual void DeRegisterRTCPeerConnectionObserver() = 0;
 
-  virtual MediaStreamVector local_streams() = 0;
+  virtual void local_streams(OnRTCMediaStream on) = 0;
 
-  virtual MediaStreamVector remote_streams() = 0;
+  virtual void remote_streams(OnRTCMediaStream on) = 0;
 
   virtual bool GetStats(const RTCAudioTrack* track,
                         scoped_refptr<TrackStatsObserver> observer) = 0;
@@ -215,12 +219,16 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual bool RemoveTrack(scoped_refptr<RTCRtpSender> render) = 0;
 
-  virtual Vector<scoped_refptr<RTCRtpSender>> GetSenders() = 0;
+  virtual void GetSenders(OnRTCRtpSender on) = 0;
+
+  virtual void GetTransceivers(OnRTCRtpTransceiver on) = 0;
+
+  virtual void GetReceivers(OnRTCRtpReceiver on) = 0;
 
  protected:
   virtual ~RTCPeerConnection() {}
 };
 
-} // namespace libwebrtc
+}  // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_PEERCONNECTION_HXX

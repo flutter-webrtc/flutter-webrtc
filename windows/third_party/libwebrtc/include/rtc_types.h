@@ -90,8 +90,6 @@ struct SdpParseError {
   char description[kMaxStringLength];
 };
 
-#define Vector bsp::inlined_vector
-
 typedef fixed_size_function<void(char* p, size_t size)> OnString;
 
 typedef fixed_size_function<void(OnString str)> OnVectorString;
@@ -101,8 +99,6 @@ typedef fixed_size_function<
     OnStringAndString;
 
 typedef fixed_size_function<void(OnStringAndString str)> OnMapStringAndString;
-
-
 }  // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_TYPES_HXX
