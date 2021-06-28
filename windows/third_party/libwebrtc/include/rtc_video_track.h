@@ -11,18 +11,15 @@ namespace libwebrtc {
 
 class RTCVideoTrack : public RTCMediaTrack {
  public:
-    virtual void AddRenderer(
+  virtual void AddRenderer(
       RTCVideoRenderer<scoped_refptr<RTCVideoFrame>>* renderer) = 0;
 
   virtual void RemoveRenderer(
-        RTCVideoRenderer<scoped_refptr<RTCVideoFrame>>* renderer) = 0;
+      RTCVideoRenderer<scoped_refptr<RTCVideoFrame>>* renderer) = 0;
 
  protected:
   ~RTCVideoTrack() {}
 };
-
-typedef fixed_size_function<void(scoped_refptr<RTCVideoTrack> val)>
-    OnRTCVideoTrack;
-} // namespace libwebrtc
+}  // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_VIDEO_TRACK_HXX

@@ -59,9 +59,9 @@ class MediaTrackStatistics {
   uint32_t rtt = 0;
 
   int64_t ssrc = 0;
-  char msid[kMaxStringLength];
-  char kind[kShortStringLength];
-  char direction[kShortStringLength];
+  string msid;
+  string kind;
+  string direction;
 
  public:
   MediaTrackStatistics(const MediaTrackStatistics* stats) { copy(*stats); }
@@ -73,8 +73,8 @@ class MediaTrackStatistics {
   }
 
   MediaTrackStatistics& copy(const MediaTrackStatistics& rhs) {
-    strncpy(direction, rhs.direction, sizeof(direction));
-    strncpy(kind, rhs.kind, sizeof(kind));
+    direction = rhs.direction;
+    kind = rhs.kind;
     packets_sent = rhs.packets_sent;
     packets_received = rhs.packets_received;
     packets_lost = rhs.packets_lost;
@@ -84,7 +84,7 @@ class MediaTrackStatistics {
     frame_rate_received = rhs.frame_rate_received;
     ssrc = rhs.ssrc;
     rtt = rhs.rtt;
-    strncpy(msid, rhs.msid, sizeof(msid));
+    msid = rhs.msid;
     return *this;
   }
 };
@@ -97,7 +97,7 @@ class TrackStatsObserver : public RefCountInterface {
   ~TrackStatsObserver() {}
 };
 
-typedef fixed_size_function<void(const char* sdp, const char* type)>
+typedef fixed_size_function<void(const string sdp, const string type)>
     OnSdpCreateSuccess;
 
 typedef fixed_size_function<void(const char* erro)> OnSdpCreateFailure;
@@ -110,14 +110,6 @@ typedef fixed_size_function<void(const char* sdp, const char* type)>
     OnGetSdpSuccess;
 
 typedef fixed_size_function<void(const char* error)> OnGetSdpFailure;
-
-typedef fixed_size_function<void(scoped_refptr<RTCRtpTransceiver> transceiver,
-                                 const char* message)>
-    OnAddTransceiver;
-
-typedef fixed_size_function<void(scoped_refptr<RTCRtpSender> render,
-                                 const char* message)>
-    OnAddTrack;
 
 class RTCPeerConnectionObserver {
  public:
@@ -133,17 +125,14 @@ class RTCPeerConnectionObserver {
 
   virtual void OnRemoveStream(scoped_refptr<RTCMediaStream> stream) = 0;
 
-  virtual void OnAddTrack(OnVectorRTCMediaStream on,
-                          scoped_refptr<RTCRtpReceiver> receiver) = 0;
-
-  //virtual void OnRemoveTrack(OnVectorRTCMediaStream on,
-  //                           scoped_refptr<RTCMediaTrack> track) = 0;
-
   virtual void OnDataChannel(scoped_refptr<RTCDataChannel> data_channel) = 0;
 
   virtual void OnRenegotiationNeeded() = 0;
 
   virtual void OnTrack(scoped_refptr<RTCRtpTransceiver> transceiver) = 0;
+
+  virtual void OnAddTrack(vector<scoped_refptr<RTCMediaStream>> streams,
+                          scoped_refptr<RTCRtpReceiver> receiver) = 0;
 
   virtual void OnRemoveTrack(scoped_refptr<RTCRtpReceiver> receiver) = 0;
 
@@ -158,7 +147,7 @@ class RTCPeerConnection : public RefCountInterface {
   virtual int RemoveStream(scoped_refptr<RTCMediaStream> stream) = 0;
 
   virtual scoped_refptr<RTCDataChannel> CreateDataChannel(
-      const char* label,
+      const string label,
       const RTCDataChannelInit* dataChannelDict) = 0;
 
   virtual void CreateOffer(OnSdpCreateSuccess success,
@@ -171,13 +160,13 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual void Close() = 0;
 
-  virtual void SetLocalDescription(const char* sdp,
-                                   const char* type,
+  virtual void SetLocalDescription(const string sdp,
+                                   const string type,
                                    OnSetSdpSuccess success,
                                    OnSetSdpFailure failure) = 0;
 
-  virtual void SetRemoteDescription(const char* sdp,
-                                    const char* type,
+  virtual void SetRemoteDescription(const string sdp,
+                                    const string type,
                                     OnSetSdpSuccess success,
                                     OnSetSdpFailure failure) = 0;
 
@@ -187,18 +176,18 @@ class RTCPeerConnection : public RefCountInterface {
   virtual void GetRemoteDescription(OnGetSdpSuccess success,
                                     OnGetSdpFailure failure) = 0;
 
-  virtual void AddCandidate(const char* mid,
-                            int midx,
-                            const char* candiate) = 0;
+  virtual void AddCandidate(const string mid,
+                            int mid_mline_index,
+                            const string candiate) = 0;
 
   virtual void RegisterRTCPeerConnectionObserver(
       RTCPeerConnectionObserver* observer) = 0;
 
   virtual void DeRegisterRTCPeerConnectionObserver() = 0;
 
-  virtual void local_streams(OnRTCMediaStream on) = 0;
+  virtual vector<scoped_refptr<RTCMediaStream>> local_streams() = 0;
 
-  virtual void remote_streams(OnRTCMediaStream on) = 0;
+  virtual vector<scoped_refptr<RTCMediaStream>> remote_streams() = 0;
 
   virtual bool GetStats(const RTCAudioTrack* track,
                         scoped_refptr<TrackStatsObserver> observer) = 0;
@@ -206,24 +195,24 @@ class RTCPeerConnection : public RefCountInterface {
   virtual bool GetStats(const RTCVideoTrack* track,
                         scoped_refptr<TrackStatsObserver> observer) = 0;
 
-  virtual void AddTransceiver(scoped_refptr<RTCMediaTrack> track,
-                              scoped_refptr<RTCRtpTransceiverInit> init,
-                              OnAddTransceiver onAdd) = 0;
+  virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver(
+      scoped_refptr<RTCMediaTrack> track,
+      scoped_refptr<RTCRtpTransceiverInit> init) = 0;
 
-  virtual void AddTransceiver(scoped_refptr<RTCMediaTrack> track,
-                              OnAddTransceiver onAdd) = 0;
+  virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver(
+      scoped_refptr<RTCMediaTrack> track) = 0;
 
-  virtual void AddTrack(scoped_refptr<RTCMediaTrack> track,
-                        OnVectorString streamIds,
-                        OnAddTrack onAdd) = 0;
+  virtual scoped_refptr<RTCRtpSender> AddTrack(
+      scoped_refptr<RTCMediaTrack> track,
+      const vector<string> streamIds) = 0;
 
   virtual bool RemoveTrack(scoped_refptr<RTCRtpSender> render) = 0;
 
-  virtual void GetSenders(OnRTCRtpSender on) = 0;
+  virtual vector<scoped_refptr<RTCRtpSender>> senders() = 0;
 
-  virtual void GetTransceivers(OnRTCRtpTransceiver on) = 0;
+  virtual vector<scoped_refptr<RTCRtpTransceiver>> transceivers() = 0;
 
-  virtual void GetReceivers(OnRTCRtpReceiver on) = 0;
+  virtual vector<scoped_refptr<RTCRtpReceiver>> receivers() = 0;
 
  protected:
   virtual ~RTCPeerConnection() {}

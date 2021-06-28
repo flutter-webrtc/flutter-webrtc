@@ -151,7 +151,7 @@ void FlutterWebRTC::HandleMethodCall(
 
     SdpParseError error;
     scoped_refptr<RTCSessionDescription> description =
-        CreateRTCSessionDescription(findString(constraints, "type").c_str(),
+        RTCSessionDescription::Create(findString(constraints, "type").c_str(),
                                     findString(constraints, "sdp").c_str(),
                                     &error);
 
@@ -174,7 +174,7 @@ void FlutterWebRTC::HandleMethodCall(
 
     SdpParseError error;
     scoped_refptr<RTCSessionDescription> description =
-        CreateRTCSessionDescription(findString(constraints, "type").c_str(),
+        RTCSessionDescription::Create(findString(constraints, "type").c_str(),
                                     findString(constraints, "sdp").c_str(),
                                     &error);
 
@@ -197,7 +197,7 @@ void FlutterWebRTC::HandleMethodCall(
 
     SdpParseError error;
     scoped_refptr<RTCIceCandidate> rtc_candidate =
-        CreateRTCIceCandidate(findString(constraints, "candidate").c_str(),
+        RTCIceCandidate::Create(findString(constraints, "candidate").c_str(),
                               findString(constraints, "sdpMid").c_str(),
                               findInt(constraints, "sdpMLineIndex"), &error);
 
@@ -409,7 +409,7 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     MediaStreamAddTrack(stream, track, std::move(result));
-    std::string kind = track->kind();
+    std::string kind = track->kind().str();
     for (int i = 0; i < renders_.size(); i++) {
       FlutterVideoRenderer* renderer = renders_.at(i).get();
       if (renderer->CheckMediaStream(streamId) && 0 == kind.compare("video")) {
@@ -840,7 +840,7 @@ void FlutterWebRTC::HandleMethodCall(
                     "captureFrame() track is null");
       return;
     }
-    std::string kind = track->kind();
+    std::string kind = track->kind().str();
     if (0 != kind.compare("video")) {
       result->Error("captureFrame",
                     "captureFrame() track not is video track");

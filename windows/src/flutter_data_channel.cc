@@ -54,7 +54,7 @@ void FlutterDataChannel::CreateDataChannel(
         dataChannelDict.find(EncodableValue("protocol"))->second); 
   }
 
-  strncpy(init.protocol, protocol.c_str(), protocol.size());
+  init.protocol = protocol.c_str();
 
   init.negotiated =
       GetValue<bool>(dataChannelDict.find(EncodableValue("negotiated"))->second);
@@ -73,7 +73,7 @@ void FlutterDataChannel::CreateDataChannel(
 
   EncodableMap params;
   params[EncodableValue("id")] = EncodableValue(data_channel->id());
-  params[EncodableValue("label")] = EncodableValue(data_channel->label());
+  params[EncodableValue("label")] = EncodableValue(data_channel->label().str());
   result->Success(EncodableValue(params));
 }
 
@@ -83,11 +83,11 @@ void FlutterDataChannel::DataChannelSend(
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   bool is_binary = type == "binary";
   if (is_binary && TypeIs<std::vector<uint8_t>>(data)) { 
-    std::vector<uint8_t> binary = GetValue<std::vector<uint8_t>>(data);
-    data_channel->Send((const char *)&binary[0], (int)binary.size(), true);
+    std::vector<uint8_t> buffer = GetValue<std::vector<uint8_t>>(data);
+    data_channel->Send(string(buffer), true);
   } else {
     std::string str = GetValue<std::string>(data);
-    data_channel->Send(str.data(), (int)str.size(), false);
+    data_channel->Send(string(str.c_str()), false);
   }
   result->Success(nullptr);
 }

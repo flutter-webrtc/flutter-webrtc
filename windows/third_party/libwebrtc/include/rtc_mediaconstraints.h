@@ -8,25 +8,35 @@ namespace libwebrtc {
 class RTCMediaConstraints : public RefCountInterface {
  public:
   // These keys are google specific.
-  LIB_WEBRTC_API static const char* kGoogEchoCancellation;  // googEchoCancellation
+  LIB_WEBRTC_API static const char*
+      kGoogEchoCancellation;  // googEchoCancellation
 
-  LIB_WEBRTC_API static const char* kExtendedFilterEchoCancellation;  // googEchoCancellation2
-  LIB_WEBRTC_API static const char* kDAEchoCancellation;            // googDAEchoCancellation
-  LIB_WEBRTC_API static const char* kAutoGainControl;               // googAutoGainControl
-  LIB_WEBRTC_API static const char* kExperimentalAutoGainControl;   // googAutoGainControl2
-  LIB_WEBRTC_API static const char* kNoiseSuppression;              // googNoiseSuppression
-  LIB_WEBRTC_API static const char* kExperimentalNoiseSuppression;  // googNoiseSuppression2
-  LIB_WEBRTC_API static const char* kHighpassFilter;                // googHighpassFilter
-  LIB_WEBRTC_API static const char* kTypingNoiseDetection;  // googTypingNoiseDetection
-  LIB_WEBRTC_API static const char* kAudioMirroring;        // googAudioMirroring
-  LIB_WEBRTC_API static const char* kAudioNetworkAdaptorConfig;  // goodAudioNetworkAdaptorConfig
+  LIB_WEBRTC_API static const char*
+      kExtendedFilterEchoCancellation;  // googEchoCancellation2
+  LIB_WEBRTC_API static const char*
+      kDAEchoCancellation;                             // googDAEchoCancellation
+  LIB_WEBRTC_API static const char* kAutoGainControl;  // googAutoGainControl
+  LIB_WEBRTC_API static const char*
+      kExperimentalAutoGainControl;                     // googAutoGainControl2
+  LIB_WEBRTC_API static const char* kNoiseSuppression;  // googNoiseSuppression
+  LIB_WEBRTC_API static const char*
+      kExperimentalNoiseSuppression;                  // googNoiseSuppression2
+  LIB_WEBRTC_API static const char* kHighpassFilter;  // googHighpassFilter
+  LIB_WEBRTC_API static const char*
+      kTypingNoiseDetection;  // googTypingNoiseDetection
+  LIB_WEBRTC_API static const char* kAudioMirroring;  // googAudioMirroring
+  LIB_WEBRTC_API static const char*
+      kAudioNetworkAdaptorConfig;  // goodAudioNetworkAdaptorConfig
 
   // Constraint keys for CreateOffer / CreateAnswer
   // Specified by the W3C PeerConnection spec
-  LIB_WEBRTC_API static const char* kOfferToReceiveVideo;     // OfferToReceiveVideo
-  LIB_WEBRTC_API static const char* kOfferToReceiveAudio;     // OfferToReceiveAudio
-  LIB_WEBRTC_API static const char* kVoiceActivityDetection;  // VoiceActivityDetection
-  LIB_WEBRTC_API static const char* kIceRestart;              // IceRestart
+  LIB_WEBRTC_API static const char*
+      kOfferToReceiveVideo;  // OfferToReceiveVideo
+  LIB_WEBRTC_API static const char*
+      kOfferToReceiveAudio;  // OfferToReceiveAudio
+  LIB_WEBRTC_API static const char*
+      kVoiceActivityDetection;                    // VoiceActivityDetection
+  LIB_WEBRTC_API static const char* kIceRestart;  // IceRestart
   // These keys are google specific.
   LIB_WEBRTC_API static const char* kUseRtpMux;  // googUseRtpMUX
 
@@ -38,7 +48,8 @@ class RTCMediaConstraints : public RefCountInterface {
   // Temporary pseudo-constraints used to enable DTLS-SRTP
   LIB_WEBRTC_API static const char* kEnableDtlsSrtp;  // Enable DTLS-SRTP
   // Temporary pseudo-constraints used to enable DataChannels
-  LIB_WEBRTC_API static const char* kEnableRtpDataChannels;  // Enable RTP DataChannels
+  LIB_WEBRTC_API static const char*
+      kEnableRtpDataChannels;  // Enable RTP DataChannels
   // Google-specific constraint keys.
   // Temporary pseudo-constraint for enabling DSCP through JS.
   LIB_WEBRTC_API static const char* kEnableDscp;  // googDscp
@@ -48,9 +59,12 @@ class RTCMediaConstraints : public RefCountInterface {
   LIB_WEBRTC_API static const char* kEnableVideoSuspendBelowMinBitrate;
   // googSuspendBelowMinBitrate
   // Constraint to enable combined audio+video bandwidth estimation.
-  LIB_WEBRTC_API static const char* kCombinedAudioVideoBwe;  // googCombinedAudioVideoBwe
-  LIB_WEBRTC_API static const char* kScreencastMinBitrate;   // googScreencastMinBitrate
-  LIB_WEBRTC_API static const char* kCpuOveruseDetection;    // googCpuOveruseDetection
+  LIB_WEBRTC_API static const char*
+      kCombinedAudioVideoBwe;  // googCombinedAudioVideoBwe
+  LIB_WEBRTC_API static const char*
+      kScreencastMinBitrate;  // googScreencastMinBitrate
+  LIB_WEBRTC_API static const char*
+      kCpuOveruseDetection;  // googCpuOveruseDetection
 
   // Specifies number of simulcast layers for all video tracks
   // with a Plan B offer/answer
@@ -60,14 +74,14 @@ class RTCMediaConstraints : public RefCountInterface {
  public:
   LIB_WEBRTC_API static scoped_refptr<RTCMediaConstraints> Create();
 
-  virtual void AddMandatoryConstraint(const char* key, const char* value) = 0;
+  virtual void AddMandatoryConstraint(const string key, const string value) = 0;
 
-  virtual void AddOptionalConstraint(const char* key, const char* value) = 0;
+  virtual void AddOptionalConstraint(const string key, const string value) = 0;
 
  protected:
   virtual ~RTCMediaConstraints() {}
 };
 
-} // namespace libwebrtc
+}  // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_MEDIA_CONSTRAINTS_HXX

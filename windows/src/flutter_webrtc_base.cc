@@ -175,12 +175,12 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
              GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
                 ->second);
         std::string uri =  GetValue<std::string>(it->second);
-        strncpy(ice_server.username, username.c_str(), username.size());
-        strncpy(ice_server.password, credential.c_str(), credential.size());
-        strncpy(ice_server.uri, uri.c_str(), uri.size());
+        ice_server.username = username.c_str();
+        ice_server.password = credential.c_str();
+        ice_server.uri = uri.c_str();
       } else {
         std::string uri = GetValue<std::string>(it->second);
-        strncpy(ice_server.uri, uri.c_str(), uri.size());
+        ice_server.uri = uri.c_str();
       }
     }
     it = iceServerMap.find(EncodableValue("urls"));
@@ -193,12 +193,12 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
                GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
                   ->second);
           std::string uri =  GetValue<std::string>(it->second);
-          strncpy(ice_server.username, username.c_str(), username.size());
-          strncpy(ice_server.password, credential.c_str(), credential.size());
-          strncpy(ice_server.uri, uri.c_str(), uri.size());
+          ice_server.username = username.c_str();
+          ice_server.password = credential.c_str();
+          ice_server.uri = uri.c_str();
         } else {
           std::string uri =  GetValue<std::string>(it->second);
-          strncpy(ice_server.uri, uri.c_str(), uri.size());
+          ice_server.uri = uri.c_str();
         }
       }
       if (TypeIs<EncodableList>(it->second)) {
@@ -216,12 +216,11 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
               std::string credential =
                   GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
                       ->second);
-              strncpy(ice_server.username, username.c_str(), username.size());
-              strncpy(ice_server.password, credential.c_str(),
-                      credential.size());
-              strncpy(ice_server.uri, value.c_str(), value.size());
+              ice_server.username = username.c_str();
+              ice_server.password = credential.c_str();
+              ice_server.uri = value.c_str();
             } else {
-              strncpy(ice_server.uri, value.c_str(), value.size());
+              ice_server.uri = value.c_str();
             }
           }
         }

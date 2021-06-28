@@ -125,7 +125,7 @@ bool FlutterVideoRenderer::CheckVideoTrack(std::string mediaId) {
   if (0 == mediaId.size() || !track_) {
     return false;
   }
-  return mediaId == track_->id();
+  return mediaId == track_->id().str();
 }
 
 
@@ -153,14 +153,11 @@ void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
   if (it != renderers_.end()) {
     FlutterVideoRenderer *renderer = it->second.get();
     if (stream.get()) {
-      bool isFast = true;
-      stream->GetVideoTracks([&](scoped_refptr<RTCVideoTrack> track) {
-        if (isFast) {
-          isFast = false;
-          renderer->SetVideoTrack(track);
-          renderer->media_stream_id = stream_id;
-        }
-      });
+      auto video_tracks = stream->video_tracks();
+      if (video_tracks.size() > 0) {
+        renderer->SetVideoTrack(video_tracks[0]);
+        renderer->media_stream_id = stream_id;
+      }
     } else {
       renderer->SetVideoTrack(nullptr);
     }

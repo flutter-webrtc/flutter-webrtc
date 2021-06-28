@@ -22,10 +22,11 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
       scoped_refptr<RTCIceCandidate> candidate) override;
   virtual void OnAddStream(scoped_refptr<RTCMediaStream> stream) override;
   virtual void OnRemoveStream(scoped_refptr<RTCMediaStream> stream) override;
-  virtual void OnAddTrack(OnVectorRTCMediaStream on,
+
+  virtual void OnTrack(scoped_refptr<RTCRtpTransceiver> transceiver) override;
+  virtual void OnAddTrack(vector<scoped_refptr<RTCMediaStream>> streams,
                           scoped_refptr<RTCRtpReceiver> receiver) override;
-  /*virtual void OnRemoveTrack(scoped_refptr<RTCMediaStream> stream,
-                             scoped_refptr<RTCMediaTrack> track) override;*/
+  virtual void OnRemoveTrack(scoped_refptr<RTCRtpReceiver> receiver) override;
   virtual void OnDataChannel(
       scoped_refptr<RTCDataChannel> data_channel) override;
   virtual void OnRenegotiationNeeded() override;
@@ -33,10 +34,6 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
   scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id);
 
   void RemoveStreamForId(const std::string& id);
-
-  virtual void OnTrack(scoped_refptr<RTCRtpTransceiver> transceiver) override;
-
-  virtual void OnRemoveTrack(scoped_refptr<RTCRtpReceiver> receiver) override;
 
  private:
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
