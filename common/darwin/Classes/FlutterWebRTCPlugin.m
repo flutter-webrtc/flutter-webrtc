@@ -801,7 +801,7 @@
     } else if ([@"rtpSenderReplaceTrack" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-        NSString* senderId = argsMap[@"senderId"];
+        NSString* senderId = argsMap[@"rtpSenderId"];
         NSString* trackId = argsMap[@"trackId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection == nil) {
@@ -829,7 +829,7 @@
     } else if ([@"rtpSenderSetTrack" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-        NSString* senderId = argsMap[@"senderId"];
+        NSString* senderId = argsMap[@"rtpSenderId"];
         NSString* trackId = argsMap[@"trackId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection == nil) {
@@ -857,7 +857,7 @@
     } else if ([@"rtpSenderDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-        NSString* senderId = argsMap[@"senderId"];
+        NSString* senderId = argsMap[@"rtpSenderId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection == nil) {
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
