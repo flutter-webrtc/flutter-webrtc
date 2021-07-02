@@ -409,7 +409,7 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     MediaStreamAddTrack(stream, track, std::move(result));
-    std::string kind = track->kind().str();
+    std::string kind = to_std_string(track->kind());
     for (int i = 0; i < renders_.size(); i++) {
       FlutterVideoRenderer* renderer = renders_.at(i).get();
       if (renderer->CheckMediaStream(streamId) && 0 == kind.compare("video")) {
@@ -840,7 +840,7 @@ void FlutterWebRTC::HandleMethodCall(
                     "captureFrame() track is null");
       return;
     }
-    std::string kind = track->kind().str();
+    std::string kind = to_std_string(track->kind());
     if (0 != kind.compare("video")) {
       result->Error("captureFrame",
                     "captureFrame() track not is video track");

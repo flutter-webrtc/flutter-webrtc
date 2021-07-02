@@ -86,12 +86,12 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
     scoped_refptr<RTCAudioTrack> track =
         base_->factory_->CreateAudioTrack(source, uuid.c_str());
 
-    std::string track_id = track->id().str();
+    std::string track_id = to_std_string(track->id());
 
     EncodableMap track_info;
-    track_info[EncodableValue("id")] = track->id().str();
-    track_info[EncodableValue("label")] = track->id().str();
-    track_info[EncodableValue("kind")] = track->kind().str();
+    track_info[EncodableValue("id")] = to_std_string(track->id());
+    track_info[EncodableValue("label")] = to_std_string(track->id());
+    track_info[EncodableValue("kind")] = to_std_string(track->kind());
     track_info[EncodableValue("enabled")] = track->enabled();
 
     EncodableList audioTracks;
@@ -99,7 +99,7 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
     params[EncodableValue("audioTracks")] = EncodableValue(audioTracks);
     stream->AddTrack(track);
 
-    base_->local_tracks_[track->id().str()] = track;
+    base_->local_tracks_[to_std_string(track->id())] = track;
   }
 }
 
@@ -187,16 +187,16 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
 
   EncodableList videoTracks;
   EncodableMap info;
-  info[EncodableValue("id")] = track->id().str();
-  info[EncodableValue("label")] = track->id().str();
-  info[EncodableValue("kind")] = track->kind().str();
+  info[EncodableValue("id")] = to_std_string(track->id());
+  info[EncodableValue("label")] = to_std_string(track->id());
+  info[EncodableValue("kind")] = to_std_string(track->kind());
   info[EncodableValue("enabled")] = track->enabled();
   videoTracks.push_back(EncodableValue(info));
   params[EncodableValue("videoTracks")] = EncodableValue(videoTracks);
 
   stream->AddTrack(track);
 
-  base_->local_tracks_[track->id().str()] = track;
+  base_->local_tracks_[to_std_string(track->id())] = track;
 }
 
 void FlutterMediaStream::GetSources(
@@ -254,11 +254,11 @@ void FlutterMediaStream::MediaStreamGetTracks(
 
     auto audio_tracks = stream->audio_tracks();
     for (auto track : audio_tracks) {
-      base_->local_tracks_[track->id().str()] = track;
+      base_->local_tracks_[to_std_string(track->id())] = track;
       EncodableMap info;
-      info[EncodableValue("id")] = track->id().str();
-      info[EncodableValue("label")] = track->id().str();
-      info[EncodableValue("kind")] = track->kind().str();
+      info[EncodableValue("id")] = to_std_string(track->id());
+      info[EncodableValue("label")] = to_std_string(track->id());
+      info[EncodableValue("kind")] = to_std_string(track->kind());
       info[EncodableValue("enabled")] = track->enabled();
       info[EncodableValue("remote")] = true;
       info[EncodableValue("readyState")] = "live";
@@ -269,11 +269,11 @@ void FlutterMediaStream::MediaStreamGetTracks(
     EncodableList videoTracks;
     auto video_tracks = stream->video_tracks();
     for (auto track : video_tracks) {
-      base_->local_tracks_[track->id().str()] = track;
+      base_->local_tracks_[to_std_string(track->id())] = track;
       EncodableMap info;
-      info[EncodableValue("id")] = track->id().str();
-      info[EncodableValue("label")] = track->id().str();
-      info[EncodableValue("kind")] = track->kind().str();
+      info[EncodableValue("id")] = to_std_string(track->id());
+      info[EncodableValue("label")] = to_std_string(track->id());
+      info[EncodableValue("kind")] = to_std_string(track->kind());
       info[EncodableValue("enabled")] = track->enabled();
       info[EncodableValue("remote")] = true;
       info[EncodableValue("readyState")] = "live";
@@ -297,13 +297,13 @@ void FlutterMediaStream::MediaStreamDispose(
   
   for (auto track : audio_tracks) {
     stream->RemoveTrack(track);
-    base_->local_tracks_.erase(track->id().str());
+    base_->local_tracks_.erase(to_std_string(track->id()));
   }
 
   vector<scoped_refptr<RTCVideoTrack>> video_tracks = stream->video_tracks();
   for (auto track : video_tracks) {
     stream->RemoveTrack(track);
-    base_->local_tracks_.erase(track->id().str());
+    base_->local_tracks_.erase(to_std_string(track->id()));
   }
   base_->RemoveStreamForId(stream_id);
   result->Success();

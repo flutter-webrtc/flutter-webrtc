@@ -63,17 +63,17 @@ void FlutterDataChannel::CreateDataChannel(
       pc->CreateDataChannel(label.c_str(), &init);
 
   std::string event_channel =
-      "FlutterWebRTC/dataChannelEvent" + std::to_string(data_channel->id());
+      "FlutterWebRTC/dataChannelEvent" + std::to_string(init.id);
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
                                         event_channel));
 
-  base_->data_channel_observers_[data_channel->id()] = std::move(observer);
+  base_->data_channel_observers_[init.id] = std::move(observer);
 
   EncodableMap params;
-  params[EncodableValue("id")] = EncodableValue(data_channel->id());
-  params[EncodableValue("label")] = EncodableValue(data_channel->label().str());
+  params[EncodableValue("id")] = EncodableValue(init.id);
+  params[EncodableValue("label")] = EncodableValue(to_std_string(data_channel->label()));
   result->Success(EncodableValue(params));
 }
 
@@ -84,7 +84,8 @@ void FlutterDataChannel::DataChannelSend(
   bool is_binary = type == "binary";
   if (is_binary && TypeIs<std::vector<uint8_t>>(data)) { 
     std::vector<uint8_t> buffer = GetValue<std::vector<uint8_t>>(data);
-    data_channel->Send(string(buffer), true);
+    string binary((const char *)buffer.data(), buffer.size());
+    data_channel->Send(binary, true);
   } else {
     std::string str = GetValue<std::string>(data);
     data_channel->Send(string(str.c_str()), false);

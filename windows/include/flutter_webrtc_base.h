@@ -84,10 +84,13 @@ inline int findInt(const EncodableMap &map, const std::string &key) {
 
 inline int64_t findLongInt(const EncodableMap &map, const std::string &key)
 {
-  auto it = map.find(EncodableValue(key));
-  if (it != map.end() && TypeIs<int64_t>(it->second) ||
-      TypeIs<int32_t>(it->second))
-    return GetValue<int64_t>(it->second);
+  for (auto it : map) {
+    if (key == GetValue<std::string>(it.first) &&
+        (TypeIs<int64_t>(it.second) ||
+        TypeIs<int32_t>(it.second)))
+      return GetValue<int64_t>(it.second);
+  }
+
   return -1;
 }
 

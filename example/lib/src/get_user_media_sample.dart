@@ -21,7 +21,6 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   bool _inCalling = false;
   bool _isTorchOn = false;
   MediaRecorder? _mediaRecorder;
-
   bool get _isRec => _mediaRecorder != null;
 
   List<MediaDeviceInfo>? _mediaDevicesList;
@@ -157,9 +156,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
               content:
                   Image.memory(frame.asUint8List(), height: 720, width: 1280),
               actions: <Widget>[
-                FlatButton(
-                  child: Text('OK'),
+                TextButton(
                   onPressed: Navigator.of(context, rootNavigator: true).pop,
+                  child: Text('OK'),
                 )
               ],
             ));

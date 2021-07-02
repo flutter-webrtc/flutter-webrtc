@@ -12,7 +12,6 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger *messenger,
   factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
-  memset(&configuration_.ice_servers, 0, sizeof(configuration_.ice_servers));
 }
 
 FlutterWebRTCBase::~FlutterWebRTCBase() {
@@ -114,14 +113,18 @@ void FlutterWebRTCBase::ParseConstraints(
       value = std::to_string(GetValue<int>(v));
     } else if (TypeIs<bool>(v)) {
       value = GetValue<bool>(v) ? RTCMediaConstraints::kValueTrue
-                            : RTCMediaConstraints::kValueFalse;
+                                : RTCMediaConstraints::kValueFalse;
     } else {
       value = std::to_string(GetValue<int>(v));
     }
-    if (type == kMandatory)
+    if (type == kMandatory) {
       mediaConstraints->AddMandatoryConstraint(key.c_str(), value.c_str());
-    else
+    } else {
       mediaConstraints->AddOptionalConstraint(key.c_str(), value.c_str());
+      if (key == "DtlsSrtpKeyAgreement") {
+        configuration_.srtp_type = GetValue<bool>(v) ? kDTLS_SRTP : kSDES_SRTP;
+      }
+    }
   }
 }
 
@@ -281,7 +284,7 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap &map,
     conf.ice_candidate_pool_size = GetValue<int>(it->second);
   }
 
-  // rtcpMuxPolicy (public api)
+  // sdpSemantics (public api)
   it = map.find(EncodableValue("sdpSemantics"));
   if (it != map.end() && TypeIs<std::string>(it->second)) {
     std::string v = GetValue<std::string>(it->second);

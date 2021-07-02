@@ -125,10 +125,8 @@ bool FlutterVideoRenderer::CheckVideoTrack(std::string mediaId) {
   if (0 == mediaId.size() || !track_) {
     return false;
   }
-  return mediaId == track_->id().str();
+  return mediaId == to_std_string(track_->id());
 }
-
-
 
 FlutterVideoRendererManager::FlutterVideoRendererManager(
     FlutterWebRTCBase *base)
