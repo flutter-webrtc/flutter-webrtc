@@ -574,8 +574,12 @@
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection) {
             RTCSessionDescription* sdp = peerConnection.localDescription;
-            NSString *type = [RTCSessionDescription stringForType:sdp.type];
-            result(@{@"sdp": sdp.sdp, @"type": type});
+            if(nil == sdp){
+                result(nil);
+            }else{
+                NSString *type = [RTCSessionDescription stringForType:sdp.type];
+                result(@{@"sdp": sdp.sdp, @"type": type});
+            }
         } else {
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
@@ -587,8 +591,12 @@
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection) {
             RTCSessionDescription* sdp = peerConnection.remoteDescription;
-            NSString *type = [RTCSessionDescription stringForType:sdp.type];
-            result(@{@"sdp": sdp.sdp, @"type": type});
+            if(nil == sdp){
+                result(nil);
+            }else{
+                NSString *type = [RTCSessionDescription stringForType:sdp.type];
+                result(@{@"sdp": sdp.sdp, @"type": type});
+            }
         } else {
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
