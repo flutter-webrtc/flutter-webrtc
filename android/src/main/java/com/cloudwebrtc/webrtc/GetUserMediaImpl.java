@@ -279,7 +279,13 @@ class GetUserMediaImpl {
                 }
             }
         }
-        // should we fallback to available camera automatically?
+
+        // falling back to the first available camera
+        if (videoCapturer == null && deviceNames.length > 0){
+            videoCapturer = enumerator.createCapturer(deviceNames[0], new CameraEventsHandler());
+            Log.d(TAG, "Falling back to the first available camera");
+        }
+
         return videoCapturer;
     }
 

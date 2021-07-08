@@ -33,7 +33,8 @@ class RTCDataChannelNative extends RTCDataChannel {
   RTCDataChannelState? get state => _state;
 
   /// Get label.
-  String get label => _label;
+  @override
+  String? get label => _label;
 
   final _stateChangeController =
       StreamController<RTCDataChannelState>.broadcast(sync: true);

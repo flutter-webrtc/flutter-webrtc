@@ -69,7 +69,8 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
         canvas.getContext('bitmaprenderer') as html.ImageBitmapRenderingContext;
     renderer.transferFromImageBitmap(bitmap);
     final blod = await canvas.toBlob();
-    var array = await js.promiseToFuture(js.callMethod(blod, 'arrayBuffer', []));
+    var array =
+        await js.promiseToFuture(js.callMethod(blod, 'arrayBuffer', []));
     bitmap.close();
     return array;
   }
