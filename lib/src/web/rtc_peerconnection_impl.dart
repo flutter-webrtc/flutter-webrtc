@@ -233,7 +233,7 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   }
 
   @override
-  Future<void> addCandidate(RTCIceCandidate candidate) async {
+  Future<void> addCandidate(RTCIceCandidate candidate) {
     try {
       Completer completer = Completer<void>();
       var success = js.allowInterop(() => completer.complete());
@@ -241,9 +241,9 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
       jsutil.callMethod(
           _jsPc, 'addIceCandidate', [_iceToJs(candidate), success, failure]);
 
-      return completer.future;
+      return completer.future.timeout(Duration(milliseconds: 500));
     } catch (e) {
-      print(e.toString());
+      return Future.error(e);
     }
   }
 
