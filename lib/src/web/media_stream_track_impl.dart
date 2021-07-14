@@ -67,7 +67,7 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
     canvas.height = bitmap.height;
     final renderer =
         canvas.getContext('bitmaprenderer') as html.ImageBitmapRenderingContext;
-    renderer.transferFromImageBitmap(bitmap);
+    js.callMethod(renderer, 'transferFromImageBitmap', [bitmap]);
     final blod = await canvas.toBlob();
     var array =
         await js.promiseToFuture(js.callMethod(blod, 'arrayBuffer', []));
