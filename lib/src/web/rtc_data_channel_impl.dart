@@ -58,9 +58,7 @@ class RTCDataChannelWeb extends RTCDataChannel {
     if (!message.isBinary) {
       _jsDc.send(message.text);
     } else {
-      // This may just work
-      _jsDc.sendByteBuffer(message.binary.buffer);
-      // If not, convert to ArrayBuffer/Blob
+      _jsDc.sendTypedData(message.binary);
     }
     return Future.value();
   }
