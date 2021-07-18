@@ -222,6 +222,7 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
 #endif
 }
 
+<<<<<<< HEAD
 - (void)initialize:(NSArray*)networkIgnoreMask {
     // RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
     if (!_peerConnectionFactory) {
@@ -261,7 +262,33 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-  if ([@"initialize" isEqualToString:call.method]) {
+        if ([@"callKitConfigureAudioSession" isEqualToString:call.method]) {
+            RTCAudioSession *session = [RTCAudioSession sharedInstance];
+            session.useManualAudio = YES;
+            RTCAudioSessionConfiguration *config = [RTCAudioSessionConfiguration webRTCConfiguration];
+            NSError *error;
+            [session lockForConfiguration];
+            [session setConfiguration:config error:&error];
+            [session unlockForConfiguration];
+            if (error) {
+                NSLog(@"WEB-RTC-NATIVE: error %@", error.localizedDescription);
+            } else {
+                NSLog(@"WEB-RTC-NATIVE: callKitConfigureAudioSession");
+            }
+            result(nil);
+        } else if ([@"callKitReleaseAudioSession" isEqualToString:call.method]) {
+            [RTCAudioSession sharedInstance].useManualAudio = NO;
+            NSLog(@"WEB-RTC-NATIVE: callKitReleaseAudioSession");
+            result(nil);
+        } else if ([@"callKitStartAudio" isEqualToString:call.method]) {
+            [RTCAudioSession sharedInstance].isAudioEnabled = YES;
+            NSLog(@"WEB-RTC-NATIVE: callKitStartAudio");
+            result(nil);
+        } else if ([@"callKitStopAudio" isEqualToString:call.method]) {
+            [RTCAudioSession sharedInstance].isAudioEnabled = NO;
+            NSLog(@"WEB-RTC-NATIVE: callKitStopAudio");
+            result(nil);
+        } else if ([@"initialize" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSDictionary* options = argsMap[@"options"];
     NSArray* networkIgnoreMask = [NSArray new];
