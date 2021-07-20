@@ -20,6 +20,17 @@ class RTCVideoTrack : public RTCMediaTrack {
  protected:
   ~RTCVideoTrack() {}
 };
+
+
+class RTCVideoTracks : public RefCountInterface {
+ public:
+  LIB_WEBRTC_API static scoped_refptr<RTCVideoTracks> Create();
+  virtual void Add(scoped_refptr<RTCVideoTrack> value) = 0;
+  virtual scoped_refptr<RTCVideoTrack> Get(int index) = 0;
+  virtual int Size() = 0;
+  virtual void Remove(int index) = 0;
+  virtual void Clean() = 0;
+};
 }  // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_VIDEO_TRACK_HXX

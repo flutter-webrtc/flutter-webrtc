@@ -253,7 +253,8 @@ void FlutterMediaStream::MediaStreamGetTracks(
     EncodableList audioTracks;
 
     auto audio_tracks = stream->audio_tracks();
-    for (auto track : audio_tracks) {
+    for (int i = 0; i < audio_tracks->Size(); i++) {
+      auto track = audio_tracks->Get(i);
       base_->local_tracks_[to_std_string(track->id())] = track;
       EncodableMap info;
       info[EncodableValue("id")] = to_std_string(track->id());
@@ -268,7 +269,8 @@ void FlutterMediaStream::MediaStreamGetTracks(
 
     EncodableList videoTracks;
     auto video_tracks = stream->video_tracks();
-    for (auto track : video_tracks) {
+    for (int i = 0; i < video_tracks->Size(); i++) {
+      auto track = video_tracks->Get(i);
       base_->local_tracks_[to_std_string(track->id())] = track;
       EncodableMap info;
       info[EncodableValue("id")] = to_std_string(track->id());
@@ -293,15 +295,19 @@ void FlutterMediaStream::MediaStreamDispose(
     const std::string& stream_id,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   scoped_refptr<RTCMediaStream> stream = base_->MediaStreamForId(stream_id);
-  vector<scoped_refptr<RTCAudioTrack>> audio_tracks = stream->audio_tracks();
-  
-  for (auto track : audio_tracks) {
+  if (!stream.get()) {
+    return;
+  }
+ auto audio_tracks = stream->audio_tracks();
+  for (int i = 0; i < audio_tracks->Size(); i++) {
+   auto track = audio_tracks->Get(i);
     stream->RemoveTrack(track);
     base_->local_tracks_.erase(to_std_string(track->id()));
   }
 
-  vector<scoped_refptr<RTCVideoTrack>> video_tracks = stream->video_tracks();
-  for (auto track : video_tracks) {
+  auto  video_tracks = stream->video_tracks();
+  for (int i = 0; i < video_tracks->Size(); i++) {
+    auto track = video_tracks->Get(i);
     stream->RemoveTrack(track);
     base_->local_tracks_.erase(to_std_string(track->id()));
   }

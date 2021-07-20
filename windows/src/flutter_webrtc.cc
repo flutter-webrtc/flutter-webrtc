@@ -27,6 +27,22 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableMap configuration = findMap(params, "configuration");
     const EncodableMap constraints = findMap(params, "constraints");
     CreateRTCPeerConnection(configuration, constraints, std::move(result));
+  } else if (method_call.method_name().compare("peerConnectionDispose") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("peerConnectionDisposeFailed",
+                    "peerConnectionDispose() peerConnection is null");
+      return;
+    }
+    RTCPeerConnectionDispose(pc, peerConnectionId, std::move(result));
+
   } else if (method_call.method_name().compare("getUserMedia") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -847,7 +863,7 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     CaptureFrame((RTCVideoTrack*)track, path, std::move(result));
-  
+    
   } else {
     result->NotImplemented();
   }

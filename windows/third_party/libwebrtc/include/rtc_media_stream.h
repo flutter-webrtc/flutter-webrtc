@@ -17,11 +17,11 @@ class RTCMediaStream : public RefCountInterface {
 
   virtual bool RemoveTrack(scoped_refptr<RTCVideoTrack> track) = 0;
 
-  virtual vector<scoped_refptr<RTCAudioTrack>> audio_tracks() = 0;
+  virtual scoped_refptr<RTCAudioTracks> audio_tracks() = 0;
 
-  virtual vector<scoped_refptr<RTCVideoTrack>> video_tracks() = 0;
+  virtual scoped_refptr<RTCVideoTracks> video_tracks() = 0;
 
-  virtual vector<scoped_refptr<RTCMediaTrack>> tracks() = 0;
+  virtual scoped_refptr<RTCMediaTracks> tracks() = 0;
 
   virtual scoped_refptr<RTCAudioTrack> FindAudioTrack(
       const string track_id) = 0;
@@ -37,6 +37,30 @@ class RTCMediaStream : public RefCountInterface {
   ~RTCMediaStream() {}
 };
 
+class RTCMediaStreams : public RefCountInterface {
+ public:
+  LIB_WEBRTC_API  static scoped_refptr<RTCMediaStreams> Create();
+  virtual void Add(scoped_refptr<RTCMediaStream> value) = 0;
+  virtual scoped_refptr<RTCMediaStream> Get(int index) = 0;
+  virtual int Size() = 0;
+  virtual void Remove(int index) = 0;
+  virtual void Clean() = 0;
+};
+
+class RTCStreamIds : public RefCountInterface {
+ public:
+  LIB_WEBRTC_API static scoped_refptr<RTCStreamIds> Create();
+  virtual void Add(string value) = 0;
+  virtual string Get(int index) = 0;
+  virtual int Size() = 0;
+  virtual void Remove(int index) = 0;
+  virtual void Clean() = 0;
+};
+
+
 }  // namespace libwebrtc
+
+
+
 
 #endif  // LIB_WEBRTC_RTC_MEDIA_STREAM_HXX
