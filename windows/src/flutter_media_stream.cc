@@ -14,17 +14,18 @@ void FlutterMediaStream::GetUserMedia(
       base_->factory_->CreateStream(uuid.c_str());
 
   EncodableMap params;
-  params[EncodableValue("streamId")] = uuid;
-
+  bool isCreate = false;
   auto it = constraints.find(EncodableValue("audio"));
   if (it != constraints.end()) {
     EncodableValue audio = it->second;
     if (TypeIs<bool>(audio)) {
       if (true == GetValue<bool>(audio)) {
         GetUserAudio(constraints, stream, params);
+        isCreate = true;
       }
     } else if (TypeIs<EncodableMap>(audio)) {
       GetUserAudio(constraints, stream, params);
+      isCreate = true;
     }
   } else {
 	  params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
@@ -36,16 +37,25 @@ void FlutterMediaStream::GetUserMedia(
      if (TypeIs<bool>(video)) {
        if (true == GetValue<bool>(video)) {
          GetUserVideo(constraints, stream, params);
+         isCreate = true;
        }
      } else if (TypeIs<EncodableMap>(video)) {
        GetUserVideo(constraints, stream, params);
+       isCreate = true;
     }
   } else {
 	  params[EncodableValue("videoTracks")] = EncodableValue(EncodableList());
   }
-
-  base_->local_streams_[uuid] = stream;
-  result->Success(EncodableValue(params));
+  if (isCreate) {
+    params[EncodableValue("streamId")] = uuid;
+    base_->local_streams_[uuid] = stream;
+    result->Success(EncodableValue(params));
+  } else {
+    result->Error(
+        "Unable to getUserMedia:",
+        "TypeError: Failed to execute 'getUserMedia' on 'MediaDevices': At "
+        "least one of audio and video must be requested");
+  }
 }
 
 void addDefaultAudioConstraints(
@@ -296,6 +306,7 @@ void FlutterMediaStream::MediaStreamDispose(
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   scoped_refptr<RTCMediaStream> stream = base_->MediaStreamForId(stream_id);
   if (!stream.get()) {
+    result->Success();
     return;
   }
  auto audio_tracks = stream->audio_tracks();
