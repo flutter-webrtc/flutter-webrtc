@@ -122,7 +122,9 @@ void FlutterWebRTCBase::ParseConstraints(
     } else {
       mediaConstraints->AddOptionalConstraint(key.c_str(), value.c_str());
       if (key == "DtlsSrtpKeyAgreement") {
-        configuration_.srtp_type = GetValue<bool>(v) ? kDTLS_SRTP : kSDES_SRTP;
+        configuration_.srtp_type = GetValue<bool>(v)
+                                       ? libwebrtc::MediaSecurityType::kDTLS_SRTP
+                              : libwebrtc::MediaSecurityType::kSDES_SRTP;
       }
     }
   }
@@ -245,13 +247,13 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap &map,
   if (it != map.end() && TypeIs<std::string>(it->second)) {
     std::string v = GetValue<std::string>(it->second);
     if (v == "all")  // public
-      conf.type = kAll;
+      conf.type = libwebrtc::IceTransportsType:: kAll;
     else if (v == "relay")
-      conf.type = kRelay;
+      conf.type = libwebrtc::IceTransportsType::kRelay;
     else if (v == "nohost")
-      conf.type = kNoHost;
+      conf.type = libwebrtc::IceTransportsType::kNoHost;
     else if (v == "none")
-      conf.type = kNone;
+      conf.type = libwebrtc::IceTransportsType::kNone;
   }
 
   // bundlePolicy (public api)
@@ -271,9 +273,10 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap &map,
   if (it != map.end() && TypeIs<std::string>(it->second)) {
     std::string v = GetValue<std::string>(it->second);
     if (v == "negotiate")  // public
-      conf.rtcp_mux_policy = kRtcpMuxPolicyNegotiate;
+      conf.rtcp_mux_policy = libwebrtc::RtcpMuxPolicy::kRtcpMuxPolicyNegotiate;
+  
     else if (v == "require")  // public
-      conf.rtcp_mux_policy = kRtcpMuxPolicyRequire;
+      conf.rtcp_mux_policy = libwebrtc::RtcpMuxPolicy::kRtcpMuxPolicyRequire;
   }
 
   // FIXME: peerIdentity of type DOMString (public API)

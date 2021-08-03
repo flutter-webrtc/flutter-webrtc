@@ -14,17 +14,18 @@ void FlutterMediaStream::GetUserMedia(
       base_->factory_->CreateStream(uuid.c_str());
 
   EncodableMap params;
-  params[EncodableValue("streamId")] = uuid;
-
+  bool isCreate = false;
   auto it = constraints.find(EncodableValue("audio"));
   if (it != constraints.end()) {
     EncodableValue audio = it->second;
     if (TypeIs<bool>(audio)) {
       if (true == GetValue<bool>(audio)) {
         GetUserAudio(constraints, stream, params);
+        isCreate = true;
       }
     } else if (TypeIs<EncodableMap>(audio)) {
       GetUserAudio(constraints, stream, params);
+      isCreate = true;
     }
   } else {
 	  params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
@@ -36,16 +37,25 @@ void FlutterMediaStream::GetUserMedia(
      if (TypeIs<bool>(video)) {
        if (true == GetValue<bool>(video)) {
          GetUserVideo(constraints, stream, params);
+         isCreate = true;
        }
      } else if (TypeIs<EncodableMap>(video)) {
        GetUserVideo(constraints, stream, params);
+       isCreate = true;
     }
   } else {
 	  params[EncodableValue("videoTracks")] = EncodableValue(EncodableList());
   }
-
-  base_->local_streams_[uuid] = stream;
-  result->Success(EncodableValue(params));
+  if (isCreate) {
+    params[EncodableValue("streamId")] = uuid;
+    base_->local_streams_[uuid] = stream;
+    result->Success(EncodableValue(params));
+  } else {
+    result->Error(
+        "Unable to getUserMedia:",
+        "TypeError: Failed to execute 'getUserMedia' on 'MediaDevices': At "
+        "least one of audio and video must be requested");
+  }
 }
 
 void addDefaultAudioConstraints(
@@ -253,7 +263,8 @@ void FlutterMediaStream::MediaStreamGetTracks(
     EncodableList audioTracks;
 
     auto audio_tracks = stream->audio_tracks();
-    for (auto track : audio_tracks) {
+    for (int i = 0; i < audio_tracks->Size(); i++) {
+      auto track = audio_tracks->Get(i);
       base_->local_tracks_[to_std_string(track->id())] = track;
       EncodableMap info;
       info[EncodableValue("id")] = to_std_string(track->id());
@@ -268,7 +279,8 @@ void FlutterMediaStream::MediaStreamGetTracks(
 
     EncodableList videoTracks;
     auto video_tracks = stream->video_tracks();
-    for (auto track : video_tracks) {
+    for (int i = 0; i < video_tracks->Size(); i++) {
+      auto track = video_tracks->Get(i);
       base_->local_tracks_[to_std_string(track->id())] = track;
       EncodableMap info;
       info[EncodableValue("id")] = to_std_string(track->id());
@@ -293,15 +305,20 @@ void FlutterMediaStream::MediaStreamDispose(
     const std::string& stream_id,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   scoped_refptr<RTCMediaStream> stream = base_->MediaStreamForId(stream_id);
-  vector<scoped_refptr<RTCAudioTrack>> audio_tracks = stream->audio_tracks();
-  
-  for (auto track : audio_tracks) {
+  if (!stream.get()) {
+    result->Success();
+    return;
+  }
+ auto audio_tracks = stream->audio_tracks();
+  for (int i = 0; i < audio_tracks->Size(); i++) {
+   auto track = audio_tracks->Get(i);
     stream->RemoveTrack(track);
     base_->local_tracks_.erase(to_std_string(track->id()));
   }
 
-  vector<scoped_refptr<RTCVideoTrack>> video_tracks = stream->video_tracks();
-  for (auto track : video_tracks) {
+  auto  video_tracks = stream->video_tracks();
+  for (int i = 0; i < video_tracks->Size(); i++) {
+    auto track = video_tracks->Get(i);
     stream->RemoveTrack(track);
     base_->local_tracks_.erase(to_std_string(track->id()));
   }

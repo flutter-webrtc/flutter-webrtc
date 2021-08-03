@@ -152,8 +152,8 @@ void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
     FlutterVideoRenderer *renderer = it->second.get();
     if (stream.get()) {
       auto video_tracks = stream->video_tracks();
-      if (video_tracks.size() > 0) {
-        renderer->SetVideoTrack(video_tracks[0]);
+      if (video_tracks->Size() > 0) {
+        renderer->SetVideoTrack(video_tracks->Get(0));
         renderer->media_stream_id = stream_id;
       }
     } else {

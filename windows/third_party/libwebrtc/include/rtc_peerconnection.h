@@ -131,7 +131,7 @@ class RTCPeerConnectionObserver {
 
   virtual void OnTrack(scoped_refptr<RTCRtpTransceiver> transceiver) = 0;
 
-  virtual void OnAddTrack(vector<scoped_refptr<RTCMediaStream>> streams,
+  virtual void OnAddTrack(scoped_refptr<RTCMediaStreams> streams,
                           scoped_refptr<RTCRtpReceiver> receiver) = 0;
 
   virtual void OnRemoveTrack(scoped_refptr<RTCRtpReceiver> receiver) = 0;
@@ -185,9 +185,9 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual void DeRegisterRTCPeerConnectionObserver() = 0;
 
-  virtual vector<scoped_refptr<RTCMediaStream>> local_streams() = 0;
+  virtual scoped_refptr<RTCMediaStreams> local_streams() = 0;
 
-  virtual vector<scoped_refptr<RTCMediaStream>> remote_streams() = 0;
+  virtual scoped_refptr<RTCMediaStreams> remote_streams() = 0;
 
   virtual bool GetStats(const RTCAudioTrack* track,
                         scoped_refptr<TrackStatsObserver> observer) = 0;
@@ -204,15 +204,15 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual scoped_refptr<RTCRtpSender> AddTrack(
       scoped_refptr<RTCMediaTrack> track,
-      const vector<string> streamIds) = 0;
+      const scoped_refptr<RTCStreamIds> streamIds) = 0;
 
   virtual bool RemoveTrack(scoped_refptr<RTCRtpSender> render) = 0;
 
-  virtual vector<scoped_refptr<RTCRtpSender>> senders() = 0;
+  virtual scoped_refptr<RTCRtpSenders> senders() = 0;
 
-  virtual vector<scoped_refptr<RTCRtpTransceiver>> transceivers() = 0;
+  virtual scoped_refptr<RTCRtpTransceivers> transceivers() = 0;
 
-  virtual vector<scoped_refptr<RTCRtpReceiver>> receivers() = 0;
+  virtual scoped_refptr<RTCRtpReceivers> receivers() = 0;
 
  protected:
   virtual ~RTCPeerConnection() {}

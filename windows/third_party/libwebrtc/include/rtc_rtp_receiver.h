@@ -6,6 +6,7 @@
 
 #include "rtc_rtp_parameters.h"
 #include "rtc_types.h"
+#include "rtc_media_stream.h"
 
 //#include "rtc_frame_decryptor.h"
 //#include "rtc_frame_encryptor.h"
@@ -30,9 +31,9 @@ class RTCRtpReceiver : public RefCountInterface {
 
   virtual scoped_refptr<RTCDtlsTransport> dtls_transport() const = 0;
 
-  virtual const vector<string> stream_ids() const = 0;
+  virtual scoped_refptr<RTCStreamIds> stream_ids() const = 0;
 
-  virtual vector<scoped_refptr<RTCMediaStream>> streams() const = 0;
+  virtual scoped_refptr<RTCMediaStreams> streams() const = 0;
 
   virtual RTCMediaType media_type() const = 0;
 
@@ -57,6 +58,15 @@ class RTCRtpReceiver : public RefCountInterface {
   //    scoped_refptr<FrameTransformerInterface> frame_transformer) = 0;
 };
 
+class RTCRtpReceivers : public RefCountInterface {
+ public:
+  LIB_WEBRTC_API static scoped_refptr<RTCRtpReceivers> Create();
+  virtual void Add(scoped_refptr<RTCRtpReceiver> value) = 0;
+  virtual scoped_refptr<RTCRtpReceiver> Get(int index) = 0;
+  virtual int Size() = 0;
+  virtual void Remove(int index) = 0;
+  virtual void Clean() = 0;
+};
 }  // namespace libwebrtc
 
 #endif  // !LIB_WEBRTC_RTP_RECEIVER_H_

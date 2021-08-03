@@ -13,19 +13,19 @@ class RTCRtpTransceiverInit : public RefCountInterface {
  public:
   LIB_WEBRTC_API static scoped_refptr<RTCRtpTransceiverInit> Create(
       RTCRtpTransceiverDirection direction,
-      const vector<string> stream_ids,
-      const vector<scoped_refptr<RTCRtpEncodingParameters>> encodings);
+      const scoped_refptr<RTCStreamIds> stream_ids,
+      const scoped_refptr<RTCEncodings> encodings);
 
   virtual RTCRtpTransceiverDirection direction() = 0;
   virtual void set_direction(RTCRtpTransceiverDirection value) = 0;
 
-  virtual const vector<string> stream_ids() = 0;
-  virtual void set_stream_ids(const vector<string> ids) = 0;
+  virtual const scoped_refptr<RTCStreamIds> stream_ids() = 0;
+  virtual void set_stream_ids(scoped_refptr<RTCStreamIds> ids) = 0;
 
-  virtual const vector<scoped_refptr<RTCRtpEncodingParameters>>
+  virtual const scoped_refptr<RTCEncodings> 
   send_encodings() = 0;
   virtual void set_send_encodings(
-      const vector<scoped_refptr<RTCRtpEncodingParameters>> send_encodings) = 0;
+      const scoped_refptr<RTCEncodings> send_encodings) = 0;
 };
 
 class RTCRtpTransceiver : public RefCountInterface {
@@ -68,6 +68,16 @@ class RTCRtpTransceiver : public RefCountInterface {
 
   // virtual webrtc::RTCError SetOfferedRtpHeaderExtensions(vector<const
   // RTCRtpHeaderExtensionCapability> header_extensions_to_offer);
+};
+
+class RTCRtpTransceivers : public RefCountInterface {
+ public:
+  static scoped_refptr<RTCRtpTransceivers> Create();
+  virtual void Add(scoped_refptr<RTCRtpTransceiver> value) = 0;
+  virtual scoped_refptr<RTCRtpTransceiver> Get(int index) = 0;
+  virtual int Size() = 0;
+  virtual void Remove(int index) = 0;
+  virtual void Clean() = 0;
 };
 
 }  // namespace libwebrtc

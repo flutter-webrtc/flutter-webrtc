@@ -167,6 +167,29 @@ class RTCRtpRtxParameters : public RefCountInterface {
   virtual bool operator!=(scoped_refptr<RTCRtpRtxParameters> o) const = 0;
 };
 
+class RTCRtcpFeedbacks : public RefCountInterface {
+ public:
+  LIB_WEBRTC_API static scoped_refptr<RTCRtcpFeedbacks> Create();
+  virtual void Add(scoped_refptr<RTCRtcpFeedback> value) = 0;
+  virtual scoped_refptr<RTCRtcpFeedback> Get(int index) = 0;
+  virtual int Size() = 0;
+  virtual void Remove(int index) = 0;
+  virtual void Clean() = 0;
+};
+
+typedef fixed_size_function<void(string key, string value)> OnRTCParameters;
+
+class RTCParameters : public RefCountInterface {
+ public:
+  static scoped_refptr<RTCParameters> Create();
+  virtual void Set(string key, string value) = 0;
+  virtual string Get(string key) = 0;
+  virtual int Size() = 0;
+  virtual void Remove(string key) = 0;
+  virtual void Clean() = 0;
+  virtual void ForEcoh(OnRTCParameters on) = 0;
+};
+
 class RTCRtpCodecParameters : public RefCountInterface {
  public:
   virtual const string mime_type() const = 0;
@@ -192,12 +215,13 @@ class RTCRtpCodecParameters : public RefCountInterface {
   virtual int ptime() = 0;
   virtual void set_ptime(int value) = 0;
 
-  virtual const vector<scoped_refptr<RTCRtcpFeedback>> rtcp_feedback() = 0;
+  virtual const scoped_refptr<RTCRtcpFeedbacks> rtcp_feedback() = 0;
   virtual void set_rtcp_feedback(
-      const vector<scoped_refptr<RTCRtcpFeedback>> feecbacks) = 0;
+      const scoped_refptr<RTCRtcpFeedbacks> feecbacks) = 0;
 
-  virtual const vector<std::pair<string, string>> parameters() = 0;
-  virtual void set_parameters(const map<string, string> parameters) = 0;
+  virtual const scoped_refptr<RTCParameters> parameters() = 0;
+  virtual void set_parameters(
+      const scoped_refptr<RTCParameters> parameters) = 0;
 
   virtual bool operator==(scoped_refptr<RTCRtpCodecParameters> o) = 0;
   virtual bool operator!=(scoped_refptr<RTCRtpCodecParameters> o) = 0;
@@ -292,6 +316,37 @@ class RTCRtpEncodingParameters : public RefCountInterface {
   virtual bool operator!=(scoped_refptr<RTCRtpEncodingParameters> o) const = 0;
 };
 
+class RTCCodecs : public RefCountInterface {
+ public:
+  LIB_WEBRTC_API static scoped_refptr<RTCCodecs> Create();
+  virtual void Add(scoped_refptr<RTCRtpCodecParameters> value) = 0;
+  virtual scoped_refptr<RTCRtpCodecParameters> Get(int index) = 0;
+  virtual int Size() = 0;
+  virtual void Remove(int index) = 0;
+  virtual void Clean() = 0;
+};
+
+class RTCHeaderExtensions : public RefCountInterface {
+ public:
+  LIB_WEBRTC_API static scoped_refptr<RTCHeaderExtensions> Create();
+  virtual void Add(scoped_refptr<RTCRtpExtension> value) = 0;
+  virtual scoped_refptr<RTCRtpExtension> Get(int index) = 0;
+  virtual int Size() = 0;
+  virtual void Remove(int index) = 0;
+  virtual void Clean() = 0;
+};
+
+class RTCEncodings : public RefCountInterface {
+ public:
+  LIB_WEBRTC_API static scoped_refptr<RTCEncodings> Create();
+  virtual void Add(scoped_refptr<RTCRtpEncodingParameters> value) = 0;
+  virtual scoped_refptr<RTCRtpEncodingParameters> Get(int index) = 0;
+  virtual int Size() = 0;
+  virtual void Remove(int index) = 0;
+  virtual void Clean() = 0;
+};
+
+
 struct RTCRtpParameters : public RefCountInterface {
  public:
   // static scoped_refptr<RTCRtpParameters> Create();
@@ -301,17 +356,16 @@ struct RTCRtpParameters : public RefCountInterface {
   virtual const string mid() = 0;
   virtual void set_mid(const string mid) = 0;
 
-  virtual const vector<scoped_refptr<RTCRtpCodecParameters>> codecs() = 0;
-  virtual void set_codecs(
-      const vector<scoped_refptr<RTCRtpCodecParameters>> codecs) = 0;
+  virtual const scoped_refptr<RTCCodecs> codecs() = 0;
+  virtual void set_codecs(const scoped_refptr<RTCCodecs> codecs) = 0;
 
-  virtual const vector<scoped_refptr<RTCRtpExtension>> header_extensions() = 0;
+  virtual const scoped_refptr<RTCHeaderExtensions> header_extensions() = 0;
   virtual void set_header_extensions(
-      const vector<scoped_refptr<RTCRtpExtension>> header_extensions) = 0;
+      const scoped_refptr<RTCHeaderExtensions> header_extensions) = 0;
 
-  virtual const vector<scoped_refptr<RTCRtpEncodingParameters>> encodings() = 0;
+  virtual const scoped_refptr<RTCEncodings> encodings() = 0;
   virtual void set_encodings(
-      const vector<scoped_refptr<RTCRtpEncodingParameters>> encodings) = 0;
+      const scoped_refptr<RTCEncodings> encodings) = 0;
 
   virtual scoped_refptr<RTCRtcpParameters> rtcp_parameters() = 0;
   virtual void set_rtcp_parameters(
