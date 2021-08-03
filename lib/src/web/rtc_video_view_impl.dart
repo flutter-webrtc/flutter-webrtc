@@ -30,18 +30,14 @@ class _RTCVideoViewState extends State<RTCVideoView> {
 
   _RTCVideoViewState();
 
-  RTCVideoRendererWeb get videoRenderer =>
-      widget._renderer.delegate as RTCVideoRendererWeb;
+  RTCVideoRendererWeb get videoRenderer => widget._renderer.delegate as RTCVideoRendererWeb;
 
   @override
   void initState() {
     super.initState();
     widget._renderer.delegate.addListener(_onRendererListener);
     videoRenderer.mirror = widget.mirror;
-    videoRenderer.objectFit =
-        widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
-            ? 'contain'
-            : 'cover';
+    videoRenderer.objectFit = widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain ? 'contain' : 'cover';
   }
 
   void _onRendererListener() {
@@ -52,7 +48,9 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   void dispose() {
     _time?.cancel();
     _time = null;
-    widget._renderer.delegate.removeListener(_onRendererListener);
+    try {
+      widget._renderer.delegate.removeListener(_onRendererListener);
+    } catch (e) {}
     super.dispose();
   }
 
@@ -64,18 +62,14 @@ class _RTCVideoViewState extends State<RTCVideoView> {
       _time = null;
       videoRenderer.mirror = widget.mirror;
     });
-    videoRenderer.objectFit =
-        widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
-            ? 'contain'
-            : 'cover';
+    videoRenderer.objectFit = widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain ? 'contain' : 'cover';
   }
 
   Widget buildVideoElementView() {
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.rotationY(videoRenderer.mirror ? pi * -1 : 0),
-      child: HtmlElementView(
-          viewType: 'RTCVideoRenderer-${videoRenderer.textureId}'),
+      child: HtmlElementView(viewType: 'RTCVideoRenderer-${videoRenderer.textureId}'),
     );
   }
 
@@ -87,9 +81,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
           child: Container(
             width: constraints.maxWidth,
             height: constraints.maxHeight,
-            child: widget._renderer.renderVideo
-                ? buildVideoElementView()
-                : Container(),
+            child: widget._renderer.renderVideo ? buildVideoElementView() : Container(),
           ),
         );
       },
