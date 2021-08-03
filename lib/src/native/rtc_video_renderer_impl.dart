@@ -9,6 +9,8 @@ import 'utils.dart';
 
 class RTCVideoRendererNative extends VideoRenderer {
   RTCVideoRendererNative();
+
+  bool _muted = false;
   final _channel = WebRTC.methodChannel();
   int? _textureId;
   MediaStream? _srcObject;
@@ -48,6 +50,8 @@ class RTCVideoRendererNative extends VideoRenderer {
       value = (stream == null)
           ? RTCVideoValue.empty
           : value.copyWith(renderVideo: renderVideo);
+
+      Helper.setMicrophoneMute(_muted, _srcObject!.getAudioTracks()[0]);
     });
   }
 
@@ -96,18 +100,10 @@ class RTCVideoRendererNative extends VideoRenderer {
 
   @override
   set muted(bool mute) {
-    if (_srcObject == null) {
-      throw Exception('Can\'t be muted: The MediaStream is null');
+    _muted = mute;
+    if(null != _srcObject){
+      Helper.setMicrophoneMute(mute, _srcObject!.getAudioTracks()[0]);
     }
-    if (_srcObject!.ownerTag != 'local') {
-      throw Exception(
-          'You\'re trying to mute a remote track, this is not supported');
-    }
-    if (_srcObject!.getAudioTracks().isEmpty) {
-      throw Exception('Can\'t be muted: The MediaStreamTrack(audio) is empty');
-    }
-
-    Helper.setMicrophoneMute(mute, _srcObject!.getAudioTracks()[0]);
   }
 
   @override
