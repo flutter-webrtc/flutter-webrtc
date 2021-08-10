@@ -204,6 +204,8 @@ class RTCVideoRendererWeb extends VideoRenderer {
         ..controls = false
         ..style.objectFit = _objectFit
         ..style.border = 'none'
+        ..style.width = '100%'
+        ..style.height = '100%'
         ..srcObject = _videoStream
         ..id = 'video_$id'
         ..setAttribute('playsinline', 'true');
