@@ -93,7 +93,8 @@ class RTCVideoRendererWeb extends VideoRenderer {
   set srcObject(MediaStream? stream) {
     if (stream == null) {
       findHtmlView()?.srcObject = null;
-      _audioElement?.srcObject = _audioStream;
+      _audioElement?.srcObject = null;
+      _srcObject = null;
       return;
     }
 
