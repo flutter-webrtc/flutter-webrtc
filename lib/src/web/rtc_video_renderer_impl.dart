@@ -57,8 +57,11 @@ class RTCVideoRendererWeb extends VideoRenderer {
 
   bool _muted = false;
 
-  set objectFit(String fit) =>
-      findHtmlView()?.style.objectFit = _objectFit = fit;
+  set objectFit(String fit) {
+    if (_objectFit == fit) return;
+    _objectFit = fit;
+    findHtmlView()?.style.objectFit = fit;
+  }
 
   @override
   int get videoWidth => value.width.toInt();
