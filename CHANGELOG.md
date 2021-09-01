@@ -3,7 +3,7 @@
 --------------------------------------------
 [0.6.6] - 2021.09.01
 
-* [Sponsorship] Thanks for LivKit sponsorship.
+* [Sponsorship] Thanks for LiveKit sponsorship.
 * [Web] Avoid removing all audio elements when stopping a single video renderer (#667)
 * [Web] Properly cleanup srcObject to avoid accidental dispose
 * [Dart] Removed warnings (#647)
