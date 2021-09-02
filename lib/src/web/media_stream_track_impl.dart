@@ -59,6 +59,11 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   // }
 
   @override
+  Map<String, dynamic> getSettings() {
+    return jsTrack.getSettings() as Map<String, dynamic>;
+  }
+
+  @override
   Future<ByteBuffer> captureFrame() async {
     final imageCapture = html.ImageCapture(jsTrack);
     final bitmap = await imageCapture.grabFrame();

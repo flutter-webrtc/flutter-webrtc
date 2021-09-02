@@ -1,7 +1,6 @@
 *.iml
 .idea
 .DS_Store
-.vscode/.DS_Store
 example/pubspec.lock
 pubspec.lock
 example/ios/Podfile.lock
@@ -17,8 +16,6 @@ example/ios/Runner/GeneratedPluginRegistrant.m
 example/ios/Runner/GeneratedPluginRegistrant.h
 example/ios/Flutter/Generated.xcconfig
 example/ios/Flutter/flutter_export_environment.sh
-.vscode/launch.json
-example/.vscode/launch.json
 
 # Miscellaneous
 *.class
@@ -51,3 +48,6 @@ example/.vscode/launch.json
 
 android/.classpath
 android/.settings/org.eclipse.buildship.core.prefs
+
+# VSCode
+.vscode/

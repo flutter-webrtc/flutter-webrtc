@@ -369,18 +369,31 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   }
 
   //'audio|video', { 'direction': 'recvonly|sendonly|sendrecv' }
+  //
+  // https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/addTransceiver
+  //
   @override
-  Future<RTCRtpTransceiver> addTransceiver(
-      {MediaStreamTrack? track,
-      RTCRtpMediaType? kind,
-      RTCRtpTransceiverInit? init}) async {
-    var kindLabel = kind != null ? typeRTCRtpMediaTypetoString[kind] : null;
-    var kindOrTrack = kindLabel ?? (track as MediaStreamTrackWeb).jsTrack;
-    final jsOptions = jsutil
-        .jsify(init != null ? RTCRtpTransceiverInitWeb.initToMap(init) : {});
-    var transceiver =
-        jsutil.callMethod(_jsPc, 'addTransceiver', [kindOrTrack, jsOptions]);
-    return RTCRtpTransceiverWeb.fromJsObject(transceiver,
-        peerConnectionId: _peerConnectionId);
+  Future<RTCRtpTransceiver> addTransceiver({
+    MediaStreamTrack? track,
+    RTCRtpMediaType? kind,
+    RTCRtpTransceiverInit? init,
+  }) async {
+    final jsTrack = track is MediaStreamTrackWeb ? track.jsTrack : null;
+    final kindString = kind != null ? typeRTCRtpMediaTypetoString[kind] : null;
+    final trackOrKind = jsTrack ?? kindString;
+    final jsOptions = jsutil.jsify(
+      init is RTCRtpTransceiverInitWeb ? init.toJSMap() : {},
+    );
+
+    final transceiver = jsutil.callMethod(
+      _jsPc,
+      'addTransceiver',
+      [trackOrKind, jsOptions],
+    );
+
+    return RTCRtpTransceiverWeb.fromJsObject(
+      transceiver,
+      peerConnectionId: _peerConnectionId,
+    );
   }
 }
