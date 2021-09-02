@@ -39,26 +39,21 @@ class RTCRtpTransceiverInitWeb extends RTCRtpTransceiverInit {
         listToRtpEncodings(map['sendEncodings']));
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      'direction': typeRtpTransceiverDirectionToString[direction],
-      if (streams != null) 'streamIds': streams!.map((e) => e.id).toList(),
-      if (sendEncodings != null)
-        'sendEncodings': sendEncodings!.map((e) => e.toMap()).toList(),
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        'direction': typeRtpTransceiverDirectionToString[direction],
+        if (streams != null) 'streamIds': streams!.map((e) => e.id).toList(),
+        if (sendEncodings != null)
+          'sendEncodings': sendEncodings!.map((e) => e.toMap()).toList(),
+      };
 
-  static Map<String, dynamic> initToMap(RTCRtpTransceiverInit init) {
-    return {
-      'direction': typeRtpTransceiverDirectionToString[init.direction],
-      'streams': init.streams != null
-          ? init.streams!.map((e) => (e as MediaStreamWeb).jsStream).toList()
-          : [],
-      'sendEncodings': init.sendEncodings != null
-          ? init.sendEncodings!.map((e) => e.toMap()).toList()
-          : [],
-    };
-  }
+  Map<String, dynamic> toJSMap() => {
+        'direction': typeRtpTransceiverDirectionToString[direction],
+        if (streams != null)
+          'streams':
+              streams!.map((e) => (e as MediaStreamWeb).jsStream).toList(),
+        if (sendEncodings != null)
+          'sendEncodings': sendEncodings!.map((e) => e.toMap()).toList(),
+      };
 }
 
 class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
