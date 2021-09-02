@@ -72,6 +72,11 @@ abstract class MediaStreamTrack {
 
   Future<void> stop();
 
+  //
+  // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/getSettings
+  //
+  Map<String, dynamic> getSettings() => throw UnimplementedError();
+
   /// Throws error if switching camera failed
   @Deprecated('use Helper.switchCamera() instead')
   Future<bool> switchCamera() {
