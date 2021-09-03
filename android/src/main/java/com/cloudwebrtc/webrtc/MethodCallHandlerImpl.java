@@ -602,6 +602,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         rtpTransceiverSetDirection(peerConnectionId, direction, transceiverId, result);
         break;
       }
+      case "rtpTransceiverGetDirection": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        String transceiverId = call.argument("transceiverId");
+        rtpTransceiverGetDirection(peerConnectionId, transceiverId, result);
+        break;
+      }
       case "rtpTransceiverGetCurrentDirection": {
         String peerConnectionId = call.argument("peerConnectionId");
         String transceiverId = call.argument("transceiverId");
@@ -1579,6 +1585,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       resultError("rtpTransceiverSetDirection", "peerConnection is null", result);
     } else {
       pco.rtpTransceiverSetDirection(direction, transceiverId, result);
+    }
+  }
+
+  public void rtpTransceiverGetDirection(String peerConnectionId, String transceiverId, Result result) {
+    PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+    if (pco == null || pco.getPeerConnection() == null) {
+      resultError("rtpTransceiverSetDirection", "peerConnection is null", result);
+    } else {
+      pco.rtpTransceiverGetDirection(transceiverId, result);
     }
   }
 

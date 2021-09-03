@@ -68,9 +68,14 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   Object _jsTransceiver;
 
   @override
-  TransceiverDirection? get currentDirection =>
+  Future<TransceiverDirection?> getCurrentDirection() async =>
       typeStringToRtpTransceiverDirection[
-          jsutil.getProperty(_jsTransceiver, 'direction')];
+          jsutil.getProperty(_jsTransceiver, 'currentDirection')];
+
+  @override
+  Future<TransceiverDirection> getDirection() async =>
+      typeStringToRtpTransceiverDirection[
+          jsutil.getProperty(_jsTransceiver, 'direction')]!;
 
   @override
   String get mid => jsutil.getProperty(_jsTransceiver, 'mid');
@@ -96,16 +101,6 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
           typeRtpTransceiverDirectionToString[direction]);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpTransceiver::setDirection: ${e.message}';
-    }
-  }
-
-  @override
-  Future<TransceiverDirection> getCurrentDirection() async {
-    try {
-      var direction = jsutil.getProperty(_jsTransceiver, 'direction');
-      return Future.value(typeStringToRtpTransceiverDirection[direction]);
-    } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpTransceiver::getCurrentDirection: ${e.message}';
     }
   }
 

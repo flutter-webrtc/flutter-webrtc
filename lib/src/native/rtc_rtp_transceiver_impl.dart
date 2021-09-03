@@ -100,9 +100,6 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   }
 
   @override
-  TransceiverDirection get currentDirection => _direction;
-
-  @override
   String get mid => _mid;
 
   @override
@@ -132,10 +129,26 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   }
 
   @override
-  Future<TransceiverDirection> getCurrentDirection() async {
+  Future<TransceiverDirection?> getCurrentDirection() async {
     try {
       final response = await WebRTC.invokeMethod(
           'rtpTransceiverGetCurrentDirection', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'transceiverId': _id
+      });
+      return response != null
+          ? typeStringToRtpTransceiverDirection[response['result']]
+          : null;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpTransceiver::getCurrentDirection: ${e.message}';
+    }
+  }
+
+  @override
+  Future<TransceiverDirection> getDirection() async {
+    try {
+      final response = await WebRTC.invokeMethod(
+          'rtpTransceiverGetDirection', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'transceiverId': _id
       });
@@ -143,7 +156,7 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
       _direction = typeStringToRtpTransceiverDirection[response['result']]!;
       return _direction;
     } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpTransceiver::getCurrentDirection: ${e.message}';
+      throw 'Unable to RTCRtpTransceiver::getDirection: ${e.message}';
     }
   }
 

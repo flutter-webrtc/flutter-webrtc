@@ -733,7 +733,7 @@
         [transcevier setDirection:[self stringToTransceiverDirection:direction]];
 #endif
         result(nil);
-    } else if ([@"rtpTransceiverGetCurrentDirection" isEqualToString:call.method]){
+    } else if ([@"rtpTransceiverGetCurrentDirection" isEqualToString:call.method] || [@"rtpTransceiverGetDirection" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSString* transceiverId = argsMap[@"transceiverId"];
@@ -751,7 +751,17 @@
             details:nil]);
             return;
         }
-        result(@{@"result": [self transceiverDirectionString:transcevier.direction]});
+
+        if([@"rtpTransceiverGetDirection" isEqualToString:call.method]){
+            result(@{@"result": [self transceiverDirectionString:transcevier.direction]});
+        } else if ([@"rtpTransceiverGetCurrentDirection" isEqualToString:call.method]) {
+            RTCRtpTransceiverDirection *directionOut = nil;
+            if ([transcevier currentDirection:directionOut]) {
+                result(@{@"result": [self transceiverDirectionString:*directionOut]});
+            } else  {
+                result(nil);
+            }
+        }
     } else if ([@"rtpTransceiverStop" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
