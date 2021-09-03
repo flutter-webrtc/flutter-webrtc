@@ -24,7 +24,11 @@ class RTCRtpTransceiverInit {
 abstract class RTCRtpTransceiver {
   RTCRtpTransceiver();
 
-  TransceiverDirection? get currentDirection;
+  Future<TransceiverDirection?> getCurrentDirection();
+
+  Future<void> setDirection(TransceiverDirection direction);
+
+  Future<TransceiverDirection> getDirection();
 
   String get mid;
 
@@ -36,9 +40,10 @@ abstract class RTCRtpTransceiver {
 
   String get transceiverId;
 
-  Future<void> setDirection(TransceiverDirection direction);
-
-  Future<TransceiverDirection> getCurrentDirection();
-
   Future<void> stop();
+
+  /// Deprecated methods.
+  @Deprecated('Use the `await getCurrentDirection` instead')
+  TransceiverDirection get currentDirection => throw UnimplementedError(
+      'Need to be call asynchronously from native sdk, so the method is deprecated');
 }

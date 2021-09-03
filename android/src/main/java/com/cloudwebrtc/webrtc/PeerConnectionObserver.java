@@ -933,15 +933,31 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       result.success(null);
   }
 
+  public void rtpTransceiverGetDirection(String transceiverId, Result result) {
+      RtpTransceiver transceiver = getRtpTransceiverById(transceiverId);
+      if (transceiver == null) {
+          resultError("rtpTransceiverGetDirection", "transceiver is null", result);
+          return;
+      }
+      ConstraintsMap params = new ConstraintsMap();
+      params.putString("result", transceiverDirectionString(transceiver.getDirection()));
+      result.success(params.toMap());
+  }
+
   public void rtpTransceiverGetCurrentDirection(String transceiverId, Result result) {
       RtpTransceiver transceiver = getRtpTransceiverById(transceiverId);
       if (transceiver == null) {
           resultError("rtpTransceiverGetCurrentDirection", "transceiver is null", result);
           return;
       }
-      ConstraintsMap params = new ConstraintsMap();
-      params.putString("result", transceiverDirectionString(transceiver.getDirection()));
-      result.success(params.toMap());
+      RtpTransceiver.RtpTransceiverDirection direction = transceiver.getCurrentDirection();
+      if(direction == null) {
+          result.success(null);
+      } else {
+          ConstraintsMap params = new ConstraintsMap();
+          params.putString("result", transceiverDirectionString(direction));
+          result.success(params.toMap());
+      }
   }
 
     public void rtpTransceiverStop(String transceiverId, Result result) {
