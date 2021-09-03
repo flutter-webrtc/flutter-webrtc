@@ -1,6 +1,17 @@
 # Changelog
 
 --------------------------------------------
+[0.6.6] - 2021.09.01
+
+* [Sponsorship] Thanks for LiveKit sponsorship.
+* [Web] Avoid removing all audio elements when stopping a single video renderer (#667)
+* [Web] Properly cleanup srcObject to avoid accidental dispose
+* [Dart] Removed warnings (#647)
+* [Web] Switch transferFromImageBitmap to be invoked using js.callMethod (#631)
+* [Web] Fix sending binary data over DataChannel in web implementation. (#634)
+* [Darwin] Nullable return for GetLocalDescription/GetRemoteDiscription
+* [Darwin] Fix incorrect argument name at RTCRtpSender (#600)
+
 [0.6.5] - 2021.06.18
 
 * [Android] Falling back to the first available camera fix #580

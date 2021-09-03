@@ -4,7 +4,6 @@ import '../interface/media_stream_track.dart';
 import '../interface/rtc_rtp_parameters.dart';
 import '../interface/rtc_rtp_receiver.dart';
 import '../interface/rtc_stats_report.dart';
-
 import 'media_stream_track_impl.dart';
 import 'utils.dart';
 
