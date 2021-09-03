@@ -13,9 +13,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  import_sorter: ^4.6.0
   pedantic: ^1.11.1
-  test:
-    
+  test: any
+
 flutter:
   plugin:
     platforms:
