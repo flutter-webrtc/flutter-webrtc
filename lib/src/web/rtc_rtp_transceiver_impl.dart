@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:js_util' as jsutil;
 
 import 'package:flutter/services.dart';
-import 'package:flutter_webrtc/src/web/media_stream_impl.dart';
 
+import 'package:flutter_webrtc/src/web/media_stream_impl.dart';
 import '../interface/enums.dart';
 import '../interface/media_stream.dart';
 import '../interface/rtc_rtp_parameters.dart';

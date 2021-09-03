@@ -5,7 +5,6 @@ import 'dart:js_util' as jsutil;
 
 import 'package:flutter_webrtc/src/interface/rtc_track_event.dart';
 import 'package:flutter_webrtc/src/web/rtc_rtp_transceiver_impl.dart';
-
 import '../interface/enums.dart';
 import '../interface/media_stream.dart';
 import '../interface/media_stream_track.dart';

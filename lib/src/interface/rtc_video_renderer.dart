@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import 'media_stream.dart';
 
 @immutable
