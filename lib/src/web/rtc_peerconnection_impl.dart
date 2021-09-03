@@ -380,14 +380,15 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
     final jsTrack = track is MediaStreamTrackWeb ? track.jsTrack : null;
     final kindString = kind != null ? typeRTCRtpMediaTypetoString[kind] : null;
     final trackOrKind = jsTrack ?? kindString;
-    final jsOptions = jsutil.jsify(
-      init is RTCRtpTransceiverInitWeb ? init.toJSMap() : {},
-    );
+    assert(trackOrKind != null, 'track or kind must not be null');
 
     final transceiver = jsutil.callMethod(
       _jsPc,
       'addTransceiver',
-      [trackOrKind, jsOptions],
+      [
+        trackOrKind,
+        if (init != null) init.toJsObject(),
+      ],
     );
 
     return RTCRtpTransceiverWeb.fromJsObject(
