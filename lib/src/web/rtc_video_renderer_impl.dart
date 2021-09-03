@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
-import 'ui_fake.dart' if (dart.library.html) 'dart:ui' as ui;
+import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
 
@@ -179,8 +179,9 @@ class RTCVideoRendererWeb extends VideoRenderer {
     _audioElement?.remove();
     final audioManager = html.document.getElementById(_elementIdForAudioManager)
         as html.DivElement?;
-    if (audioManager != null && !audioManager.hasChildNodes())
+    if (audioManager != null && !audioManager.hasChildNodes()) {
       audioManager.remove();
+    }
     return super.dispose();
   }
 
@@ -202,7 +203,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
 
   @override
   Future<void> initialize() async {
-    // // ignore: undefined_prefixed_name
+    // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory('RTCVideoRenderer-$textureId',
         (int viewId) {
       _subscriptions.forEach((s) => s.cancel());
