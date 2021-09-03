@@ -57,11 +57,13 @@ void main() {
 
         //Minimum values for onAddTrack
         'track': {
-          'trackId': '',
+          'id': '',
           'label': '',
           'kind': '',
           'enabled': false,
-        }
+        },
+        'id': 0,
+        'label': '',
       });
     });
   });
