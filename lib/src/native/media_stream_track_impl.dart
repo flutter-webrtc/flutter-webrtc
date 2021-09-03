@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../interface/media_stream_track.dart';
 import 'utils.dart';
 

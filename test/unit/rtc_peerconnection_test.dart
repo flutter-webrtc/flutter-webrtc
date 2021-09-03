@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
+
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
 
@@ -55,11 +57,13 @@ void main() {
 
         //Minimum values for onAddTrack
         'track': {
-          'trackId': '',
+          'id': '',
           'label': '',
           'kind': '',
           'enabled': false,
-        }
+        },
+        'id': 0,
+        'label': '',
       });
     });
   });
