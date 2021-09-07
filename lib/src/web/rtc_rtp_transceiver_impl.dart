@@ -49,7 +49,6 @@ class RTCRtpTransceiverInitWeb extends RTCRtpTransceiverInit {
 }
 
 extension RTCRtpTransceiverInitWebExt on RTCRtpTransceiverInit {
-  //
   dynamic toJsObject() => jsutil.jsify({
         'direction': typeRtpTransceiverDirectionToString[direction],
         if (streams != null)
