@@ -60,8 +60,7 @@ class RTCRtpEncoding {
     this.ssrc,
   });
 
-  factory RTCRtpEncoding.fromMap(Map<dynamic, dynamic> map) {
-    return RTCRtpEncoding(
+  factory RTCRtpEncoding.fromMap(Map<dynamic, dynamic> map) => RTCRtpEncoding(
         rid: map['rid'],
         active: map['active'],
         maxBitrate: map['maxBitrate'],
@@ -69,8 +68,8 @@ class RTCRtpEncoding {
         minBitrate: map['minBitrate'],
         numTemporalLayers: map['numTemporalLayers'],
         scaleResolutionDownBy: map['scaleResolutionDownBy'],
-        ssrc: map['ssrc']);
-  }
+        ssrc: map['ssrc'],
+      );
 
   /// If non-null, this represents the RID that identifies this encoding layer.
   /// RIDs are used to identify layers in simulcast.
@@ -102,18 +101,17 @@ class RTCRtpEncoding {
   /// Can't be changed between getParameters/setParameters.
   int? ssrc;
 
-  Map<String, dynamic> toMap() {
-    return {
-      if (rid != null) 'rid': rid,
-      'active': active,
-      if (maxBitrate != null) 'maxBitrate': maxBitrate,
-      if (maxFramerate != null) 'maxFramerate': maxFramerate,
-      if (minBitrate != null) 'minBitrate': minBitrate,
-      'numTemporalLayers': numTemporalLayers,
-      'scaleResolutionDownBy': scaleResolutionDownBy,
-      if (ssrc != null) 'ssrc': ssrc,
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        'active': active,
+        if (rid != null) 'rid': rid,
+        if (maxBitrate != null) 'maxBitrate': maxBitrate,
+        if (maxFramerate != null) 'maxFramerate': maxFramerate,
+        if (minBitrate != null) 'minBitrate': minBitrate,
+        if (numTemporalLayers != null) 'numTemporalLayers': numTemporalLayers,
+        if (scaleResolutionDownBy != null)
+          'scaleResolutionDownBy': scaleResolutionDownBy,
+        if (ssrc != null) 'ssrc': ssrc,
+      };
 }
 
 class RTCHeaderExtension {
