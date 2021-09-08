@@ -153,15 +153,15 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         onAddTrack?.call(stream, newTrack);
         break;
       case 'onRemoveTrack':
-        String streamId = map['streamId'];
-        for (var item in _remoteStreams) {
-          if (item.id == streamId) {
-            Map<dynamic, dynamic> track = map['track'];
-            var oldTrack = MediaStreamTrackNative(
-                track['id'], track['label'], track['kind'], track['enabled']);
-            onRemoveTrack?.call(item, oldTrack);
-            break;
-          }
+        String trackId = map['trackId'];
+        for (var stream in _remoteStreams) {
+          stream.getTracks().forEach((track) {
+            if (track.id == trackId) {
+              onRemoveTrack?.call(stream, track);
+              stream.removeTrack(track, removeFromNative: false);
+              return;
+            }
+          });
         }
         break;
       case 'didOpenDataChannel':
