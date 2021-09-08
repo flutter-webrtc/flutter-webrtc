@@ -17,6 +17,7 @@ List<RTCRtpEncoding> listToRtpEncodings(List<Map<String, dynamic>> list) {
   return list.map((e) => RTCRtpEncoding.fromMap(e)).toList();
 }
 
+@Deprecated('RTCRtpTransceiverInitWeb isn\'t referenced from anywhere.')
 class RTCRtpTransceiverInitWeb extends RTCRtpTransceiverInit {
   RTCRtpTransceiverInitWeb(TransceiverDirection direction,
       List<MediaStream> streams, List<RTCRtpEncoding> sendEncodings)
@@ -45,15 +46,17 @@ class RTCRtpTransceiverInitWeb extends RTCRtpTransceiverInit {
         if (sendEncodings != null)
           'sendEncodings': sendEncodings!.map((e) => e.toMap()).toList(),
       };
+}
 
-  Map<String, dynamic> toJSMap() => {
+extension RTCRtpTransceiverInitWebExt on RTCRtpTransceiverInit {
+  dynamic toJsObject() => jsutil.jsify({
         'direction': typeRtpTransceiverDirectionToString[direction],
         if (streams != null)
           'streams':
               streams!.map((e) => (e as MediaStreamWeb).jsStream).toList(),
         if (sendEncodings != null)
           'sendEncodings': sendEncodings!.map((e) => e.toMap()).toList(),
-      };
+      });
 }
 
 class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
