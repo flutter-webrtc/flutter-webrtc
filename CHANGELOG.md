@@ -1,6 +1,13 @@
 # Changelog
 
 --------------------------------------------
+[0.6.7] - 2021-09-08
+
+* [Android] upgrade webrtc sdk to m92.92.4515.
+* [Web] `addTransceiver` bug fix (#675)
+* [Web] Use low-level jsutil to call createOffer/createrAnswer to solve the issue on safari/firefox.
+* [Dart] Fix currentDirection/direction implementation confusion.
+
 [0.6.6] - 2021.09.01
 
 * [Sponsorship] Thanks for LiveKit sponsorship.

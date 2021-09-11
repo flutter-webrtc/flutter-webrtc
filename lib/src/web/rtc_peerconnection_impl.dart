@@ -177,15 +177,21 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   @override
   Future<RTCSessionDescription> createOffer(
       [Map<String, dynamic>? constraints]) async {
-    final offer = await _jsPc.createOffer(constraints);
-    return _sessionFromJs(offer);
+    final args = constraints != null ? [jsutil.jsify(constraints)] : [];
+    final desc = await jsutil.promiseToFuture<dynamic>(
+        jsutil.callMethod(_jsPc, 'createOffer', args));
+    return RTCSessionDescription(
+        jsutil.getProperty(desc, 'sdp'), jsutil.getProperty(desc, 'type'));
   }
 
   @override
   Future<RTCSessionDescription> createAnswer(
       [Map<String, dynamic>? constraints]) async {
-    final answer = await _jsPc.createAnswer(constraints);
-    return _sessionFromJs(answer);
+    final args = constraints != null ? [jsutil.jsify(constraints)] : [];
+    final desc = await jsutil.promiseToFuture<dynamic>(
+        jsutil.callMethod(_jsPc, 'createAnswer', args));
+    return RTCSessionDescription(
+        jsutil.getProperty(desc, 'sdp'), jsutil.getProperty(desc, 'type'));
   }
 
   @override

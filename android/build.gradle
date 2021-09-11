@@ -16,13 +16,14 @@ rootProject.allprojects {
     repositories {
         google()
         jcenter()
+        maven { url 'https://jitpack.io' }
     }
 }
 
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 21
@@ -41,6 +42,6 @@ android {
 }
 
 dependencies {
-    api 'org.webrtc:google-webrtc:1.0.32006'
+    implementation 'com.github.webrtc-sdk:android:92.4515.01'
     implementation "androidx.annotation:annotation:1.1.0"
 }

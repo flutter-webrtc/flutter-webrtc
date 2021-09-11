@@ -55,6 +55,9 @@ void main() {
         'audioTracks': [],
         'videoTracks': [],
 
+        //Minimum values for onRemoveTrack
+        'trackId': '',
+
         //Minimum values for onAddTrack
         'track': {
           'id': '',
