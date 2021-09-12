@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:flutter_webrtc/src/helper.dart';
+import '../helper.dart';
 
 typedef StreamTrackCallback = Function();
 

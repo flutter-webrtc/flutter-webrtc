@@ -154,18 +154,8 @@ class RTCVideoRendererWeb extends VideoRenderer {
   }
 
   html.VideoElement? findHtmlView() {
-    final video = html.document.getElementById(_elementIdForVideo);
-    if (null != video) return video as html.VideoElement;
-
-    final fltPv = html.document.getElementsByTagName('flt-platform-view');
-    if (fltPv.isEmpty) return null;
-    final child = (fltPv.first as html.Element).shadowRoot!.childNodes;
-    for (final item in child) {
-      if ((item as html.Element).id == _elementIdForVideo) {
-        return item as html.VideoElement;
-      }
-    }
-    return null;
+    final element = html.document.getElementById(_elementIdForVideo);
+    if (null != element) return element as html.VideoElement;
   }
 
   @override

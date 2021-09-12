@@ -3,8 +3,6 @@ import 'dart:html' as html;
 import 'dart:js' as js;
 import 'dart:js_util' as jsutil;
 
-import 'package:flutter_webrtc/src/interface/rtc_track_event.dart';
-import 'package:flutter_webrtc/src/web/rtc_rtp_transceiver_impl.dart';
 import '../interface/enums.dart';
 import '../interface/media_stream.dart';
 import '../interface/media_stream_track.dart';
@@ -17,12 +15,14 @@ import '../interface/rtc_rtp_sender.dart';
 import '../interface/rtc_rtp_transceiver.dart';
 import '../interface/rtc_session_description.dart';
 import '../interface/rtc_stats_report.dart';
+import '../interface/rtc_track_event.dart';
 import 'media_stream_impl.dart';
 import 'media_stream_track_impl.dart';
 import 'rtc_data_channel_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
+import 'rtc_rtp_transceiver_impl.dart';
 
 /*
  *  PeerConnection
