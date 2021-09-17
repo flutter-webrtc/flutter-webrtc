@@ -31,7 +31,9 @@ FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
 FlutterRTCDataChannelObserver::~FlutterRTCDataChannelObserver() {}
 
 void FlutterDataChannel::CreateDataChannel(
-    const std::string &label, const EncodableMap &dataChannelDict,
+    const std::string& peerConnectionId,
+    const std::string &label,
+    const EncodableMap &dataChannelDict,
     RTCPeerConnection *pc,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
 
@@ -54,7 +56,7 @@ void FlutterDataChannel::CreateDataChannel(
         dataChannelDict.find(EncodableValue("protocol"))->second); 
   }
 
-  strncpy(init.protocol, protocol.c_str(), protocol.size());
+  init.protocol = protocol;
 
   init.negotiated =
       GetValue<bool>(dataChannelDict.find(EncodableValue("negotiated"))->second);
@@ -62,18 +64,19 @@ void FlutterDataChannel::CreateDataChannel(
   scoped_refptr<RTCDataChannel> data_channel =
       pc->CreateDataChannel(label.c_str(), &init);
 
-  std::string event_channel =
-      "FlutterWebRTC/dataChannelEvent" + std::to_string(data_channel->id());
+
+  std::string event_channel = "FlutterWebRTC/dataChannelEvent" +
+                              peerConnectionId + std::to_string(init.id);
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
                                         event_channel));
 
-  base_->data_channel_observers_[data_channel->id()] = std::move(observer);
+  base_->data_channel_observers_[init.id] = std::move(observer);
 
   EncodableMap params;
-  params[EncodableValue("id")] = EncodableValue(data_channel->id());
-  params[EncodableValue("label")] = EncodableValue(data_channel->label());
+  params[EncodableValue("id")] = EncodableValue(init.id);
+  params[EncodableValue("label")] = EncodableValue(data_channel->label().std_string());
   result->Success(EncodableValue(params));
 }
 
@@ -83,11 +86,12 @@ void FlutterDataChannel::DataChannelSend(
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   bool is_binary = type == "binary";
   if (is_binary && TypeIs<std::vector<uint8_t>>(data)) { 
-    std::vector<uint8_t> binary = GetValue<std::vector<uint8_t>>(data);
-    data_channel->Send((const char *)&binary[0], (int)binary.size(), true);
+    std::vector<uint8_t> buffer = GetValue<std::vector<uint8_t>>(data);
+    string binary = std::string((const char *)buffer.data(), (unsigned)buffer.size());
+    data_channel->Send(binary, true);
   } else {
     std::string str = GetValue<std::string>(data);
-    data_channel->Send(str.data(), (int)str.size(), false);
+    data_channel->Send(str, false);
   }
   result->Success(nullptr);
 }

@@ -23,7 +23,8 @@ class MediaDeviceNative extends MediaDevices {
 
       String streamId = response['streamId'];
       var stream = MediaStreamNative(streamId, 'local');
-      stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
+      stream.setMediaTracks(
+          response['audioTracks'] ?? [], response['videoTracks'] ?? []);
       return stream;
     } on PlatformException catch (e) {
       throw 'Unable to getUserMedia: ${e.message}';
