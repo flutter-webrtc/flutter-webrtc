@@ -345,24 +345,19 @@ FlutterPeerConnection::mapToRtpTransceiverInit(const EncodableMap& params) {
   EncodableList streamIds = findList(params, "streamIds");
 
   std::vector<string> stream_ids;
-  if (0 < streamIds.size()) {
-    for (auto item : streamIds) {
-      std::string id = GetValue<std::string>(item);
-      stream_ids.push_back(id.c_str());
-    }
+  for (auto item : streamIds) {
+    std::string id = GetValue<std::string>(item);
+    stream_ids.push_back(id.c_str());
   }
   RTCRtpTransceiverDirection dir = RTCRtpTransceiverDirection::kInactive;
   EncodableValue direction = findEncodableValue(params, "direction");
   if (!direction.IsNull()) {
     dir = stringToTransceiverDirection(GetValue<std::string>(direction));
   }
-
   EncodableList sendEncodings = findList(params, "sendEncodings");
   std::vector<scoped_refptr<RTCRtpEncodingParameters>> encodings;
-  if (0 < sendEncodings.size()) {
-    for (EncodableValue value : sendEncodings) {
-      encodings.push_back(mapToEncoding(GetValue<EncodableMap>(value)));
-    }
+  for (EncodableValue value : sendEncodings) {
+    encodings.push_back(mapToEncoding(GetValue<EncodableMap>(value)));
   }
   scoped_refptr<RTCRtpTransceiverInit> init =
       RTCRtpTransceiverInit::Create(dir, stream_ids, encodings);
@@ -435,27 +430,44 @@ FlutterPeerConnection::mapToEncoding(const EncodableMap& params) {
   return encoding;
 }
 
+RTCMediaType stringToMediaType(const std::string& mediaType) {
+  RTCMediaType type = RTCMediaType::ANY;
+  if (mediaType == "audio")
+    type = RTCMediaType::AUDIO;
+  else if (mediaType == "video")
+    type = RTCMediaType::VIDEO;
+  return type;
+}
+
+
 void FlutterPeerConnection::AddTransceiver(
     RTCPeerConnection* pc,
-    RTCMediaTrack* track,
+    const std::string& trackId,
+    const std::string& mediaType,
     const EncodableMap& transceiverInit,
     std::unique_ptr<MethodResult<EncodableValue>> resulte) {
   std::shared_ptr<MethodResult<EncodableValue>> result_ptr(resulte.release());
 
+  RTCMediaTrack* track = base_->MediaTrackForId(trackId);
+  RTCMediaType type = stringToMediaType(mediaType);
+
   if (0 < transceiverInit.size()) {
-    auto transceiver = pc->AddTransceiver(track, mapToRtpTransceiverInit(transceiverInit));
+    auto transceiver = track != nullptr ? pc->AddTransceiver(
+        track, mapToRtpTransceiverInit(transceiverInit)) : pc->AddTransceiver(
+                               type, mapToRtpTransceiverInit(transceiverInit));
     if (nullptr != transceiver.get()) {
       result_ptr->Success(transceiverToMap(transceiver));
       return;
     }
-    result_ptr->Error("AddTransceiver", "TODO: AddTransceiver error");
+    result_ptr->Error("AddTransceiver(track | mediaType, init)", "AddTransceiver error");
   } else {
-    auto transceiver = pc->AddTransceiver(track);
+    auto transceiver = track != nullptr ? pc->AddTransceiver(track)
+                                        : pc->AddTransceiver(type);
     if (nullptr != transceiver.get()) {
       result_ptr->Success(transceiverToMap(transceiver));
       return;
     }
-    result_ptr->Error("AddTransceiver", "TODO: AddTransceiver error");
+    result_ptr->Error("AddTransceiver(track, mediaType)", "AddTransceiver error");
   }
 }
 

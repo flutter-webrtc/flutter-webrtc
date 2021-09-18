@@ -508,6 +508,8 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string peerConnectionId = findString(params, "peerConnectionId");
     const EncodableMap transceiverInit = findMap(params, "transceiverInit");
+    const std::string mediaType = findString(params, "mediaType");
+    const std::string trackId = findString(params, "trackId");
 
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
@@ -515,16 +517,7 @@ void FlutterWebRTC::HandleMethodCall(
                     "addTransceiver() peerConnection is null");
       return;
     }
-
-    const std::string trackId = findString(params, "trackId");
-    RTCMediaTrack* track = MediaTrackForId(trackId);
-    if (nullptr == track) {
-      result->Error("AddTransceiver",
-                    "AddTransceiver() peerCtrackonnection is null");
-      return;
-    }
-
-    AddTransceiver(pc, track, transceiverInit, std::move(result));
+    AddTransceiver(pc, trackId, mediaType, transceiverInit, std::move(result));
   } else if (method_call.method_name().compare("getTransceivers") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");

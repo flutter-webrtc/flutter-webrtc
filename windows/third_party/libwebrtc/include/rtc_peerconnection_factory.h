@@ -5,6 +5,7 @@
 
 #include "rtc_audio_source.h"
 #include "rtc_audio_track.h"
+#include "rtc_desktop_device.h"
 #include "rtc_media_stream.h"
 #include "rtc_mediaconstraints.h"
 #include "rtc_video_device.h"
@@ -31,6 +32,8 @@ class RTCPeerConnectionFactory : public RefCountInterface {
   virtual scoped_refptr<RTCAudioDevice> GetAudioDevice() = 0;
 
   virtual scoped_refptr<RTCVideoDevice> GetVideoDevice() = 0;
+
+  virtual scoped_refptr<RTCDesktopDevice>  GetDesktopDevice() = 0;
 
   virtual scoped_refptr<RTCAudioSource> CreateAudioSource(
       const string audio_source_label) = 0;

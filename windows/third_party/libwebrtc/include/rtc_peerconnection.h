@@ -148,7 +148,7 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual scoped_refptr<RTCDataChannel> CreateDataChannel(
       const string label,
-      const RTCDataChannelInit* dataChannelDict) = 0;
+      RTCDataChannelInit* dataChannelDict) = 0;
 
   virtual void CreateOffer(OnSdpCreateSuccess success,
                            OnSdpCreateFailure failure,
@@ -205,6 +205,10 @@ class RTCPeerConnection : public RefCountInterface {
   virtual scoped_refptr<RTCRtpSender> AddTrack(
       scoped_refptr<RTCMediaTrack> track,
       const vector<string> streamIds) = 0;
+
+  virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver(RTCMediaType media_type) = 0;
+
+  virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver( RTCMediaType media_type, scoped_refptr<RTCRtpTransceiverInit> init) = 0;
 
   virtual bool RemoveTrack(scoped_refptr<RTCRtpSender> render) = 0;
 

@@ -96,7 +96,8 @@ class FlutterPeerConnection {
       const EncodableMap& parameters);
 
   void AddTransceiver(RTCPeerConnection* pc,
-                      RTCMediaTrack* track,
+                      const std::string& trackId,
+                      const std::string& mediaType,
                       const EncodableMap& transceiverInit,
                       std::unique_ptr<MethodResult<EncodableValue>> resulte);
 

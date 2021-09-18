@@ -150,17 +150,31 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   std::string facing_mode = getFacingMode(video_constraints);
   //bool isFacing = facing_mode == "" || facing_mode != "environment";
   std::string sourceId = getSourceIdConstraint(video_constraints);
-  /*
-  int width = video_mandatory["minWidth"].isNumeric()
-                  ? video_mandatory["minWidth"].asInt()
-                  : DEFAULT_WIDTH;
-  int height = video_mandatory["minHeight"].isNumeric()
-                   ? video_mandatory["minHeight"].asInt()
-                   : DEFAULT_HEIGHT;
-  int fps = video_mandatory["minFrameRate"].isNumeric()
-                ? video_mandatory["minFrameRate"].asInt()
-                : DEFAULT_FPS;
- */
+ 
+  int width = findInt(video_mandatory, "minWidth");
+
+  if (width == -1)
+    width = findInt(video_mandatory, "width");
+
+  if (width == -1)
+    width = DEFAULT_WIDTH;
+
+  int height = findInt(video_mandatory, "minHeight");
+
+  if (height == -1)
+    height = findInt(video_mandatory, "height");
+
+  if (height == -1)
+    height = DEFAULT_HEIGHT;
+
+  int fps = findInt(video_mandatory, "minFrameRate");
+
+  if (fps == -1)
+    fps = findInt(video_mandatory, "frameRate");
+
+  if (height == -1)
+    height = DEFAULT_FPS;
+
   scoped_refptr<RTCVideoCapturer> video_capturer;
   char strNameUTF8[256];
   char strGuidUTF8[256];
@@ -169,7 +183,7 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   for (int i = 0; i < nb_video_devices; i++) {
     base_->video_device_->GetDeviceName(i, strNameUTF8, 256, strGuidUTF8, 256);
     if (sourceId != "" && sourceId == strGuidUTF8) {
-      video_capturer = base_->video_device_->Create(strNameUTF8, i);
+      video_capturer = base_->video_device_->Create(strNameUTF8, i, width, height, fps);
       break;
     }
   }
@@ -178,7 +192,8 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
 
   if (!video_capturer.get()) {
     base_->video_device_->GetDeviceName(0, strNameUTF8, 128, strGuidUTF8, 128);
-    video_capturer = base_->video_device_->Create(strNameUTF8, 0);
+    video_capturer =
+        base_->video_device_->Create(strNameUTF8, 0, width, height, fps);
   }
   const char* video_source_label = "video_input";
   scoped_refptr<RTCVideoSource> source = base_->factory_->CreateVideoSource(
