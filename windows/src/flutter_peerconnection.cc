@@ -1063,7 +1063,7 @@ void FlutterPeerConnectionObserver::OnRemoveTrack(
 void FlutterPeerConnectionObserver::OnDataChannel(
     scoped_refptr<RTCDataChannel> data_channel) {
   std::string event_channel =
-      "FlutterWebRTC/dataChannelEvent" + std::to_string(data_channel->id());
+      "FlutterWebRTC/dataChannelEvent" + id_ + std::to_string(data_channel->id());
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
