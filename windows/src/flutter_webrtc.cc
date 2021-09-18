@@ -327,6 +327,42 @@ void FlutterWebRTC::HandleMethodCall(
     const std::string track_id = findString(params, "trackId");
     MediaStreamTrackSwitchCamera(track_id, std::move(result));
   } else if (method_call.method_name().compare("setVolume") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+  } else if (method_call.method_name().compare("addTransceiver") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string track_id = findString(params, "trackId");
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+    const EncodableMap transceiverInit = findMap(params, "transceiverInit");
+    const std::string mediaType = findString(params, "mediaType");
+
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("addTransceiverFailed",
+                    "addTransceiver() peerConnection is null");
+      return;
+    }
+
+    // TODO:
+
+  } else if (method_call.method_name().compare("dataChannelEvent") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
   } else {
     result->NotImplemented();
   }
