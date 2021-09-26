@@ -27,21 +27,21 @@ void FlutterMediaStream::GetUserMedia(
       GetUserAudio(constraints, stream, params);
     }
   } else {
-	  params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
+    params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
   }
 
   it = constraints.find(EncodableValue("video"));
   if (it != constraints.end()) {
     EncodableValue video = it->second;
-     if (TypeIs<bool>(video)) {
-       if (true == GetValue<bool>(video)) {
-         GetUserVideo(constraints, stream, params);
-       }
-     } else if (TypeIs<EncodableMap>(video)) {
-       GetUserVideo(constraints, stream, params);
+    if (TypeIs<bool>(video)) {
+      if (true == GetValue<bool>(video)) {
+        GetUserVideo(constraints, stream, params);
+      }
+    } else if (TypeIs<EncodableMap>(video)) {
+      GetUserVideo(constraints, stream, params);
     }
   } else {
-	  params[EncodableValue("videoTracks")] = EncodableValue(EncodableList());
+    params[EncodableValue("videoTracks")] = EncodableValue(EncodableList());
   }
 
   base_->local_streams_[uuid] = stream;
@@ -104,15 +104,14 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
 std::string getFacingMode(const EncodableMap& mediaConstraints) {
   return mediaConstraints.find(EncodableValue("facingMode")) !=
                  mediaConstraints.end()
-             ? GetValue<std::string>(mediaConstraints.find(EncodableValue("facingMode"))
-                   ->second)
+             ? GetValue<std::string>(
+                   mediaConstraints.find(EncodableValue("facingMode"))->second)
              : "";
 }
 
 std::string getSourceIdConstraint(const EncodableMap& mediaConstraints) {
   auto it = mediaConstraints.find(EncodableValue("optional"));
-  if (it != mediaConstraints.end() &&
-      TypeIs<EncodableList>(it->second)) {
+  if (it != mediaConstraints.end() && TypeIs<EncodableList>(it->second)) {
     EncodableList optional = GetValue<EncodableList>(it->second);
     for (size_t i = 0, size = optional.size(); i < size; i++) {
       if (TypeIs<EncodableMap>(optional[i])) {
@@ -134,15 +133,15 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   EncodableMap video_mandatory;
   auto it = constraints.find(EncodableValue("video"));
   if (it != constraints.end() && TypeIs<EncodableMap>(it->second)) {
-    EncodableMap video_map =   GetValue<EncodableMap>(it->second);
+    EncodableMap video_map = GetValue<EncodableMap>(it->second);
     if (video_map.find(EncodableValue("mandatory")) != video_map.end()) {
-      video_mandatory =
-          GetValue<EncodableMap>(video_map.find(EncodableValue("mandatory"))->second);
+      video_mandatory = GetValue<EncodableMap>(
+          video_map.find(EncodableValue("mandatory"))->second);
     }
   }
 
   std::string facing_mode = getFacingMode(video_constraints);
-  //bool isFacing = facing_mode == "" || facing_mode != "environment";
+  // bool isFacing = facing_mode == "" || facing_mode != "environment";
   std::string sourceId = getSourceIdConstraint(video_constraints);
   /*
   int width = video_mandatory["minWidth"].isNumeric()
@@ -168,7 +167,8 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
     }
   }
 
-  if (nb_video_devices == 0) return;
+  if (nb_video_devices == 0)
+    return;
 
   if (!video_capturer.get()) {
     base_->video_device_->GetDeviceName(0, strNameUTF8, 128, strGuidUTF8, 128);

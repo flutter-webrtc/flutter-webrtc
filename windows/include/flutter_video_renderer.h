@@ -12,13 +12,13 @@ namespace flutter_webrtc_plugin {
 using namespace libwebrtc;
 using namespace flutter;
 
-class FlutterVideoRenderer: public RTCVideoRenderer<scoped_refptr<RTCVideoFrame>> {
+class FlutterVideoRenderer
+    : public RTCVideoRenderer<scoped_refptr<RTCVideoFrame>> {
  public:
-  FlutterVideoRenderer(TextureRegistrar *registrar, BinaryMessenger *messenger);
+  FlutterVideoRenderer(TextureRegistrar* registrar, BinaryMessenger* messenger);
 
-  virtual const FlutterDesktopPixelBuffer* CopyPixelBuffer(
-      size_t width,
-      size_t height) const;
+  virtual const FlutterDesktopPixelBuffer* CopyPixelBuffer(size_t width,
+                                                           size_t height) const;
 
   virtual void OnFrame(scoped_refptr<RTCVideoFrame> frame) override;
 
@@ -33,7 +33,7 @@ class FlutterVideoRenderer: public RTCVideoRenderer<scoped_refptr<RTCVideoFrame>
   };
   FrameSize last_frame_size_ = {0, 0};
   bool first_frame_rendered = false;
-  TextureRegistrar *registrar_ = nullptr;
+  TextureRegistrar* registrar_ = nullptr;
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
   std::unique_ptr<EventSink<EncodableValue>> event_sink_;
   int64_t texture_id_ = -1;
@@ -48,18 +48,19 @@ class FlutterVideoRenderer: public RTCVideoRenderer<scoped_refptr<RTCVideoFrame>
 
 class FlutterVideoRendererManager {
  public:
-  FlutterVideoRendererManager(FlutterWebRTCBase *base);
+  FlutterVideoRendererManager(FlutterWebRTCBase* base);
 
   void CreateVideoRendererTexture(
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void SetMediaStream(int64_t texture_id, const std::string &stream_id);
+  void SetMediaStream(int64_t texture_id, const std::string& stream_id);
 
   void VideoRendererDispose(
-      int64_t texture_id, std::unique_ptr<MethodResult<EncodableValue>> result);
+      int64_t texture_id,
+      std::unique_ptr<MethodResult<EncodableValue>> result);
 
  private:
-  FlutterWebRTCBase *base_;
+  FlutterWebRTCBase* base_;
   std::map<int64_t, std::unique_ptr<FlutterVideoRenderer>> renderers_;
 };
 

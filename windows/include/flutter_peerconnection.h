@@ -9,10 +9,10 @@ using namespace flutter;
 
 class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
  public:
-  FlutterPeerConnectionObserver(FlutterWebRTCBase *base,
+  FlutterPeerConnectionObserver(FlutterWebRTCBase* base,
                                 scoped_refptr<RTCPeerConnection> peerconnection,
-                                BinaryMessenger *messenger,
-                                const std::string &channel_name);
+                                BinaryMessenger* messenger,
+                                const std::string& channel_name);
 
   virtual void OnSignalingState(RTCSignalingState state) override;
   virtual void OnIceGatheringState(RTCIceGatheringState state) override;
@@ -29,16 +29,17 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
       scoped_refptr<RTCDataChannel> data_channel) override;
   virtual void OnRenegotiationNeeded() override;
 
-  scoped_refptr<RTCMediaStream> MediaStreamForId(
-      const std::string &id) {
+  scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id) {
     auto it = remote_streams_.find(id);
-    if (it != remote_streams_.end()) return (*it).second;
+    if (it != remote_streams_.end())
+      return (*it).second;
     return nullptr;
   }
 
-  void RemoveStreamForId(const std::string &id) {
+  void RemoveStreamForId(const std::string& id) {
     auto it = remote_streams_.find(id);
-    if (it != remote_streams_.end()) remote_streams_.erase(it);
+    if (it != remote_streams_.end())
+      remote_streams_.erase(it);
   }
 
  private:
@@ -46,43 +47,51 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
   std::unique_ptr<EventSink<EncodableValue>> event_sink_;
   scoped_refptr<RTCPeerConnection> peerconnection_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> remote_streams_;
-  FlutterWebRTCBase *base_;
+  FlutterWebRTCBase* base_;
 };
 
 class FlutterPeerConnection {
  public:
-  FlutterPeerConnection(FlutterWebRTCBase *base) : base_(base) {}
+  FlutterPeerConnection(FlutterWebRTCBase* base) : base_(base) {}
 
   void CreateRTCPeerConnection(
-      const EncodableMap &configuration, const EncodableMap &constraints,
+      const EncodableMap& configuration,
+      const EncodableMap& constraints,
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void RTCPeerConnectionClose(
-      RTCPeerConnection *pc, const std::string &uuid,
+      RTCPeerConnection* pc,
+      const std::string& uuid,
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void CreateOffer(const EncodableMap &constraints, RTCPeerConnection *pc,
+  void CreateOffer(const EncodableMap& constraints,
+                   RTCPeerConnection* pc,
                    std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void CreateAnswer(const EncodableMap &constraints, RTCPeerConnection *pc,
+  void CreateAnswer(const EncodableMap& constraints,
+                    RTCPeerConnection* pc,
                     std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void SetLocalDescription(
-      RTCSessionDescription *sdp, RTCPeerConnection *pc,
+      RTCSessionDescription* sdp,
+      RTCPeerConnection* pc,
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void SetRemoteDescription(
-      RTCSessionDescription *sdp, RTCPeerConnection *pc,
+      RTCSessionDescription* sdp,
+      RTCPeerConnection* pc,
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void AddIceCandidate(RTCIceCandidate *candidate, RTCPeerConnection *pc,
+  void AddIceCandidate(RTCIceCandidate* candidate,
+                       RTCPeerConnection* pc,
                        std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void GetStats(const std::string &track_id, RTCPeerConnection *pc,
+  void GetStats(const std::string& track_id,
+                RTCPeerConnection* pc,
                 std::unique_ptr<MethodResult<EncodableValue>> result);
 
  private:
-  FlutterWebRTCBase *base_;
+  FlutterWebRTCBase* base_;
 };
 }  // namespace flutter_webrtc_plugin
 

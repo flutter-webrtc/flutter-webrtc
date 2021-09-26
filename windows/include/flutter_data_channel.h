@@ -8,13 +8,13 @@ namespace flutter_webrtc_plugin {
 class FlutterRTCDataChannelObserver : public RTCDataChannelObserver {
  public:
   FlutterRTCDataChannelObserver(scoped_refptr<RTCDataChannel> data_channel,
-                                BinaryMessenger *messenger,
-                                const std::string &channel_name);
+                                BinaryMessenger* messenger,
+                                const std::string& channel_name);
   virtual ~FlutterRTCDataChannelObserver();
 
   virtual void OnStateChange(RTCDataChannelState state) override;
 
-  virtual void OnMessage(const char *buffer, int length, bool binary) override;
+  virtual void OnMessage(const char* buffer, int length, bool binary) override;
 
   scoped_refptr<RTCDataChannel> data_channel() { return data_channel_; }
 
@@ -26,24 +26,25 @@ class FlutterRTCDataChannelObserver : public RTCDataChannelObserver {
 
 class FlutterDataChannel {
  public:
-  FlutterDataChannel(FlutterWebRTCBase *base) : base_(base) {}
+  FlutterDataChannel(FlutterWebRTCBase* base) : base_(base) {}
 
-  void CreateDataChannel(const std::string &label,
-                         const EncodableMap &dataChannelDict,
-                         RTCPeerConnection *pc,
+  void CreateDataChannel(const std::string& label,
+                         const EncodableMap& dataChannelDict,
+                         RTCPeerConnection* pc,
                          std::unique_ptr<MethodResult<EncodableValue>>);
 
-  void DataChannelSend(RTCDataChannel *data_channel, const std::string &type,
-                       const EncodableValue &data,
+  void DataChannelSend(RTCDataChannel* data_channel,
+                       const std::string& type,
+                       const EncodableValue& data,
                        std::unique_ptr<MethodResult<EncodableValue>>);
 
-  void DataChannelClose(RTCDataChannel *data_channel,
+  void DataChannelClose(RTCDataChannel* data_channel,
                         std::unique_ptr<MethodResult<EncodableValue>>);
 
-  RTCDataChannel *DataChannelFormId(int id);
+  RTCDataChannel* DataChannelFormId(int id);
 
  private:
-  FlutterWebRTCBase *base_;
+  FlutterWebRTCBase* base_;
 };
 
 }  // namespace flutter_webrtc_plugin

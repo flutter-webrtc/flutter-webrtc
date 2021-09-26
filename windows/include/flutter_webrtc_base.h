@@ -52,36 +52,36 @@ inline const T GetValue(EncodableValue val) {
   return std::get<T>(val);
 }
 
-inline EncodableValue findEncodableValue(const EncodableMap &map,
-                                 const std::string &key) {
+inline EncodableValue findEncodableValue(const EncodableMap& map,
+                                         const std::string& key) {
   auto it = map.find(EncodableValue(key));
-  if (it != map.end()) return it->second;
+  if (it != map.end())
+    return it->second;
   return EncodableValue();
 }
 
-inline EncodableMap findMap(const EncodableMap &map, const std::string &key) {
+inline EncodableMap findMap(const EncodableMap& map, const std::string& key) {
   auto it = map.find(EncodableValue(key));
   if (it != map.end() && TypeIs<EncodableMap>(it->second))
     return GetValue<EncodableMap>(it->second);
   return EncodableMap();
 }
 
-inline std::string findString(const EncodableMap &map, const std::string &key) {
+inline std::string findString(const EncodableMap& map, const std::string& key) {
   auto it = map.find(EncodableValue(key));
   if (it != map.end() && TypeIs<std::string>(it->second))
     return GetValue<std::string>(it->second);
   return std::string();
 }
 
-inline int findInt(const EncodableMap &map, const std::string &key) {
+inline int findInt(const EncodableMap& map, const std::string& key) {
   auto it = map.find(EncodableValue(key));
   if (it != map.end() && TypeIs<int>(it->second))
     return GetValue<int>(it->second);
   return -1;
 }
 
-inline int64_t findLongInt(const EncodableMap &map, const std::string &key)
-{
+inline int64_t findLongInt(const EncodableMap& map, const std::string& key) {
   auto it = map.find(EncodableValue(key));
   if (it != map.end() && TypeIs<int64_t>(it->second) ||
       TypeIs<int32_t>(it->second))
@@ -99,35 +99,35 @@ class FlutterWebRTCBase {
   enum ParseConstraintType { kMandatory, kOptional };
 
  public:
-  FlutterWebRTCBase(BinaryMessenger *messenger, TextureRegistrar *textures);
+  FlutterWebRTCBase(BinaryMessenger* messenger, TextureRegistrar* textures);
   ~FlutterWebRTCBase();
 
   std::string GenerateUUID();
 
-  RTCPeerConnection *PeerConnectionForId(const std::string &id);
+  RTCPeerConnection* PeerConnectionForId(const std::string& id);
 
-  void RemovePeerConnectionForId(const std::string &id);
+  void RemovePeerConnectionForId(const std::string& id);
 
-  scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string &id);
+  scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id);
 
-  void RemoveStreamForId(const std::string &id);
+  void RemoveStreamForId(const std::string& id);
 
-  bool ParseConstraints(const EncodableMap &constraints,
-                        RTCConfiguration *configuration);
+  bool ParseConstraints(const EncodableMap& constraints,
+                        RTCConfiguration* configuration);
 
   scoped_refptr<RTCMediaConstraints> ParseMediaConstraints(
-      const EncodableMap &constraints);
+      const EncodableMap& constraints);
 
-  bool ParseRTCConfiguration(const EncodableMap &map,
-                             RTCConfiguration &configuration);
+  bool ParseRTCConfiguration(const EncodableMap& map,
+                             RTCConfiguration& configuration);
 
  private:
-  void ParseConstraints(const EncodableMap &src,
+  void ParseConstraints(const EncodableMap& src,
                         scoped_refptr<RTCMediaConstraints> mediaConstraints,
                         ParseConstraintType type = kMandatory);
 
-  bool CreateIceServers(const EncodableList &iceServersArray,
-                        IceServer *ice_servers);
+  bool CreateIceServers(const EncodableList& iceServersArray,
+                        IceServer* ice_servers);
 
  protected:
   scoped_refptr<RTCPeerConnectionFactory> factory_;
@@ -146,8 +146,8 @@ class FlutterWebRTCBase {
       peerconnection_observers_;
 
  protected:
-  BinaryMessenger *messenger_;
-  TextureRegistrar *textures_;
+  BinaryMessenger* messenger_;
+  TextureRegistrar* textures_;
 };
 
 }  // namespace flutter_webrtc_plugin
