@@ -1005,6 +1005,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     return activity;
   }
 
+  @Nullable
+  @Override
+  public Context getApplicationContext() {
+    return context;
+  }
+
   MediaStream getStreamForId(String id, String peerConnectionId) {
     MediaStream stream = null;
     if (peerConnectionId.length() > 0) {
