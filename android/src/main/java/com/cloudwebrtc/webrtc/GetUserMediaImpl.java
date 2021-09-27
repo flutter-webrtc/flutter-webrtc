@@ -761,10 +761,11 @@ class GetUserMediaImpl {
                 };
 
         final Activity activity = stateProvider.getActivity();
-        if (activity != null) {
-            PermissionUtils.requestPermissions(
-                    activity, permissions.toArray(new String[permissions.size()]), callback);
-        }
+        final Context context = stateProvider.getApplicationContext();
+        PermissionUtils.requestPermissions(
+                context,
+                activity,
+                permissions.toArray(new String[permissions.size()]), callback);
     }
 
     void switchCamera(String id, Result result) {

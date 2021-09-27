@@ -1,6 +1,8 @@
 package com.cloudwebrtc.webrtc;
 
 import android.app.Activity;
+import android.content.Context;
+
 import androidx.annotation.Nullable;
 import java.util.Map;
 import org.webrtc.MediaStream;
@@ -26,4 +28,7 @@ public interface StateProvider {
 
   @Nullable
   Activity getActivity();
+
+  @Nullable
+  Context getApplicationContext();
 }
