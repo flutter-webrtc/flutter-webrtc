@@ -617,7 +617,7 @@
                                            message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                            details:nil]);
         }
-    } else if ([@"addTrack" isEqualToString:call.method]){
+    } else if ([@"addTrack" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSString* trackId = argsMap[@"trackId"];
@@ -683,7 +683,6 @@
             return;
         }
         RTCRtpTransceiver* transceiver = nil;
-
         BOOL hasAudio = NO;
         if (trackId != nil) {
             RTCMediaStreamTrack *track = [self trackForId:trackId];
