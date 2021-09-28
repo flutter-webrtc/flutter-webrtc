@@ -2,8 +2,10 @@
 #import "FlutterWebRTCPlugin.h"
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCDataChannel.h"
+#import "AudioUtils.h"
 
 #import <WebRTC/WebRTC.h>
+
 
 @implementation RTCPeerConnection (Flutter)
 
@@ -170,11 +172,11 @@
 -(void) peerConnectionClose:(RTCPeerConnection *)peerConnection
 {
     [peerConnection close];
-    
+
     // Clean up peerConnection's streams and tracks
     [peerConnection.remoteStreams removeAllObjects];
     [peerConnection.remoteTracks removeAllObjects];
-    
+
     // Clean up peerConnection's dataChannels.
     NSMutableDictionary<NSNumber *, RTCDataChannel *> *dataChannels
     = peerConnection.dataChannels;
@@ -198,9 +200,9 @@
         [peerConnection statsForTrack:track
                      statsOutputLevel:RTCStatsOutputLevelStandard
                     completionHandler:^(NSArray<RTCLegacyStatsReport *> *reports) {
-                        
+
                         NSMutableArray *stats = [NSMutableArray array];
-                        
+
                         for (RTCLegacyStatsReport *report in reports) {
                             [stats addObject:@{@"id": report.reportId,
                                                @"type": report.type,
@@ -208,7 +210,7 @@
                                                @"values": report.values
                                                }];
                         }
-                        
+
                         result(@{@"stats": stats});
                     }];
     }else{
@@ -281,7 +283,7 @@
     for (id srcKey in src) {
         id srcValue = src[srcKey];
         NSString *dstValue;
-        
+
         if ([srcValue isKindOfClass:[NSNumber class]]) {
             dstValue = [srcValue boolValue] ? @"true" : @"false";
         } else {
@@ -304,16 +306,16 @@
     id mandatory = constraints[@"mandatory"];
     NSMutableDictionary<NSString *, NSString *> *mandatory_
     = [NSMutableDictionary new];
-    
+
     if ([mandatory isKindOfClass:[NSDictionary class]]) {
         [self parseJavaScriptConstraints:(NSDictionary *)mandatory
                    intoWebRTCConstraints:mandatory_];
     }
-    
+
     id optional = constraints[@"optional"];
     NSMutableDictionary<NSString *, NSString *> *optional_
     = [NSMutableDictionary new];
-    
+
     if ([optional isKindOfClass:[NSArray class]]) {
         for (id o in (NSArray *)optional) {
             if ([o isKindOfClass:[NSDictionary class]]) {
@@ -322,7 +324,7 @@
             }
         }
     }
-    
+
     return [[RTCMediaConstraints alloc] initWithMandatoryConstraints:mandatory_
                                                  optionalConstraints:optional_];
 }
@@ -341,11 +343,11 @@
 
 -(void)peerConnection:(RTCPeerConnection *)peerConnection
           mediaStream:(RTCMediaStream *)stream didAddTrack:(RTCVideoTrack*)track{
-    
+
     peerConnection.remoteTracks[track.trackId] = track;
     NSString *streamId = stream.streamId;
     peerConnection.remoteStreams[streamId] = stream;
-    
+
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
@@ -388,19 +390,25 @@
     NSMutableArray *audioTracks = [NSMutableArray array];
     NSMutableArray *videoTracks = [NSMutableArray array];
 
+    BOOL hasAudio = NO;
     for (RTCAudioTrack *track in stream.audioTracks) {
         peerConnection.remoteTracks[track.trackId] = track;
         [audioTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
+        hasAudio = YES;
     }
-    
+
     for (RTCVideoTrack *track in stream.videoTracks) {
         peerConnection.remoteTracks[track.trackId] = track;
         [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
     }
-    
+
     NSString *streamId = stream.streamId;
     peerConnection.remoteStreams[streamId] = stream;
-    
+
+    if (hasAudio) {
+        [AudioUtils ensureAudioSessionWithRecording:NO];
+    }
+
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
@@ -419,7 +427,7 @@
         NSLog(@"didRemoveStream - more than one stream entry found for stream instance with id: %@", stream.streamId);
     }
     NSString *streamId = stream.streamId;
-    
+
     for (RTCVideoTrack *track in stream.videoTracks) {
         [peerConnection.remoteTracks removeObjectForKey:track.trackId];
     }
@@ -427,7 +435,7 @@
         [peerConnection.remoteTracks removeObjectForKey:track.trackId];
     }
     [peerConnection.remoteStreams removeObjectForKey:streamId];
-    
+
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
@@ -483,15 +491,15 @@
     dataChannel.peerConnectionId = peerConnection.flutterId;
     dataChannel.delegate = self;
     peerConnection.dataChannels[dataChannelId] = dataChannel;
-    
+
     FlutterEventChannel *eventChannel = [FlutterEventChannel
                                          eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$d", peerConnection.flutterId, dataChannel.channelId]
                                          binaryMessenger:self.messenger];
-    
+
     dataChannel.eventChannel = eventChannel;
     dataChannel.flutterChannelId = dataChannelId;
     [eventChannel setStreamHandler:dataChannel];
-    
+
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
@@ -516,7 +524,7 @@ didChangeConnectionState:(RTCPeerConnectionState)newState {
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
 didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
-    
+
 }
 
 /** Called when a receiver and its track are created. */
@@ -537,7 +545,7 @@ didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
         @"receiver": [self receiverToMap:rtpReceiver],
         @"streams": streams,
         }];
-        
+
         if(peerConnection.configuration.sdpSemantics == RTCSdpSemanticsUnifiedPlan) {
             for(RTCRtpTransceiver *transceiver in  peerConnection.transceivers) {
                 if(transceiver.receiver != nil && [transceiver.receiver.receiverId isEqualToString:rtpReceiver.receiverId]) {
@@ -550,7 +558,10 @@ didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
         if (mediaStreams.count > 0) {
             peerConnection.remoteStreams[mediaStreams[0].streamId] = mediaStreams[0];
         }
-      
+
+        if ([rtpReceiver.track.kind isEqualToString:@"audio"]) {
+            [AudioUtils ensureAudioSessionWithRecording:NO];
+        }
         eventSink(event);
     }
 }
@@ -558,7 +569,7 @@ didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
 /** Called when the receiver and its track are removed. */
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
      didRemoveReceiver:(RTCRtpReceiver *)rtpReceiver {
-    
+
 }
 
 /** Called when the selected ICE candidate pair is changed. */
@@ -567,7 +578,7 @@ didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
             remoteCandidate:(RTCIceCandidate *)remote
              lastReceivedMs:(int)lastDataReceivedMs
           changeReason:(NSString *)reason {
-    
+
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
