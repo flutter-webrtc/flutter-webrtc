@@ -19,8 +19,7 @@ class _MyAppState extends State<LoopBackSample> {
   bool _inCalling = false;
   Timer? _timer;
 
-  String get sdpSemantics =>
-      WebRTC.platformIsWindows ? 'plan-b' : 'unified-plan';
+  String get sdpSemantics => 'unified-plan';
 
   @override
   void initState() {
