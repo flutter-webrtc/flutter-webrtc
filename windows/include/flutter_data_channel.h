@@ -28,7 +28,8 @@ class FlutterDataChannel {
  public:
   FlutterDataChannel(FlutterWebRTCBase *base) : base_(base) {}
 
-  void CreateDataChannel(const std::string &label,
+  void CreateDataChannel(const std::string& peerConnectionId,
+                         const std::string& label,
                          const EncodableMap &dataChannelDict,
                          RTCPeerConnection *pc,
                          std::unique_ptr<MethodResult<EncodableValue>>);
