@@ -38,4 +38,20 @@
 #endif
 }
 
++ (void)setPreferHeadphoneInput {
+#if TARGET_OS_IPHONE
+  AVAudioSession *session = [AVAudioSession sharedInstance];
+  AVAudioSessionPortDescription *inputPort = nil;
+  for (AVAudioSessionPortDescription *port in session.availableInputs) {
+    if ([port.portType isEqualToString:AVAudioSessionPortHeadphones]) {
+      inputPort = port;
+      break;
+    }
+  }
+  if (inputPort != nil) {
+    [session setPreferredInput:inputPort error:nil];
+  }
+#endif
+}
+
 @end

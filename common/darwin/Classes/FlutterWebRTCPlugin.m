@@ -92,8 +92,12 @@
       case AVAudioSessionRouteChangeReasonCategoryChange: {
           NSError* error;
           [[AVAudioSession sharedInstance] overrideOutputAudioPort:_speakerOn? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:&error];
+          break;
       }
-      break;
+      case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
+          [AudioUtils setPreferHeadphoneInput];
+          break;
+      }
 
     default:
       break;
