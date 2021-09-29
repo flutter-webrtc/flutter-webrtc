@@ -152,8 +152,8 @@ void FlutterWebRTC::HandleMethodCall(
     SdpParseError error;
     scoped_refptr<RTCSessionDescription> description =
         RTCSessionDescription::Create(findString(constraints, "type").c_str(),
-                                    findString(constraints, "sdp").c_str(),
-                                    &error);
+                                      findString(constraints, "sdp").c_str(),
+                                      &error);
 
     SetLocalDescription(description.get(), pc, std::move(result));
   } else if (method_call.method_name().compare("setRemoteDescription") == 0) {
@@ -175,8 +175,8 @@ void FlutterWebRTC::HandleMethodCall(
     SdpParseError error;
     scoped_refptr<RTCSessionDescription> description =
         RTCSessionDescription::Create(findString(constraints, "type").c_str(),
-                                    findString(constraints, "sdp").c_str(),
-                                    &error);
+                                      findString(constraints, "sdp").c_str(),
+                                      &error);
 
     SetRemoteDescription(description.get(), pc, std::move(result));
   } else if (method_call.method_name().compare("addCandidate") == 0) {
@@ -198,8 +198,8 @@ void FlutterWebRTC::HandleMethodCall(
     SdpParseError error;
     scoped_refptr<RTCIceCandidate> rtc_candidate =
         RTCIceCandidate::Create(findString(constraints, "candidate").c_str(),
-                              findString(constraints, "sdpMid").c_str(),
-                              findInt(constraints, "sdpMLineIndex"), &error);
+                                findString(constraints, "sdpMid").c_str(),
+                                findInt(constraints, "sdpMLineIndex"), &error);
 
     AddIceCandidate(rtc_candidate.get(), pc, std::move(result));
   } else if (method_call.method_name().compare("getStats") == 0) {
@@ -315,6 +315,21 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     RTCPeerConnectionClose(pc, peerConnectionId, std::move(result));
+  } else if (method_call.method_name().compare("peerConnectionDispose") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("peerConnectionDisposeFailed",
+                    "peerConnectionDisposeClose() peerConnection is null");
+      return;
+    }
+    RTCPeerConnectionDispose(pc, peerConnectionId, std::move(result));
   } else if (method_call.method_name().compare("createVideoRenderer") == 0) {
     CreateVideoRendererTexture(std::move(result));
   } else if (method_call.method_name().compare("videoRendererDispose") == 0) {
@@ -414,7 +429,7 @@ void FlutterWebRTC::HandleMethodCall(
     for (int i = 0; i < renders_.size(); i++) {
       FlutterVideoRenderer* renderer = renders_.at(i).get();
       if (renderer->CheckMediaStream(streamId) && 0 == kind.compare("video")) {
-          renderer->SetVideoTrack(static_cast<RTCVideoTrack*>(track.get()));
+        renderer->SetVideoTrack(static_cast<RTCVideoTrack*>(track.get()));
       }
     };
   } else if (method_call.method_name().compare("mediaStreamRemoveTrack") == 0) {
@@ -786,8 +801,7 @@ void FlutterWebRTC::HandleMethodCall(
 
     RtpTransceiverSetDirection(pc, rtpTransceiverId, direction,
                                std::move(result));
-  } else if (method_call.method_name().compare("setConfiguration") ==
-             0) {
+  } else if (method_call.method_name().compare("setConfiguration") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
       return;
@@ -803,7 +817,7 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-  const EncodableMap configuration = findMap(params, "configuration");
+    const EncodableMap configuration = findMap(params, "configuration");
     if (0 < configuration.size()) {
       if (pc == nullptr) {
         result->Error("setConfiguration",
@@ -811,7 +825,7 @@ void FlutterWebRTC::HandleMethodCall(
         return;
       }
     }
-    SetConfiguration(pc, configuration,  std::move(result));
+    SetConfiguration(pc, configuration, std::move(result));
   } else if (method_call.method_name().compare("captureFrame") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -822,26 +836,23 @@ void FlutterWebRTC::HandleMethodCall(
 
     const std::string path = findString(params, "path");
     if (0 < path.size()) {
-      result->Error("captureFrame",
-                    "captureFrame() path is null or empty");
+      result->Error("captureFrame", "captureFrame() path is null or empty");
       return;
     }
 
     const std::string trackId = findString(params, "trackId");
     RTCMediaTrack* track = MediaTrackForId(trackId);
     if (nullptr == track) {
-      result->Error("captureFrame",
-                    "captureFrame() track is null");
+      result->Error("captureFrame", "captureFrame() track is null");
       return;
     }
     std::string kind = track->kind().std_string();
     if (0 != kind.compare("video")) {
-      result->Error("captureFrame",
-                    "captureFrame() track not is video track");
+      result->Error("captureFrame", "captureFrame() track not is video track");
       return;
     }
     CaptureFrame((RTCVideoTrack*)track, path, std::move(result));
-  
+
   } else {
     result->NotImplemented();
   }

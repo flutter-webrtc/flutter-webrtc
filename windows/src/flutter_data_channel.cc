@@ -40,6 +40,19 @@ void FlutterDataChannel::CreateDataChannel(
   RTCDataChannelInit init;
   init.id = GetValue<int>(dataChannelDict.find(EncodableValue("id"))->second);
 
+  base_->lock();
+  if (base_->data_channel_observers_.find( init.id) !=
+      base_->data_channel_observers_.end()) {
+    for(int i = 1024; i < 65535; i++){
+      if(base_->data_channel_observers_.find(i) ==
+      base_->data_channel_observers_.end()){
+         init.id = i;
+        break;
+      }
+    }
+  }
+  base_->unlock();
+
   init.ordered =
       GetValue<bool>(dataChannelDict.find(EncodableValue("ordered"))->second);
 
@@ -72,7 +85,9 @@ void FlutterDataChannel::CreateDataChannel(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
                                         event_channel));
 
+  base_->lock();
   base_->data_channel_observers_[init.id] = std::move(observer);
+  base_->unlock();
 
   EncodableMap params;
   params[EncodableValue("id")] = EncodableValue(init.id);

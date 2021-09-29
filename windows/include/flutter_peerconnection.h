@@ -13,7 +13,7 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
                                 scoped_refptr<RTCPeerConnection> peerconnection,
                                 BinaryMessenger* messenger,
                                 const std::string& channel_name,
-                                std::string &peerConnectionId);
+                                std::string& peerConnectionId);
 
   virtual void OnSignalingState(RTCSignalingState state) override;
   virtual void OnIceGatheringState(RTCIceGatheringState state) override;
@@ -42,7 +42,6 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
   std::map<std::string, scoped_refptr<RTCMediaStream>> remote_streams_;
   FlutterWebRTCBase* base_;
   std::string id_;
-
 };
 
 class FlutterPeerConnection {
@@ -55,6 +54,11 @@ class FlutterPeerConnection {
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void RTCPeerConnectionClose(
+      RTCPeerConnection* pc,
+      const std::string& uuid,
+      std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void RTCPeerConnectionDispose(
       RTCPeerConnection* pc,
       const std::string& uuid,
       std::unique_ptr<MethodResult<EncodableValue>> result);
@@ -91,7 +95,6 @@ class FlutterPeerConnection {
   RTCRtpTransceiverDirection stringToTransceiverDirection(
       std::string direction);
 
-  
   libwebrtc::scoped_refptr<libwebrtc::RTCRtpEncodingParameters> mapToEncoding(
       const EncodableMap& parameters);
 
