@@ -20,4 +20,3 @@ A new flutter plugin project.
   s.ios.deployment_target = '10.0'
   s.static_framework = true
 end
-

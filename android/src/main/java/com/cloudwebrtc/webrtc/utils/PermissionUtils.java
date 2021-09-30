@@ -3,6 +3,7 @@ package com.cloudwebrtc.webrtc.utils;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
@@ -12,6 +13,8 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+
 import java.util.ArrayList;
 
 /** Helper module for dealing with dynamic permissions, introduced in Android M (API level 23). */
@@ -30,7 +33,7 @@ public class PermissionUtils {
   private static int requestCode;
 
   private static void requestPermissions(
-      Activity activity, String[] permissions, ResultReceiver resultReceiver) {
+          Context context, Activity activity, String[] permissions, ResultReceiver resultReceiver) {
     // Ask the Context whether we have already been granted the requested
     // permissions.
     int size = permissions.length;
@@ -42,7 +45,11 @@ public class PermissionUtils {
       // No need to ask for permission on pre-Marshmallow
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
         grantResult = PackageManager.PERMISSION_GRANTED;
-      else grantResult = activity.checkSelfPermission(permissions[i]);
+      else if (activity != null){
+        grantResult = activity.checkSelfPermission(permissions[i]);
+      } else {
+        grantResult = ActivityCompat.checkSelfPermission(context, permissions[i]);
+      }
 
       grantResults[i] = grantResult;
       if (grantResult != PackageManager.PERMISSION_GRANTED) {
@@ -64,7 +71,7 @@ public class PermissionUtils {
         // must still use old permissions model, regardless of the
         // Android version on the device.
         || Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-        || activity.getApplicationInfo().targetSdkVersion < Build.VERSION_CODES.M) {
+        || context.getApplicationInfo().targetSdkVersion < Build.VERSION_CODES.M) {
       send(resultReceiver, requestCode, permissions, grantResults);
       return;
     }
@@ -77,23 +84,29 @@ public class PermissionUtils {
     RequestPermissionsFragment fragment = new RequestPermissionsFragment();
     fragment.setArguments(args);
 
-    FragmentTransaction transaction =
-        activity
-            .getFragmentManager()
-            .beginTransaction()
-            .add(fragment, fragment.getClass().getName() + "-" + requestCode);
+    if(activity != null){
+      FragmentTransaction transaction =
+              activity
+                      .getFragmentManager()
+                      .beginTransaction()
+                      .add(fragment, fragment.getClass().getName() + "-" + requestCode);
 
-    try {
-      transaction.commit();
-    } catch (IllegalStateException ise) {
-      // Context is a Plugin, just send result back.
-      send(resultReceiver, requestCode, permissions, grantResults);
+      try {
+        transaction.commit();
+      } catch (IllegalStateException ise) {
+        // Context is a Plugin, just send result back.
+        send(resultReceiver, requestCode, permissions, grantResults);
+      }
     }
   }
 
   public static void requestPermissions(
-      final Activity activity, final String[] permissions, final Callback callback) {
+          final Context context,
+          final Activity activity,
+          final String[] permissions,
+          final Callback callback) {
     requestPermissions(
+        context,
         activity,
         permissions,
         new ResultReceiver(new Handler(Looper.getMainLooper())) {
@@ -191,9 +204,10 @@ public class PermissionUtils {
         // the invocation so we have to redo the permission request.
         finish();
         PermissionUtils.requestPermissions(
-            getActivity(),
-            args.getStringArray(PERMISSIONS),
-            (ResultReceiver) args.getParcelable(RESULT_RECEIVER));
+                getContext(),
+                getActivity(),
+                args.getStringArray(PERMISSIONS),
+                (ResultReceiver) args.getParcelable(RESULT_RECEIVER));
       } else {
         // We did not ask for all requested permissions, just the denied
         // ones. But when we send the result, we have to answer about
