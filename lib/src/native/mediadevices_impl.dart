@@ -11,9 +11,8 @@ class MediaDeviceNative extends MediaDevices {
   @override
   Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
-    var channel = WebRTC.methodChannel();
     try {
-      final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
+      final response = await WebRTC.invokeMethod(
         'getUserMedia',
         <String, dynamic>{'constraints': mediaConstraints},
       );
@@ -34,9 +33,8 @@ class MediaDeviceNative extends MediaDevices {
   @override
   Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
-    var channel = WebRTC.methodChannel();
     try {
-      final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
+      final response = await WebRTC.invokeMethod(
         'getDisplayMedia',
         <String, dynamic>{'constraints': mediaConstraints},
       );
