@@ -12,4 +12,8 @@ class WebRTC {
   static bool get platformIsAndroid => false;
 
   static bool get platformIsWeb => true;
+
+  static Future<T?> invokeMethod<T, P>(String methodName,
+          [dynamic param]) async =>
+      throw UnimplementedError();
 }
