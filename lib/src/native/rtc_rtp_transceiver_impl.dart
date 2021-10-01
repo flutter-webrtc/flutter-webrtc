@@ -86,7 +86,6 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
         .toList();
   }
 
-  final MethodChannel _channel = WebRTC.methodChannel();
   String _peerConnectionId;
   String _id;
   bool _stop = false;
@@ -117,8 +116,7 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   @override
   Future<void> setDirection(TransceiverDirection direction) async {
     try {
-      await _channel
-          .invokeMethod('rtpTransceiverSetDirection', <String, dynamic>{
+      await WebRTC.invokeMethod('rtpTransceiverSetDirection', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'transceiverId': _id,
         'direction': typeRtpTransceiverDirectionToString[direction]
@@ -163,7 +161,7 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   @override
   Future<void> stop() async {
     try {
-      await _channel.invokeMethod('rtpTransceiverStop', <String, dynamic>{
+      await WebRTC.invokeMethod('rtpTransceiverStop', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'transceiverId': _id
       });

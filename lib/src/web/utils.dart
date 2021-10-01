@@ -1,5 +1,3 @@
-import 'package:flutter/services.dart';
-
 class WebRTC {
   static bool get platformIsDesktop => false;
 
@@ -14,7 +12,4 @@ class WebRTC {
   static bool get platformIsAndroid => false;
 
   static bool get platformIsWeb => true;
-
-  static MethodChannel methodChannel() =>
-      throw UnimplementedError('No need to use methodChannel in the web!');
 }

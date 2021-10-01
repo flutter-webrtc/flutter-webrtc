@@ -15,8 +15,6 @@ class MediaStreamTrackNative extends MediaStreamTrack {
     return MediaStreamTrackNative(
         map['id'], map['label'], map['kind'], map['enabled']);
   }
-
-  final _channel = WebRTC.methodChannel();
   final String _trackId;
   final String _label;
   final String _kind;
@@ -26,7 +24,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
 
   @override
   set enabled(bool enabled) {
-    _channel.invokeMethod('mediaStreamTrackSetEnable',
+    WebRTC.invokeMethod('mediaStreamTrackSetEnable',
         <String, dynamic>{'trackId': _trackId, 'enabled': enabled});
     _enabled = enabled;
 
@@ -52,13 +50,13 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   bool get muted => _muted;
 
   @override
-  Future<bool> hasTorch() => _channel.invokeMethod<bool>(
+  Future<bool> hasTorch() => WebRTC.invokeMethod(
         'mediaStreamTrackHasTorch',
         <String, dynamic>{'trackId': _trackId},
       ).then((value) => value ?? false);
 
   @override
-  Future<void> setTorch(bool torch) => _channel.invokeMethod(
+  Future<void> setTorch(bool torch) => WebRTC.invokeMethod(
         'mediaStreamTrackSetTorch',
         <String, dynamic>{'trackId': _trackId, 'torch': torch},
       );
@@ -69,7 +67,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   @override
   void enableSpeakerphone(bool enable) async {
     print('MediaStreamTrack:enableSpeakerphone $enable');
-    await _channel.invokeMethod(
+    await WebRTC.invokeMethod(
       'enableSpeakerphone',
       <String, dynamic>{'trackId': _trackId, 'enable': enable},
     );
@@ -78,7 +76,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   @override
   Future<ByteBuffer> captureFrame() async {
     var filePath = await getTemporaryDirectory();
-    await _channel.invokeMethod<void>(
+    await WebRTC.invokeMethod(
       'captureFrame',
       <String, dynamic>{
         'trackId': _trackId,
@@ -110,7 +108,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
 
   @override
   Future<void> stop() async {
-    await _channel.invokeMethod(
+    await WebRTC.invokeMethod(
       'trackDispose',
       <String, dynamic>{'trackId': _trackId},
     );

@@ -20,7 +20,7 @@ class MediaRecorderNative extends MediaRecorder {
       throw Exception('Neither audio nor video track were provided');
     }
 
-    await WebRTC.methodChannel().invokeMethod('startRecordToFile', {
+    await WebRTC.invokeMethod('startRecordToFile', {
       'path': path,
       if (audioChannel != null) 'audioChannel': audioChannel.index,
       if (videoTrack != null) 'videoTrackId': videoTrack.id,
@@ -35,6 +35,6 @@ class MediaRecorderNative extends MediaRecorder {
   }
 
   @override
-  Future<dynamic> stop() async => await WebRTC.methodChannel()
-      .invokeMethod('stopRecordToFile', {'recorderId': _recorderId});
+  Future<dynamic> stop() async => await WebRTC.invokeMethod(
+      'stopRecordToFile', {'recorderId': _recorderId});
 }
