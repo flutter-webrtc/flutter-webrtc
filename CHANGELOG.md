@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.6.10+hotfix.1] - 2021-01-02
+
+* [Web] Fix compiler errors for web.
+
 [0.6.10] - 2021-10-01
 
 * [iOS] Fix bug for RtpTransceiver.getCurrentDirection.
