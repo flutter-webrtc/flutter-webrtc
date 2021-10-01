@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.6.10] - 2021-10-01
+
+* [iOS] Fix bug for RtpTransceiver.getCurrentDirection.
+* [Dart] Improve MethodChannel calling.
+
 [0.6.9] - 2021-10-01
 
 * [iOS] Update WebRTC build (#707).
