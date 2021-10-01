@@ -779,9 +779,9 @@
         if([@"rtpTransceiverGetDirection" isEqualToString:call.method]){
             result(@{@"result": [self transceiverDirectionString:transcevier.direction]});
         } else if ([@"rtpTransceiverGetCurrentDirection" isEqualToString:call.method]) {
-            RTCRtpTransceiverDirection *directionOut = nil;
-            if ([transcevier currentDirection:directionOut]) {
-                result(@{@"result": [self transceiverDirectionString:*directionOut]});
+            RTCRtpTransceiverDirection directionOut = transcevier.direction;
+            if ([transcevier currentDirection:&directionOut]) {
+                result(@{@"result": [self transceiverDirectionString:directionOut]});
             } else  {
                 result(nil);
             }
