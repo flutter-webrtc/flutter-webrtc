@@ -558,9 +558,9 @@
         NSNumber* enable = argsMap[@"enable"];
         _speakerOn = enable.boolValue;
         AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-        [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
-                      withOptions:AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowBluetoothA2DP
-                        error:nil];
+        [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord 
+            withOptions:AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowBluetoothA2DP 
+            error:nil];
         [audioSession setPreferredSampleRate:44100.0 error:nil];
         [audioSession overrideOutputAudioPort:_speakerOn ? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:nil];
         [audioSession setActive:YES error:nil];
