@@ -9,7 +9,6 @@ import 'utils.dart';
 
 class RTCVideoRendererNative extends VideoRenderer {
   RTCVideoRendererNative();
-  final _channel = WebRTC.methodChannel();
   int? _textureId;
   MediaStream? _srcObject;
   StreamSubscription<dynamic>? _eventSubscription;
@@ -40,7 +39,7 @@ class RTCVideoRendererNative extends VideoRenderer {
     if (textureId == null) throw 'Call initialize before setting the stream';
 
     _srcObject = stream;
-    _channel.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
+    WebRTC.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
       'textureId': textureId,
       'streamId': stream?.id ?? '',
       'ownerTag': stream?.ownerTag ?? ''
@@ -54,7 +53,7 @@ class RTCVideoRendererNative extends VideoRenderer {
   @override
   Future<void> dispose() async {
     await _eventSubscription?.cancel();
-    await _channel.invokeMethod(
+    await WebRTC.invokeMethod(
       'videoRendererDispose',
       <String, dynamic>{'textureId': _textureId},
     );
