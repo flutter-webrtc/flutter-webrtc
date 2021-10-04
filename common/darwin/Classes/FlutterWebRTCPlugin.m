@@ -559,10 +559,10 @@
         _speakerOn = enable.boolValue;
         AVAudioSession *audioSession = [AVAudioSession sharedInstance];
         [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
-                      withOptions:_speakerOn ? AVAudioSessionCategoryOptionDefaultToSpeaker 
-                      : 
-                      AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowBluetoothA2DP
+                      withOptions:AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowBluetoothA2DP
                         error:nil];
+        [audioSession setPreferredSampleRate:44100.0 error:nil];
+        [audioSession overrideOutputAudioPort:_speakerOn ? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:nil];
         [audioSession setActive:YES error:nil];
         result(nil);
 #else
