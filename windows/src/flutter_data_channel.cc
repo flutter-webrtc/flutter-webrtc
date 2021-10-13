@@ -39,7 +39,7 @@ void FlutterDataChannel::CreateDataChannel(
 
   RTCDataChannelInit init;
   init.id = GetValue<int>(dataChannelDict.find(EncodableValue("id"))->second);
-
+  int _id = init.id;
   base_->lock();
   if (base_->data_channel_observers_.find( init.id) !=
       base_->data_channel_observers_.end()) {
@@ -77,9 +77,8 @@ void FlutterDataChannel::CreateDataChannel(
   scoped_refptr<RTCDataChannel> data_channel =
       pc->CreateDataChannel(label.c_str(), &init);
 
-
-  std::string event_channel = "FlutterWebRTC/dataChannelEvent" +
-                              peerConnectionId + std::to_string(init.id);
+  
+  std::string event_channel = "FlutterWebRTC/dataChannelEvent" + peerConnectionId + std::to_string(_id);
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
