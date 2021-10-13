@@ -334,8 +334,8 @@
         [self createDataChannel:peerConnectionId
                           label:label
                          config:[self RTCDataChannelConfiguration:dataChannelDict]
-                      messenger:_messenger];
-        result(nil);
+                      messenger:_messenger
+                         result:result];
     } else if ([@"dataChannelSend" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
