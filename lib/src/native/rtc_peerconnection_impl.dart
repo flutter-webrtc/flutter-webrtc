@@ -411,13 +411,14 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   Future<RTCDataChannel> createDataChannel(
       String label, RTCDataChannelInit dataChannelDict) async {
     try {
-      await WebRTC.invokeMethod('createDataChannel', <String, dynamic>{
+        final response = await WebRTC.invokeMethod('createDataChannel', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'label': label,
         'dataChannelDict': dataChannelDict.toMap()
       });
+
       _dataChannel =
-          RTCDataChannelNative(_peerConnectionId, label, dataChannelDict.id);
+          RTCDataChannelNative(_peerConnectionId, label, response['id']);
       return _dataChannel!;
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::createDataChannel: ${e.message}';
