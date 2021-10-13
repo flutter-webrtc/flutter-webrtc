@@ -339,8 +339,8 @@
         [self createDataChannel:peerConnectionId
                           label:label
                          config:[self RTCDataChannelConfiguration:dataChannelDict]
-                      messenger:_messenger];
-        result(nil);
+                      messenger:_messenger
+                         result:result];
     } else if ([@"dataChannelSend" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -384,7 +384,7 @@
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
         NSNumber* enabled = argsMap[@"enabled"];
-        RTCMediaStreamTrack *track = self.localTracks[trackId];
+        RTCMediaStreamTrack *track = [self trackForId: trackId];
         if(track != nil){
             track.isEnabled = enabled.boolValue;
         }

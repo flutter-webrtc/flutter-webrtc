@@ -65,6 +65,7 @@
                               label:(NSString *)label
                              config:(RTCDataChannelConfiguration *)config
                messenger:(NSObject<FlutterBinaryMessenger>*)messenger
+                  result:(nonnull FlutterResult)result
 {
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     RTCDataChannel *dataChannel = [peerConnection dataChannelForLabel:label configuration:config];
@@ -82,6 +83,8 @@
         
         dataChannel.eventChannel = eventChannel;
         [eventChannel setStreamHandler:dataChannel];
+        
+        result(@{@"label": label, @"id": dataChannelId});
     }
 }
 

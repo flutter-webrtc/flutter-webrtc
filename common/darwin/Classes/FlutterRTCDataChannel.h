@@ -14,7 +14,8 @@
 -(void)createDataChannel:(nonnull NSString *)peerConnectionId
                    label:(nonnull NSString *)label
                   config:(nonnull RTCDataChannelConfiguration *)config
-               messenger:(nonnull NSObject<FlutterBinaryMessenger> *)messenger;
+               messenger:(nonnull NSObject<FlutterBinaryMessenger> *)messenger
+                  result:(nonnull FlutterResult)result;
 
 -(void)dataChannelClose:(nonnull NSString *)peerConnectionId
           dataChannelId:(nonnull NSString *)dataChannelId;
