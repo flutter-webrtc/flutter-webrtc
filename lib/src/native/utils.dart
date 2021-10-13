@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 
 class WebRTC {
   static const MethodChannel _channel = MethodChannel('FlutterWebRTC.Method');
-  static MethodChannel methodChannel() => _channel;
 
   static bool get platformIsDesktop =>
       Platform.isWindows ||
@@ -24,17 +23,10 @@ class WebRTC {
 
   static bool get platformIsWeb => false;
 
-  static Future<T> invokeMethod<T, P>(String methodName,
-      [dynamic param]) async {
-    var response = await _channel.invokeMethod<T>(
-      methodName,
-      param,
-    );
-
-    if (response == null) {
-      throw Exception('Invoke method: $methodName return a null response');
-    }
-
-    return response;
-  }
+  static Future<T?> invokeMethod<T, P>(String methodName,
+          [dynamic param]) async =>
+      _channel.invokeMethod<T>(
+        methodName,
+        param,
+      );
 }

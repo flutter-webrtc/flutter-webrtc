@@ -1,6 +1,21 @@
 # Changelog
 
 --------------------------------------------
+[0.6.10+hotfix.1] - 2021-01-02
+
+* [Web] Fix compiler errors for web.
+
+[0.6.10] - 2021-10-01
+
+* [iOS] Fix bug for RtpTransceiver.getCurrentDirection.
+* [Dart] Improve MethodChannel calling.
+
+[0.6.9] - 2021-10-01
+
+* [iOS] Update WebRTC build (#707).
+* [Windows] Add Unified-Plan support for windows. (#688)
+* [iOS] Improve audio handling on iOS (#705)
+
 [0.6.8] - 2021-09-27
 
 * [Android] Use ApplicationContext to verify permissions when activity is null.

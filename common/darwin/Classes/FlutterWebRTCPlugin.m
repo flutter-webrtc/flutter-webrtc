@@ -66,8 +66,11 @@
     RTCDefaultVideoDecoderFactory *decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
     RTCDefaultVideoEncoderFactory *encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
 
+    RTCVideoEncoderFactorySimulcast *simulcastFactory = [[RTCVideoEncoderFactorySimulcast alloc]  initWithPrimary:encoderFactory
+                                                                                                         fallback:encoderFactory];
+
     _peerConnectionFactory = [[RTCPeerConnectionFactory alloc]
-                              initWithEncoderFactory:encoderFactory
+                              initWithEncoderFactory:simulcastFactory
                               decoderFactory:decoderFactory];
 
 
@@ -776,9 +779,9 @@
         if([@"rtpTransceiverGetDirection" isEqualToString:call.method]){
             result(@{@"result": [self transceiverDirectionString:transcevier.direction]});
         } else if ([@"rtpTransceiverGetCurrentDirection" isEqualToString:call.method]) {
-            RTCRtpTransceiverDirection *directionOut = nil;
-            if ([transcevier currentDirection:directionOut]) {
-                result(@{@"result": [self transceiverDirectionString:*directionOut]});
+            RTCRtpTransceiverDirection directionOut = transcevier.direction;
+            if ([transcevier currentDirection:&directionOut]) {
+                result(@{@"result": [self transceiverDirectionString:directionOut]});
             } else  {
                 result(nil);
             }

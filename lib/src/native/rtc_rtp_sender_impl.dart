@@ -38,7 +38,6 @@ class RTCRtpSenderNative extends RTCRtpSender {
         .toList();
   }
 
-  final MethodChannel _channel = WebRTC.methodChannel();
   String _peerConnectionId;
   String _id;
   MediaStreamTrack? _track;
@@ -49,8 +48,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
   @override
   Future<List<StatsReport>> getStats() async {
     try {
-      final response = await _channel
-          .invokeMethod<Map<dynamic, dynamic>>('getStats', <String, dynamic>{
+      final response = await WebRTC.invokeMethod('getStats', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         if (track != null) 'track': track!.id,
       });
@@ -72,8 +70,8 @@ class RTCRtpSenderNative extends RTCRtpSender {
   Future<bool> setParameters(RTCRtpParameters parameters) async {
     _parameters = parameters;
     try {
-      final response = await _channel
-          .invokeMethod('rtpSenderSetParameters', <String, dynamic>{
+      final response =
+          await WebRTC.invokeMethod('rtpSenderSetParameters', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
         'parameters': parameters.toMap()
@@ -87,7 +85,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
   @override
   Future<void> replaceTrack(MediaStreamTrack track) async {
     try {
-      await _channel.invokeMethod('rtpSenderReplaceTrack', <String, dynamic>{
+      await WebRTC.invokeMethod('rtpSenderReplaceTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
         'trackId': track.id
@@ -101,7 +99,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
   Future<void> setTrack(MediaStreamTrack track,
       {bool takeOwnership = true}) async {
     try {
-      await _channel.invokeMethod('rtpSenderSetTrack', <String, dynamic>{
+      await WebRTC.invokeMethod('rtpSenderSetTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
         'trackId': track.id,
@@ -131,7 +129,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
   @mustCallSuper
   Future<void> dispose() async {
     try {
-      await _channel.invokeMethod('rtpSenderDispose', <String, dynamic>{
+      await WebRTC.invokeMethod('rtpSenderDispose', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
       });
