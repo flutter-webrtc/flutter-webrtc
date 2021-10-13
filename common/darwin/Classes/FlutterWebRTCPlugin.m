@@ -379,7 +379,7 @@
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
         NSNumber* enabled = argsMap[@"enabled"];
-        RTCMediaStreamTrack *track = self.localTracks[trackId];
+        RTCMediaStreamTrack *track = [self trackForId: trackId];
         if(track != nil){
             track.isEnabled = enabled.boolValue;
         }
