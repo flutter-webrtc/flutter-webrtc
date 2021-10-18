@@ -411,7 +411,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   Future<RTCDataChannel> createDataChannel(
       String label, RTCDataChannelInit dataChannelDict) async {
     try {
-        final response = await WebRTC.invokeMethod('createDataChannel', <String, dynamic>{
+      final response =
+          await WebRTC.invokeMethod('createDataChannel', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'label': label,
         'dataChannelDict': dataChannelDict.toMap()
