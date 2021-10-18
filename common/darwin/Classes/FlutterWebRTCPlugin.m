@@ -66,16 +66,11 @@
     RTCDefaultVideoDecoderFactory *decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
     RTCDefaultVideoEncoderFactory *encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
 
-#if TARGET_OS_IPHONE
     RTCVideoEncoderFactorySimulcast *simulcastFactory = [[RTCVideoEncoderFactorySimulcast alloc]  initWithPrimary:encoderFactory
-#endif                                                                                                         fallback:encoderFactory];
+                                                                                                         fallback:encoderFactory];
 
     _peerConnectionFactory = [[RTCPeerConnectionFactory alloc]
-#if TARGET_OS_IPHONE
                               initWithEncoderFactory:simulcastFactory
-#else
-                              initWithEncoderFactory:encoderFactory
-#endif
                               decoderFactory:decoderFactory];
 
 
