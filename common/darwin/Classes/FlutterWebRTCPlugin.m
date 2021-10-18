@@ -751,11 +751,7 @@
             details:nil]);
             return;
         }
-#if TARGET_OS_IPHONE
         [transcevier setDirection:[self stringToTransceiverDirection:direction] error:nil];
-#elif TARGET_OS_MAC
-        [transcevier setDirection:[self stringToTransceiverDirection:direction]];
-#endif
         result(nil);
     } else if ([@"rtpTransceiverGetCurrentDirection" isEqualToString:call.method] || [@"rtpTransceiverGetDirection" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
@@ -804,11 +800,7 @@
             details:nil]);
             return;
         }
-#if TARGET_OS_IPHONE
-             [transcevier stopInternal];
-#elif TARGET_OS_MAC
-             [transcevier stop];
-#endif
+        [transcevier stopInternal];
         result(nil);
     } else if ([@"rtpSenderSetParameters" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;

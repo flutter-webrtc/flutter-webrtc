@@ -164,9 +164,15 @@
                        peerConnection:(RTCPeerConnection *)peerConnection
                                result:(FlutterResult)result
 {
-    [peerConnection addIceCandidate:candidate];
-    result(nil);
-    //NSLog(@"addICECandidateresult: %@", candidate);
+    [peerConnection addIceCandidate:candidate completionHandler:^(NSError *_Nullable error){
+        if (error) {
+            result([FlutterError errorWithCode:@"AddIceCandidateFailed"
+                                       message:[NSString stringWithFormat:@"Error %@", error.localizedDescription]
+                                       details:nil]);
+        } else {
+            result(nil);
+        }
+    }];
 }
 
 -(void) peerConnectionClose:(RTCPeerConnection *)peerConnection
