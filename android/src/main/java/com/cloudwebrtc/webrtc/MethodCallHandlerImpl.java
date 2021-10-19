@@ -18,12 +18,12 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
+import com.cloudwebrtc.webrtc.SimulcastVideoEncoderFactoryWrapper;
 
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
 import org.webrtc.DefaultVideoDecoderFactory;
 import org.webrtc.DefaultVideoEncoderFactory;
-import org.webrtc.SimulcastVideoEncoderFactoryWrapper;
 import org.webrtc.DtmfSender;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
