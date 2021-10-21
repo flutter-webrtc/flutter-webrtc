@@ -1,7 +1,19 @@
 # Changelog
 
 --------------------------------------------
-[0.6.10+hotfix.1] - 2021-01-02
+[0.7.0+hotfix.1] - 2021-10-21
+
+* [Android] Fix bug for createDataChannel.
+
+[0.7.0] - 2021-10-20
+
+* [Android] Enable Android simulcast (#731)
+* [macOS] Use pre-compiled WebRTC for macOS. (#717)
+* [iOS/macOS] Fix the correct return value of createDataChannel under darwin.
+* [Windows] Fix using the wrong id to listen datachannel events.
+* [Dart] Fix(mediaStreamTrackSetEnable): remote track is unavaiable (#723).
+
+[0.6.10+hotfix.1] - 2021-10-01
 
 * [Web] Fix compiler errors for web.
 
