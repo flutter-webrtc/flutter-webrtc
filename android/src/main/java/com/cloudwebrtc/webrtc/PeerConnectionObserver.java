@@ -123,7 +123,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         registerDataChannelObserver(dataChannelId, dataChannel);
 
         ConstraintsMap params = new ConstraintsMap();
-        params.putInt("id", dataChannel.id());
+        params.putInt("id", dataChannelId);
         params.putString("label", dataChannel.label());
         result.success(params.toMap());
     } else {
