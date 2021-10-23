@@ -8,7 +8,7 @@ CMD=$1
 function cleanup() {
     echo "Cleanup project [$FLUTTER_APP_PROJECT_NAME] files ..."
     cd $FLUTTER_APP_FOLDER
-    rm -rf android build *.iml ios pubspec.lock test .flutter-plugins .metadata .packages .idea macos web
+    rm -rf android build *.iml ios pubspec.lock test .flutter-plugins .metadata .packages .idea macos web linux
 }
 
 function create() {
@@ -16,6 +16,7 @@ function create() {
     if [ ! -d "ios" ] && [ ! -d "android" ] && [ ! -d "macos" ]; then
         echo "Create flutter project: name=$FLUTTER_APP_PROJECT_NAME, org=$FLUTTER_APP_ORG ..."
         flutter config --enable-macos-desktop
+        flutter config --enable-linux-desktop
         flutter config --enable-web
         flutter create --android-language java --ios-language objc --project-name $FLUTTER_APP_PROJECT_NAME --org $FLUTTER_APP_ORG .
         add_permission_label
