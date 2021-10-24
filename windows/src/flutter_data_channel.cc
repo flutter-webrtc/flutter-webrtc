@@ -108,7 +108,7 @@ void FlutterDataChannel::DataChannelSend(
     std::string str = GetValue<std::string>(data);
     data_channel->Send(str, false);
   }
-  result->Success(nullptr);
+  result->Success();
 }
 
 void FlutterDataChannel::DataChannelClose(
@@ -119,7 +119,7 @@ void FlutterDataChannel::DataChannelClose(
   auto it = base_->data_channel_observers_.find(id);
   if (it != base_->data_channel_observers_.end())
     base_->data_channel_observers_.erase(it);
-  result->Success(nullptr);
+  result->Success();
 }
 
 RTCDataChannel *FlutterDataChannel::DataChannelFormId(int id) {

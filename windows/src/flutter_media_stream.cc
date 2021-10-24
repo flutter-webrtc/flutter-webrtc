@@ -14,7 +14,7 @@ void FlutterMediaStream::GetUserMedia(
       base_->factory_->CreateStream(uuid.c_str());
 
   EncodableMap params;
-  params[EncodableValue("streamId")] = uuid;
+  params[EncodableValue("streamId")] = EncodableValue(uuid);
 
   auto it = constraints.find(EncodableValue("audio"));
   if (it != constraints.end()) {
@@ -93,10 +93,10 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
     std::string track_id = track->id().std_string();
 
     EncodableMap track_info;
-    track_info[EncodableValue("id")] = track->id().std_string();
-    track_info[EncodableValue("label")] = track->id().std_string();
-    track_info[EncodableValue("kind")] = track->kind().std_string();
-    track_info[EncodableValue("enabled")] = track->enabled();
+    track_info[EncodableValue("id")] = EncodableValue(track->id().std_string());
+    track_info[EncodableValue("label")] = EncodableValue(track->id().std_string());
+    track_info[EncodableValue("kind")] = EncodableValue(track->kind().std_string());
+    track_info[EncodableValue("enabled")] = EncodableValue(track->enabled());
 
     EncodableList audioTracks;
     audioTracks.push_back(EncodableValue(track_info));
@@ -206,10 +206,10 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
 
   EncodableList videoTracks;
   EncodableMap info;
-  info[EncodableValue("id")] = track->id().std_string();
-  info[EncodableValue("label")] = track->id().std_string();
-  info[EncodableValue("kind")] = track->kind().std_string();
-  info[EncodableValue("enabled")] = track->enabled();
+  info[EncodableValue("id")] = EncodableValue(track->id().std_string());
+  info[EncodableValue("label")] = EncodableValue(track->id().std_string());
+  info[EncodableValue("kind")] = EncodableValue(track->kind().std_string());
+  info[EncodableValue("enabled")] = EncodableValue(track->enabled());
   videoTracks.push_back(EncodableValue(info));
   params[EncodableValue("videoTracks")] = EncodableValue(videoTracks);
 
@@ -229,8 +229,8 @@ void FlutterMediaStream::GetSources(
   for (uint16_t i = 0; i < nb_audio_devices; i++) {
     base_->audio_device_->RecordingDeviceName(i, strNameUTF8, strGuidUTF8);
     EncodableMap audio;
-    audio[EncodableValue("label")] = std::string(strNameUTF8);
-    audio[EncodableValue("deviceId")] = std::string(strGuidUTF8);
+    audio[EncodableValue("label")] = EncodableValue(std::string(strNameUTF8));
+    audio[EncodableValue("deviceId")] = EncodableValue(std::string(strGuidUTF8));
     audio[EncodableValue("facing")] = "";
     audio[EncodableValue("kind")] = "audioinput";
     sources.push_back(EncodableValue(audio));
@@ -240,8 +240,8 @@ void FlutterMediaStream::GetSources(
   for (uint16_t i = 0; i < nb_audio_devices; i++) {
     base_->audio_device_->PlayoutDeviceName(i, strNameUTF8, strGuidUTF8);
     EncodableMap audio;
-    audio[EncodableValue("label")] = std::string(strGuidUTF8);
-    audio[EncodableValue("deviceId")] = std::string(strNameUTF8);
+    audio[EncodableValue("label")] = EncodableValue(std::string(strGuidUTF8));
+    audio[EncodableValue("deviceId")] = EncodableValue(std::string(strNameUTF8));
     audio[EncodableValue("facing")] = "";
     audio[EncodableValue("kind")] = "audiooutput";
     sources.push_back(EncodableValue(audio));
@@ -251,14 +251,14 @@ void FlutterMediaStream::GetSources(
   for (int i = 0; i < nb_video_devices; i++) {
     base_->video_device_->GetDeviceName(i, strNameUTF8, 128, strGuidUTF8, 128);
     EncodableMap video;
-    video[EncodableValue("label")] = std::string(strGuidUTF8);
-    video[EncodableValue("deviceId")] = std::string(strNameUTF8);
+    video[EncodableValue("label")] = EncodableValue(std::string(strGuidUTF8));
+    video[EncodableValue("deviceId")] = EncodableValue(std::string(strNameUTF8));
     video[EncodableValue("facing")] = i == 1 ? "front" : "back";
     video[EncodableValue("kind")] = "videoinput";
     sources.push_back(EncodableValue(video));
   }
   EncodableMap params;
-  params[EncodableValue("sources")] = sources;
+  params[EncodableValue("sources")] = EncodableValue(sources);
   result->Success(EncodableValue(params));
 }
 
@@ -275,31 +275,31 @@ void FlutterMediaStream::MediaStreamGetTracks(
     for (auto track : audio_tracks.std_vector()) {
       base_->local_tracks_[track->id().std_string()] = track;
       EncodableMap info;
-      info[EncodableValue("id")] = track->id().std_string();
-      info[EncodableValue("label")] = track->id().std_string();
-      info[EncodableValue("kind")] = track->kind().std_string();
-      info[EncodableValue("enabled")] = track->enabled();
-      info[EncodableValue("remote")] = true;
+      info[EncodableValue("id")] = EncodableValue(track->id().std_string());
+      info[EncodableValue("label")] = EncodableValue(track->id().std_string());
+      info[EncodableValue("kind")] = EncodableValue(track->kind().std_string());
+      info[EncodableValue("enabled")] = EncodableValue(track->enabled());
+      info[EncodableValue("remote")] = EncodableValue(true);
       info[EncodableValue("readyState")] = "live";
       audioTracks.push_back(EncodableValue(info));
     }
-    params[EncodableValue("audioTracks")] = audioTracks;
+    params[EncodableValue("audioTracks")] = EncodableValue(audioTracks);
 
     EncodableList videoTracks;
     auto video_tracks = stream->video_tracks();
     for (auto track : video_tracks.std_vector()) {
       base_->local_tracks_[track->id().std_string()] = track;
       EncodableMap info;
-      info[EncodableValue("id")] = track->id().std_string();
-      info[EncodableValue("label")] = track->id().std_string();
-      info[EncodableValue("kind")] = track->kind().std_string();
-      info[EncodableValue("enabled")] = track->enabled();
-      info[EncodableValue("remote")] = true;
+      info[EncodableValue("id")] = EncodableValue(track->id().std_string());
+      info[EncodableValue("label")] = EncodableValue(track->id().std_string());
+      info[EncodableValue("kind")] = EncodableValue(track->kind().std_string());
+      info[EncodableValue("enabled")] = EncodableValue(track->enabled());
+      info[EncodableValue("remote")] = EncodableValue(true);
       info[EncodableValue("readyState")] = "live";
       videoTracks.push_back(EncodableValue("info"));
     }
 
-    params[EncodableValue("videoTracks")] = videoTracks;
+    params[EncodableValue("videoTracks")] = EncodableValue(videoTracks);
 
     result->Success(EncodableValue("params"));
   } else {
