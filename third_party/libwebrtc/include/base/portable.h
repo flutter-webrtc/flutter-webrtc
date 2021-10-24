@@ -34,28 +34,6 @@ namespace portable {
 #ifndef _TRUNCATE
 #define _TRUNCATE ((size_t)-1)
 #endif  // _TRUNCATE
-static int strncpy_safe(char* dest,
-                        size_t numberOfElements,
-                        const char* src,
-                        size_t count) {
-  if (!count)
-    return 0;
-  if (!dest || !src || !numberOfElements)
-    return -1;
-  size_t end = count != _TRUNCATE && count < numberOfElements
-                   ? count
-                   : numberOfElements - 1;
-  size_t i = 0;
-  for (; i < end && src[i]; ++i) {
-    dest[i] = src[i];
-  }
-  if (!src[i] || end == count || count == _TRUNCATE) {
-    dest[i] = '\0';
-    return 0;
-  }
-  dest[0] = '\0';
-  return -1;
-}
 #endif
 
 #define PORTABLE_STRING_BUF_SIZE 48
