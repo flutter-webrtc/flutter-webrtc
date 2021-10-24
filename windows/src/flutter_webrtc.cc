@@ -109,7 +109,7 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     pc->AddStream(stream);
-    result->Success(nullptr);
+    result->Success();
   } else if (method_call.method_name().compare("removeStream") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");
@@ -132,7 +132,7 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     pc->RemoveStream(stream);
-    result->Success(nullptr);
+    result->Success();
   } else if (method_call.method_name().compare("setLocalDescription") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -353,7 +353,7 @@ void FlutterWebRTC::HandleMethodCall(
     int64_t texture_id = findLongInt(params, "textureId");
 
     SetMediaStream(texture_id, stream_id);
-    result->Success(nullptr);
+    result->Success();
   } else if (method_call.method_name().compare(
                  "mediaStreamTrackSwitchCamera") == 0) {
     if (!method_call.arguments()) {

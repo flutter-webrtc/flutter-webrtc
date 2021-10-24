@@ -5,7 +5,6 @@ namespace flutter_webrtc_plugin {
 FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar *registrar,
                                            BinaryMessenger *messenger)
     : registrar_(registrar) {
-
     texture_ =
       std::make_unique<flutter::TextureVariant>(flutter::PixelBufferTexture(
           [this](size_t width,
@@ -67,7 +66,7 @@ void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
     if (event_sink_) {
       EncodableMap params;
       params[EncodableValue("event")] = "didFirstFrameRendered";
-      params[EncodableValue("id")] = texture_id_;
+      params[EncodableValue("id")] = EncodableValue(texture_id_);
       event_sink_->Success(EncodableValue(params));
     }
     pixel_buffer_.reset(new FlutterDesktopPixelBuffer());
@@ -79,8 +78,8 @@ void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
     if (event_sink_) {
       EncodableMap params;
       params[EncodableValue("event")] = "didTextureChangeRotation";
-      params[EncodableValue("id")] = texture_id_;
-      params[EncodableValue("rotation")] = (int32_t)frame->rotation();
+      params[EncodableValue("id")] = EncodableValue(texture_id_);
+      params[EncodableValue("rotation")] = EncodableValue((int32_t)frame->rotation());
       event_sink_->Success(EncodableValue(params));
     }
     rotation_ = frame->rotation();
@@ -90,9 +89,9 @@ void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
     if (event_sink_) {
       EncodableMap params;
       params[EncodableValue("event")] = "didTextureChangeVideoSize";
-      params[EncodableValue("id")] = texture_id_;
-      params[EncodableValue("width")] = (int32_t)frame->width();
-      params[EncodableValue("height")] = (int32_t)frame->height();
+      params[EncodableValue("id")] = EncodableValue(texture_id_);
+      params[EncodableValue("width")] = EncodableValue((int32_t)frame->width());
+      params[EncodableValue("height")] = EncodableValue((int32_t)frame->height());
       event_sink_->Success(EncodableValue(params));
     }
     last_frame_size_ = {(size_t)frame->width(), (size_t)frame->height()};
@@ -139,7 +138,7 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
   int64_t texture_id = texture->texture_id();
   renderers_[texture_id] = std::move(texture);
   EncodableMap params;
-  params[EncodableValue("textureId")] = texture_id;
+  params[EncodableValue("textureId")] = EncodableValue(texture_id);
   result->Success(EncodableValue(params));
 }
 
