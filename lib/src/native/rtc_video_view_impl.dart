@@ -14,10 +14,12 @@ class RTCVideoView extends StatelessWidget {
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirror = false,
     this.filterQuality = FilterQuality.low,
+    this.fit,
   }) : super(key: key);
 
   final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
+  final BoxFit? fit;
   final bool mirror;
   final FilterQuality filterQuality;
 
@@ -38,9 +40,10 @@ class RTCVideoView extends StatelessWidget {
         height: constraints.maxHeight,
         child: FittedBox(
           clipBehavior: Clip.hardEdge,
-          fit: objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
-              ? BoxFit.contain
-              : BoxFit.cover,
+          fit: fit ??
+              (objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
+                  ? BoxFit.contain
+                  : BoxFit.cover),
           child: Center(
             child: ValueListenableBuilder<RTCVideoValue>(
               valueListenable: videoRenderer,
