@@ -1,7 +1,7 @@
 #include "flutter_media_stream.h"
 
-#define DEFAULT_WIDTH 1280
-#define DEFAULT_HEIGHT 720
+#define DEFAULT_WIDTH 640
+#define DEFAULT_HEIGHT 480
 #define DEFAULT_FPS 30
 
 namespace flutter_webrtc_plugin {
@@ -151,34 +151,31 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   //bool isFacing = facing_mode == "" || facing_mode != "environment";
   std::string sourceId = getSourceIdConstraint(video_constraints);
  
-  int width = findInt(video_mandatory, "minWidth");
+  EncodableValue widthValue = findEncodableValue(video_mandatory, "minWidth");
 
-  if (width == -1)
-    width = findInt(video_mandatory, "width");
+  if (widthValue == EncodableValue())
+    widthValue = findEncodableValue(video_mandatory, "width");
 
-  if (width == -1)
-    width = DEFAULT_WIDTH;
+  EncodableValue heightValue = findEncodableValue(video_mandatory, "minHeight");
 
-  int height = findInt(video_mandatory, "minHeight");
+  if (heightValue == EncodableValue())
+    heightValue = findEncodableValue(video_mandatory, "height");
 
-  if (height == -1)
-    height = findInt(video_mandatory, "height");
 
-  if (height == -1)
-    height = DEFAULT_HEIGHT;
+  EncodableValue fpsValue = findEncodableValue(video_mandatory, "minFrameRate");
 
-  int fps = findInt(video_mandatory, "minFrameRate");
+  if (fpsValue == EncodableValue())
+    fpsValue = findEncodableValue(video_mandatory, "frameRate");
 
-  if (fps == -1)
-    fps = findInt(video_mandatory, "frameRate");
-
-  if (height == -1)
-    height = DEFAULT_FPS;
 
   scoped_refptr<RTCVideoCapturer> video_capturer;
   char strNameUTF8[256];
   char strGuidUTF8[256];
   int nb_video_devices = base_->video_device_->NumberOfDevices();
+
+  int32_t width = toInt(widthValue, DEFAULT_WIDTH);
+  int32_t height = toInt(heightValue, DEFAULT_HEIGHT);
+  int32_t fps = toInt(fpsValue, DEFAULT_FPS);
 
   for (int i = 0; i < nb_video_devices; i++) {
     base_->video_device_->GetDeviceName(i, strNameUTF8, 256, strGuidUTF8, 256);
@@ -312,6 +309,12 @@ void FlutterMediaStream::MediaStreamDispose(
     const std::string& stream_id,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   scoped_refptr<RTCMediaStream> stream = base_->MediaStreamForId(stream_id);
+
+  if (!stream) {
+    result->Error("MediaStreamDisposeFailed", "stream [" + stream_id + "] not found!");
+    return;
+  }
+
   vector<scoped_refptr<RTCAudioTrack>> audio_tracks = stream->audio_tracks();
   
   for (auto track : audio_tracks.std_vector()) {
@@ -324,6 +327,7 @@ void FlutterMediaStream::MediaStreamDispose(
     stream->RemoveTrack(track);
     base_->local_tracks_.erase(track->id().std_string());
   }
+
   base_->RemoveStreamForId(stream_id);
   result->Success();
 }
