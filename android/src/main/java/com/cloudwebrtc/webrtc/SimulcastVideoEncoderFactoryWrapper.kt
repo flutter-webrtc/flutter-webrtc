@@ -174,6 +174,9 @@ internal class SimulcastVideoEncoderFactoryWrapper(
             if (encoder == null) {
                 return null
             }
+            if (encoder is WrappedNativeVideoEncoder) {
+              return null
+            }
             return StreamEncoderWrapper(encoder)
         }
 
