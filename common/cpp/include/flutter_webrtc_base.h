@@ -94,6 +94,18 @@ inline int64_t findLongInt(const EncodableMap& map, const std::string& key) {
   return -1;
 }
 
+inline int toInt(EncodableValue inputVal, int defaultVal) {
+  int intValue = defaultVal;
+  if (TypeIs<int>(inputVal)) {
+    intValue = GetValue<int>(inputVal);
+  } else if (TypeIs<int32_t>(inputVal)) {
+    intValue = GetValue<int32_t>(inputVal);
+  } else if (TypeIs<std::string>(inputVal)) {
+    intValue = atoi(GetValue<std::string>(inputVal).c_str());
+  }
+  return intValue;
+}
+
 class FlutterWebRTCBase {
  public:
   friend class FlutterMediaStream;

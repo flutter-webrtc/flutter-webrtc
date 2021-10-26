@@ -82,7 +82,7 @@ class string {
   }
 
   inline std::string std_string() const {
-    return std::string(m_dynamic == 0 ? m_buf : m_dynamic);
+    return std::string(m_dynamic == 0 ? m_buf : m_dynamic, m_length);
   }
 };
 
