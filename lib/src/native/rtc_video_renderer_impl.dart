@@ -77,6 +77,7 @@ class RTCVideoRendererNative extends VideoRenderer {
         onResize?.call();
         break;
       case 'didFirstFrameRendered':
+        value = value.copyWith(renderVideo: renderVideo);
         break;
     }
   }
