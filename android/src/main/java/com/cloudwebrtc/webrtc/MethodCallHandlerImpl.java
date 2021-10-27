@@ -18,6 +18,7 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
+import com.cloudwebrtc.webrtc.SimulcastVideoEncoderFactoryWrapper;
 
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
@@ -155,7 +156,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     mFactory = PeerConnectionFactory.builder()
             .setOptions(new Options())
-            .setVideoEncoderFactory(new DefaultVideoEncoderFactory(eglContext, false, true))
+            .setVideoEncoderFactory(new SimulcastVideoEncoderFactoryWrapper(eglContext, true, false))
             .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
             .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory();
@@ -1145,7 +1146,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   public void mediaStreamTrackSetEnabled(final String id, final boolean enabled) {
-    MediaStreamTrack track = localTracks.get(id);
+    MediaStreamTrack track = getTrackForId(id);
 
     if (track == null) {
       Log.d(TAG, "mediaStreamTrackSetEnabled() track is null");
