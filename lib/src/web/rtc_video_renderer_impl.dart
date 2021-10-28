@@ -207,6 +207,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
         ..style.border = 'none'
         ..style.width = '100%'
         ..style.height = '100%'
+        ..style.transform = mirror ? 'rotateY(0.5turn)' : ''
         ..srcObject = _videoStream
         ..id = _elementIdForVideo
         ..setAttribute('playsinline', 'true');
