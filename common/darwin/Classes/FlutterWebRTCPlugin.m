@@ -659,10 +659,6 @@
             return;
         }
 
-        if ([track.kind isEqualToString:@"audio"]) {
-            [AudioUtils ensureAudioSessionWithRecording:YES];
-        }
-
         result([self rtpSenderToMap:sender]);
     } else if ([@"removeTrack" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
@@ -732,10 +728,6 @@
             message:[NSString stringWithFormat:@"Error: can't addTransceiver!"]
             details:nil]);
             return;
-        }
-
-        if (hasAudio) {
-            [AudioUtils ensureAudioSessionWithRecording:YES];
         }
 
         result([self transceiverToMap:transceiver]);
