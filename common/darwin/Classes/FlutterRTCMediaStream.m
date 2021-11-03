@@ -5,6 +5,7 @@
 #import "FlutterRTCFrameCapturer.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
+#import "AudioUtils.h"
 
 #if TARGET_OS_IPHONE
 #import "FlutterRPScreenRecorder.h"
@@ -71,9 +72,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     NSString *trackId = [[NSUUID UUID] UUIDString];
     RTCAudioTrack *audioTrack
     = [self.peerConnectionFactory audioTrackWithTrackId:trackId];
-    
+
     [mediaStream addAudioTrack:audioTrack];
-    
+
+    // allow audio capture
+    [AudioUtils ensureAudioSessionWithRecording:YES];
+
     successCallback(mediaStream);
 }
 
@@ -88,20 +92,20 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream
     = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
-    
+
     [self
      getUserMedia:constraints
      successCallback:^ (RTCMediaStream *mediaStream) {
          NSString *mediaStreamId = mediaStream.streamId;
-         
+
          NSMutableArray *audioTracks = [NSMutableArray array];
          NSMutableArray *videoTracks = [NSMutableArray array];
-         
+
          for (RTCAudioTrack *track in mediaStream.audioTracks) {
              [self.localTracks setObject:track forKey:track.trackId];
              [audioTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
          }
-         
+
          for (RTCVideoTrack *track in mediaStream.videoTracks) {
              [self.localTracks setObject:track forKey:track.trackId];
              [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
@@ -161,7 +165,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             return;
         }
     }
-    
+
     // If mediaStream contains no videoTracks and the constraints request such a
     // track, then run an iteration of the getUserMedia() algorithm to obtain
     // local video content.
@@ -185,7 +189,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 #endif
         }
     }
-    
+
     // There are audioTracks and/or videoTracks in mediaStream as requested by
     // constraints so the getUserMedia() is to conclude with success.
     successCallback(mediaStream);
@@ -258,17 +262,17 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             videoDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
         }
     }
-    
+
     //TODO(rostopira): refactor to separate function and add support for max
 
     self._targetWidth = 1280;
     self._targetHeight = 720;
     self._targetFps = 30;
-    
+
     if (!videoDevice && [constraints[@"video"] boolValue] == YES) {
         videoDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     }
-    
+
     id mandatory = [videoConstraints isKindOfClass:[NSDictionary class]]? videoConstraints[@"mandatory"] : nil ;
 
     // constraints.video.mandatory
@@ -296,7 +300,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             }
         }
     }
-    
+
     if (videoDevice) {
         RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
         if (self.videoCapturer) {
@@ -310,11 +314,11 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                 NSLog(@"Start capture error: %@", [error localizedDescription]);
             }
         }];
-        
+
         NSString *trackUUID = [[NSUUID UUID] UUIDString];
         RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
         [mediaStream addVideoTrack:videoTrack];
-        
+
         successCallback(mediaStream);
     } else {
         // According to step 6.2.3 of the getUserMedia() algorithm, if there is no
@@ -390,7 +394,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                              errorCallback:errorCallback
                                mediaStream:mediaStream];
                     };
-                    
+
                     if (mediaType == AVMediaTypeAudio) {
                         [self getUserAudio:constraints
                            successCallback:scb
@@ -441,19 +445,19 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                 result:(FlutterResult)result {
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
-    
+
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
     FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
 
     [screenCapturer startCapture];
-    
+
     //TODO:
     self.videoCapturer = screenCapturer;
-    
+
     NSString *trackUUID = [[NSUUID UUID] UUIDString];
     RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
     [mediaStream addVideoTrack:videoTrack];
-    
+
     NSMutableArray *audioTracks = [NSMutableArray array];
     NSMutableArray *videoTracks = [NSMutableArray array];
 
@@ -461,7 +465,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
         [self.localTracks setObject:track forKey:track.trackId];
         [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
     }
-    
+
     self.localStreams[mediaStreamId] = mediaStream;
     result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
 }

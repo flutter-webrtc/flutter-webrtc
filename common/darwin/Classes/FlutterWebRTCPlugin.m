@@ -359,13 +359,17 @@
         NSDictionary* argsMap = call.arguments;
         NSString* streamId = argsMap[@"streamId"];
         RTCMediaStream *stream = self.localStreams[streamId];
+        BOOL shouldCallResult = YES;
         if (stream) {
             for (RTCVideoTrack *track in stream.videoTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
                 RTCVideoSource *source = videoTrack.source;
                 if(source){
-                    [self.videoCapturer stopCapture];
+                    shouldCallResult = NO;
+                    [self.videoCapturer stopCaptureWithCompletionHandler:^{
+                      result(nil);
+                    }];
                     self.videoCapturer = nil;
                 }
             }
@@ -374,7 +378,10 @@
             }
             [self.localStreams removeObjectForKey:streamId];
         }
-        result(nil);
+        if (shouldCallResult) {
+          // do not call if will be called in stopCapturer above.
+          result(nil);
+        }
     } else if ([@"mediaStreamTrackSetEnable" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
@@ -652,10 +659,6 @@
             return;
         }
 
-        if ([track.kind isEqualToString:@"audio"]) {
-            [AudioUtils ensureAudioSessionWithRecording:YES];
-        }
-
         result([self rtpSenderToMap:sender]);
     } else if ([@"removeTrack" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
@@ -725,10 +728,6 @@
             message:[NSString stringWithFormat:@"Error: can't addTransceiver!"]
             details:nil]);
             return;
-        }
-
-        if (hasAudio) {
-            [AudioUtils ensureAudioSessionWithRecording:YES];
         }
 
         result([self transceiverToMap:transceiver]);
