@@ -11,25 +11,18 @@ import android.util.LongSparseArray;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.cloudwebrtc.webrtc.record.AudioChannel;
-import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
-import com.cloudwebrtc.webrtc.SimulcastVideoEncoderFactoryWrapper;
 
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
 import org.webrtc.DefaultVideoDecoderFactory;
-import org.webrtc.DefaultVideoEncoderFactory;
-import org.webrtc.DtmfSender;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
-import org.webrtc.MediaConstraints;
-import org.webrtc.MediaConstraints.KeyValuePair;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
@@ -47,7 +40,6 @@ import org.webrtc.PeerConnection.TcpCandidatePolicy;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.PeerConnectionFactory.InitializationOptions;
 import org.webrtc.PeerConnectionFactory.Options;
-import org.webrtc.RtpSender;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
@@ -55,9 +47,6 @@ import org.webrtc.VideoTrack;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -149,7 +138,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     audioDeviceModule = JavaAudioDeviceModule.builder(context)
             .setUseHardwareAcousticEchoCanceler(true)
             .setUseHardwareNoiseSuppressor(true)
-            .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
             .createAudioDeviceModule();
 
     getUserMediaImpl.audioDeviceModule = (JavaAudioDeviceModule) audioDeviceModule;
@@ -235,18 +223,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         result.success(resultMap);
         break;
       }
-      case "addStream": {
-        String streamId = call.argument("streamId");
-        String peerConnectionId = call.argument("peerConnectionId");
-        peerConnectionAddStream(streamId, peerConnectionId, result);
-        break;
-      }
-      case "removeStream": {
-        String streamId = call.argument("streamId");
-        String peerConnectionId = call.argument("peerConnectionId");
-        peerConnectionRemoveStream(streamId, peerConnectionId, result);
-        break;
-      }
       case "setLocalDescription": {
         String peerConnectionId = call.argument("peerConnectionId");
         Map<String, Object> description = call.argument("description");
@@ -261,30 +237,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                 result);
         break;
       }
-      case "sendDtmf": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String tone = call.argument("tone");
-        int duration = call.argument("duration");
-        int gap = call.argument("gap");
-        PeerConnection peerConnection = getPeerConnection(peerConnectionId);
-        if (peerConnection != null) {
-          RtpSender audioSender = null;
-          for (RtpSender sender : peerConnection.getSenders()) {
-
-            if (sender.track().kind().equals("audio")) {
-              audioSender = sender;
-            }
-          }
-          if (audioSender != null) {
-            DtmfSender dtmfSender = audioSender.dtmf();
-            dtmfSender.insertDtmf(tone, duration, gap);
-          }
-          result.success("success");
-        } else {
-          resultError("dtmf", "peerConnection is null", result);
-        }
-        break;
-      }
       case "addCandidate": {
         String peerConnectionId = call.argument("peerConnectionId");
         Map<String, Object> candidate = call.argument("candidate");
@@ -295,41 +247,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         String peerConnectionId = call.argument("peerConnectionId");
         String trackId = call.argument("trackId");
         peerConnectionGetStats(trackId, peerConnectionId, result);
-        break;
-      }
-      case "createDataChannel": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String label = call.argument("label");
-        Map<String, Object> dataChannelDict = call.argument("dataChannelDict");
-        createDataChannel(peerConnectionId, label, new ConstraintsMap(dataChannelDict), result);
-        break;
-      }
-      case "dataChannelSend": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        int dataChannelId = call.argument("dataChannelId");
-        String type = call.argument("type");
-        Boolean isBinary = type.equals("binary");
-        ByteBuffer byteBuffer;
-        if (isBinary) {
-          byteBuffer = ByteBuffer.wrap(call.argument("data"));
-        } else {
-          try {
-            String data = call.argument("data");
-            byteBuffer = ByteBuffer.wrap(data.getBytes("UTF-8"));
-          } catch (UnsupportedEncodingException e) {
-            resultError("dataChannelSend", "Could not encode text string as UTF-8.", result);
-            return;
-          }
-        }
-        dataChannelSend(peerConnectionId, dataChannelId, byteBuffer, isBinary);
-        result.success(null);
-        break;
-      }
-      case "dataChannelClose": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        int dataChannelId = call.argument("dataChannelId");
-        dataChannelClose(peerConnectionId, dataChannelId);
-        result.success(null);
         break;
       }
       case "streamDispose": {
@@ -470,60 +387,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         boolean enable = call.argument("enable");
         audioManager.setSpeakerphoneOn(enable);
         result.success(null);
-        break;
-      case "getDisplayMedia": {
-        Map<String, Object> constraints = call.argument("constraints");
-        ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
-        getDisplayMedia(constraintsMap, result);
-        break;
-      }
-      case "startRecordToFile":
-        //This method can a lot of different exceptions
-        //so we should notify plugin user about them
-        try {
-          String path = call.argument("path");
-          VideoTrack videoTrack = null;
-          String videoTrackId = call.argument("videoTrackId");
-          if (videoTrackId != null) {
-            MediaStreamTrack track = getTrackForId(videoTrackId);
-            if (track instanceof VideoTrack) {
-              videoTrack = (VideoTrack) track;
-            }
-          }
-          AudioChannel audioChannel = null;
-          if (call.hasArgument("audioChannel")
-                  && call.argument("audioChannel") != null) {
-            audioChannel = AudioChannel.values()[(Integer) call.argument("audioChannel")];
-          }
-          Integer recorderId = call.argument("recorderId");
-          if (videoTrack != null || audioChannel != null) {
-            getUserMediaImpl.startRecordingToFile(path, recorderId, videoTrack, audioChannel);
-            result.success(null);
-          } else {
-            resultError("startRecordToFile", "No tracks", result);
-          }
-        } catch (Exception e) {
-          resultError("startRecordToFile", e.getMessage(), result);
-        }
-        break;
-      case "stopRecordToFile":
-        Integer recorderId = call.argument("recorderId");
-        getUserMediaImpl.stopRecording(recorderId);
-        result.success(null);
-        break;
-      case "captureFrame":
-        String path = call.argument("path");
-        String videoTrackId = call.argument("trackId");
-        if (videoTrackId != null) {
-          MediaStreamTrack track = getTrackForId(videoTrackId);
-          if (track instanceof VideoTrack) {
-            new FrameCapturer((VideoTrack) track, new File(path), result);
-          } else {
-            resultError("captureFrame", "It's not video track", result);
-          }
-        } else {
-          resultError("captureFrame", "Track is null", result);
-        }
         break;
       case "getLocalDescription": {
         String peerConnectionId = call.argument("peerConnectionId");
@@ -934,7 +797,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
     // cryptoOptions
     if (map.hasKey("cryptoOptions")
-          && map.getType("cryptoOptions") == ObjectType.Map) {
+            && map.getType("cryptoOptions") == ObjectType.Map) {
       final ConstraintsMap cryptoOptions = map.getMap("cryptoOptions");
       conf.cryptoOptions = CryptoOptions.builder()
               .setEnableGcmCryptoSuites(cryptoOptions.hasKey("enableGcmCryptoSuites") && cryptoOptions.getBoolean("enableGcmCryptoSuites"))
@@ -1074,22 +937,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     getUserMediaImpl.getUserMedia(constraints, result, mediaStream);
   }
 
-  public void getDisplayMedia(ConstraintsMap constraints, Result result) {
-    String streamId = getNextStreamUUID();
-    MediaStream mediaStream = mFactory.createLocalMediaStream(streamId);
-
-    if (mediaStream == null) {
-      // XXX The following does not follow the getUserMedia() algorithm
-      // specified by
-      // https://www.w3.org/TR/mediacapture-streams/#dom-mediadevices-getusermedia
-      // with respect to distinguishing the various causes of failure.
-      resultError("getDisplayMedia", "Failed to create new media stream", result);
-      return;
-    }
-
-    getUserMediaImpl.getDisplayMedia(constraints, result, mediaStream);
-  }
-
   public void getSources(Result result) {
     ConstraintsArray array = new ConstraintsArray();
     String[] names = new String[Camera.getNumberOfCameras()];
@@ -1126,23 +973,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     Map<String, Object> resultMap = new HashMap<>();
     resultMap.put("streamId", mediaStream.getId());
     result.success(resultMap);
-  }
-
-  public void mediaStreamTrackStop(final String id) {
-    // Is this functionality equivalent to `mediaStreamTrackRelease()` ?
-    // if so, we should merge this two and remove track from stream as well.
-    MediaStreamTrack track = localTracks.get(id);
-    if (track == null) {
-      Log.d(TAG, "mediaStreamTrackStop() track is null");
-      return;
-    }
-    track.setEnabled(false);
-    if (track.kind().equals("video")) {
-      getUserMediaImpl.removeVideoCapturer(id);
-    }
-    localTracks.remove(id);
-    // What exactly does `detached` mean in doc?
-    // see: https://www.w3.org/TR/mediacapture-streams/#track-detached
   }
 
   public void mediaStreamTrackSetEnabled(final String id, final boolean enabled) {
@@ -1209,27 +1039,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     result.success(null);
   }
 
-  public void mediaStreamTrackRelease(final String streamId, final String _trackId) {
-    MediaStream stream = localStreams.get(streamId);
-    if (stream == null) {
-      Log.d(TAG, "mediaStreamTrackRelease() stream is null");
-      return;
-    }
-    MediaStreamTrack track = localTracks.get(_trackId);
-    if (track == null) {
-      Log.d(TAG, "mediaStreamTrackRelease() track is null");
-      return;
-    }
-    track.setEnabled(false); // should we do this?
-    localTracks.remove(_trackId);
-    if (track.kind().equals("audio")) {
-      stream.removeTrack((AudioTrack) track);
-    } else if (track.kind().equals("video")) {
-      stream.removeTrack((VideoTrack) track);
-      getUserMediaImpl.removeVideoCapturer(_trackId);
-    }
-  }
-
   public ConstraintsMap getCameraInfo(int index) {
     CameraInfo info = new CameraInfo();
 
@@ -1249,15 +1058,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     return params;
   }
 
-  private MediaConstraints defaultConstraints() {
-    MediaConstraints constraints = new MediaConstraints();
-    // TODO video media
-    constraints.mandatory.add(new KeyValuePair("OfferToReceiveAudio", "true"));
-    constraints.mandatory.add(new KeyValuePair("OfferToReceiveVideo", "true"));
-    constraints.optional.add(new KeyValuePair("DtlsSrtpKeyAgreement", "true"));
-    return constraints;
-  }
-
   public void peerConnectionSetConfiguration(ConstraintsMap configuration,
                                              PeerConnection peerConnection) {
     if (peerConnection == null) {
@@ -1265,37 +1065,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       return;
     }
     peerConnection.setConfiguration(parseRTCConfiguration(configuration));
-  }
-
-  public void peerConnectionAddStream(final String streamId, final String id, Result result) {
-    MediaStream mediaStream = localStreams.get(streamId);
-    if (mediaStream == null) {
-      Log.d(TAG, "peerConnectionAddStream() mediaStream is null");
-      return;
-    }
-    PeerConnection peerConnection = getPeerConnection(id);
-    if (peerConnection != null) {
-      boolean res = peerConnection.addStream(mediaStream);
-      Log.d(TAG, "addStream" + result);
-      result.success(res);
-    } else {
-      resultError("peerConnectionAddStream", "peerConnection is null", result);
-    }
-  }
-
-  public void peerConnectionRemoveStream(final String streamId, final String id, Result result) {
-    MediaStream mediaStream = localStreams.get(streamId);
-    if (mediaStream == null) {
-      Log.d(TAG, "peerConnectionRemoveStream() mediaStream is null");
-      return;
-    }
-    PeerConnection peerConnection = getPeerConnection(id);
-    if (peerConnection != null) {
-      peerConnection.removeStream(mediaStream);
-      result.success(null);
-    } else {
-      resultError("peerConnectionRemoveStream", "peerConnection is null", result);
-    }
   }
 
   public void peerConnectionCreateOffer(
@@ -1493,44 +1262,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       localStreams.remove(id);
     } else {
       Log.d(TAG, "mediaStreamRelease() mediaStream is null");
-    }
-  }
-
-  public void createDataChannel(final String peerConnectionId, String label, ConstraintsMap config,
-                                Result result) {
-    // Forward to PeerConnectionObserver which deals with DataChannels
-    // because DataChannel is owned by PeerConnection.
-    PeerConnectionObserver pco
-            = mPeerConnectionObservers.get(peerConnectionId);
-    if (pco == null || pco.getPeerConnection() == null) {
-      Log.d(TAG, "createDataChannel() peerConnection is null");
-    } else {
-      pco.createDataChannel(label, config, result);
-    }
-  }
-
-  public void dataChannelSend(String peerConnectionId, int dataChannelId, ByteBuffer bytebuffer,
-                              Boolean isBinary) {
-    // Forward to PeerConnectionObserver which deals with DataChannels
-    // because DataChannel is owned by PeerConnection.
-    PeerConnectionObserver pco
-            = mPeerConnectionObservers.get(peerConnectionId);
-    if (pco == null || pco.getPeerConnection() == null) {
-      Log.d(TAG, "dataChannelSend() peerConnection is null");
-    } else {
-      pco.dataChannelSend(dataChannelId, bytebuffer, isBinary);
-    }
-  }
-
-  public void dataChannelClose(String peerConnectionId, int dataChannelId) {
-    // Forward to PeerConnectionObserver which deals with DataChannels
-    // because DataChannel is owned by PeerConnection.
-    PeerConnectionObserver pco
-            = mPeerConnectionObservers.get(peerConnectionId);
-    if (pco == null || pco.getPeerConnection() == null) {
-      Log.d(TAG, "dataChannelClose() peerConnection is null");
-    } else {
-      pco.dataChannelClose(dataChannelId);
     }
   }
 

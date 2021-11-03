@@ -6,8 +6,6 @@ import 'dart:js_util' as jsutil;
 import '../interface/enums.dart';
 import '../interface/media_stream.dart';
 import '../interface/media_stream_track.dart';
-import '../interface/rtc_data_channel.dart';
-import '../interface/rtc_dtmf_sender.dart';
 import '../interface/rtc_ice_candidate.dart';
 import '../interface/rtc_peerconnection.dart';
 import '../interface/rtc_rtp_receiver.dart';
@@ -18,8 +16,6 @@ import '../interface/rtc_stats_report.dart';
 import '../interface/rtc_track_event.dart';
 import 'media_stream_impl.dart';
 import 'media_stream_track_impl.dart';
-import 'rtc_data_channel_impl.dart';
-import 'rtc_dtmf_sender_impl.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
 import 'rtc_rtp_transceiver_impl.dart';
@@ -29,51 +25,6 @@ import 'rtc_rtp_transceiver_impl.dart';
  */
 class RTCPeerConnectionWeb extends RTCPeerConnection {
   RTCPeerConnectionWeb(this._peerConnectionId, this._jsPc) {
-    _jsPc.onAddStream.listen((mediaStreamEvent) {
-      final jsStream = mediaStreamEvent.stream;
-      if (jsStream == null) {
-        throw Exception('Unable to get the stream from the event');
-      }
-      if (jsStream.id == null) {
-        throw Exception('The stream must have a valid identifier');
-      }
-
-      final _remoteStream = _remoteStreams.putIfAbsent(
-          jsStream.id!, () => MediaStreamWeb(jsStream, _peerConnectionId));
-
-      onAddStream?.call(_remoteStream);
-
-      jsStream.onAddTrack.listen((mediaStreamTrackEvent) {
-        final jsTrack =
-            (mediaStreamTrackEvent as html.MediaStreamTrackEvent).track;
-        if (jsTrack == null) {
-          throw Exception('The Media Stream track is null');
-        }
-        final track = MediaStreamTrackWeb(jsTrack);
-        _remoteStream.addTrack(track, addToNative: false).then((_) {
-          onAddTrack?.call(_remoteStream, track);
-        });
-      });
-
-      jsStream.onRemoveTrack.listen((mediaStreamTrackEvent) {
-        final jsTrack =
-            (mediaStreamTrackEvent as html.MediaStreamTrackEvent).track;
-        if (jsTrack == null) {
-          throw Exception('The Media Stream track is null');
-        }
-        final track = MediaStreamTrackWeb(jsTrack);
-        _remoteStream.removeTrack(track, removeFromNative: false).then((_) {
-          onRemoveTrack?.call(_remoteStream, track);
-        });
-      });
-    });
-
-    _jsPc.onDataChannel.listen((dataChannelEvent) {
-      if (dataChannelEvent.channel != null) {
-        onDataChannel?.call(RTCDataChannelWeb(dataChannelEvent.channel!));
-      }
-    });
-
     _jsPc.onIceCandidate.listen((iceEvent) {
       if (iceEvent.candidate != null) {
         onIceCandidate?.call(_iceFromJs(iceEvent.candidate!));
@@ -90,16 +41,6 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
       _iceGatheringState = iceGatheringStateforString(_jsPc.iceGatheringState);
       onIceGatheringState?.call(_iceGatheringState!);
     }));
-
-    _jsPc.onRemoveStream.listen((mediaStreamEvent) {
-      if (mediaStreamEvent.stream?.id != null) {
-        final _remoteStream =
-            _remoteStreams.remove(mediaStreamEvent.stream!.id);
-        if (_remoteStream != null) {
-          onRemoveStream?.call(_remoteStream);
-        }
-      }
-    });
 
     _jsPc.onSignalingStateChange.listen((_) {
       _signalingState = signalingStateForString(_jsPc.signalingState);
@@ -136,8 +77,6 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
 
   final String _peerConnectionId;
   late final html.RtcPeerConnection _jsPc;
-  final _localStreams = <String, MediaStream>{};
-  final _remoteStreams = <String, MediaStream>{};
   final _configuration = <String, dynamic>{};
 
   RTCSignalingState? _signalingState;
@@ -192,23 +131,6 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
         jsutil.callMethod(_jsPc, 'createAnswer', args));
     return RTCSessionDescription(
         jsutil.getProperty(desc, 'sdp'), jsutil.getProperty(desc, 'type'));
-  }
-
-  @override
-  Future<void> addStream(MediaStream stream) {
-    var _native = stream as MediaStreamWeb;
-    _localStreams.putIfAbsent(
-        stream.id, () => MediaStreamWeb(_native.jsStream, _peerConnectionId));
-    _jsPc.addStream(_native.jsStream);
-    return Future.value();
-  }
-
-  @override
-  Future<void> removeStream(MediaStream stream) async {
-    var _native = stream as MediaStreamWeb;
-    _localStreams.remove(stream.id);
-    _jsPc.removeStream(_native.jsStream);
-    return Future.value();
   }
 
   @override
@@ -272,38 +194,9 @@ class RTCPeerConnectionWeb extends RTCPeerConnection {
   }
 
   @override
-  List<MediaStream> getLocalStreams() =>
-      _jsPc.getLocalStreams().map((e) => _localStreams[e.id]!).toList();
-
-  @override
-  List<MediaStream> getRemoteStreams() => _jsPc
-      .getRemoteStreams()
-      .map((jsStream) => _remoteStreams[jsStream.id]!)
-      .toList();
-
-  @override
-  Future<RTCDataChannel> createDataChannel(
-      String label, RTCDataChannelInit dataChannelDict) {
-    final map = dataChannelDict.toMap();
-    if (dataChannelDict.binaryType == 'binary') {
-      map['binaryType'] = 'arraybuffer'; // Avoid Blob in data channel
-    }
-
-    final jsDc = _jsPc.createDataChannel(label, map);
-    return Future.value(RTCDataChannelWeb(jsDc));
-  }
-
-  @override
   Future<void> close() async {
     _jsPc.close();
     return Future.value();
-  }
-
-  @override
-  RTCDTMFSender createDtmfSender(MediaStreamTrack track) {
-    var _native = track as MediaStreamTrackWeb;
-    var jsDtmfSender = _jsPc.createDtmfSender(_native.jsTrack);
-    return RTCDTMFSenderWeb(jsDtmfSender);
   }
 
   //

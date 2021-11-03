@@ -33,21 +33,7 @@ class MediaDeviceNative extends MediaDevices {
   @override
   Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
-    try {
-      final response = await WebRTC.invokeMethod(
-        'getDisplayMedia',
-        <String, dynamic>{'constraints': mediaConstraints},
-      );
-      if (response == null) {
-        throw Exception('getDisplayMedia return null, something wrong');
-      }
-      String streamId = response['streamId'];
-      var stream = MediaStreamNative(streamId, 'local');
-      stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
-      return stream;
-    } on PlatformException catch (e) {
-      throw 'Unable to getDisplayMedia: ${e.message}';
-    }
+    throw UnsupportedError('getDisplayMedia is not supported on Android platform');
   }
 
   @override

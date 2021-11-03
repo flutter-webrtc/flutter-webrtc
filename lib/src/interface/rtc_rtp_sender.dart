@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'media_stream_track.dart';
-import 'rtc_dtmf_sender.dart';
 import 'rtc_rtp_parameters.dart';
 import 'rtc_stats_report.dart';
 
@@ -25,8 +24,6 @@ abstract class RTCRtpSender {
   String get senderId;
 
   bool get ownsTrack;
-
-  RTCDTMFSender get dtmfSender;
 
   @mustCallSuper
   Future<void> dispose();

@@ -1,8 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
-
-import 'package:path_provider/path_provider.dart';
 
 import '../helper.dart';
 import '../interface/media_stream_track.dart';
@@ -71,21 +67,6 @@ class MediaStreamTrackNative extends MediaStreamTrack {
       'enableSpeakerphone',
       <String, dynamic>{'trackId': _trackId, 'enable': enable},
     );
-  }
-
-  @override
-  Future<ByteBuffer> captureFrame() async {
-    var filePath = await getTemporaryDirectory();
-    await WebRTC.invokeMethod(
-      'captureFrame',
-      <String, dynamic>{
-        'trackId': _trackId,
-        'path': filePath.path + '/captureFrame.png'
-      },
-    );
-    return File(filePath.path + '/captureFrame.png')
-        .readAsBytes()
-        .then((value) => value.buffer);
   }
 
   @override

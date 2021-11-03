@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -23,22 +22,13 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.ResultReceiver;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Range;
-import android.util.SparseArray;
 import android.view.Surface;
-import android.view.WindowManager;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.cloudwebrtc.webrtc.record.AudioChannel;
-import com.cloudwebrtc.webrtc.record.AudioSamplesInterceptor;
-import com.cloudwebrtc.webrtc.record.MediaRecorderImpl;
-import com.cloudwebrtc.webrtc.record.OutputAudioSamplesInterceptor;
 import com.cloudwebrtc.webrtc.utils.Callback;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
@@ -66,7 +56,6 @@ import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,13 +76,6 @@ class GetUserMediaImpl {
 
     private static final String PERMISSION_AUDIO = Manifest.permission.RECORD_AUDIO;
     private static final String PERMISSION_VIDEO = Manifest.permission.CAMERA;
-    private static final String PERMISSION_SCREEN = "android.permission.MediaProjection";
-    private static int CAPTURE_PERMISSION_REQUEST_CODE = 1;
-    private static final String GRANT_RESULTS = "GRANT_RESULT";
-    private static final String PERMISSIONS = "PERMISSION";
-    private static final String PROJECTION_DATA = "PROJECTION_DATA";
-    private static final String RESULT_RECEIVER = "RESULT_RECEIVER";
-    private static final String REQUEST_CODE = "REQUEST_CODE";
 
     static final String TAG = FlutterWebRTCPlugin.TAG;
 
@@ -102,108 +84,7 @@ class GetUserMediaImpl {
     private final StateProvider stateProvider;
     private final Context applicationContext;
 
-    static final int minAPILevel = Build.VERSION_CODES.LOLLIPOP;
-    private MediaProjectionManager mProjectionManager = null;
-    private static MediaProjection sMediaProjection = null;
-
-    final AudioSamplesInterceptor inputSamplesInterceptor = new AudioSamplesInterceptor();
-    private OutputAudioSamplesInterceptor outputSamplesInterceptor = null;
     JavaAudioDeviceModule audioDeviceModule;
-    private final SparseArray<MediaRecorderImpl> mediaRecorders = new SparseArray<>();
-
-    public void screenRequestPremissions(ResultReceiver resultReceiver) {
-        final Activity activity = stateProvider.getActivity();
-        if (activity == null) {
-            // Activity went away, nothing we can do.
-            return;
-        }
-
-        Bundle args = new Bundle();
-        args.putParcelable(RESULT_RECEIVER, resultReceiver);
-        args.putInt(REQUEST_CODE, CAPTURE_PERMISSION_REQUEST_CODE);
-
-        ScreenRequestPermissionsFragment fragment = new ScreenRequestPermissionsFragment();
-        fragment.setArguments(args);
-
-        FragmentTransaction transaction =
-                activity
-                        .getFragmentManager()
-                        .beginTransaction()
-                        .add(fragment, fragment.getClass().getName());
-
-        try {
-            transaction.commit();
-        } catch (IllegalStateException ise) {
-
-        }
-    }
-
-    public static class ScreenRequestPermissionsFragment extends Fragment {
-
-        private ResultReceiver resultReceiver = null;
-        private int requestCode = 0;
-        private int resultCode = 0;
-
-        private void checkSelfPermissions(boolean requestPermissions) {
-            if (resultCode != Activity.RESULT_OK) {
-                Activity activity = this.getActivity();
-                Bundle args = getArguments();
-                resultReceiver = args.getParcelable(RESULT_RECEIVER);
-                requestCode = args.getInt(REQUEST_CODE);
-                requestStart(activity, requestCode);
-            }
-        }
-
-        public void requestStart(Activity activity, int requestCode) {
-            if (android.os.Build.VERSION.SDK_INT < minAPILevel) {
-                Log.w(
-                        TAG,
-                        "Can't run requestStart() due to a low API level. API level 21 or higher is required.");
-                return;
-            } else {
-                MediaProjectionManager mediaProjectionManager =
-                        (MediaProjectionManager) activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-
-                // call for the projection manager
-                this.startActivityForResult(
-                        mediaProjectionManager.createScreenCaptureIntent(), requestCode);
-            }
-        }
-
-        @Override
-        public void onActivityResult(int requestCode, int resultCode, Intent data) {
-            super.onActivityResult(requestCode, resultCode, data);
-            resultCode = resultCode;
-            String[] permissions;
-            if (resultCode != Activity.RESULT_OK) {
-                finish();
-                Bundle resultData = new Bundle();
-                resultData.putString(PERMISSIONS, PERMISSION_SCREEN);
-                resultData.putInt(GRANT_RESULTS, resultCode);
-                resultReceiver.send(requestCode, resultData);
-                return;
-            }
-            Bundle resultData = new Bundle();
-            resultData.putString(PERMISSIONS, PERMISSION_SCREEN);
-            resultData.putInt(GRANT_RESULTS, resultCode);
-            resultData.putParcelable(PROJECTION_DATA, data);
-            resultReceiver.send(requestCode, resultData);
-            finish();
-        }
-
-        private void finish() {
-            Activity activity = getActivity();
-            if (activity != null) {
-                activity.getFragmentManager().beginTransaction().remove(this).commitAllowingStateLoss();
-            }
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            checkSelfPermissions(/* requestPermissions */ true);
-        }
-    }
 
     GetUserMediaImpl(StateProvider stateProvider, Context applicationContext) {
         this.stateProvider = stateProvider;
@@ -435,128 +316,6 @@ class GetUserMediaImpl {
                         // permission, fail "with a new DOMException object whose
                         // name attribute has the value NotAllowedError."
                         resultError("getUserMedia", "DOMException, NotAllowedError", result);
-                    }
-                });
-    }
-
-    void getDisplayMedia(
-            final ConstraintsMap constraints, final Result result, final MediaStream mediaStream) {
-        ConstraintsMap videoConstraintsMap = null;
-        ConstraintsMap videoConstraintsMandatory = null;
-
-        if (constraints.getType("video") == ObjectType.Map) {
-            videoConstraintsMap = constraints.getMap("video");
-            if (videoConstraintsMap.hasKey("mandatory")
-                    && videoConstraintsMap.getType("mandatory") == ObjectType.Map) {
-                videoConstraintsMandatory = videoConstraintsMap.getMap("mandatory");
-            }
-        }
-
-        final ConstraintsMap videoConstraintsMandatory2 = videoConstraintsMandatory;
-
-        screenRequestPremissions(
-                new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                    @Override
-                    protected void onReceiveResult(int requestCode, Bundle resultData) {
-
-                        /* Create ScreenCapture */
-                        int resultCode = resultData.getInt(GRANT_RESULTS);
-                        Intent mediaProjectionData = resultData.getParcelable(PROJECTION_DATA);
-
-                        if (resultCode != Activity.RESULT_OK) {
-                            resultError("screenRequestPremissions", "User didn't give permission to capture the screen.", result);
-                            return;
-                        }
-
-                        MediaStreamTrack[] tracks = new MediaStreamTrack[1];
-                        VideoCapturer videoCapturer = null;
-                        videoCapturer =
-                                new OrientationAwareScreenCapturer(
-                                        mediaProjectionData,
-                                        new MediaProjection.Callback() {
-                                            @Override
-                                            public void onStop() {
-                                                super.onStop();
-                                                // After Huawei P30 and Android 10 version test, the onstop method is called, which will not affect the next process, 
-                                                // and there is no need to call the resulterror method
-                                                //resultError("MediaProjection.Callback()", "User revoked permission to capture the screen.", result);
-                                            }
-                                        });
-                        if (videoCapturer == null) {
-                            resultError("screenRequestPremissions", "GetDisplayMediaFailed, User revoked permission to capture the screen.", result);
-                            return;
-                        }
-
-                        PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
-                        VideoSource videoSource = pcFactory.createVideoSource(true);
-
-                        String threadName = Thread.currentThread().getName();
-                        SurfaceTextureHelper surfaceTextureHelper =
-                                SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
-                        videoCapturer.initialize(
-                                surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
-
-                        WindowManager wm =
-                                (WindowManager) applicationContext.getSystemService(Context.WINDOW_SERVICE);
-
-                        VideoCapturerInfo info = new VideoCapturerInfo();
-                        info.width = wm.getDefaultDisplay().getWidth();
-                        info.height = wm.getDefaultDisplay().getHeight();
-                        info.fps = DEFAULT_FPS;
-                        info.isScreenCapture = true;
-                        info.capturer = videoCapturer;
-
-                        videoCapturer.startCapture(info.width, info.height, info.fps);
-                        Log.d(TAG, "OrientationAwareScreenCapturer.startCapture: " + info.width + "x" + info.height + "@" + info.fps);
-
-                        String trackId = stateProvider.getNextTrackUUID();
-                        mVideoCapturers.put(trackId, info);
-
-                        tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
-
-                        ConstraintsArray audioTracks = new ConstraintsArray();
-                        ConstraintsArray videoTracks = new ConstraintsArray();
-                        ConstraintsMap successResult = new ConstraintsMap();
-
-                        for (MediaStreamTrack track : tracks) {
-                            if (track == null) {
-                                continue;
-                            }
-
-                            String id = track.id();
-
-                            if (track instanceof AudioTrack) {
-                                mediaStream.addTrack((AudioTrack) track);
-                            } else {
-                                mediaStream.addTrack((VideoTrack) track);
-                            }
-                            stateProvider.getLocalTracks().put(id, track);
-
-                            ConstraintsMap track_ = new ConstraintsMap();
-                            String kind = track.kind();
-
-                            track_.putBoolean("enabled", track.enabled());
-                            track_.putString("id", id);
-                            track_.putString("kind", kind);
-                            track_.putString("label", kind);
-                            track_.putString("readyState", track.state().toString());
-                            track_.putBoolean("remote", false);
-
-                            if (track instanceof AudioTrack) {
-                                audioTracks.pushMap(track_);
-                            } else {
-                                videoTracks.pushMap(track_);
-                            }
-                        }
-
-                        String streamId = mediaStream.getId();
-
-                        Log.d(TAG, "MediaStream id: " + streamId);
-                        stateProvider.getLocalStreams().put(streamId, mediaStream);
-                        successResult.putString("streamId", streamId);
-                        successResult.putArray("audioTracks", audioTracks.toArrayList());
-                        successResult.putArray("videoTracks", videoTracks.toArrayList());
-                        result.success(successResult.toMap());
                     }
                 });
     }
@@ -806,49 +565,6 @@ class GetUserMediaImpl {
             }
         }
         resultError("switchCamera", "Switching camera failed: " + id, result);
-    }
-
-    /**
-     * Creates and starts recording of local stream to file
-     *
-     * @param path         to the file for record
-     * @param videoTrack   to record or null if only audio needed
-     * @param audioChannel channel for recording or null
-     * @throws Exception lot of different exceptions, pass back to dart layer to print them at least
-     */
-    void startRecordingToFile(
-            String path, Integer id, @Nullable VideoTrack videoTrack, @Nullable AudioChannel audioChannel)
-            throws Exception {
-        AudioSamplesInterceptor interceptor = null;
-        if (audioChannel == AudioChannel.INPUT) {
-            interceptor = inputSamplesInterceptor;
-        } else if (audioChannel == AudioChannel.OUTPUT) {
-            if (outputSamplesInterceptor == null) {
-                outputSamplesInterceptor = new OutputAudioSamplesInterceptor(audioDeviceModule);
-            }
-            interceptor = outputSamplesInterceptor;
-        }
-        MediaRecorderImpl mediaRecorder = new MediaRecorderImpl(id, videoTrack, interceptor);
-        mediaRecorder.startRecording(new File(path));
-        mediaRecorders.append(id, mediaRecorder);
-    }
-
-    void stopRecording(Integer id) {
-        MediaRecorderImpl mediaRecorder = mediaRecorders.get(id);
-        if (mediaRecorder != null) {
-            mediaRecorder.stopRecording();
-            mediaRecorders.remove(id);
-            File file = mediaRecorder.getRecordFile();
-            if (file != null) {
-                ContentValues values = new ContentValues(3);
-                values.put(MediaStore.Video.Media.TITLE, file.getName());
-                values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
-                values.put(MediaStore.Video.Media.DATA, file.getAbsolutePath());
-                applicationContext
-                        .getContentResolver()
-                        .insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
-            }
-        }
     }
 
     void hasTorch(String trackId, Result result) {

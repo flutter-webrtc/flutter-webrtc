@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.webrtc.EglBase;
 import org.webrtc.MediaStream;
-import org.webrtc.MediaStreamTrack;
 import org.webrtc.RendererCommon.RendererEvents;
 import org.webrtc.VideoTrack;
 

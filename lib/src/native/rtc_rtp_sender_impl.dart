@@ -4,16 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../interface/media_stream_track.dart';
-import '../interface/rtc_dtmf_sender.dart';
 import '../interface/rtc_rtp_parameters.dart';
 import '../interface/rtc_rtp_sender.dart';
 import '../interface/rtc_stats_report.dart';
 import 'media_stream_track_impl.dart';
-import 'rtc_dtmf_sender_impl.dart';
 import 'utils.dart';
 
 class RTCRtpSenderNative extends RTCRtpSender {
-  RTCRtpSenderNative(this._id, this._track, this._dtmf, this._parameters,
+  RTCRtpSenderNative(this._id, this._track, this._parameters,
       this._ownsTrack, this._peerConnectionId);
 
   factory RTCRtpSenderNative.fromMap(Map<dynamic, dynamic> map,
@@ -24,7 +22,6 @@ class RTCRtpSenderNative extends RTCRtpSender {
         (trackMap.isNotEmpty)
             ? MediaStreamTrackNative.fromMap(map['track'])
             : null,
-        RTCDTMFSenderNative(peerConnectionId, map['senderId']),
         RTCRtpParameters.fromMap(map['rtpParameters']),
         map['ownsTrack'],
         peerConnectionId);
@@ -41,7 +38,6 @@ class RTCRtpSenderNative extends RTCRtpSender {
   String _peerConnectionId;
   String _id;
   MediaStreamTrack? _track;
-  RTCDTMFSender _dtmf;
   RTCRtpParameters _parameters;
   bool _ownsTrack = false;
 
@@ -121,9 +117,6 @@ class RTCRtpSenderNative extends RTCRtpSender {
 
   @override
   bool get ownsTrack => _ownsTrack;
-
-  @override
-  RTCDTMFSender get dtmfSender => _dtmf;
 
   @override
   @mustCallSuper

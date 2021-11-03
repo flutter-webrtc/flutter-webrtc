@@ -1,4 +1,3 @@
-import 'media_recorder.dart';
 import 'media_stream.dart';
 import 'navigator.dart';
 import 'rtc_peerconnection.dart';
@@ -12,8 +11,6 @@ abstract class RTCFactory {
   Future<MediaStream> createLocalMediaStream(String label);
 
   Navigator get navigator;
-
-  MediaRecorder mediaRecorder();
 
   VideoRenderer videoRenderer();
 }
