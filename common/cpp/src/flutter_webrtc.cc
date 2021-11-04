@@ -298,7 +298,6 @@ void FlutterWebRTC::HandleMethodCall(
     }
     track->set_enabled(GetValue<bool>(enable));
     result->Success();
-    //MediaStreamTrackSetEnable(track_id, std::move(result));
   } else if (method_call.method_name().compare("trackDispose") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
