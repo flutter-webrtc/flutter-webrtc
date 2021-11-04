@@ -293,7 +293,7 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableValue enable = findEncodableValue(params, "enabled");
     RTCMediaTrack* track = MediaTrackForId(track_id);
     if (nullptr == track) {
-      result->Error("mediaStreamTrackSetEnable", "rtpSenderSetTrack() track is null");
+      result->Error("mediaStreamTrackSetEnableFailed", "mediaStreamTrackSetEnable() track is null");
       return;
     }
     track->set_enabled(GetValue<bool>(enable));
