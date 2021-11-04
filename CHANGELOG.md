@@ -1,6 +1,15 @@
 # Changelog
 
 --------------------------------------------
+[0.7.1] - 2021-11-04
+
+* [iOS/macOS] Update framework.
+* [Android] Update framework.
+* [Windows] Implement mediaStreamTrackSetEnable (#756).
+* [iOS/macOS] Enable audio capture when acquiring track.
+* [Android] Call stopCaptureWithCompletionHandler instead (#748)
+* [Windows] Fix bug for windows.
+
 [0.7.0+hotfix.2] - 2021-10-21
 
 * [iOS/macOS] Update .podspec for Darwin.
