@@ -515,7 +515,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 -(void)mediaStreamTrackSetEnabled:(RTCMediaStreamTrack *)track : (BOOL)enabled
 {
-  if (track && track.isEnabled != enabled) {
+    // fix for issue
+  if (track) {
+    NSLog(@"jungjy mediaStreamTrackSetEnabled : %@", enabled);
     track.isEnabled = enabled;
   }
 }
