@@ -160,7 +160,6 @@ class RTCVideoRendererWeb extends VideoRenderer {
 
   @override
   Future<void> dispose() async {
-    await _srcObject?.dispose();
     _srcObject = null;
     _subscriptions.forEach((s) => s.cancel());
     final element = findHtmlView();
