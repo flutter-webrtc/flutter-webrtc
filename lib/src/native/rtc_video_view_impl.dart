@@ -13,12 +13,14 @@ class RTCVideoView extends StatelessWidget {
     Key? key,
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirror = false,
+    this.enableContextMenu = true,
     this.filterQuality = FilterQuality.low,
   }) : super(key: key);
 
   final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
+  final bool enableContextMenu;
   final FilterQuality filterQuality;
 
   RTCVideoRendererNative get videoRenderer =>

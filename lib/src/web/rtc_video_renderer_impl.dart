@@ -51,6 +51,8 @@ class RTCVideoRendererWeb extends VideoRenderer {
 
   bool mirror = false;
 
+  bool enableContextMenu = true;
+
   final _subscriptions = <StreamSubscription>[];
 
   String _objectFit = 'contain';
@@ -210,7 +212,9 @@ class RTCVideoRendererWeb extends VideoRenderer {
         ..style.transform = mirror ? 'rotateY(0.5turn)' : ''
         ..srcObject = _videoStream
         ..id = _elementIdForVideo
-        ..setAttribute('playsinline', 'true');
+        ..setAttribute('playsinline', 'true')
+        ..setAttribute(
+            'oncontextmenu', enableContextMenu ? '' : 'return false;');
 
       _subscriptions.add(
         element.onCanPlay.listen((dynamic _) {

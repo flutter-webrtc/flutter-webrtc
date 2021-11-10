@@ -33,7 +33,8 @@ class MediaDeviceNative extends MediaDevices {
   @override
   Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
-    throw UnsupportedError('getDisplayMedia is not supported on Android platform');
+    throw UnsupportedError(
+        'getDisplayMedia is not supported on Android platform');
   }
 
   @override

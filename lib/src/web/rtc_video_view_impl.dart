@@ -12,12 +12,14 @@ class RTCVideoView extends StatefulWidget {
     Key? key,
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirror = false,
+    this.enableContextMenu = true,
     this.filterQuality = FilterQuality.low,
   }) : super(key: key);
 
   final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
+  final bool enableContextMenu;
   final FilterQuality filterQuality;
 
   @override
@@ -35,6 +37,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     super.initState();
     widget._renderer.delegate.addListener(_onRendererListener);
     videoRenderer.mirror = widget.mirror;
+    videoRenderer.enableContextMenu = widget.enableContextMenu;
     videoRenderer.objectFit =
         widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
             ? 'contain'
@@ -56,6 +59,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
     super.didUpdateWidget(oldWidget);
     Timer(
         Duration(milliseconds: 10), () => videoRenderer.mirror = widget.mirror);
+    videoRenderer.enableContextMenu = widget.enableContextMenu;
     videoRenderer.objectFit =
         widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
             ? 'contain'

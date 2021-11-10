@@ -11,8 +11,8 @@ import 'media_stream_track_impl.dart';
 import 'utils.dart';
 
 class RTCRtpSenderNative extends RTCRtpSender {
-  RTCRtpSenderNative(this._id, this._track, this._parameters,
-      this._ownsTrack, this._peerConnectionId);
+  RTCRtpSenderNative(this._id, this._track, this._parameters, this._ownsTrack,
+      this._peerConnectionId);
 
   factory RTCRtpSenderNative.fromMap(Map<dynamic, dynamic> map,
       {required String peerConnectionId}) {
