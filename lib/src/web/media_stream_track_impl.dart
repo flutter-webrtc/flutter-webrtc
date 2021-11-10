@@ -81,9 +81,7 @@ class MediaStreamTrackWeb extends MediaStreamTrack {
   }
 
   @override
-  Future<void> dispose() async {
-    return stop();
-  }
+  Future<void> dispose() async {}
 
   @override
   Future<void> stop() async {

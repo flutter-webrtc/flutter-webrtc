@@ -53,14 +53,6 @@ class MediaStreamWeb extends MediaStream {
   }
 
   @override
-  Future<void> dispose() async {
-    getTracks().forEach((element) {
-      element.stop();
-    });
-    return super.dispose();
-  }
-
-  @override
   List<MediaStreamTrack> getTracks() {
     return <MediaStreamTrack>[...getAudioTracks(), ...getVideoTracks()];
   }
