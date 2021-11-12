@@ -1058,11 +1058,13 @@ void FlutterPeerConnectionObserver::OnTrack(
 
 void FlutterPeerConnectionObserver::OnRemoveTrack(
     scoped_refptr<RTCRtpReceiver> receiver) {
+    auto track = receiver->track();
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "onRemoveTrack";
+    params[EncodableValue("trackId")] = EncodableValue(track->id().std_string());
+    params[EncodableValue("track")] = EncodableValue(mediaTrackToMap(track));
     params[EncodableValue("receiver")] = EncodableValue(rtpReceiverToMap(receiver));
-
     event_sink_->Success(EncodableValue(params));
   }
 }
