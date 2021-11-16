@@ -32,7 +32,8 @@ Future<bool> startForegroundService() async {
         name: 'background_icon',
         defType: 'drawable'), // Default is ic_launcher from folder mipmap
   );
-  return FlutterBackground.initialize(androidConfig: androidConfig);
+  await FlutterBackground.initialize(androidConfig: androidConfig);
+  return FlutterBackground.enableBackgroundExecution();
 }
 
 class MyApp extends StatefulWidget {
