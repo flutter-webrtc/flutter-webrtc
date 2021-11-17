@@ -1,0 +1,16 @@
+# Project configuration for rustfmt Rust code formatter.
+# See full list of configurations at:
+# https://github.com/rust-lang/rustfmt/blob/master/Configurations.md
+
+max_width = 80
+format_strings = false
+imports_granularity = "Crate"
+
+format_code_in_doc_comments = true
+format_macro_matchers = true
+use_try_shorthand = true
+
+error_on_line_overflow = true
+error_on_unformatted = true
+
+unstable_features = true

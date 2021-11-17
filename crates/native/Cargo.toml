@@ -1,0 +1,15 @@
+[package]
+name = "flutter-webrtc-native"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+libwebrtc-sys = { path = "../libwebrtc-sys" }
+
+[build-dependencies]
+anyhow = "1.0"
+cbindgen = "0.20"
