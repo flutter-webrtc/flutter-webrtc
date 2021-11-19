@@ -5,6 +5,7 @@
 #import "FlutterRTCFrameCapturer.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
+#import "FlutterRTCMediaRecorder.h"
 #import "AudioUtils.h"
 
 #if TARGET_OS_IPHONE
@@ -593,7 +594,42 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 -(void)mediaStreamTrackCaptureFrame:(RTCVideoTrack *)track toPath:(NSString *) path result:(FlutterResult)result
 {
+    // if (!self.videoCapturer) {
+    //     NSLog(@"Video capturer is null. Can't capture frame.");
+    //     return;
+    // }
+
     self.frameCapturer = [[FlutterRTCFrameCapturer alloc] initWithTrack:track toPath:path result:result];
+}
+
+-(void)mediaStreamTrackStartRecord:(RTCVideoTrack *)track
+                             toPath:(NSString *) path
+                         recorderId:(int) recorderId
+                             result:(FlutterResult) result
+{
+    if (!self.mediaRecorder) {
+        self.mediaRecorder = [[FlutterRTCMediaRecorder alloc] initWithMediaAtPath:path videoTrack:track result:result];
+    }
+    
+    if (self.mediaRecorder) {
+        [self.mediaRecorder startRecording];
+        result(@{@"success":@true});
+    } else {
+        result([FlutterError errorWithCode:@"Failed to start recorder" message:nil details:nil]);
+    }
+    
+}
+
+-(void)mediaStreamTrackStopRecord:(int) recorderId
+                             result:(FlutterResult) result
+{
+    if (!self.mediaRecorder) {
+        result([FlutterError errorWithCode:@"Mediarecorder not recording" message:nil details:nil]);
+        return;
+    }
+    [self.mediaRecorder stopRecording];
+    
+    result(@{@"success":@true});
 }
 
 -(void)mediaStreamTrackStop:(RTCMediaStreamTrack *)track

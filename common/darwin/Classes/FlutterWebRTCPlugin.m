@@ -950,7 +950,31 @@
         }
 
         result(@{ @"transceivers":transceivers});
-    } else {
+    }
+    else if ([@"startRecordToFile" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* path = argsMap[@"path"];
+        NSString* trackId = argsMap[@"videoTrackId"];
+
+        RTCMediaStreamTrack *track = [self trackForId: trackId];
+        if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
+            RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
+            [self mediaStreamTrackStartRecord:videoTrack toPath:path recorderId:1 result:result];
+        } else {
+            if (track == nil) {
+                result([FlutterError errorWithCode:@"Track is nil" message:nil details:nil]);
+            } else {
+                result([FlutterError errorWithCode:[@"Track is class of " stringByAppendingString:[[track class] description]] message:nil details:nil]);
+            }
+        }
+    }
+    else if ([@"stopRecordToFile" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+
+        [self mediaStreamTrackStopRecord:1 result:result];
+
+    }
+    else {
         result(FlutterMethodNotImplemented);
     }
 }

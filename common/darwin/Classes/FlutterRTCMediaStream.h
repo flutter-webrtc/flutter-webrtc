@@ -26,4 +26,12 @@
 -(void)mediaStreamTrackCaptureFrame:(RTCMediaStreamTrack *)track
                              toPath:(NSString *) path
                              result:(FlutterResult) result;
+
+-(void)mediaStreamTrackStartRecord:(RTCMediaStreamTrack *)track
+                             toPath:(NSString *) path
+                         recorderId:(int) recorderId
+                             result:(FlutterResult) result;
+
+-(void)mediaStreamTrackStopRecord:(int) recorderId
+                             result:(FlutterResult) result;
 @end
