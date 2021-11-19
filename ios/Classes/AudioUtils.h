@@ -1,7 +1,1 @@
-@interface AudioUtils : NSObject
-
-+ (void)ensureAudioSessionWithRecording:(BOOL)recording;
-// needed for wired headphones to use headphone mic
-+ (void)setPreferHeadphoneInput;
-
-@end
+../../common/darwin/Classes/AudioUtils.h
