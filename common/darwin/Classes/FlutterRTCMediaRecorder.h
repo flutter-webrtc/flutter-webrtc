@@ -16,17 +16,22 @@
 
 @interface FlutterRTCMediaRecorder : NSObject<RTCVideoRenderer>
 
-- (instancetype)initWithMediaAtPath:(NSString *) path videoTrack:(RTCVideoTrack *) track  result:(FlutterResult)result;
+- (nullable instancetype)initWithMediaAtPath:(nonnull NSString *) path
+                                  videoTrack:(nonnull RTCVideoTrack *) videoTrack;
+// TODO: Audio
+//                                  audioTrack:(nonnull RTCAudioTrack *) audioTrack;
 
-- (int)startRecording;
+- (bool)isComplete;
 
-- (bool)stopRecording;
+- (bool)startRecordingWithResult:(nonnull FlutterResult)result;
 
-- (bool)initializeRecording:(RTCVideoFrame*) firstFrame;
+- (void)stopRecordingWithResult:(nonnull FlutterResult)result;
 
-- (void)queueFrame:(RTCVideoFrame*) frame;
-- (bool)appendFrame:(RTCVideoFrame*) frame;
+- (void)storeStartFrameInfo:(nonnull RTCVideoFrame*) frame;
+- (void)queueFrame:(nonnull RTCVideoFrame*) frame;
+- (bool)appendFrame:(nonnull RTCVideoFrame*) frame;
 
-+ (bool)createCVPixelBufferFromFrame:(RTCVideoFrame*)frame toBuffer:(CVPixelBufferRef*)pixelBufferRef fromPool:(nullable CVPixelBufferPoolRef) pool;
-
++ (bool)createCVPixelBufferFromFrame:(nonnull RTCVideoFrame*)frame
+                            toBuffer:(CVPixelBufferRef _Nullable * _Nonnull)pixelBufferRef
+                            fromPool:(CVPixelBufferPoolRef _Nullable) pool;
 @end

@@ -7,7 +7,7 @@
              result:(FlutterResult)result;
 #if TARGET_OS_IPHONE
 -(void)getDisplayMedia:(NSDictionary *)constraints
-             result:(FlutterResult)result;
+                result:(FlutterResult)result;
 #endif
 -(void)createLocalMediaStream:(FlutterResult)result;
 
@@ -27,11 +27,12 @@
                              toPath:(NSString *) path
                              result:(FlutterResult) result;
 
--(void)mediaStreamTrackStartRecord:(RTCMediaStreamTrack *)track
-                             toPath:(NSString *) path
-                         recorderId:(int) recorderId
-                             result:(FlutterResult) result;
+-(void)mediaStreamTrackStartRecordToPath:(NSString *) path
+                              videoTrack:(RTCVideoTrack *)track
+                              audioTrack:(RTCVideoTrack *)track
+                              recorderId:(int) recorderId
+                                  result:(FlutterResult) result;
 
--(void)mediaStreamTrackStopRecord:(int) recorderId
-                             result:(FlutterResult) result;
+-(void)mediaStreamTrackStopRecordToPath:(int) recorderId
+                                 result:(FlutterResult) result;
 @end

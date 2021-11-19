@@ -955,11 +955,16 @@
         NSDictionary* argsMap = call.arguments;
         NSString* path = argsMap[@"path"];
         NSString* trackId = argsMap[@"videoTrackId"];
+        NSString* audioChannelId = argsMap[@"audioChannel"];
 
         RTCMediaStreamTrack *track = [self trackForId: trackId];
         if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
             RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-            [self mediaStreamTrackStartRecord:videoTrack toPath:path recorderId:1 result:result];
+            [self mediaStreamTrackStartRecordToPath:path
+                                         videoTrack:videoTrack
+//                                         audioTrack:audioTrack
+                                         recorderId:1
+                                             result:result];
         } else {
             if (track == nil) {
                 result([FlutterError errorWithCode:@"Track is nil" message:nil details:nil]);
@@ -971,7 +976,7 @@
     else if ([@"stopRecordToFile" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
 
-        [self mediaStreamTrackStopRecord:1 result:result];
+        [self mediaStreamTrackStopRecordToPath:1 result:result];
 
     }
     else {
