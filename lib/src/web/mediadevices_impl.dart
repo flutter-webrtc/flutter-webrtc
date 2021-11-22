@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
 
-import '../interface/media_stream.dart';
-import '../interface/mediadevices.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'media_stream_impl.dart';
 
 class MediaDevicesWeb extends MediaDevices {

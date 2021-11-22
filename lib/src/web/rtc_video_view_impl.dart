@@ -3,7 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../interface/enums.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import '../rtc_video_renderer.dart';
 import '../web/rtc_video_renderer_impl.dart';
 
@@ -34,7 +35,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   @override
   void initState() {
     super.initState();
-    widget._renderer.delegate.addListener(_onRendererListener);
+    videoRenderer.addListener(_onRendererListener);
     videoRenderer.mirror = widget.mirror;
     videoRenderer.objectFit =
         widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
@@ -48,7 +49,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
 
   @override
   void dispose() {
-    widget._renderer.delegate.removeListener(_onRendererListener);
+    videoRenderer.removeListener(_onRendererListener);
     super.dispose();
   }
 

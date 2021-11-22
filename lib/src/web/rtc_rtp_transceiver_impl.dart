@@ -3,12 +3,8 @@ import 'dart:js_util' as jsutil;
 
 import 'package:flutter/services.dart';
 
-import '../interface/enums.dart';
-import '../interface/media_stream.dart';
-import '../interface/rtc_rtp_parameters.dart';
-import '../interface/rtc_rtp_receiver.dart';
-import '../interface/rtc_rtp_sender.dart';
-import '../interface/rtc_rtp_transceiver.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'media_stream_impl.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';

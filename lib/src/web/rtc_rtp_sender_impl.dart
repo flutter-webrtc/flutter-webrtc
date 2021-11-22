@@ -4,11 +4,8 @@ import 'dart:js_util' as jsutil;
 
 import 'package:flutter/services.dart';
 
-import '../interface/media_stream_track.dart';
-import '../interface/rtc_dtmf_sender.dart';
-import '../interface/rtc_rtp_parameters.dart';
-import '../interface/rtc_rtp_sender.dart';
-import '../interface/rtc_stats_report.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'media_stream_track_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
 import 'rtc_rtp_parameters_impl.dart';

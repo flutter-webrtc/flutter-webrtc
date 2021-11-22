@@ -1,6 +1,5 @@
-import '../interface/media_stream.dart';
-import '../interface/mediadevices.dart';
-import '../interface/navigator.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'mediadevices_impl.dart';
 
 class NavigatorWeb extends Navigator {

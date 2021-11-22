@@ -1,8 +1,4 @@
-import '../interface/media_stream.dart';
-import '../interface/media_stream_track.dart';
-import '../interface/rtc_rtp_receiver.dart';
-import '../interface/rtc_rtp_transceiver.dart';
-import '../interface/rtc_track_event.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 class RTCTrackEventWeb extends RTCTrackEvent {
   RTCTrackEventWeb(

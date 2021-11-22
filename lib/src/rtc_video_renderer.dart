@@ -1,5 +1,4 @@
 import '../flutter_webrtc.dart';
-import 'interface/rtc_video_renderer.dart';
 
 class RTCVideoRenderer {
   RTCVideoRenderer() : _delegate = videoRenderer();

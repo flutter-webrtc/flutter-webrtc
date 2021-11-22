@@ -1,10 +1,7 @@
 import 'dart:async';
 
-import '../interface/media_recorder.dart';
-import '../interface/media_stream.dart';
-import '../interface/navigator.dart';
-import '../interface/rtc_peerconnection.dart';
-import '../interface/rtc_video_renderer.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'factory_impl.dart';
 
 Future<RTCPeerConnection> createPeerConnection(

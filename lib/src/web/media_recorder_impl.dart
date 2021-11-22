@@ -2,10 +2,8 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js' as js;
 
-import '../interface/enums.dart';
-import '../interface/media_recorder.dart';
-import '../interface/media_stream.dart';
-import '../interface/media_stream_track.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'media_stream_impl.dart';
 
 class MediaRecorderWeb extends MediaRecorder {

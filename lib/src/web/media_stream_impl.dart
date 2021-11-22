@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:html' as html;
 
-import '../interface/media_stream.dart';
-import '../interface/media_stream_track.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'media_stream_track_impl.dart';
 
 class MediaStreamWeb extends MediaStream {

@@ -1,4 +1,5 @@
-import '../interface/rtc_dtmf_sender.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'utils.dart';
 
 class RTCDTMFSenderNative extends RTCDTMFSender {

@@ -3,10 +3,11 @@ import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../interface/media_stream.dart';
-import '../interface/rtc_video_renderer.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'media_stream_impl.dart';
 
 // An error code value to error name Map.
@@ -32,8 +33,11 @@ const Map<int, String> _kErrorValueToErrorDescription = {
 const String _kDefaultErrorMessage =
     'No further diagnostic information can be determined or provided.';
 
-class RTCVideoRendererWeb extends VideoRenderer {
-  RTCVideoRendererWeb() : _textureId = _textureCounter++;
+class RTCVideoRendererWeb extends ValueNotifier<RTCVideoValue>
+    implements VideoRenderer {
+  RTCVideoRendererWeb()
+      : _textureId = _textureCounter++,
+        super(RTCVideoValue.empty);
 
   static const _elementIdForAudioManager = 'html_webrtc_audio_manager_list';
 
@@ -251,4 +255,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
       return element;
     });
   }
+
+  @override
+  Function? onResize;
 }

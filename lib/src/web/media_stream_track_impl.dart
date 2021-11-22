@@ -3,7 +3,7 @@ import 'dart:html' as html;
 import 'dart:js_util' as js;
 import 'dart:typed_data';
 
-import '../interface/media_stream_track.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 class MediaStreamTrackWeb extends MediaStreamTrack {
   MediaStreamTrackWeb(this.jsTrack) {

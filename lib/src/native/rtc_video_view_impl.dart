@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../interface/enums.dart';
-import '../interface/rtc_video_renderer.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import '../rtc_video_renderer.dart';
 import 'rtc_video_renderer_impl.dart';
 

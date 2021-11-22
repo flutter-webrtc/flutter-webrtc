@@ -1,7 +1,6 @@
 import 'dart:js_util' as jsutil;
 
-import '../interface/rtc_rtcp_parameters.dart';
-import '../interface/rtc_rtp_parameters.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 class RTCRtpParametersWeb {
   static RTCRtpParameters fromJsObject(Object object) {

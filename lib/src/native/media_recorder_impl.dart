@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 
-import '../interface/enums.dart';
-import '../interface/media_recorder.dart';
-import '../interface/media_stream.dart';
-import '../interface/media_stream_track.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'utils.dart';
 
 class MediaRecorderNative extends MediaRecorder {

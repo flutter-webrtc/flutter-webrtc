@@ -1,6 +1,6 @@
 import 'dart:html' as html;
 
-import '../interface/rtc_dtmf_sender.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 class RTCDTMFSenderWeb extends RTCDTMFSender {
   RTCDTMFSenderWeb(this._jsDtmfSender);
