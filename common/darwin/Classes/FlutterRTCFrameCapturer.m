@@ -83,8 +83,23 @@
     CGContextRelease(context);
     CGColorSpaceRelease(colorSpace);
     free(rgbBuffer);
-    
-    UIImage *image = [UIImage imageWithCGImage:cgImage];
+
+    UIImageOrientation orientation;
+    switch (frame.rotation) {
+        case RTCVideoRotation_90:
+            orientation = UIImageOrientationRight;
+            break;
+        case RTCVideoRotation_180:
+            orientation = UIImageOrientationDown;
+            break;
+        case RTCVideoRotation_270:
+            orientation = UIImageOrientationLeft;
+        default:
+            orientation = UIImageOrientationUp;
+            break;
+    }
+
+    UIImage *image = [UIImage imageWithCGImage:cgImage scale:1 orientation:orientation];
     CGImageRelease(cgImage);
     
     return image;
