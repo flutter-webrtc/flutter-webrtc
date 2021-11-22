@@ -10,7 +10,7 @@ void main() {
   test('should complete succesfully', () async {
     var renderer = RTCVideoRendererWeb();
     await renderer.initialize();
-    renderer.srcObject = await navigator.getUserMedia({});
+    renderer.srcObject = await MediaDevices.getUserMedia({});
     await renderer.dispose();
   });
 }
