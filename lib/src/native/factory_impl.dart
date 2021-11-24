@@ -59,3 +59,24 @@ class RTCFactoryNative extends RTCFactory {
   @override
   Navigator get navigator => NavigatorNative();
 }
+
+Future<RTCPeerConnection> createPeerConnection(
+    Map<String, dynamic> configuration,
+    [Map<String, dynamic> constraints = const {}]) async {
+  return RTCFactoryNative.instance
+      .createPeerConnection(configuration, constraints);
+}
+
+Future<MediaStream> createLocalMediaStream(String label) async {
+  return RTCFactoryNative.instance.createLocalMediaStream(label);
+}
+
+MediaRecorder mediaRecorder() {
+  return RTCFactoryNative.instance.mediaRecorder();
+}
+
+VideoRenderer videoRenderer() {
+  return RTCFactoryNative.instance.videoRenderer();
+}
+
+Navigator get navigator => RTCFactoryNative.instance.navigator;
