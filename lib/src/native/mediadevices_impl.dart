@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-import '../interface/media_stream.dart';
-import '../interface/mediadevices.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'media_stream_impl.dart';
 import 'utils.dart';
 

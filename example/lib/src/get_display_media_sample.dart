@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:core';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
@@ -16,7 +17,7 @@ class GetDisplayMediaSample extends StatefulWidget {
 
 class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   MediaStream? _localStream;
-  final _localRenderer = RTCVideoRenderer();
+  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   Timer? _timer;
   var _counter = 0;
@@ -75,6 +76,9 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
 
   Future<void> _stop() async {
     try {
+      if (kIsWeb) {
+        _localStream?.getTracks().forEach((track) => track.stop());
+      }
       await _localStream?.dispose();
       _localStream = null;
       _localRenderer.srcObject = null;
