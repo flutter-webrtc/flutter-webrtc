@@ -3,12 +3,11 @@ import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
 import 'dart:ui' as ui;
 
+import 'package:dart_webrtc/dart_webrtc.dart';
+import 'package:dart_webrtc/src/media_stream_impl.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-
 import 'package:webrtc_interface/webrtc_interface.dart';
-
-import 'media_stream_impl.dart';
 
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
@@ -33,9 +32,9 @@ const Map<int, String> _kErrorValueToErrorDescription = {
 const String _kDefaultErrorMessage =
     'No further diagnostic information can be determined or provided.';
 
-class RTCVideoRendererWeb extends ValueNotifier<RTCVideoValue>
+class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     implements VideoRenderer {
-  RTCVideoRendererWeb()
+  RTCVideoRenderer()
       : _textureId = _textureCounter++,
         super(RTCVideoValue.empty);
 

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
-import '../rtc_video_renderer.dart';
 import 'rtc_video_renderer_impl.dart';
 
 class RTCVideoView extends StatelessWidget {
@@ -21,8 +20,7 @@ class RTCVideoView extends StatelessWidget {
   final bool mirror;
   final FilterQuality filterQuality;
 
-  RTCVideoRendererNative get videoRenderer =>
-      _renderer.delegate as RTCVideoRendererNative;
+  RTCVideoRenderer get videoRenderer => _renderer;
 
   @override
   Widget build(BuildContext context) {

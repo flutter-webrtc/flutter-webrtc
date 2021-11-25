@@ -53,7 +53,7 @@ class RTCFactoryNative extends RTCFactory {
 
   @override
   VideoRenderer videoRenderer() {
-    return RTCVideoRendererNative();
+    return RTCVideoRenderer();
   }
 
   @override
@@ -73,10 +73,6 @@ Future<MediaStream> createLocalMediaStream(String label) async {
 
 MediaRecorder mediaRecorder() {
   return RTCFactoryNative.instance.mediaRecorder();
-}
-
-VideoRenderer videoRenderer() {
-  return RTCFactoryNative.instance.videoRenderer();
 }
 
 Navigator get navigator => RTCFactoryNative.instance.navigator;

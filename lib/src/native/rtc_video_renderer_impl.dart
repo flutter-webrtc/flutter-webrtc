@@ -8,9 +8,9 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 import '../helper.dart';
 import 'utils.dart';
 
-class RTCVideoRendererNative extends ValueNotifier<RTCVideoValue>
+class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     implements VideoRenderer {
-  RTCVideoRendererNative() : super(RTCVideoValue.empty);
+  RTCVideoRenderer() : super(RTCVideoValue.empty);
   int? _textureId;
   MediaStream? _srcObject;
   StreamSubscription<dynamic>? _eventSubscription;
