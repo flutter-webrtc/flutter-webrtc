@@ -88,7 +88,7 @@ class GetUserMediaImpl {
     private static final String PERMISSION_AUDIO = Manifest.permission.RECORD_AUDIO;
     private static final String PERMISSION_VIDEO = Manifest.permission.CAMERA;
     private static final String PERMISSION_SCREEN = "android.permission.MediaProjection";
-    private static int CAPTURE_PERMISSION_REQUEST_CODE = 1;
+    private static final int CAPTURE_PERMISSION_REQUEST_CODE = 1;
     private static final String GRANT_RESULTS = "GRANT_RESULT";
     private static final String PERMISSIONS = "PERMISSION";
     private static final String PROJECTION_DATA = "PROJECTION_DATA";
@@ -103,8 +103,6 @@ class GetUserMediaImpl {
     private final Context applicationContext;
 
     static final int minAPILevel = Build.VERSION_CODES.LOLLIPOP;
-    private MediaProjectionManager mProjectionManager = null;
-    private static MediaProjection sMediaProjection = null;
 
     final AudioSamplesInterceptor inputSamplesInterceptor = new AudioSamplesInterceptor();
     private OutputAudioSamplesInterceptor outputSamplesInterceptor = null;
@@ -357,17 +355,6 @@ class GetUserMediaImpl {
         //   should change `parseConstraints()` according
         //   see: https://www.w3.org/TR/mediacapture-streams/#idl-def-MediaTrackConstraints
 
-        ConstraintsMap videoConstraintsMap = null;
-        ConstraintsMap videoConstraintsMandatory = null;
-
-        if (constraints.getType("video") == ObjectType.Map) {
-            videoConstraintsMap = constraints.getMap("video");
-            if (videoConstraintsMap.hasKey("mandatory")
-                    && videoConstraintsMap.getType("mandatory") == ObjectType.Map) {
-                videoConstraintsMandatory = videoConstraintsMap.getMap("mandatory");
-            }
-        }
-
         final ArrayList<String> requestPermissions = new ArrayList<>();
 
         if (constraints.hasKey("audio")) {
@@ -451,8 +438,6 @@ class GetUserMediaImpl {
                 videoConstraintsMandatory = videoConstraintsMap.getMap("mandatory");
             }
         }
-
-        final ConstraintsMap videoConstraintsMandatory2 = videoConstraintsMandatory;
 
         screenRequestPremissions(
                 new ResultReceiver(new Handler(Looper.getMainLooper())) {
