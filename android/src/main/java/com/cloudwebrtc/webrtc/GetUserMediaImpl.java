@@ -349,12 +349,6 @@ class GetUserMediaImpl {
     void getUserMedia(
             final ConstraintsMap constraints, final Result result, final MediaStream mediaStream) {
 
-        // TODO: change getUserMedia constraints format to support new syntax
-        //   constraint format seems changed, and there is no mandatory any more.
-        //   and has a new syntax/attrs to specify resolution
-        //   should change `parseConstraints()` according
-        //   see: https://www.w3.org/TR/mediacapture-streams/#idl-def-MediaTrackConstraints
-
         final ArrayList<String> requestPermissions = new ArrayList<>();
 
         if (constraints.hasKey("audio")) {
@@ -615,6 +609,34 @@ class GetUserMediaImpl {
 
     private boolean isFacing = true;
 
+    /**
+     * @return Returns the integer at the key, or the `ideal` property if it is a map.
+     */
+    @Nullable
+    private Integer getConstrainInt(@Nullable ConstraintsMap constraintsMap, String key) {
+        if(constraintsMap == null){
+            return null;
+        }
+
+        if (constraintsMap.getType(key) == ObjectType.Number) {
+            try {
+                return constraintsMap.getInt(key);
+            } catch (Exception e) {
+                // Could be a double instead
+                return (int) Math.round(constraintsMap.getDouble(key));
+            }
+        }
+
+        if (constraintsMap.getType(key) == ObjectType.Map) {
+            ConstraintsMap innerMap = constraintsMap.getMap(key);
+            if (constraintsMap.getType("ideal") == ObjectType.Number) {
+                return innerMap.getInt("ideal");
+            }
+        }
+
+        return null;
+    }
+
     private VideoTrack getUserVideo(ConstraintsMap constraints) {
         ConstraintsMap videoConstraintsMap = null;
         ConstraintsMap videoConstraintsMandatory = null;
@@ -625,6 +647,7 @@ class GetUserMediaImpl {
                 videoConstraintsMandatory = videoConstraintsMap.getMap("mandatory");
             }
         }
+
 
         Log.i(TAG, "getUserMedia(video): " + videoConstraintsMap);
 
@@ -663,16 +686,25 @@ class GetUserMediaImpl {
                 surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
 
         VideoCapturerInfo info = new VideoCapturerInfo();
-        info.width =
-                videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minWidth")
+
+        Integer videoWidth = getConstrainInt(videoConstraintsMap, "width");
+        info.width = videoWidth != null
+                ? videoWidth
+                : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minWidth")
                         ? videoConstraintsMandatory.getInt("minWidth")
                         : DEFAULT_WIDTH;
-        info.height =
-                videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minHeight")
+
+        Integer videoHeight = getConstrainInt(videoConstraintsMap, "height");
+        info.height = videoHeight != null
+                ? videoHeight
+                : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minHeight")
                         ? videoConstraintsMandatory.getInt("minHeight")
                         : DEFAULT_HEIGHT;
-        info.fps =
-                videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minFrameRate")
+
+        Integer videoFrameRate = getConstrainInt(videoConstraintsMap, "frameRate");
+        info.fps = videoFrameRate != null
+                ? videoFrameRate
+                : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minFrameRate")
                         ? videoConstraintsMandatory.getInt("minFrameRate")
                         : DEFAULT_FPS;
         info.capturer = videoCapturer;
