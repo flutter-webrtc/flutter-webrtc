@@ -209,24 +209,30 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
       if (TypeIs<EncodableList>(it->second)) {
         const EncodableList urls = GetValue<EncodableList>(it->second);
         for (auto url : urls) {
-          const EncodableMap map = GetValue<EncodableMap>(url);
-          std::string value;
-          auto it2 = map.find(EncodableValue("url"));
-          if (it2 != map.end()) {
-            value =  GetValue<std::string>(it2->second);
-            if (hasUsernameAndCredential) {
-              std::string username =
-                   GetValue<std::string>(iceServerMap.find(EncodableValue("username"))
-                      ->second);
-              std::string credential =
-                  GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
-                      ->second);
-              ice_server.username = username;
-              ice_server.password = credential;
-              ice_server.uri = value;
-            } else {
-              ice_server.uri = value;
+          if (TypeIs<EncodableMap>(url)) {
+            const EncodableMap map = GetValue<EncodableMap>(url);
+            std::string value;
+            auto it2 = map.find(EncodableValue("url"));
+            if (it2 != map.end()) {
+              value =  GetValue<std::string>(it2->second);
+              if (hasUsernameAndCredential) {
+                std::string username =
+                     GetValue<std::string>(iceServerMap.find(EncodableValue("username"))
+                        ->second);
+                std::string credential =
+                    GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
+                        ->second);
+                ice_server.username = username;
+                ice_server.password = credential;
+                ice_server.uri = value;
+              } else {
+                ice_server.uri = value;
+              }
             }
+          }
+          else if (TypeIs<std::string>(url)) {
+              std::string urlString = GetValue<std::string>(url);
+              ice_server.uri = urlString;
           }
         }
       }
