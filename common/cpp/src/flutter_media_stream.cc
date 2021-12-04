@@ -342,5 +342,7 @@ void FlutterMediaStream::MediaStreamTrackSwitchCamera(
 
 void FlutterMediaStream::MediaStreamTrackDispose(
     const std::string& track_id,
-    std::unique_ptr<MethodResult<EncodableValue>> result) {}
+    std::unique_ptr<MethodResult<EncodableValue>> result) {
+    result->Success();
+}
 }  // namespace flutter_webrtc_plugin
