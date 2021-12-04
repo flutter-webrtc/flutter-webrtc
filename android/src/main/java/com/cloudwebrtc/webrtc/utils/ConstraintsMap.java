@@ -128,4 +128,11 @@ public class ConstraintsMap {
     public ArrayList<Object> getListArray(String name){
         return (ArrayList<Object>) mMap.get(name);
     }
+
+    @Override
+    public String toString() {
+        return "ConstraintsMap{" +
+                "mMap=" + mMap +
+                '}';
+    }
 }
