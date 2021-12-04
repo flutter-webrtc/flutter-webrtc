@@ -133,6 +133,26 @@ std::string getSourceIdConstraint(const EncodableMap& mediaConstraints) {
   return "";
 }
 
+EncodableValue getConstrainInt(const EncodableMap& constraints, const std::string& key) {
+  EncodableValue value;
+  auto it = constraints.find(EncodableValue(key));
+  if(it != constraints.end()) {
+    if(TypeIs<int>(it->second)) {
+      return it->second;
+    }
+
+    if(TypeIs<EncodableMap>(it->second)) {
+      EncodableMap innerMap = GetValue<EncodableMap>(it->second);
+      auto it2 = innerMap.find(EncodableValue("ideal"));
+      if(it2 != constraints.end() && TypeIs<int>(it2->second)){
+        return it2->second;
+      }
+    }
+  }
+
+  return EncodableValue();
+}
+
 void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
                                       scoped_refptr<RTCMediaStream> stream,
                                       EncodableMap& params) {
@@ -140,10 +160,10 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   EncodableMap video_mandatory;
   auto it = constraints.find(EncodableValue("video"));
   if (it != constraints.end() && TypeIs<EncodableMap>(it->second)) {
-    EncodableMap video_map =   GetValue<EncodableMap>(it->second);
-    if (video_map.find(EncodableValue("mandatory")) != video_map.end()) {
+    video_constraints = GetValue<EncodableMap>(it->second);
+    if (video_constraints.find(EncodableValue("mandatory")) != video_constraints.end()) {
       video_mandatory =
-          GetValue<EncodableMap>(video_map.find(EncodableValue("mandatory"))->second);
+          GetValue<EncodableMap>(video_constraints.find(EncodableValue("mandatory"))->second);
     }
   }
 
@@ -151,18 +171,26 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   //bool isFacing = facing_mode == "" || facing_mode != "environment";
   std::string sourceId = getSourceIdConstraint(video_constraints);
  
-  EncodableValue widthValue = findEncodableValue(video_mandatory, "minWidth");
+  EncodableValue widthValue = getConstrainInt(video_constraints, "width");
+
+  if (widthValue == EncodableValue())
+    widthValue = findEncodableValue(video_mandatory, "minWidth");
 
   if (widthValue == EncodableValue())
     widthValue = findEncodableValue(video_mandatory, "width");
 
-  EncodableValue heightValue = findEncodableValue(video_mandatory, "minHeight");
+  EncodableValue heightValue = getConstrainInt(video_constraints, "height");
+
+  if(heightValue == EncodableValue())
+    heightValue = findEncodableValue(video_mandatory, "minHeight");
 
   if (heightValue == EncodableValue())
     heightValue = findEncodableValue(video_mandatory, "height");
 
+  EncodableValue fpsValue = getConstrainInt(video_constraints, "frameRate");
 
-  EncodableValue fpsValue = findEncodableValue(video_mandatory, "minFrameRate");
+  if(fpsValue == EncodableValue())
+    fpsValue = findEncodableValue(video_mandatory, "minFrameRate");
 
   if (fpsValue == EncodableValue())
     fpsValue = findEncodableValue(video_mandatory, "frameRate");
