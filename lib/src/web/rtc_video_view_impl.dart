@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-
 import 'package:dart_webrtc/dart_webrtc.dart';
+import 'package:flutter/material.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 import 'rtc_video_renderer_impl.dart';

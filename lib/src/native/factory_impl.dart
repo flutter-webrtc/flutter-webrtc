@@ -51,7 +51,6 @@ class RTCFactoryNative extends RTCFactory {
     return MediaRecorderNative();
   }
 
-  @override
   VideoRenderer videoRenderer() {
     return RTCVideoRenderer();
   }
