@@ -9,6 +9,7 @@
 
 @class FlutterRTCVideoRenderer;
 @class FlutterRTCFrameCapturer;
+@class FlutterRTCVideoCapturer;
 
 @interface FlutterWebRTCPlugin : NSObject<FlutterPlugin, RTCPeerConnectionDelegate>
 
@@ -23,6 +24,7 @@
 @property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
 @property (nonatomic, strong) RTCCameraVideoCapturer *videoCapturer;
 @property (nonatomic, strong) FlutterRTCFrameCapturer *frameCapturer;
+@property (nonatomic, strong) FlutterRTCVideoCapturer *screenCapturer;
 @property (nonatomic) BOOL _usingFrontCamera;
 @property (nonatomic) int _targetWidth;
 @property (nonatomic) int _targetHeight;

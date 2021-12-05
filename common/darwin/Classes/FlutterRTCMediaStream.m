@@ -7,9 +7,7 @@
 #import "FlutterRTCPeerConnection.h"
 #import "AudioUtils.h"
 
-#if TARGET_OS_IPHONE
 #import "FlutterRPScreenRecorder.h"
-#endif
 
 @implementation AVCaptureDevice (Flutter)
 
@@ -483,19 +481,24 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 #endif
 }
 
-#if TARGET_OS_IPHONE
+
 -(void)getDisplayMedia:(NSDictionary *)constraints
                 result:(FlutterResult)result {
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
 
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
-    FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
 
-    [screenCapturer startCapture];
+#if TARGET_OS_IPHONE
+    FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
+#elif TARGET_OS_OSX
+    FlutterMacOSDisplayVideoCapturer *screenCapturer = [[FlutterMacOSDisplayVideoCapturer alloc] initWithDelegate:videoSource];
+#endif
+    
+//    [screenCapturer startCapture];
 
     //TODO:
-    self.videoCapturer = screenCapturer;
+    self.screenCapturer = screenCapturer;
 
     NSString *trackUUID = [[NSUUID UUID] UUIDString];
     RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
@@ -510,9 +513,14 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     }
 
     self.localStreams[mediaStreamId] = mediaStream;
-    result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
+    
+    [screenCapturer startCaptureWithCompletionHandler:^(NSError * _Nullable error) {
+        result(@{@"streamId": mediaStreamId,
+                 @"audioTracks" : audioTracks,
+                 @"videoTracks" : videoTracks });
+    }];
 }
-#endif
+
 -(void)createLocalMediaStream:(FlutterResult)result{
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];

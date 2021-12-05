@@ -1,6 +1,7 @@
 #import "FlutterRPScreenRecorder.h"
-#if TARGET_OS_IPHONE
 #import <ReplayKit/ReplayKit.h>
+
+#if TARGET_OS_IPHONE
 
 //See: https://developer.apple.com/videos/play/wwdc2017/606/
 
@@ -90,3 +91,103 @@
 
 @end
 #endif
+
+#if TARGET_OS_OSX
+
+@implementation FlutterMacOSDisplayVideoCapturer {
+    RTCVideoSource *source;
+    AVCaptureSession *session;
+    AVCaptureVideoDataOutput *output;
+}
+
+- (instancetype)initWithDelegate:(__weak id<RTCVideoCapturerDelegate>)delegate {
+    source = delegate;
+    // Create the session
+    session = [[AVCaptureSession alloc] init];
+    // Prepare the output
+    output = [[AVCaptureVideoDataOutput alloc] init];
+    // Specify output format
+    output.videoSettings = @{
+        (NSString*)kCVPixelBufferPixelFormatTypeKey: [NSNumber numberWithUnsignedInt:kCVPixelFormatType_420YpCbCr8BiPlanarFullRange],
+    };
+    // Set delegate
+    [output setSampleBufferDelegate:self queue:dispatch_get_main_queue()];
+    [session addOutput:output];
+
+    return [super initWithDelegate:delegate];
+}
+
+-(void)startCaptureWithCompletionHandler:(void (^)(NSError * _Nullable))completionHandler {
+
+    AVCaptureScreenInput *screenInput = [[AVCaptureScreenInput alloc] initWithDisplayID:CGMainDisplayID()];
+    if (screenInput == nil) completionHandler([NSError errorWithDomain:@"MacOSScreenCapturer"
+                                                            code:0
+                                                        userInfo:nil]);
+
+    // Remove all current inputs
+    for (AVCaptureInput* input in session.inputs) {
+        [session removeInput:input];
+    }
+    
+    // Add new input
+    [session addInput:screenInput];
+    
+    [session startRunning];
+    completionHandler(nil);
+}
+
+- (void)stopCaptureWithCompletionHandler:(void (^)(NSError * _Nullable))completionHandler {
+    [session stopRunning];
+    completionHandler(nil);
+}
+
+#pragma mark - AVCaptureVideoDataOutputSampleBufferDelegate
+
+- (void)captureOutput:(AVCaptureOutput *)output
+  didDropSampleBuffer:(CMSampleBufferRef)sampleBuffer
+       fromConnection:(AVCaptureConnection *)connection {
+    
+    NSLog(@"did capture frame");
+
+    [self captureSampleBuffer:sampleBuffer
+                 dimensionsHandler:nil];
+}
+
+@end
+
+#endif
+
+
+
+@implementation RTCVideoCapturer (Flutter)
+
+- (void)captureSampleBuffer:(nonnull CMSampleBufferRef)sampleBuffer
+          dimensionsHandler:(nullable void (^)(size_t, size_t))dimensionsHandler;{
+    
+    if (CMSampleBufferGetNumSamples(sampleBuffer) != 1 ||
+        !CMSampleBufferIsValid(sampleBuffer) ||
+        !CMSampleBufferDataIsReady(sampleBuffer)) {
+        return;
+    }
+    
+    CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+    if (pixelBuffer == nil) {
+        return;
+    }
+    
+    if (dimensionsHandler != nil) {
+        size_t width = CVPixelBufferGetWidth(pixelBuffer);
+        size_t height = CVPixelBufferGetHeight(pixelBuffer);
+        dimensionsHandler(width, height);
+    }
+    
+    RTCCVPixelBuffer *rtcPixelBuffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBuffer];
+    int64_t timeStampNs = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) * NSEC_PER_SEC;
+    RTCVideoFrame *videoFrame = [[RTCVideoFrame alloc] initWithBuffer:rtcPixelBuffer
+                                                             rotation:RTCVideoRotation_0
+                                                          timeStampNs:timeStampNs];
+
+    [self.delegate capturer:self didCaptureVideoFrame:videoFrame];
+}
+
+@end

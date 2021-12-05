@@ -140,13 +140,9 @@
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getUserMedia:constraints result:result];
     } else if ([@"getDisplayMedia" isEqualToString:call.method]) {
-#if TARGET_OS_IPHONE
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getDisplayMedia:constraints result:result];
-#else
-        result(FlutterMethodNotImplemented);
-#endif
     } else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
         [self createLocalMediaStream:result];
     } else if ([@"getSources" isEqualToString:call.method]) {
