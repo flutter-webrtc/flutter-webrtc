@@ -3,11 +3,10 @@ import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-
 import 'package:dart_webrtc/dart_webrtc.dart';
 import 'package:dart_webrtc/src/media_stream_impl.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 // An error code value to error name Map.
