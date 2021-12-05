@@ -1,6 +1,6 @@
 #if TARGET_OS_IPHONE
 #import <Flutter/Flutter.h>
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
 #import <FlutterMacOS/FlutterMacOS.h>
 #endif
 
@@ -38,6 +38,7 @@
 {
 }
 
+#if TARGET_OS_IPHONE
 // Thanks Juan Giorello https://groups.google.com/g/discuss-webrtc/c/ULGIodbbLvM
 + (UIImage *)convertFrameToUIImage:(RTCVideoFrame *)frame {
     // https://chromium.googlesource.com/external/webrtc/+/refs/heads/main/sdk/objc/base/RTCVideoFrame.h    
@@ -104,6 +105,7 @@
     
     return image;
 }
+#endif
 
 - (void)renderFrame:(nullable RTCVideoFrame *)frame
 {
