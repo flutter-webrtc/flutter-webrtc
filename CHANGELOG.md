@@ -1,6 +1,20 @@
 # Changelog
 
 --------------------------------------------
+[0.8.0] - 2021-12-05
+
+* [Dart] Refactor: Use webrtc interface. (#777)
+* [iOS] Fix crashes for FlutterRPScreenRecorder stop.
+* [Web] Don't stop tracks when disposing MediaStream (#760)
+* [Windows] Add the necessary parameters for onRemoveTrack (#763)
+* [Example] Properly start foreground service in example (#764)
+* [Android] Fix crash for Android, close #757 and #734.
+* [Dart] Fix typo in deprecated annotations.
+* [iOS] Fix IOS captureFrame and add support for remote stream captureFrame (#778)
+* [Windows] Fix parsing stun configuration (#789)
+* [Windows] Fix mute (#792)
+* [iOS/Android/Windows] New video constraints syntax (#790)
+
 [0.7.1] - 2021-11-04
 
 * [iOS/macOS] Update framework.

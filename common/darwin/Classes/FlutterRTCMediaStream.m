@@ -195,6 +195,34 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     successCallback(mediaStream);
 }
 
+- (int)getConstrainInt:(NSDictionary *)constraints
+                forKey:(NSString *)key {
+    
+    if (![constraints isKindOfClass:[NSDictionary class]]) {
+        return 0;
+    }
+
+    id constraint = constraints[key];
+    if ([constraint isKindOfClass:[NSNumber class]]) {
+        return [constraint intValue];
+    } else if ([constraint isKindOfClass:[NSString class]]) {
+        int possibleValue = [constraint intValue];
+        if (possibleValue != 0) {
+            return possibleValue;
+        }
+    } else if ([constraint isKindOfClass:[NSDictionary class]]) {
+        id idealConstraint = constraint[@"ideal"];
+        if([idealConstraint isKindOfClass: [NSString class]]) {
+            int possibleValue = [idealConstraint intValue];
+            if(possibleValue != 0){
+                return possibleValue;
+            }
+        }
+    }
+    
+    return 0;
+}
+
 /**
  * Initializes a new {@link RTCVideoTrack} which satisfies specific constraints,
  * adds it to a specific {@link RTCMediaStream}, and reports success to a
@@ -299,6 +327,21 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                 self._targetFps = possibleFps;
             }
         }
+    }
+
+    int possibleWidth = [self getConstrainInt:videoConstraints forKey:@"width"];
+    if(possibleWidth != 0){
+        self._targetWidth = possibleWidth;
+    }
+    
+    int possibleHeight = [self getConstrainInt:videoConstraints forKey:@"height"];
+    if(possibleHeight != 0){
+        self._targetHeight = possibleHeight;
+    }
+    
+    int possibleFps = [self getConstrainInt:videoConstraints forKey:@"frameRate"];
+    if(possibleFps != 0){
+        self._targetFps = possibleFps;
     }
 
     if (videoDevice) {
@@ -593,11 +636,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 -(void)mediaStreamTrackCaptureFrame:(RTCVideoTrack *)track toPath:(NSString *) path result:(FlutterResult)result
 {
-    if (!self.videoCapturer) {
-        NSLog(@"Video capturer is null. Can't capture frame.");
-        return;
-    }
-
     self.frameCapturer = [[FlutterRTCFrameCapturer alloc] initWithTrack:track toPath:path result:result];
 }
 

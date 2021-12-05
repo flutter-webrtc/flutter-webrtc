@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:dart_webrtc/dart_webrtc.dart';
 import 'package:flutter/material.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
 
-import '../interface/enums.dart';
-import '../rtc_video_renderer.dart';
-import '../web/rtc_video_renderer_impl.dart';
+import 'rtc_video_renderer_impl.dart';
 
 class RTCVideoView extends StatefulWidget {
   RTCVideoView(
@@ -28,13 +28,12 @@ class RTCVideoView extends StatefulWidget {
 class _RTCVideoViewState extends State<RTCVideoView> {
   _RTCVideoViewState();
 
-  RTCVideoRendererWeb get videoRenderer =>
-      widget._renderer.delegate as RTCVideoRendererWeb;
+  RTCVideoRenderer get videoRenderer => widget._renderer;
 
   @override
   void initState() {
     super.initState();
-    widget._renderer.delegate.addListener(_onRendererListener);
+    videoRenderer.addListener(_onRendererListener);
     videoRenderer.mirror = widget.mirror;
     videoRenderer.objectFit =
         widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
@@ -48,8 +47,9 @@ class _RTCVideoViewState extends State<RTCVideoView> {
 
   @override
   void dispose() {
-    widget._renderer.delegate.removeListener(_onRendererListener);
-    super.dispose();
+    if (mounted) {
+      super.dispose();
+    }
   }
 
   @override

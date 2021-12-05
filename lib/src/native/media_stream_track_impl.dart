@@ -3,9 +3,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../helper.dart';
-import '../interface/media_stream_track.dart';
 import 'utils.dart';
 
 class MediaStreamTrackNative extends MediaStreamTrack {
@@ -95,7 +95,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
     var _current = getConstraints();
     if (constraints.containsKey('volume') &&
         _current['volume'] != constraints['volume']) {
-      setVolume(constraints['volume']);
+      Helper.setVolume(constraints['volume'], this);
     }
 
     return Future.value();
