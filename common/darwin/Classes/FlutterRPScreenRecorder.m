@@ -1,15 +1,144 @@
 #import "FlutterRPScreenRecorder.h"
 #import <ReplayKit/ReplayKit.h>
 
+#import "FlutterRTCMediaStream.h"
 
 //See: https://developer.apple.com/videos/play/wwdc2017/606/
 
 NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
 
+#pragma mark - CameraCapturer
+
 @implementation FlutterRTCCameraCapturer
 
-- (void)startCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler {
++ (nullable AVCaptureDevice *)deviceForPosition:(AVCaptureDevicePosition)position {
+    // Try to find device for position
+    if (position != AVCaptureDevicePositionUnspecified) {
+        NSArray<AVCaptureDevice *> *captureDevices = [RTCCameraVideoCapturer captureDevices];
+        for (AVCaptureDevice *device in captureDevices) {
+            if (device.position == position) {
+                return device;
+            }
+        }
+    }
+
+    // Attempt to return default device
+    return [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+}
+
+#pragma mark -
+
+- (nullable AVCaptureDeviceFormat *)selectFormatForDevice:(AVCaptureDevice *)device
+                                      preferredDimensions:(CMVideoDimensions)preferredDimensions {
+
+    NSArray<AVCaptureDeviceFormat *> *formats = [RTCCameraVideoCapturer supportedFormatsForDevice:device];
+    AVCaptureDeviceFormat *selectedFormat = nil;
+    int currentDiff = INT_MAX;
+    for (AVCaptureDeviceFormat *format in formats) {
+        CMVideoDimensions dimension = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
+        FourCharCode pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription);
+        int diff = abs(preferredDimensions.width - dimension.width) + abs(preferredDimensions.height - dimension.height);
+        if (diff < currentDiff) {
+            selectedFormat = format;
+            currentDiff = diff;
+        } else if (diff == currentDiff && pixelFormat == [self preferredOutputPixelFormat]) {
+            selectedFormat = format;
+        }
+    }
+    return selectedFormat;
+}
+
+- (void)updateFromVideoConstraints:(nullable id)videoConstraints {
     
+    AVCaptureDevice *resolvedDevice;
+
+    // Initial values
+    CMVideoDimensions preferredDimensions = { .width = 1280, .height = 720, };
+    NSInteger preferredFPS = 30;
+    AVCaptureDevicePosition preferredPosition = AVCaptureDevicePositionUnspecified;
+
+    if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
+
+        // device with sourceId has highest priority
+        id optionalVideoConstraints = videoConstraints[@"optional"];
+        if ([optionalVideoConstraints isKindOfClass:[NSArray class]]) {
+            NSArray *options = optionalVideoConstraints;
+            for (id item in options) {
+                if ([item isKindOfClass:[NSDictionary class]]) {
+                    NSString *sourceId = ((NSDictionary *)item)[@"sourceId"];
+                    if (sourceId) {
+                        resolvedDevice = [AVCaptureDevice deviceWithUniqueID:sourceId];
+                        if (resolvedDevice != nil) { break; }
+                    }
+                }
+            }
+        }
+        
+        // constraints.video.facingMode
+        // https://www.w3.org/TR/mediacapture-streams/#def-constraint-facingMode
+        id facingMode = videoConstraints[@"facingMode"];
+        if (facingMode && [facingMode isKindOfClass:[NSString class]]) {
+            if ([facingMode isEqualToString:@"environment"]) {
+                preferredPosition = AVCaptureDevicePositionBack;
+            } else if ([facingMode isEqualToString:@"user"]) {
+                preferredPosition = AVCaptureDevicePositionFront;
+            }
+        }
+
+        
+        id mandatory = [videoConstraints isKindOfClass:[NSDictionary class]]? videoConstraints[@"mandatory"] : nil;
+
+        // constraints.video.mandatory
+        if(mandatory && [mandatory isKindOfClass:[NSDictionary class]]) {
+            id widthConstraint = mandatory[@"minWidth"];
+            if ([widthConstraint isKindOfClass:[NSString class]]) {
+                int possibleWidth = [widthConstraint intValue];
+                if (possibleWidth != 0) {
+                    preferredDimensions.width = possibleWidth;
+                }
+            }
+            id heightConstraint = mandatory[@"minHeight"];
+            if ([heightConstraint isKindOfClass:[NSString class]]) {
+                int possibleHeight = [heightConstraint intValue];
+                if (possibleHeight != 0) {
+                    preferredDimensions.height = possibleHeight;
+                }
+            }
+            id fpsConstraint = mandatory[@"minFrameRate"];
+            if ([fpsConstraint isKindOfClass:[NSString class]]) {
+                int possibleFps = [fpsConstraint intValue];
+                if (possibleFps != 0) {
+                    preferredFPS = possibleFps;
+                }
+            }
+        }
+
+        NSDictionary *omega;
+        [omega boo];
+        [videoConstraints boo];
+    
+        int possibleWidth = [self getConstrainInt:videoConstraints forKey:@"width"];
+        if(possibleWidth != 0){
+            preferredDimensions.width = possibleWidth;
+        }
+        
+        int possibleHeight = [self getConstrainInt:videoConstraints forKey:@"height"];
+        if(possibleHeight != 0){
+            preferredDimensions.height = possibleHeight;
+        }
+        
+        int possibleFps = [self getConstrainInt:videoConstraints forKey:@"frameRate"];
+        if(possibleFps != 0){
+            preferredFPS = possibleFps;
+        }
+
+    }
+}
+
+#pragma mark -
+
+- (void)startCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler {
+
     // Call RTCCameraVideoCapturer's start method
     [self startCaptureWithDevice:_device
                           format:_format
@@ -60,7 +189,7 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
                                                   RPSampleBufferType bufferType,
                                                   NSError * _Nullable error) {
             if (error != nil) {
-                // ...
+                // TODO: Handle this error, perhaps by stopping capturer ?
                 return;
             }
             
@@ -71,7 +200,7 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
             
             [self captureSampleBuffer:sampleBuffer
                     dimensionsHandler:^(size_t width, size_t height) {
-                //
+                // TODO: Update this legacy code
                 [self->source adaptOutputFormatToWidth:(int)(width/2)
                                                 height:(int)(height/2)
                                                    fps:8];

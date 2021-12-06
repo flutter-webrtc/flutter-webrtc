@@ -3,6 +3,18 @@
 
 extern NSString * const kCapturerAssociationKey;
 
+// Constraints helper
+@interface NSDictionary (Flutter)
+- (int)constraintIntForKey:(NSString *)key;
+@end
+
+// Adds feature to associate a FlutterRTCVideoCapturer to RTCMediaStreamTrack
+@interface RTCMediaStreamTrack (Flutter)
+- (NSObject<FlutterRTCVideoCapturer> *)getAssociatedCapturer;
+- (void)setAssociatedCapturer:(NSObject<FlutterRTCVideoCapturer> *)capturer;
+- (void)removeAssociatedCapturer;
+@end
+
 @interface FlutterWebRTCPlugin (RTCMediaStream)
 
 -(void)getUserMedia:(NSDictionary *)constraints

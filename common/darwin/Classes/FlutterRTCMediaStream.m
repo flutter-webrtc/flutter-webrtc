@@ -11,6 +11,58 @@
 
 NSString * const kCapturerAssociationKey = @"capturer";
 
+@implementation NSDictionary (Flutter)
+
+- (int)constraintIntForKey:(NSString *)key {
+
+    id constraint = [self objectForKey:key];
+
+    // Already a number
+    if ([constraint isKindOfClass:[NSNumber class]]) {
+        return [constraint intValue];
+    // String
+    } else if ([constraint isKindOfClass:[NSString class]]) {
+        int possibleValue = [constraint intValue];
+        if (possibleValue != 0) {
+            return possibleValue;
+        }
+    // Dictionary
+    } else if ([constraint isKindOfClass:[NSDictionary class]]) {
+        id idealConstraint = constraint[@"ideal"];
+        if([idealConstraint isKindOfClass: [NSString class]]) {
+            int possibleValue = [idealConstraint intValue];
+            if(possibleValue != 0){
+                return possibleValue;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+@end
+
+#pragma mark - Associate FlutterRTCVideoCapturer Category
+
+@implementation RTCMediaStreamTrack (Flutter)
+
+- (NSObject<FlutterRTCVideoCapturer> *)getAssociatedCapturer {
+    // Get associated capturer of the track
+    return objc_getAssociatedObject(self, &kCapturerAssociationKey);
+}
+
+- (void)setAssociatedCapturer:(NSObject<FlutterRTCVideoCapturer> *)capturer {
+    // Associate capturer to the track
+    objc_setAssociatedObject(self, &kCapturerAssociationKey, capturer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (void)removeAssociatedCapturer {
+    // Set nil to remove associated capturer
+    [self setAssociatedCapturer:nil];
+}
+
+@end
+
 @implementation AVCaptureDevice (Flutter)
 
 - (NSString*)positionString {
@@ -195,34 +247,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     successCallback(mediaStream);
 }
 
-- (int)getConstrainInt:(NSDictionary *)constraints
-                forKey:(NSString *)key {
-    
-    if (![constraints isKindOfClass:[NSDictionary class]]) {
-        return 0;
-    }
-
-    id constraint = constraints[key];
-    if ([constraint isKindOfClass:[NSNumber class]]) {
-        return [constraint intValue];
-    } else if ([constraint isKindOfClass:[NSString class]]) {
-        int possibleValue = [constraint intValue];
-        if (possibleValue != 0) {
-            return possibleValue;
-        }
-    } else if ([constraint isKindOfClass:[NSDictionary class]]) {
-        id idealConstraint = constraint[@"ideal"];
-        if([idealConstraint isKindOfClass: [NSString class]]) {
-            int possibleValue = [idealConstraint intValue];
-            if(possibleValue != 0){
-                return possibleValue;
-            }
-        }
-    }
-    
-    return 0;
-}
-
 /**
  * Initializes a new {@link RTCVideoTrack} which satisfies specific constraints,
  * adds it to a specific {@link RTCMediaStream}, and reports success to a
@@ -244,137 +268,54 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
      successCallback:(NavigatorUserMediaSuccessCallback)successCallback
        errorCallback:(NavigatorUserMediaErrorCallback)errorCallback
          mediaStream:(RTCMediaStream *)mediaStream {
+
     id videoConstraints = constraints[@"video"];
+
     AVCaptureDevice *videoDevice;
-    if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
-        // constraints.video.optional
-        id optionalVideoConstraints = videoConstraints[@"optional"];
-        if (optionalVideoConstraints
-            && [optionalVideoConstraints isKindOfClass:[NSArray class]]) {
-            NSArray *options = optionalVideoConstraints;
-            for (id item in options) {
-                if ([item isKindOfClass:[NSDictionary class]]) {
-                    NSString *sourceId = ((NSDictionary *)item)[@"sourceId"];
-                    if (sourceId) {
-                        videoDevice = [AVCaptureDevice deviceWithUniqueID:sourceId];
-                        if (videoDevice) {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        if (!videoDevice) {
-            // constraints.video.facingMode
-            //
-            // https://www.w3.org/TR/mediacapture-streams/#def-constraint-facingMode
-            id facingMode = videoConstraints[@"facingMode"];
-            if (facingMode && [facingMode isKindOfClass:[NSString class]]) {
-                AVCaptureDevicePosition position;
-                if ([facingMode isEqualToString:@"environment"]) {
-                    self._usingFrontCamera = NO;
-                    position = AVCaptureDevicePositionBack;
-                } else if ([facingMode isEqualToString:@"user"]) {
-                    self._usingFrontCamera = YES;
-                    position = AVCaptureDevicePositionFront;
-                } else {
-                    // If the specified facingMode value is not supported, fall back to
-                    // the default video device.
-                    self._usingFrontCamera = NO;
-                    position = AVCaptureDevicePositionUnspecified;
-                }
-                videoDevice = [self findDeviceForPosition:position];
-            }
-        }
-        if (!videoDevice) {
-            videoDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-        }
-    }
 
     //TODO(rostopira): refactor to separate function and add support for max
-
-    self._targetWidth = 1280;
-    self._targetHeight = 720;
-    self._targetFps = 30;
 
     if (!videoDevice && [constraints[@"video"] boolValue] == YES) {
         videoDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     }
 
-    id mandatory = [videoConstraints isKindOfClass:[NSDictionary class]]? videoConstraints[@"mandatory"] : nil ;
+//    if (videoDevice) {
 
-    // constraints.video.mandatory
-    if(mandatory && [mandatory isKindOfClass:[NSDictionary class]])
-    {
-        id widthConstraint = mandatory[@"minWidth"];
-        if ([widthConstraint isKindOfClass:[NSString class]]) {
-            int possibleWidth = [widthConstraint intValue];
-            if (possibleWidth != 0) {
-                self._targetWidth = possibleWidth;
-            }
+    // Create the CameraCapturer
+    RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+    FlutterRTCCameraCapturer *capturer = [[FlutterRTCCameraCapturer alloc] initWithDelegate:videoSource];
+
+    // Update the preferred video constraints
+    [capturer updateFromVideoConstraints:videoConstraints];
+
+//    capturer.device = videoDevice;
+//    capturer.format = [capturer selectFormatForDevice:videoDevice
+//                                  preferredDimensions:preferredDimensions];
+//    capturer.fps = [self selectFpsForFormat:capturer.format];
+
+    // Create the track
+    NSString *trackUUID = [[NSUUID UUID] UUIDString];
+    RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
+    [mediaStream addVideoTrack:videoTrack];
+
+    // Associate capturer to the track
+    [videoTrack setAssociatedCapturer:capturer];
+
+    [capturer startCapture:^(NSError * _Nullable error) {
+        // Error
+        if (error != nil) {
+            errorCallback(@"StartCapturerError", [error localizedDescription]);
+            return;
         }
-        id heightConstraint = mandatory[@"minHeight"];
-        if ([heightConstraint isKindOfClass:[NSString class]]) {
-            int possibleHeight = [heightConstraint intValue];
-            if (possibleHeight != 0) {
-                self._targetHeight = possibleHeight;
-            }
-        }
-        id fpsConstraint = mandatory[@"minFrameRate"];
-        if ([fpsConstraint isKindOfClass:[NSString class]]) {
-            int possibleFps = [fpsConstraint intValue];
-            if (possibleFps != 0) {
-                self._targetFps = possibleFps;
-            }
-        }
-    }
+        // Success
+        successCallback(mediaStream);
+    }];
 
-    int possibleWidth = [self getConstrainInt:videoConstraints forKey:@"width"];
-    if(possibleWidth != 0){
-        self._targetWidth = possibleWidth;
-    }
-    
-    int possibleHeight = [self getConstrainInt:videoConstraints forKey:@"height"];
-    if(possibleHeight != 0){
-        self._targetHeight = possibleHeight;
-    }
-    
-    int possibleFps = [self getConstrainInt:videoConstraints forKey:@"frameRate"];
-    if(possibleFps != 0){
-        self._targetFps = possibleFps;
-    }
-
-    if (videoDevice) {
-        RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
-
-        FlutterRTCCameraCapturer *capturer = [[FlutterRTCCameraCapturer alloc] initWithDelegate:videoSource];
-        capturer.device = videoDevice;
-        capturer.format = [self selectFormatForDevice:videoDevice capturer:capturer];
-        capturer.fps = [self selectFpsForFormat:capturer.format];
-
-        // Create the track
-        NSString *trackUUID = [[NSUUID UUID] UUIDString];
-        RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
-        [mediaStream addVideoTrack:videoTrack];
-
-        // Associate capturer to the track
-        objc_setAssociatedObject(videoTrack, &kCapturerAssociationKey, capturer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-
-        [capturer startCapture:^(NSError * _Nullable error) {
-            // Error
-            if (error != nil) {
-                errorCallback(@"StartCapturerError", [error localizedDescription]);
-                return;
-            }
-            // Success
-            successCallback(mediaStream);
-        }];
-
-    } else {
-        // According to step 6.2.3 of the getUserMedia() algorithm, if there is no
-        // source, fail with a new OverconstrainedError.
-        errorCallback(@"OverconstrainedError", /* errorMessage */ nil);
-    }
+//    } else {
+//        // According to step 6.2.3 of the getUserMedia() algorithm, if there is no
+//        // source, fail with a new OverconstrainedError.
+//        errorCallback(@"OverconstrainedError", /* errorMessage */ nil);
+//    }
 }
 
 -(void)mediaStreamRelease:(RTCMediaStream *)stream
@@ -511,8 +452,8 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     [mediaStream addVideoTrack:videoTrack];
         
     // Associate capturer to the track
-    objc_setAssociatedObject(videoTrack, &kCapturerAssociationKey, capturer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-
+    [videoTrack setAssociatedCapturer:capturer];
+    
     NSMutableArray *audioTracks = [NSMutableArray array];
     NSMutableArray *videoTracks = [NSMutableArray array];
 
@@ -648,10 +589,17 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 -(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track result:(FlutterResult)result {
     
-//    if (!self.videoCapturer) {
-//        NSLog(@"Video capturer is null. Can't switch camera");
-//        return;
-//    }
+    NSObject* capturer = [track getAssociatedCapturer];
+    
+    if (![capturer isKindOfClass:[FlutterRTCCameraCapturer class]]) {
+        NSLog(@"Video capturer is null or not an camera capturer. Can't switch camera");
+        return;
+    }
+
+    FlutterRTCCameraCapturer *cameraCapturer = (FlutterRTCCameraCapturer *)capturer;
+    
+    [cameraCapturer device];
+    
 //    self._usingFrontCamera = !self._usingFrontCamera;
 //    AVCaptureDevicePosition position = self._usingFrontCamera ? AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
 //    AVCaptureDevice *videoDevice = [self findDeviceForPosition:position];
@@ -676,38 +624,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
         track.isEnabled = NO;
         [self.localTracks removeObjectForKey:track.trackId];
     }
-}
-
-- (AVCaptureDevice *)findDeviceForPosition:(AVCaptureDevicePosition)position {
-    if (position == AVCaptureDevicePositionUnspecified) {
-        return [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    }
-    NSArray<AVCaptureDevice *> *captureDevices = [RTCCameraVideoCapturer captureDevices];
-    for (AVCaptureDevice *device in captureDevices) {
-        if (device.position == position) {
-            return device;
-        }
-    }
-    return captureDevices[0];
-}
-
-- (AVCaptureDeviceFormat *)selectFormatForDevice:(AVCaptureDevice *)device capturer:(FlutterRTCCameraCapturer *)capturer {
-    NSArray<AVCaptureDeviceFormat *> *formats =
-    [RTCCameraVideoCapturer supportedFormatsForDevice:device];
-    AVCaptureDeviceFormat *selectedFormat = nil;
-    int currentDiff = INT_MAX;
-    for (AVCaptureDeviceFormat *format in formats) {
-        CMVideoDimensions dimension = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
-        FourCharCode pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription);
-        int diff = abs(self._targetWidth - dimension.width) + abs(self._targetHeight - dimension.height);
-        if (diff < currentDiff) {
-            selectedFormat = format;
-            currentDiff = diff;
-        } else if (diff == currentDiff && pixelFormat == [capturer preferredOutputPixelFormat]) {
-            selectedFormat = format;
-        }
-    }
-    return selectedFormat;
 }
 
 - (NSInteger)selectFpsForFormat:(AVCaptureDeviceFormat *)format {

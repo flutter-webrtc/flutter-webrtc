@@ -365,10 +365,10 @@
                 // TODO: Handle case where stream may have multiple tracks with multiple capturers
 
                 // Get the associated capturer for the track
-                NSObject<FlutterRTCVideoCapturer> *capturer = objc_getAssociatedObject(videoTrack, &kCapturerAssociationKey);
+                NSObject<FlutterRTCVideoCapturer> *capturer = [videoTrack getAssociatedCapturer];
                 if (capturer != nil) {
                     // Remove association
-                    objc_setAssociatedObject(videoTrack, &kCapturerAssociationKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    [videoTrack removeAssociatedCapturer];
                     
                     shouldCallResult = NO;
                     [capturer stopCapture:^(NSError * _Nullable error) {

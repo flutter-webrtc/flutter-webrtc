@@ -12,9 +12,16 @@
 
 // Make RTCCameraVideoCapturer comply with FlutterRTCVideoCapturer protocol
 @interface FlutterRTCCameraCapturer: RTCCameraVideoCapturer <FlutterRTCVideoCapturer>
++ (nullable AVCaptureDevice *)deviceForPosition:(AVCaptureDevicePosition)position;
+- (nullable AVCaptureDeviceFormat *)selectFormatForDevice:(nonnull AVCaptureDevice *)device
+                                      preferredDimensions:(CMVideoDimensions)preferredDimensions;
+
+- (void)updateFromVideoConstraints:(nullable id)videoConstraints;
+
 @property (nonatomic, strong, nullable) AVCaptureDevice *device;
 @property (nonatomic, strong, nullable) AVCaptureDeviceFormat *format;
 @property (nonatomic) NSInteger fps;
+
 @end
 
 #if TARGET_OS_IPHONE
@@ -23,8 +30,8 @@
 @end
 #elif TARGET_OS_OSX
 // Only available for macOS
-@interface FlutterMacOSScreenCapturer: RTCVideoCapturer
-    <FlutterRTCVideoCapturer, AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface FlutterMacOSScreenCapturer: RTCVideoCapturer <FlutterRTCVideoCapturer,
+    AVCaptureVideoDataOutputSampleBufferDelegate>
 @end
 #endif
 
