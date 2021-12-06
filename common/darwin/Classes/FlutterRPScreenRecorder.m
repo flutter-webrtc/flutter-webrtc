@@ -48,6 +48,17 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
     return selectedFormat;
 }
 
+- (NSInteger)selectFpsForFormat:(AVCaptureDeviceFormat *)format
+                   preferredFps:(NSInteger)preferredFps {
+
+    Float64 maxSupportedFramerate = 0;
+    for (AVFrameRateRange *fpsRange in format.videoSupportedFrameRateRanges) {
+        maxSupportedFramerate = fmax(maxSupportedFramerate, fpsRange.maxFrameRate);
+    }
+
+    return fmin(maxSupportedFramerate, preferredFps);
+}
+
 - (void)updateFromVideoConstraints:(nullable id)videoConstraints {
     
     AVCaptureDevice *resolvedDevice;
@@ -66,23 +77,30 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
             for (id item in options) {
                 if ([item isKindOfClass:[NSDictionary class]]) {
                     NSString *sourceId = ((NSDictionary *)item)[@"sourceId"];
-                    if (sourceId) {
-                        resolvedDevice = [AVCaptureDevice deviceWithUniqueID:sourceId];
-                        if (resolvedDevice != nil) { break; }
+                    if (sourceId != nil) {
+                        AVCaptureDevice *device = [AVCaptureDevice deviceWithUniqueID:sourceId];
+                        if (device != nil) {
+                            resolvedDevice = device;
+                            break;
+                        }
                     }
                 }
             }
         }
         
-        // constraints.video.facingMode
-        // https://www.w3.org/TR/mediacapture-streams/#def-constraint-facingMode
-        id facingMode = videoConstraints[@"facingMode"];
-        if (facingMode && [facingMode isKindOfClass:[NSString class]]) {
-            if ([facingMode isEqualToString:@"environment"]) {
-                preferredPosition = AVCaptureDevicePositionBack;
-            } else if ([facingMode isEqualToString:@"user"]) {
-                preferredPosition = AVCaptureDevicePositionFront;
+        if (resolvedDevice == nil) {
+            // constraints.video.facingMode
+            // https://www.w3.org/TR/mediacapture-streams/#def-constraint-facingMode
+            id facingMode = videoConstraints[@"facingMode"];
+            if (facingMode && [facingMode isKindOfClass:[NSString class]]) {
+                if ([facingMode isEqualToString:@"environment"]) {
+                    preferredPosition = AVCaptureDevicePositionBack;
+                } else if ([facingMode isEqualToString:@"user"]) {
+                    preferredPosition = AVCaptureDevicePositionFront;
+                }
             }
+
+            resolvedDevice = [FlutterRTCCameraCapturer deviceForPosition:preferredPosition];
         }
 
         
@@ -128,7 +146,18 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
             preferredFPS = possibleFps;
         }
 
+    } else if ([videoConstraints isKindOfClass:[NSNumber class]]
+               && [(NSNumber *)videoConstraints boolValue] == YES) {
+
+        resolvedDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     }
+    
+    self.device = resolvedDevice;
+    self.format = [self selectFormatForDevice:resolvedDevice
+                          preferredDimensions:preferredDimensions];
+    self.fps = [self selectFpsForFormat:self.format
+                           preferredFps:preferredFPS];
+
 }
 
 #pragma mark -

@@ -271,15 +271,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
     id videoConstraints = constraints[@"video"];
 
-    AVCaptureDevice *videoDevice;
-
     //TODO(rostopira): refactor to separate function and add support for max
-
-    if (!videoDevice && [constraints[@"video"] boolValue] == YES) {
-        videoDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    }
-
-//    if (videoDevice) {
 
     // Create the CameraCapturer
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
@@ -287,11 +279,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
     // Update the preferred video constraints
     [capturer updateFromVideoConstraints:videoConstraints];
-
-//    capturer.device = videoDevice;
-//    capturer.format = [capturer selectFormatForDevice:videoDevice
-//                                  preferredDimensions:preferredDimensions];
-//    capturer.fps = [self selectFpsForFormat:capturer.format];
 
     // Create the track
     NSString *trackUUID = [[NSUUID UUID] UUIDString];
@@ -624,14 +611,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
         track.isEnabled = NO;
         [self.localTracks removeObjectForKey:track.trackId];
     }
-}
-
-- (NSInteger)selectFpsForFormat:(AVCaptureDeviceFormat *)format {
-    Float64 maxSupportedFramerate = 0;
-    for (AVFrameRateRange *fpsRange in format.videoSupportedFrameRateRanges) {
-        maxSupportedFramerate = fmax(maxSupportedFramerate, fpsRange.maxFrameRate);
-    }
-    return fmin(maxSupportedFramerate, self._targetFps);
 }
 
 @end
