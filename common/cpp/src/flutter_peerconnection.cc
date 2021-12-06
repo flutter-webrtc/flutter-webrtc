@@ -1145,6 +1145,26 @@ scoped_refptr<RTCMediaStream> FlutterPeerConnectionObserver::MediaStreamForId(
   return nullptr;
 }
 
+scoped_refptr<RTCMediaTrack> FlutterPeerConnectionObserver::MediaTrackForId(const std::string& id) {
+    for (auto it = remote_streams_.begin(); it != remote_streams_.end(); it++)
+    {
+        auto remoteStream = (*it).second;
+        auto audio_tracks = remoteStream->audio_tracks();
+        for (auto track : audio_tracks.std_vector()) {
+            if (track->id().std_string() == id) {
+                return track;
+            }
+        }
+        auto video_tracks = remoteStream->video_tracks();
+        for (auto track : video_tracks.std_vector()) {
+            if (track->id().std_string() == id) {
+                return track;
+            }
+        }
+    }
+    return nullptr;
+}
+
 void FlutterPeerConnectionObserver::RemoveStreamForId(const std::string& id) {
   auto it = remote_streams_.find(id);
   if (it != remote_streams_.end())
