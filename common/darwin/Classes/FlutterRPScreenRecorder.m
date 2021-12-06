@@ -113,21 +113,17 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
             }
         }
 
-        NSDictionary *omega;
-        [omega boo];
-        [videoConstraints boo];
-    
-        int possibleWidth = [self getConstrainInt:videoConstraints forKey:@"width"];
+        int possibleWidth = [videoConstraints constraintIntForKey:@"width"];
         if(possibleWidth != 0){
             preferredDimensions.width = possibleWidth;
         }
         
-        int possibleHeight = [self getConstrainInt:videoConstraints forKey:@"height"];
+        int possibleHeight = [videoConstraints constraintIntForKey:@"height"];
         if(possibleHeight != 0){
             preferredDimensions.height = possibleHeight;
         }
         
-        int possibleFps = [self getConstrainInt:videoConstraints forKey:@"frameRate"];
+        int possibleFps = [videoConstraints constraintIntForKey:@"frameRate"];
         if(possibleFps != 0){
             preferredFPS = possibleFps;
         }
