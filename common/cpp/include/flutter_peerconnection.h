@@ -33,6 +33,8 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
 
   scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id);
 
+  scoped_refptr<RTCMediaTrack> MediaTrackForId(const std::string& id);
+
   void RemoveStreamForId(const std::string& id);
 
  private:
