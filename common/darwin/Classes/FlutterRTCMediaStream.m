@@ -494,8 +494,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 #elif TARGET_OS_OSX
     FlutterMacOSScreenCapturer *screenCapturer = [[FlutterMacOSScreenCapturer alloc] initWithDelegate:videoSource];
 #endif
-    
-//    [screenCapturer startCapture];
 
     //TODO:
     self.screenCapturer = screenCapturer;
@@ -515,6 +513,15 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     self.localStreams[mediaStreamId] = mediaStream;
     
     [screenCapturer startCaptureWithCompletionHandler:^(NSError * _Nullable error) {
+        // Error
+        if (error != nil) {
+            result([FlutterError errorWithCode:error.domain
+                                       message:[error.userInfo objectForKey:@"message"]
+                                       details:error]);
+            return;
+        }
+
+        // Success
         result(@{@"streamId": mediaStreamId,
                  @"audioTracks" : audioTracks,
                  @"videoTracks" : videoTracks });
