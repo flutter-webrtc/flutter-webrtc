@@ -1,11 +1,33 @@
 #import "FlutterRPScreenRecorder.h"
 #import <ReplayKit/ReplayKit.h>
 
-#if TARGET_OS_IPHONE
 
 //See: https://developer.apple.com/videos/play/wwdc2017/606/
 
 NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
+
+@implementation FlutterRTCCameraCapturer
+
+- (void)startCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler {
+    
+    // Call RTCCameraVideoCapturer's start method
+    [self startCaptureWithDevice:_device
+                          format:_format
+                             fps:_fps
+               completionHandler:completionHandler];
+}
+
+- (void)stopCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler {
+    
+    // Call RTCCameraVideoCapturer's stop method
+    [self stopCaptureWithCompletionHandler:^{
+        completionHandler(nil);
+    }];
+}
+
+@end
+
+#if TARGET_OS_IPHONE
 
 @implementation FlutterRPScreenRecorder {
     RTCVideoSource *source;
@@ -16,24 +38,24 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
     return [super initWithDelegate:delegate];
 }
 
-- (void)startCaptureWithCompletionHandler:(nonnull void (^)(NSError *_Nullable error))completionHandler {
+- (void)startCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler {
     
     if (@available(iOS 11.0, *)) {
         
         RPScreenRecorder* screenRecorder = [RPScreenRecorder sharedRecorder];
-
+        
         [screenRecorder setMicrophoneEnabled:NO];
         
         // Check if RPScreenRecorder is available
         if (![screenRecorder isAvailable]) {
             NSError *error = [NSError errorWithDomain:kErrorDomain
-                                                   code:0
-                                               userInfo:@{@"message": @"RPScreenRecorder is not available"}];
+                                                 code:0
+                                             userInfo:@{@"message": @"RPScreenRecorder is not available"}];
             NSLog(@"FlutterRPScreenRecorder %@", error);
             completionHandler(error);
             return;
         }
-
+        
         [screenRecorder startCaptureWithHandler:^(CMSampleBufferRef  _Nonnull sampleBuffer,
                                                   RPSampleBufferType bufferType,
                                                   NSError * _Nullable error) {
@@ -61,22 +83,22 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
             }
             completionHandler(error);
         }];
-
+        
     } else {
         // Fallback on earlier versions
         NSError *error = [NSError errorWithDomain:kErrorDomain
-                                               code:0
-                                           userInfo:@{@"message": @"iOS11+ is required for RPScreenRecorder"}];
+                                             code:0
+                                         userInfo:@{@"message": @"iOS11+ is required for RPScreenRecorder"}];
         NSLog(@"FlutterRPScreenRecorder %@", error);
         completionHandler(error);
     }
 }
 
-- (void)stopCaptureWithCompletionHandler:(nonnull void (^)(NSError *_Nullable error))completionHandler {
-
+- (void)stopCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler {
+    
     if (@available(iOS 11.0, *)) {
         RPScreenRecorder* screenRecorder = [RPScreenRecorder sharedRecorder];
-
+        
         [screenRecorder stopCaptureWithHandler:^(NSError * _Nullable error) {
             if (error != nil)
                 NSLog(@"!!! stopCaptureWithHandler/completionHandler %@ !!!", error);
@@ -84,8 +106,8 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
     } else {
         // Fallback on earlier versions
         NSError *error = [NSError errorWithDomain:kErrorDomain
-                                               code:0
-                                           userInfo:@{@"message": @"iOS11+ is required for RPScreenRecorder"}];
+                                             code:0
+                                         userInfo:@{@"message": @"iOS11+ is required for RPScreenRecorder"}];
         NSLog(@"FlutterRPScreenRecorder %@", error);
         completionHandler(error);
     }
@@ -119,7 +141,7 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
     return [super initWithDelegate:delegate];
 }
 
--(void)startCaptureWithCompletionHandler:(void (^)(NSError * _Nullable))completionHandler {
+-(void)startCapture:(void (^)(NSError * _Nullable))completionHandler {
     
     AVCaptureScreenInput *screenInput = [[AVCaptureScreenInput alloc] initWithDisplayID:CGMainDisplayID()];
     if (screenInput == nil) completionHandler([NSError errorWithDomain:@"MacOSScreenCapturer"
@@ -138,7 +160,7 @@ NSString * const kErrorDomain = @"flutter_webrtc.videocapturer";
     completionHandler(nil);
 }
 
-- (void)stopCaptureWithCompletionHandler:(void (^)(NSError * _Nullable))completionHandler {
+- (void)stopCapture:(void (^)(NSError * _Nullable))completionHandler {
     [session stopRunning];
     completionHandler(nil);
 }
@@ -174,7 +196,7 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
     if (pixelBuffer == nil) {
         return;
     }
-
+    
     // if dimensionsHandler is not nil,
     // report back the dimensions obtained from CVPixelBuffer
     if (dimensionsHandler != nil) {

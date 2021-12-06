@@ -7,6 +7,7 @@
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
+#import <objc/runtime.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wprotocol"
@@ -360,14 +361,26 @@
             for (RTCVideoTrack *track in stream.videoTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-                RTCVideoSource *source = videoTrack.source;
-                if(source){
+                
+                // Get the associated capturer for the track
+                NSObject<FlutterRTCVideoCapturer> *capturer = objc_getAssociatedObject(videoTrack, @"capturer");
+                if (capturer != nil) {
+                    // Remove association
+                    objc_setAssociatedObject(videoTrack, @"capturer", nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    
                     shouldCallResult = NO;
-                    [self.videoCapturer stopCaptureWithCompletionHandler:^{
-                      result(nil);
+                    [capturer stopCapture:^(NSError * _Nullable error) {
+                        result(nil);
                     }];
-                    self.videoCapturer = nil;
                 }
+//                RTCVideoSource *source = videoTrack.source;
+//                if(source){
+//
+//                    [self.videoCapturer stopCaptureWithCompletionHandler:^{
+//                      result(nil);
+//                    }];
+//                    self.videoCapturer = nil;
+//                }
             }
             for (RTCAudioTrack *track in stream.audioTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
