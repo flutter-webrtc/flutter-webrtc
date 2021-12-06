@@ -493,9 +493,10 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 -(void)getDisplayMedia:(NSDictionary *)constraints
                 result:(FlutterResult)result {
+
+    // Create a new stream
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
-
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
 
 #if TARGET_OS_IPHONE
@@ -517,7 +518,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
     for (RTCVideoTrack *track in mediaStream.videoTracks) {
         [self.localTracks setObject:track forKey:track.trackId];
-        [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
+        [videoTracks addObject:@{@"id": track.trackId,
+                                 @"kind": track.kind,
+                                 @"label": track.trackId,
+                                 @"enabled": @(track.isEnabled),
+                                 @"remote": @(YES),
+                                 @"readyState": @"live"}];
     }
 
     self.localStreams[mediaStreamId] = mediaStream;
@@ -534,7 +540,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
         // Success
         result(@{@"streamId": mediaStreamId,
                  @"audioTracks" : audioTracks,
-                 @"videoTracks" : videoTracks });
+                 @"videoTracks" : videoTracks});
     }];
 }
 

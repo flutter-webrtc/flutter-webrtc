@@ -24,9 +24,7 @@
 @property (nonatomic, retain) UIViewController *viewController;/*for broadcast or ReplayKit */
 #endif
 @property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
-//@property (nonatomic, strong) NSObject<FlutterRTCVideoCapturer> *videoCapturer;
 @property (nonatomic, strong) FlutterRTCFrameCapturer *frameCapturer;
-//@property (nonatomic, strong) NSObject<FlutterRTCVideoCapturer> *screenCapturer;
 @property (nonatomic) BOOL _usingFrontCamera;
 @property (nonatomic) int _targetWidth;
 @property (nonatomic) int _targetHeight;
