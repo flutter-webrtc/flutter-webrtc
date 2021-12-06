@@ -1,6 +1,8 @@
 #import <Foundation/Foundation.h>
 #import "FlutterWebRTCPlugin.h"
 
+extern NSString * const kCapturerAssociationKey;
+
 @interface FlutterWebRTCPlugin (RTCMediaStream)
 
 -(void)getUserMedia:(NSDictionary *)constraints

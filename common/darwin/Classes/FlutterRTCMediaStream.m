@@ -9,6 +9,8 @@
 
 #import "FlutterRPScreenRecorder.h"
 
+NSString * const kCapturerAssociationKey = @"capturer";
+
 @implementation AVCaptureDevice (Flutter)
 
 - (NSString*)positionString {
@@ -344,27 +346,27 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
     if (videoDevice) {
         RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
-        // Stop previous capturer ?
-//        if (self.videoCapturer) {
-//            [self.videoCapturer stopca];
-//        }
+
         FlutterRTCCameraCapturer *capturer = [[FlutterRTCCameraCapturer alloc] initWithDelegate:videoSource];
         capturer.device = videoDevice;
         capturer.format = [self selectFormatForDevice:videoDevice capturer:capturer];
         capturer.fps = [self selectFpsForFormat:capturer.format];
 
+        // Create the track
         NSString *trackUUID = [[NSUUID UUID] UUIDString];
         RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
         [mediaStream addVideoTrack:videoTrack];
 
         // Associate capturer to the track
-        objc_setAssociatedObject(videoTrack, @"capturer", capturer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(videoTrack, &kCapturerAssociationKey, capturer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
         [capturer startCapture:^(NSError * _Nullable error) {
+            // Error
             if (error != nil) {
                 errorCallback(@"StartCapturerError", [error localizedDescription]);
                 return;
             }
+            // Success
             successCallback(mediaStream);
         }];
 
@@ -497,17 +499,18 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
 
 #if TARGET_OS_IPHONE
-    FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
+    FlutterRPScreenRecorder *capturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
 #elif TARGET_OS_OSX
-    FlutterMacOSScreenCapturer *screenCapturer = [[FlutterMacOSScreenCapturer alloc] initWithDelegate:videoSource];
+    FlutterMacOSScreenCapturer *capturer = [[FlutterMacOSScreenCapturer alloc] initWithDelegate:videoSource];
 #endif
 
-    //TODO:
-//    self.screenCapturer = screenCapturer;
-
+    // Create the track
     NSString *trackUUID = [[NSUUID UUID] UUIDString];
     RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
     [mediaStream addVideoTrack:videoTrack];
+        
+    // Associate capturer to the track
+    objc_setAssociatedObject(videoTrack, &kCapturerAssociationKey, capturer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
     NSMutableArray *audioTracks = [NSMutableArray array];
     NSMutableArray *videoTracks = [NSMutableArray array];
@@ -519,7 +522,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
     self.localStreams[mediaStreamId] = mediaStream;
     
-    [screenCapturer startCapture:^(NSError * _Nullable error) {
+    [capturer startCapture:^(NSError * _Nullable error) {
         // Error
         if (error != nil) {
             result([FlutterError errorWithCode:error.domain

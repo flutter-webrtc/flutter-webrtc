@@ -363,24 +363,16 @@
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
                 
                 // Get the associated capturer for the track
-                NSObject<FlutterRTCVideoCapturer> *capturer = objc_getAssociatedObject(videoTrack, @"capturer");
+                NSObject<FlutterRTCVideoCapturer> *capturer = objc_getAssociatedObject(videoTrack, &kCapturerAssociationKey);
                 if (capturer != nil) {
                     // Remove association
-                    objc_setAssociatedObject(videoTrack, @"capturer", nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    objc_setAssociatedObject(videoTrack, &kCapturerAssociationKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
                     
                     shouldCallResult = NO;
                     [capturer stopCapture:^(NSError * _Nullable error) {
                         result(nil);
                     }];
                 }
-//                RTCVideoSource *source = videoTrack.source;
-//                if(source){
-//
-//                    [self.videoCapturer stopCaptureWithCompletionHandler:^{
-//                      result(nil);
-//                    }];
-//                    self.videoCapturer = nil;
-//                }
             }
             for (RTCAudioTrack *track in stream.audioTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
