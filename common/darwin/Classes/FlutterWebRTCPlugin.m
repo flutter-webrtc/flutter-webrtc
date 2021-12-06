@@ -361,7 +361,9 @@
             for (RTCVideoTrack *track in stream.videoTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-                
+
+                // TODO: Handle case where stream may have multiple tracks with multiple capturers
+
                 // Get the associated capturer for the track
                 NSObject<FlutterRTCVideoCapturer> *capturer = objc_getAssociatedObject(videoTrack, &kCapturerAssociationKey);
                 if (capturer != nil) {

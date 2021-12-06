@@ -15,22 +15,16 @@
 @property (nonatomic, strong, nullable) AVCaptureDevice *device;
 @property (nonatomic, strong, nullable) AVCaptureDeviceFormat *format;
 @property (nonatomic) NSInteger fps;
-- (void)startCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler;
-- (void)stopCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler;
 @end
 
 #if TARGET_OS_IPHONE
 // Only available for iOS
 @interface FlutterRPScreenRecorder : RTCVideoCapturer <FlutterRTCVideoCapturer>
-- (void)startCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler;
-- (void)stopCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler;
 @end
 #elif TARGET_OS_OSX
 // Only available for macOS
 @interface FlutterMacOSScreenCapturer: RTCVideoCapturer
     <FlutterRTCVideoCapturer, AVCaptureVideoDataOutputSampleBufferDelegate>
-- (void)startCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler;
-- (void)stopCapture:(nonnull void (^)(NSError *_Nullable error))completionHandler;
 @end
 #endif
 
