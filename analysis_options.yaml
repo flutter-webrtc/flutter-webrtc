@@ -9,7 +9,6 @@ linter:
     - camel_case_extensions
     - camel_case_types
     - cancel_subscriptions
-    - directives_ordering
     - flutter_style_todos
     - sort_constructors_first
     - sort_unnamed_constructors_first
