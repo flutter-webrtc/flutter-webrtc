@@ -9,7 +9,6 @@ linter:
     - camel_case_extensions
     - camel_case_types
     - cancel_subscriptions
-    - directives_ordering
     - flutter_style_todos
     - sort_constructors_first
     - sort_unnamed_constructors_first
@@ -46,3 +45,5 @@ analyzer:
     # Stream and not importing dart:async
     # Please see https://github.com/flutter/flutter/pull/24528 for details.
     sdk_version_async_exported_from_core: ignore
+    # Conflict with import_sorter
+    directives_ordering: ignore

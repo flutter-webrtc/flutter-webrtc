@@ -42,6 +42,12 @@ RTCMediaTrack* FlutterWebRTCBase ::MediaTrackForId(const std::string& id) {
   if (it != local_tracks_.end())
     return (*it).second.get();
 
+  for (auto kv : peerconnection_observers_) {
+      auto pco = kv.second.get();
+      auto track = pco->MediaTrackForId(id);
+      if (track != nullptr) return track;
+  }
+
   return nullptr;
 }
 
