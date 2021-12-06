@@ -94,7 +94,7 @@
 
 #if TARGET_OS_OSX
 
-@implementation FlutterMacOSDisplayVideoCapturer {
+@implementation FlutterMacOSScreenCapturer {
     RTCVideoSource *source;
     AVCaptureSession *session;
     AVCaptureVideoDataOutput *output;
@@ -113,11 +113,15 @@
     // Set delegate
     [output setSampleBufferDelegate:self queue:dispatch_get_main_queue()];
     [session addOutput:output];
+    
+    NSLog(@"FlutterMacOSScreenCapturer: initWithDelegate");
 
     return [super initWithDelegate:delegate];
 }
 
 -(void)startCaptureWithCompletionHandler:(void (^)(NSError * _Nullable))completionHandler {
+    
+    NSLog(@"FlutterMacOSScreenCapturer: startCaptureWithCompletionHandler");
 
     AVCaptureScreenInput *screenInput = [[AVCaptureScreenInput alloc] initWithDisplayID:CGMainDisplayID()];
     if (screenInput == nil) completionHandler([NSError errorWithDomain:@"MacOSScreenCapturer"
@@ -137,6 +141,9 @@
 }
 
 - (void)stopCaptureWithCompletionHandler:(void (^)(NSError * _Nullable))completionHandler {
+
+    NSLog(@"FlutterMacOSScreenCapturer: stopCaptureWithCompletionHandler");
+
     [session stopRunning];
     completionHandler(nil);
 }
@@ -144,10 +151,10 @@
 #pragma mark - AVCaptureVideoDataOutputSampleBufferDelegate
 
 - (void)captureOutput:(AVCaptureOutput *)output
-  didDropSampleBuffer:(CMSampleBufferRef)sampleBuffer
+didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
        fromConnection:(AVCaptureConnection *)connection {
-    
-    NSLog(@"did capture frame");
+
+    NSLog(@"FlutterMacOSScreenCapturer: didOutputSampleBuffer");
 
     [self captureSampleBuffer:sampleBuffer
                  dimensionsHandler:nil];

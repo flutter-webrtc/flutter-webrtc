@@ -18,7 +18,7 @@
 @end
 #endif
 
-@interface FlutterMacOSDisplayVideoCapturer: RTCVideoCapturer
+@interface FlutterMacOSScreenCapturer: RTCVideoCapturer
     <FlutterRTCVideoCapturer, AVCaptureVideoDataOutputSampleBufferDelegate>
 - (void)startCaptureWithCompletionHandler:(nonnull void (^)(NSError *_Nullable error))completionHandler;
 - (void)stopCaptureWithCompletionHandler:(nonnull void (^)(NSError *_Nullable error))completionHandler;

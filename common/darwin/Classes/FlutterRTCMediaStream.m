@@ -492,7 +492,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 #if TARGET_OS_IPHONE
     FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
 #elif TARGET_OS_OSX
-    FlutterMacOSDisplayVideoCapturer *screenCapturer = [[FlutterMacOSDisplayVideoCapturer alloc] initWithDelegate:videoSource];
+    FlutterMacOSScreenCapturer *screenCapturer = [[FlutterMacOSScreenCapturer alloc] initWithDelegate:videoSource];
 #endif
     
 //    [screenCapturer startCapture];
