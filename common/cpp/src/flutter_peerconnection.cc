@@ -556,7 +556,9 @@ void FlutterPeerConnection::RtpSenderReplaceTrack(
     result_ptr->Error("rtpSenderDispose", "sender is null");
     return;
   }
-  // TODO RtpSenderReplaceTrack
+
+  sender->set_track(track);
+
   result_ptr->Success();
 }
 
