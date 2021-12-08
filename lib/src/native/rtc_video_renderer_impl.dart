@@ -35,6 +35,11 @@ class RTCVideoRendererNative extends VideoRenderer {
   MediaStream? get srcObject => _srcObject;
 
   @override
+  set mirror(bool mirror) {
+    // No-op. Mirroring is done through [RTCViewView].
+  }
+
+  @override
   set srcObject(MediaStream? stream) {
     if (textureId == null) throw 'Call initialize before setting the stream';
 

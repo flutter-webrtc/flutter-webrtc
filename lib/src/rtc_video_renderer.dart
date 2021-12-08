@@ -22,6 +22,8 @@ class RTCVideoRenderer {
 
   MediaStream? get srcObject => _delegate.srcObject;
 
+  set mirror(bool mirror) => _delegate.mirror = mirror;
+
   set muted(bool mute) => _delegate.muted = mute;
 
   set audioOutput(String deviceId) => _delegate.audioOutput(deviceId);

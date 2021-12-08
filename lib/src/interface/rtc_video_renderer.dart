@@ -55,6 +55,8 @@ abstract class VideoRenderer extends ValueNotifier<RTCVideoValue> {
   bool get muted;
   set muted(bool mute);
 
+  set mirror(bool mirror);
+
   ///Return true if the audioOutput have been succesfully changed
   Future<bool> audioOutput(String deviceId);
 

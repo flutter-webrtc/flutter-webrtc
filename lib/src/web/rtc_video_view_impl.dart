@@ -57,6 +57,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   @override
   void didUpdateWidget(RTCVideoView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    videoRenderer.mirror = widget.mirror;
     Timer(
         Duration(milliseconds: 10), () => videoRenderer.mirror = widget.mirror);
     videoRenderer.enableContextMenu = widget.enableContextMenu;
