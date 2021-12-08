@@ -33,6 +33,7 @@ void FlutterMediaStream::GetUserMedia(
   }
 
   it = constraints.find(EncodableValue("video"));
+  params[EncodableValue("videoTracks")] = EncodableValue(EncodableList());
   if (it != constraints.end()) {
     EncodableValue video = it->second;
      if (TypeIs<bool>(video)) {
@@ -41,11 +42,7 @@ void FlutterMediaStream::GetUserMedia(
        }
      } else if (TypeIs<EncodableMap>(video)) {
        GetUserVideo(constraints, stream, params);
-    } else {
-       params[EncodableValue("videoTracks")] = EncodableValue(EncodableList());
     }
-  } else {
-	  params[EncodableValue("videoTracks")] = EncodableValue(EncodableList());
   }
 
   base_->local_streams_[uuid] = stream;
@@ -220,6 +217,9 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
     video_capturer =
         base_->video_device_->Create(strNameUTF8, 0, width, height, fps);
   }
+
+  if (!video_capturer.get()) return;
+
   const char* video_source_label = "video_input";
   scoped_refptr<RTCVideoSource> source = base_->factory_->CreateVideoSource(
       video_capturer, video_source_label,
