@@ -513,6 +513,46 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
 }
 #endif
+
+-(void)broadcastFrame:(FlutterStandardTypedData *)bytesList
+               result:(FlutterResult)result{
+    if (self.videoCapturer == nil) {
+        [self setupCustomMedia:result];
+    }
+    NSLog(@"Broadcasting Frame");
+    UIImage *image1 = [[UIImage alloc]initWithData:bytesList.data];
+    CVPixelBufferRef pixelBuffer = [self pixelBufferFromCGImage:image1.CGImage];
+    RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc]initWithPixelBuffer:pixelBuffer];
+    RTCVideoFrame *videoFrame = [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
+    [self.videoCapturer.delegate capturer:self.videoCapturer.delegate didCaptureVideoFrame:videoFrame];
+    result(@(YES));
+}
+
+-(void)setupCustomMedia:(FlutterResult)result {
+    NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
+    RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
+
+    RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+    RTCVideoCapturer *videoCapturer = [[RTCVideoCapturer alloc] initWithDelegate:videoSource];
+
+    self.videoCapturer = videoCapturer;
+
+    NSString *trackUUID = [[NSUUID UUID] UUIDString];
+    RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
+    [mediaStream addVideoTrack:videoTrack];
+
+    NSMutableArray *audioTracks = [NSMutableArray array];
+    NSMutableArray *videoTracks = [NSMutableArray array];
+
+    for (RTCVideoTrack *track in mediaStream.videoTracks) {
+        [self.localTracks setObject:track forKey:track.trackId];
+        [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
+    }
+
+    self.localStreams[mediaStreamId] = mediaStream;
+    result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
+}
+
 -(void)createLocalMediaStream:(FlutterResult)result{
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
@@ -685,6 +725,46 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
         maxSupportedFramerate = fmax(maxSupportedFramerate, fpsRange.maxFrameRate);
     }
     return fmin(maxSupportedFramerate, self._targetFps);
+}
+
+- (CVPixelBufferRef) pixelBufferFromCGImage: (CGImageRef) image
+{
+    NSDictionary *options = @{
+                              (NSString*)kCVPixelBufferCGImageCompatibilityKey : @YES,
+                              (NSString*)kCVPixelBufferCGBitmapContextCompatibilityKey : @YES,
+                              };
+
+    CVPixelBufferRef pxbuffer = NULL;
+    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, CGImageGetWidth(image),
+                        CGImageGetHeight(image), kCVPixelFormatType_32ARGB, (__bridge CFDictionaryRef) options,
+                        &pxbuffer);
+    if (status!=kCVReturnSuccess) {
+        NSLog(@"Operation failed");
+    }
+    NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
+
+    CVPixelBufferLockBaseAddress(pxbuffer, 0);
+    void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
+
+    CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
+    CGContextRef context = CGBitmapContextCreate(pxdata, CGImageGetWidth(image),
+                                                 CGImageGetHeight(image), 8, 4*CGImageGetWidth(image), rgbColorSpace,
+                                                 kCGImageAlphaNoneSkipFirst);
+    NSParameterAssert(context);
+
+    CGContextConcatCTM(context, CGAffineTransformMakeRotation(0));
+    CGAffineTransform flipVertical = CGAffineTransformMake( 1, 0, 0, -1, 0, CGImageGetHeight(image) );
+    CGContextConcatCTM(context, flipVertical);
+    CGAffineTransform flipHorizontal = CGAffineTransformMake( -1.0, 0.0, 0.0, 1.0, CGImageGetWidth(image), 0.0 );
+    CGContextConcatCTM(context, flipHorizontal);
+
+    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image),
+                                           CGImageGetHeight(image)), image);
+    CGColorSpaceRelease(rgbColorSpace);
+    CGContextRelease(context);
+
+    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
+    return pxbuffer;
 }
 
 @end

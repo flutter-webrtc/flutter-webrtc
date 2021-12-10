@@ -9,6 +9,8 @@
 -(void)getDisplayMedia:(NSDictionary *)constraints
              result:(FlutterResult)result;
 #endif
+-(void)broadcastFrame:(FlutterStandardTypedData *)bytesList
+               result:(FlutterResult)result;
 -(void)createLocalMediaStream:(FlutterResult)result;
 
 -(void)getSources:(FlutterResult)result;

@@ -142,11 +142,13 @@
     } else if ([@"getDisplayMedia" isEqualToString:call.method]) {
 #if TARGET_OS_IPHONE
         NSDictionary* argsMap = call.arguments;
-        NSDictionary* constraints = argsMap[@"constraints"];
+    NSDictionary* constraints = argsMap[@"constraints"];
         [self getDisplayMedia:constraints result:result];
 #else
         result(FlutterMethodNotImplemented);
 #endif
+    } else if ([@"broadcastFrame" isEqualToString:call.method]) {
+        [self broadcastFrame:call.arguments[@"frame"] result:result];
     } else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
         [self createLocalMediaStream:result];
     } else if ([@"getSources" isEqualToString:call.method]) {

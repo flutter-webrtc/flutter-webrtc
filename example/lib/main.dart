@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
+import 'src/broadcast_frame/broadcast_frame_sample.dart';
 import 'src/data_channel_sample.dart';
 import 'src/get_display_media_sample.dart';
 import 'src/get_user_media_sample.dart'
@@ -96,6 +97,14 @@ class _MyAppState extends State<MyApp> {
                 MaterialPageRoute(
                     builder: (BuildContext context) =>
                         GetDisplayMediaSample()));
+          }),
+      RouteItem(
+          title: 'Broadcast Frame',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) => BroadcastFrameSample()));
           }),
       RouteItem(
           title: 'LoopBack Sample',
