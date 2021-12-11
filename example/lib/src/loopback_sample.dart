@@ -127,9 +127,36 @@ class _MyAppState extends State<LoopBackSample> {
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
+  /*
+
+      // added for audio performance measurements
+    if (peerConnectionParameters.noAudioProcessing) {
+      Log.d(TAG, "Disabling audio processing");
+      audioConstraints.mandatory.add(
+          new MediaConstraints.KeyValuePair(AUDIO_ECHO_CANCELLATION_CONSTRAINT, "false"));
+      audioConstraints.mandatory.add(
+          new MediaConstraints.KeyValuePair(AUDIO_AUTO_GAIN_CONTROL_CONSTRAINT, "false"));
+      audioConstraints.mandatory.add(
+          new MediaConstraints.KeyValuePair(AUDIO_HIGH_PASS_FILTER_CONSTRAINT, "false"));
+      audioConstraints.mandatory.add(
+          new MediaConstraints.KeyValuePair(AUDIO_NOISE_SUPPRESSION_CONSTRAINT, "false"));
+    }
+   */
+  final String AUDIO_ECHO_CANCELLATION_CONSTRAINT = 'googEchoCancellation';
+  final String AUDIO_AUTO_GAIN_CONTROL_CONSTRAINT = 'googAutoGainControl';
+  final String AUDIO_HIGH_PASS_FILTER_CONSTRAINT = 'googHighpassFilter';
+  final String AUDIO_NOISE_SUPPRESSION_CONSTRAINT = 'googNoiseSuppression';
+  final String DTLS_SRTP_KEY_AGREEMENT_CONSTRAINT = 'DtlsSrtpKeyAgreement';
   void _makeCall() async {
     final mediaConstraints = <String, dynamic>{
-      'audio': true,
+      'audio': {
+        'mandatory': {
+          AUDIO_ECHO_CANCELLATION_CONSTRAINT: false,
+          AUDIO_AUTO_GAIN_CONTROL_CONSTRAINT: false,
+          AUDIO_HIGH_PASS_FILTER_CONSTRAINT: false,
+          AUDIO_NOISE_SUPPRESSION_CONSTRAINT: false,
+        }
+      },
       'video': {
         'mandatory': {
           'minWidth':
