@@ -11,6 +11,7 @@ add_definitions(-DLIB_WEBRTC_API_DLL)
 add_library(${PLUGIN_NAME} SHARED
   "flutter_webrtc_plugin.cc"
   "src/flutter_webrtc.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/flutter_webrtc_native.cc"
 )
 
 include_directories(
@@ -30,6 +31,7 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
   flutter
   flutter_wrapper_plugin
   "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/flutter_webrtc_native.dll.lib"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/cxxbridge1.lib"
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin

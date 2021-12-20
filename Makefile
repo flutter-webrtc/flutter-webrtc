@@ -49,7 +49,7 @@ test: cargo.test
 # Build Flutter example application for Windows.
 #
 # Usage:
-#	make flutter.build [release=(no|yes)]
+#	make flutter.build
 
 flutter.build:
 	cd example/ && \
@@ -72,7 +72,7 @@ flutter.pub:
 
 flutter.run:
 	cd example/ && \
-	flutter run -d windows
+	flutter run -d windows --release
 
 
 
@@ -91,12 +91,19 @@ lib-out-path = target/$(if $(call eq,$(debug),no),release,debug)
 
 cargo.build:
 	cargo build -p flutter-webrtc-native $(if $(call eq,$(debug),no),--release,)
+	@mkdir -p windows/rust/include/
+	@mkdir -p windows/rust/lib/
+	@mkdir -p windows/rust/src/
 	cp -f $(lib-out-path)/flutter_webrtc_native.dll \
 		windows/rust/lib/flutter_webrtc_native.dll
 	cp -f $(lib-out-path)/flutter_webrtc_native.dll.lib \
 		windows/rust/lib/flutter_webrtc_native.dll.lib
-	cp -f target/flutter_webrtc_native.hpp \
-		windows/rust/include/flutter_webrtc_native.hpp
+	cp -f target/cxxbridge/cxxbridge1.lib \
+		windows/rust/lib/cxxbridge1.lib
+	cp -f target/cxxbridge/flutter-webrtc-native/src/lib.rs.h \
+		windows/rust/include/flutter_webrtc_native.h
+	cp -f target/cxxbridge/flutter-webrtc-native/src/lib.rs.cc \
+		windows/rust/src/flutter_webrtc_native.cc
 
 
 # Generate documentation for project crates.

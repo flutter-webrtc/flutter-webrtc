@@ -18,29 +18,22 @@ fn main() -> anyhow::Result<()> {
         "cargo:rustc-link-search=native=crates/libwebrtc-sys/lib/release/"
     );
     println!("cargo:rustc-link-lib=webrtc");
+
     println!("cargo:rustc-link-lib=dylib=winmm");
-    println!("cargo:rustc-link-lib=dylib=secur32");
-    println!("cargo:rustc-link-lib=dylib=dmoguids");
-    println!("cargo:rustc-link-lib=dylib=wmcodecdspuuid");
-    println!("cargo:rustc-link-lib=dylib=amstrmid");
-    println!("cargo:rustc-link-lib=dylib=msdmo");
-    println!("cargo:rustc-link-lib=dylib=gdi32");
-    println!("cargo:rustc-link-lib=dylib=d3d11");
-    println!("cargo:rustc-link-lib=dylib=dxgi");
 
     cxx_build::bridge("src/bridge.rs")
         .file("src/bridge.cc")
         .include(path.join("lib/include"))
         .include(path.join("lib/include/third_party/abseil-cpp"))
-        .define("WEBRTC_WIN", "1")
-        .define("NOMINMAX", "1")
-        .define("WEBRTC_USE_BUILTIN_ISAC_FLOAT", "1")
+        .flag("-DWEBRTC_WIN")
         .compile("libwebrtc-sys");
 
     println!("cargo:rerun-if-changed=src/bridge.cc");
     println!("cargo:rerun-if-changed=src/bridge.rs");
     println!("cargo:rerun-if-changed=include/bridge.h");
     println!("cargo:rerun-if-changed=./lib");
+    println!("cargo:rerun-if-env-changed=INSTALL_WEBRTC");
+    println!("cargo:rerun-if-env-changed=LIBWEBRTC_URL");
 
     Ok(())
 }
@@ -54,6 +47,21 @@ fn download_libwebrtc() -> anyhow::Result<()> {
     let temp_dir = manifest_path.join("temp");
     let archive = temp_dir.join("libwebrtc-win-x64.tar.gz");
     let lib_dir = manifest_path.join("lib");
+
+    // Force download if `INSTALL_WEBRTC=1`.
+    if env::var("INSTALL_WEBRTC").as_deref().unwrap_or("0") == "0" {
+        // Skip download if already downloaded.
+        if fs::read_dir(&lib_dir)?.fold(0, |acc, b| {
+            if !b.unwrap().file_name().to_string_lossy().starts_with('.') {
+                acc + 1
+            } else {
+                acc
+            }
+        }) != 0
+        {
+            return Ok(());
+        }
+    }
 
     // Clear `temp` directory.
     if temp_dir.exists() {
