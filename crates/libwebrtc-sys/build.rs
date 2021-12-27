@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic)]
+
 use std::{env, fs, io, path::PathBuf};
 
 use anyhow::anyhow;
@@ -5,7 +7,7 @@ use dotenv::dotenv;
 
 fn main() -> anyhow::Result<()> {
     // This won't override any env vars that already present.
-    let _ = dotenv();
+    drop(dotenv());
 
     download_libwebrtc()?;
 
@@ -19,6 +21,10 @@ fn main() -> anyhow::Result<()> {
     );
     println!("cargo:rustc-link-lib=webrtc");
 
+    println!("cargo:rustc-link-lib=dylib=dmoguids");
+    println!("cargo:rustc-link-lib=dylib=wmcodecdspuuid");
+    println!("cargo:rustc-link-lib=dylib=amstrmid");
+    println!("cargo:rustc-link-lib=dylib=msdmo");
     println!("cargo:rustc-link-lib=dylib=winmm");
 
     cxx_build::bridge("src/bridge.rs")
@@ -52,10 +58,10 @@ fn download_libwebrtc() -> anyhow::Result<()> {
     if env::var("INSTALL_WEBRTC").as_deref().unwrap_or("0") == "0" {
         // Skip download if already downloaded.
         if fs::read_dir(&lib_dir)?.fold(0, |acc, b| {
-            if !b.unwrap().file_name().to_string_lossy().starts_with('.') {
-                acc + 1
-            } else {
+            if b.unwrap().file_name().to_string_lossy().starts_with('.') {
                 acc
+            } else {
+                acc + 1
             }
         }) != 0
         {

@@ -6,6 +6,7 @@ publish = false
 links = "webrtc"
 
 [dependencies]
+anyhow = "1.0"
 cxx = "1.0"
 
 [build-dependencies]
