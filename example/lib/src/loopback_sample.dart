@@ -256,8 +256,9 @@ class _MyAppState extends State<LoopBackSample> {
       print('sdp = $sdp');
       await _peerConnection!.setLocalDescription(description);
       //change for loopback.
-      description.type = 'answer';
-      await _peerConnection!.setRemoteDescription(description);
+      var sdp_answer = sdp?.replaceAll('setup:actpass','setup:active');
+      var description_answer = RTCSessionDescription(sdp_answer!, 'answer');
+      await _peerConnection!.setRemoteDescription(description_answer);
 
       // _peerConnection!.getStats();
       /* Unfied-Plan replaceTrack
