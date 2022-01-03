@@ -1350,16 +1350,17 @@
 
     NSMutableArray *encodings = [NSMutableArray array];
     for (RTCRtpEncodingParameters* encoding in parameters.encodings) {
-        NSMutableDictionary *obj = [@{
-            @"active": @(encoding.isActive),
-            @"minBitrate": encoding.minBitrateBps? encoding.minBitrateBps : [NSNumber numberWithInt:0],
-            @"maxBitrate": encoding.maxBitrateBps? encoding.maxBitrateBps : [NSNumber numberWithInt:0],
-            @"maxFramerate": encoding.maxFramerate? encoding.maxFramerate : @(30),
-            @"numTemporalLayers": encoding.numTemporalLayers? encoding.numTemporalLayers : @(1),
-            @"scaleResolutionDownBy": encoding.scaleResolutionDownBy? @(encoding.scaleResolutionDownBy.doubleValue) : [NSNumber numberWithDouble:1.0],
-            @"ssrc": encoding.ssrc ? encoding.ssrc : [NSNumber numberWithLong:0]
-        } mutableCopy];
-        if ([encoding.rid length] != 0) [obj setObject:encoding.rid forKey:@"rid"];
+        // non-nil values
+        NSMutableDictionary *obj = [@{@"active": @(encoding.isActive)} mutableCopy];
+        // optional values
+        if (encoding.rid != nil) [obj setObject:encoding.rid forKey:@"rid"];
+        if (encoding.minBitrateBps != nil) [obj setObject:encoding.minBitrateBps forKey:@"minBitrate"];
+        if (encoding.maxBitrateBps != nil) [obj setObject:encoding.maxBitrateBps forKey:@"maxBitrate"];
+        if (encoding.maxFramerate != nil) [obj setObject:encoding.maxFramerate forKey:@"maxFramerate"];
+        if (encoding.numTemporalLayers != nil) [obj setObject:encoding.numTemporalLayers forKey:@"numTemporalLayers"];
+        if (encoding.scaleResolutionDownBy != nil) [obj setObject:encoding.scaleResolutionDownBy forKey:@"scaleResolutionDownBy"];
+        if (encoding.ssrc != nil) [obj setObject:encoding.ssrc forKey:@"ssrc"];
+
         [encodings addObject:obj];
     }
 
