@@ -763,6 +763,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       for(RtpParameters.Encoding encoding : rtpParameters.encodings){
           ConstraintsMap map = new ConstraintsMap();
           map.putBoolean("active",encoding.active);
+          if (encoding.rid != null) {
+              map.putString("rid", encoding.rid);
+          }
           if (encoding.maxBitrateBps != null) {
               map.putInt("maxBitrate", encoding.maxBitrateBps);
           }
