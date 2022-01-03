@@ -820,7 +820,7 @@
             details:nil]);
             return;
         }
-        [sender setParameters:[self updateRtpParameters: parameters : sender.parameters]];
+        [sender setParameters:[self updateRtpParameters:sender.parameters with:parameters]];
 
         result(@{@"result": @(YES)});
     } else if ([@"rtpSenderReplaceTrack" isEqualToString:call.method]){
@@ -1350,8 +1350,7 @@
 
     NSMutableArray *encodings = [NSMutableArray array];
     for (RTCRtpEncodingParameters* encoding in parameters.encodings) {
-        [encodings addObject:@{
-            @"rid": encoding.rid,
+        NSMutableDictionary *obj = [@{
             @"active": @(encoding.isActive),
             @"minBitrate": encoding.minBitrateBps? encoding.minBitrateBps : [NSNumber numberWithInt:0],
             @"maxBitrate": encoding.maxBitrateBps? encoding.maxBitrateBps : [NSNumber numberWithInt:0],
@@ -1359,7 +1358,9 @@
             @"numTemporalLayers": encoding.numTemporalLayers? encoding.numTemporalLayers : @(1),
             @"scaleResolutionDownBy": encoding.scaleResolutionDownBy? @(encoding.scaleResolutionDownBy.doubleValue) : [NSNumber numberWithDouble:1.0],
             @"ssrc": encoding.ssrc ? encoding.ssrc : [NSNumber numberWithLong:0]
-        }];
+        } mutableCopy];
+        if ([encoding.rid length] != 0) [obj setObject:encoding.rid forKey:@"rid"];
+        [encodings addObject:obj];
     }
 
     NSMutableArray *codecs = [NSMutableArray array];
@@ -1563,29 +1564,58 @@
     return RTCRtpTransceiverDirectionInactive;
 }
 
--(RTCRtpParameters *)updateRtpParameters :(NSDictionary *)newParameters : (RTCRtpParameters *)parameters {
-    NSArray* encodings = [newParameters objectForKey:@"encodings"];
-    NSArray<RTCRtpEncodingParameters *> *nativeEncodings = parameters.encodings;
-    for(int i = 0; i < [nativeEncodings count]; i++){
-        RTCRtpEncodingParameters *nativeEncoding = [nativeEncodings objectAtIndex:i];
-        NSDictionary *encoding = [encodings objectAtIndex:i];
-        if([encoding objectForKey:@"active"]){
-            nativeEncoding.isActive =  [[encoding objectForKey:@"active"] boolValue];
+-(RTCRtpParameters *)updateRtpParameters:(RTCRtpParameters *)parameters
+                                    with:(NSDictionary *)newParameters {
+    // current encodings
+    NSArray<RTCRtpEncodingParameters *> *currentEncodings = parameters.encodings;
+    // new encodings
+    NSArray* newEncodings = [newParameters objectForKey:@"encodings"];
+
+    for (int i = 0; i < [newEncodings count]; i++) {
+        RTCRtpEncodingParameters *currentParams = nil;
+        NSDictionary *newParams = [newEncodings objectAtIndex:i];
+        NSString *rid = [newParams objectForKey:@"rid"];
+
+        // update by matching RID
+        if ([rid isKindOfClass:[NSString class]] && [rid length] != 0) {
+            // try to find current encoding with same rid
+            NSUInteger result = [currentEncodings indexOfObjectPassingTest:^BOOL(RTCRtpEncodingParameters * _Nonnull obj,
+                                                                           NSUInteger idx,
+                                                                           BOOL * _Nonnull stop) {
+                // stop if found object with matching rid
+                return (*stop = ([rid isEqualToString:obj.rid]));
+            }];
+            
+            if (result != NSNotFound) {
+                currentParams = [currentEncodings objectAtIndex:result];
+            }
         }
-        if([encoding objectForKey:@"maxBitrate"]){
-            nativeEncoding.maxBitrateBps =  [encoding objectForKey:@"maxBitrate"];
+
+        // fall back to update by index
+        if (currentParams == nil && i < [currentEncodings count]) {
+            currentParams = [currentEncodings objectAtIndex:i];
         }
-        if([encoding objectForKey:@"minBitrate"]){
-            nativeEncoding.minBitrateBps =  [encoding objectForKey:@"minBitrate"];
-        }
-        if([encoding objectForKey:@"maxFramerate"]){
-            nativeEncoding.maxFramerate =  [encoding objectForKey:@"maxFramerate"];
-        }
-        if([encoding objectForKey:@"numTemporalLayers"]){
-            nativeEncoding.numTemporalLayers =  [encoding objectForKey:@"numTemporalLayers"];
-        }
-        if([encoding objectForKey:@"scaleResolutionDownBy"]){
-            nativeEncoding.scaleResolutionDownBy =  [encoding objectForKey:@"scaleResolutionDownBy"];
+
+        if (currentParams != nil) {
+            // update values
+            if ([newParams objectForKey:@"active"]) {
+                currentParams.isActive = [[newParams objectForKey:@"active"] boolValue];
+            }
+            if ([newParams objectForKey:@"maxBitrate"]) {
+                currentParams.maxBitrateBps = [newParams objectForKey:@"maxBitrate"];
+            }
+            if ([newParams objectForKey:@"minBitrate"]) {
+                currentParams.minBitrateBps = [newParams objectForKey:@"minBitrate"];
+            }
+            if ([newParams objectForKey:@"maxFramerate"]) {
+                currentParams.maxFramerate = [newParams objectForKey:@"maxFramerate"];
+            }
+            if ([newParams objectForKey:@"numTemporalLayers"]) {
+                currentParams.numTemporalLayers = [newParams objectForKey:@"numTemporalLayers"];
+            }
+            if ([newParams objectForKey:@"scaleResolutionDownBy"]) {
+                currentParams.scaleResolutionDownBy = [newParams objectForKey:@"scaleResolutionDownBy"];
+            }
         }
     }
 
