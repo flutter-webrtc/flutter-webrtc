@@ -1599,24 +1599,18 @@
 
         if (currentParams != nil) {
             // update values
-            if ([newParams objectForKey:@"active"]) {
-                currentParams.isActive = [[newParams objectForKey:@"active"] boolValue];
-            }
-            if ([newParams objectForKey:@"maxBitrate"]) {
-                currentParams.maxBitrateBps = [newParams objectForKey:@"maxBitrate"];
-            }
-            if ([newParams objectForKey:@"minBitrate"]) {
-                currentParams.minBitrateBps = [newParams objectForKey:@"minBitrate"];
-            }
-            if ([newParams objectForKey:@"maxFramerate"]) {
-                currentParams.maxFramerate = [newParams objectForKey:@"maxFramerate"];
-            }
-            if ([newParams objectForKey:@"numTemporalLayers"]) {
-                currentParams.numTemporalLayers = [newParams objectForKey:@"numTemporalLayers"];
-            }
-            if ([newParams objectForKey:@"scaleResolutionDownBy"]) {
-                currentParams.scaleResolutionDownBy = [newParams objectForKey:@"scaleResolutionDownBy"];
-            }
+            NSNumber *active = [newParams objectForKey:@"active"];
+            if (active != nil) currentParams.isActive = [active boolValue];
+            NSNumber *maxBitrate = [newParams objectForKey:@"maxBitrate"];
+            if (maxBitrate != nil) currentParams.maxBitrateBps = maxBitrate;
+            NSNumber *minBitrate = [newParams objectForKey:@"minBitrate"];
+            if (minBitrate != nil) currentParams.minBitrateBps = minBitrate;
+            NSNumber *maxFramerate = [newParams objectForKey:@"maxFramerate"];
+            if (maxFramerate != nil) currentParams.maxFramerate = maxFramerate;
+            NSNumber *numTemporalLayers = [newParams objectForKey:@"numTemporalLayers"];
+            if (numTemporalLayers != nil) currentParams.numTemporalLayers = numTemporalLayers;
+            NSNumber *scaleResolutionDownBy = [newParams objectForKey:@"scaleResolutionDownBy"];
+            if (scaleResolutionDownBy != nil) currentParams.scaleResolutionDownBy = scaleResolutionDownBy;
         }
     }
 
