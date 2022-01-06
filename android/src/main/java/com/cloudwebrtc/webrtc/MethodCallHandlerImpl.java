@@ -133,7 +133,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mPeerConnectionObservers.clear();
   }
 
-  private void ensureInitialized() {
+  private void ensureInitialized(boolean bypassVoiceProcessing) {
     if (mFactory != null) {
       return;
     }
@@ -148,14 +148,24 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     getUserMediaImpl = new GetUserMediaImpl(this, context);
 
-    audioDeviceModule = JavaAudioDeviceModule.builder(context)
-            .setUseHardwareAcousticEchoCanceler(false)
-            .setUseHardwareNoiseSuppressor(false)
-            .setUseStereoInput(true)
-            .setUseStereoOutput(true)
-            .setAudioSource(MediaRecorder.AudioSource.MIC)
-            .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
-            .createAudioDeviceModule();
+    if (bypassVoiceProcessing) {
+        audioDeviceModule =
+                JavaAudioDeviceModule.builder(context)
+                        .setUseHardwareAcousticEchoCanceler(false)
+                        .setUseHardwareNoiseSuppressor(false)
+                        .setUseStereoInput(true)
+                        .setUseStereoOutput(true)
+                        .setAudioSource(MediaRecorder.AudioSource.MIC)
+                        .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
+                        .createAudioDeviceModule();
+    } else {
+        audioDeviceModule =
+                JavaAudioDeviceModule.builder(context)
+                        .setUseHardwareAcousticEchoCanceler(true)
+                        .setUseHardwareNoiseSuppressor(true)
+                        .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
+                        .createAudioDeviceModule();
+    }
 
     getUserMediaImpl.audioDeviceModule = (JavaAudioDeviceModule) audioDeviceModule;
 
@@ -169,7 +179,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   @Override
   public void onMethodCall(MethodCall call, @NonNull Result notSafeResult) {
-    ensureInitialized();
+  
+    ensureInitialized(false);
 
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
