@@ -38,6 +38,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   RTCIceGatheringState? _iceGatheringState;
   RTCIceConnectionState? _iceConnectionState;
   RTCPeerConnectionState? _connectionState;
+  final List<RTCRtpTransceiver> _transceivers = [];
 
   final Map<String, dynamic> defaultSdpConstraints = {
     'mandatory': {
@@ -127,7 +128,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   }
 
   EventChannel _eventChannelFor(String peerConnectionId) {
-    return EventChannel('FlutterWebRTC/peerConnectoinEvent$peerConnectionId');
+    return EventChannel('FlutterWebRTC/peerConnectionEvent$peerConnectionId');
   }
 
   @override
@@ -189,6 +190,9 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         'peerConnectionId': _peerConnectionId,
         'description': description.toMap(),
       });
+      for (var transceiver in _transceivers) {
+        await transceiver.sync();
+      }
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::setLocalDescription: ${e.message}';
     }
@@ -201,6 +205,9 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         'peerConnectionId': _peerConnectionId,
         'description': description.toMap(),
       });
+      for (var transceiver in _transceivers) {
+        await transceiver.sync();
+      }
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::setRemoteDescription: ${e.message}';
     }
@@ -314,8 +321,11 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
     try {
       final response = await WebRTC.invokeMethod('getTransceivers',
           <String, dynamic>{'peerConnectionId': _peerConnectionId});
-      return RTCRtpTransceiverNative.fromMaps(response['transceivers'],
+      var transceivers = RTCRtpTransceiverNative.fromMaps(
+          response['transceivers'],
           peerConnectionId: _peerConnectionId);
+      _transceivers.addAll(transceivers);
+      return transceivers;
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::addTrack: ${e.message}';
     }
@@ -366,8 +376,10 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         if (init != null)
           'transceiverInit': RTCRtpTransceiverInitNative.initToMap(init)
       });
-      return RTCRtpTransceiverNative.fromMap(response,
+      var transceiver = RTCRtpTransceiverNative.fromMap(response,
           peerConnectionId: _peerConnectionId);
+      _transceivers.add(transceiver);
+      return transceiver;
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::addTransceiver: ${e.message}';
     }

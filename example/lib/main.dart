@@ -7,6 +7,7 @@ import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'src/get_display_media_sample.dart';
+import 'src/loopback_sample.dart';
 import 'src/route_item.dart';
 
 void main() {
@@ -83,6 +84,14 @@ class _MyAppState extends State<MyApp> {
                 MaterialPageRoute(
                     builder: (BuildContext context) =>
                         GetDisplayMediaSample()));
+          }),
+      RouteItem(
+          title: 'LoopBack Sample',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) => LoopBackSample()));
           }),
     ];
   }

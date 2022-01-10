@@ -11,14 +11,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import java.util.ArrayList;
 
 /** Helper module for dealing with dynamic permissions, introduced in Android M (API level 23). */
-public class PermissionUtils {
+public final class PermissionUtils {
   /**
    * Constants for internal fields in the <tt>Bundle</tt> exchanged between the activity requesting
    * the permissions and the auxiliary activity we spawn for this purpose.
@@ -33,7 +35,7 @@ public class PermissionUtils {
   private static int requestCode;
 
   private static void requestPermissions(
-          Context context, Activity activity, String[] permissions, ResultReceiver resultReceiver) {
+          @NonNull Context context, @Nullable Activity activity, @NonNull String[] permissions, @NonNull ResultReceiver resultReceiver) {
     // Ask the Context whether we have already been granted the requested
     // permissions.
     int size = permissions.length;
@@ -101,17 +103,17 @@ public class PermissionUtils {
   }
 
   public static void requestPermissions(
-          final Context context,
+          @NonNull final Context context,
           final Activity activity,
-          final String[] permissions,
-          final Callback callback) {
+          @NonNull final String[] permissions,
+          @NonNull final Callback callback) {
     requestPermissions(
         context,
         activity,
         permissions,
         new ResultReceiver(new Handler(Looper.getMainLooper())) {
           @Override
-          protected void onReceiveResult(int resultCode, Bundle resultData) {
+          protected void onReceiveResult(int resultCode, @NonNull Bundle resultData) {
             callback.invoke(
                 resultData.getStringArray(PERMISSIONS), resultData.getIntArray(GRANT_RESULTS));
           }
@@ -119,7 +121,7 @@ public class PermissionUtils {
   }
 
   private static void send(
-      ResultReceiver resultReceiver, int requestCode, String[] permissions, int[] grantResults) {
+          @NonNull ResultReceiver resultReceiver, int requestCode, String[] permissions, int[] grantResults) {
     Bundle resultData = new Bundle();
     resultData.putStringArray(PERMISSIONS, permissions);
     resultData.putIntArray(GRANT_RESULTS, grantResults);
@@ -127,6 +129,7 @@ public class PermissionUtils {
     resultReceiver.send(requestCode, resultData);
   }
 
+  @FunctionalInterface
   public interface Callback {
     void invoke(String[] permissions, int[] grantResults);
   }
@@ -174,7 +177,7 @@ public class PermissionUtils {
       } else {
         // Ask the user about the denied permissions.
         requestPermissions(
-            deniedPermissions.toArray(new String[deniedPermissions.size()]), requestCode);
+            deniedPermissions.toArray(new String[0]), requestCode);
       }
     }
 

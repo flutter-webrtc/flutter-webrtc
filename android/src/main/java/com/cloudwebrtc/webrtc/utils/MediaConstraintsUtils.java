@@ -1,14 +1,19 @@
 package com.cloudwebrtc.webrtc.utils;
 
 import android.util.Log;
-import java.util.List;
-import java.util.Map.Entry;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaConstraints.KeyValuePair;
 
-public class MediaConstraintsUtils {
+import java.util.List;
+import java.util.Map.Entry;
 
-  static public final String TAG = "MediaConstraintsUtils";
+public final class MediaConstraintsUtils {
+
+  private static final String TAG = "MediaConstraintsUtils";
 
   /**
    * Parses mandatory and optional "GUM" constraints described by a specific
@@ -21,7 +26,8 @@ public class MediaConstraintsUtils {
    * constraint keys and values specified by
    * <tt>constraints</tt>.
    */
-  public static MediaConstraints parseMediaConstraints(ConstraintsMap constraints) {
+  @NonNull
+  public static MediaConstraints parseMediaConstraints(@NonNull ConstraintsMap constraints) {
     MediaConstraints mediaConstraints = new MediaConstraints();
 
     if (constraints.hasKey("mandatory")
@@ -59,8 +65,8 @@ public class MediaConstraintsUtils {
    * specified <tt>src</tt> is to be parsed.
    */
   private static void parseConstraints(
-      ConstraintsMap src,
-      List<KeyValuePair> dst) {
+          @NonNull ConstraintsMap src,
+          @NonNull List<KeyValuePair> dst) {
 
     for (Entry<String, Object> entry : src.toMap().entrySet()) {
       String key = entry.getKey();
@@ -69,7 +75,8 @@ public class MediaConstraintsUtils {
     }
   }
 
-  private static String getMapStrValue(ConstraintsMap map, String key) {
+  @Nullable
+  private static String getMapStrValue(@NonNull ConstraintsMap map, String key) {
     if (!map.hasKey(key)) {
       return null;
     }

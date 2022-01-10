@@ -1,18 +1,21 @@
 package com.cloudwebrtc.webrtc;
 
-import android.util.Log;
 import android.graphics.SurfaceTexture;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 
-import java.util.List;
-
 import org.webrtc.EglBase;
 import org.webrtc.MediaStream;
 import org.webrtc.RendererCommon.RendererEvents;
 import org.webrtc.VideoTrack;
+
+import java.util.List;
 
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.view.TextureRegistry;
@@ -21,8 +24,9 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
 
     private static final String TAG = FlutterWebRTCPlugin.TAG;
     private final SurfaceTexture texture;
-    private TextureRegistry.SurfaceTextureEntry entry;
+    private final TextureRegistry.SurfaceTextureEntry entry;
     private int id = -1;
+    @Nullable
     private MediaStream mediaStream;
 
     public void Dispose() {
@@ -30,8 +34,9 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         if (surfaceTextureRenderer != null) {
             surfaceTextureRenderer.release();
         }
-        if (eventChannel != null)
+        if (eventChannel != null) {
             eventChannel.setStreamHandler(null);
+        }
 
         eventSink = null;
         entry.release();
@@ -45,8 +50,8 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
 
     private void listenRendererEvents() {
         rendererEvents = new RendererEvents() {
-            private int _rotation = -1;
-            private int _width = 0, _height = 0;
+            private int rotation = -1;
+            private int width, height;
 
             @Override
             public void onFirstFrameRendered() {
@@ -62,23 +67,23 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
                     int rotation) {
 
                 if (eventSink != null) {
-                    if (_width != videoWidth || _height != videoHeight) {
+                    if (width != videoWidth || height != videoHeight) {
                         ConstraintsMap params = new ConstraintsMap();
                         params.putString("event", "didTextureChangeVideoSize");
                         params.putInt("id", id);
-                        params.putDouble("width", (double) videoWidth);
-                        params.putDouble("height", (double) videoHeight);
-                        _width = videoWidth;
-                        _height = videoHeight;
+                        params.putDouble("width", videoWidth);
+                        params.putDouble("height", videoHeight);
+                        width = videoWidth;
+                        height = videoHeight;
                         eventSink.success(params.toMap());
                     }
 
-                    if (_rotation != rotation) {
+                    if (this.rotation != rotation) {
                         ConstraintsMap params2 = new ConstraintsMap();
                         params2.putString("event", "didTextureChangeRotation");
                         params2.putInt("id", id);
                         params2.putInt("rotation", rotation);
-                        _rotation = rotation;
+                        this.rotation = rotation;
                         eventSink.success(params2.toMap());
                     }
                 }
@@ -86,15 +91,18 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         };
     }
 
-    private SurfaceTextureRenderer surfaceTextureRenderer;
+    @NonNull
+    private final SurfaceTextureRenderer surfaceTextureRenderer;
 
     /**
      * The {@code VideoTrack}, if any, rendered by this {@code FlutterRTCVideoRenderer}.
      */
+    @Nullable
     private VideoTrack videoTrack;
 
-    EventChannel eventChannel;
-    EventChannel.EventSink eventSink;
+    private EventChannel eventChannel;
+    @Nullable
+    private EventChannel.EventSink eventSink;
 
     public FlutterRTCVideoRenderer(SurfaceTexture texture, TextureRegistry.SurfaceTextureEntry entry) {
         this.surfaceTextureRenderer = new SurfaceTextureRenderer("");
@@ -141,7 +149,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * @param mediaStream The {@code MediaStream} to be rendered by this
      *                    {@code FlutterRTCVideoRenderer} or {@code null}.
      */
-    public void setStream(MediaStream mediaStream) {
+    public void setStream(@Nullable MediaStream mediaStream) {
         VideoTrack videoTrack;
         this.mediaStream = mediaStream;
         if (mediaStream == null) {
@@ -161,7 +169,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * @param videoTrack The {@code VideoTrack} to be rendered by this
      *                   {@code FlutterRTCVideoRenderer} or {@code null}.
      */
-    public void setVideoTrack(VideoTrack videoTrack) {
+    public void setVideoTrack(@Nullable VideoTrack videoTrack) {
         VideoTrack oldValue = this.videoTrack;
 
         if (oldValue != videoTrack) {
@@ -204,14 +212,14 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         }
     }
 
-    public boolean checkMediaStream(String id) {
+    public boolean checkMediaStream(@Nullable String id) {
         if (null == id || null == mediaStream) {
             return false;
         }
         return id.equals(mediaStream.getId());
     }
 
-    public boolean checkVideoTrack(String id) {
+    public boolean checkVideoTrack(@Nullable String id) {
         if (null == id || null == videoTrack) {
             return false;
         }

@@ -2,14 +2,14 @@ package com.cloudwebrtc.webrtc;
 
 import android.graphics.SurfaceTexture;
 
+import androidx.annotation.NonNull;
+
 import org.webrtc.EglBase;
 import org.webrtc.EglRenderer;
 import org.webrtc.GlRectDrawer;
 import org.webrtc.RendererCommon;
 import org.webrtc.ThreadUtils;
 import org.webrtc.VideoFrame;
-
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Display the video stream on a Surface.
@@ -47,9 +47,9 @@ public class SurfaceTextureRenderer extends EglRenderer {
    * |drawer|. It is allowed to call init() to reinitialize the renderer after a previous
    * init()/release() cycle.
    */
-  public void init(final EglBase.Context sharedContext,
-                   RendererCommon.RendererEvents rendererEvents, final int[] configAttributes,
-                   RendererCommon.GlDrawer drawer) {
+  private void init(final EglBase.Context sharedContext,
+                    RendererCommon.RendererEvents rendererEvents, final int[] configAttributes,
+                    RendererCommon.GlDrawer drawer) {
     ThreadUtils.checkIsOnMainThread();
     this.rendererEvents = rendererEvents;
     synchronized (layoutLock) {
@@ -94,7 +94,7 @@ public class SurfaceTextureRenderer extends EglRenderer {
   }
   // VideoSink interface.
   @Override
-  public void onFrame(VideoFrame frame) {
+  public void onFrame(@NonNull VideoFrame frame) {
     updateFrameDimensionsAndReportEvents(frame);
     super.onFrame(frame);
   }
@@ -107,15 +107,8 @@ public class SurfaceTextureRenderer extends EglRenderer {
     createEglSurface(texture);
   }
 
-  public void surfaceDestroyed() {
-    ThreadUtils.checkIsOnMainThread();
-    final CountDownLatch completionLatch = new CountDownLatch(1);
-    releaseEglSurface(completionLatch::countDown);
-    ThreadUtils.awaitUninterruptibly(completionLatch);
-  }
-
   // Update frame dimensions and report any changes to |rendererEvents|.
-  private void updateFrameDimensionsAndReportEvents(VideoFrame frame) {
+  private void updateFrameDimensionsAndReportEvents(@NonNull VideoFrame frame) {
     synchronized (layoutLock) {
       if (isRenderingPaused) {
         return;

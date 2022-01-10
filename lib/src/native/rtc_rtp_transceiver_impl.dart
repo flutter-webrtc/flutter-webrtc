@@ -87,10 +87,10 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   }
 
   String _peerConnectionId;
-  String _id;
+  int _id;
   bool _stop = false;
   TransceiverDirection _direction;
-  String _mid;
+  String? _mid;
   RTCRtpSender _sender;
   RTCRtpReceiver _receiver;
 
@@ -99,7 +99,7 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   }
 
   @override
-  String get mid => _mid;
+  String? get mid => _mid;
 
   @override
   RTCRtpSender get sender => _sender;
@@ -110,8 +110,7 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   @override
   bool get stoped => _stop;
 
-  @override
-  String get transceiverId => _id;
+  int get transceiverId => _id;
 
   @override
   Future<void> setDirection(TransceiverDirection direction) async {
@@ -170,5 +169,26 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpTransceiver::stop: ${e.message}';
     }
+  }
+
+  Future<void> _syncMid() async {
+    try {
+      final response = await WebRTC.invokeMethod(
+        'rtpTransceiverGetMid',
+        <String, dynamic>{
+          'peerConnectionId': _peerConnectionId,
+          'transceiverId': _id,
+        },
+      );
+
+      _mid = response['result'];
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpTransceiver::getMid: ${e.message}';
+    }
+  }
+
+  @override
+  Future<void> sync() async {
+    await _syncMid();
   }
 }

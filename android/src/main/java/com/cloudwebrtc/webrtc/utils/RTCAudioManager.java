@@ -14,18 +14,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.util.Log;
-import java.util.Collections;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import org.webrtc.ThreadUtils;
+
 import java.util.HashSet;
 import java.util.Set;
-import com.cloudwebrtc.webrtc.utils.RTCUtils;
-import org.webrtc.ThreadUtils;
 
 /**
  * RTCAudioManager manages all audio related parts of the plugin.
@@ -33,7 +34,6 @@ import org.webrtc.ThreadUtils;
 public class RTCAudioManager {
   private static final String TAG = "RTCAudioManager";
   private static final String SPEAKERPHONE_AUTO = "auto";
-  private static final String SPEAKERPHONE_TRUE = "true";
   private static final String SPEAKERPHONE_FALSE = "false";
 
   /**
@@ -45,20 +45,23 @@ public class RTCAudioManager {
   /** AudioManager state. */
   public enum AudioManagerState {
     UNINITIALIZED,
-    PREINITIALIZED,
     RUNNING,
   }
 
   /** Selected audio device change event. */
+  @FunctionalInterface
   public interface AudioManagerEvents {
     // Callback fired once audio device is changed or list of available audio devices changed.
     void onAudioDeviceChanged(
         AudioDevice selectedAudioDevice, Set<AudioDevice> availableAudioDevices);
   }
 
+  @NonNull
   private final Context appContext;
-  private AudioManager audioManager;
+  @NonNull
+  private final AudioManager audioManager;
 
+  @Nullable
   private AudioManagerEvents audioManagerEvents;
   private AudioManagerState amState;
   private int savedAudioMode = AudioManager.MODE_INVALID;
@@ -68,7 +71,8 @@ public class RTCAudioManager {
 
   // Default audio device; speaker phone for video calls or earpiece for audio
   // only calls.
-  private AudioDevice defaultAudioDevice;
+  @NonNull
+  private final AudioDevice defaultAudioDevice;
 
   // Contains the currently selected audio device.
   // This device is changed automatically using a certain scheme where e.g.
@@ -84,52 +88,26 @@ public class RTCAudioManager {
   private AudioDevice userSelectedAudioDevice;
 
   // Contains speakerphone setting: auto, true or false
+  @NonNull
   private final String useSpeakerphone;
 
-  // Proximity sensor object. It measures the proximity of an object in cm
-  // relative to the view screen of a device and can therefore be used to
-  // assist device switching (close to ear <=> use headset earpiece if
-  // available, far from ear <=> use speaker phone).
-  private RTCProximitySensor proximitySensor;
-
   // Handles all tasks related to Bluetooth headset devices.
+  @NonNull
   private final RTCBluetoothManager bluetoothManager;
 
   // Contains a list of available audio devices. A Set collection is used to
   // avoid duplicate elements.
+  @NonNull
   private Set<AudioDevice> audioDevices = new HashSet<>();
 
   // Broadcast receiver for wired headset intent broadcasts.
-  private BroadcastReceiver wiredHeadsetReceiver;
+  @NonNull
+  private final BroadcastReceiver wiredHeadsetReceiver;
 
   // Callback method for changes in audio focus.
 
+  @Nullable
   private AudioManager.OnAudioFocusChangeListener audioFocusChangeListener;
-
-  /**
-   * This method is called when the proximity sensor reports a state change,
-   * e.g. from "NEAR to FAR" or from "FAR to NEAR".
-   */
-  private void onProximitySensorChangedState() {
-    if (!useSpeakerphone.equals(SPEAKERPHONE_AUTO)) {
-      return;
-    }
-
-    // The proximity sensor should only be activated when there are exactly two
-    // available audio devices.
-    if (audioDevices.size() == 2 && audioDevices.contains(RTCAudioManager.AudioDevice.EARPIECE)
-        && audioDevices.contains(RTCAudioManager.AudioDevice.SPEAKER_PHONE)) {
-      if (proximitySensor.sensorReportsNearState()) {
-        // Sensor reports that a "handset is being held up to a person's ear",
-        // or "something is covering the light sensor".
-        setAudioDeviceInternal(RTCAudioManager.AudioDevice.EARPIECE);
-      } else {
-        // Sensor reports that a "handset is removed from a person's ear", or
-        // "the light sensor is no longer covered".
-        setAudioDeviceInternal(RTCAudioManager.AudioDevice.SPEAKER_PHONE);
-      }
-    }
-  }
 
   /* Receiver which handles changes in wired headset availability. */
   private class WiredHeadsetReceiver extends BroadcastReceiver {
@@ -139,7 +117,7 @@ public class RTCAudioManager {
     private static final int HAS_MIC = 1;
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(Context context, @NonNull Intent intent) {
       int state = intent.getIntExtra("state", STATE_UNPLUGGED);
       int microphone = intent.getIntExtra("microphone", HAS_NO_MIC);
       String name = intent.getStringExtra("name");
@@ -154,11 +132,12 @@ public class RTCAudioManager {
   }
 
   /** Construction. */
-  public static RTCAudioManager create(Context context) {
+  @NonNull
+  public static RTCAudioManager create(@NonNull Context context) {
     return new RTCAudioManager(context);
   }
 
-  private RTCAudioManager(Context context) {
+  private RTCAudioManager(@NonNull Context context) {
     Log.d(TAG, "ctor");
     ThreadUtils.checkIsOnMainThread();
     appContext = context;
@@ -175,15 +154,6 @@ public class RTCAudioManager {
     } else {
       defaultAudioDevice = AudioDevice.SPEAKER_PHONE;
     }
-
-    // Create and initialize the proximity sensor.
-    // Tablet devices (e.g. Nexus 7) does not support proximity sensors.
-    // Note that, the sensor will not be active until start() has been called.
-    proximitySensor = RTCProximitySensor.create(context,
-        // This method will be called each time a state change is detected.
-        // Example: user holds his hand over the device (closer than ~5 cm),
-        // or removes his hand from the device.
-        this ::onProximitySensorChangedState);
 
     Log.d(TAG, "defaultAudioDevice: " + defaultAudioDevice);
     RTCUtils.logDeviceInfo(TAG);
@@ -209,16 +179,13 @@ public class RTCAudioManager {
     savedIsMicrophoneMute = audioManager.isMicrophoneMute();
     hasWiredHeadset = hasWiredHeadset();
 
-    // Create an AudioManager.OnAudioFocusChangeListener instance.
-    audioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
       // Called on the listener to notify if the audio focus for this listener has been changed.
       // The |focusChange| value indicates whether the focus was gained, whether the focus was lost,
       // and whether that loss is transient, or whether the new focus holder will hold it for an
       // unknown amount of time.
       // TODO(henrika): possibly extend support of handling audio-focus changes. Only contains
       // logging for now.
-      @Override
-      public void onAudioFocusChange(int focusChange) {
+      audioFocusChangeListener = focusChange -> {
         final String typeOfChange;
         switch (focusChange) {
           case AudioManager.AUDIOFOCUS_GAIN:
@@ -247,8 +214,7 @@ public class RTCAudioManager {
             break;
         }
         Log.d(TAG, "onAudioFocusChange: " + typeOfChange);
-      }
-    };
+      };
 
     // Request audio playout focus (without ducking) and install listener for changes in focus.
     int result = audioManager.requestAudioFocus(audioFocusChangeListener,
@@ -287,7 +253,6 @@ public class RTCAudioManager {
     Log.d(TAG, "AudioManager started");
   }
 
-  @SuppressWarnings("deprecation") // TODO(henrika): audioManager.abandonAudioFocus() is deprecated.
   public void stop() {
     Log.d(TAG, "stop");
     ThreadUtils.checkIsOnMainThread();
@@ -311,17 +276,12 @@ public class RTCAudioManager {
     audioFocusChangeListener = null;
     Log.d(TAG, "Abandoned audio focus for VOICE_CALL streams");
 
-    if (proximitySensor != null) {
-      proximitySensor.stop();
-      proximitySensor = null;
-    }
-
     audioManagerEvents = null;
     Log.d(TAG, "AudioManager stopped");
   }
 
   /** Changes selection of the currently active audio device. */
-  private void setAudioDeviceInternal(AudioDevice device) {
+  private void setAudioDeviceInternal(@NonNull AudioDevice device) {
     Log.d(TAG, "setAudioDeviceInternal(device=" + device + ")");
     RTCUtils.assertIsTrue(audioDevices.contains(device));
 
@@ -330,11 +290,7 @@ public class RTCAudioManager {
         setSpeakerphoneOn(true);
         break;
       case EARPIECE:
-        setSpeakerphoneOn(false);
-        break;
       case WIRED_HEADSET:
-        setSpeakerphoneOn(false);
-        break;
       case BLUETOOTH:
         setSpeakerphoneOn(false);
         break;
@@ -343,53 +299,6 @@ public class RTCAudioManager {
         break;
     }
     selectedAudioDevice = device;
-  }
-
-  /**
-   * Changes default audio device.
-   * TODO(henrika): add usage of this method in the RTCMobile client.
-   */
-  public void setDefaultAudioDevice(AudioDevice defaultDevice) {
-    ThreadUtils.checkIsOnMainThread();
-    switch (defaultDevice) {
-      case EARPIECE:
-      if (hasEarpiece()) {
-        defaultAudioDevice = defaultDevice;
-      } else {
-        defaultAudioDevice = AudioDevice.SPEAKER_PHONE;
-      }
-      break;
-      case SPEAKER_PHONE:
-        defaultAudioDevice = defaultDevice;
-        break;
-      default:
-        Log.e(TAG, "Invalid default audio device selection");
-        break;
-    }
-    Log.d(TAG, "setDefaultAudioDevice(device=" + defaultAudioDevice + ")");
-    updateAudioDeviceState();
-  }
-
-  /** Changes selection of the currently active audio device. */
-  public void selectAudioDevice(AudioDevice device) {
-    ThreadUtils.checkIsOnMainThread();
-    if (!audioDevices.contains(device)) {
-      Log.e(TAG, "Can not select " + device + " from available " + audioDevices);
-    }
-    userSelectedAudioDevice = device;
-    updateAudioDeviceState();
-  }
-
-  /** Returns current set of available/selectable audio devices. */
-  public Set<AudioDevice> getAudioDevices() {
-    ThreadUtils.checkIsOnMainThread();
-    return Collections.unmodifiableSet(new HashSet<>(audioDevices));
-  }
-
-  /** Returns the currently selected audio device. */
-  public AudioDevice getSelectedAudioDevice() {
-    ThreadUtils.checkIsOnMainThread();
-    return selectedAudioDevice;
   }
 
   /** Helper method for receiver registration. */

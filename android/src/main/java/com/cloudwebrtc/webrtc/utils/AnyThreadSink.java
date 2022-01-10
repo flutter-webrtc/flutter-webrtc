@@ -3,11 +3,13 @@ package com.cloudwebrtc.webrtc.utils;
 import android.os.Handler;
 import android.os.Looper;
 
+import androidx.annotation.NonNull;
+
 import io.flutter.plugin.common.EventChannel;
 
 public final class AnyThreadSink implements EventChannel.EventSink {
-    final private EventChannel.EventSink eventSink;
-    final private Handler handler = new Handler(Looper.getMainLooper());
+    private final EventChannel.EventSink eventSink;
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     public AnyThreadSink(EventChannel.EventSink eventSink) {
         this.eventSink = eventSink;
@@ -28,7 +30,7 @@ public final class AnyThreadSink implements EventChannel.EventSink {
         post(eventSink::endOfStream);
     }
 
-    private void post(Runnable r) {
+    private void post(@NonNull Runnable r) {
         if(Looper.getMainLooper() == Looper.myLooper()){
             r.run();
         }else{

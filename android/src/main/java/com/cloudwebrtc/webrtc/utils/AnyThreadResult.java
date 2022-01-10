@@ -1,13 +1,15 @@
 package com.cloudwebrtc.webrtc.utils;
 
-import android.os.Looper;
 import android.os.Handler;
+import android.os.Looper;
+
+import androidx.annotation.NonNull;
 
 import io.flutter.plugin.common.MethodChannel;
 
 public final class AnyThreadResult implements MethodChannel.Result {
-    final private MethodChannel.Result result;
-    final private Handler handler = new Handler(Looper.getMainLooper());
+    private final MethodChannel.Result result;
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     public AnyThreadResult(MethodChannel.Result result) {
         this.result = result;
@@ -28,7 +30,7 @@ public final class AnyThreadResult implements MethodChannel.Result {
         post(result::notImplemented);
     }
 
-    private void post(Runnable r) {
+    private void post(@NonNull Runnable r) {
         if(Looper.getMainLooper() == Looper.myLooper()){
             r.run();
         }else{

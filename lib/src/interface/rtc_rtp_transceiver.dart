@@ -30,15 +30,15 @@ abstract class RTCRtpTransceiver {
 
   Future<TransceiverDirection> getDirection();
 
-  String get mid;
+  Future<void> sync();
+
+  String? get mid;
 
   RTCRtpSender get sender;
 
   RTCRtpReceiver get receiver;
 
   bool get stoped;
-
-  String get transceiverId;
 
   Future<void> stop();
 

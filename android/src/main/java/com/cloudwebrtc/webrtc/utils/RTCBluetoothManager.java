@@ -25,10 +25,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import org.webrtc.ThreadUtils;
+
 import java.util.List;
 import java.util.Set;
-import com.cloudwebrtc.webrtc.utils.RTCUtils;
-import org.webrtc.ThreadUtils;
 
 /**
  * RTCProximitySensor manages functions related to Bluetoth devices in the
@@ -46,8 +50,6 @@ public class RTCBluetoothManager {
   public enum State {
     // Bluetooth is not available; no adapter or Bluetooth is off.
     UNINITIALIZED,
-    // Bluetooth error happened when trying to start Bluetooth.
-    ERROR,
     // Bluetooth proxy object for the Headset profile exists, but no connected headset devices,
     // SCO is not started or disconnected.
     HEADSET_UNAVAILABLE,
@@ -62,42 +64,45 @@ public class RTCBluetoothManager {
     SCO_CONNECTED
   }
 
+  @NonNull
   private final Context apprtcContext;
   private final RTCAudioManager apprtcAudioManager;
-  
+
+  @NonNull
   private final AudioManager audioManager;
+  @NonNull
   private final Handler handler;
 
-  int scoConnectionAttempts;
+  private int scoConnectionAttempts;
   private State bluetoothState;
+  @NonNull
   private final BluetoothProfile.ServiceListener bluetoothServiceListener;
-  
+
+  @Nullable
   private BluetoothAdapter bluetoothAdapter;
-  
+
+  @Nullable
   private BluetoothHeadset bluetoothHeadset;
-  
+
+  @Nullable
   private BluetoothDevice bluetoothDevice;
+  @NonNull
   private final BroadcastReceiver bluetoothHeadsetReceiver;
 
   // Runs when the Bluetooth timeout expires. We use that timeout after calling
   // startScoAudio() or stopScoAudio() because we're not guaranteed to get a
   // callback after those calls.
-  private final Runnable bluetoothTimeoutRunnable = new Runnable() {
-    @Override
-    public void run() {
-      bluetoothTimeout();
-    }
-  };
+  private final Runnable bluetoothTimeoutRunnable = this::bluetoothTimeout;
 
   /**
    * Implementation of an interface that notifies BluetoothProfile IPC clients when they have been
    * connected to or disconnected from the service.
    */
   private class BluetoothServiceListener implements BluetoothProfile.ServiceListener {
-    @Override
     // Called to notify the client when the proxy object has been connected to the service.
     // Once we have the profile proxy object, we can use it to monitor the state of the
     // connection and perform other operations that are relevant to the headset profile.
+    @Override
     public void onServiceConnected(int profile, BluetoothProfile proxy) {
       if (profile != BluetoothProfile.HEADSET || bluetoothState == State.UNINITIALIZED) {
         return;
@@ -109,8 +114,8 @@ public class RTCBluetoothManager {
       Log.d(TAG, "onServiceConnected done: BT state=" + bluetoothState);
     }
 
+    /* Notifies the client when the proxy object has been disconnected from the service. */
     @Override
-    /** Notifies the client when the proxy object has been disconnected from the service. */
     public void onServiceDisconnected(int profile) {
       if (profile != BluetoothProfile.HEADSET || bluetoothState == State.UNINITIALIZED) {
         return;
@@ -129,7 +134,7 @@ public class RTCBluetoothManager {
   // Detects headset changes and Bluetooth SCO state changes.
   private class BluetoothHeadsetBroadcastReceiver extends BroadcastReceiver {
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(Context context, @NonNull Intent intent) {
       if (bluetoothState == State.UNINITIALIZED) {
         return;
       }
@@ -146,6 +151,7 @@ public class RTCBluetoothManager {
                 + "s=" + stateToString(state) + ", "
                 + "sb=" + isInitialStickyBroadcast() + ", "
                 + "BT state: " + bluetoothState);
+
         if (state == BluetoothHeadset.STATE_CONNECTED) {
           scoConnectionAttempts = 0;
           updateAudioDeviceState();
@@ -194,12 +200,13 @@ public class RTCBluetoothManager {
   }
 
   /** Construction. */
-  static RTCBluetoothManager create(Context context, RTCAudioManager audioManager) {
+  @NonNull
+  static RTCBluetoothManager create(@NonNull Context context, RTCAudioManager audioManager) {
     Log.d(TAG, "create" + RTCUtils.getThreadInfo());
     return new RTCBluetoothManager(context, audioManager);
   }
 
-  protected RTCBluetoothManager(Context context, RTCAudioManager audioManager) {
+  private RTCBluetoothManager(@NonNull Context context, RTCAudioManager audioManager) {
     Log.d(TAG, "ctor");
     ThreadUtils.checkIsOnMainThread();
     apprtcContext = context;
@@ -233,7 +240,7 @@ public class RTCBluetoothManager {
   public void start() {
     ThreadUtils.checkIsOnMainThread();
     Log.d(TAG, "start");
-    if (!hasPermission(apprtcContext, android.Manifest.permission.BLUETOOTH)) {
+    if (!hasPermission()) {
       Log.w(TAG, "Process (pid=" + Process.myPid() + ") lacks BLUETOOTH permission");
       return;
     }
@@ -259,7 +266,7 @@ public class RTCBluetoothManager {
     // Establish a connection to the HEADSET profile (includes both Bluetooth Headset and
     // Hands-Free) proxy object and install a listener.
     if (!getBluetoothProfileProxy(
-            apprtcContext, bluetoothServiceListener, BluetoothProfile.HEADSET)) {
+            apprtcContext, bluetoothServiceListener)) {
       Log.e(TAG, "BluetoothAdapter.getProfileProxy(HEADSET) failed");
       return;
     }
@@ -401,31 +408,32 @@ public class RTCBluetoothManager {
    * Stubs for test mocks.
    */
   
-  protected AudioManager getAudioManager(Context context) {
+  @NonNull
+  private AudioManager getAudioManager(@NonNull Context context) {
     return (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
   }
 
-  protected void registerReceiver(BroadcastReceiver receiver, IntentFilter filter) {
+  private void registerReceiver(BroadcastReceiver receiver, IntentFilter filter) {
     apprtcContext.registerReceiver(receiver, filter);
   }
 
-  protected void unregisterReceiver(BroadcastReceiver receiver) {
+  private void unregisterReceiver(BroadcastReceiver receiver) {
     apprtcContext.unregisterReceiver(receiver);
   }
 
-  protected boolean getBluetoothProfileProxy(
-      Context context, BluetoothProfile.ServiceListener listener, int profile) {
-    return bluetoothAdapter.getProfileProxy(context, listener, profile);
+  private boolean getBluetoothProfileProxy(
+          Context context, BluetoothProfile.ServiceListener listener) {
+    return bluetoothAdapter.getProfileProxy(context, listener, BluetoothProfile.HEADSET);
   }
 
-  protected boolean hasPermission(Context context, String permission) {
-    return apprtcContext.checkPermission(permission, Process.myPid(), Process.myUid())
+  private boolean hasPermission() {
+    return apprtcContext.checkPermission(android.Manifest.permission.BLUETOOTH, Process.myPid(), Process.myUid())
         == PackageManager.PERMISSION_GRANTED;
   }
 
   /** Logs the state of the local Bluetooth adapter. */
   @SuppressLint("HardwareIds")
-  protected void logBluetoothAdapterInfo(BluetoothAdapter localAdapter) {
+  private void logBluetoothAdapterInfo(@NonNull BluetoothAdapter localAdapter) {
     Log.d(TAG, "BluetoothAdapter: "
             + "enabled=" + localAdapter.isEnabled() + ", "
             + "state=" + stateToString(localAdapter.getState()) + ", "
@@ -480,7 +488,7 @@ public class RTCBluetoothManager {
     // Bluetooth SCO should be connecting; check the latest result.
     boolean scoConnected = false;
     List<BluetoothDevice> devices = bluetoothHeadset.getConnectedDevices();
-    if (devices.size() > 0) {
+    if (!devices.isEmpty()) {
       bluetoothDevice = devices.get(0);
       if (bluetoothHeadset.isAudioConnected(bluetoothDevice)) {
         Log.d(TAG, "SCO connected with " + bluetoothDevice.getName());
@@ -508,6 +516,7 @@ public class RTCBluetoothManager {
   }
 
   /** Converts BluetoothAdapter states into local string representations. */
+  @NonNull
   private String stateToString(int state) {
     switch (state) {
       case BluetoothAdapter.STATE_DISCONNECTED:

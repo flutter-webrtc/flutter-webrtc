@@ -95,9 +95,6 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
   bool get stoped => jsutil.getProperty(_jsTransceiver, 'stopped');
 
   @override
-  String get transceiverId => mid;
-
-  @override
   Future<void> setDirection(TransceiverDirection direction) async {
     try {
       jsutil.setProperty(_jsTransceiver, 'direction',
@@ -105,6 +102,11 @@ class RTCRtpTransceiverWeb extends RTCRtpTransceiver {
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpTransceiver::setDirection: ${e.message}';
     }
+  }
+
+  @override
+  Future<void> sync() async {
+    // Web implementation doesn't need sync method.
   }
 
   @override

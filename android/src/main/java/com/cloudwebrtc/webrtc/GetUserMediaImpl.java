@@ -2,10 +2,7 @@ package com.cloudwebrtc.webrtc;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
@@ -15,21 +12,17 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
-import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
-import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
-import android.os.Bundle;
 import android.os.Handler;
-import android.os.ResultReceiver;
 import android.util.Log;
 import android.util.Range;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.cloudwebrtc.webrtc.utils.Callback;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
@@ -54,13 +47,13 @@ import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
-import org.webrtc.audio.JavaAudioDeviceModule;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import io.flutter.plugin.common.MethodChannel.Result;
 
@@ -77,21 +70,19 @@ class GetUserMediaImpl {
     private static final String PERMISSION_AUDIO = Manifest.permission.RECORD_AUDIO;
     private static final String PERMISSION_VIDEO = Manifest.permission.CAMERA;
 
-    static final String TAG = FlutterWebRTCPlugin.TAG;
+    private static final String TAG = FlutterWebRTCPlugin.TAG;
 
     private final Map<String, VideoCapturerInfo> mVideoCapturers = new HashMap<>();
 
     private final StateProvider stateProvider;
     private final Context applicationContext;
 
-    JavaAudioDeviceModule audioDeviceModule;
-
     GetUserMediaImpl(StateProvider stateProvider, Context applicationContext) {
         this.stateProvider = stateProvider;
         this.applicationContext = applicationContext;
     }
 
-    static private void resultError(String method, String error, Result result) {
+    private static void resultError(String method, String error, @NonNull Result result) {
         String errorMsg = method + "(): " + error;
         result.error(method, errorMsg, null);
         Log.d(TAG, errorMsg);
@@ -103,7 +94,7 @@ class GetUserMediaImpl {
      * @param audioConstraints <tt>MediaConstraints</tt> instance to be filled with the default
      *                         constraints for audio media type.
      */
-    private void addDefaultAudioConstraints(MediaConstraints audioConstraints) {
+    private void addDefaultAudioConstraints(@NonNull MediaConstraints audioConstraints) {
         audioConstraints.optional.add(
                 new MediaConstraints.KeyValuePair("googNoiseSuppression", "true"));
         audioConstraints.optional.add(
@@ -126,8 +117,9 @@ class GetUserMediaImpl {
      * @return VideoCapturer can invoke with <tt>startCapture</tt>/<tt>stopCapture</tt> <tt>null</tt>
      * if not matched camera with specified facing mode.
      */
+    @Nullable
     private VideoCapturer createVideoCapturer(
-            CameraEnumerator enumerator, boolean isFacing, String sourceId) {
+            @NonNull CameraEnumerator enumerator, boolean isFacing, @Nullable String sourceId) {
         VideoCapturer videoCapturer = null;
 
         // if sourceId given, use specified sourceId first
@@ -162,7 +154,7 @@ class GetUserMediaImpl {
         }
 
         // falling back to the first available camera
-        if (videoCapturer == null && deviceNames.length > 0){
+        if (videoCapturer == null && deviceNames.length > 0) {
             videoCapturer = enumerator.createCapturer(deviceNames[0], new CameraEventsHandler());
             Log.d(TAG, "Falling back to the first available camera");
         }
@@ -176,7 +168,8 @@ class GetUserMediaImpl {
      * @param mediaConstraints a <tt>ConstraintsMap</tt> which represents "GUM" constraints argument.
      * @return String value of "facingMode" constraints in "GUM" or <tt>null</tt> if not specified.
      */
-    private String getFacingMode(ConstraintsMap mediaConstraints) {
+    @Nullable
+    private String getFacingMode(@Nullable ConstraintsMap mediaConstraints) {
         return mediaConstraints == null ? null : mediaConstraints.getString("facingMode");
     }
 
@@ -186,7 +179,8 @@ class GetUserMediaImpl {
      * @param mediaConstraints a <tt>ConstraintsMap</tt> which represents "GUM" constraints argument
      * @return String value of "sourceId" optional "GUM" constraint or <tt>null</tt> if not specified.
      */
-    private String getSourceIdConstraint(ConstraintsMap mediaConstraints) {
+    @Nullable
+    private String getSourceIdConstraint(@Nullable ConstraintsMap mediaConstraints) {
         if (mediaConstraints != null
                 && mediaConstraints.hasKey("optional")
                 && mediaConstraints.getType("optional") == ObjectType.Array) {
@@ -206,7 +200,7 @@ class GetUserMediaImpl {
         return null;
     }
 
-    private AudioTrack getUserAudio(ConstraintsMap constraints) {
+    private AudioTrack getUserAudio(@NonNull ConstraintsMap constraints) {
         MediaConstraints audioConstraints;
         if (constraints.getType("audio") == ObjectType.Boolean) {
             audioConstraints = new MediaConstraints();
@@ -230,24 +224,13 @@ class GetUserMediaImpl {
      * requested.
      */
     void getUserMedia(
-            final ConstraintsMap constraints, final Result result, final MediaStream mediaStream) {
+            @NonNull final ConstraintsMap constraints, @NonNull final Result result, @NonNull final MediaStream mediaStream) {
 
         // TODO: change getUserMedia constraints format to support new syntax
         //   constraint format seems changed, and there is no mandatory any more.
         //   and has a new syntax/attrs to specify resolution
         //   should change `parseConstraints()` according
         //   see: https://www.w3.org/TR/mediacapture-streams/#idl-def-MediaTrackConstraints
-
-        ConstraintsMap videoConstraintsMap = null;
-        ConstraintsMap videoConstraintsMandatory = null;
-
-        if (constraints.getType("video") == ObjectType.Map) {
-            videoConstraintsMap = constraints.getMap("video");
-            if (videoConstraintsMap.hasKey("mandatory")
-                    && videoConstraintsMap.getType("mandatory") == ObjectType.Map) {
-                videoConstraintsMandatory = videoConstraintsMap.getMap("mandatory");
-            }
-        }
 
         final ArrayList<String> requestPermissions = new ArrayList<>();
 
@@ -300,23 +283,13 @@ class GetUserMediaImpl {
 
         requestPermissions(
                 requestPermissions,
-                /* successCallback */ new Callback() {
-                    @Override
-                    public void invoke(Object... args) {
-                        List<String> grantedPermissions = (List<String>) args[0];
-
-                        getUserMedia(constraints, result, mediaStream, grantedPermissions);
-                    }
-                },
-                /* errorCallback */ new Callback() {
-                    @Override
-                    public void invoke(Object... args) {
-                        // According to step 10 Permission Failure of the
-                        // getUserMedia() algorithm, if the user has denied
-                        // permission, fail "with a new DOMException object whose
-                        // name attribute has the value NotAllowedError."
-                        resultError("getUserMedia", "DOMException, NotAllowedError", result);
-                    }
+                success -> getUserMedia(constraints, result, mediaStream, success),
+                error -> {
+                    // According to step 10 Permission Failure of the
+                    // getUserMedia() algorithm, if the user has denied
+                    // permission, fail "with a new DOMException object whose
+                    // name attribute has the value NotAllowedError."
+                    resultError("getUserMedia", "DOMException, NotAllowedError", result);
                 });
     }
 
@@ -326,10 +299,10 @@ class GetUserMediaImpl {
      * requested.
      */
     private void getUserMedia(
-            ConstraintsMap constraints,
-            Result result,
-            MediaStream mediaStream,
-            List<String> grantedPermissions) {
+            @NonNull ConstraintsMap constraints,
+            @NonNull Result result,
+            @NonNull MediaStream mediaStream,
+            @NonNull List<String> grantedPermissions) {
         MediaStreamTrack[] tracks = new MediaStreamTrack[2];
 
         // If we fail to create either, destroy the other one and fail.
@@ -367,7 +340,6 @@ class GetUserMediaImpl {
             } else {
                 mediaStream.addTrack((VideoTrack) track);
             }
-            stateProvider.getLocalTracks().put(id, track);
 
             ConstraintsMap track_ = new ConstraintsMap();
             String kind = track.kind();
@@ -399,7 +371,8 @@ class GetUserMediaImpl {
 
     private boolean isFacing = true;
 
-    private VideoTrack getUserVideo(ConstraintsMap constraints) {
+    @Nullable
+    private VideoTrack getUserVideo(@NonNull ConstraintsMap constraints) {
         ConstraintsMap videoConstraintsMap = null;
         ConstraintsMap videoConstraintsMandatory = null;
         if (constraints.getType("video") == ObjectType.Map) {
@@ -429,7 +402,7 @@ class GetUserMediaImpl {
         }
 
         String facingMode = getFacingMode(videoConstraintsMap);
-        isFacing = facingMode == null || !facingMode.equals("environment");
+        isFacing = !"environment".equals(facingMode);
         String sourceId = getSourceIdConstraint(videoConstraintsMap);
 
         VideoCapturer videoCapturer = createVideoCapturer(cameraEnumerator, isFacing, sourceId);
@@ -487,9 +460,9 @@ class GetUserMediaImpl {
 
     @RequiresApi(api = VERSION_CODES.M)
     private void requestPermissions(
-            final ArrayList<String> permissions,
-            final Callback successCallback,
-            final Callback errorCallback) {
+            @NonNull final ArrayList<String> permissions,
+            @NonNull final Consumer<List<String>> successCallback,
+            @NonNull final Consumer<List<String>> errorCallback) {
         PermissionUtils.Callback callback =
                 (permissions_, grantResults) -> {
                     List<String> grantedPermissions = new ArrayList<>();
@@ -512,11 +485,11 @@ class GetUserMediaImpl {
                             // According to step 6 of the getUserMedia() algorithm
                             // "if the result is denied, jump to the step Permission
                             // Failure."
-                            errorCallback.invoke(deniedPermissions);
+                            errorCallback.accept(deniedPermissions);
                             return;
                         }
                     }
-                    successCallback.invoke(grantedPermissions);
+                    successCallback.accept(grantedPermissions);
                 };
 
         final Activity activity = stateProvider.getActivity();
@@ -524,10 +497,10 @@ class GetUserMediaImpl {
         PermissionUtils.requestPermissions(
                 context,
                 activity,
-                permissions.toArray(new String[permissions.size()]), callback);
+                permissions.toArray(new String[0]), callback);
     }
 
-    void switchCamera(String id, Result result) {
+    void switchCamera(String id, @NonNull Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(id).capturer;
         if (videoCapturer == null) {
             resultError("switchCamera", "Video capturer not found for id: " + id, result);
@@ -567,7 +540,7 @@ class GetUserMediaImpl {
         resultError("switchCamera", "Switching camera failed: " + id, result);
     }
 
-    void hasTorch(String trackId, Result result) {
+    void hasTorch(String trackId, @NonNull Result result) {
         VideoCapturerInfo info = mVideoCapturers.get(trackId);
         if (info == null) {
             resultError("hasTorch", "Video capturer not found for id: " + trackId, result);
@@ -625,7 +598,7 @@ class GetUserMediaImpl {
             List<String> supportedModes = params.getSupportedFlashModes();
 
             result.success(
-                    (supportedModes == null) ? false : supportedModes.contains(Parameters.FLASH_MODE_TORCH));
+                    (supportedModes != null) && supportedModes.contains(Parameters.FLASH_MODE_TORCH));
             return;
         }
 
@@ -633,7 +606,7 @@ class GetUserMediaImpl {
     }
 
     @RequiresApi(api = VERSION_CODES.LOLLIPOP)
-    void setTorch(String trackId, boolean torch, Result result) {
+    void setTorch(String trackId, boolean torch, @NonNull Result result) {
         VideoCapturerInfo info = mVideoCapturers.get(trackId);
         if (info == null) {
             resultError("setTorch", "Video capturer not found for id: " + trackId, result);
@@ -652,9 +625,6 @@ class GetUserMediaImpl {
                 Object session =
                         getPrivateProperty(
                                 Camera2Capturer.class.getSuperclass(), info.capturer, "currentSession");
-                CameraManager manager =
-                        (CameraManager)
-                                getPrivateProperty(Camera2Capturer.class, info.capturer, "cameraManager");
                 captureSession =
                         (CameraCaptureSession)
                                 getPrivateProperty(session.getClass(), session, "captureSession");
@@ -722,7 +692,8 @@ class GetUserMediaImpl {
         resultError("setTorch", "[TORCH] Video capturer not compatible", result);
     }
 
-    private Object getPrivateProperty(Class klass, Object object, String fieldName)
+    @Nullable
+    private Object getPrivateProperty(@NonNull Class<?> klass, Object object, @NonNull String fieldName)
             throws NoSuchFieldWithNameException {
         try {
             Field field = klass.getDeclaredField(fieldName);
@@ -736,19 +707,19 @@ class GetUserMediaImpl {
         }
     }
 
-    private class NoSuchFieldWithNameException extends NoSuchFieldException {
+    private static class NoSuchFieldWithNameException extends NoSuchFieldException {
 
-        String className;
-        String fieldName;
+        final String className;
+        final String fieldName;
 
-        NoSuchFieldWithNameException(String className, String fieldName, NoSuchFieldException e) {
+        NoSuchFieldWithNameException(String className, String fieldName, @NonNull NoSuchFieldException e) {
             super(e.getMessage());
             this.className = className;
             this.fieldName = fieldName;
         }
     }
 
-    public void reStartCamera(IsCameraEnabled getCameraId) {
+    public void reStartCamera(@NonNull IsCameraEnabled getCameraId) {
         for (Map.Entry<String, VideoCapturerInfo> item : mVideoCapturers.entrySet()) {
             if (!item.getValue().isScreenCapture && getCameraId.isEnabled(item.getKey())) {
                 item.getValue().capturer.startCapture(
@@ -760,15 +731,17 @@ class GetUserMediaImpl {
         }
     }
 
+    @FunctionalInterface
     public interface IsCameraEnabled {
         boolean isEnabled(String id);
     }
 
     public class VideoCapturerInfo {
+        @Nullable
         VideoCapturer capturer;
         int width;
         int height;
         int fps;
-        boolean isScreenCapture = false;
+        boolean isScreenCapture;
     }
 }

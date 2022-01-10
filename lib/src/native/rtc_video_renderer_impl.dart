@@ -47,7 +47,6 @@ class RTCVideoRendererNative extends VideoRenderer {
     WebRTC.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
       'textureId': textureId,
       'streamId': stream?.id ?? '',
-      'ownerTag': stream?.ownerTag ?? ''
     }).then((_) {
       value = (stream == null)
           ? RTCVideoValue.empty

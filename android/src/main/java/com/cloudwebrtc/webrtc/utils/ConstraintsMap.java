@@ -1,5 +1,8 @@
 package com.cloudwebrtc.webrtc.utils;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +12,7 @@ public class ConstraintsMap {
     private final Map<String, Object> mMap;
 
     public ConstraintsMap(){
-        mMap = new HashMap<String,Object>();
+        mMap = new HashMap();
     }
 
     public ConstraintsMap(Map<String, Object> map){
@@ -21,11 +24,7 @@ public class ConstraintsMap {
     }
 
     public boolean hasKey(String name){
-        return this.mMap.containsKey(name);
-    }
-
-    public boolean isNull(String name){
-        return mMap.get(name) == null;
+        return mMap.containsKey(name);
     }
 
     public boolean getBoolean(String name){
@@ -43,10 +42,12 @@ public class ConstraintsMap {
         return (int) mMap.get(name);
     }
 
+    @Nullable
     public String getString(String name){
         return (String) mMap.get(name);
     }
 
+    @Nullable
     public ConstraintsMap getMap(String name){
         Object value = mMap.get(name);
         if (value == null) {
@@ -55,11 +56,11 @@ public class ConstraintsMap {
         return new ConstraintsMap((Map<String, Object>) value);
     }
 
+    @NonNull
     public ObjectType getType(String name) {
         Object value = mMap.get(name);
-        if (value == null) {
-            return ObjectType.Null;
-        } else if (value instanceof Number) {
+
+        if (value instanceof Number) {
             return ObjectType.Number;
         } else if (value instanceof String) {
             return ObjectType.String;
@@ -69,11 +70,11 @@ public class ConstraintsMap {
             return ObjectType.Map;
         } else if (value instanceof ArrayList) {
             return ObjectType.Array;
-        } else if (value instanceof Byte) {
-            return ObjectType.Byte;
         } else {
-            throw new IllegalArgumentException("Invalid value " + value.toString() + " for key " + name +
-                    "contained in ConstraintsMap");
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Invalid value %s for key %s contained in ConstraintsMap",
+                            value, name));
         }
     }
 
@@ -97,35 +98,20 @@ public class ConstraintsMap {
         mMap.put(key, value);
     }
 
-    public void putByte(String key, byte[] value) {
-        mMap.put(key, value);
-    }
-
-    public void putNull(String key) {
-        mMap.put(key, null);
-    }
-
     public void putMap(String key, Map<String, Object> value) {
         mMap.put(key, value);
-    }
-
-    public void merge(Map<String, Object> value) {
-        mMap.putAll(value);
     }
 
     public void putArray(String key, ArrayList<Object> value) {
         mMap.put(key, value);
     }
 
+    @Nullable
     public ConstraintsArray getArray(String name){
         Object value = mMap.get(name);
         if (value == null) {
             return null;
         }
         return new ConstraintsArray((ArrayList<Object>) value);
-    }
-
-    public ArrayList<Object> getListArray(String name){
-        return (ArrayList<Object>) mMap.get(name);
     }
 }

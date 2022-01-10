@@ -5,60 +5,43 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
+
 import com.cloudwebrtc.webrtc.MethodCallHandlerImpl.AudioManager;
 import com.cloudwebrtc.webrtc.utils.RTCAudioManager;
-import io.flutter.embedding.android.FlutterActivity;
+
+import java.util.Set;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.embedding.engine.plugins.lifecycle.HiddenLifecycleReference;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.view.TextureRegistry;
-
-import java.util.Set;
 
 /**
  * FlutterWebRTCPlugin
  */
 public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
 
-    static public final String TAG = "FlutterWebRTCPlugin";
+    public static final String TAG = "FlutterWebRTCPlugin";
+
     private static Application application;
 
+    @Nullable
     private RTCAudioManager rtcAudioManager;
     private MethodChannel channel;
+    @Nullable
     private MethodCallHandlerImpl methodCallHandler;
     private LifeCycleObserver observer;
+    @Nullable
     private Lifecycle lifecycle;
-
-    public FlutterWebRTCPlugin() {
-    }
-
-    /**
-     * Plugin registration.
-     */
-    public static void registerWith(Registrar registrar) {
-        final FlutterWebRTCPlugin plugin = new FlutterWebRTCPlugin();
-
-        plugin.startListening(registrar.context(), registrar.messenger(), registrar.textures());
-
-        if (registrar.activeContext() instanceof Activity) {
-            plugin.methodCallHandler.setActivity((Activity) registrar.activeContext());
-        }
-        application = ((Application) registrar.context().getApplicationContext());
-        application.registerActivityLifecycleCallbacks(plugin.observer);
-
-        registrar.addViewDestroyListener(view -> {
-            plugin.stopListening();
-            return false;
-        });
-    }
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
@@ -74,9 +57,9 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         methodCallHandler.setActivity(binding.getActivity());
-        this.observer = new LifeCycleObserver();
-        this.lifecycle = ((HiddenLifecycleReference) binding.getLifecycle()).getLifecycle();
-        this.lifecycle.addObserver(this.observer);
+        observer = new LifeCycleObserver();
+        lifecycle = ((HiddenLifecycleReference) binding.getLifecycle()).getLifecycle();
+        lifecycle.addObserver(observer);
     }
 
     @Override
@@ -92,16 +75,16 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
     @Override
     public void onDetachedFromActivity() {
         methodCallHandler.setActivity(null);
-        if (this.observer != null) {
-            this.lifecycle.removeObserver(this.observer);
-            if (this.application!=null) {
-                this.application.unregisterActivityLifecycleCallbacks(this.observer);
+        if (observer != null) {
+            lifecycle.removeObserver(observer);
+            if (FlutterWebRTCPlugin.application!=null) {
+                FlutterWebRTCPlugin.application.unregisterActivityLifecycleCallbacks(observer);
             }
         }
         this.lifecycle = null;
     }
 
-    private void startListening(final Context context, BinaryMessenger messenger,
+    private void startListening(@NonNull final Context context, BinaryMessenger messenger,
                                 TextureRegistry textureRegistry) {
         methodCallHandler = new MethodCallHandlerImpl(context, messenger, textureRegistry,
                 new AudioManager() {
@@ -111,7 +94,7 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
                             if (rtcAudioManager == null) {
                                 rtcAudioManager = RTCAudioManager.create(context);
                             }
-                            rtcAudioManager.start(FlutterWebRTCPlugin.this::onAudioManagerDevicesChanged);
+                            rtcAudioManager.start(FlutterWebRTCPlugin::onAudioManagerDevicesChanged);
                         } else {
                             if (rtcAudioManager != null) {
                                 rtcAudioManager.stop();
@@ -151,9 +134,11 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
         }
     }
 
-    // This method is called when the audio manager reports audio device change,
-    // e.g. from wired headset to speakerphone.
-    private void onAudioManagerDevicesChanged(
+    /*
+     This method is called when the audio manager reports audio device change,
+     e.g. from wired headset to speakerphone.
+    */
+    private static void onAudioManagerDevicesChanged(
             final RTCAudioManager.AudioDevice device,
             final Set<RTCAudioManager.AudioDevice> availableDevices) {
         Log.d(TAG, "onAudioManagerDevicesChanged: " + availableDevices + ", "
