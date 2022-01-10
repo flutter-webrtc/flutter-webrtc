@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.8.1] - 2021-12-29
+
+* [Android/iOS] Bump webrtc-sdk version to 93.4577.01.
+
 [0.8.0] - 2021-12-05
 
 * [Dart] Refactor: Use webrtc interface. (#777)

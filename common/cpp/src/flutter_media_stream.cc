@@ -141,7 +141,7 @@ EncodableValue getConstrainInt(const EncodableMap& constraints, const std::strin
     if(TypeIs<EncodableMap>(it->second)) {
       EncodableMap innerMap = GetValue<EncodableMap>(it->second);
       auto it2 = innerMap.find(EncodableValue("ideal"));
-      if(it2 != constraints.end() && TypeIs<int>(it2->second)){
+      if (it2 != innerMap.end() && TypeIs<int>(it2->second)) {
         return it2->second;
       }
     }
