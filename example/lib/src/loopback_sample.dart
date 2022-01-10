@@ -38,6 +38,7 @@ class _MyAppState extends State<LoopBackSample> {
   }
 
   void initRenderers() async {
+    await WebRTC.initialize(options: {'bypassVoiceProcessing': true});
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
   }
@@ -125,8 +126,6 @@ class _MyAppState extends State<LoopBackSample> {
   void _onRenegotiationNeeded() {
     print('RenegotiationNeeded');
   }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
 
   final String AUDIO_ECHO_CANCELLATION_CONSTRAINT = 'googEchoCancellation';
   final String AUDIO_AUTO_GAIN_CONTROL_CONSTRAINT = 'googAutoGainControl';

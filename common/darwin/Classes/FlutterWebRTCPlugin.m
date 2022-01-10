@@ -83,9 +83,9 @@
         RTCVideoEncoderFactorySimulcast *simulcastFactory = [[RTCVideoEncoderFactorySimulcast alloc]  initWithPrimary:encoderFactory
                                                                                                          fallback:encoderFactory];
         _peerConnectionFactory = [[RTCPeerConnectionFactory alloc]
-                                  initWithEncoderFactory:simulcastFactory
-                                  decoderFactory:decoderFactory
-                                  bypassVoiceProcessing:bypassVoiceProcessing];
+                                  initWithBypassVoiceProcessing:bypassVoiceProcessing
+                                  encoderFactory:simulcastFactory
+                                  decoderFactory:decoderFactory];
     }
 }
 
@@ -112,9 +112,16 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult) result {
-    [self  ensureInitialized:NO];
-
-    if ([@"createPeerConnection" isEqualToString:call.method]) {
+    if ([@"initialize" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSDictionary* options = argsMap[@"options"];
+        BOOL enableBypassVoiceProcessing = NO;
+        if(options[@"bypassVoiceProcessing"] != nil){
+            enableBypassVoiceProcessing = ((NSNumber*)options[@"bypassVoiceProcessing"]).boolValue;
+        }
+        [self  ensureInitialized:enableBypassVoiceProcessing];
+        result(@"");
+    } else if ([@"createPeerConnection" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSDictionary* configuration = argsMap[@"configuration"];
         NSDictionary* constraints = argsMap[@"constraints"];
