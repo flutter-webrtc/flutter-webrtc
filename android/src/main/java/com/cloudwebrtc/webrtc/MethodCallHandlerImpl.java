@@ -7,10 +7,8 @@ import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.util.Log;
 import android.util.LongSparseArray;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
@@ -18,7 +16,19 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.RTCUtils;
-
+import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
+import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.view.TextureRegistry;
+import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
 import org.webrtc.DefaultVideoDecoderFactory;
@@ -47,21 +57,6 @@ import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
 import org.webrtc.VideoTrack;
 import org.webrtc.audio.JavaAudioDeviceModule;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
-
-import io.flutter.plugin.common.BinaryMessenger;
-import io.flutter.plugin.common.EventChannel;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
-import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.view.TextureRegistry;
-import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
 
 public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   interface AudioManager {
@@ -92,13 +87,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
    */
   private GetUserMediaImpl getUserMediaImpl;
 
-  @NonNull
-  private final AudioManager audioManager;
+  @NonNull private final AudioManager audioManager;
 
   private Activity activity;
 
-  MethodCallHandlerImpl(Context context, BinaryMessenger messenger, TextureRegistry textureRegistry,
-                        @NonNull AudioManager audioManager) {
+  MethodCallHandlerImpl(
+      Context context,
+      BinaryMessenger messenger,
+      TextureRegistry textureRegistry,
+      @NonNull AudioManager audioManager) {
     this.context = context;
     this.textures = textureRegistry;
     this.messenger = messenger;
@@ -121,23 +118,26 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
 
     PeerConnectionFactory.initialize(
-            InitializationOptions.builder(context)
-                    .setEnableInternalTracer(true)
-                    .createInitializationOptions());
+        InitializationOptions.builder(context)
+            .setEnableInternalTracer(true)
+            .createInitializationOptions());
 
     // Initialize EGL contexts required for HW acceleration.
     EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
 
     getUserMediaImpl = new GetUserMediaImpl(this, context);
 
-    JavaAudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(context)
+    JavaAudioDeviceModule audioDeviceModule =
+        JavaAudioDeviceModule.builder(context)
             .setUseHardwareAcousticEchoCanceler(true)
             .setUseHardwareNoiseSuppressor(true)
             .createAudioDeviceModule();
 
-    mFactory = PeerConnectionFactory.builder()
+    mFactory =
+        PeerConnectionFactory.builder()
             .setOptions(new Options())
-            .setVideoEncoderFactory(new SimulcastVideoEncoderFactoryWrapper(eglContext, true, false))
+            .setVideoEncoderFactory(
+                new SimulcastVideoEncoderFactoryWrapper(eglContext, true, false))
             .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
             .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory();
@@ -149,221 +149,244 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
-      case "createPeerConnection": {
-        Map<String, Object> constraints = call.argument("constraints");
-        Map<String, Object> configuration = call.argument("configuration");
-        String peerConnectionId = peerConnectionInit(new ConstraintsMap(configuration),
-                new ConstraintsMap(constraints));
-        ConstraintsMap res = new ConstraintsMap();
-        res.putString("peerConnectionId", peerConnectionId);
-        result.success(res.toMap());
-        break;
-      }
-      case "getUserMedia": {
-        Map<String, Object> constraints = call.argument("constraints");
-        ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
-        getUserMedia(constraintsMap, result);
-        break;
-      }
+      case "createPeerConnection":
+        {
+          Map<String, Object> constraints = call.argument("constraints");
+          Map<String, Object> configuration = call.argument("configuration");
+          String peerConnectionId =
+              peerConnectionInit(
+                  new ConstraintsMap(configuration), new ConstraintsMap(constraints));
+          ConstraintsMap res = new ConstraintsMap();
+          res.putString("peerConnectionId", peerConnectionId);
+          result.success(res.toMap());
+          break;
+        }
+      case "getUserMedia":
+        {
+          Map<String, Object> constraints = call.argument("constraints");
+          ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
+          getUserMedia(constraintsMap, result);
+          break;
+        }
       case "createLocalMediaStream":
         createLocalMediaStream(result);
         break;
       case "getSources":
         getSources(result);
         break;
-      case "createOffer": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        Map<String, Object> constraints = call.argument("constraints");
-        peerConnectionCreateOffer(peerConnectionId, new ConstraintsMap(constraints), result);
-        break;
-      }
-      case "createAnswer": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        Map<String, Object> constraints = call.argument("constraints");
-        peerConnectionCreateAnswer(peerConnectionId, new ConstraintsMap(constraints), result);
-        break;
-      }
-      case "mediaStreamGetTracks": {
-        String streamId = call.argument("streamId");
-        MediaStream stream = localStreams.get(streamId);
-        Map<String, Object> resultMap = new HashMap<>();
-        List<Object> audioTracks = new ArrayList<>();
-        List<Object> videoTracks = new ArrayList<>();
-        for (AudioTrack track : stream.audioTracks) {
-          Map<String, Object> trackMap = new HashMap<>();
-          trackMap.put("enabled", track.enabled());
-          trackMap.put("id", track.id());
-          trackMap.put("kind", track.kind());
-          trackMap.put("label", track.id());
-          trackMap.put("remote", false);
-          audioTracks.add(trackMap);
+      case "createOffer":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          Map<String, Object> constraints = call.argument("constraints");
+          peerConnectionCreateOffer(peerConnectionId, new ConstraintsMap(constraints), result);
+          break;
         }
-        for (VideoTrack track : stream.videoTracks) {
-          Map<String, Object> trackMap = new HashMap<>();
-          trackMap.put("enabled", track.enabled());
-          trackMap.put("id", track.id());
-          trackMap.put("kind", track.kind());
-          trackMap.put("label", track.id());
-          trackMap.put("remote", false);
-          videoTracks.add(trackMap);
+      case "createAnswer":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          Map<String, Object> constraints = call.argument("constraints");
+          peerConnectionCreateAnswer(peerConnectionId, new ConstraintsMap(constraints), result);
+          break;
         }
-        resultMap.put("audioTracks", audioTracks);
-        resultMap.put("videoTracks", videoTracks);
-        result.success(resultMap);
-        break;
-      }
-      case "setLocalDescription": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        Map<String, Object> description = call.argument("description");
-        peerConnectionSetLocalDescription(new ConstraintsMap(description), peerConnectionId,
-                result);
-        break;
-      }
-      case "setRemoteDescription": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        Map<String, Object> description = call.argument("description");
-        peerConnectionSetRemoteDescription(new ConstraintsMap(description), peerConnectionId,
-                result);
-        break;
-      }
-      case "addCandidate": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        Map<String, Object> candidate = call.argument("candidate");
-        peerConnectionAddICECandidate(new ConstraintsMap(candidate), peerConnectionId, result);
-        break;
-      }
-      case "getStats": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String trackId = call.argument("trackId");
-        peerConnectionGetStats(trackId, peerConnectionId, result);
-        break;
-      }
-      case "streamDispose": {
-        String streamId = call.argument("streamId");
-        mediaStreamRelease(streamId);
-        result.success(null);
-        break;
-      }
-      case "mediaStreamTrackSetEnable": {
-        String trackId = call.argument("trackId");
-        Boolean enabled = call.argument("enabled");
-        mediaStreamTrackSetEnabled(trackId, enabled);
-        result.success(null);
-        break;
-      }
-      case "mediaStreamAddTrack": {
-        String streamId = call.argument("streamId");
-        String trackId = call.argument("trackId");
-        mediaStreamAddTrack(streamId, trackId, result);
-        for (int i = 0; i < renderers.size(); i++) {
-          FlutterRTCVideoRenderer renderer = renderers.get(i);
-          if (renderer.checkMediaStream(streamId)) {
-            renderer.setVideoTrack((VideoTrack) getLocalTrack(trackId));
+      case "mediaStreamGetTracks":
+        {
+          String streamId = call.argument("streamId");
+          MediaStream stream = localStreams.get(streamId);
+          Map<String, Object> resultMap = new HashMap<>();
+          List<Object> audioTracks = new ArrayList<>();
+          List<Object> videoTracks = new ArrayList<>();
+          for (AudioTrack track : stream.audioTracks) {
+            Map<String, Object> trackMap = new HashMap<>();
+            trackMap.put("enabled", track.enabled());
+            trackMap.put("id", track.id());
+            trackMap.put("kind", track.kind());
+            trackMap.put("label", track.id());
+            trackMap.put("remote", false);
+            audioTracks.add(trackMap);
           }
-        }
-        break;
-      }
-      case "mediaStreamRemoveTrack": {
-        String streamId = call.argument("streamId");
-        String trackId = call.argument("trackId");
-        mediaStreamRemoveTrack(streamId, trackId, result);
-        for (int i = 0; i < renderers.size(); i++) {
-          FlutterRTCVideoRenderer renderer = renderers.get(i);
-          if (renderer.checkVideoTrack(trackId)) {
-            renderer.setVideoTrack(null);
+          for (VideoTrack track : stream.videoTracks) {
+            Map<String, Object> trackMap = new HashMap<>();
+            trackMap.put("enabled", track.enabled());
+            trackMap.put("id", track.id());
+            trackMap.put("kind", track.kind());
+            trackMap.put("label", track.id());
+            trackMap.put("remote", false);
+            videoTracks.add(trackMap);
           }
+          resultMap.put("audioTracks", audioTracks);
+          resultMap.put("videoTracks", videoTracks);
+          result.success(resultMap);
+          break;
         }
-        break;
-      }
-      case "trackDispose": {
-        // TODO (evdokimovs): Implement MediaStreamTracks disposing in
-        //                    the "Implement missing flutter_webrtc APIs" PR
-        // String trackId = call.argument("trackId");
-
-        result.success(null);
-        break;
-      }
-      case "peerConnectionClose": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        peerConnectionClose(peerConnectionId);
-        result.success(null);
-        break;
-      }
-      case "peerConnectionDispose": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        peerConnectionDispose(peerConnectionId);
-        result.success(null);
-        break;
-      }
-      case "createVideoRenderer": {
-        SurfaceTextureEntry entry = textures.createSurfaceTexture();
-        SurfaceTexture surfaceTexture = entry.surfaceTexture();
-        FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, entry);
-        renderers.put(entry.id(), render);
-
-        EventChannel eventChannel =
-                new EventChannel(
-                        messenger,
-                        "FlutterWebRTC/Texture" + entry.id());
-
-        eventChannel.setStreamHandler(render);
-        render.setEventChannel(eventChannel);
-        render.setId((int) entry.id());
-
-        ConstraintsMap params = new ConstraintsMap();
-        params.putInt("textureId", (int) entry.id());
-        result.success(params.toMap());
-        break;
-      }
-      case "videoRendererDispose": {
-        int textureId = call.argument("textureId");
-        FlutterRTCVideoRenderer render = renderers.get(textureId);
-        if (render == null) {
-          resultError("videoRendererDispose", "render [" + textureId + "] not found !", result);
-          return;
+      case "setLocalDescription":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          Map<String, Object> description = call.argument("description");
+          peerConnectionSetLocalDescription(
+              new ConstraintsMap(description), peerConnectionId, result);
+          break;
         }
-        render.Dispose();
-        renderers.delete(textureId);
-        result.success(null);
-        break;
-      }
-      case "videoRendererSetSrcObject": {
-        int textureId = call.argument("textureId");
-        String streamId = call.argument("streamId");
-        FlutterRTCVideoRenderer render = renderers.get(textureId);
-        if (render == null) {
-          resultError("videoRendererSetSrcObject", "render [" + textureId + "] not found !", result);
-          return;
+      case "setRemoteDescription":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          Map<String, Object> description = call.argument("description");
+          peerConnectionSetRemoteDescription(
+              new ConstraintsMap(description), peerConnectionId, result);
+          break;
         }
+      case "addCandidate":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          Map<String, Object> candidate = call.argument("candidate");
+          peerConnectionAddICECandidate(new ConstraintsMap(candidate), peerConnectionId, result);
+          break;
+        }
+      case "getStats":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          String trackId = call.argument("trackId");
+          peerConnectionGetStats(trackId, peerConnectionId, result);
+          break;
+        }
+      case "streamDispose":
+        {
+          String streamId = call.argument("streamId");
+          mediaStreamRelease(streamId);
+          result.success(null);
+          break;
+        }
+      case "mediaStreamTrackSetEnable":
+        {
+          String trackId = call.argument("trackId");
+          Boolean enabled = call.argument("enabled");
+          mediaStreamTrackSetEnabled(trackId, enabled);
+          result.success(null);
+          break;
+        }
+      case "mediaStreamAddTrack":
+        {
+          String streamId = call.argument("streamId");
+          String trackId = call.argument("trackId");
+          mediaStreamAddTrack(streamId, trackId, result);
+          for (int i = 0; i < renderers.size(); i++) {
+            FlutterRTCVideoRenderer renderer = renderers.get(i);
+            if (renderer.checkMediaStream(streamId)) {
+              renderer.setVideoTrack((VideoTrack) getLocalTrack(trackId));
+            }
+          }
+          break;
+        }
+      case "mediaStreamRemoveTrack":
+        {
+          String streamId = call.argument("streamId");
+          String trackId = call.argument("trackId");
+          mediaStreamRemoveTrack(streamId, trackId, result);
+          for (int i = 0; i < renderers.size(); i++) {
+            FlutterRTCVideoRenderer renderer = renderers.get(i);
+            if (renderer.checkVideoTrack(trackId)) {
+              renderer.setVideoTrack(null);
+            }
+          }
+          break;
+        }
+      case "trackDispose":
+        {
+          // TODO (evdokimovs): Implement MediaStreamTracks disposing in
+          //                    the "Implement missing flutter_webrtc APIs" PR
+          // String trackId = call.argument("trackId");
 
-        render.setStream(localStreams.get(streamId));
+          result.success(null);
+          break;
+        }
+      case "peerConnectionClose":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          peerConnectionClose(peerConnectionId);
+          result.success(null);
+          break;
+        }
+      case "peerConnectionDispose":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          peerConnectionDispose(peerConnectionId);
+          result.success(null);
+          break;
+        }
+      case "createVideoRenderer":
+        {
+          SurfaceTextureEntry entry = textures.createSurfaceTexture();
+          SurfaceTexture surfaceTexture = entry.surfaceTexture();
+          FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, entry);
+          renderers.put(entry.id(), render);
 
-        result.success(null);
-        break;
-      }
-      case "mediaStreamTrackHasTorch": {
-        String trackId = call.argument("trackId");
-        getUserMediaImpl.hasTorch(trackId, result);
-        break;
-      }
-      case "mediaStreamTrackSetTorch": {
-        String trackId = call.argument("trackId");
-        boolean torch = call.argument("torch");
-        getUserMediaImpl.setTorch(trackId, torch, result);
-        break;
-      }
-      case "mediaStreamTrackSwitchCamera": {
-        String trackId = call.argument("trackId");
-        getUserMediaImpl.switchCamera(trackId, result);
-        break;
-      }
-      case "setVolume": {
-        String trackId = call.argument("trackId");
-        double volume = call.argument("volume");
-        mediaStreamTrackSetVolume(trackId, volume);
-        result.success(null);
-        break;
-      }
+          EventChannel eventChannel =
+              new EventChannel(messenger, "FlutterWebRTC/Texture" + entry.id());
+
+          eventChannel.setStreamHandler(render);
+          render.setEventChannel(eventChannel);
+          render.setId((int) entry.id());
+
+          ConstraintsMap params = new ConstraintsMap();
+          params.putInt("textureId", (int) entry.id());
+          result.success(params.toMap());
+          break;
+        }
+      case "videoRendererDispose":
+        {
+          int textureId = call.argument("textureId");
+          FlutterRTCVideoRenderer render = renderers.get(textureId);
+          if (render == null) {
+            resultError("videoRendererDispose", "render [" + textureId + "] not found !", result);
+            return;
+          }
+          render.Dispose();
+          renderers.delete(textureId);
+          result.success(null);
+          break;
+        }
+      case "videoRendererSetSrcObject":
+        {
+          int textureId = call.argument("textureId");
+          String streamId = call.argument("streamId");
+          FlutterRTCVideoRenderer render = renderers.get(textureId);
+          if (render == null) {
+            resultError(
+                "videoRendererSetSrcObject", "render [" + textureId + "] not found !", result);
+            return;
+          }
+
+          render.setStream(localStreams.get(streamId));
+
+          result.success(null);
+          break;
+        }
+      case "mediaStreamTrackHasTorch":
+        {
+          String trackId = call.argument("trackId");
+          getUserMediaImpl.hasTorch(trackId, result);
+          break;
+        }
+      case "mediaStreamTrackSetTorch":
+        {
+          String trackId = call.argument("trackId");
+          boolean torch = call.argument("torch");
+          getUserMediaImpl.setTorch(trackId, torch, result);
+          break;
+        }
+      case "mediaStreamTrackSwitchCamera":
+        {
+          String trackId = call.argument("trackId");
+          getUserMediaImpl.switchCamera(trackId, result);
+          break;
+        }
+      case "setVolume":
+        {
+          String trackId = call.argument("trackId");
+          double volume = call.argument("volume");
+          mediaStreamTrackSetVolume(trackId, volume);
+          result.success(null);
+          break;
+        }
       case "setMicrophoneMute":
         boolean mute = call.argument("mute");
         audioManager.setMicrophoneMute(mute);
@@ -374,150 +397,168 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         audioManager.setSpeakerphoneOn(enable);
         result.success(null);
         break;
-      case "getLocalDescription": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        PeerConnection peerConnection = getPeerConnection(peerConnectionId);
-        if (peerConnection != null) {
-          SessionDescription sdp = peerConnection.getLocalDescription();
-          ConstraintsMap params = new ConstraintsMap();
-          params.putString("sdp", sdp.description);
-          params.putString("type", sdp.type.canonicalForm());
-          result.success(params.toMap());
-        } else {
-          resultError("getLocalDescription", "peerConnection is nulll", result);
-        }
-        break;
-      }
-      case "getRemoteDescription": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        PeerConnection peerConnection = getPeerConnection(peerConnectionId);
-        if (peerConnection != null) {
-          SessionDescription sdp = peerConnection.getRemoteDescription();
-          if (null == sdp) {
-            result.success(null);
-          } else {
+      case "getLocalDescription":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          PeerConnection peerConnection = getPeerConnection(peerConnectionId);
+          if (peerConnection != null) {
+            SessionDescription sdp = peerConnection.getLocalDescription();
             ConstraintsMap params = new ConstraintsMap();
             params.putString("sdp", sdp.description);
             params.putString("type", sdp.type.canonicalForm());
             result.success(params.toMap());
+          } else {
+            resultError("getLocalDescription", "peerConnection is nulll", result);
           }
-        } else {
-          resultError("getRemoteDescription", "peerConnection is null", result);
+          break;
         }
-        break;
-      }
-      case "setConfiguration": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        Map<String, Object> configuration = call.argument("configuration");
-        PeerConnection peerConnection = getPeerConnection(peerConnectionId);
-        if (peerConnection != null) {
-          peerConnectionSetConfiguration(new ConstraintsMap(configuration), peerConnection);
-          result.success(null);
-        } else {
-          resultError("setConfiguration", "peerConnection is null", result);
+      case "getRemoteDescription":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          PeerConnection peerConnection = getPeerConnection(peerConnectionId);
+          if (peerConnection != null) {
+            SessionDescription sdp = peerConnection.getRemoteDescription();
+            if (null == sdp) {
+              result.success(null);
+            } else {
+              ConstraintsMap params = new ConstraintsMap();
+              params.putString("sdp", sdp.description);
+              params.putString("type", sdp.type.canonicalForm());
+              result.success(params.toMap());
+            }
+          } else {
+            resultError("getRemoteDescription", "peerConnection is null", result);
+          }
+          break;
         }
-        break;
-      }
-      case "addTrack": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String trackId = call.argument("trackId");
-        List<String> streamIds = call.argument("streamIds");
-        addTrack(peerConnectionId, trackId, streamIds, result);
-        break;
-      }
-      case "removeTrack": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String senderId = call.argument("senderId");
-        removeTrack(peerConnectionId, senderId, result);
-        break;
-      }
-      case "addTransceiver": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        Map<String, Object> transceiverInit = call.argument("transceiverInit");
-        if (call.hasArgument("trackId")) {
+      case "setConfiguration":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          Map<String, Object> configuration = call.argument("configuration");
+          PeerConnection peerConnection = getPeerConnection(peerConnectionId);
+          if (peerConnection != null) {
+            peerConnectionSetConfiguration(new ConstraintsMap(configuration), peerConnection);
+            result.success(null);
+          } else {
+            resultError("setConfiguration", "peerConnection is null", result);
+          }
+          break;
+        }
+      case "addTrack":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
           String trackId = call.argument("trackId");
-          addTransceiver(peerConnectionId, trackId, transceiverInit, result);
-        } else if (call.hasArgument("mediaType")) {
-          String mediaType = call.argument("mediaType");
-          addTransceiverOfType(peerConnectionId, mediaType, transceiverInit, result);
-        } else {
-          resultError("addTransceiver", "Incomplete parameters", result);
+          List<String> streamIds = call.argument("streamIds");
+          addTrack(peerConnectionId, trackId, streamIds, result);
+          break;
         }
-        break;
-      }
-      case "rtpTransceiverSetDirection": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String direction = call.argument("direction");
-        int transceiverId = call.argument("transceiverId");
-        rtpTransceiverSetDirection(peerConnectionId, direction, transceiverId, result);
-        break;
-      }
-      case "rtpTransceiverGetMid": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        int transceiverId = call.argument("transceiverId");
-        rtpTransceiverGetMid(peerConnectionId, transceiverId, result);
-        break;
-      }
-      case "rtpTransceiverGetDirection": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        int transceiverId = call.argument("transceiverId");
-        rtpTransceiverGetDirection(peerConnectionId, transceiverId, result);
-        break;
-      }
-      case "rtpTransceiverGetCurrentDirection": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        int transceiverId = call.argument("transceiverId");
-        rtpTransceiverGetCurrentDirection(peerConnectionId, transceiverId, result);
-        break;
-      }
-      case "rtpTransceiverStop": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        int transceiverId = call.argument("transceiverId");
-        rtpTransceiverStop(peerConnectionId, transceiverId, result);
-        break;
-      }
-      case "rtpSenderSetParameters": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String rtpSenderId = call.argument("rtpSenderId");
-        Map<String, Object> parameters = call.argument("parameters");
-        rtpSenderSetParameters(peerConnectionId, rtpSenderId, parameters, result);
-        break;
-      }
-      case "rtpSenderReplaceTrack": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String rtpSenderId = call.argument("rtpSenderId");
-        String trackId = call.argument("trackId");
-        rtpSenderSetTrack(peerConnectionId, rtpSenderId, trackId, true, result);
-        break;
-      }
-      case "rtpSenderSetTrack": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String rtpSenderId = call.argument("rtpSenderId");
-        String trackId = call.argument("trackId");
-        rtpSenderSetTrack(peerConnectionId, rtpSenderId, trackId, false, result);
-        break;
-      }
-      case "rtpSenderDispose": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String rtpSenderId = call.argument("rtpSenderId");
-        rtpSenderDispose(peerConnectionId, rtpSenderId, result);
-        break;
-      }
-      case "getSenders": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        getSenders(peerConnectionId, result);
-        break;
-      }
-      case "getReceivers": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        getReceivers(peerConnectionId, result);
-        break;
-      }
-      case "getTransceivers": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        getTransceivers(peerConnectionId, result);
-        break;
-      }
+      case "removeTrack":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          String senderId = call.argument("senderId");
+          removeTrack(peerConnectionId, senderId, result);
+          break;
+        }
+      case "addTransceiver":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          Map<String, Object> transceiverInit = call.argument("transceiverInit");
+          if (call.hasArgument("trackId")) {
+            String trackId = call.argument("trackId");
+            addTransceiver(peerConnectionId, trackId, transceiverInit, result);
+          } else if (call.hasArgument("mediaType")) {
+            String mediaType = call.argument("mediaType");
+            addTransceiverOfType(peerConnectionId, mediaType, transceiverInit, result);
+          } else {
+            resultError("addTransceiver", "Incomplete parameters", result);
+          }
+          break;
+        }
+      case "rtpTransceiverSetDirection":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          String direction = call.argument("direction");
+          int transceiverId = call.argument("transceiverId");
+          rtpTransceiverSetDirection(peerConnectionId, direction, transceiverId, result);
+          break;
+        }
+      case "rtpTransceiverGetMid":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          int transceiverId = call.argument("transceiverId");
+          rtpTransceiverGetMid(peerConnectionId, transceiverId, result);
+          break;
+        }
+      case "rtpTransceiverGetDirection":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          int transceiverId = call.argument("transceiverId");
+          rtpTransceiverGetDirection(peerConnectionId, transceiverId, result);
+          break;
+        }
+      case "rtpTransceiverGetCurrentDirection":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          int transceiverId = call.argument("transceiverId");
+          rtpTransceiverGetCurrentDirection(peerConnectionId, transceiverId, result);
+          break;
+        }
+      case "rtpTransceiverStop":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          int transceiverId = call.argument("transceiverId");
+          rtpTransceiverStop(peerConnectionId, transceiverId, result);
+          break;
+        }
+      case "rtpSenderSetParameters":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          String rtpSenderId = call.argument("rtpSenderId");
+          Map<String, Object> parameters = call.argument("parameters");
+          rtpSenderSetParameters(peerConnectionId, rtpSenderId, parameters, result);
+          break;
+        }
+      case "rtpSenderReplaceTrack":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          String rtpSenderId = call.argument("rtpSenderId");
+          String trackId = call.argument("trackId");
+          rtpSenderSetTrack(peerConnectionId, rtpSenderId, trackId, true, result);
+          break;
+        }
+      case "rtpSenderSetTrack":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          String rtpSenderId = call.argument("rtpSenderId");
+          String trackId = call.argument("trackId");
+          rtpSenderSetTrack(peerConnectionId, rtpSenderId, trackId, false, result);
+          break;
+        }
+      case "rtpSenderDispose":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          String rtpSenderId = call.argument("rtpSenderId");
+          rtpSenderDispose(peerConnectionId, rtpSenderId, result);
+          break;
+        }
+      case "getSenders":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          getSenders(peerConnectionId, result);
+          break;
+        }
+      case "getReceivers":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          getReceivers(peerConnectionId, result);
+          break;
+        }
+      case "getTransceivers":
+        {
+          String peerConnectionId = call.argument("peerConnectionId");
+          getTransceivers(peerConnectionId, result);
+          break;
+        }
       default:
         result.notImplemented();
         break;
@@ -537,26 +578,28 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     for (int i = 0; i < size; i++) {
       ConstraintsMap iceServerMap = iceServersArray.getMap(i);
       boolean hasUsernameAndCredential =
-              iceServerMap.hasKey("username") && iceServerMap.hasKey("credential");
+          iceServerMap.hasKey("username") && iceServerMap.hasKey("credential");
       if (iceServerMap.hasKey("url")) {
         if (hasUsernameAndCredential) {
-          iceServers.add(IceServer.builder(iceServerMap.getString("url"))
-                  .setUsername(iceServerMap.getString("username"))
-                  .setPassword(iceServerMap.getString("credential")).createIceServer());
-        } else {
           iceServers.add(
-                  IceServer.builder(iceServerMap.getString("url")).createIceServer());
+              IceServer.builder(iceServerMap.getString("url"))
+                  .setUsername(iceServerMap.getString("username"))
+                  .setPassword(iceServerMap.getString("credential"))
+                  .createIceServer());
+        } else {
+          iceServers.add(IceServer.builder(iceServerMap.getString("url")).createIceServer());
         }
       } else if (iceServerMap.hasKey("urls")) {
         switch (iceServerMap.getType("urls")) {
           case String:
             if (hasUsernameAndCredential) {
-              iceServers.add(IceServer.builder(iceServerMap.getString("urls"))
+              iceServers.add(
+                  IceServer.builder(iceServerMap.getString("urls"))
                       .setUsername(iceServerMap.getString("username"))
-                      .setPassword(iceServerMap.getString("credential")).createIceServer());
-            } else {
-              iceServers.add(IceServer.builder(iceServerMap.getString("urls"))
+                      .setPassword(iceServerMap.getString("credential"))
                       .createIceServer());
+            } else {
+              iceServers.add(IceServer.builder(iceServerMap.getString("urls")).createIceServer());
             }
             break;
           case Array:
@@ -571,8 +614,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
             if (hasUsernameAndCredential) {
               builder
-                      .setUsername(iceServerMap.getString("username"))
-                      .setPassword(iceServerMap.getString("credential"));
+                  .setUsername(iceServerMap.getString("username"))
+                  .setPassword(iceServerMap.getString("credential"));
             }
 
             iceServers.add(builder.createIceServer());
@@ -598,7 +641,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     // iceTransportPolicy (public api)
     if (map.hasKey("iceTransportPolicy")
-            && map.getType("iceTransportPolicy") == ObjectType.String) {
+        && map.getType("iceTransportPolicy") == ObjectType.String) {
       final String v = map.getString("iceTransportPolicy");
       if (v != null) {
         switch (v) {
@@ -619,8 +662,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
 
     // bundlePolicy (public api)
-    if (map.hasKey("bundlePolicy")
-            && map.getType("bundlePolicy") == ObjectType.String) {
+    if (map.hasKey("bundlePolicy") && map.getType("bundlePolicy") == ObjectType.String) {
       final String v = map.getString("bundlePolicy");
       if (v != null) {
         switch (v) {
@@ -638,8 +680,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
 
     // rtcpMuxPolicy (public api)
-    if (map.hasKey("rtcpMuxPolicy")
-            && map.getType("rtcpMuxPolicy") == ObjectType.String) {
+    if (map.hasKey("rtcpMuxPolicy") && map.getType("rtcpMuxPolicy") == ObjectType.String) {
       final String v = map.getString("rtcpMuxPolicy");
       if (v != null) {
         switch (v) {
@@ -658,7 +699,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     // iceCandidatePoolSize of type unsigned short, defaulting to 0
     if (map.hasKey("iceCandidatePoolSize")
-            && map.getType("iceCandidatePoolSize") == ObjectType.Number) {
+        && map.getType("iceCandidatePoolSize") == ObjectType.Number) {
       final int v = map.getInt("iceCandidatePoolSize");
       if (v > 0) {
         conf.iceCandidatePoolSize = v;
@@ -666,8 +707,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
 
     // sdpSemantics
-    if (map.hasKey("sdpSemantics")
-            && map.getType("sdpSemantics") == ObjectType.String) {
+    if (map.hasKey("sdpSemantics") && map.getType("sdpSemantics") == ObjectType.String) {
       final String v = map.getString("sdpSemantics");
       if (v != null) {
         switch (v) {
@@ -685,7 +725,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     // tcpCandidatePolicy (private api)
     if (map.hasKey("tcpCandidatePolicy")
-            && map.getType("tcpCandidatePolicy") == ObjectType.String) {
+        && map.getType("tcpCandidatePolicy") == ObjectType.String) {
       final String v = map.getString("tcpCandidatePolicy");
       if (v != null) {
         switch (v) {
@@ -701,7 +741,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     // candidateNetworkPolicy (private api)
     if (map.hasKey("candidateNetworkPolicy")
-            && map.getType("candidateNetworkPolicy") == ObjectType.String) {
+        && map.getType("candidateNetworkPolicy") == ObjectType.String) {
       final String v = map.getString("candidateNetworkPolicy");
       if (v != null) {
         switch (v) {
@@ -716,8 +756,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
 
     // KeyType (private api)
-    if (map.hasKey("keyType")
-            && map.getType("keyType") == ObjectType.String) {
+    if (map.hasKey("keyType") && map.getType("keyType") == ObjectType.String) {
       final String v = map.getString("keyType");
       if (v != null) {
         switch (v) {
@@ -733,7 +772,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     // continualGatheringPolicy (private api)
     if (map.hasKey("continualGatheringPolicy")
-            && map.getType("continualGatheringPolicy") == ObjectType.String) {
+        && map.getType("continualGatheringPolicy") == ObjectType.String) {
       final String v = map.getString("continualGatheringPolicy");
       if (v != null) {
         switch (v) {
@@ -749,7 +788,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     // audioJitterBufferMaxPackets (private api)
     if (map.hasKey("audioJitterBufferMaxPackets")
-            && map.getType("audioJitterBufferMaxPackets") == ObjectType.Number) {
+        && map.getType("audioJitterBufferMaxPackets") == ObjectType.Number) {
       final int v = map.getInt("audioJitterBufferMaxPackets");
       if (v > 0) {
         conf.audioJitterBufferMaxPackets = v;
@@ -758,56 +797,63 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     // iceConnectionReceivingTimeout (private api)
     if (map.hasKey("iceConnectionReceivingTimeout")
-            && map.getType("iceConnectionReceivingTimeout") == ObjectType.Number) {
+        && map.getType("iceConnectionReceivingTimeout") == ObjectType.Number) {
       conf.iceConnectionReceivingTimeout = map.getInt("iceConnectionReceivingTimeout");
     }
 
     // iceBackupCandidatePairPingInterval (private api)
     if (map.hasKey("iceBackupCandidatePairPingInterval")
-            && map.getType("iceBackupCandidatePairPingInterval") == ObjectType.Number) {
+        && map.getType("iceBackupCandidatePairPingInterval") == ObjectType.Number) {
       conf.iceBackupCandidatePairPingInterval = map.getInt("iceBackupCandidatePairPingInterval");
     }
 
     // audioJitterBufferFastAccelerate (private api)
     if (map.hasKey("audioJitterBufferFastAccelerate")
-            && map.getType("audioJitterBufferFastAccelerate") == ObjectType.Boolean) {
+        && map.getType("audioJitterBufferFastAccelerate") == ObjectType.Boolean) {
       conf.audioJitterBufferFastAccelerate = map.getBoolean("audioJitterBufferFastAccelerate");
     }
 
     // pruneTurnPorts (private api)
-    if (map.hasKey("pruneTurnPorts")
-            && map.getType("pruneTurnPorts") == ObjectType.Boolean) {
+    if (map.hasKey("pruneTurnPorts") && map.getType("pruneTurnPorts") == ObjectType.Boolean) {
       conf.pruneTurnPorts = map.getBoolean("pruneTurnPorts");
     }
 
     // presumeWritableWhenFullyRelayed (private api)
     if (map.hasKey("presumeWritableWhenFullyRelayed")
-            && map.getType("presumeWritableWhenFullyRelayed") == ObjectType.Boolean) {
+        && map.getType("presumeWritableWhenFullyRelayed") == ObjectType.Boolean) {
       conf.presumeWritableWhenFullyRelayed = map.getBoolean("presumeWritableWhenFullyRelayed");
     }
     // cryptoOptions
-    if (map.hasKey("cryptoOptions")
-            && map.getType("cryptoOptions") == ObjectType.Map) {
+    if (map.hasKey("cryptoOptions") && map.getType("cryptoOptions") == ObjectType.Map) {
       final ConstraintsMap cryptoOptions = map.getMap("cryptoOptions");
-      conf.cryptoOptions = CryptoOptions.builder()
-              .setEnableGcmCryptoSuites(cryptoOptions.hasKey("enableGcmCryptoSuites") && cryptoOptions.getBoolean("enableGcmCryptoSuites"))
-              .setRequireFrameEncryption(cryptoOptions.hasKey("requireFrameEncryption") && cryptoOptions.getBoolean("requireFrameEncryption"))
-              .setEnableEncryptedRtpHeaderExtensions(cryptoOptions.hasKey("enableEncryptedRtpHeaderExtensions") && cryptoOptions.getBoolean("enableEncryptedRtpHeaderExtensions"))
-              .setEnableAes128Sha1_32CryptoCipher(cryptoOptions.hasKey("enableAes128Sha1_32CryptoCipher") && cryptoOptions.getBoolean("enableAes128Sha1_32CryptoCipher"))
+      conf.cryptoOptions =
+          CryptoOptions.builder()
+              .setEnableGcmCryptoSuites(
+                  cryptoOptions.hasKey("enableGcmCryptoSuites")
+                      && cryptoOptions.getBoolean("enableGcmCryptoSuites"))
+              .setRequireFrameEncryption(
+                  cryptoOptions.hasKey("requireFrameEncryption")
+                      && cryptoOptions.getBoolean("requireFrameEncryption"))
+              .setEnableEncryptedRtpHeaderExtensions(
+                  cryptoOptions.hasKey("enableEncryptedRtpHeaderExtensions")
+                      && cryptoOptions.getBoolean("enableEncryptedRtpHeaderExtensions"))
+              .setEnableAes128Sha1_32CryptoCipher(
+                  cryptoOptions.hasKey("enableAes128Sha1_32CryptoCipher")
+                      && cryptoOptions.getBoolean("enableAes128Sha1_32CryptoCipher"))
               .createCryptoOptions();
     }
     return conf;
   }
 
-  private String peerConnectionInit(ConstraintsMap configuration, @NonNull ConstraintsMap constraints) {
+  private String peerConnectionInit(
+      ConstraintsMap configuration, @NonNull ConstraintsMap constraints) {
     String peerConnectionId = getNextStreamUUID();
     RTCConfiguration conf = parseRTCConfiguration(configuration);
-    PeerConnectionObserver observer = new PeerConnectionObserver(conf, this, messenger, peerConnectionId);
-    PeerConnection peerConnection
-            = mFactory.createPeerConnection(
-            conf,
-            MediaConstraintsUtils.parseMediaConstraints(constraints),
-            observer);
+    PeerConnectionObserver observer =
+        new PeerConnectionObserver(conf, this, messenger, peerConnectionId);
+    PeerConnection peerConnection =
+        mFactory.createPeerConnection(
+            conf, MediaConstraintsUtils.parseMediaConstraints(constraints), observer);
     observer.setPeerConnection(peerConnection);
     if (mPeerConnectionObservers.isEmpty()) {
       audioManager.onAudioManagerRequested(true);
@@ -881,7 +927,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     return track;
   }
-
 
   private void getUserMedia(@NonNull ConstraintsMap constraints, @NonNull Result result) {
     String streamId = getNextStreamUUID();
@@ -981,7 +1026,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void mediaStreamAddTrack(final String streamId, @NonNull final String trackId, @NonNull Result result) {
+  private void mediaStreamAddTrack(
+      final String streamId, @NonNull final String trackId, @NonNull Result result) {
     MediaStream mediaStream = localStreams.get(streamId);
     if (mediaStream != null) {
       MediaStreamTrack track = getTrackForId(trackId);
@@ -992,18 +1038,24 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         } else if (clonedTrack instanceof VideoTrack) {
           mediaStream.addTrack((VideoTrack) clonedTrack);
         } else {
-          resultError("mediaStreamAddTrack", "mediaStreamAddTrack() track [" + trackId + "] is not AudioTrack or VideoTrack", result);
+          resultError(
+              "mediaStreamAddTrack",
+              "mediaStreamAddTrack() track [" + trackId + "] is not AudioTrack or VideoTrack",
+              result);
         }
       } else {
-        resultError("mediaStreamAddTrack", "mediaStreamAddTrack() track [" + trackId + "] is null", result);
+        resultError(
+            "mediaStreamAddTrack", "mediaStreamAddTrack() track [" + trackId + "] is null", result);
       }
     } else {
-      resultError("mediaStreamAddTrack", "mediaStreamAddTrack() stream [" + streamId + "] is null", result);
+      resultError(
+          "mediaStreamAddTrack", "mediaStreamAddTrack() stream [" + streamId + "] is null", result);
     }
     result.success(null);
   }
 
-  private void mediaStreamRemoveTrack(final String streamId, @NonNull final String trackId, @NonNull Result result) {
+  private void mediaStreamRemoveTrack(
+      final String streamId, @NonNull final String trackId, @NonNull Result result) {
     MediaStream mediaStream = localStreams.get(streamId);
     if (mediaStream != null) {
       MediaStreamTrack track = getLocalTrack(trackId);
@@ -1014,10 +1066,16 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           mediaStream.removeTrack((VideoTrack) track);
         }
       } else {
-        resultError("mediaStreamRemoveTrack", "mediaStreamAddTrack() track [" + trackId + "] is null", result);
+        resultError(
+            "mediaStreamRemoveTrack",
+            "mediaStreamAddTrack() track [" + trackId + "] is null",
+            result);
       }
     } else {
-      resultError("mediaStreamRemoveTrack", "mediaStreamAddTrack() stream [" + streamId + "] is null", result);
+      resultError(
+          "mediaStreamRemoveTrack",
+          "mediaStreamAddTrack() stream [" + streamId + "] is null",
+          result);
     }
     result.success(null);
   }
@@ -1034,16 +1092,16 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
     ConstraintsMap params = new ConstraintsMap();
     String facing = info.facing == 1 ? "front" : "back";
-    params.putString("label",
-            "Camera " + index + ", Facing " + facing + ", Orientation " + info.orientation);
+    params.putString(
+        "label", "Camera " + index + ", Facing " + facing + ", Orientation " + info.orientation);
     params.putString("deviceId", "" + index);
     params.putString("facing", facing);
     params.putString("kind", "videoinput");
     return params;
   }
 
-  private void peerConnectionSetConfiguration(@NonNull ConstraintsMap configuration,
-                                              @Nullable PeerConnection peerConnection) {
+  private void peerConnectionSetConfiguration(
+      @NonNull ConstraintsMap configuration, @Nullable PeerConnection peerConnection) {
     if (peerConnection == null) {
       Log.d(TAG, "peerConnectionSetConfiguration() peerConnection is null");
       return;
@@ -1052,149 +1110,159 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   private void peerConnectionCreateOffer(
-          @NonNull String id,
-          @NonNull ConstraintsMap constraints,
-          @NonNull final Result result) {
+      @NonNull String id, @NonNull ConstraintsMap constraints, @NonNull final Result result) {
     PeerConnection peerConnection = getPeerConnection(id);
 
     if (peerConnection != null) {
-      peerConnection.createOffer(new SdpObserver() {
-        @Override
-        public void onCreateFailure(String s) {
-          resultError("peerConnectionCreateOffer", "WEBRTC_CREATE_OFFER_ERROR: " + s, result);
-        }
+      peerConnection.createOffer(
+          new SdpObserver() {
+            @Override
+            public void onCreateFailure(String s) {
+              resultError("peerConnectionCreateOffer", "WEBRTC_CREATE_OFFER_ERROR: " + s, result);
+            }
 
-        @Override
-        public void onCreateSuccess(@NonNull final SessionDescription sdp) {
-          ConstraintsMap params = new ConstraintsMap();
-          params.putString("sdp", sdp.description);
-          params.putString("type", sdp.type.canonicalForm());
-          result.success(params.toMap());
-        }
+            @Override
+            public void onCreateSuccess(@NonNull final SessionDescription sdp) {
+              ConstraintsMap params = new ConstraintsMap();
+              params.putString("sdp", sdp.description);
+              params.putString("type", sdp.type.canonicalForm());
+              result.success(params.toMap());
+            }
 
-        @Override
-        public void onSetFailure(String s) {
-        }
+            @Override
+            public void onSetFailure(String s) {}
 
-        @Override
-        public void onSetSuccess() {
-        }
-      }, MediaConstraintsUtils.parseMediaConstraints(constraints));
+            @Override
+            public void onSetSuccess() {}
+          },
+          MediaConstraintsUtils.parseMediaConstraints(constraints));
     } else {
       resultError("peerConnectionCreateOffer", "WEBRTC_CREATE_OFFER_ERROR", result);
     }
   }
 
   private void peerConnectionCreateAnswer(
-          @NonNull String id,
-          @NonNull ConstraintsMap constraints,
-          @NonNull final Result result) {
+      @NonNull String id, @NonNull ConstraintsMap constraints, @NonNull final Result result) {
     PeerConnection peerConnection = getPeerConnection(id);
 
     if (peerConnection != null) {
-      peerConnection.createAnswer(new SdpObserver() {
-        @Override
-        public void onCreateFailure(String s) {
-          resultError("peerConnectionCreateAnswer", "WEBRTC_CREATE_ANSWER_ERROR: " + s, result);
-        }
+      peerConnection.createAnswer(
+          new SdpObserver() {
+            @Override
+            public void onCreateFailure(String s) {
+              resultError("peerConnectionCreateAnswer", "WEBRTC_CREATE_ANSWER_ERROR: " + s, result);
+            }
 
-        @Override
-        public void onCreateSuccess(@NonNull final SessionDescription sdp) {
-          ConstraintsMap params = new ConstraintsMap();
-          params.putString("sdp", sdp.description);
-          params.putString("type", sdp.type.canonicalForm());
-          result.success(params.toMap());
-        }
+            @Override
+            public void onCreateSuccess(@NonNull final SessionDescription sdp) {
+              ConstraintsMap params = new ConstraintsMap();
+              params.putString("sdp", sdp.description);
+              params.putString("type", sdp.type.canonicalForm());
+              result.success(params.toMap());
+            }
 
-        @Override
-        public void onSetFailure(String s) {
-        }
+            @Override
+            public void onSetFailure(String s) {}
 
-        @Override
-        public void onSetSuccess() {
-        }
-      }, MediaConstraintsUtils.parseMediaConstraints(constraints));
+            @Override
+            public void onSetSuccess() {}
+          },
+          MediaConstraintsUtils.parseMediaConstraints(constraints));
     } else {
       resultError("peerConnectionCreateAnswer", "peerConnection is null", result);
     }
   }
 
-  private void peerConnectionSetLocalDescription(@NonNull ConstraintsMap sdpMap, @NonNull final String id,
-                                                 @NonNull final Result result) {
+  private void peerConnectionSetLocalDescription(
+      @NonNull ConstraintsMap sdpMap, @NonNull final String id, @NonNull final Result result) {
     PeerConnection peerConnection = getPeerConnection(id);
     if (peerConnection != null) {
-      SessionDescription sdp = new SessionDescription(
-              Type.fromCanonicalForm(sdpMap.getString("type")),
-              sdpMap.getString("sdp")
-      );
+      SessionDescription sdp =
+          new SessionDescription(
+              Type.fromCanonicalForm(sdpMap.getString("type")), sdpMap.getString("sdp"));
 
-      peerConnection.setLocalDescription(new SdpObserver() {
-        @Override
-        public void onCreateSuccess(final SessionDescription sdp) {
-        }
+      peerConnection.setLocalDescription(
+          new SdpObserver() {
+            @Override
+            public void onCreateSuccess(final SessionDescription sdp) {}
 
-        @Override
-        public void onSetSuccess() {
-          result.success(null);
-        }
+            @Override
+            public void onSetSuccess() {
+              result.success(null);
+            }
 
-        @Override
-        public void onCreateFailure(String s) {
-        }
+            @Override
+            public void onCreateFailure(String s) {}
 
-        @Override
-        public void onSetFailure(String s) {
-          resultError("peerConnectionSetLocalDescription", "WEBRTC_SET_LOCAL_DESCRIPTION_ERROR: " + s, result);
-        }
-      }, sdp);
+            @Override
+            public void onSetFailure(String s) {
+              resultError(
+                  "peerConnectionSetLocalDescription",
+                  "WEBRTC_SET_LOCAL_DESCRIPTION_ERROR: " + s,
+                  result);
+            }
+          },
+          sdp);
     } else {
-      resultError("peerConnectionSetLocalDescription", "WEBRTC_SET_LOCAL_DESCRIPTION_ERROR: peerConnection is null", result);
+      resultError(
+          "peerConnectionSetLocalDescription",
+          "WEBRTC_SET_LOCAL_DESCRIPTION_ERROR: peerConnection is null",
+          result);
     }
   }
 
-  private void peerConnectionSetRemoteDescription(@NonNull final ConstraintsMap sdpMap, @NonNull final String id,
-                                                  @NonNull final Result result) {
+  private void peerConnectionSetRemoteDescription(
+      @NonNull final ConstraintsMap sdpMap,
+      @NonNull final String id,
+      @NonNull final Result result) {
     PeerConnection peerConnection = getPeerConnection(id);
     if (peerConnection != null) {
-      SessionDescription sdp = new SessionDescription(
-              Type.fromCanonicalForm(sdpMap.getString("type")),
-              sdpMap.getString("sdp")
-      );
+      SessionDescription sdp =
+          new SessionDescription(
+              Type.fromCanonicalForm(sdpMap.getString("type")), sdpMap.getString("sdp"));
 
-      peerConnection.setRemoteDescription(new SdpObserver() {
-        @Override
-        public void onCreateSuccess(final SessionDescription sdp) {
-        }
+      peerConnection.setRemoteDescription(
+          new SdpObserver() {
+            @Override
+            public void onCreateSuccess(final SessionDescription sdp) {}
 
-        @Override
-        public void onSetSuccess() {
-          result.success(null);
-        }
+            @Override
+            public void onSetSuccess() {
+              result.success(null);
+            }
 
-        @Override
-        public void onCreateFailure(String s) {
-        }
+            @Override
+            public void onCreateFailure(String s) {}
 
-        @Override
-        public void onSetFailure(String s) {
-          resultError("peerConnectionSetRemoteDescription", "WEBRTC_SET_REMOTE_DESCRIPTION_ERROR: " + s, result);
-        }
-      }, sdp);
+            @Override
+            public void onSetFailure(String s) {
+              resultError(
+                  "peerConnectionSetRemoteDescription",
+                  "WEBRTC_SET_REMOTE_DESCRIPTION_ERROR: " + s,
+                  result);
+            }
+          },
+          sdp);
     } else {
-      resultError("peerConnectionSetRemoteDescription", "WEBRTC_SET_REMOTE_DESCRIPTION_ERROR: peerConnection is null", result);
+      resultError(
+          "peerConnectionSetRemoteDescription",
+          "WEBRTC_SET_REMOTE_DESCRIPTION_ERROR: peerConnection is null",
+          result);
     }
   }
 
-  private void peerConnectionAddICECandidate(@NonNull ConstraintsMap candidateMap, @NonNull final String id,
-                                             @NonNull final Result result) {
+  private void peerConnectionAddICECandidate(
+      @NonNull ConstraintsMap candidateMap,
+      @NonNull final String id,
+      @NonNull final Result result) {
     boolean res = false;
     PeerConnection peerConnection = getPeerConnection(id);
     if (peerConnection != null) {
-      IceCandidate candidate = new IceCandidate(
+      IceCandidate candidate =
+          new IceCandidate(
               candidateMap.getString("sdpMid"),
               candidateMap.getInt("sdpMLineIndex"),
-              candidateMap.getString("candidate")
-      );
+              candidateMap.getString("candidate"));
       res = peerConnection.addIceCandidate(candidate);
     } else {
       resultError("peerConnectionAddICECandidate", "peerConnection is null", result);
@@ -1202,7 +1270,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     result.success(res);
   }
 
-  private void peerConnectionGetStats(@NonNull String trackId, @NonNull String id, @NonNull final Result result) {
+  private void peerConnectionGetStats(
+      @NonNull String trackId, @NonNull String id, @NonNull final Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("peerConnectionGetStats", "peerConnection is null", result);
@@ -1249,7 +1318,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     this.activity = activity;
   }
 
-  private void addTrack(@NonNull String peerConnectionId, @NonNull String trackId, @NonNull List<String> streamIds, @NonNull Result result) {
+  private void addTrack(
+      @NonNull String peerConnectionId,
+      @NonNull String trackId,
+      @NonNull List<String> streamIds,
+      @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     MediaStreamTrack track = getLocalTrack(trackId);
     if (track == null) {
@@ -1263,7 +1336,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void removeTrack(@NonNull String peerConnectionId, @NonNull String senderId, @NonNull Result result) {
+  private void removeTrack(
+      @NonNull String peerConnectionId, @NonNull String senderId, @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("removeTrack", "peerConnection is null", result);
@@ -1272,8 +1346,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void addTransceiver(@NonNull String peerConnectionId, @NonNull String trackId, @NonNull Map<String, Object> transceiverInit,
-                              @NonNull Result result) {
+  private void addTransceiver(
+      @NonNull String peerConnectionId,
+      @NonNull String trackId,
+      @NonNull Map<String, Object> transceiverInit,
+      @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     MediaStreamTrack track = getLocalTrack(trackId);
     if (track == null) {
@@ -1287,8 +1364,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void addTransceiverOfType(@NonNull String peerConnectionId, @NonNull String mediaType, @NonNull Map<String, Object> transceiverInit,
-                                    @NonNull Result result) {
+  private void addTransceiverOfType(
+      @NonNull String peerConnectionId,
+      @NonNull String mediaType,
+      @NonNull Map<String, Object> transceiverInit,
+      @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("addTransceiverOfType", "peerConnection is null", result);
@@ -1297,7 +1377,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void rtpTransceiverSetDirection(@NonNull String peerConnectionId, @NonNull String direction, int transceiverId, @NonNull Result result) {
+  private void rtpTransceiverSetDirection(
+      @NonNull String peerConnectionId,
+      @NonNull String direction,
+      int transceiverId,
+      @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpTransceiverSetDirection", "peerConnection is null", result);
@@ -1306,7 +1390,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void rtpTransceiverGetMid(@NonNull String peerConnectionId, int transceiverId, @NonNull Result result) {
+  private void rtpTransceiverGetMid(
+      @NonNull String peerConnectionId, int transceiverId, @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpTransceiverGetMid", "peerConnection is null", result);
@@ -1315,7 +1400,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void rtpTransceiverGetDirection(@NonNull String peerConnectionId, int transceiverId, @NonNull Result result) {
+  private void rtpTransceiverGetDirection(
+      @NonNull String peerConnectionId, int transceiverId, @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpTransceiverSetDirection", "peerConnection is null", result);
@@ -1324,7 +1410,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void rtpTransceiverGetCurrentDirection(@NonNull String peerConnectionId, int transceiverId, @NonNull Result result) {
+  private void rtpTransceiverGetCurrentDirection(
+      @NonNull String peerConnectionId, int transceiverId, @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpTransceiverSetDirection", "peerConnection is null", result);
@@ -1333,7 +1420,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void rtpTransceiverStop(@NonNull String peerConnectionId, int transceiverId, @NonNull Result result) {
+  private void rtpTransceiverStop(
+      @NonNull String peerConnectionId, int transceiverId, @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpTransceiverStop", "peerConnection is null", result);
@@ -1342,7 +1430,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void rtpSenderSetParameters(@NonNull String peerConnectionId, @NonNull String rtpSenderId, @NonNull Map<String, Object> parameters, @NonNull Result result) {
+  private void rtpSenderSetParameters(
+      @NonNull String peerConnectionId,
+      @NonNull String rtpSenderId,
+      @NonNull Map<String, Object> parameters,
+      @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpSenderSetParameters", "peerConnection is null", result);
@@ -1351,7 +1443,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void rtpSenderDispose(@NonNull String peerConnectionId, @NonNull String rtpSenderId, @NonNull Result result) {
+  private void rtpSenderDispose(
+      @NonNull String peerConnectionId, @NonNull String rtpSenderId, @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpSenderDispose", "peerConnection is null", result);
@@ -1387,7 +1480,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void rtpSenderSetTrack(@NonNull String peerConnectionId, @NonNull String rtpSenderId, @NonNull String trackId, boolean replace, @NonNull Result result) {
+  private void rtpSenderSetTrack(
+      @NonNull String peerConnectionId,
+      @NonNull String rtpSenderId,
+      @NonNull String trackId,
+      boolean replace,
+      @NonNull Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpSenderSetTrack", "peerConnection is null", result);
@@ -1401,18 +1499,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-
   public void reStartCamera() {
     if (null == getUserMediaImpl) {
       return;
     }
-    getUserMediaImpl.reStartCamera(id -> {
-      final MediaStreamTrack track = getLocalTrack(id);
-      if (track == null) {
-        return false;
-      } else {
-        return track.enabled();
-      }
-    });
+    getUserMediaImpl.reStartCamera(
+        id -> {
+          final MediaStreamTrack track = getLocalTrack(id);
+          if (track == null) {
+            return false;
+          } else {
+            return track.enabled();
+          }
+        });
   }
 }

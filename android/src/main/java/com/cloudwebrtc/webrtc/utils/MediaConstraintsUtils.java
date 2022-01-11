@@ -1,15 +1,12 @@
 package com.cloudwebrtc.webrtc.utils;
 
 import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import org.webrtc.MediaConstraints;
-import org.webrtc.MediaConstraints.KeyValuePair;
-
 import java.util.List;
 import java.util.Map.Entry;
+import org.webrtc.MediaConstraints;
+import org.webrtc.MediaConstraints.KeyValuePair;
 
 public final class MediaConstraintsUtils {
 
@@ -20,33 +17,26 @@ public final class MediaConstraintsUtils {
    * <tt>ConstraintsMap</tt>.
    *
    * @param constraints A <tt>ConstraintsMap</tt> which represents a JavaScript object specifying
-   * the constraints to be parsed into a
-   * <tt>MediaConstraints</tt> instance.
+   *     the constraints to be parsed into a <tt>MediaConstraints</tt> instance.
    * @return A new <tt>MediaConstraints</tt> instance initialized with the mandatory and optional
-   * constraint keys and values specified by
-   * <tt>constraints</tt>.
+   *     constraint keys and values specified by <tt>constraints</tt>.
    */
   @NonNull
   public static MediaConstraints parseMediaConstraints(@NonNull ConstraintsMap constraints) {
     MediaConstraints mediaConstraints = new MediaConstraints();
 
-    if (constraints.hasKey("mandatory")
-        && constraints.getType("mandatory") == ObjectType.Map) {
-      parseConstraints(constraints.getMap("mandatory"),
-          mediaConstraints.mandatory);
+    if (constraints.hasKey("mandatory") && constraints.getType("mandatory") == ObjectType.Map) {
+      parseConstraints(constraints.getMap("mandatory"), mediaConstraints.mandatory);
     } else {
       Log.d(TAG, "mandatory constraints are not a map");
     }
 
-    if (constraints.hasKey("optional")
-        && constraints.getType("optional") == ObjectType.Array) {
+    if (constraints.hasKey("optional") && constraints.getType("optional") == ObjectType.Array) {
       ConstraintsArray optional = constraints.getArray("optional");
 
       for (int i = 0, size = optional.size(); i < size; i++) {
         if (optional.getType(i) == ObjectType.Map) {
-          parseConstraints(
-              optional.getMap(i),
-              mediaConstraints.optional);
+          parseConstraints(optional.getMap(i), mediaConstraints.optional);
         }
       }
     } else {
@@ -62,11 +52,10 @@ public final class MediaConstraintsUtils {
    *
    * @param src The constraint set in the form of a JavaScript object to parse.
    * @param dst The <tt>List</tt> of <tt>MediaConstraints.KeyValuePair</tt>s into which the
-   * specified <tt>src</tt> is to be parsed.
+   *     specified <tt>src</tt> is to be parsed.
    */
   private static void parseConstraints(
-          @NonNull ConstraintsMap src,
-          @NonNull List<KeyValuePair> dst) {
+      @NonNull ConstraintsMap src, @NonNull List<KeyValuePair> dst) {
 
     for (Entry<String, Object> entry : src.toMap().entrySet()) {
       String key = entry.getKey();

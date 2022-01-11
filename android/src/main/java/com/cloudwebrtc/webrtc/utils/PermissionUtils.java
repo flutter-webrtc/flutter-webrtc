@@ -11,12 +11,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
-
 import java.util.ArrayList;
 
 /** Helper module for dealing with dynamic permissions, introduced in Android M (API level 23). */
@@ -35,7 +33,10 @@ public final class PermissionUtils {
   private static int requestCode;
 
   private static void requestPermissions(
-          @NonNull Context context, @Nullable Activity activity, @NonNull String[] permissions, @NonNull ResultReceiver resultReceiver) {
+      @NonNull Context context,
+      @Nullable Activity activity,
+      @NonNull String[] permissions,
+      @NonNull ResultReceiver resultReceiver) {
     // Ask the Context whether we have already been granted the requested
     // permissions.
     int size = permissions.length;
@@ -47,7 +48,7 @@ public final class PermissionUtils {
       // No need to ask for permission on pre-Marshmallow
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
         grantResult = PackageManager.PERMISSION_GRANTED;
-      else if (activity != null){
+      else if (activity != null) {
         grantResult = activity.checkSelfPermission(permissions[i]);
       } else {
         grantResult = ActivityCompat.checkSelfPermission(context, permissions[i]);
@@ -86,12 +87,12 @@ public final class PermissionUtils {
     RequestPermissionsFragment fragment = new RequestPermissionsFragment();
     fragment.setArguments(args);
 
-    if(activity != null){
+    if (activity != null) {
       FragmentTransaction transaction =
-              activity
-                      .getFragmentManager()
-                      .beginTransaction()
-                      .add(fragment, fragment.getClass().getName() + "-" + requestCode);
+          activity
+              .getFragmentManager()
+              .beginTransaction()
+              .add(fragment, fragment.getClass().getName() + "-" + requestCode);
 
       try {
         transaction.commit();
@@ -103,10 +104,10 @@ public final class PermissionUtils {
   }
 
   public static void requestPermissions(
-          @NonNull final Context context,
-          final Activity activity,
-          @NonNull final String[] permissions,
-          @NonNull final Callback callback) {
+      @NonNull final Context context,
+      final Activity activity,
+      @NonNull final String[] permissions,
+      @NonNull final Callback callback) {
     requestPermissions(
         context,
         activity,
@@ -121,7 +122,10 @@ public final class PermissionUtils {
   }
 
   private static void send(
-          @NonNull ResultReceiver resultReceiver, int requestCode, String[] permissions, int[] grantResults) {
+      @NonNull ResultReceiver resultReceiver,
+      int requestCode,
+      String[] permissions,
+      int[] grantResults) {
     Bundle resultData = new Bundle();
     resultData.putStringArray(PERMISSIONS, permissions);
     resultData.putIntArray(GRANT_RESULTS, grantResults);
@@ -176,8 +180,7 @@ public final class PermissionUtils {
         send(args.getParcelable(RESULT_RECEIVER), requestCode, permissions, grantResults);
       } else {
         // Ask the user about the denied permissions.
-        requestPermissions(
-            deniedPermissions.toArray(new String[0]), requestCode);
+        requestPermissions(deniedPermissions.toArray(new String[0]), requestCode);
       }
     }
 
@@ -207,10 +210,10 @@ public final class PermissionUtils {
         // the invocation so we have to redo the permission request.
         finish();
         PermissionUtils.requestPermissions(
-                getContext(),
-                getActivity(),
-                args.getStringArray(PERMISSIONS),
-                (ResultReceiver) args.getParcelable(RESULT_RECEIVER));
+            getContext(),
+            getActivity(),
+            args.getStringArray(PERMISSIONS),
+            (ResultReceiver) args.getParcelable(RESULT_RECEIVER));
       } else {
         // We did not ask for all requested permissions, just the denied
         // ones. But when we send the result, we have to answer about

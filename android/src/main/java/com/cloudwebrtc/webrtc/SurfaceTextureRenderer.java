@@ -1,9 +1,7 @@
 package com.cloudwebrtc.webrtc;
 
 import android.graphics.SurfaceTexture;
-
 import androidx.annotation.NonNull;
-
 import org.webrtc.EglBase;
 import org.webrtc.EglRenderer;
 import org.webrtc.GlRectDrawer;
@@ -12,12 +10,11 @@ import org.webrtc.ThreadUtils;
 import org.webrtc.VideoFrame;
 
 /**
- * Display the video stream on a Surface.
- * renderFrame() is asynchronous to avoid blocking the calling thread.
- * This class is thread safe and handles access from potentially three different threads:
- * Interaction from the main app in init, release and setMirror.
- * Interaction from C++ rtc::VideoSinkInterface in renderFrame.
- * Interaction from SurfaceHolder lifecycle in surfaceCreated, surfaceChanged, and surfaceDestroyed.
+ * Display the video stream on a Surface. renderFrame() is asynchronous to avoid blocking the
+ * calling thread. This class is thread safe and handles access from potentially three different
+ * threads: Interaction from the main app in init, release and setMirror. Interaction from C++
+ * rtc::VideoSinkInterface in renderFrame. Interaction from SurfaceHolder lifecycle in
+ * surfaceCreated, surfaceChanged, and surfaceDestroyed.
  */
 public class SurfaceTextureRenderer extends EglRenderer {
   // Callback for reporting renderer events. Read-only after initilization so no lock required.
@@ -29,15 +26,13 @@ public class SurfaceTextureRenderer extends EglRenderer {
   private int rotatedFrameHeight;
   private int frameRotation;
 
-  /**
-   * In order to render something, you must first call init().
-   */
+  /** In order to render something, you must first call init(). */
   public SurfaceTextureRenderer(String name) {
     super(name);
   }
 
-  public void init(final EglBase.Context sharedContext,
-                   RendererCommon.RendererEvents rendererEvents) {
+  public void init(
+      final EglBase.Context sharedContext, RendererCommon.RendererEvents rendererEvents) {
     init(sharedContext, rendererEvents, EglBase.CONFIG_PLAIN, new GlRectDrawer());
   }
 
@@ -47,9 +42,11 @@ public class SurfaceTextureRenderer extends EglRenderer {
    * |drawer|. It is allowed to call init() to reinitialize the renderer after a previous
    * init()/release() cycle.
    */
-  private void init(final EglBase.Context sharedContext,
-                    RendererCommon.RendererEvents rendererEvents, final int[] configAttributes,
-                    RendererCommon.GlDrawer drawer) {
+  private void init(
+      final EglBase.Context sharedContext,
+      RendererCommon.RendererEvents rendererEvents,
+      final int[] configAttributes,
+      RendererCommon.GlDrawer drawer) {
     ThreadUtils.checkIsOnMainThread();
     this.rendererEvents = rendererEvents;
     synchronized (layoutLock) {
@@ -60,16 +57,19 @@ public class SurfaceTextureRenderer extends EglRenderer {
     }
     super.init(sharedContext, configAttributes, drawer);
   }
+
   @Override
-  public void init(final EglBase.Context sharedContext, final int[] configAttributes,
-                   RendererCommon.GlDrawer drawer) {
+  public void init(
+      final EglBase.Context sharedContext,
+      final int[] configAttributes,
+      RendererCommon.GlDrawer drawer) {
     init(sharedContext, null /* rendererEvents */, configAttributes, drawer);
   }
   /**
    * Limit render framerate.
    *
    * @param fps Limit render framerate to this value, or use Float.POSITIVE_INFINITY to disable fps
-   *            reduction.
+   *     reduction.
    */
   @Override
   public void setFpsReduction(float fps) {
@@ -78,6 +78,7 @@ public class SurfaceTextureRenderer extends EglRenderer {
     }
     super.setFpsReduction(fps);
   }
+
   @Override
   public void disableFpsReduction() {
     synchronized (layoutLock) {
@@ -85,6 +86,7 @@ public class SurfaceTextureRenderer extends EglRenderer {
     }
     super.disableFpsReduction();
   }
+
   @Override
   public void pauseVideo() {
     synchronized (layoutLock) {
@@ -120,11 +122,11 @@ public class SurfaceTextureRenderer extends EglRenderer {
         }
       }
       if (rotatedFrameWidth != frame.getRotatedWidth()
-              || rotatedFrameHeight != frame.getRotatedHeight()
-              || frameRotation != frame.getRotation()) {
+          || rotatedFrameHeight != frame.getRotatedHeight()
+          || frameRotation != frame.getRotation()) {
         if (rendererEvents != null) {
           rendererEvents.onFrameResolutionChanged(
-                  frame.getBuffer().getWidth(), frame.getBuffer().getHeight(), frame.getRotation());
+              frame.getBuffer().getWidth(), frame.getBuffer().getHeight(), frame.getRotation());
         }
         rotatedFrameWidth = frame.getRotatedWidth();
         rotatedFrameHeight = frame.getRotatedHeight();

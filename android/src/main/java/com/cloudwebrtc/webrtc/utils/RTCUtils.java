@@ -12,41 +12,31 @@ package com.cloudwebrtc.webrtc.utils;
 
 import android.os.Build;
 import android.util.Log;
-
 import androidx.annotation.NonNull;
-
+import java.lang.reflect.Field;
 import org.webrtc.AudioTrack;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.VideoTrack;
 
-import java.lang.reflect.Field;
-
-/**
- * RTCUtils provides helper functions for managing thread safety.
- */
+/** RTCUtils provides helper functions for managing thread safety. */
 public final class RTCUtils {
-  private RTCUtils() {
-  }
+  private RTCUtils() {}
 
-  /**
-   * Helper method which throws an exception when an assertion has failed.
-   */
+  /** Helper method which throws an exception when an assertion has failed. */
   public static void assertIsTrue(boolean condition) {
     if (!condition) {
       throw new AssertionError("Expected condition to be true");
     }
   }
 
-  /**
-   * Helper method for building a string of thread information.
-   */
+  /** Helper method for building a string of thread information. */
   @NonNull
   public static String getThreadInfo() {
     return "@[name="
-            + Thread.currentThread().getName()
-            + ", id="
-            + Thread.currentThread().getId()
-            + "]";
+        + Thread.currentThread().getName()
+        + ", id="
+        + Thread.currentThread().getId()
+        + "]";
   }
 
   /**
@@ -62,15 +52,15 @@ public final class RTCUtils {
       Class<?> trackClass = track.getClass().getSuperclass();
       if (trackClass != MediaStreamTrack.class) {
         throw new IllegalArgumentException(
-                "You're trying to clone MediaStreamTrack, but provided object is not child of MediaStreamTrack");
+            "You're trying to clone MediaStreamTrack, but provided object is not child of"
+                + " MediaStreamTrack");
       }
 
       Field nativeTrackField = trackClass.getDeclaredField("nativeTrack");
       nativeTrackField.setAccessible(true);
       nativeTrackAddress = nativeTrackField.getLong(track);
     } catch (@NonNull NoSuchFieldException | IllegalAccessException e) {
-      throw new RuntimeException(
-              "Failed to get nativeTrack field from MediaStreamTrack: " + e);
+      throw new RuntimeException("Failed to get nativeTrack field from MediaStreamTrack: " + e);
     }
 
     if (track instanceof AudioTrack) {
@@ -82,18 +72,27 @@ public final class RTCUtils {
     }
   }
 
-  /**
-   * Information about the current build, taken from system properties.
-   */
+  /** Information about the current build, taken from system properties. */
   public static void logDeviceInfo(String tag) {
-    Log.d(tag, "Android SDK: " + Build.VERSION.SDK_INT + ", "
-            + "Release: " + Build.VERSION.RELEASE + ", "
-            + "Brand: " + Build.BRAND + ", "
-            + "Device: " + Build.DEVICE + ", "
-            + "Id: " + Build.ID + ", "
-            + "Hardware: " + Build.HARDWARE + ", "
-            + "Manufacturer: " + Build.MANUFACTURER + ", "
-            + "Model: " + Build.MODEL + ", "
-            + "Product: " + Build.PRODUCT);
+    Log.d(
+        tag,
+        "Android SDK: "
+            + Build.VERSION.SDK_INT
+            + ", Release: "
+            + Build.VERSION.RELEASE
+            + ", Brand: "
+            + Build.BRAND
+            + ", Device: "
+            + Build.DEVICE
+            + ", Id: "
+            + Build.ID
+            + ", Hardware: "
+            + Build.HARDWARE
+            + ", Manufacturer: "
+            + Build.MANUFACTURER
+            + ", Model: "
+            + Build.MODEL
+            + ", Product: "
+            + Build.PRODUCT);
   }
 }
