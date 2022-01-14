@@ -10,7 +10,7 @@ jobs:
 
   clippy:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -20,6 +20,8 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v1
         if: ${{ !contains(github.event.head_commit.message, '[fresh ci]') }}
+        with:
+          key: clippy
 
       - run: make cargo.lint
 
@@ -47,18 +49,19 @@ jobs:
           toolchain: stable
       - uses: Swatinem/rust-cache@v1
         if: ${{ !contains(github.event.head_commit.message, '[fresh ci]') }}
+        with:
+          key: build
       - uses: subosito/flutter-action@v1
         with:
           flutter-version: 2.8.1
       - run: flutter config --enable-windows-desktop
-      - run: choco install make
 
       - run: make cargo.build
       - run: make flutter.build
 
   rustdoc:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -67,6 +70,8 @@ jobs:
           toolchain: stable
       - uses: Swatinem/rust-cache@v1
         if: ${{ !contains(github.event.head_commit.message, '[fresh ci]') }}
+        with:
+          key: rustdoc
 
       - run: make cargo.doc
 
@@ -79,6 +84,5 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-      - run: choco install make
 
       - run: make test

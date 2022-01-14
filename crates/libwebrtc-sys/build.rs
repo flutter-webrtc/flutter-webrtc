@@ -1,9 +1,13 @@
 #![warn(clippy::pedantic)]
 
-use std::{env, fs, io, path::PathBuf};
+use std::{
+    env, fs, io,
+    path::{Path, PathBuf},
+};
 
 use anyhow::anyhow;
 use dotenv::dotenv;
+use walkdir::{DirEntry, WalkDir};
 
 fn main() -> anyhow::Result<()> {
     // This won't override any env vars that already present.
@@ -12,6 +16,7 @@ fn main() -> anyhow::Result<()> {
     download_libwebrtc()?;
 
     let path = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
+    let cpp_files = get_cpp_files()?;
 
     // TODO: `rustc` always links against non-debug Windows runtime, so we
     //       always use a release build of `libwebrtc`:
@@ -26,17 +31,24 @@ fn main() -> anyhow::Result<()> {
     println!("cargo:rustc-link-lib=dylib=amstrmid");
     println!("cargo:rustc-link-lib=dylib=msdmo");
     println!("cargo:rustc-link-lib=dylib=winmm");
+    println!("cargo:rustc-link-lib=dylib=Secur32");
 
     cxx_build::bridge("src/bridge.rs")
-        .file("src/bridge.cc")
+        .files(&cpp_files)
+        .include(path.join("include"))
         .include(path.join("lib/include"))
         .include(path.join("lib/include/third_party/abseil-cpp"))
         .flag("-DWEBRTC_WIN")
+        .flag("-DNOMINMAX")
         .compile("libwebrtc-sys");
 
-    println!("cargo:rerun-if-changed=src/bridge.cc");
+    for file in cpp_files {
+        println!("cargo:rerun-if-changed={}", file.display());
+    }
+    get_header_files()?.into_iter().for_each(|file| {
+        println!("cargo:rerun-if-changed={}", file.display());
+    });
     println!("cargo:rerun-if-changed=src/bridge.rs");
-    println!("cargo:rerun-if-changed=include/bridge.h");
     println!("cargo:rerun-if-changed=./lib");
     println!("cargo:rerun-if-env-changed=INSTALL_WEBRTC");
     println!("cargo:rerun-if-env-changed=LIBWEBRTC_URL");
@@ -111,4 +123,30 @@ fn download_libwebrtc() -> anyhow::Result<()> {
     fs::remove_dir_all(&temp_dir)?;
 
     Ok(())
+}
+
+/// Returns a list of all C++ sources that should be compiled.
+fn get_cpp_files() -> anyhow::Result<Vec<PathBuf>> {
+    let dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?)
+        .join("src")
+        .join("cpp");
+
+    Ok(get_files_from_dir(dir))
+}
+
+/// Returns a list of all header files that should be included.
+fn get_header_files() -> anyhow::Result<Vec<PathBuf>> {
+    let dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?).join("include");
+
+    Ok(get_files_from_dir(dir))
+}
+
+/// Performs recursive directory traversal returning all the found files.
+fn get_files_from_dir<P: AsRef<Path>>(dir: P) -> Vec<PathBuf> {
+    WalkDir::new(dir)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| e.file_type().is_file())
+        .map(DirEntry::into_path)
+        .collect()
 }
