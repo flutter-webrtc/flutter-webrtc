@@ -87,6 +87,9 @@ class RTCRtpSenderNative extends RTCRtpSender {
         'rtpSenderId': _id,
         'trackId': track.id
       });
+
+      // change reference of associated MediaTrack
+      _track = track;
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::replaceTrack: ${e.message}';
     }
@@ -102,9 +105,16 @@ class RTCRtpSenderNative extends RTCRtpSender {
         'trackId': track.id,
         'takeOwnership': takeOwnership,
       });
+
+      // change reference of associated MediaTrack
+      _track = track;
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
     }
+  }
+
+  void removeTrackReference() {
+    _track = null;
   }
 
   @override
@@ -131,7 +141,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
         'rtpSenderId': _id,
       });
     } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
+      throw 'Unable to RTCRtpSender::dispose: ${e.message}';
     }
   }
 }
