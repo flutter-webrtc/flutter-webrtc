@@ -301,8 +301,8 @@ void FlutterMediaStream::GetSources(
   for (uint16_t i = 0; i < nb_audio_devices; i++) {
     base_->audio_device_->PlayoutDeviceName(i, strNameUTF8, strGuidUTF8);
     EncodableMap audio;
-    audio[EncodableValue("label")] = EncodableValue(std::string(strGuidUTF8));
-    audio[EncodableValue("deviceId")] = EncodableValue(std::string(strNameUTF8));
+    audio[EncodableValue("label")] = EncodableValue(std::string(strNameUTF8));
+    audio[EncodableValue("deviceId")] = EncodableValue(std::string(strGuidUTF8));
     audio[EncodableValue("facing")] = "";
     audio[EncodableValue("kind")] = "audiooutput";
     sources.push_back(EncodableValue(audio));
@@ -312,8 +312,8 @@ void FlutterMediaStream::GetSources(
   for (int i = 0; i < nb_video_devices; i++) {
     base_->video_device_->GetDeviceName(i, strNameUTF8, 128, strGuidUTF8, 128);
     EncodableMap video;
-    video[EncodableValue("label")] = EncodableValue(std::string(strGuidUTF8));
-    video[EncodableValue("deviceId")] = EncodableValue(std::string(strNameUTF8));
+    video[EncodableValue("label")] = EncodableValue(std::string(strNameUTF8));
+    video[EncodableValue("deviceId")] = EncodableValue(std::string(strGuidUTF8));
     video[EncodableValue("facing")] = i == 1 ? "front" : "back";
     video[EncodableValue("kind")] = "videoinput";
     sources.push_back(EncodableValue(video));
