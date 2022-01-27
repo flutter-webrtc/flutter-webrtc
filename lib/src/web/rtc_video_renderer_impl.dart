@@ -134,7 +134,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       if (null == _audioElement) {
         _audioElement = html.AudioElement()
           ..id = _elementIdForAudio
-          ..muted = stream.ownerTag == 'local'
+          ..muted = _muted
           ..autoplay = true;
         _ensureAudioManagerDiv().append(_audioElement!);
       }
