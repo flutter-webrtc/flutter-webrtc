@@ -1,3 +1,4 @@
+#include "flutter_webrtc.h"
 #include "media_stream.h"
 
 /// Calls Rust `EnumerateDevices()` and converts the received Rust vector of

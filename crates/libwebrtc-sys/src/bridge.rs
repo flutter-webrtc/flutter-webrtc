@@ -1,4 +1,17 @@
-#[allow(clippy::expl_impl_clone_on_copy)]
+use std::fmt;
+
+use anyhow::anyhow;
+use cxx::CxxString;
+
+use crate::{CreateSdpCallback, SetDescriptionCallback};
+
+/// [`CreateSdpCallback`] transferable to the C++ side.
+type DynCreateSdpCallback = Box<dyn CreateSdpCallback>;
+
+/// [`SetDescriptionCallback`] transferable to the C++ side.
+type DynSetDescriptionCallback = Box<dyn SetDescriptionCallback>;
+
+#[allow(clippy::expl_impl_clone_on_copy, clippy::items_after_statements)]
 #[cxx::bridge(namespace = "bridge")]
 pub(crate) mod webrtc {
     /// Possible kinds of audio devices implementation.
@@ -18,6 +31,33 @@ pub(crate) mod webrtc {
         kDummyAudio,
     }
 
+    /// [RTCSdpType] representation.
+    ///
+    /// [RTCSdpType]: https://w3.org/TR/webrtc#dom-rtcsdptype
+    #[repr(i32)]
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    pub enum SdpType {
+        /// [RTCSdpType.offer][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcsdptype-offer
+        kOffer,
+
+        /// [RTCSdpType.pranswer][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcsdptype-pranswer
+        kPrAnswer,
+
+        /// [RTCSdpType.answer][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcsdptype-answer
+        kAnswer,
+
+        /// [RTCSdpType.rollback][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcsdptype-rollback
+        kRollback,
+    }
+
     #[rustfmt::skip]
     unsafe extern "C++" {
         include!("libwebrtc-sys/include/bridge.h");
@@ -30,19 +70,22 @@ pub(crate) mod webrtc {
         /// platform.
         #[namespace = "webrtc"]
         #[cxx_name = "CreateDefaultTaskQueueFactory"]
-        pub fn create_default_task_queue_factory() -> UniquePtr<TaskQueueFactory>;
+        pub fn create_default_task_queue_factory()
+            -> UniquePtr<TaskQueueFactory>;
 
-        /// Creates a new [`Thead`].
+        /// Creates a new [`Thread`].
         pub fn create_thread() -> UniquePtr<Thread>;
 
         /// Starts the current [`Thread`].
         #[cxx_name = "Start"]
         pub fn start_thread(self: Pin<&mut Thread>) -> bool;
 
-        /// Creates a new [`PeerConnectionFactory`].
+        /// Creates a new [`PeerConnectionFactoryInterface`].
         pub fn create_peer_connection_factory(
-            worker_thread: Pin<&mut Thread>,
-            signaling_thread: Pin<&mut Thread>,
+            network_thread: &UniquePtr<Thread>,
+            worker_thread: &UniquePtr<Thread>,
+            signaling_thread: &UniquePtr<Thread>,
+            default_adm: &UniquePtr<AudioDeviceModule>,
         ) -> UniquePtr<PeerConnectionFactoryInterface>;
     }
 
@@ -117,6 +160,124 @@ pub(crate) mod webrtc {
         ) -> i32;
     }
 
+    #[rustfmt::skip]
+    unsafe extern "C++" {
+        type CreateSessionDescriptionObserver;
+        type PeerConnectionDependencies;
+        type PeerConnectionInterface;
+        type PeerConnectionObserver;
+        type RTCConfiguration;
+        type RTCOfferAnswerOptions;
+        type SdpType;
+        type SessionDescriptionInterface;
+        type SetLocalDescriptionObserver;
+        type SetRemoteDescriptionObserver;
+
+        /// Creates a default [`RTCConfiguration`].
+        pub fn create_default_rtc_configuration()
+            -> UniquePtr<RTCConfiguration>;
+
+        /// Creates a new [`PeerConnectionInterface`].
+        ///
+        /// If creation fails then an error will be written to the provided
+        /// `error` and the returned [`UniquePtr`] will be `null`.
+        pub fn create_peer_connection_or_error(
+            peer_connection_factory: Pin<&mut PeerConnectionFactoryInterface>,
+            conf: &RTCConfiguration,
+            deps: UniquePtr<PeerConnectionDependencies>,
+            error: &mut String,
+        ) -> UniquePtr<PeerConnectionInterface>;
+
+        /// Creates a new [`PeerConnectionObserver`].
+        pub fn create_peer_connection_observer(
+        ) -> UniquePtr<PeerConnectionObserver>;
+
+        /// Creates a [`PeerConnectionDependencies`] from the provided
+        /// [`PeerConnectionObserver`].
+        pub fn create_peer_connection_dependencies(
+            observer: UniquePtr<PeerConnectionObserver>,
+        ) -> UniquePtr<PeerConnectionDependencies>;
+
+        /// Creates a default [`RTCOfferAnswerOptions`].
+        pub fn create_default_rtc_offer_answer_options(
+        ) -> UniquePtr<RTCOfferAnswerOptions>;
+
+        /// Creates a new [`RTCOfferAnswerOptions`] from the provided options.
+        pub fn create_rtc_offer_answer_options(
+            offer_to_receive_video: i32,
+            offer_to_receive_audio: i32,
+            voice_activity_detection: bool,
+            ice_restart: bool,
+            use_rtp_mux: bool,
+        ) -> UniquePtr<RTCOfferAnswerOptions>;
+
+        /// Creates a new [`CreateSessionDescriptionObserver`] from the
+        /// provided [`DynCreateSdpCallback`].
+        pub fn create_create_session_observer(
+            cb: Box<DynCreateSdpCallback>,
+        ) -> UniquePtr<CreateSessionDescriptionObserver>;
+
+        /// Creates a new [`SetLocalDescriptionObserver`] from the provided
+        /// [`DynSetDescriptionCallback`].
+        pub fn create_set_local_description_observer(
+            cb: Box<DynSetDescriptionCallback>,
+        ) -> UniquePtr<SetLocalDescriptionObserver>;
+
+        /// Creates a new [`SetRemoteDescriptionObserver`] from the provided
+        /// [`DynSetDescriptionCallback`].
+        pub fn create_set_remote_description_observer(
+            cb: Box<DynSetDescriptionCallback>,
+        ) -> UniquePtr<SetRemoteDescriptionObserver>;
+
+        /// Calls the [RTCPeerConnection.createOffer()][1] on the provided
+        /// [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcpeerconnection-createoffer
+        pub fn create_offer(
+            peer: Pin<&mut PeerConnectionInterface>,
+            options: &RTCOfferAnswerOptions,
+            obs: UniquePtr<CreateSessionDescriptionObserver>,
+        );
+
+        /// Calls the [RTCPeerConnection.createAnswer()][1] on the provided
+        /// [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcpeerconnection-createanswer
+        pub fn create_answer(
+            peer: Pin<&mut PeerConnectionInterface>,
+            options: &RTCOfferAnswerOptions,
+            obs: UniquePtr<CreateSessionDescriptionObserver>,
+        );
+
+        /// Calls the [RTCPeerConnection.setLocalDescription()][1] on the
+        /// provided [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-peerconnection-setlocaldescription
+        pub fn set_local_description(
+            peer: Pin<&mut PeerConnectionInterface>,
+            desc: UniquePtr<SessionDescriptionInterface>,
+            obs: UniquePtr<SetLocalDescriptionObserver>,
+        );
+
+        /// Calls the [RTCPeerConnection.setRemoteDescription()][1] on the
+        /// provided [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-peerconnection-setremotedescription
+        pub fn set_remote_description(
+            peer: Pin<&mut PeerConnectionInterface>,
+            desc: UniquePtr<SessionDescriptionInterface>,
+            obs: UniquePtr<SetRemoteDescriptionObserver>,
+        );
+
+        /// Creates a new [`SessionDescriptionInterface`].
+        #[namespace = "webrtc"]
+        #[cxx_name = "CreateSessionDescription"]
+        pub fn create_session_description(
+            kind: SdpType,
+            sdp: &CxxString,
+        ) -> UniquePtr<SessionDescriptionInterface>;
+    }
+
     unsafe extern "C++" {
         type AudioSourceInterface;
         type AudioTrackInterface;
@@ -184,5 +345,90 @@ pub(crate) mod webrtc {
             media_stream: &MediaStreamInterface,
             track: &AudioTrackInterface,
         ) -> bool;
+    }
+
+    extern "Rust" {
+        type DynSetDescriptionCallback;
+        type DynCreateSdpCallback;
+
+        /// Successfully completes the provided [`DynSetDescriptionCallback`].
+        pub fn create_sdp_success(
+            cb: Box<DynCreateSdpCallback>,
+            sdp: &CxxString,
+            kind: SdpType,
+        );
+
+        /// Completes the provided [`DynCreateSdpCallback`] with an error.
+        pub fn create_sdp_fail(
+            cb: Box<DynCreateSdpCallback>,
+            error: &CxxString,
+        );
+
+        /// Successfully completes the provided [`DynSetDescriptionCallback`].
+        pub fn set_description_success(cb: Box<DynSetDescriptionCallback>);
+
+        /// Completes the provided [`DynSetDescriptionCallback`] with an error.
+        pub fn set_description_fail(
+            cb: Box<DynSetDescriptionCallback>,
+            error: &CxxString,
+        );
+
+    }
+}
+
+/// Successfully completes the provided [`DynSetDescriptionCallback`].
+#[allow(clippy::boxed_local)]
+pub fn create_sdp_success(
+    mut cb: Box<DynCreateSdpCallback>,
+    sdp: &CxxString,
+    kind: webrtc::SdpType,
+) {
+    cb.success(sdp, kind);
+}
+
+/// Completes the provided [`DynCreateSdpCallback`] with an error.
+#[allow(clippy::boxed_local)]
+pub fn create_sdp_fail(mut cb: Box<DynCreateSdpCallback>, error: &CxxString) {
+    cb.fail(error);
+}
+
+/// Successfully completes the provided [`DynSetDescriptionCallback`].
+#[allow(clippy::boxed_local)]
+pub fn set_description_success(mut cb: Box<DynSetDescriptionCallback>) {
+    cb.success();
+}
+
+/// Completes the provided [`DynSetDescriptionCallback`] with the given `error`.
+#[allow(clippy::boxed_local)]
+pub fn set_description_fail(
+    mut cb: Box<DynSetDescriptionCallback>,
+    error: &CxxString,
+) {
+    cb.fail(error);
+}
+
+impl TryFrom<&str> for webrtc::SdpType {
+    type Error = anyhow::Error;
+
+    fn try_from(val: &str) -> Result<Self, Self::Error> {
+        match val {
+            "offer" => Ok(Self::kOffer),
+            "answer" => Ok(Self::kAnswer),
+            "pranswer" => Ok(Self::kPrAnswer),
+            "rollback" => Ok(Self::kRollback),
+            v => Err(anyhow!("Invalid `SdpType`: {v}")),
+        }
+    }
+}
+
+impl fmt::Display for webrtc::SdpType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            webrtc::SdpType::kOffer => write!(f, "offer"),
+            webrtc::SdpType::kAnswer => write!(f, "answer"),
+            webrtc::SdpType::kPrAnswer => write!(f, "pranswer"),
+            webrtc::SdpType::kRollback => write!(f, "rollback"),
+            _ => unreachable!(),
+        }
     }
 }

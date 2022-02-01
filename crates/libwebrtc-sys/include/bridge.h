@@ -8,6 +8,9 @@
 #include "api/audio_codecs/builtin_audio_encoder_factory.h"
 #include "api/create_peerconnection_factory.h"
 #include "api/peer_connection_interface.h"
+#include "api/video_codecs/builtin_video_encoder_factory.h"
+#include "libwebrtc-sys/include/peer_connection_observer.h"
+
 #include "api/task_queue/default_task_queue_factory.h"
 #include "api/video_codecs/builtin_video_decoder_factory.h"
 #include "api/video_codecs/builtin_video_encoder_factory.h"
@@ -53,6 +56,12 @@ class rc {
 using Thread = rtc::Thread;
 
 using AudioLayer = webrtc::AudioDeviceModule::AudioLayer;
+using PeerConnectionDependencies = webrtc::PeerConnectionDependencies;
+using RTCConfiguration = webrtc::PeerConnectionInterface::RTCConfiguration;
+using RTCOfferAnswerOptions =
+    webrtc::PeerConnectionInterface::RTCOfferAnswerOptions;
+using SdpType = webrtc::SdpType;
+using SessionDescriptionInterface = webrtc::SessionDescriptionInterface;
 using TaskQueueFactory = webrtc::TaskQueueFactory;
 using VideoDeviceInfo = webrtc::VideoCaptureModule::DeviceInfo;
 
@@ -60,9 +69,17 @@ using AudioDeviceModule = rc<webrtc::AudioDeviceModule>;
 using AudioSourceInterface = rc<webrtc::AudioSourceInterface>;
 using AudioTrackInterface = rc<webrtc::AudioTrackInterface>;
 using MediaStreamInterface = rc<webrtc::MediaStreamInterface>;
-using PeerConnectionFactoryInterface = rc<webrtc::PeerConnectionFactoryInterface>;
+using PeerConnectionFactoryInterface =
+    rc<webrtc::PeerConnectionFactoryInterface>;
+using PeerConnectionInterface = rc<webrtc::PeerConnectionInterface>;
 using VideoTrackInterface = rc<webrtc::VideoTrackInterface>;
 using VideoTrackSourceInterface = rc<webrtc::VideoTrackSourceInterface>;
+
+using CreateSessionDescriptionObserver =
+    observer::CreateSessionDescriptionObserver;
+using PeerConnectionObserver = observer::PeerConnectionObserver;
+using SetLocalDescriptionObserver = observer::SetLocalDescriptionObserver;
+using SetRemoteDescriptionObserver = observer::SetRemoteDescriptionObserver;
 
 // Creates a new `AudioDeviceModule` for the given `AudioLayer`.
 std::unique_ptr<AudioDeviceModule> create_audio_device_module(
@@ -107,11 +124,6 @@ int32_t video_device_name(VideoDeviceInfo& device_info,
 
 // Creates a new `Thread`.
 std::unique_ptr<rtc::Thread> create_thread();
-
-// Creates a new `PeerConnectionFactoryInterface`.
-std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
-    Thread& worker_thread,
-    Thread& signaling_thread);
 
 // Creates a new `VideoTrackSourceInterface` according to the specified
 // constraints.
@@ -163,5 +175,77 @@ bool remove_video_track(const MediaStreamInterface& media_stream,
 // `MediaStreamInterface`.
 bool remove_audio_track(const MediaStreamInterface& media_stream,
                         const AudioTrackInterface& track);
+
+// Creates a new `PeerConnectionFactoryInterface`.
+std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
+    const std::unique_ptr<Thread>& network_thread,
+    const std::unique_ptr<Thread>& worker_thread,
+    const std::unique_ptr<Thread>& signaling_thread,
+    const std::unique_ptr<AudioDeviceModule>& default_adm);
+
+// Creates a new `PeerConnectionInterface`.
+std::unique_ptr<PeerConnectionInterface> create_peer_connection_or_error(
+    PeerConnectionFactoryInterface& peer_connection_factory,
+    const RTCConfiguration& configuration,
+    std::unique_ptr<PeerConnectionDependencies> dependencies,
+    rust::String& error);
+
+// Creates a new default `RTCConfiguration`.
+std::unique_ptr<RTCConfiguration> create_default_rtc_configuration();
+
+// Creates a new `PeerConnectionObserver`.
+std::unique_ptr<PeerConnectionObserver> create_peer_connection_observer();
+
+// Creates a new `PeerConnectionDependencies`.
+std::unique_ptr<PeerConnectionDependencies> create_peer_connection_dependencies(
+    std::unique_ptr<PeerConnectionObserver> observer);
+
+// Creates a new `RTCOfferAnswerOptions`.
+std::unique_ptr<RTCOfferAnswerOptions> create_default_rtc_offer_answer_options();
+
+// Creates a new `RTCOfferAnswerOptions`.
+std::unique_ptr<RTCOfferAnswerOptions> create_rtc_offer_answer_options(
+    int32_t offer_to_receive_video,
+    int32_t offer_to_receive_audio,
+    bool voice_activity_detection,
+    bool ice_restart,
+    bool use_rtp_mux);
+
+// Creates a new `CreateSessionDescriptionObserver` from the provided
+// `bridge::DynCreateSdpCallback`.
+std::unique_ptr<CreateSessionDescriptionObserver>
+create_create_session_observer(rust::Box<bridge::DynCreateSdpCallback> cb);
+
+// Creates a new `SetLocalDescriptionObserverInterface` from the provided
+// `bridge::DynSetDescriptionCallback`.
+std::unique_ptr<SetLocalDescriptionObserver>
+create_set_local_description_observer(
+    rust::Box<bridge::DynSetDescriptionCallback> cb);
+
+// Creates a new `SetRemoteDescriptionObserverInterface` from the provided
+// `bridge::DynSetDescriptionCallback`.
+std::unique_ptr<SetRemoteDescriptionObserver>
+create_set_remote_description_observer(
+    rust::Box<bridge::DynSetDescriptionCallback> cb);
+
+// Calls `PeerConnectionInterface->CreateOffer`.
+void create_offer(PeerConnectionInterface& peer,
+                  const RTCOfferAnswerOptions& options,
+                  std::unique_ptr<CreateSessionDescriptionObserver> obs);
+
+// Calls `PeerConnectionInterface->CreateAnswer`.
+void create_answer(PeerConnectionInterface& peer,
+                   const RTCOfferAnswerOptions& options,
+                   std::unique_ptr<CreateSessionDescriptionObserver> obs);
+
+// Calls `PeerConnectionInterface->SetLocalDescription`.
+void set_local_description(PeerConnectionInterface& peer,
+                           std::unique_ptr<SessionDescriptionInterface> desc,
+                           std::unique_ptr<SetLocalDescriptionObserver> obs);
+
+// Calls `PeerConnectionInterface->SetRemoteDescription`.
+void set_remote_description(PeerConnectionInterface& peer,
+                            std::unique_ptr<SessionDescriptionInterface> desc,
+                            std::unique_ptr<SetRemoteDescriptionObserver> obs);
 
 }  // namespace bridge

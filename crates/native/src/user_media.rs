@@ -1,7 +1,4 @@
-use std::{
-    rc::Rc,
-    sync::atomic::{AtomicU64, Ordering},
-};
+use std::rc::Rc;
 
 use anyhow::bail;
 use derive_more::{AsRef, Display};
@@ -9,16 +6,8 @@ use libwebrtc_sys as sys;
 
 use crate::{
     api::{self, AudioConstraints, VideoConstraints},
-    Webrtc,
+    next_id, Webrtc,
 };
-
-/// Counter used to generate unique IDs.
-static ID_COUNTER: AtomicU64 = AtomicU64::new(0);
-
-/// Returns a next unique ID.
-fn next_id() -> u64 {
-    ID_COUNTER.fetch_add(1, Ordering::Relaxed)
-}
 
 impl Webrtc {
     /// Creates a new local [`MediaStream`] with [`VideoTrack`]s and/or

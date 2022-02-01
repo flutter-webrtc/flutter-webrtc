@@ -40,6 +40,7 @@ fn main() -> anyhow::Result<()> {
         .include(path.join("lib/include/third_party/abseil-cpp"))
         .flag("-DWEBRTC_WIN")
         .flag("-DNOMINMAX")
+        .flag("/std:c++17")
         .compile("libwebrtc-sys");
 
     for file in cpp_files {

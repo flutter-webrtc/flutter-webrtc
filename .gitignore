@@ -35,6 +35,7 @@ example/ios/Flutter/flutter_export_environment.sh
 
 # VSCode
 .vscode/
+*.code-workspace
 
 # Flutter/Dart/Pub related
 **/doc/api/
