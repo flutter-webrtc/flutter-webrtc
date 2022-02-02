@@ -2,9 +2,10 @@
 #include <memory>
 #include <string>
 
-#include "modules/audio_device/include/audio_device_factory.h"
-
+#include "api/video/i420_buffer.h"
 #include "libwebrtc-sys/include/bridge.h"
+#include "libyuv.h"
+#include "modules/audio_device/include/audio_device_factory.h"
 
 namespace bridge {
 
@@ -206,6 +207,39 @@ bool remove_video_track(const MediaStreamInterface& media_stream,
 bool remove_audio_track(const MediaStreamInterface& media_stream,
                         const AudioTrackInterface& track) {
   return media_stream->RemoveTrack(track.ptr());
+}
+
+// Registers the provided video `sink` for the given `track`.
+//
+// Used to connect the given `track` to the underlying video engine.
+void add_or_update_video_sink(const VideoTrackInterface& track,
+                              VideoSinkInterface& sink) {
+  track->AddOrUpdateSink(&sink, rtc::VideoSinkWants());
+}
+
+// Detaches the provided video `sink` from the given `track`.
+void remove_video_sink(const VideoTrackInterface& track,
+                       VideoSinkInterface& sink) {
+  track->RemoveSink(&sink);
+}
+
+// Creates a new `ForwardingVideoSink`.
+std::unique_ptr<VideoSinkInterface> create_forwarding_video_sink(
+    rust::Box<DynOnFrameCallback> cb) {
+  return std::make_unique<video_sink::ForwardingVideoSink>(std::move(cb));
+}
+
+// Converts the provided `webrtc::VideoFrame` pixels to the ABGR scheme and
+// writes the result to the provided `dst_abgr`.
+void video_frame_to_abgr(const webrtc::VideoFrame& frame,
+                         uint8_t* dst_abgr) {
+  rtc::scoped_refptr<webrtc::I420BufferInterface> buffer(
+      frame.video_frame_buffer()->ToI420());
+
+  libyuv::I420ToABGR(buffer->DataY(), buffer->StrideY(), buffer->DataU(),
+                     buffer->StrideU(), buffer->DataV(), buffer->StrideV(),
+                     dst_abgr, buffer->width() * 4, buffer->width(),
+                     buffer->height());
 }
 
 // Creates a new `PeerConnectionFactoryInterface`.

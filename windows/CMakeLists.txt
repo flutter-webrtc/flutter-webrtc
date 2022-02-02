@@ -11,7 +11,8 @@ add_definitions(-DLIB_WEBRTC_API_DLL)
 add_library(${PLUGIN_NAME} SHARED
   "flutter_webrtc_plugin.cc"
   "src/flutter_webrtc.cc"
-  "src/flutter_peer_connection.cc"
+  "src/peer_connection.cc"
+  "src/video_renderer.cc"
   "src/media_stream.cc"
   "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/flutter_webrtc_native.cc"
 )

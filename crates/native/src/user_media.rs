@@ -1,12 +1,12 @@
 use std::rc::Rc;
 
 use anyhow::bail;
-use derive_more::{AsRef, Display};
+use derive_more::{AsRef, Display, From};
 use libwebrtc_sys as sys;
 
 use crate::{
     api::{self, AudioConstraints, VideoConstraints},
-    next_id, Webrtc,
+    next_id, VideoSink, VideoSinkId, Webrtc,
 };
 
 impl Webrtc {
@@ -277,7 +277,7 @@ impl Webrtc {
 }
 
 /// ID of a [`MediaStream`].
-#[derive(Clone, Copy, Debug, Display, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Display, Eq, From, Hash, PartialEq)]
 pub struct MediaStreamId(u64);
 
 /// ID of an video input device that provides data to some [`VideoSource`].
@@ -403,6 +403,12 @@ impl MediaStream {
 
         Ok(())
     }
+
+    /// Returns an [`Iterator`] over all the [`VideoTrackId`]s belonging to the
+    /// [`VideoTrack`]s that were added to this [`MediaStream`].
+    pub fn video_tracks(&self) -> impl Iterator<Item = &'_ VideoTrackId> {
+        self.video_tracks.iter()
+    }
 }
 
 /// Representation of a [`sys::VideoTrackInterface`].
@@ -422,6 +428,9 @@ pub struct VideoTrack {
     /// [`VideoLabel`] identifying the track source, as in "HD Webcam Analog
     /// Stereo".
     label: VideoLabel,
+
+    /// List of the [`VideoSink`]s attached to this [`VideoTrack`].
+    sinks: Vec<VideoSinkId>,
 }
 
 impl VideoTrack {
@@ -438,7 +447,20 @@ impl VideoTrack {
             src,
             kind: api::TrackKind::kVideo,
             label,
+            sinks: Vec::new(),
         })
+    }
+
+    /// Adds the provided [`VideoSink`] to this [`VideoTrack`].
+    pub fn add_video_sink(&mut self, video_sink: &mut VideoSink) {
+        self.inner.add_or_update_sink(video_sink.as_mut());
+        self.sinks.push(video_sink.id());
+    }
+
+    /// Detaches the provided [`VideoSink`] from this [`VideoTrack`].
+    pub fn remove_video_sink(&mut self, mut video_sink: VideoSink) {
+        self.sinks.retain(|&sink| sink != video_sink.id());
+        self.inner.remove_sink(video_sink.as_mut());
     }
 }
 

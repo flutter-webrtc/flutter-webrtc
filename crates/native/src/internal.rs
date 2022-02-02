@@ -5,9 +5,13 @@ pub use cpp_api_bindings::*;
 mod cpp_api_bindings {
     unsafe extern "C++" {
         include!("flutter-webrtc-native/include/api.h");
+        include!("flutter-webrtc-native/src/lib.rs.h");
 
         pub type CreateSdpCallbackInterface;
         pub type SetDescriptionCallbackInterface;
+        pub type OnFrameCallbackInterface;
+
+        type VideoFrame = crate::api::VideoFrame;
 
         /// Calls C++ side `CreateSdpCallbackInterface->OnSuccess`.
         #[cxx_name = "OnSuccess"]
@@ -37,6 +41,12 @@ mod cpp_api_bindings {
             error: &CxxString,
         );
 
+        /// Calls C++ side `OnFrameCallbackInterface->OnFrame`.
+        #[cxx_name = "OnFrame"]
+        pub fn on_frame(
+            self: Pin<&mut OnFrameCallbackInterface>,
+            frame: VideoFrame,
+        );
     }
 
     // This will trigger `cxx` to generate `UniquePtrTarget` trait for the
@@ -46,6 +56,9 @@ mod cpp_api_bindings {
         fn _touch_set_description_callback(
             i: UniquePtr<SetDescriptionCallbackInterface>,
         );
+        fn _touch_unique_ptr_on_frame_handler(
+            i: UniquePtr<OnFrameCallbackInterface>,
+        );
     }
 }
 
@@ -53,5 +66,10 @@ fn _touch_create_sdp_callback(_: cxx::UniquePtr<CreateSdpCallbackInterface>) {}
 
 fn _touch_set_description_callback(
     _: cxx::UniquePtr<SetDescriptionCallbackInterface>,
+) {
+}
+
+fn _touch_unique_ptr_on_frame_handler(
+    _: cxx::UniquePtr<OnFrameCallbackInterface>,
 ) {
 }

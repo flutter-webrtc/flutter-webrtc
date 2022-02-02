@@ -1,5 +1,6 @@
-#include "flutter_peer_connection.h"
+#include "peer_connection.h"
 #include "flutter_webrtc.h"
+#include "parsing.h"
 #include "flutter-webrtc-native/include/api.h"
 
 using namespace rust::cxxbridge1;

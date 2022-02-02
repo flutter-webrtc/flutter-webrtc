@@ -4,6 +4,7 @@ mod device_info;
 mod internal;
 mod pc;
 mod user_media;
+mod video_sink;
 
 use std::{
     collections::HashMap,
@@ -16,6 +17,8 @@ use libwebrtc_sys::{
     TaskQueueFactory, Thread, VideoDeviceInfo,
 };
 
+use crate::video_sink::Id as VideoSinkId;
+
 #[doc(inline)]
 pub use crate::{
     pc::{PeerConnection, PeerConnectionId},
@@ -24,6 +27,7 @@ pub use crate::{
         MediaStream, MediaStreamId, VideoDeviceId, VideoSource, VideoTrack,
         VideoTrackId,
     },
+    video_sink::{Frame, VideoSink},
 };
 
 /// Counter used to generate unique IDs.
@@ -149,18 +153,41 @@ pub mod api {
         kVideo,
     }
 
+    /// Single video frame.
+    pub struct VideoFrame {
+        /// Vertical count of pixels in this [`VideoFrame`].
+        pub height: usize,
+
+        /// Horizontal count of pixels in this [`VideoFrame`].
+        pub width: usize,
+
+        /// Rotation of this [`VideoFrame`] in degrees.
+        pub rotation: i32,
+
+        /// Size of the bytes buffer required for allocation of the
+        /// [`VideoFrame::get_abgr_bytes()`] call.
+        pub buffer_size: usize,
+
+        /// Underlying Rust side frame.
+        pub frame: Box<Frame>,
+    }
+
     extern "C++" {
         type CreateSdpCallbackInterface =
             crate::internal::CreateSdpCallbackInterface;
 
         type SetDescriptionCallbackInterface =
             crate::internal::SetDescriptionCallbackInterface;
+
+        type OnFrameCallbackInterface =
+            crate::internal::OnFrameCallbackInterface;
     }
 
     extern "Rust" {
         include!("flutter-webrtc-native/include/api.h");
 
         type Webrtc;
+        type Frame;
 
         /// Creates an instance of [`Webrtc`].
         #[cxx_name = "Init"]
@@ -249,6 +276,25 @@ pub mod api {
         /// Disposes the [`MediaStream`] and all contained tracks.
         #[cxx_name = "DisposeStream"]
         pub fn dispose_stream(self: &mut Webrtc, id: u64);
+
+        /// Creates a new [`VideoSink`] attached to the specified media stream
+        /// backed by the provided [`OnFrameCallbackInterface`].
+        #[cxx_name = "CreateVideoSink"]
+        pub fn create_video_sink(
+            self: &mut Webrtc,
+            sink_id: i64,
+            stream_id: u64,
+            handler: UniquePtr<OnFrameCallbackInterface>,
+        );
+
+        /// Destroys the [`VideoSink`] by the given ID.
+        #[cxx_name = "DisposeVideoSink"]
+        fn dispose_video_sink(self: &mut Webrtc, sink_id: i64);
+
+        /// Converts this [`api::VideoFrame`] pixel data to `ABGR` scheme and
+        /// outputs the result to the provided `buffer`.
+        #[cxx_name = "GetABGRBytes"]
+        unsafe fn get_abgr_bytes(self: &VideoFrame, buffer: *mut u8);
     }
 }
 
@@ -271,9 +317,10 @@ pub struct Context {
     audio_tracks: HashMap<AudioTrackId, AudioTrack>,
     local_media_streams: HashMap<MediaStreamId, MediaStream>,
     peer_connections: HashMap<PeerConnectionId, PeerConnection>,
+    video_sinks: HashMap<VideoSinkId, VideoSink>,
 }
 
-/// Creates an instanse of [`Webrtc`].
+/// Creates a new instance of [`Webrtc`].
 ///
 /// # Panics
 ///
@@ -323,5 +370,6 @@ pub fn init() -> Box<Webrtc> {
         audio_tracks: HashMap::new(),
         local_media_streams: HashMap::new(),
         peer_connections: HashMap::new(),
+        video_sinks: HashMap::new(),
     })))
 }

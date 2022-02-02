@@ -3,15 +3,16 @@
 #include <string>
 
 #include "flutter_webrtc.h"
-#include "media_stream.h"
-
-#include <flutter_webrtc_native.h>
 #include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
-#include "flutter_peer_connection.h"
+#include "media_stream.h"
+#include "peer_connection.h"
 
 namespace flutter_webrtc_plugin {
 
-FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin) {}
+FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
+    : FlutterVideoRendererManager::FlutterVideoRendererManager(
+    plugin->textures(),
+    plugin->messenger()) {}
 
 FlutterWebRTC::~FlutterWebRTC() {}
 
@@ -23,9 +24,9 @@ void FlutterWebRTC::HandleMethodCall(
   if (method.compare("createPeerConnection") == 0) {
     CreateRTCPeerConnection(webrtc, method_call, std::move(result));
   } else if (method.compare("getSources") == 0) {
-    enumerate_device(webrtc, std::move(result));
+    EnumerateDevice(webrtc, std::move(result));
   } else if (method.compare("getUserMedia") == 0) {
-    get_user_media(method_call, webrtc, std::move(result));
+    GetUserMedia(method_call, webrtc, std::move(result));
   } else if (method.compare("getDisplayMedia") == 0) {
   } else if (method.compare("mediaStreamGetTracks") == 0) {
   } else if (method.compare("createOffer") == 0) {
@@ -44,14 +45,17 @@ void FlutterWebRTC::HandleMethodCall(
   } else if (method.compare("dataChannelSend") == 0) {
   } else if (method.compare("dataChannelClose") == 0) {
   } else if (method.compare("streamDispose") == 0) {
-    dispose_stream(method_call, webrtc, std::move(result));
+    DisposeStream(method_call, webrtc, std::move(result));
   } else if (method.compare("mediaStreamTrackSetEnable") == 0) {
   } else if (method.compare("trackDispose") == 0) {
   } else if (method.compare("peerConnectionClose") == 0) {
   } else if (method.compare("peerConnectionDispose") == 0) {
   } else if (method.compare("createVideoRenderer") == 0) {
+    CreateVideoRendererTexture(std::move(result));
   } else if (method.compare("videoRendererDispose") == 0) {
+    VideoRendererDispose(method_call, webrtc, std::move(result));
   } else if (method.compare("videoRendererSetSrcObject") == 0) {
+    SetMediaStream(method_call, webrtc, std::move(result));
   } else if (method.compare("setVolume") == 0) {
   } else if (method.compare("getLocalDescription") == 0) {
   } else if (method.compare("getRemoteDescription") == 0) {

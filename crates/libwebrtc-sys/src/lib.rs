@@ -8,7 +8,9 @@ use cxx::{let_cxx_string, CxxString, UniquePtr};
 
 use self::bridge::webrtc;
 
-pub use crate::webrtc::{AudioLayer, SdpType};
+pub use crate::webrtc::{
+    video_frame_to_abgr, AudioLayer, SdpType, VideoFrame, VideoRotation,
+};
 
 /// Completion callback for a [`CreateSessionDescriptionObserver`], used to call
 /// [`PeerConnectionInterface::create_offer()`] and
@@ -31,6 +33,13 @@ pub trait SetDescriptionCallback {
 
     /// Called when the related operation is completed with the `error`.
     fn fail(&mut self, error: &CxxString);
+}
+
+/// Handler of [`VideoFrame`]s.
+pub trait OnFrameCallback {
+    /// Called when the attached [`VideoTrackInterface`] produces a new
+    /// [`VideoFrame`].
+    fn on_frame(&mut self, frame: UniquePtr<VideoFrame>);
 }
 
 /// Thread safe task queue factory internally used in [`WebRTC`] that is capable
@@ -598,6 +607,23 @@ pub struct AudioSourceInterface(UniquePtr<webrtc::AudioSourceInterface>);
 /// [1]: https://w3.org/TR/mediacapture-streams#dom-mediastreamtrack
 pub struct VideoTrackInterface(UniquePtr<webrtc::VideoTrackInterface>);
 
+impl VideoTrackInterface {
+    /// Register the provided [`VideoSinkInterface`] for this
+    /// [`VideoTrackInterface`].
+    ///
+    /// Used to connect this [`VideoTrackInterface`] to the underlying video
+    /// engine.
+    pub fn add_or_update_sink(&self, sink: &mut VideoSinkInterface) {
+        webrtc::add_or_update_video_sink(&self.0, sink.0.pin_mut());
+    }
+
+    /// Detaches the provided [`VideoSinkInterface`] from this
+    /// [`VideoTrackInterface`].
+    pub fn remove_sink(&self, sink: &mut VideoSinkInterface) {
+        webrtc::remove_video_sink(&self.0, sink.0.pin_mut());
+    }
+}
+
 /// Audio [`MediaStreamTrack`][1].
 ///
 /// [1]: https://w3.org/TR/mediacapture-streams#dom-mediastreamtrack
@@ -663,5 +689,17 @@ impl MediaStreamInterface {
             bail!("`webrtc::MediaStreamInterface::RemoveTrack()` failed");
         }
         Ok(())
+    }
+}
+
+/// End point of a video pipeline.
+pub struct VideoSinkInterface(UniquePtr<webrtc::VideoSinkInterface>);
+
+impl VideoSinkInterface {
+    /// Creates a new [`VideoSinkInterface`] forwarding [`VideoFrame`]s to
+    /// the provided [`OnFrameCallback`].
+    #[must_use]
+    pub fn create_forwarding(cb: Box<dyn OnFrameCallback>) -> Self {
+        Self(webrtc::create_forwarding_video_sink(Box::new(cb)))
     }
 }

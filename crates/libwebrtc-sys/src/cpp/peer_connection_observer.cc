@@ -1,5 +1,5 @@
 
-#include "libwebrtc-sys\include\peer_connection_observer.h"
+#include "libwebrtc-sys/include/peer_connection_observer.h"
 #include "libwebrtc-sys/src/bridge.rs.h"
 
 namespace observer {

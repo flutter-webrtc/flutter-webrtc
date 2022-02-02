@@ -1,15 +1,18 @@
 use std::fmt;
 
 use anyhow::anyhow;
-use cxx::CxxString;
+use cxx::{CxxString, UniquePtr};
 
-use crate::{CreateSdpCallback, SetDescriptionCallback};
+use crate::{CreateSdpCallback, OnFrameCallback, SetDescriptionCallback};
 
 /// [`CreateSdpCallback`] transferable to the C++ side.
 type DynCreateSdpCallback = Box<dyn CreateSdpCallback>;
 
 /// [`SetDescriptionCallback`] transferable to the C++ side.
 type DynSetDescriptionCallback = Box<dyn SetDescriptionCallback>;
+
+/// [`OnFrameCallback`] transferable to the C++ side.
+type DynOnFrameCallback = Box<dyn OnFrameCallback>;
 
 #[allow(clippy::expl_impl_clone_on_copy, clippy::items_after_statements)]
 #[cxx::bridge(namespace = "bridge")]
@@ -56,6 +59,16 @@ pub(crate) mod webrtc {
         ///
         /// [1]: https://w3.org/TR/webrtc#dom-rtcsdptype-rollback
         kRollback,
+    }
+
+    /// Possible variants of a [`VideoFrame`]'s rotation.
+    #[repr(i32)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+    pub enum VideoRotation {
+        kVideoRotation_0 = 0,
+        kVideoRotation_90 = 90,
+        kVideoRotation_180 = 180,
+        kVideoRotation_270 = 270,
     }
 
     #[rustfmt::skip]
@@ -284,6 +297,10 @@ pub(crate) mod webrtc {
         type MediaStreamInterface;
         type VideoTrackInterface;
         type VideoTrackSourceInterface;
+        #[namespace = "webrtc"]
+        type VideoFrame;
+        type VideoSinkInterface;
+        type VideoRotation;
 
         /// Creates a new [`VideoTrackSourceInterface`].
         pub fn create_video_source(
@@ -345,6 +362,56 @@ pub(crate) mod webrtc {
             media_stream: &MediaStreamInterface,
             track: &AudioTrackInterface,
         ) -> bool;
+
+        /// Registers the provided [`VideoSinkInterface`] for the given
+        /// [`VideoTrackInterface`].
+        ///
+        /// Used to connect the given [`VideoTrackInterface`] to the underlying
+        /// video engine.
+        pub fn add_or_update_video_sink(
+            track: &VideoTrackInterface,
+            sink: Pin<&mut VideoSinkInterface>,
+        );
+
+        /// Detaches the provided [`VideoSinkInterface`] from the given
+        /// [`VideoTrackInterface`].
+        pub fn remove_video_sink(
+            track: &VideoTrackInterface,
+            sink: Pin<&mut VideoSinkInterface>,
+        );
+
+        /// Creates a new forwarding [`VideoSinkInterface`] backed by the
+        /// provided [`DynOnFrameCallback`].
+        pub fn create_forwarding_video_sink(
+            handler: Box<DynOnFrameCallback>,
+        ) -> UniquePtr<VideoSinkInterface>;
+
+        /// Returns a width of this [`VideoFrame`].
+        #[must_use]
+        pub fn width(self: &VideoFrame) -> i32;
+
+        /// Returns a height of this [`VideoFrame`].
+        #[must_use]
+        pub fn height(self: &VideoFrame) -> i32;
+
+        /// Returns a [`VideoRotation`] of this [`VideoFrame`].
+        #[must_use]
+        pub fn rotation(self: &VideoFrame) -> VideoRotation;
+
+        /// Converts the provided [`webrtc::VideoFrame`] pixels to the `ABGR`
+        /// scheme and writes the result to the provided `buffer`.
+        pub unsafe fn video_frame_to_abgr(frame: &VideoFrame, buffer: *mut u8);
+    }
+
+    extern "Rust" {
+        type DynOnFrameCallback;
+
+        /// Forwards the given [`webrtc::VideoFrame`] the the provided
+        /// [`DynOnFrameCallback`].
+        pub fn on_frame(
+            cb: &mut DynOnFrameCallback,
+            frame: UniquePtr<VideoFrame>,
+        );
     }
 
     extern "Rust" {
@@ -431,4 +498,10 @@ impl fmt::Display for webrtc::SdpType {
             _ => unreachable!(),
         }
     }
+}
+
+/// Forwards the given [`webrtc::VideoFrame`] the the provided
+/// [`DynOnFrameCallback`].
+fn on_frame(cb: &mut DynOnFrameCallback, frame: UniquePtr<webrtc::VideoFrame>) {
+    cb.on_frame(frame);
 }

@@ -38,6 +38,7 @@ fn main() -> anyhow::Result<()> {
         .include(path.join("include"))
         .include(path.join("lib/include"))
         .include(path.join("lib/include/third_party/abseil-cpp"))
+        .include(path.join("lib/include/third_party/libyuv/include"))
         .flag("-DWEBRTC_WIN")
         .flag("-DNOMINMAX")
         .flag("/std:c++17")
