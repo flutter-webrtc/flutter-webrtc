@@ -147,7 +147,7 @@ std::unique_ptr<VideoTrackInterface> create_video_track(
     rust::String id,
     const VideoTrackSourceInterface& video_source) {
   auto track = peer_connection_factory->CreateVideoTrack(
-      std::string(id), video_source.ptr());
+      std::string(id), video_source);
 
   if (track == nullptr) {
     return nullptr;
@@ -162,7 +162,7 @@ std::unique_ptr<AudioTrackInterface> create_audio_track(
     rust::String id,
     const AudioSourceInterface& audio_source) {
   auto track = peer_connection_factory->CreateAudioTrack(
-      std::string(id), audio_source.ptr());
+      std::string(id), audio_source);
 
   if (track == nullptr) {
     return nullptr;
@@ -188,25 +188,35 @@ std::unique_ptr<MediaStreamInterface> create_local_media_stream(
 // Calls `MediaStreamInterface->AddTrack`.
 bool add_video_track(const MediaStreamInterface& media_stream,
                      const VideoTrackInterface& track) {
-  return media_stream->AddTrack(track.ptr());
+  return media_stream->AddTrack(track);
 }
 
 // Calls `MediaStreamInterface->AddTrack`.
 bool add_audio_track(const MediaStreamInterface& media_stream,
                      const AudioTrackInterface& track) {
-  return media_stream->AddTrack(track.ptr());
+  return media_stream->AddTrack(track);
 }
 
 // Calls `MediaStreamInterface->RemoveTrack`.
 bool remove_video_track(const MediaStreamInterface& media_stream,
                         const VideoTrackInterface& track) {
-  return media_stream->RemoveTrack(track.ptr());
+  return media_stream->RemoveTrack(track);
 }
 
 // Calls `MediaStreamInterface->RemoveTrack`.
 bool remove_audio_track(const MediaStreamInterface& media_stream,
                         const AudioTrackInterface& track) {
-  return media_stream->RemoveTrack(track.ptr());
+  return media_stream->RemoveTrack(track);
+}
+
+// Calls `VideoTrackInterface->set_enabled()`.
+void set_video_track_enabled(const VideoTrackInterface& track, bool enabled) {
+  track->set_enabled(enabled);
+}
+
+// Calls `AudioTrackInterface->set_enabled()`.
+void set_audio_track_enabled(const AudioTrackInterface& track, bool enabled) {
+  track->set_enabled(enabled);
 }
 
 // Registers the provided video `sink` for the given `track`.
@@ -248,17 +258,12 @@ std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
     const std::unique_ptr<Thread>& worker_thread,
     const std::unique_ptr<Thread>& signaling_thread,
     const std::unique_ptr<AudioDeviceModule>& default_adm) {
-  auto default_adm_ =
-      default_adm.get() == nullptr ? nullptr : default_adm.get()->ptr();
-  if (default_adm_ != nullptr) {
-    default_adm_->AddRef(); // TODO: recheck that we really need this
-  }
 
   auto factory = webrtc::CreatePeerConnectionFactory(
       network_thread.get(),
       worker_thread.get(),
       signaling_thread.get(),
-      default_adm_,
+      default_adm ? *default_adm : nullptr,
       webrtc::CreateBuiltinAudioEncoderFactory(),
       webrtc::CreateBuiltinAudioDecoderFactory(),
       webrtc::CreateBuiltinVideoEncoderFactory(),

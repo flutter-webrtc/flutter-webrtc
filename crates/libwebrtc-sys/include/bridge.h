@@ -24,34 +24,6 @@
 
 namespace bridge {
 
-// Smart pointer designed to wrap WebRTC's `rtc::scoped_refptr`.
-//
-// `rtc::scoped_refptr` can't be used with `std::uniqueptr` since it has private
-// destructor. `rc` unwraps raw pointer from the provided `rtc::scoped_refptr`
-// and calls `Release()` in its destructor therefore this allows wrapping `rc`
-// into a `std::uniqueptr`.
-template<class T>
-class rc {
- public:
-  typedef T element_type;
-
-  // Unwraps the actual pointer from the provided `rtc::scoped_refptr`.
-  rc(rtc::scoped_refptr<T> p) : ptr_(p.release()) {}
-
-  // Calls `RefCountInterface::Release()` on the underlying pointer.
-  ~rc() { ptr_->Release(); }
-
-  // Returns a pointer to the managed object.
-  T* ptr() const { return ptr_; }
-
-  // Returns a pointer to the managed object.
-  T* operator->() const { return ptr_; }
-
- protected:
-  // Pointer to the managed object.
-  T* ptr_;
-};
-
 using Thread = rtc::Thread;
 using VideoSinkInterface = rtc::VideoSinkInterface<webrtc::VideoFrame>;
 
@@ -66,15 +38,17 @@ using TaskQueueFactory = webrtc::TaskQueueFactory;
 using VideoDeviceInfo = webrtc::VideoCaptureModule::DeviceInfo;
 using VideoRotation = webrtc::VideoRotation;
 
-using AudioDeviceModule = rc<webrtc::AudioDeviceModule>;
-using AudioSourceInterface = rc<webrtc::AudioSourceInterface>;
-using AudioTrackInterface = rc<webrtc::AudioTrackInterface>;
-using MediaStreamInterface = rc<webrtc::MediaStreamInterface>;
+using AudioDeviceModule = rtc::scoped_refptr<webrtc::AudioDeviceModule>;
+using AudioSourceInterface = rtc::scoped_refptr<webrtc::AudioSourceInterface>;
+using AudioTrackInterface = rtc::scoped_refptr<webrtc::AudioTrackInterface>;
+using MediaStreamInterface = rtc::scoped_refptr<webrtc::MediaStreamInterface>;
 using PeerConnectionFactoryInterface =
-    rc<webrtc::PeerConnectionFactoryInterface>;
-using PeerConnectionInterface = rc<webrtc::PeerConnectionInterface>;
-using VideoTrackInterface = rc<webrtc::VideoTrackInterface>;
-using VideoTrackSourceInterface = rc<webrtc::VideoTrackSourceInterface>;
+    rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface>;
+using PeerConnectionInterface =
+    rtc::scoped_refptr<webrtc::PeerConnectionInterface>;
+using VideoTrackInterface = rtc::scoped_refptr<webrtc::VideoTrackInterface>;
+using VideoTrackSourceInterface =
+    rtc::scoped_refptr<webrtc::VideoTrackSourceInterface>;
 
 using CreateSessionDescriptionObserver =
     observer::CreateSessionDescriptionObserver;
@@ -176,6 +150,12 @@ bool remove_video_track(const MediaStreamInterface& media_stream,
 // `MediaStreamInterface`.
 bool remove_audio_track(const MediaStreamInterface& media_stream,
                         const AudioTrackInterface& track);
+
+// Changes the `enabled` property of the provided `VideoTrackInterface`.
+void set_video_track_enabled(const VideoTrackInterface& track, bool enabled);
+
+// Changes the `enabled` property of the provided `AudioTrackInterface`.
+void set_audio_track_enabled(const AudioTrackInterface& track, bool enabled);
 
 // Registers the provided video `sink` for the given `track`.
 //

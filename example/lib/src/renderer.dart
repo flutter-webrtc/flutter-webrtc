@@ -14,6 +14,7 @@ class _RendererSampleState extends State<RendererSample> {
   MediaStream? _stream;
   final _renderer = RTCVideoRenderer();
   bool _isRendering = false;
+  bool _isEnabled = true;
 
   @override
   void initState() {
@@ -66,6 +67,18 @@ class _RendererSampleState extends State<RendererSample> {
       setState(() {
         _isRendering = false;
       });
+      _isEnabled = false;
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  void _toggleVideoEnabled() async {
+    try {
+      _stream?.getVideoTracks()[0].enabled = _isEnabled;
+      setState(() {
+        _isEnabled = !_isEnabled;
+      });
     } catch (e) {
       print(e.toString());
     }
@@ -76,6 +89,14 @@ class _RendererSampleState extends State<RendererSample> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Renderer'),
+        actions: _isRendering
+            ? [
+                IconButton(
+                  icon: Icon(_isEnabled ? Icons.cancel : Icons.camera_sharp),
+                  onPressed: _toggleVideoEnabled,
+                ),
+              ]
+            : null,
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {

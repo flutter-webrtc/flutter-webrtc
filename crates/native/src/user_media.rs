@@ -274,6 +274,24 @@ impl Webrtc {
 
         Ok(src)
     }
+
+    /// Changes the [enabled][1] property of the media track by its ID.
+    ///
+    /// # Panics
+    ///
+    /// If cannot find any track with the provided ID.
+    ///
+    /// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
+    pub fn set_track_enabled(&mut self, id: u64, enabled: bool) {
+        if let Some(track) = self.0.video_tracks.get(&VideoTrackId(id)) {
+            track.inner.set_enabled(enabled);
+        } else if let Some(track) = self.0.audio_tracks.get(&AudioTrackId(id)) {
+            track.set_enabled(enabled);
+        } else {
+            // TODO: Return error.
+            panic!("Could not find track with `{id}` ID");
+        }
+    }
 }
 
 /// ID of a [`MediaStream`].
@@ -462,6 +480,14 @@ impl VideoTrack {
         self.sinks.retain(|&sink| sink != video_sink.id());
         self.inner.remove_sink(video_sink.as_mut());
     }
+
+    /// Changes the [enabled][1] property of the underlying
+    /// [`sys::VideoTrackInterface`].
+    ///
+    /// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
+    pub fn set_enabled(&self, enabled: bool) {
+        self.inner.set_enabled(enabled);
+    }
 }
 
 /// Representation of a [`sys::AudioSourceInterface`].
@@ -498,6 +524,14 @@ impl AudioTrack {
             kind: api::TrackKind::kAudio,
             label,
         })
+    }
+
+    /// Changes the [enabled][1] property of the underlying
+    /// [`sys::AudioTrackInterface`].
+    ///
+    /// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
+    pub fn set_enabled(&self, enabled: bool) {
+        self.inner.set_enabled(enabled);
     }
 }
 

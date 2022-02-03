@@ -1,10 +1,6 @@
-#include <memory>
-#include <stdint.h>
-
 #include "device_video_capturer.h"
-#include <modules/video_capture/video_capture_factory.h>
-#include <rtc_base/checks.h>
-#include <rtc_base/logging.h>
+#include "modules/video_capture/video_capture_factory.h"
+#include "rtc_base/logging.h"
 
 // MediaCodec wants resolution to be divisible by 2.
 const int kRequiredResolutionAlignment = 2;
@@ -27,8 +23,7 @@ rtc::scoped_refptr<DeviceVideoCapturer> DeviceVideoCapturer::Create(
 
   if (!capturer->Init(width, height, max_fps, device_index)) {
     RTC_LOG(LS_ERROR) << "Failed to create DeviceVideoCapturer(w = " << width
-                      << ", h = " << height << ", fps = " << max_fps
-                      << ")";
+                      << ", h = " << height << ", fps = " << max_fps << ")";
     return nullptr;
   }
 
@@ -103,8 +98,7 @@ absl::optional<bool> DeviceVideoCapturer::needs_denoising() const {
 }
 
 // Returns `SourceState::kLive`.
-webrtc::MediaSourceInterface::SourceState DeviceVideoCapturer::state()
-const {
+webrtc::MediaSourceInterface::SourceState DeviceVideoCapturer::state() const {
   return SourceState::kLive;
 }
 

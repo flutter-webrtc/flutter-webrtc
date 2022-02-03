@@ -363,6 +363,24 @@ pub(crate) mod webrtc {
             track: &AudioTrackInterface,
         ) -> bool;
 
+        /// Changes the [enabled][1] property of the specified
+        /// [`VideoTrackInterface`].
+        ///
+        /// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
+        pub fn set_video_track_enabled(
+            track: &VideoTrackInterface,
+            enabled: bool,
+        );
+
+        /// Changes the [enabled][1] property of the specified
+        /// [`AudioTrackInterface`].
+        ///
+        /// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
+        pub fn set_audio_track_enabled(
+            track: &AudioTrackInterface,
+            enabled: bool,
+        );
+
         /// Registers the provided [`VideoSinkInterface`] for the given
         /// [`VideoTrackInterface`].
         ///

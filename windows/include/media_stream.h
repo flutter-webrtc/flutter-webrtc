@@ -24,6 +24,12 @@ void GetUserMedia(
     Box<Webrtc>& webrtc,
     std::unique_ptr<MethodResult<EncodableValue>> result);
 
+// Changes the `enabled` property of the specified media track.
+void SetTrackEnabled(
+    const flutter::MethodCall<EncodableValue>& method_call,
+    Box<Webrtc>& webrtc,
+    std::unique_ptr<MethodResult<EncodableValue>> result);
+
 // Disposes some media stream calling Rust `DisposeStream`.
 void DisposeStream(
     const flutter::MethodCall<EncodableValue>& method_call,

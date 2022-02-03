@@ -199,6 +199,26 @@ EncodableList GetParams(TrackKind type, MediaStream& user_media) {
   return tracks;
 }
 
+/// Changes the `enabled` property of the specified media track calling Rust
+/// `SetTrackEnabled`.
+void SetTrackEnabled( const flutter::MethodCall<EncodableValue>& method_call,
+                      Box<Webrtc>& webrtc,
+                      std::unique_ptr<MethodResult<EncodableValue>> result) {
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+  const std::string track_id = findString(params, "trackId");
+  const bool enabled =
+      GetValue<bool>(params.find(EncodableValue("enabled"))->second);
+
+  webrtc->SetTrackEnabled((uint64_t)std::stoi(track_id), enabled);
+
+  result->Success();
+}
+
 /// Disposes some media stream calling Rust `DisposeStream`.
 void DisposeStream(const flutter::MethodCall<EncodableValue>& method_call,
                   Box<Webrtc>& webrtc,
