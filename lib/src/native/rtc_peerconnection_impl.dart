@@ -504,6 +504,11 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         'senderId': sender.senderId
       });
       bool result = response['result'];
+
+      if (result && (sender is RTCRtpSenderNative)) {
+        sender.removeTrackReference();
+      }
+
       return result;
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::removeTrack: ${e.message}';
