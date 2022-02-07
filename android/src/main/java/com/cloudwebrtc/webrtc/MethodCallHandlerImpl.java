@@ -375,6 +375,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         result.success(null);
         break;
       }
+      case "restartIce": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        restartIce(peerConnectionId);
+        result.success(null);
+        break;
+      }
       case "peerConnectionClose": {
         String peerConnectionId = call.argument("peerConnectionId");
         peerConnectionClose(peerConnectionId);
@@ -1455,6 +1461,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       resultError("peerConnectionGetStats", "peerConnection is null", result);
     } else {
       pco.getStats(trackId, result);
+    }
+  }
+
+  public void restartIce(final String id) {
+    PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
+    if (pco == null || pco.getPeerConnection() == null) {
+      Log.d(TAG, "restartIce() peerConnection is null");
+    } else {
+      pco.restartIce();
     }
   }
 

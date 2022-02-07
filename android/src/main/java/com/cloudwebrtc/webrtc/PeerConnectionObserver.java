@@ -80,6 +80,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     this.peerConnection = peerConnection;
   }
 
+  void restartIce() {
+    peerConnection.restartIce();
+  }
+
   void close() {
     peerConnection.close();
     remoteStreams.clear();
