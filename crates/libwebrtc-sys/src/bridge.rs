@@ -302,14 +302,25 @@ pub(crate) mod webrtc {
         type VideoSinkInterface;
         type VideoRotation;
 
-        /// Creates a new [`VideoTrackSourceInterface`].
-        pub fn create_video_source(
+        /// Creates a new [`VideoTrackSourceInterface`] sourced by a video input
+        /// device with provided `device_index`.
+        pub fn create_device_video_source(
             worker_thread: Pin<&mut Thread>,
             signaling_thread: Pin<&mut Thread>,
             width: usize,
             height: usize,
             fps: usize,
             device_index: u32,
+        ) -> UniquePtr<VideoTrackSourceInterface>;
+
+        /// Creates a new [`VideoTrackSourceInterface`] sourced by a screen
+        /// capturing.
+        pub fn create_display_video_source(
+            worker_thread: Pin<&mut Thread>,
+            signaling_thread: Pin<&mut Thread>,
+            width: usize,
+            height: usize,
+            fps: usize,
         ) -> UniquePtr<VideoTrackSourceInterface>;
 
         /// Creates a new [`AudioSourceInterface`].

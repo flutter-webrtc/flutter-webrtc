@@ -267,10 +267,11 @@ pub mod api {
 
         /// Creates a [`MediaStream`] with tracks according to provided
         /// [`MediaStreamConstraints`].
-        #[cxx_name = "GetUserMedia"]
-        pub fn get_users_media(
+        #[cxx_name = "GetMedia"]
+        pub fn get_media(
             self: &mut Webrtc,
             constraints: &MediaStreamConstraints,
+            is_display: bool,
         ) -> MediaStream;
 
         /// Disposes the [`MediaStream`] and all contained tracks.

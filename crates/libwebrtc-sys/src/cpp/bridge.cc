@@ -109,7 +109,7 @@ std::unique_ptr<rtc::Thread> create_thread() {
 
 // Creates a new `DeviceVideoCapturer` with the specified constraints and
 // calls `CreateVideoTrackSourceProxy()`.
-std::unique_ptr<VideoTrackSourceInterface> create_video_source(
+std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
     Thread& worker_thread,
     Thread& signaling_thread,
     size_t width,
@@ -119,6 +119,35 @@ std::unique_ptr<VideoTrackSourceInterface> create_video_source(
   auto src = webrtc::CreateVideoTrackSourceProxy(
       &signaling_thread, &worker_thread,
       DeviceVideoCapturer::Create(width, height, fps, device));
+
+  if (src == nullptr) {
+    return nullptr;
+  }
+
+  return std::make_unique<VideoTrackSourceInterface>(src);
+}
+
+// Creates a new `ScreenVideoCapturer` with the specified constraints and
+// calls `CreateVideoTrackSourceProxy()`.
+std::unique_ptr<VideoTrackSourceInterface> create_display_video_source(
+    Thread& worker_thread,
+    Thread& signaling_thread,
+    size_t width,
+    size_t height,
+    size_t fps) {
+  webrtc::DesktopCapturer::SourceList sourceList;
+  ScreenVideoCapturer::GetSourceList(&sourceList);
+
+  if (sourceList.size() < 1) {
+    return nullptr;
+  }
+
+  rtc::scoped_refptr<ScreenVideoCapturer> capturer(
+      new rtc::RefCountedObject<ScreenVideoCapturer>(sourceList[0].id, width,
+                                                     height, fps));
+
+  auto src = webrtc::CreateVideoTrackSourceProxy(&signaling_thread,
+                                                 &worker_thread, capturer);
 
   if (src == nullptr) {
     return nullptr;
@@ -241,8 +270,7 @@ std::unique_ptr<VideoSinkInterface> create_forwarding_video_sink(
 
 // Converts the provided `webrtc::VideoFrame` pixels to the ABGR scheme and
 // writes the result to the provided `dst_abgr`.
-void video_frame_to_abgr(const webrtc::VideoFrame& frame,
-                         uint8_t* dst_abgr) {
+void video_frame_to_abgr(const webrtc::VideoFrame& frame, uint8_t* dst_abgr) {
   rtc::scoped_refptr<webrtc::I420BufferInterface> buffer(
       frame.video_frame_buffer()->ToI420());
 
@@ -313,7 +341,8 @@ std::unique_ptr<PeerConnectionDependencies> create_peer_connection_dependencies(
 }
 
 // Creates a new `RTCOfferAnswerOptions`.
-std::unique_ptr<RTCOfferAnswerOptions> create_default_rtc_offer_answer_options() {
+std::unique_ptr<RTCOfferAnswerOptions>
+create_default_rtc_offer_answer_options() {
   return std::make_unique<RTCOfferAnswerOptions>();
 }
 
@@ -375,8 +404,7 @@ void set_local_description(PeerConnectionInterface& peer_connection_interface,
   auto observer =
       rtc::scoped_refptr<webrtc::SetLocalDescriptionObserverInterface>(
           obs.release());
-  peer_connection_interface->SetLocalDescription(std::move(desc),
-                                                 observer);
+  peer_connection_interface->SetLocalDescription(std::move(desc), observer);
 }
 
 // Calls `PeerConnectionInterface->SetRemoteDescription`.
@@ -385,8 +413,7 @@ void set_remote_description(PeerConnectionInterface& peer_connection_interface,
                             std::unique_ptr<SetRemoteDescriptionObserver> obs) {
   auto observer =
       rtc::scoped_refptr<SetRemoteDescriptionObserver>(obs.release());
-  peer_connection_interface->SetRemoteDescription(std::move(desc),
-                                                  observer);
+  peer_connection_interface->SetRemoteDescription(std::move(desc), observer);
 }
 
 }  // namespace bridge

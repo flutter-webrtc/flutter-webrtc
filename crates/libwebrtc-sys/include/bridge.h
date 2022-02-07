@@ -1,8 +1,5 @@
 #pragma once
 
-#include <memory>
-#include <string>
-
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
 #include "api/audio_codecs/builtin_audio_encoder_factory.h"
 #include "api/create_peerconnection_factory.h"
@@ -10,17 +7,17 @@
 #include "api/task_queue/default_task_queue_factory.h"
 #include "api/video_codecs/builtin_video_decoder_factory.h"
 #include "api/video_codecs/builtin_video_encoder_factory.h"
-#include "api/video_codecs/builtin_video_encoder_factory.h"
 #include "api/video_track_source_proxy_factory.h"
-#include "device_video_capturer.h"
 #include "modules/audio_device/include/audio_device.h"
 #include "modules/video_capture/video_capture_factory.h"
 #include "pc/audio_track.h"
 #include "pc/local_audio_source.h"
 #include "pc/video_track_source.h"
-#include "peer_connection_observer.h"
-#include "video_sink.h"
 #include "rust/cxx.h"
+#include "device_video_capturer.h"
+#include "peer_connection_observer.h"
+#include "screen_video_capturer.h"
+#include "video_sink.h"
 
 namespace bridge {
 
@@ -100,15 +97,24 @@ int32_t video_device_name(VideoDeviceInfo& device_info,
 // Creates a new `Thread`.
 std::unique_ptr<rtc::Thread> create_thread();
 
-// Creates a new `VideoTrackSourceInterface` according to the specified
-// constraints.
-std::unique_ptr<VideoTrackSourceInterface> create_video_source(
+// Creates a new `VideoTrackSourceInterface` from the specified video input
+// device according to the specified constraints.
+std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
     Thread& worker_thread,
     Thread& signaling_thread,
     size_t width,
     size_t height,
     size_t fps,
     uint32_t device_index);
+
+// Starts screen capturing and creates a new `VideoTrackSourceInterface`
+// according to the specified constraints.
+std::unique_ptr<VideoTrackSourceInterface> create_display_video_source(
+    Thread& worker_thread,
+    Thread& signaling_thread,
+    size_t width,
+    size_t height,
+    size_t fps);
 
 // Creates a new `AudioSourceInterface`.
 std::unique_ptr<AudioSourceInterface> create_audio_source(
@@ -200,7 +206,8 @@ std::unique_ptr<PeerConnectionDependencies> create_peer_connection_dependencies(
     std::unique_ptr<PeerConnectionObserver> observer);
 
 // Creates a new `RTCOfferAnswerOptions`.
-std::unique_ptr<RTCOfferAnswerOptions> create_default_rtc_offer_answer_options();
+std::unique_ptr<RTCOfferAnswerOptions>
+create_default_rtc_offer_answer_options();
 
 // Creates a new `RTCOfferAnswerOptions`.
 std::unique_ptr<RTCOfferAnswerOptions> create_rtc_offer_answer_options(

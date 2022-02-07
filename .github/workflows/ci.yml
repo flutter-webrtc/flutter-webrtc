@@ -35,7 +35,11 @@ jobs:
 
   build:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
-    runs-on: windows-latest
+    # TODO: Switch to `windows-latest` when stable Flutter stable will support
+    #       MSVC 2022:
+    #       https://github.com/flutter/flutter/issues/85922
+    #       https://github.com/flutter/flutter/issues/96138
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1

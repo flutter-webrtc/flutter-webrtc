@@ -14,9 +14,10 @@ impl Webrtc {
     /// [`AudioTrack`]s according to the provided accepted
     /// [`api::MediaStreamConstraints`].
     #[allow(clippy::too_many_lines, clippy::missing_panics_doc)]
-    pub fn get_users_media(
+    pub fn get_media(
         self: &mut Webrtc,
         constraints: &api::MediaStreamConstraints,
+        is_display: bool,
     ) -> api::MediaStream {
         let mut stream =
             MediaStream::new(&self.0.peer_connection_factory).unwrap();
@@ -28,8 +29,9 @@ impl Webrtc {
         };
 
         if constraints.video.required {
-            let source =
-                self.get_or_create_video_source(&constraints.video).unwrap();
+            let source = self
+                .get_or_create_video_source(&constraints.video, is_display)
+                .unwrap();
             let track = self.create_video_track(source).unwrap();
 
             stream.add_video_track(track).unwrap();
@@ -101,22 +103,33 @@ impl Webrtc {
         &mut self,
         source: Rc<VideoSource>,
     ) -> anyhow::Result<&mut VideoTrack> {
-        let device_index = if let Some(index) =
-            self.get_index_of_video_device(&source.device_id)?
-        {
-            index
+        let track = if source.is_display {
+            // TODO: Support screens enumeration.
+            VideoTrack::new(
+                &self.0.peer_connection_factory,
+                source,
+                VideoLabel("screen:0".into()),
+            )?
         } else {
-            bail!(
-                "Could not find video device with the specified ID `{}`",
-                &source.device_id,
-            );
-        };
+            let device_index = if let Some(index) =
+                self.get_index_of_video_device(&source.device_id)?
+            {
+                index
+            } else {
+                bail!(
+                    "Could not find video device with the specified ID `{}`",
+                    &source.device_id,
+                );
+            };
 
-        let track = VideoTrack::new(
-            &self.0.peer_connection_factory,
-            source,
-            VideoLabel(self.0.video_device_info.device_name(device_index)?.0),
-        )?;
+            VideoTrack::new(
+                &self.0.peer_connection_factory,
+                source,
+                VideoLabel(
+                    self.0.video_device_info.device_name(device_index)?.0,
+                ),
+            )?
+        };
 
         let track = self.0.video_tracks.entry(track.id).or_insert(track);
 
@@ -127,9 +140,14 @@ impl Webrtc {
     fn get_or_create_video_source(
         &mut self,
         caps: &VideoConstraints,
+        is_display: bool,
     ) -> anyhow::Result<Rc<VideoSource>> {
-        let (index, device_id) = if caps.device_id.is_empty() {
-            // No device ID is provided so just pick the first available device
+        let (index, device_id) = if is_display {
+            // TODO: Support screens enumeration.
+            (0, VideoDeviceId("screen:0".into()))
+        } else if caps.device_id.is_empty() {
+            // No device ID is provided so just pick the first available
+            // device
             if self.0.video_device_info.number_of_devices() < 1 {
                 bail!("Could not find any available video input device");
             }
@@ -153,18 +171,29 @@ impl Webrtc {
             return Ok(Rc::clone(src));
         }
 
-        let source = Rc::new(VideoSource::new(
-            &mut self.0.worker_thread,
-            &mut self.0.signaling_thread,
-            caps,
-            index,
-            device_id,
-        )?);
-        self.0
+        let source = if is_display {
+            VideoSource::new_display_source(
+                &mut self.0.worker_thread,
+                &mut self.0.signaling_thread,
+                caps,
+                device_id,
+            )?
+        } else {
+            VideoSource::new_device_source(
+                &mut self.0.worker_thread,
+                &mut self.0.signaling_thread,
+                caps,
+                index,
+                device_id,
+            )?
+        };
+        let source = self
+            .0
             .video_sources
-            .insert(source.device_id.clone(), Rc::clone(&source));
+            .entry(source.device_id.clone())
+            .or_insert_with(|| Rc::new(source));
 
-        Ok(source)
+        Ok(Rc::clone(source))
     }
 
     /// Creates a new [`AudioTrack`] from the given
@@ -542,11 +571,15 @@ pub struct VideoSource {
 
     /// ID of an video input device that provides data to this [`VideoSource`].
     device_id: VideoDeviceId,
+
+    /// Indicates whether this [`VideoSource`] is backed by screen capturing.
+    is_display: bool,
 }
 
 impl VideoSource {
-    /// Creates a new [`VideoSource`].
-    fn new(
+    /// Creates a new [`VideoTrackSourceInterface`] from the video input device
+    /// with the specified constraints.
+    fn new_device_source(
         worker_thread: &mut sys::Thread,
         signaling_thread: &mut sys::Thread,
         caps: &api::VideoConstraints,
@@ -554,7 +587,7 @@ impl VideoSource {
         device_id: VideoDeviceId,
     ) -> anyhow::Result<Self> {
         Ok(Self {
-            inner: sys::VideoTrackSourceInterface::create_proxy(
+            inner: sys::VideoTrackSourceInterface::create_proxy_from_device(
                 worker_thread,
                 signaling_thread,
                 caps.width,
@@ -563,6 +596,28 @@ impl VideoSource {
                 device_index,
             )?,
             device_id,
+            is_display: false,
+        })
+    }
+
+    /// Starts screen capturing and creates a new [`VideoTrackSourceInterface`]
+    /// with the specified constraints.
+    fn new_display_source(
+        worker_thread: &mut sys::Thread,
+        signaling_thread: &mut sys::Thread,
+        caps: &api::VideoConstraints,
+        device_id: VideoDeviceId,
+    ) -> anyhow::Result<Self> {
+        Ok(Self {
+            inner: sys::VideoTrackSourceInterface::create_proxy_from_display(
+                worker_thread,
+                signaling_thread,
+                caps.width,
+                caps.height,
+                caps.frame_rate,
+            )?,
+            device_id,
+            is_display: true,
         })
     }
 }
