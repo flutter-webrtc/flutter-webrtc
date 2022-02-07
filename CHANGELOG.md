@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.8.2] - 2022-02-08
+
+* [Android/iOS/macOS/Web] Add restartIce.
+
 [0.8.1] - 2021-12-29
 
 * [Android/iOS] Bump webrtc-sdk version to 93.4577.01.

@@ -441,6 +441,16 @@
         NSString* trackId = argsMap[@"trackId"];
         [self.localTracks removeObjectForKey:trackId];
         result(nil);
+    } else if ([@"restartIce" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+        if (!peerConnection) {
+            result([FlutterError errorWithCode:@"restartIce: peerConnection is nil" message:nil details:nil]);   
+        } else {
+            [peerConnection restartIce];
+            result(nil);
+        }
     } else if ([@"peerConnectionClose" isEqualToString:call.method] || [@"peerConnectionDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];

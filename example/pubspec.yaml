@@ -15,7 +15,7 @@ dependencies:
   flutter_webrtc:
     path: ../
   # Required for MediaRecorder example
-  path_provider: ^2.0.1
+  path_provider: ^2.0.2
 
 dev_dependencies:
   flutter_test:
