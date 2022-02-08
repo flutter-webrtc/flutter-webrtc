@@ -158,6 +158,8 @@ class RTCPeerConnection : public RefCountInterface {
                             OnSdpCreateFailure failure,
                             scoped_refptr<RTCMediaConstraints> constraints) = 0;
 
+  virtual void RestartIce() = 0;
+
   virtual void Close() = 0;
 
   virtual void SetLocalDescription(const string sdp,
