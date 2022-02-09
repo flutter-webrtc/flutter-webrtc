@@ -25,6 +25,9 @@ class FlutterWebRTC : public FlutterVideoRendererManager {
 
   Box<Webrtc> webrtc = Init();
 
+  // `BinaryMessenger` is used to open `EventChannel`s to the Dart side.
+  flutter::BinaryMessenger* messenger_;
+
   void HandleMethodCall(
       const flutter::MethodCall<EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<EncodableValue>> result);

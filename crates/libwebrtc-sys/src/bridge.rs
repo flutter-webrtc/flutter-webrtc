@@ -1,9 +1,12 @@
 use std::fmt;
 
 use anyhow::anyhow;
-use cxx::{CxxString, UniquePtr};
+use cxx::{CxxString, CxxVector, UniquePtr};
 
-use crate::{CreateSdpCallback, OnFrameCallback, SetDescriptionCallback};
+use crate::{
+    CreateSdpCallback, OnFrameCallback, PeerConnectionEventsHandler,
+    SetDescriptionCallback,
+};
 
 /// [`CreateSdpCallback`] transferable to the C++ side.
 type DynCreateSdpCallback = Box<dyn CreateSdpCallback>;
@@ -14,12 +17,19 @@ type DynSetDescriptionCallback = Box<dyn SetDescriptionCallback>;
 /// [`OnFrameCallback`] transferable to the C++ side.
 type DynOnFrameCallback = Box<dyn OnFrameCallback>;
 
-#[allow(clippy::expl_impl_clone_on_copy, clippy::items_after_statements)]
+/// [`PeerConnectionEventsHandler`] transferable to the C++ side.
+type DynPeerConnectionEventsHandler = Box<dyn PeerConnectionEventsHandler>;
+
+#[allow(
+    clippy::expl_impl_clone_on_copy,
+    clippy::items_after_statements,
+    clippy::ptr_as_ptr
+)]
 #[cxx::bridge(namespace = "bridge")]
 pub(crate) mod webrtc {
     /// Possible kinds of audio devices implementation.
-    #[repr(i32)]
     #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
     pub enum AudioLayer {
         kPlatformDefaultAudio = 0,
         kWindowsCoreAudio,
@@ -37,8 +47,8 @@ pub(crate) mod webrtc {
     /// [RTCSdpType] representation.
     ///
     /// [RTCSdpType]: https://w3.org/TR/webrtc#dom-rtcsdptype
-    #[repr(i32)]
     #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
     pub enum SdpType {
         /// [RTCSdpType.offer][1] representation.
         ///
@@ -62,13 +72,158 @@ pub(crate) mod webrtc {
     }
 
     /// Possible variants of a [`VideoFrame`]'s rotation.
-    #[repr(i32)]
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
     pub enum VideoRotation {
         kVideoRotation_0 = 0,
         kVideoRotation_90 = 90,
         kVideoRotation_180 = 180,
         kVideoRotation_270 = 270,
+    }
+
+    /// [RTCSignalingState] representation.
+    ///
+    /// [RTCSignalingState]: https://w3.org/TR/webrtc#state-definitions
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    pub enum SignalingState {
+        /// [RTCSignalingState.stable][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcsignalingstate-stable
+        kStable,
+
+        /// [RTCSignalingState.have-local-offer][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcsignalingstate-have-local-offer
+        kHaveLocalOffer,
+
+        /// [RTCSignalingState.have-local-pranswer][1] representation.
+        ///
+        /// [1]: https://tinyurl.com/have-local-pranswer
+        kHaveLocalPrAnswer,
+
+        /// [RTCSignalingState.have-remote-offer][1] representation.
+        ///
+        /// [1]: https://tinyurl.com/have-remote-offer
+        kHaveRemoteOffer,
+
+        /// [RTCSignalingState.have-remote-pranswer][1] representation.
+        ///
+        /// [1]: https://tinyurl.com/have-remote-pranswer
+        kHaveRemotePrAnswer,
+
+        /// [RTCSignalingState.closed][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcsignalingstate-closed
+        kClosed,
+    }
+
+    /// [RTCIceGatheringState][1] representation.
+    ///
+    /// [1]: https://w3.org/TR/webrtc#dom-rtcicegatheringstate
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    pub enum IceGatheringState {
+        /// [RTCIceGatheringState.new][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcicegatheringstate-new
+        kIceGatheringNew,
+
+        /// [RTCIceGatheringState.gathering][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcicegatheringstate-gathering
+        kIceGatheringGathering,
+
+        /// [RTCIceGatheringState.complete][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcicegatheringstate-complete
+        kIceGatheringComplete,
+    }
+
+    /// [RTCPeerConnectionState][1] representation.
+    ///
+    /// [1]: https://w3.org/TR/webrtc#dom-rtcpeerconnectionstate
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    pub enum PeerConnectionState {
+        /// [RTCPeerConnectionState.new][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcpeerconnectionstate-new
+        kNew,
+
+        /// [RTCPeerConnectionState.connecting][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcpeerconnectionstate-connecting
+        kConnecting,
+
+        /// [RTCPeerConnectionState.connected][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcpeerconnectionstate-connected
+        kConnected,
+
+        /// [RTCPeerConnectionState.disconnected][1] representation.
+        ///
+        /// [1]: https://tinyurl.com/connectionstate-disconnected
+        kDisconnected,
+
+        /// [RTCPeerConnectionState.failed][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcpeerconnectionstate-failed
+        kFailed,
+
+        /// [RTCPeerConnectionState.closed][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcpeerconnectionstate-closed
+        kClosed,
+    }
+
+    /// [RTCIceConnectionState][1] representation.
+    ///
+    /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    pub enum IceConnectionState {
+        /// [RTCIceConnectionState.new][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-new
+        kIceConnectionNew,
+
+        /// [RTCIceConnectionState.checking][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-checking
+        kIceConnectionChecking,
+
+        /// [RTCIceConnectionState.connected][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-connected
+        kIceConnectionConnected,
+
+        /// [RTCIceConnectionState.completed][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-completed
+        kIceConnectionCompleted,
+
+        /// [RTCIceConnectionState.failed][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-failed
+        kIceConnectionFailed,
+
+        /// [RTCIceConnectionState.disconnected][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-disconnected
+        kIceConnectionDisconnected,
+
+        /// [RTCIceConnectionState.closed][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-closed
+        kIceConnectionClosed,
+
+        /// Non-spec-compliant variant.
+        ///
+        /// [`libwertc` states that it's unreachable][1].
+        ///
+        /// [1]: https://tinyurl.com/kIceConnectionMax-unreachable
+        kIceConnectionMax,
     }
 
     #[rustfmt::skip]
@@ -175,16 +330,27 @@ pub(crate) mod webrtc {
 
     #[rustfmt::skip]
     unsafe extern "C++" {
+        #[namespace = "cricket"]
+        pub type Candidate;
+        #[namespace = "cricket"]
+        pub type CandidatePairChangeEvent;
+        pub type IceCandidateInterface;
+        #[namespace = "cricket"]
+        type CandidatePair;
         type CreateSessionDescriptionObserver;
+        type IceConnectionState;
+        type IceGatheringState;
         type PeerConnectionDependencies;
         type PeerConnectionInterface;
         type PeerConnectionObserver;
+        type PeerConnectionState;
         type RTCConfiguration;
         type RTCOfferAnswerOptions;
         type SdpType;
         type SessionDescriptionInterface;
         type SetLocalDescriptionObserver;
         type SetRemoteDescriptionObserver;
+        type SignalingState;
 
         /// Creates a default [`RTCConfiguration`].
         pub fn create_default_rtc_configuration()
@@ -203,12 +369,13 @@ pub(crate) mod webrtc {
 
         /// Creates a new [`PeerConnectionObserver`].
         pub fn create_peer_connection_observer(
+            cb: Box<DynPeerConnectionEventsHandler>,
         ) -> UniquePtr<PeerConnectionObserver>;
 
         /// Creates a [`PeerConnectionDependencies`] from the provided
         /// [`PeerConnectionObserver`].
         pub fn create_peer_connection_dependencies(
-            observer: UniquePtr<PeerConnectionObserver>,
+            observer: &UniquePtr<PeerConnectionObserver>,
         ) -> UniquePtr<PeerConnectionDependencies>;
 
         /// Creates a default [`RTCOfferAnswerOptions`].
@@ -289,6 +456,22 @@ pub(crate) mod webrtc {
             kind: SdpType,
             sdp: &CxxString,
         ) -> UniquePtr<SessionDescriptionInterface>;
+
+        /// Returns the spec-compliant string representation of the provided
+        /// [`IceCandidateInterface`].
+        ///
+        /// # Safety
+        ///
+        /// `candidate` must be a valid [`IceCandidateInterface`] pointer.
+        #[must_use]
+        pub unsafe fn ice_candidate_interface_to_string(
+            candidate: *const IceCandidateInterface
+        ) -> UniquePtr<CxxString>;
+
+        /// Returns the spec-compliant string representation of the provided
+        /// [`Candidate`].
+        #[must_use]
+        pub fn candidate_to_string(candidate: &Candidate) -> UniquePtr<CxxString>;
     }
 
     unsafe extern "C++" {
@@ -298,7 +481,7 @@ pub(crate) mod webrtc {
         type VideoTrackInterface;
         type VideoTrackSourceInterface;
         #[namespace = "webrtc"]
-        type VideoFrame;
+        pub type VideoFrame;
         type VideoSinkInterface;
         type VideoRotation;
 
@@ -430,6 +613,42 @@ pub(crate) mod webrtc {
         /// Converts the provided [`webrtc::VideoFrame`] pixels to the `ABGR`
         /// scheme and writes the result to the provided `buffer`.
         pub unsafe fn video_frame_to_abgr(frame: &VideoFrame, buffer: *mut u8);
+
+        /// Returns the timestamp of when the last data was received from the
+        /// provided [`CandidatePairChangeEvent`].
+        #[must_use]
+        pub fn get_last_data_received_ms(
+            event: &CandidatePairChangeEvent,
+        ) -> i64;
+
+        /// Returns the reason causing the provided
+        /// [`CandidatePairChangeEvent`].
+        #[must_use]
+        pub fn get_reason(
+            event: &CandidatePairChangeEvent,
+        ) -> UniquePtr<CxxString>;
+
+        /// Returns the estimated disconnect time in milliseconds from the
+        /// provided [`CandidatePairChangeEvent`].
+        #[must_use]
+        pub fn get_estimated_disconnected_time_ms(
+            event: &CandidatePairChangeEvent,
+        ) -> i64;
+
+        /// Returns the [`CandidatePair`] from the provided
+        /// [`CandidatePairChangeEvent`].
+        #[must_use]
+        pub fn get_candidate_pair(
+            event: &CandidatePairChangeEvent,
+        ) -> &CandidatePair;
+
+        /// Returns the local [`Candidate`] of the provided [`CandidatePair`].
+        #[must_use]
+        pub fn local_candidate(self: &CandidatePair) -> &Candidate;
+
+        /// Returns the remote [`Candidate`] of the provided [`CandidatePair`].
+        #[must_use]
+        pub fn remote_candidate(self: &CandidatePair) -> &Candidate;
     }
 
     extern "Rust" {
@@ -446,6 +665,7 @@ pub(crate) mod webrtc {
     extern "Rust" {
         type DynSetDescriptionCallback;
         type DynCreateSdpCallback;
+        type DynPeerConnectionEventsHandler;
 
         /// Successfully completes the provided [`DynSetDescriptionCallback`].
         pub fn create_sdp_success(
@@ -469,6 +689,110 @@ pub(crate) mod webrtc {
             error: &CxxString,
         );
 
+        /// Forwards the new [`SignalingState`] to the provided
+        /// [`DynPeerConnectionEventsHandler`] when a
+        /// [`signalingstatechange`][1] event occurs in the attached
+        /// [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#event-signalingstatechange
+        pub fn on_signaling_change(
+            cb: &mut DynPeerConnectionEventsHandler,
+            state: SignalingState,
+        );
+
+        /// Forwards the new [`IceConnectionState`] to the provided
+        /// [`DynPeerConnectionEventsHandler`] when an
+        /// [`iceconnectionstatechange`][1] event occurs in the attached
+        /// [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#event-iceconnectionstatechange
+        pub fn on_standardized_ice_connection_change(
+            cb: &mut DynPeerConnectionEventsHandler,
+            new_state: IceConnectionState,
+        );
+
+        /// Forwards the new [`PeerConnectionState`] to the provided
+        /// [`DynPeerConnectionEventsHandler`] when a
+        /// [`connectionstatechange`][1] event occurs in the attached
+        /// [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#event-connectionstatechange
+        pub fn on_connection_change(
+            cb: &mut DynPeerConnectionEventsHandler,
+            new_state: PeerConnectionState,
+        );
+
+        /// Forwards the new [`IceGatheringState`] to the provided
+        /// [`DynPeerConnectionEventsHandler`] when an
+        /// [`icegatheringstatechange`][1] event occurs in the attached
+        /// [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#event-icegatheringstatechange
+        pub fn on_ice_gathering_change(
+            cb: &mut DynPeerConnectionEventsHandler,
+            new_state: IceGatheringState,
+        );
+
+        /// Forwards a [`negotiation`][1] event to the provided
+        /// [`DynPeerConnectionEventsHandler`] when it occurs in the attached
+        /// [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#event-negotiation
+        pub fn on_negotiation_needed_event(
+            cb: &mut DynPeerConnectionEventsHandler,
+            event_id: u32,
+        );
+
+        /// Forwards an [`icecandidateerror`][1] event's error information to
+        /// the provided [`DynPeerConnectionEventsHandler`] when it occurs in
+        /// the attached [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#event-icecandidateerror
+        pub fn on_ice_candidate_error(
+            cb: &mut DynPeerConnectionEventsHandler,
+            address: &CxxString,
+            port: i32,
+            url: &CxxString,
+            error_code: i32,
+            error_text: &CxxString,
+        );
+
+        /// Forwards the new `receiving` status to the provided
+        /// [`DynPeerConnectionEventsHandler`] when an ICE connection receiving
+        /// status changes in the attached [`PeerConnectionInterface`].
+        pub fn on_ice_connection_receiving_change(
+            cb: &mut DynPeerConnectionEventsHandler,
+            receiving: bool,
+        );
+
+        /// Forwards the discovered [`IceCandidateInterface`] to the provided
+        /// [`DynPeerConnectionEventsHandler`] when an [`icecandidate`][1] event
+        /// occurs in the attached [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#event-icecandidate
+        pub unsafe fn on_ice_candidate(
+            cb: &mut DynPeerConnectionEventsHandler,
+            candidate: *const IceCandidateInterface,
+        );
+
+        /// Forwards the removed [`Candidate`]s to the given
+        /// [`DynPeerConnectionEventsHandler`] when some ICE candidates have
+        /// been removed.
+        pub fn on_ice_candidates_removed(
+            cb: &mut DynPeerConnectionEventsHandler,
+            candidates: &CxxVector<Candidate>,
+        );
+
+        /// Forwards the selected [`CandidatePairChangeEvent`] to the provided
+        /// [`DynPeerConnectionEventsHandler`] when a
+        /// [`selectedcandidatepairchange`][1] event occurs in the attached
+        /// [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://tinyurl.com/w3-selectedcandidatepairchange
+        pub fn on_ice_selected_candidate_pair_changed(
+            cb: &mut DynPeerConnectionEventsHandler,
+            event: &CandidatePairChangeEvent,
+        );
     }
 }
 
@@ -503,6 +827,155 @@ pub fn set_description_fail(
     cb.fail(error);
 }
 
+/// Forwards the given [`webrtc::VideoFrame`] the the provided
+/// [`DynOnFrameCallback`].
+fn on_frame(cb: &mut DynOnFrameCallback, frame: UniquePtr<webrtc::VideoFrame>) {
+    cb.on_frame(frame);
+}
+
+/// Forwards the new [`SignalingState`] to the provided
+/// [`DynPeerConnectionEventsHandler`] when a [`signalingstatechange`][1] event
+/// occurs in the attached [`PeerConnectionInterface`].
+///
+/// [`PeerConnectionInterface`]: webrtc::PeerConnectionInterface
+/// [`SignalingState`]: webrtc::SignalingState
+/// [1]: https://w3.org/TR/webrtc#event-signalingstatechange
+pub fn on_signaling_change(
+    cb: &mut DynPeerConnectionEventsHandler,
+    state: webrtc::SignalingState,
+) {
+    cb.on_signaling_change(state);
+}
+
+/// Forwards the new [`IceConnectionState`] to the provided
+/// [`DynPeerConnectionEventsHandler`] when an [`iceconnectionstatechange`][1]
+/// event occurs in the attached [`PeerConnectionInterface`].
+///
+/// [`PeerConnectionInterface`]: webrtc::PeerConnectionInterface
+/// [`IceConnectionState`]: webrtc::IceConnectionState
+/// [1]: https://w3.org/TR/webrtc#event-iceconnectionstatechange
+pub fn on_standardized_ice_connection_change(
+    cb: &mut DynPeerConnectionEventsHandler,
+    new_state: webrtc::IceConnectionState,
+) {
+    cb.on_standardized_ice_connection_change(new_state);
+}
+
+/// Forwards the new [`PeerConnectionState`] to the provided
+/// [`DynPeerConnectionEventsHandler`] when a [`connectionstatechange`][1] event
+/// occurs in the attached [`PeerConnectionInterface`].
+///
+/// [`PeerConnectionInterface`]: webrtc::PeerConnectionInterface
+/// [`PeerConnectionState`]: webrtc::PeerConnectionState
+/// [1]: https://w3.org/TR/webrtc#event-connectionstatechange
+pub fn on_connection_change(
+    cb: &mut DynPeerConnectionEventsHandler,
+    new_state: webrtc::PeerConnectionState,
+) {
+    cb.on_connection_change(new_state);
+}
+
+/// Forwards the new [`IceGatheringState`] to the provided
+/// [`DynPeerConnectionEventsHandler`] when an [`icegatheringstatechange`][1]
+/// event occurs in the attached [`PeerConnectionInterface`].
+///
+/// [`PeerConnectionInterface`]: webrtc::PeerConnectionInterface
+/// [`IceGatheringState`]: webrtc::IceGatheringState
+/// [1]: https://w3.org/TR/webrtc#event-icegatheringstatechange
+pub fn on_ice_gathering_change(
+    cb: &mut DynPeerConnectionEventsHandler,
+    new_state: webrtc::IceGatheringState,
+) {
+    cb.on_ice_gathering_change(new_state);
+}
+
+/// Forwards a [`negotiation`][1] event to the provided
+/// [`DynPeerConnectionEventsHandler`] when it occurs in the attached
+/// [`PeerConnectionInterface`].
+///
+/// [`PeerConnectionInterface`]: webrtc::PeerConnectionInterface
+/// [1]: https://w3.org/TR/webrtc#event-negotiation
+pub fn on_negotiation_needed_event(
+    cb: &mut DynPeerConnectionEventsHandler,
+    event_id: u32,
+) {
+    cb.on_negotiation_needed_event(event_id);
+}
+
+/// Forwards an [`icecandidateerror`][1] event's error information to the
+/// provided [`DynPeerConnectionEventsHandler`] when it occurs in the attached
+/// [`PeerConnectionInterface`].
+///
+/// [`PeerConnectionInterface`]: webrtc::PeerConnectionInterface
+/// [1]: https://w3.org/TR/webrtc#event-icecandidateerror
+pub fn on_ice_candidate_error(
+    cb: &mut DynPeerConnectionEventsHandler,
+    address: &CxxString,
+    port: i32,
+    url: &CxxString,
+    error_code: i32,
+    error_text: &CxxString,
+) {
+    cb.on_ice_candidate_error(address, port, url, error_code, error_text);
+}
+
+/// Forwards the new `receiving` status to the provided
+/// [`DynPeerConnectionEventsHandler`] when an ICE connection receiving status
+/// changes in the attached [`PeerConnectionInterface`].
+///
+/// [`PeerConnectionInterface`]: webrtc::PeerConnectionInterface
+pub fn on_ice_connection_receiving_change(
+    cb: &mut DynPeerConnectionEventsHandler,
+    receiving: bool,
+) {
+    cb.on_ice_connection_receiving_change(receiving);
+}
+
+/// Forwards the discovered [`IceCandidateInterface`] to the provided
+/// [`DynPeerConnectionEventsHandler`] when an [`icecandidate`][1] event occurs
+/// in the attached [`PeerConnectionInterface`].
+///
+/// [`PeerConnectionInterface`]: webrtc::PeerConnectionInterface
+/// [`IceCandidateInterface`]: webrtc::IceCandidateInterface
+/// [1]: https://w3.org/TR/webrtc#event-icecandidate
+pub fn on_ice_candidate(
+    cb: &mut DynPeerConnectionEventsHandler,
+    candidate: *const webrtc::IceCandidateInterface,
+) {
+    cb.on_ice_candidate(candidate);
+}
+
+/// Forwards the removed [`Candidate`]s to the given
+/// [`DynPeerConnectionEventsHandler`] when some ICE candidates have been
+/// removed.
+///
+/// [`Candidate`]: webrtc::Candidate
+pub fn on_ice_candidates_removed(
+    cb: &mut DynPeerConnectionEventsHandler,
+    candidates: &CxxVector<webrtc::Candidate>,
+) {
+    cb.on_ice_candidates_removed(candidates);
+}
+
+/// Called when a [`selectedcandidatepairchange`][1] event occurs in the
+/// attached [`PeerConnectionInterface`]. Forwards the selected
+/// [`CandidatePairChangeEvent`] to the given
+/// [`DynPeerConnectionEventsHandler`].
+///
+/// Forwards the selected [`CandidatePairChangeEvent`] to the provided
+/// [`DynPeerConnectionEventsHandler`] when a [`selectedcandidatepairchange`][1]
+/// event occurs in the attached [`PeerConnectionInterface`].
+///
+/// [`PeerConnectionInterface`]: webrtc::PeerConnectionInterface
+/// [`CandidatePairChangeEvent`]: webrtc::CandidatePairChangeEvent
+/// [1]: https://tinyurl.com/w3-selectedcandidatepairchange
+pub fn on_ice_selected_candidate_pair_changed(
+    cb: &mut DynPeerConnectionEventsHandler,
+    event: &webrtc::CandidatePairChangeEvent,
+) {
+    cb.on_ice_selected_candidate_pair_changed(event);
+}
+
 impl TryFrom<&str> for webrtc::SdpType {
     type Error = anyhow::Error;
 
@@ -529,8 +1002,64 @@ impl fmt::Display for webrtc::SdpType {
     }
 }
 
-/// Forwards the given [`webrtc::VideoFrame`] the the provided
-/// [`DynOnFrameCallback`].
-fn on_frame(cb: &mut DynOnFrameCallback, frame: UniquePtr<webrtc::VideoFrame>) {
-    cb.on_frame(frame);
+impl fmt::Display for webrtc::SignalingState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use webrtc::SignalingState as S;
+
+        match *self {
+            S::kStable => write!(f, "stable"),
+            S::kHaveLocalOffer => write!(f, "have-local-offer"),
+            S::kHaveLocalPrAnswer => write!(f, "have-local-pranswer"),
+            S::kHaveRemoteOffer => write!(f, "have-remote-offer"),
+            S::kHaveRemotePrAnswer => write!(f, "have-remote-pranswer"),
+            S::kClosed => write!(f, "closed"),
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl fmt::Display for webrtc::IceGatheringState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use webrtc::IceGatheringState as S;
+
+        match *self {
+            S::kIceGatheringNew => write!(f, "new"),
+            S::kIceGatheringGathering => write!(f, "gathering"),
+            S::kIceGatheringComplete => write!(f, "complete"),
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl fmt::Display for webrtc::IceConnectionState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use webrtc::IceConnectionState as S;
+
+        match *self {
+            S::kIceConnectionNew => write!(f, "new"),
+            S::kIceConnectionChecking => write!(f, "checking"),
+            S::kIceConnectionConnected => write!(f, "connected"),
+            S::kIceConnectionCompleted => write!(f, "completed"),
+            S::kIceConnectionFailed => write!(f, "failed"),
+            S::kIceConnectionDisconnected => write!(f, "disconnected"),
+            S::kIceConnectionClosed => write!(f, "closed"),
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl fmt::Display for webrtc::PeerConnectionState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use webrtc::PeerConnectionState as S;
+
+        match *self {
+            S::kNew => write!(f, "new"),
+            S::kConnecting => write!(f, "connecting"),
+            S::kConnected => write!(f, "connected"),
+            S::kDisconnected => write!(f, "disconnected"),
+            S::kFailed => write!(f, "failed"),
+            S::kClosed => write!(f, "closed"),
+            _ => unreachable!(),
+        }
+    }
 }

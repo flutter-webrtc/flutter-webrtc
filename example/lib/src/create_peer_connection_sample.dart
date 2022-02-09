@@ -27,61 +27,21 @@ class _PeerConnectionSampleState extends State<PeerConnectionSample> {
 
   void _create_peer() async {
     try {
-      final createPeerConnection1 =
-          await WebRTC.invokeMethod('createPeerConnection', null);
-      String pc1_id = createPeerConnection1['peerConnectionId'];
-      final createPeerConnection2 =
-          await WebRTC.invokeMethod('createPeerConnection', null);
-      String pc2_id = createPeerConnection2['peerConnectionId'];
+      var pc1 = await createPeerConnection({});
+      var pc2 = await createPeerConnection({});
 
-      final createOffer1 = await WebRTC.invokeMethod(
-          'createOffer', <String, dynamic>{
-        'peerConnectionId': pc1_id,
-        'constraints': defaultSdpConstraints
-      });
+      var offer = await pc1.createOffer();
+      await pc1.setLocalDescription(offer);
+      await pc2.setRemoteDescription(offer);
 
-      final setLocalDescription1 =
-          await WebRTC.invokeMethod('setLocalDescription', <String, dynamic>{
-        'peerConnectionId': pc1_id,
-        'description': {
-          'sdp': createOffer1['sdp'],
-          'type': createOffer1['type']
-        }
-      });
-
-      final setRemoteDescription2 =
-          await WebRTC.invokeMethod('setRemoteDescription', <String, dynamic>{
-        'peerConnectionId': pc2_id,
-        'description': {'sdp': createOffer1['sdp'], 'type': 'offer'}
-      });
-
-      final createAnswer2 = await WebRTC.invokeMethod(
-          'createAnswer', <String, dynamic>{
-        'peerConnectionId': pc2_id,
-        'constraints': defaultSdpConstraints
-      });
-
-      final setLocalDescription2 =
-          await WebRTC.invokeMethod('setLocalDescription', <String, dynamic>{
-        'peerConnectionId': pc2_id,
-        'description': {
-          'sdp': createAnswer2['sdp'],
-          'type': createAnswer2['type']
-        }
-      });
-
-      final setRemoteDescription1 =
-          await WebRTC.invokeMethod('setRemoteDescription', <String, dynamic>{
-        'peerConnectionId': pc1_id,
-        'description': {
-          'sdp': createAnswer2['sdp'],
-          'type': createAnswer2['type']
-        }
-      });
+      var answer = await pc2.createAnswer({});
+      await pc2.setLocalDescription(answer);
+      await pc1.setRemoteDescription(answer);
 
       setState(() {
         text = 'test is success';
       });
+
     } catch (e) {
       setState(() {
         text = e.toString();

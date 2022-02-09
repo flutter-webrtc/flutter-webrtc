@@ -311,9 +311,8 @@ std::unique_ptr<PeerConnectionInterface> create_peer_connection_or_error(
     const RTCConfiguration& configuration,
     std::unique_ptr<PeerConnectionDependencies> dependencies,
     rust::String& error) {
-  PeerConnectionDependencies pcd = std::move(*(dependencies.release()));
   auto pc = peer_connection_factory->CreatePeerConnectionOrError(
-      configuration, std::move(pcd));
+      configuration, std::move(*dependencies));
 
   if (pc.ok()) {
     return std::make_unique<PeerConnectionInterface>(pc.MoveValue());
@@ -329,14 +328,16 @@ std::unique_ptr<RTCConfiguration> create_default_rtc_configuration() {
 }
 
 // Creates a new `PeerConnectionObserver`.
-std::unique_ptr<PeerConnectionObserver> create_peer_connection_observer() {
-  return std::make_unique<PeerConnectionObserver>();
+std::unique_ptr<PeerConnectionObserver> create_peer_connection_observer(
+    rust::Box<bridge::DynPeerConnectionEventsHandler> cb) {
+  return std::make_unique<PeerConnectionObserver>(
+      PeerConnectionObserver(std::move(cb)));
 }
 
 // Creates a new `PeerConnectionDependencies`.
 std::unique_ptr<PeerConnectionDependencies> create_peer_connection_dependencies(
-    std::unique_ptr<PeerConnectionObserver> observer) {
-  PeerConnectionDependencies pcd(observer.release());
+    const std::unique_ptr<PeerConnectionObserver>& observer) {
+  PeerConnectionDependencies pcd(observer.get());
   return std::make_unique<PeerConnectionDependencies>(std::move(pcd));
 }
 
@@ -414,6 +415,45 @@ void set_remote_description(PeerConnectionInterface& peer_connection_interface,
   auto observer =
       rtc::scoped_refptr<SetRemoteDescriptionObserver>(obs.release());
   peer_connection_interface->SetRemoteDescription(std::move(desc), observer);
+}
+
+// Calls `IceCandidateInterface->ToString`.
+std::unique_ptr<std::string>
+ice_candidate_interface_to_string(const IceCandidateInterface* candidate) {
+    std::string out;
+    candidate->ToString(&out);
+    return std::make_unique<std::string>(out);
+};
+
+// Calls `Candidate->ToString`.
+std::unique_ptr<std::string>
+candidate_to_string(const cricket::Candidate& candidate) {
+  return std::make_unique<std::string>(candidate.ToString());
+};
+
+// Returns `CandidatePairChangeEvent.candidate_pair` field value.
+const cricket::CandidatePair&
+get_candidate_pair(const cricket::CandidatePairChangeEvent& event) {
+  return event.selected_candidate_pair;
+};
+
+// Returns `CandidatePairChangeEvent.last_data_received_ms` field value.
+int64_t get_last_data_received_ms(
+    const cricket::CandidatePairChangeEvent& event) {
+  return event.last_data_received_ms;
+}
+
+// Returns `CandidatePairChangeEvent.reason` field value.
+std::unique_ptr<std::string>
+get_reason(const cricket::CandidatePairChangeEvent& event) {
+  return std::make_unique<std::string>(event.reason);
+}
+
+// Returns `CandidatePairChangeEvent.estimated_disconnected_time_ms` field
+// value.
+int64_t get_estimated_disconnected_time_ms(
+    const cricket::CandidatePairChangeEvent& event) {
+  return event.estimated_disconnected_time_ms;
 }
 
 }  // namespace bridge

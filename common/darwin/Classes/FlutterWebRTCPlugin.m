@@ -129,7 +129,7 @@
 
         /*Create Event Channel.*/
         peerConnection.eventChannel = [FlutterEventChannel
-                                       eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/peerConnectoinEvent%@", peerConnectionId]
+                                       eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/peerConnectionEvent%@", peerConnectionId]
                                        binaryMessenger:_messenger];
         [peerConnection.eventChannel setStreamHandler:peerConnection];
 

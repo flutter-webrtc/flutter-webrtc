@@ -25,12 +25,18 @@ using Thread = rtc::Thread;
 using VideoSinkInterface = rtc::VideoSinkInterface<webrtc::VideoFrame>;
 
 using AudioLayer = webrtc::AudioDeviceModule::AudioLayer;
+using IceCandidateInterface = webrtc::IceCandidateInterface;
+using IceConnectionState = webrtc::PeerConnectionInterface::IceConnectionState;
+using IceGatheringState = webrtc::PeerConnectionInterface::IceGatheringState;
 using PeerConnectionDependencies = webrtc::PeerConnectionDependencies;
+using PeerConnectionState =
+    webrtc::PeerConnectionInterface::PeerConnectionState;
 using RTCConfiguration = webrtc::PeerConnectionInterface::RTCConfiguration;
 using RTCOfferAnswerOptions =
     webrtc::PeerConnectionInterface::RTCOfferAnswerOptions;
 using SdpType = webrtc::SdpType;
 using SessionDescriptionInterface = webrtc::SessionDescriptionInterface;
+using SignalingState = webrtc::PeerConnectionInterface::SignalingState;
 using TaskQueueFactory = webrtc::TaskQueueFactory;
 using VideoDeviceInfo = webrtc::VideoCaptureModule::DeviceInfo;
 using VideoRotation = webrtc::VideoRotation;
@@ -198,12 +204,14 @@ std::unique_ptr<PeerConnectionInterface> create_peer_connection_or_error(
 // Creates a new default `RTCConfiguration`.
 std::unique_ptr<RTCConfiguration> create_default_rtc_configuration();
 
-// Creates a new `PeerConnectionObserver`.
-std::unique_ptr<PeerConnectionObserver> create_peer_connection_observer();
+// Creates a new `PeerConnectionObserver` backed by the provided
+// `DynPeerConnectionEventsHandler`.
+std::unique_ptr<PeerConnectionObserver> create_peer_connection_observer(
+    rust::Box<bridge::DynPeerConnectionEventsHandler> cb);
 
 // Creates a new `PeerConnectionDependencies`.
 std::unique_ptr<PeerConnectionDependencies> create_peer_connection_dependencies(
-    std::unique_ptr<PeerConnectionObserver> observer);
+    const std::unique_ptr<PeerConnectionObserver>& observer);
 
 // Creates a new `RTCOfferAnswerOptions`.
 std::unique_ptr<RTCOfferAnswerOptions>
@@ -253,5 +261,30 @@ void set_local_description(PeerConnectionInterface& peer,
 void set_remote_description(PeerConnectionInterface& peer,
                             std::unique_ptr<SessionDescriptionInterface> desc,
                             std::unique_ptr<SetRemoteDescriptionObserver> obs);
+
+// Calls `IceCandidateInterface->ToString`.
+std::unique_ptr<std::string>
+ice_candidate_interface_to_string(const IceCandidateInterface* candidate);
+
+// Creates an SDP-ized form of this `Candidate`.
+std::unique_ptr<std::string>
+candidate_to_string(const cricket::Candidate& candidate);
+
+// Returns `CandidatePairChangeEvent.candidate_pair` field value.
+const cricket::CandidatePair&
+get_candidate_pair(const cricket::CandidatePairChangeEvent& event);
+
+// Returns `CandidatePairChangeEvent.last_data_received_ms` field value.
+int64_t get_last_data_received_ms(
+    const cricket::CandidatePairChangeEvent& event);
+
+// Returns `CandidatePairChangeEvent.reason` field value.
+std::unique_ptr<std::string> get_reason(
+    const cricket::CandidatePairChangeEvent& event);
+
+// Returns `CandidatePairChangeEvent.estimated_disconnected_time_ms` field
+// value.
+int64_t get_estimated_disconnected_time_ms(
+    const cricket::CandidatePairChangeEvent& event);
 
 }  // namespace bridge

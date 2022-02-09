@@ -52,7 +52,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     this.messenger = messenger;
     this.id = id;
 
-    eventChannel = new EventChannel(messenger, "FlutterWebRTC/peerConnectoinEvent" + id);
+    eventChannel = new EventChannel(messenger, "FlutterWebRTC/peerConnectionEvent" + id);
     eventChannel.setStreamHandler(this);
   }
 
@@ -1038,7 +1038,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       params.putArray("senders", sendersParams.toArrayList());
       result.success(params.toMap());
     }
-  
+
     public void getReceivers(Result result) {
       List<RtpReceiver> receivers = peerConnection.getReceivers();
       ConstraintsArray receiversParams = new ConstraintsArray();
@@ -1049,7 +1049,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       params.putArray("receivers", receiversParams.toArrayList());
       result.success(params.toMap());
     }
-  
+
     public void getTransceivers(Result result) {
       List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
       ConstraintsArray transceiversParams = new ConstraintsArray();

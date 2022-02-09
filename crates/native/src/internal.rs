@@ -10,6 +10,7 @@ mod cpp_api_bindings {
         pub type CreateSdpCallbackInterface;
         pub type SetDescriptionCallbackInterface;
         pub type OnFrameCallbackInterface;
+        pub type PeerConnectionObserverInterface;
 
         type VideoFrame = crate::api::VideoFrame;
 
@@ -47,6 +48,63 @@ mod cpp_api_bindings {
             self: Pin<&mut OnFrameCallbackInterface>,
             frame: VideoFrame,
         );
+
+        /// Calls C++ side `PeerConnectionObserverInterface->OnSignalingChange`.
+        #[cxx_name = "OnSignalingChange"]
+        pub fn on_signaling_change(
+            self: Pin<&mut PeerConnectionObserverInterface>,
+            new_state: &CxxString,
+        );
+
+        /// Calls C++ side
+        /// `PeerConnectionObserverInterface->OnIceConnectionStateChange`.
+        #[cxx_name = "OnIceConnectionStateChange"]
+        pub fn on_ice_connection_state_change(
+            self: Pin<&mut PeerConnectionObserverInterface>,
+            new_state: &CxxString,
+        );
+
+        /// Calls C++ side
+        /// `PeerConnectionObserverInterface->OnConnectionStateChange`.
+        #[cxx_name = "OnConnectionStateChange"]
+        pub fn on_connection_state_change(
+            self: Pin<&mut PeerConnectionObserverInterface>,
+            new_state: &CxxString,
+        );
+
+        /// Calls C++ side
+        /// `PeerConnectionObserverInterface->OnIceGatheringStateChange`.
+        #[cxx_name = "OnIceGatheringStateChange"]
+        pub fn on_ice_gathering_change(
+            self: Pin<&mut PeerConnectionObserverInterface>,
+            new_state: &CxxString,
+        );
+
+        /// Calls C++ side
+        /// `PeerConnectionObserverInterface->OnNegotiationNeeded`.
+        #[cxx_name = "OnNegotiationNeeded"]
+        pub fn on_negotiation_needed(
+            self: Pin<&mut PeerConnectionObserverInterface>,
+        );
+
+        /// Calls C++ side
+        /// `PeerConnectionObserverInterface->OnIceCandidateError`.
+        #[cxx_name = "OnIceCandidateError"]
+        pub fn on_ice_candidate_error(
+            self: Pin<&mut PeerConnectionObserverInterface>,
+            address: &CxxString,
+            port: i32,
+            url: &CxxString,
+            error_code: i32,
+            error_text: &CxxString,
+        );
+
+        /// Calls C++ side `PeerConnectionObserverInterface->OnIceCandidate`.
+        #[cxx_name = "OnIceCandidate"]
+        pub fn on_ice_candidate(
+            self: Pin<&mut PeerConnectionObserverInterface>,
+            candidate: &CxxString,
+        );
     }
 
     // This will trigger `cxx` to generate `UniquePtrTarget` trait for the
@@ -58,6 +116,9 @@ mod cpp_api_bindings {
         );
         fn _touch_unique_ptr_on_frame_handler(
             i: UniquePtr<OnFrameCallbackInterface>,
+        );
+        fn _touch_unique_ptr_peer_connection_on_event_interface(
+            i: UniquePtr<PeerConnectionObserverInterface>,
         );
     }
 }
@@ -71,5 +132,10 @@ fn _touch_set_description_callback(
 
 fn _touch_unique_ptr_on_frame_handler(
     _: cxx::UniquePtr<OnFrameCallbackInterface>,
+) {
+}
+
+fn _touch_unique_ptr_peer_connection_on_event_interface(
+    _: cxx::UniquePtr<PeerConnectionObserverInterface>,
 ) {
 }

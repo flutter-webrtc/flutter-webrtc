@@ -1,9 +1,12 @@
-use cxx::{let_cxx_string, CxxString, UniquePtr};
+use cxx::{let_cxx_string, CxxString, CxxVector, UniquePtr};
 use derive_more::{Display, From, Into};
 use libwebrtc_sys as sys;
 
 use crate::{
-    internal::{CreateSdpCallbackInterface, SetDescriptionCallbackInterface},
+    internal::{
+        CreateSdpCallbackInterface, PeerConnectionObserverInterface,
+        SetDescriptionCallbackInterface,
+    },
     next_id, Webrtc,
 };
 
@@ -13,9 +16,11 @@ impl Webrtc {
     /// Writes an error to the provided `err` if any.
     pub fn create_peer_connection(
         self: &mut Webrtc,
+        obs: UniquePtr<PeerConnectionObserverInterface>,
         error: &mut String,
     ) -> u64 {
-        let peer = PeerConnection::new(&mut self.0.peer_connection_factory);
+        let peer =
+            PeerConnection::new(&mut self.0.peer_connection_factory, obs);
         match peer {
             Ok(peer) => self
                 .0
@@ -205,10 +210,14 @@ impl PeerConnection {
     /// Creates a new [`PeerConnection`].
     fn new(
         factory: &mut sys::PeerConnectionFactoryInterface,
+        observer: UniquePtr<PeerConnectionObserverInterface>,
     ) -> anyhow::Result<Self> {
+        let observer = sys::PeerConnectionObserver::new(Box::new(
+            PeerConnectionObserver(observer),
+        ));
         let inner = factory.create_peer_connection_or_error(
             &sys::RTCConfiguration::default(),
-            sys::PeerConnectionDependencies::default(),
+            sys::PeerConnectionDependencies::new(observer),
         )?;
 
         Ok(Self {
@@ -242,5 +251,74 @@ impl sys::SetDescriptionCallback for SetSdpCallback {
 
     fn fail(&mut self, error: &CxxString) {
         self.0.pin_mut().on_set_description_fail(error);
+    }
+}
+
+/// [`PeerConnectionObserverInterface`] wrapper.
+struct PeerConnectionObserver(UniquePtr<PeerConnectionObserverInterface>);
+
+impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
+    fn on_signaling_change(&mut self, new_state: sys::SignalingState) {
+        let_cxx_string!(new_state = new_state.to_string());
+        self.0.pin_mut().on_signaling_change(&new_state);
+    }
+
+    fn on_standardized_ice_connection_change(
+        &mut self,
+        new_state: sys::IceConnectionState,
+    ) {
+        let_cxx_string!(new_state = new_state.to_string());
+        self.0.pin_mut().on_ice_connection_state_change(&new_state);
+    }
+
+    fn on_connection_change(&mut self, new_state: sys::PeerConnectionState) {
+        let_cxx_string!(new_state = new_state.to_string());
+        self.0.pin_mut().on_connection_state_change(&new_state);
+    }
+
+    fn on_ice_gathering_change(&mut self, new_state: sys::IceGatheringState) {
+        let_cxx_string!(new_state = new_state.to_string());
+        self.0.pin_mut().on_ice_gathering_change(&new_state);
+    }
+
+    fn on_negotiation_needed_event(&mut self, _: u32) {
+        self.0.pin_mut().on_negotiation_needed();
+    }
+
+    fn on_ice_candidate_error(
+        &mut self,
+        address: &CxxString,
+        port: i32,
+        url: &CxxString,
+        error_code: i32,
+        error_text: &CxxString,
+    ) {
+        self.0
+            .pin_mut()
+            .on_ice_candidate_error(address, port, url, error_code, error_text);
+    }
+
+    fn on_ice_connection_receiving_change(&mut self, _: bool) {
+        // This is a non-spec-compliant event.
+    }
+
+    fn on_ice_candidate(
+        &mut self,
+        candidate: *const sys::IceCandidateInterface,
+    ) {
+        let mut string =
+            unsafe { sys::ice_candidate_interface_to_string(candidate) };
+        self.0.pin_mut().on_ice_candidate(&string.pin_mut());
+    }
+
+    fn on_ice_candidates_removed(&mut self, _: &CxxVector<sys::Candidate>) {
+        // This is a non-spec-compliant event.
+    }
+
+    fn on_ice_selected_candidate_pair_changed(
+        &mut self,
+        _: &sys::CandidatePairChangeEvent,
+    ) {
+        // This is a non-spec-compliant event.
     }
 }

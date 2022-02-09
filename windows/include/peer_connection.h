@@ -11,6 +11,7 @@ namespace flutter_webrtc_plugin {
 // provided `MethodResult`.
 void CreateRTCPeerConnection(
     Box<Webrtc>& webrtc,
+    flutter::BinaryMessenger* messenger,
     const flutter::MethodCall<EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 
