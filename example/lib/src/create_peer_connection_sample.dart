@@ -20,8 +20,7 @@ class _PeerConnectionSampleState extends State<PeerConnectionSample> {
   }
 
   final Map<String, dynamic> defaultSdpConstraints = {
-    'mandatory': {
-    },
+    'mandatory': {},
     'optional': [],
   };
 

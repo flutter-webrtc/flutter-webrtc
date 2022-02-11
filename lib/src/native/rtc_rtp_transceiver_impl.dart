@@ -59,21 +59,23 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
     this._id,
     this._direction,
     this._mid,
-    this._sender,
-    this._receiver,
+    // TODO: Implement Sender and Receiver.
+    // this._sender,
+    // this._receiver,
     this._peerConnectionId,
   );
 
   factory RTCRtpTransceiverNative.fromMap(Map<dynamic, dynamic> map,
       {required String peerConnectionId}) {
     var transceiver = RTCRtpTransceiverNative(
-        map['transceiverId'] ?? '',
+        map['transceiverId'],
         typeStringToRtpTransceiverDirection[map['direction']]!,
-        map['mid'] ?? '',
-        RTCRtpSenderNative.fromMap(map['sender'],
-            peerConnectionId: peerConnectionId),
-        RTCRtpReceiverNative.fromMap(map['receiver'],
-            peerConnectionId: peerConnectionId),
+        map['mid']!,
+        // TODO: Implement Sender and Receiver.
+        // RTCRtpSenderNative.fromMap(map['sender'],
+        //     peerConnectionId: peerConnectionId),
+        // RTCRtpReceiverNative.fromMap(map['receiver'],
+        //     peerConnectionId: peerConnectionId),
         peerConnectionId);
     return transceiver;
   }
@@ -91,8 +93,10 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   bool _stop = false;
   TransceiverDirection _direction;
   String _mid;
-  RTCRtpSender _sender;
-  RTCRtpReceiver _receiver;
+
+  // TODO: Implement Sender and Receiver.
+  late RTCRtpSender _sender;
+  late RTCRtpReceiver _receiver;
 
   set peerConnectionId(String id) {
     _peerConnectionId = id;

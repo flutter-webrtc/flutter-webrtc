@@ -113,10 +113,12 @@ pub mod api {
         pub device_id: String,
     }
 
-    /// The [`MediaStream`] represents a stream of media content. A stream
-    /// consists of several [`MediaStreamTrack`], such as video or audio tracks.
+    /// Representation of a stream of media content.
+    ///
+    /// This stream consists of several [`MediaStreamTrack`]s, such as video
+    /// and/or audio tracks.
     pub struct MediaStream {
-        /// Unique ID of this [`MediaStream`];
+        /// Unique ID of this [`MediaStream`].
         pub stream_id: u64,
 
         /// [`MediaStreamTrack`]s with [`TrackKind::kVideo`].
@@ -126,9 +128,10 @@ pub mod api {
         pub audio_tracks: Vec<MediaStreamTrack>,
     }
 
-    /// The [MediaStreamTrack] interface represents a single media track within
-    /// a stream; typically, these are audio or video tracks, but other track
-    /// types may exist as well.
+    /// Representation of a single media track within a [`MediaStream`].
+    ///
+    /// Typically, these are audio or video tracks, but other track types may
+    /// exist as well.
     pub struct MediaStreamTrack {
         /// Unique identifier (GUID) for the track
         pub id: u64,
@@ -151,6 +154,32 @@ pub mod api {
     pub enum TrackKind {
         kAudio,
         kVideo,
+    }
+
+    /// Representation of a permanent pair of an [RTCRtpSender] and an
+    /// [RTCRtpReceiver], along with some shared state.
+    ///
+    /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
+    /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
+    #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+    pub struct RtcRtpTransceiver {
+        /// ID of this [`RtcRtpTransceiver`].
+        ///
+        /// It's not unique across all possible [`RtcRtpTransceiver`]s, but only
+        /// within a specific peer.
+        pub id: u64,
+
+        /// [Negotiated media ID (mid)][1] which the local and remote peers have
+        /// agreed upon to uniquely identify the [`MediaStream`]'s pairing of
+        /// sender and receiver.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dfn-media-stream-identification-tag
+        pub mid: String,
+
+        /// Preferred [`direction`][1] of this [`RtcRtpTransceiver`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver-direction
+        pub direction: String,
     }
 
     /// Single video frame.
@@ -268,6 +297,25 @@ pub mod api {
             sdp: String,
             cb: UniquePtr<SetDescriptionCallbackInterface>,
         ) -> String;
+
+        /// Creates a new [`RtcRtpTransceiver`] and adds it to the set of
+        /// transceivers of the specified [`PeerConnection`].
+        #[cxx_name = "AddTransceiver"]
+        pub fn add_transceiver(
+            self: &mut Webrtc,
+            peer_id: u64,
+            media_type: &str,
+            direction: &str,
+        ) -> RtcRtpTransceiver;
+
+        /// Returns a sequence of [`RtcRtpTransceiver`] objects representing
+        /// the RTP transceivers currently attached to the specified
+        /// [`PeerConnection`].
+        #[cxx_name = "GetTransceivers"]
+        pub fn get_transceivers(
+            self: &mut Webrtc,
+            peer_id: u64,
+        ) -> Vec<RtcRtpTransceiver>;
 
         /// Creates a [`MediaStream`] with tracks according to provided
         /// [`MediaStreamConstraints`].

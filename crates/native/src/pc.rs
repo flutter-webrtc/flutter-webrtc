@@ -3,6 +3,7 @@ use derive_more::{Display, From, Into};
 use libwebrtc_sys as sys;
 
 use crate::{
+    api,
     internal::{
         CreateSdpCallbackInterface, PeerConnectionObserverInterface,
         SetDescriptionCallbackInterface,
@@ -191,6 +192,77 @@ impl Webrtc {
 
         String::new()
     }
+
+    /// Creates a new [`api::RtcRtpTransceiver`] and adds it to the set of
+    /// transceivers of the specified [`PeerConnection`].
+    ///
+    /// # Panics
+    ///
+    /// - If cannot parse the given `media_type` and `direction` to a valid
+    ///   [`sys::MediaType`] and [`sys::RtpTransceiverDirection`].
+    /// - If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    pub fn add_transceiver(
+        &mut self,
+        peer_id: u64,
+        media_type: &str,
+        direction: &str,
+    ) -> api::RtcRtpTransceiver {
+        let peer = self
+            .0
+            .peer_connections
+            .get_mut(&PeerConnectionId(peer_id))
+            .unwrap();
+
+        let transceiver = peer.inner.add_transceiver(
+            media_type.try_into().unwrap(),
+            direction.try_into().unwrap(),
+        );
+
+        let result = api::RtcRtpTransceiver {
+            id: peer.transceivers.len() as u64,
+            mid: transceiver.mid().unwrap_or_default(),
+            direction: transceiver.direction().to_string(),
+        };
+
+        peer.transceivers.push(transceiver);
+
+        result
+    }
+
+    /// Returns a sequence of [`api::RtcRtpTransceiver`] objects representing
+    /// the RTP transceivers currently attached to specified [`PeerConnection`].
+    ///
+    /// # Panics
+    ///
+    /// If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    pub fn get_transceivers(
+        &mut self,
+        peer_id: u64,
+    ) -> Vec<api::RtcRtpTransceiver> {
+        let peer = self
+            .0
+            .peer_connections
+            .get_mut(&PeerConnectionId(peer_id))
+            .unwrap();
+
+        let transceivers = peer.inner.get_transceivers();
+        let mut result = Vec::with_capacity(transceivers.len());
+
+        for (index, transceiver) in transceivers.into_iter().enumerate() {
+            let info = api::RtcRtpTransceiver {
+                id: index as u64,
+                mid: transceiver.mid().unwrap_or_default(),
+                direction: transceiver.direction().to_string(),
+            };
+            result.push(info);
+
+            if index == peer.transceivers.len() {
+                peer.transceivers.push(transceiver);
+            }
+        }
+
+        result
+    }
 }
 
 /// ID of a [`PeerConnection`].
@@ -204,6 +276,9 @@ pub struct PeerConnection {
 
     /// Underlying [`sys::PeerConnectionInterface`].
     inner: sys::PeerConnectionInterface,
+
+    /// [`sys::Transceiver`]s of this [`PeerConnection`].
+    transceivers: Vec<sys::RtpTransceiverInterface>,
 }
 
 impl PeerConnection {
@@ -223,6 +298,7 @@ impl PeerConnection {
         Ok(Self {
             id: PeerConnectionId::from(next_id()),
             inner,
+            transceivers: Vec::new(),
         })
     }
 }

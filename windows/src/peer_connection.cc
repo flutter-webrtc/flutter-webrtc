@@ -189,6 +189,21 @@ namespace flutter_webrtc_plugin {
 
 using namespace flutter;
 
+// Converts a Rust `RtcRtpTransceiver` into a Dart `EncodableMap`.
+EncodableMap TransceiverToMap(RtcRtpTransceiver transceiver) {
+  EncodableMap info;
+
+  info[EncodableValue("transceiverId")] =
+      EncodableValue(std::to_string(transceiver.id));
+  info[EncodableValue("mid")] = EncodableValue(std::string(transceiver.mid));
+  info[EncodableValue("direction")] =
+      EncodableValue(std::string(transceiver.direction));
+  info[EncodableValue("sender")] = EncodableValue(EncodableMap());
+  info[EncodableValue("receiver")] = EncodableValue(EncodableMap());
+
+  return info;
+}
+
 // Calls Rust `CreatePeerConnection()` and writes newly created peer ID to the
 // provided `MethodResult`.
 void CreateRTCPeerConnection(
@@ -412,6 +427,54 @@ void SetRemoteDescription(
   if (error != "") {
     shared_result->Error("SetLocalDescription", std::string(error));
   }
+}
+
+// Calls Rust `AddTransceiver()`.
+void AddTransceiver(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+
+  auto transceiver = webrtc->AddTransceiver(
+      std::stoi(findString(params, "peerConnectionId")),
+      findString(params, "mediaType"),
+      findString(findMap(params, "transceiverInit"), "direction"));
+
+  result->Success(EncodableValue(TransceiverToMap(transceiver)));
+}
+
+// Calls Rust `GetTransceivers()`.
+void GetTransceivers(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+
+  auto transceivers = webrtc->GetTransceivers(
+      std::stoi(findString(params, "peerConnectionId")));
+
+  EncodableList infos;
+  for (auto transceiver : transceivers) {
+    infos.push_back(TransceiverToMap(transceiver));
+  }
+
+  EncodableMap map;
+  map[EncodableValue("transceivers")] = EncodableValue(infos);
+
+  result->Success(EncodableValue(map));
 }
 
 }  // namespace flutter_webrtc_plugin

@@ -37,7 +37,7 @@ lint: cargo.lint
 
 run: flutter.run
 
-test: cargo.test
+test: cargo.test flutter.test
 
 
 
@@ -73,6 +73,18 @@ flutter.pub:
 flutter.run:
 	cd example/ && \
 	flutter run -d windows --release
+
+
+# Run Flutter plugin integration tests on an attached device.
+#
+# Usage:
+#	make flutter.test [device=<device-id>]
+flutter.test:
+	cd example/ && \
+	flutter drive --driver=test_driver/integration_driver.dart \
+	              --target=integration_test/webrtc_test.dart \
+	              --profile \
+	              $(if $(call eq,$(device),),,-d $(device))
 
 
 
@@ -183,6 +195,8 @@ docs.rust: cargo.doc
 
 test.cargo: cargo.test
 
+test.flutter: flutter.test
+
 
 
 
@@ -193,5 +207,5 @@ test.cargo: cargo.test
 .PHONY: build deps docs fmt lint run test \
         cargo.build cargo.doc cargo.fmt cargo.lint cargo.test \
         docs.rust \
-        flutter.build flutter.pub flutter.run \
-        test.cargo \
+        flutter.build flutter.pub flutter.run flutter.test \
+        test.cargo test.flutter

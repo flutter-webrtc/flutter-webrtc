@@ -71,6 +71,29 @@ pub(crate) mod webrtc {
         kRollback,
     }
 
+    /// Possible kinds of an [`RtpTransceiverInterface`].
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    pub enum MediaType {
+        MEDIA_TYPE_AUDIO = 0,
+        MEDIA_TYPE_VIDEO,
+        MEDIA_TYPE_DATA,
+        MEDIA_TYPE_UNSUPPORTED,
+    }
+
+    /// [RTCRtpTransceiverDirection][1] representation.
+    ///
+    /// [1]: https://w3.org/TR/webrtc#dom-rtcrtptransceiverdirection
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    pub enum RtpTransceiverDirection {
+        kSendRecv = 0,
+        kSendOnly,
+        kRecvOnly,
+        kInactive,
+        kStopped,
+    }
+
     /// Possible variants of a [`VideoFrame`]'s rotation.
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     #[repr(i32)]
@@ -79,6 +102,15 @@ pub(crate) mod webrtc {
         kVideoRotation_90 = 90,
         kVideoRotation_180 = 180,
         kVideoRotation_270 = 270,
+    }
+
+    // TODO: Remove once `cxx` crate allows using pointers to opaque types in
+    //       vectors: https://github.com/dtolnay/cxx/issues/741
+    /// Wrapper for an [`RtpTransceiverInterface`] that can be used in Rust/C++
+    /// vectors.
+    struct TransceiverContainer {
+        /// Wrapped [`RtpTransceiverInterface`].
+        pub ptr: UniquePtr<RtpTransceiverInterface>,
     }
 
     /// [RTCSignalingState] representation.
@@ -335,6 +367,7 @@ pub(crate) mod webrtc {
         #[namespace = "cricket"]
         pub type CandidatePairChangeEvent;
         pub type IceCandidateInterface;
+        pub type MediaType;
         #[namespace = "cricket"]
         type CandidatePair;
         type CreateSessionDescriptionObserver;
@@ -346,6 +379,8 @@ pub(crate) mod webrtc {
         type PeerConnectionState;
         type RTCConfiguration;
         type RTCOfferAnswerOptions;
+        type RtpTransceiverDirection;
+        type RtpTransceiverInterface;
         type SdpType;
         type SessionDescriptionInterface;
         type SetLocalDescriptionObserver;
@@ -472,6 +507,35 @@ pub(crate) mod webrtc {
         /// [`Candidate`].
         #[must_use]
         pub fn candidate_to_string(candidate: &Candidate) -> UniquePtr<CxxString>;
+
+        /// Creates a new [`RtpTransceiverInterface`] and adds it to the set of
+        /// transceivers of the given [`PeerConnectionInterface`].
+        pub fn add_transceiver(
+            peer_connection_interface: Pin<&mut PeerConnectionInterface>,
+            media_type: MediaType,
+            direction: RtpTransceiverDirection
+        ) -> UniquePtr<RtpTransceiverInterface>;
+
+        /// Returns a sequence of [`RtpTransceiverInterface`] objects
+        /// representing the RTP transceivers currently attached to the given
+        /// [`PeerConnectionInterface`] object.
+        pub fn get_transceivers(
+            peer_connection_interface: &PeerConnectionInterface
+        ) -> Vec<TransceiverContainer>;
+
+        /// Returns a `mid` of the given [`RtpTransceiverInterface`].
+        ///
+        /// If an empty [`String`] is returned, then the given
+        /// [`RtpTransceiverInterface`] hasn't been negotiated yet.
+        pub fn get_transceiver_mid(
+            transceiver: &RtpTransceiverInterface
+        ) -> String;
+
+        /// Returns a [`RtpTransceiverDirection`] of the given
+        /// [`RtpTransceiverInterface`].
+        pub fn get_transceiver_direction(
+            transceiver: &RtpTransceiverInterface
+        ) -> RtpTransceiverDirection;
     }
 
     unsafe extern "C++" {
@@ -990,13 +1054,59 @@ impl TryFrom<&str> for webrtc::SdpType {
     }
 }
 
+impl TryFrom<&str> for webrtc::MediaType {
+    type Error = anyhow::Error;
+
+    fn try_from(val: &str) -> Result<Self, Self::Error> {
+        match val {
+            "audio" => Ok(Self::MEDIA_TYPE_AUDIO),
+            "video" => Ok(Self::MEDIA_TYPE_VIDEO),
+            "data" => Ok(Self::MEDIA_TYPE_DATA),
+            "unsupported" => Ok(Self::MEDIA_TYPE_UNSUPPORTED),
+            v => Err(anyhow!("Invalid `MediaType`: {v}")),
+        }
+    }
+}
+
+impl TryFrom<&str> for webrtc::RtpTransceiverDirection {
+    type Error = anyhow::Error;
+
+    fn try_from(val: &str) -> Result<Self, Self::Error> {
+        match val {
+            "sendrecv" => Ok(Self::kSendRecv),
+            "sendonly" => Ok(Self::kSendOnly),
+            "recvonly" => Ok(Self::kRecvOnly),
+            "stopped" => Ok(Self::kStopped),
+            "inactive" => Ok(Self::kInactive),
+            v => Err(anyhow!("Invalid `RtpTransceiverDirection`: {v}")),
+        }
+    }
+}
+
 impl fmt::Display for webrtc::SdpType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use webrtc::SdpType as ST;
+
         match *self {
-            webrtc::SdpType::kOffer => write!(f, "offer"),
-            webrtc::SdpType::kAnswer => write!(f, "answer"),
-            webrtc::SdpType::kPrAnswer => write!(f, "pranswer"),
-            webrtc::SdpType::kRollback => write!(f, "rollback"),
+            ST::kOffer => write!(f, "offer"),
+            ST::kAnswer => write!(f, "answer"),
+            ST::kPrAnswer => write!(f, "pranswer"),
+            ST::kRollback => write!(f, "rollback"),
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl fmt::Display for webrtc::RtpTransceiverDirection {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use webrtc::RtpTransceiverDirection as D;
+
+        match *self {
+            D::kSendRecv => write!(f, "sendrecv"),
+            D::kSendOnly => write!(f, "sendonly"),
+            D::kRecvOnly => write!(f, "recvonly"),
+            D::kInactive => write!(f, "inactive"),
+            D::kStopped => write!(f, "stopped"),
             _ => unreachable!(),
         }
     }

@@ -41,4 +41,16 @@ void SetRemoteDescription(
     const flutter::MethodCall<EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 
-} // namespace flutter_webrtc_plugin
+// Adds a new `RTCRtpTransceiver` to a `PeerConnectionInterface`.
+void AddTransceiver(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
+// Returns a list of `RTCRtpTransceiver`s of a `PeerConnectionInterface`.
+void GetTransceivers(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
+}  // namespace flutter_webrtc_plugin

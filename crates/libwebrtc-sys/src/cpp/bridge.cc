@@ -7,6 +7,8 @@
 #include "libyuv.h"
 #include "modules/audio_device/include/audio_device_factory.h"
 
+#include "libwebrtc-sys/src/bridge.rs.h"
+
 namespace bridge {
 
 // Calls `AudioDeviceModule->Create()`.
@@ -160,8 +162,8 @@ std::unique_ptr<VideoTrackSourceInterface> create_display_video_source(
 // `AudioOptions`.
 std::unique_ptr<AudioSourceInterface> create_audio_source(
     const PeerConnectionFactoryInterface& peer_connection_factory) {
-  auto src = peer_connection_factory->CreateAudioSource(
-      cricket::AudioOptions());
+  auto src =
+      peer_connection_factory->CreateAudioSource(cricket::AudioOptions());
 
   if (src == nullptr) {
     return nullptr;
@@ -175,8 +177,8 @@ std::unique_ptr<VideoTrackInterface> create_video_track(
     const PeerConnectionFactoryInterface& peer_connection_factory,
     rust::String id,
     const VideoTrackSourceInterface& video_source) {
-  auto track = peer_connection_factory->CreateVideoTrack(
-      std::string(id), video_source);
+  auto track =
+      peer_connection_factory->CreateVideoTrack(std::string(id), video_source);
 
   if (track == nullptr) {
     return nullptr;
@@ -190,8 +192,8 @@ std::unique_ptr<AudioTrackInterface> create_audio_track(
     const PeerConnectionFactoryInterface& peer_connection_factory,
     rust::String id,
     const AudioSourceInterface& audio_source) {
-  auto track = peer_connection_factory->CreateAudioTrack(
-      std::string(id), audio_source);
+  auto track =
+      peer_connection_factory->CreateAudioTrack(std::string(id), audio_source);
 
   if (track == nullptr) {
     return nullptr;
@@ -204,8 +206,8 @@ std::unique_ptr<AudioTrackInterface> create_audio_track(
 std::unique_ptr<MediaStreamInterface> create_local_media_stream(
     const PeerConnectionFactoryInterface& peer_connection_factory,
     rust::String id) {
-  auto
-      stream = peer_connection_factory->CreateLocalMediaStream(std::string(id));
+  auto stream =
+      peer_connection_factory->CreateLocalMediaStream(std::string(id));
 
   if (stream == nullptr) {
     return nullptr;
@@ -324,7 +326,9 @@ std::unique_ptr<PeerConnectionInterface> create_peer_connection_or_error(
 
 // Creates a new default `RTCConfiguration`.
 std::unique_ptr<RTCConfiguration> create_default_rtc_configuration() {
-  return std::make_unique<RTCConfiguration>();
+  RTCConfiguration config;
+  config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
+  return std::make_unique<RTCConfiguration>(config);
 }
 
 // Creates a new `PeerConnectionObserver`.
@@ -363,8 +367,7 @@ std::unique_ptr<RTCOfferAnswerOptions> create_rtc_offer_answer_options(
 // Creates a new `CreateSessionDescriptionObserver` from the provided
 // `bridge::DynCreateSdpCallback`.
 std::unique_ptr<CreateSessionDescriptionObserver>
-create_create_session_observer(
-    rust::Box<bridge::DynCreateSdpCallback> cb) {
+create_create_session_observer(rust::Box<bridge::DynCreateSdpCallback> cb) {
   return std::make_unique<CreateSessionDescriptionObserver>(std::move(cb));
 }
 
@@ -418,22 +421,22 @@ void set_remote_description(PeerConnectionInterface& peer_connection_interface,
 }
 
 // Calls `IceCandidateInterface->ToString`.
-std::unique_ptr<std::string>
-ice_candidate_interface_to_string(const IceCandidateInterface* candidate) {
-    std::string out;
-    candidate->ToString(&out);
-    return std::make_unique<std::string>(out);
+std::unique_ptr<std::string> ice_candidate_interface_to_string(
+    const IceCandidateInterface* candidate) {
+  std::string out;
+  candidate->ToString(&out);
+  return std::make_unique<std::string>(out);
 };
 
 // Calls `Candidate->ToString`.
-std::unique_ptr<std::string>
-candidate_to_string(const cricket::Candidate& candidate) {
+std::unique_ptr<std::string> candidate_to_string(
+    const cricket::Candidate& candidate) {
   return std::make_unique<std::string>(candidate.ToString());
 };
 
 // Returns `CandidatePairChangeEvent.candidate_pair` field value.
-const cricket::CandidatePair&
-get_candidate_pair(const cricket::CandidatePairChangeEvent& event) {
+const cricket::CandidatePair& get_candidate_pair(
+    const cricket::CandidatePairChangeEvent& event) {
   return event.selected_candidate_pair;
 };
 
@@ -444,8 +447,8 @@ int64_t get_last_data_received_ms(
 }
 
 // Returns `CandidatePairChangeEvent.reason` field value.
-std::unique_ptr<std::string>
-get_reason(const cricket::CandidatePairChangeEvent& event) {
+std::unique_ptr<std::string> get_reason(
+    const cricket::CandidatePairChangeEvent& event) {
   return std::make_unique<std::string>(event.reason);
 }
 
@@ -454,6 +457,44 @@ get_reason(const cricket::CandidatePairChangeEvent& event) {
 int64_t get_estimated_disconnected_time_ms(
     const cricket::CandidatePairChangeEvent& event) {
   return event.estimated_disconnected_time_ms;
+}
+
+// Calls `PeerConnectionInterface->AddTransceiver`.
+std::unique_ptr<RtpTransceiverInterface> add_transceiver(
+    PeerConnectionInterface& peer,
+    cricket::MediaType media_type,
+    RtpTransceiverDirection direction) {
+  auto transceiver_init = webrtc::RtpTransceiverInit();
+  transceiver_init.direction = direction;
+
+  return std::make_unique<RtpTransceiverInterface>(
+      peer->AddTransceiver(media_type, transceiver_init).MoveValue());
+}
+
+// Calls `PeerConnectionInterface->GetTransceivers`.
+rust::Vec<TransceiverContainer> get_transceivers(
+    const PeerConnectionInterface& peer) {
+  rust::Vec<TransceiverContainer> transceivers;
+
+  for (auto transceiver : peer->GetTransceivers()) {
+    TransceiverContainer container = {
+        std::make_unique<RtpTransceiverInterface>(transceiver)
+    };
+    transceivers.push_back(std::move(container));
+  }
+
+  return transceivers;
+}
+
+// Calls `PeerConnectionInterface->mid()`.
+rust::String get_transceiver_mid(const RtpTransceiverInterface& transceiver) {
+  return rust::String(transceiver->mid().value_or(""));
+}
+
+// Calls `PeerConnectionInterface->direction()`.
+RtpTransceiverDirection get_transceiver_direction(
+    const RtpTransceiverInterface& transceiver) {
+  return transceiver->direction();
 }
 
 }  // namespace bridge

@@ -21,8 +21,12 @@
 
 namespace bridge {
 
+struct TransceiverContainer;
+
 using Thread = rtc::Thread;
 using VideoSinkInterface = rtc::VideoSinkInterface<webrtc::VideoFrame>;
+
+using MediaType = cricket::MediaType;
 
 using AudioLayer = webrtc::AudioDeviceModule::AudioLayer;
 using IceCandidateInterface = webrtc::IceCandidateInterface;
@@ -40,6 +44,7 @@ using SignalingState = webrtc::PeerConnectionInterface::SignalingState;
 using TaskQueueFactory = webrtc::TaskQueueFactory;
 using VideoDeviceInfo = webrtc::VideoCaptureModule::DeviceInfo;
 using VideoRotation = webrtc::VideoRotation;
+using RtpTransceiverDirection = webrtc::RtpTransceiverDirection;
 
 using AudioDeviceModule = rtc::scoped_refptr<webrtc::AudioDeviceModule>;
 using AudioSourceInterface = rtc::scoped_refptr<webrtc::AudioSourceInterface>;
@@ -49,6 +54,8 @@ using PeerConnectionFactoryInterface =
     rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface>;
 using PeerConnectionInterface =
     rtc::scoped_refptr<webrtc::PeerConnectionInterface>;
+using RtpTransceiverInterface =
+    rtc::scoped_refptr<webrtc::RtpTransceiverInterface>;
 using VideoTrackInterface = rtc::scoped_refptr<webrtc::VideoTrackInterface>;
 using VideoTrackSourceInterface =
     rtc::scoped_refptr<webrtc::VideoTrackSourceInterface>;
@@ -263,16 +270,16 @@ void set_remote_description(PeerConnectionInterface& peer,
                             std::unique_ptr<SetRemoteDescriptionObserver> obs);
 
 // Calls `IceCandidateInterface->ToString`.
-std::unique_ptr<std::string>
-ice_candidate_interface_to_string(const IceCandidateInterface* candidate);
+std::unique_ptr<std::string> ice_candidate_interface_to_string(
+    const IceCandidateInterface* candidate);
 
 // Creates an SDP-ized form of this `Candidate`.
-std::unique_ptr<std::string>
-candidate_to_string(const cricket::Candidate& candidate);
+std::unique_ptr<std::string> candidate_to_string(
+    const cricket::Candidate& candidate);
 
 // Returns `CandidatePairChangeEvent.candidate_pair` field value.
-const cricket::CandidatePair&
-get_candidate_pair(const cricket::CandidatePairChangeEvent& event);
+const cricket::CandidatePair& get_candidate_pair(
+    const cricket::CandidatePairChangeEvent& event);
 
 // Returns `CandidatePairChangeEvent.last_data_received_ms` field value.
 int64_t get_last_data_received_ms(
@@ -286,5 +293,23 @@ std::unique_ptr<std::string> get_reason(
 // value.
 int64_t get_estimated_disconnected_time_ms(
     const cricket::CandidatePairChangeEvent& event);
+
+// Adds a new `RtpTransceiverInterface` to the given `PeerConnectionInterface`.
+std::unique_ptr<RtpTransceiverInterface> add_transceiver(
+    PeerConnectionInterface& peer,
+    cricket::MediaType media_type,
+    RtpTransceiverDirection direction);
+
+// Returns a list of `RtpTransceiverInterface`s attached to the given
+// `PeerConnectionInterface`.
+rust::Vec<TransceiverContainer> get_transceivers(
+    const PeerConnectionInterface& peer);
+
+// Returns a `mid` of the given `RtpTransceiverInterface`.
+rust::String get_transceiver_mid(const RtpTransceiverInterface& transceiver);
+
+// Returns a `direction` of the given `RtpTransceiverInterface`.
+RtpTransceiverDirection get_transceiver_direction(
+    const RtpTransceiverInterface& transceiver);
 
 }  // namespace bridge

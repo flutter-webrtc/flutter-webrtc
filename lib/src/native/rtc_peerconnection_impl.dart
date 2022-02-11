@@ -232,7 +232,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   }
 
   EventChannel _eventChannelFor(String peerConnectionId) {
-    return EventChannel('FlutterWebRTC/peerConnectoinEvent$peerConnectionId');
+    return EventChannel('FlutterWebRTC/peerConnectionEvent$peerConnectionId');
   }
 
   @override
