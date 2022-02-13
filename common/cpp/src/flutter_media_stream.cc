@@ -58,11 +58,39 @@ void addDefaultAudioConstraints(
   audioConstraints->AddOptionalConstraint("googDAEchoCancellation", "true");
 }
 
+std::string getSourceIdConstraint(const EncodableMap& mediaConstraints) {
+  auto it = mediaConstraints.find(EncodableValue("optional"));
+  if (it != mediaConstraints.end() &&
+      TypeIs<EncodableList>(it->second)) {
+    EncodableList optional = GetValue<EncodableList>(it->second);
+    for (size_t i = 0, size = optional.size(); i < size; i++) {
+      if (TypeIs<EncodableMap>(optional[i])) {
+        EncodableMap option = GetValue<EncodableMap>(optional[i]);
+        auto it2 = option.find(EncodableValue("sourceId"));
+        if (it2 != option.end() && TypeIs<std::string>(it2->second)) {
+          return GetValue<std::string>(it2->second);
+        }
+      }
+    }
+  }
+  return "";
+}
+
+std::string getDeviceIdConstraint(const EncodableMap& mediaConstraints) {
+  auto it = mediaConstraints.find(EncodableValue("deviceId"));
+  if (it != mediaConstraints.end() && TypeIs<std::string>(it->second)) {
+    return GetValue<std::string>(it->second);
+  }
+  return "";
+}
+
 void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
                                       scoped_refptr<RTCMediaStream> stream,
                                       EncodableMap& params) {
   bool enable_audio = false;
   scoped_refptr<RTCMediaConstraints> audioConstraints;
+  std::string sourceId;
+  std::string deviceId;
   auto it = constraints.find(EncodableValue("audio"));
   if (it != constraints.end()) {
     EncodableValue audio = it->second;
@@ -70,17 +98,43 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
       audioConstraints = RTCMediaConstraints::Create();
       addDefaultAudioConstraints(audioConstraints);
       enable_audio = GetValue<bool>(audio);
+      sourceId = "";
+      deviceId = "";
     }
     if (TypeIs<EncodableMap>(audio)) {
+      EncodableMap localMap = GetValue<EncodableMap>(audio);
+      sourceId = getSourceIdConstraint(localMap);
+      deviceId = getDeviceIdConstraint(localMap);
       audioConstraints =
-          base_->ParseMediaConstraints(GetValue<EncodableMap>(audio));
+          base_->ParseMediaConstraints(localMap);
       enable_audio = true;
     }
   }
 
-  // TODO: Select audio device by sourceId,
+  // Selecting audio input device by sourceId and audio output device by deviceId
 
   if (enable_audio) {
+    char strRecordingName[256];
+    char strRecordingGuid[256];
+    int playout_devices = base_->audio_device_->PlayoutDevices();
+    int recording_devices = base_->audio_device_->RecordingDevices();
+
+    for (uint16_t i = 0; i < recording_devices; i++) {
+      base_->audio_device_->RecordingDeviceName(i, strRecordingName, strRecordingGuid);
+      if (sourceId != "" && sourceId == strRecordingGuid) {
+        base_->audio_device_->SetRecordingDevice(i);
+      }
+    }
+
+    char strPlayoutName[256];
+    char strPlayoutGuid[256];
+    for (uint16_t i = 0; i < playout_devices; i++) {
+      base_->audio_device_->PlayoutDeviceName(i, strPlayoutName, strPlayoutGuid);
+      if (deviceId != "" && deviceId == strPlayoutGuid) {
+        base_->audio_device_->SetPlayoutDevice(i);
+      }
+    }
+  
     scoped_refptr<RTCAudioSource> source =
         base_->factory_->CreateAudioSource("audio_input");
     std::string uuid = base_->GenerateUUID();
@@ -110,24 +164,6 @@ std::string getFacingMode(const EncodableMap& mediaConstraints) {
              ? GetValue<std::string>(mediaConstraints.find(EncodableValue("facingMode"))
                    ->second)
              : "";
-}
-
-std::string getSourceIdConstraint(const EncodableMap& mediaConstraints) {
-  auto it = mediaConstraints.find(EncodableValue("optional"));
-  if (it != mediaConstraints.end() &&
-      TypeIs<EncodableList>(it->second)) {
-    EncodableList optional = GetValue<EncodableList>(it->second);
-    for (size_t i = 0, size = optional.size(); i < size; i++) {
-      if (TypeIs<EncodableMap>(optional[i])) {
-        EncodableMap option = GetValue<EncodableMap>(optional[i]);
-        auto it2 = option.find(EncodableValue("sourceId"));
-        if (it2 != option.end() && TypeIs<std::string>(it2->second)) {
-          return GetValue<std::string>(it2->second);
-        }
-      }
-    }
-  }
-  return "";
 }
 
 EncodableValue getConstrainInt(const EncodableMap& constraints, const std::string& key) {
@@ -265,8 +301,8 @@ void FlutterMediaStream::GetSources(
   for (uint16_t i = 0; i < nb_audio_devices; i++) {
     base_->audio_device_->PlayoutDeviceName(i, strNameUTF8, strGuidUTF8);
     EncodableMap audio;
-    audio[EncodableValue("label")] = EncodableValue(std::string(strGuidUTF8));
-    audio[EncodableValue("deviceId")] = EncodableValue(std::string(strNameUTF8));
+    audio[EncodableValue("label")] = EncodableValue(std::string(strNameUTF8));
+    audio[EncodableValue("deviceId")] = EncodableValue(std::string(strGuidUTF8));
     audio[EncodableValue("facing")] = "";
     audio[EncodableValue("kind")] = "audiooutput";
     sources.push_back(EncodableValue(audio));
@@ -276,8 +312,8 @@ void FlutterMediaStream::GetSources(
   for (int i = 0; i < nb_video_devices; i++) {
     base_->video_device_->GetDeviceName(i, strNameUTF8, 128, strGuidUTF8, 128);
     EncodableMap video;
-    video[EncodableValue("label")] = EncodableValue(std::string(strGuidUTF8));
-    video[EncodableValue("deviceId")] = EncodableValue(std::string(strNameUTF8));
+    video[EncodableValue("label")] = EncodableValue(std::string(strNameUTF8));
+    video[EncodableValue("deviceId")] = EncodableValue(std::string(strGuidUTF8));
     video[EncodableValue("facing")] = i == 1 ? "front" : "back";
     video[EncodableValue("kind")] = "videoinput";
     sources.push_back(EncodableValue(video));
