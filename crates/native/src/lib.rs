@@ -317,6 +317,56 @@ pub mod api {
             peer_id: u64,
         ) -> Vec<RtcRtpTransceiver>;
 
+        /// Changes the preferred `direction` of the specified
+        /// [`RtcRtpTransceiver`].
+        #[cxx_name = "SetTransceiverDirection"]
+        pub fn set_transceiver_direction(
+            self: &mut Webrtc,
+            peer_id: u64,
+            transceiver_id: u64,
+            direction: &str,
+        ) -> String;
+
+        /// Returns the [Negotiated media ID (mid)][1] of the specified
+        /// [`RtcRtpTransceiver`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dfn-media-stream-identification-tag
+        #[cxx_name = "GetTransceiverMid"]
+        pub fn get_transceiver_mid(
+            self: &mut Webrtc,
+            peer_id: u64,
+            transceiver_id: u64,
+        ) -> String;
+
+        /// Returns the preferred direction of the specified
+        /// [`RtcRtpTransceiver`].
+        #[cxx_name = "GetTransceiverDirection"]
+        pub fn get_transceiver_direction(
+            self: &mut Webrtc,
+            peer_id: u64,
+            transceiver_id: u64,
+        ) -> String;
+
+        /// Irreversibly marks the specified [`RtcRtpTransceiver`] as stopping,
+        /// unless it's already stopped.
+        ///
+        /// This will immediately cause the transceiver's sender to no longer
+        /// send, and its receiver to no longer receive.
+        #[cxx_name = "StopTransceiver"]
+        pub fn stop_transceiver(
+            self: &mut Webrtc,
+            peer_id: u64,
+            transceiver_id: u64,
+        ) -> String;
+
+        /// Disposes the specified [`RtcRtpTransceiver`].
+        #[cxx_name = "DisposeTransceiver"]
+        pub fn dispose_transceiver(
+            self: &mut Webrtc,
+            peer_id: u64,
+            transceiver_id: u64,
+        );
+
         /// Creates a [`MediaStream`] with tracks according to provided
         /// [`MediaStreamConstraints`].
         #[cxx_name = "GetMedia"]

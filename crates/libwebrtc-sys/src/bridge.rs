@@ -536,6 +536,22 @@ pub(crate) mod webrtc {
         pub fn get_transceiver_direction(
             transceiver: &RtpTransceiverInterface
         ) -> RtpTransceiverDirection;
+
+        /// Changes the preferred direction of the given
+        /// [`RtpTransceiverInterface`].
+        pub fn set_transceiver_direction(
+            transceiver: &RtpTransceiverInterface,
+            new_direction: RtpTransceiverDirection,
+        ) -> String;
+
+        /// Irreversibly marks the given [`RtpTransceiverInterface`] as
+        /// stopping, unless it's already stopped.
+        ///
+        /// This will immediately cause the `transceiver`'s sender to no longer
+        /// send, and its receiver to no longer receive.
+        pub fn stop_transceiver(
+            transceiver: &RtpTransceiverInterface,
+        ) -> String;
     }
 
     unsafe extern "C++" {

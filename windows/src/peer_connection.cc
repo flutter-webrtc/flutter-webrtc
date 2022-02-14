@@ -70,7 +70,7 @@ class PeerConnectionObserver : public PeerConnectionObserverInterface {
       : deps_(std::move(deps)) {};
 
   ~PeerConnectionObserver() {
-    if (deps_->chan_){
+    if (deps_->chan_) {
       deps_->chan_->SetStreamHandler(nullptr);
     }
   }
@@ -475,6 +475,120 @@ void GetTransceivers(
   map[EncodableValue("transceivers")] = EncodableValue(infos);
 
   result->Success(EncodableValue(map));
+}
+
+// Calls Rust `StopTransceivers()`.
+void StopTransceiver(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+
+  rust::String error = webrtc->StopTransceiver(
+      std::stoi(findString(params, "peerConnectionId")),
+      std::stoi(findString(params, "transceiverId")));
+
+  if (error.empty()) {
+    result->Success();
+  } else {
+    result->Error("Failed to stop transceiver", std::string(error));
+  }
+}
+
+// Calls Rust `DisposeTransceiver()`.
+void DisposeTransceiver(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+
+  webrtc->DisposeTransceiver(std::stoi(findString(params, "peerConnectionId")),
+                             std::stoi(findString(params, "transceiverId")));
+
+  result->Success();
+}
+
+// Calls Rust `SetTransceiverDirection()`.
+void SetTransceiverDirection(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+
+  rust::String error = webrtc->SetTransceiverDirection(
+      std::stoi(findString(params, "peerConnectionId")),
+      std::stoi(findString(params, "transceiverId")),
+      findString(params, "direction"));
+
+  if (error.empty()) {
+    result->Success();
+  } else {
+    result->Error("Failed to change transceiver direction", std::string(error));
+  }
+}
+
+// Calls Rust `GetTransceiverDirection()`.
+void GetTransceiverDirection(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+
+  auto direction = (std::string) webrtc->GetTransceiverDirection(
+      std::stoi(findString(params, "peerConnectionId")),
+      std::stoi(findString(params, "transceiverId")));
+
+  EncodableMap map;
+  map[EncodableValue("result")] = EncodableValue(direction);
+
+  result->Success(map);
+}
+
+// Calls Rust `GetTransceiverMid()`.
+void GetTransceiverMid(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+
+  auto mid = (std::string) webrtc->GetTransceiverMid(
+      std::stoi(findString(params, "peerConnectionId")),
+      std::stoi(findString(params, "transceiverId")));
+
+  EncodableMap map;
+  map[EncodableValue("mid")] = EncodableValue(mid);
+
+  result->Success(map);
 }
 
 }  // namespace flutter_webrtc_plugin

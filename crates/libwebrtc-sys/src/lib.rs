@@ -457,6 +457,36 @@ impl RtpTransceiverInterface {
     pub fn direction(&self) -> webrtc::RtpTransceiverDirection {
         webrtc::get_transceiver_direction(&self.0)
     }
+
+    /// Changes the preferred `direction` of this [`RtpTransceiverInterface`].
+    pub fn set_direction(
+        &self,
+        direction: webrtc::RtpTransceiverDirection,
+    ) -> anyhow::Result<()> {
+        let err = webrtc::set_transceiver_direction(&self.0, direction);
+        if !err.is_empty() {
+            bail!(
+                "`RtpTransceiverInterface->SetDirectionWithError()` call \
+                 failed: {err}",
+            );
+        }
+        Ok(())
+    }
+
+    /// Irreversibly marks this [`RtpTransceiverInterface`] as stopping, unless
+    /// it's already stopped.
+    ///
+    /// This will immediately cause this [`RtpTransceiverInterface`]'s sender to
+    /// no longer send, and its receiver to no longer receive.
+    pub fn stop(&self) -> anyhow::Result<()> {
+        let err = webrtc::stop_transceiver(&self.0);
+        if !err.is_empty() {
+            bail!(
+                "`RtpTransceiverInterface->StopStandard()` call failed: {err}",
+            );
+        }
+        Ok(())
+    }
 }
 
 /// [RTCPeerConnection][1] implementation.

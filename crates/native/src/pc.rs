@@ -263,6 +263,133 @@ impl Webrtc {
 
         result
     }
+
+    /// Changes the preferred `direction` of the specified
+    /// [`RtcRtpTransceiver`].
+    ///
+    /// # Panics
+    ///
+    /// - If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    /// - If cannot find any [`RtpTransceiverInterface`]s by the specified
+    ///   `transceiver_id`.
+    /// - If cannot parse the given `direction` as a valid
+    ///   [`sys::RtpTransceiverDirection`].
+    pub fn set_transceiver_direction(
+        &mut self,
+        peer_id: u64,
+        transceiver_id: u64,
+        direction: &str,
+    ) -> String {
+        let peer = self
+            .0
+            .peer_connections
+            .get_mut(&PeerConnectionId(peer_id))
+            .unwrap();
+
+        peer.transceivers
+            .get(usize::try_from(transceiver_id).unwrap())
+            .unwrap()
+            .set_direction(direction.try_into().unwrap())
+            .map_or_else(|err| err.to_string(), |_| String::new())
+    }
+
+    /// Returns the [Negotiated media ID (mid)][1] of the specified
+    /// [`RtcRtpTransceiver`].
+    ///
+    /// # Panics
+    ///
+    /// - If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    /// - If cannot find any [`RtpTransceiverInterface`]s by the specified
+    ///   `transceiver_id`.
+    ///
+    /// [1]: https://w3.org/TR/webrtc#dfn-media-stream-identification-tag
+    pub fn get_transceiver_mid(
+        &mut self,
+        peer_id: u64,
+        transceiver_id: u64,
+    ) -> String {
+        let peer = self
+            .0
+            .peer_connections
+            .get_mut(&PeerConnectionId(peer_id))
+            .unwrap();
+
+        peer.transceivers
+            .get(usize::try_from(transceiver_id).unwrap())
+            .unwrap()
+            .mid()
+            .unwrap_or_default()
+    }
+
+    /// Returns the preferred direction of the specified [`RtcRtpTransceiver`].
+    ///
+    /// # Panics
+    ///
+    /// - If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    /// - If cannot find any [`RtpTransceiverInterface`]s by the specified
+    ///   `transceiver_id`.
+    pub fn get_transceiver_direction(
+        &mut self,
+        peer_id: u64,
+        transceiver_id: u64,
+    ) -> String {
+        let peer = self
+            .0
+            .peer_connections
+            .get_mut(&PeerConnectionId(peer_id))
+            .unwrap();
+
+        peer.transceivers
+            .get(usize::try_from(transceiver_id).unwrap())
+            .unwrap()
+            .direction()
+            .to_string()
+    }
+
+    /// Irreversibly marks the specified [`RtcRtpTransceiver`] as stopping,
+    /// unless it's already stopped.
+    ///
+    /// This will immediately cause the transceiver's sender to no longer send,
+    /// and its receiver to no longer receive.
+    ///
+    /// # Panics
+    ///
+    /// - If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    /// - If cannot find any [`RtpTransceiverInterface`]s by the specified
+    ///   `transceiver_id`.
+    pub fn stop_transceiver(
+        &mut self,
+        peer_id: u64,
+        transceiver_id: u64,
+    ) -> String {
+        let peer = self
+            .0
+            .peer_connections
+            .get_mut(&PeerConnectionId(peer_id))
+            .unwrap();
+
+        peer.transceivers
+            .get(usize::try_from(transceiver_id).unwrap())
+            .unwrap()
+            .stop()
+            .map_or_else(|err| err.to_string(), |_| String::new())
+    }
+
+    /// Frees the specified [`RtcRtpTransceiver`].
+    ///
+    /// # Panics
+    ///
+    /// - If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    /// - If cannot find any [`RtpTransceiverInterface`]s by the specified
+    ///   `transceiver_id`.
+    pub fn dispose_transceiver(&mut self, peer_id: u64, transceiver_id: u64) {
+        self.0
+            .peer_connections
+            .get_mut(&PeerConnectionId(peer_id))
+            .unwrap()
+            .transceivers
+            .remove(usize::try_from(transceiver_id).unwrap());
+    }
 }
 
 /// ID of a [`PeerConnection`].

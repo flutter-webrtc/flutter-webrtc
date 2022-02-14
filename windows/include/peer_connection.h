@@ -53,4 +53,37 @@ void GetTransceivers(
     const flutter::MethodCall<EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 
+// Calls Rust `StopTransceiver()` to permanently stop the given transceiver.
+void StopTransceiver(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
+// Calls Rust `DisposeTransceiver()` to free Rust side `RTCRtpTransceiver`.
+void DisposeTransceiver(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
+// Calls Rust `SetTransceiverDirection()` to change the preferred direction of
+// the given `RTCRtpTransceiver`.
+void SetTransceiverDirection(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
+// Calls Rust `GetTransceiverDirection()` and returns the preferred direction
+// of the given `RTCRtpTransceiver`.
+void GetTransceiverDirection(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
+// Calls Rust `GetTransceiverMid()` and returns the media stream
+// `identification-tag` of the given `RTCRtpTransceiver`.
+void GetTransceiverMid(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
 }  // namespace flutter_webrtc_plugin

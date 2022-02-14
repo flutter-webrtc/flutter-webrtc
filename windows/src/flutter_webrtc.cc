@@ -76,9 +76,16 @@ void FlutterWebRTC::HandleMethodCall(
   } else if (method.compare("rtpSenderReplaceTrack") == 0) {
   } else if (method.compare("rtpSenderSetParameters") == 0) {
   } else if (method.compare("rtpTransceiverStop") == 0) {
+    StopTransceiver(webrtc, method_call, std::move(result));
+  } else if (method.compare("rtpTransceiverDispose") == 0) {
+    DisposeTransceiver(webrtc, method_call, std::move(result));
   } else if (method.compare("rtpTransceiverSetDirection") == 0) {
+    SetTransceiverDirection(webrtc, method_call, std::move(result));
+  } else if (method.compare("rtpTransceiverGetDirection") == 0) {
+    GetTransceiverDirection(webrtc, method_call, std::move(result));
+  } else if (method.compare("rtpTransceiverGetMid") == 0) {
+    GetTransceiverMid(webrtc, method_call, std::move(result));
   } else if (method.compare("setConfiguration") == 0) {
-  } else if (method.compare("captureFrame") == 0) {
   } else {
     result->NotImplemented();
   }

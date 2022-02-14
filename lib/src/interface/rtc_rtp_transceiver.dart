@@ -42,6 +42,9 @@ abstract class RTCRtpTransceiver {
 
   Future<void> stop();
 
+  // TODO: Used during tests, remove when merging with #31.
+  Future<String> getMid();
+
   /// Deprecated methods.
   @Deprecated('Use the `await getCurrentDirection` instead')
   TransceiverDirection get currentDirection => throw UnimplementedError(

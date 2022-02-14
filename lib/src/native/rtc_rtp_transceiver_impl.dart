@@ -175,4 +175,20 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
       throw 'Unable to RTCRtpTransceiver::stop: ${e.message}';
     }
   }
+
+  // TODO: Used during tests, remove when merging with #31.
+  @override
+  Future<String> getMid() async {
+    try {
+      final response = await WebRTC.invokeMethod(
+          'rtpTransceiverGetMid', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'transceiverId': _id
+      });
+
+      return response['mid'];
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpTransceiver::mid: ${e.message}';
+    }
+  }
 }
