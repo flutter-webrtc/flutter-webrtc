@@ -31,7 +31,7 @@ pub use crate::{
 };
 
 /// Counter used to generate unique IDs.
-static ID_COUNTER: AtomicU64 = AtomicU64::new(0);
+static ID_COUNTER: AtomicU64 = AtomicU64::new(1);
 
 /// Returns a next unique ID.
 pub(crate) fn next_id() -> u64 {
@@ -366,6 +366,16 @@ pub mod api {
             peer_id: u64,
             transceiver_id: u64,
         );
+
+        /// Replaces the specified [`AudioTrack`] (or [`VideoTrack`]) on
+        /// the [`sys::Transceiver`]'s `sender`.
+        #[cxx_name = "SenderReplaceTrack"]
+        pub fn sender_replace_track(
+            self: &mut Webrtc,
+            peer_id: u64,
+            transceiver_id: u64,
+            track_id: u64,
+        ) -> String;
 
         /// Creates a [`MediaStream`] with tracks according to provided
         /// [`MediaStreamConstraints`].

@@ -86,4 +86,11 @@ void GetTransceiverMid(
     const flutter::MethodCall<EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 
+// Replaces the `MediaStreamTrackInterface` to the `RTCRtpTransceiver`'s
+// `RTCRtpSender`.
+void SenderReplaceTrack(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
 }  // namespace flutter_webrtc_plugin

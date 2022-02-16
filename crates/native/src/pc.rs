@@ -8,7 +8,7 @@ use crate::{
         CreateSdpCallbackInterface, PeerConnectionObserverInterface,
         SetDescriptionCallbackInterface,
     },
-    next_id, Webrtc,
+    next_id, AudioTrackId, VideoTrackId, Webrtc,
 };
 
 impl Webrtc {
@@ -389,6 +389,70 @@ impl Webrtc {
             .unwrap()
             .transceivers
             .remove(usize::try_from(transceiver_id).unwrap());
+    }
+
+    /// Replaces the specified [`AudioTrack`] (or [`crate::VideoTrack`]) on
+    /// the [`sys::Transceiver`]'s `sender`.
+    ///
+    /// # Panics
+    ///
+    /// - If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    /// - If cannot find any [`RtpTransceiverInterface`]s by the specified
+    ///   `transceiver_id`.
+    ///
+    /// [`AudioTrack`]: crate::AudioTrack
+    /// [`VideoTrack`]: crate::VideoTrack
+    pub fn sender_replace_track(
+        &mut self,
+        peer_id: u64,
+        transceiver_id: u64,
+        track_id: u64,
+    ) -> String {
+        let peer = self
+            .0
+            .peer_connections
+            .get_mut(&PeerConnectionId(peer_id))
+            .unwrap();
+        let transceiver = peer
+            .transceivers
+            .get(usize::try_from(transceiver_id).unwrap())
+            .unwrap();
+        let sender = transceiver.sender();
+
+        if track_id == 0 {
+            match transceiver.media_type() {
+                sys::MediaType::MEDIA_TYPE_VIDEO => {
+                    sender.replace_video_track(None)
+                }
+                sys::MediaType::MEDIA_TYPE_AUDIO => {
+                    sender.replace_audio_track(None)
+                }
+                _ => unreachable!(),
+            }
+        } else {
+            match transceiver.media_type() {
+                sys::MediaType::MEDIA_TYPE_VIDEO => {
+                    sender.replace_video_track(Some(
+                        self.0
+                            .video_tracks
+                            .get(&VideoTrackId::from(track_id))
+                            .unwrap()
+                            .as_ref(),
+                    ))
+                }
+                sys::MediaType::MEDIA_TYPE_AUDIO => {
+                    sender.replace_audio_track(Some(
+                        self.0
+                            .audio_tracks
+                            .get(&AudioTrackId::from(track_id))
+                            .unwrap()
+                            .as_ref(),
+                    ))
+                }
+                _ => unreachable!(),
+            }
+        }
+        .map_or_else(|e| e.to_string(), |_| String::new())
     }
 }
 

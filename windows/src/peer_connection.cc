@@ -1,11 +1,11 @@
 #include <mutex>
 
-#include "peer_connection.h"
-#include "media_stream.h"
-#include "flutter_webrtc.h"
 #include "flutter-webrtc-native/include/api.h"
 #include "flutter/standard_method_codec.h"
+#include "flutter_webrtc.h"
+#include "media_stream.h"
 #include "parsing.h"
+#include "peer_connection.h"
 
 using namespace rust::cxxbridge1;
 
@@ -589,6 +589,33 @@ void GetTransceiverMid(
   map[EncodableValue("mid")] = EncodableValue(mid);
 
   result->Success(map);
+}
+
+// Calls Rust `SenderReplaceTrack()`.
+void SenderReplaceTrack(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+  std::string track_id_string = findString(params, "trackId");
+  uint64_t track_id = track_id_string.empty() ? 0 : std::stoi(track_id_string);
+
+  rust::String error = webrtc->SenderReplaceTrack(
+                             std::stoi(findString(params, "peerConnectionId")),
+                             std::stoi(findString(params, "transceiverId")),
+                             track_id);
+
+  if (error.empty()) {
+    result->Success();
+  } else {
+    result->Error("Failed to replace track in sender", std::string(error));
+  }
 }
 
 }  // namespace flutter_webrtc_plugin
