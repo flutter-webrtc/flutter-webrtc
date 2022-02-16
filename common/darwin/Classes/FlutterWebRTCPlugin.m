@@ -62,17 +62,6 @@
         self.viewController = viewController;
 #endif
     }
-    //RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
-    RTCDefaultVideoDecoderFactory *decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
-    RTCDefaultVideoEncoderFactory *encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
-
-    RTCVideoEncoderFactorySimulcast *simulcastFactory = [[RTCVideoEncoderFactorySimulcast alloc]  initWithPrimary:encoderFactory
-                                                                                                         fallback:encoderFactory];
-
-    _peerConnectionFactory = [[RTCPeerConnectionFactory alloc]
-                              initWithEncoderFactory:simulcastFactory
-                              decoderFactory:decoderFactory];
-
 
     self.peerConnections = [NSMutableDictionary new];
     self.localStreams = [NSMutableDictionary new];
@@ -85,6 +74,20 @@
     return self;
 }
 
+-(void) ensureInitialized:(BOOL)bypassVoiceProcessing {
+    //RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
+    if (!_peerConnectionFactory) {
+        RTCDefaultVideoDecoderFactory *decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
+        RTCDefaultVideoEncoderFactory *encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
+
+        RTCVideoEncoderFactorySimulcast *simulcastFactory = [[RTCVideoEncoderFactorySimulcast alloc]  initWithPrimary:encoderFactory
+                                                                                                         fallback:encoderFactory];
+        _peerConnectionFactory = [[RTCPeerConnectionFactory alloc]
+                                  initWithBypassVoiceProcessing:bypassVoiceProcessing
+                                  encoderFactory:simulcastFactory
+                                  decoderFactory:decoderFactory];
+    }
+}
 
 - (void)didSessionRouteChange:(NSNotification *)notification {
 #if TARGET_OS_IPHONE
@@ -109,8 +112,16 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult) result {
-
-    if ([@"createPeerConnection" isEqualToString:call.method]) {
+    if ([@"initialize" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSDictionary* options = argsMap[@"options"];
+        BOOL enableBypassVoiceProcessing = NO;
+        if(options[@"bypassVoiceProcessing"] != nil){
+            enableBypassVoiceProcessing = ((NSNumber*)options[@"bypassVoiceProcessing"]).boolValue;
+        }
+        [self  ensureInitialized:enableBypassVoiceProcessing];
+        result(@"");
+    } else if ([@"createPeerConnection" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSDictionary* configuration = argsMap[@"configuration"];
         NSDictionary* constraints = argsMap[@"constraints"];

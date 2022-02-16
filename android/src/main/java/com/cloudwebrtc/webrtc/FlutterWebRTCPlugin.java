@@ -5,13 +5,17 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
+
 import com.cloudwebrtc.webrtc.MethodCallHandlerImpl.AudioManager;
 import com.cloudwebrtc.webrtc.utils.RTCAudioManager;
-import io.flutter.embedding.android.FlutterActivity;
+
+import java.util.Set;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -20,8 +24,6 @@ import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.view.TextureRegistry;
-
-import java.util.Set;
 
 /**
  * FlutterWebRTCPlugin

@@ -70,10 +70,18 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
        errorCallback:(NavigatorUserMediaErrorCallback)errorCallback
          mediaStream:(RTCMediaStream *)mediaStream {
     NSString *trackId = [[NSUUID UUID] UUIDString];
-    RTCAudioTrack *audioTrack
-    = [self.peerConnectionFactory audioTrackWithTrackId:trackId];
 
-    [mediaStream addAudioTrack:audioTrack];
+    id audioConstraints = constraints[@"audio"];
+    if([audioConstraints isKindOfClass:[NSNumber class]] && [audioConstraints boolValue]) {
+        RTCAudioTrack *audioTrack = [self.peerConnectionFactory audioTrackWithTrackId:trackId];
+        [mediaStream addAudioTrack:audioTrack];
+    } else if([audioConstraints isKindOfClass:[NSDictionary class]]) {
+        RTCAudioSource *audioSource = [self.peerConnectionFactory
+                                       audioSourceWithConstraints:[self parseMediaConstraints:constraints]];
+        RTCAudioTrack *audioTrack
+        = [self.peerConnectionFactory audioTrackWithSource:audioSource trackId:trackId];
+        [mediaStream addAudioTrack:audioTrack];
+    }
 
     // allow audio capture
     [AudioUtils ensureAudioSessionWithRecording:YES];

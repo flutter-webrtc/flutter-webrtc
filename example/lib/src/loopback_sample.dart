@@ -38,6 +38,7 @@ class _MyAppState extends State<LoopBackSample> {
   }
 
   void initRenderers() async {
+    await WebRTC.initialize(options: {'bypassVoiceProcessing': true});
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
   }
@@ -126,10 +127,21 @@ class _MyAppState extends State<LoopBackSample> {
     print('RenegotiationNeeded');
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
+  final String AUDIO_ECHO_CANCELLATION_CONSTRAINT = 'googEchoCancellation';
+  final String AUDIO_AUTO_GAIN_CONTROL_CONSTRAINT = 'googAutoGainControl';
+  final String AUDIO_HIGH_PASS_FILTER_CONSTRAINT = 'googHighpassFilter';
+  final String AUDIO_NOISE_SUPPRESSION_CONSTRAINT = 'googNoiseSuppression';
+
   void _makeCall() async {
     final mediaConstraints = <String, dynamic>{
-      'audio': true,
+      'audio': {
+        'mandatory': {
+          AUDIO_ECHO_CANCELLATION_CONSTRAINT: false,
+          AUDIO_AUTO_GAIN_CONTROL_CONSTRAINT: false,
+          AUDIO_HIGH_PASS_FILTER_CONSTRAINT: false,
+          AUDIO_NOISE_SUPPRESSION_CONSTRAINT: false,
+        }
+      },
       'video': {
         'mandatory': {
           'minWidth':

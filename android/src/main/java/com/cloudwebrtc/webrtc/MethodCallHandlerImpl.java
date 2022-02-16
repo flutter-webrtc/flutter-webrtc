@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.media.MediaRecorder;
 import android.util.Log;
 import android.util.LongSparseArray;
 
@@ -20,6 +21,7 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.SimulcastVideoEncoderFactoryWrapper;
 
+import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
 import org.webrtc.DefaultVideoDecoderFactory;
@@ -131,7 +133,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mPeerConnectionObservers.clear();
   }
 
-  private void ensureInitialized() {
+  private void ensureInitialized(boolean bypassVoiceProcessing) {
     if (mFactory != null) {
       return;
     }
@@ -146,11 +148,24 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     getUserMediaImpl = new GetUserMediaImpl(this, context);
 
-    audioDeviceModule = JavaAudioDeviceModule.builder(context)
-            .setUseHardwareAcousticEchoCanceler(true)
-            .setUseHardwareNoiseSuppressor(true)
-            .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
-            .createAudioDeviceModule();
+    if (bypassVoiceProcessing) {
+        audioDeviceModule =
+                JavaAudioDeviceModule.builder(context)
+                        .setUseHardwareAcousticEchoCanceler(false)
+                        .setUseHardwareNoiseSuppressor(false)
+                        .setUseStereoInput(true)
+                        .setUseStereoOutput(true)
+                        .setAudioSource(MediaRecorder.AudioSource.MIC)
+                        .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
+                        .createAudioDeviceModule();
+    } else {
+        audioDeviceModule =
+                JavaAudioDeviceModule.builder(context)
+                        .setUseHardwareAcousticEchoCanceler(true)
+                        .setUseHardwareNoiseSuppressor(true)
+                        .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
+                        .createAudioDeviceModule();
+    }
 
     getUserMediaImpl.audioDeviceModule = (JavaAudioDeviceModule) audioDeviceModule;
 
@@ -164,10 +179,17 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   @Override
   public void onMethodCall(MethodCall call, @NonNull Result notSafeResult) {
-    ensureInitialized();
-
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
+      case "initialize":
+        Map<String, Object> options = call.argument("options");
+        boolean enableBypassVoiceProcessing = false;
+        if(options.get("bypassVoiceProcessing") != null) {
+          enableBypassVoiceProcessing = (boolean)options.get("bypassVoiceProcessing");
+        }
+        ensureInitialized(enableBypassVoiceProcessing);
+        result.success(null);
+      break;
       case "createPeerConnection": {
         Map<String, Object> constraints = call.argument("constraints");
         Map<String, Object> configuration = call.argument("configuration");
