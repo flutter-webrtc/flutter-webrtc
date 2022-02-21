@@ -20,6 +20,6 @@ A new flutter plugin project.
   s.vendored_libraries = 'third_party/lib/*.a'
 
   s.dependency 'FlutterMacOS'
-  s.dependency 'WebRTC-SDK', '93.4577.01'
+  s.dependency 'WebRTC-SDK', '97.4692.02'
   s.osx.deployment_target = '10.11'
 end
