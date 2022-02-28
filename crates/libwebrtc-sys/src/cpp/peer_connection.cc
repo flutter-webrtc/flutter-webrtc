@@ -1,8 +1,6 @@
-
-#include "libwebrtc-sys/include/peer_connection_observer.h"
 #include "libwebrtc-sys/src/bridge.rs.h"
 
-namespace observer {
+namespace bridge {
 
 // Creates a new `PeerConnectionObserver` backed by the provided
 // `DynPeerConnectionEventsHandler`.
@@ -42,16 +40,20 @@ void PeerConnectionObserver::OnIceGatheringChange(
 // Propagates the discovered `IceCandidateInterface` to the Rust side.
 void PeerConnectionObserver::OnIceCandidate(
     const webrtc::IceCandidateInterface* candidate) {
-  bridge::on_ice_candidate(*cb_, candidate);
+  std::unique_ptr<webrtc::IceCandidateInterface> candidate_copy(
+      webrtc::CreateIceCandidate(candidate->sdp_mid(),
+                                 candidate->sdp_mline_index(),
+                                 candidate->candidate()));
+
+  bridge::on_ice_candidate(*cb_, std::move(candidate_copy));
 }
 
 // Propagates received error information to the Rust side.
-void PeerConnectionObserver::OnIceCandidateError(
-    const std::string& address,
-    int port,
-    const std::string& url,
-    int err_code,
-    const std::string& err_text) {
+void PeerConnectionObserver::OnIceCandidateError(const std::string& address,
+                                                 int port,
+                                                 const std::string& url,
+                                                 int err_code,
+                                                 const std::string& err_text) {
   bridge::on_ice_candidate_error(*cb_, address, port, url, err_code, err_text);
 }
 
@@ -90,12 +92,13 @@ void PeerConnectionObserver::OnDataChannel(
 void PeerConnectionObserver::OnAddTrack(
     rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
     const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>&
-    streams) {}
+        streams) {}
 
 // Creates a new `CreateSessionDescriptionObserver` backed by the provided
 // `bridge::DynCreateSdpCallback`.
 CreateSessionDescriptionObserver::CreateSessionDescriptionObserver(
-    rust::Box<bridge::DynCreateSdpCallback> cb) : cb_(std::move(cb)) {};
+    rust::Box<bridge::DynCreateSdpCallback> cb)
+    : cb_(std::move(cb)) {};
 
 // Propagates the received SDP to the Rust side.
 void CreateSessionDescriptionObserver::OnSuccess(
@@ -123,7 +126,8 @@ void CreateSessionDescriptionObserver::OnFailure(webrtc::RTCError error) {
 // Creates a new `SetLocalDescriptionObserver` backed by the provided
 // `DynSetDescriptionCallback`.
 SetLocalDescriptionObserver::SetLocalDescriptionObserver(
-    rust::Box<bridge::DynSetDescriptionCallback> cb) : cb_(std::move(cb)) {};
+    rust::Box<bridge::DynSetDescriptionCallback> cb)
+    : cb_(std::move(cb)) {};
 
 // Propagates the completion result to the Rust side.
 void SetLocalDescriptionObserver::OnSetLocalDescriptionComplete(
@@ -143,7 +147,8 @@ void SetLocalDescriptionObserver::OnSetLocalDescriptionComplete(
 // Creates a new `SetRemoteDescriptionObserver` backed by the provided
 // `DynSetDescriptionCallback`.
 SetRemoteDescriptionObserver::SetRemoteDescriptionObserver(
-    rust::Box<bridge::DynSetDescriptionCallback> cb) : cb_(std::move(cb)) {};
+    rust::Box<bridge::DynSetDescriptionCallback> cb)
+    : cb_(std::move(cb)) {};
 
 // Propagates the completion result to the Rust side.
 void SetRemoteDescriptionObserver::OnSetRemoteDescriptionComplete(
@@ -160,4 +165,86 @@ void SetRemoteDescriptionObserver::OnSetRemoteDescriptionComplete(
   }
 }
 
-}  // namespace observer
+// Calls `PeerConnectionInterface->CreateOffer`.
+void create_offer(PeerConnectionInterface& peer_connection_interface,
+                  const RTCOfferAnswerOptions& options,
+                  std::unique_ptr<CreateSessionDescriptionObserver> obs) {
+  peer_connection_interface->CreateOffer(obs.release(), options);
+}
+
+// Calls `PeerConnectionInterface->CreateAnswer`.
+void create_answer(PeerConnectionInterface& peer_connection_interface,
+                   const RTCOfferAnswerOptions& options,
+                   std::unique_ptr<CreateSessionDescriptionObserver> obs) {
+  peer_connection_interface->CreateAnswer(obs.release(), options);
+}
+
+// Calls `PeerConnectionInterface->SetLocalDescription`.
+void set_local_description(PeerConnectionInterface& peer_connection_interface,
+                           std::unique_ptr<SessionDescriptionInterface> desc,
+                           std::unique_ptr<SetLocalDescriptionObserver> obs) {
+  auto observer =
+      rtc::scoped_refptr<webrtc::SetLocalDescriptionObserverInterface>(
+          obs.release());
+  peer_connection_interface->SetLocalDescription(std::move(desc), observer);
+}
+
+// Calls `PeerConnectionInterface->SetRemoteDescription`.
+void set_remote_description(PeerConnectionInterface& peer_connection_interface,
+                            std::unique_ptr<SessionDescriptionInterface> desc,
+                            std::unique_ptr<SetRemoteDescriptionObserver> obs) {
+  auto observer =
+      rtc::scoped_refptr<SetRemoteDescriptionObserver>(obs.release());
+  peer_connection_interface->SetRemoteDescription(std::move(desc), observer);
+}
+
+// Calls `PeerConnectionInterface->AddTransceiver`.
+std::unique_ptr<RtpTransceiverInterface> add_transceiver(
+    PeerConnectionInterface& peer,
+    cricket::MediaType media_type,
+    RtpTransceiverDirection direction) {
+  auto transceiver_init = webrtc::RtpTransceiverInit();
+  transceiver_init.direction = direction;
+
+  return std::make_unique<RtpTransceiverInterface>(
+      peer->AddTransceiver(media_type, transceiver_init).MoveValue());
+}
+
+// Calls `PeerConnectionInterface->GetTransceivers`.
+rust::Vec<TransceiverContainer> get_transceivers(
+    const PeerConnectionInterface& peer) {
+  rust::Vec<TransceiverContainer> transceivers;
+
+  for (auto transceiver : peer->GetTransceivers()) {
+    TransceiverContainer container = {
+        std::make_unique<RtpTransceiverInterface>(transceiver)};
+    transceivers.push_back(std::move(container));
+  }
+
+  return transceivers;
+}
+
+// Calls `PeerConnectionInterface::AddIceCandidate`.
+void add_ice_candidate(const PeerConnectionInterface& peer,
+                       std::unique_ptr<webrtc::IceCandidateInterface> candidate,
+                       rust::Box<bridge::DynAddIceCandidateCallback> cb) {
+  peer->AddIceCandidate(std::move(candidate), [&](webrtc::RTCError err) {
+    if (err.ok()) {
+      add_ice_candidate_success(std::move(cb));
+    } else {
+      add_ice_candidate_fail(std::move(cb), err.message());
+    }
+  });
+}
+
+// Calls `PeerConnectionInterface->RestartIce`.
+void restart_ice(const PeerConnectionInterface& peer) {
+  peer->RestartIce();
+}
+
+// Calls `PeerConnectionInterface->Close`.
+void close_peer_connection(const PeerConnectionInterface& peer) {
+  peer->Close();
+}
+
+}  // namespace bridge

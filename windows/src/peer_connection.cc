@@ -42,7 +42,7 @@ class SetDescriptionCallBack : public SetDescriptionCallbackInterface {
       : result_(std::move(res)) {}
 
   // Successfully completes an inner `flutter::MethodResult`.
-  void OnSuccess() { result_->Success(nullptr); }
+  void OnSuccess() { result_->Success(); }
 
   // Forwards the provided `error` to the `flutter::MethodResult` error.
   void OnFail(const std::string& error) { result_->Error(error); }
@@ -67,7 +67,7 @@ class PeerConnectionObserver : public PeerConnectionObserverInterface {
 
   // Creates a new `PeerConnectionObserver`.
   PeerConnectionObserver(std::shared_ptr<Dependencies> deps)
-      : deps_(std::move(deps)) {};
+      : deps_(std::move(deps)){};
 
   ~PeerConnectionObserver() {
     if (deps_->chan_) {
@@ -83,7 +83,7 @@ class PeerConnectionObserver : public PeerConnectionObserverInterface {
     const std::lock_guard<std::mutex> lock(*deps_->lock_);
     if (deps_->sink_) {
       flutter::EncodableMap params;
-      params[EncodableValue("event")] = "OnConnectionStateChange";
+      params[EncodableValue("event")] = "onConnectionStateChange";
       params[flutter::EncodableValue("state")] = new_state;
       deps_->sink_->Success(flutter::EncodableValue(params));
     }
@@ -93,12 +93,18 @@ class PeerConnectionObserver : public PeerConnectionObserverInterface {
   // Dart side.
   //
   // See: https://w3.org/TR/webrtc#dom-rtcicecandidate
-  void OnIceCandidate(const std::string& candidate) {
+  void OnIceCandidate(const rust::String candidate,
+                      const rust::String mid,
+                      int mline_index) {
     const std::lock_guard<std::mutex> lock(*deps_->lock_);
     if (deps_->sink_) {
       flutter::EncodableMap params;
-      params[EncodableValue("event")] = "OnIceCandidate";
-      params[EncodableValue("candidate")] = candidate;
+      params[EncodableValue("event")] = "onIceCandidate";
+      flutter::EncodableMap candidate_map;
+      candidate_map[EncodableValue("candidate")] = std::string(candidate);
+      candidate_map[EncodableValue("sdpMid")] = std::string(mid);
+      candidate_map[EncodableValue("sdpMLineIndex")] = mline_index;
+      params[EncodableValue("candidate")] = candidate_map;
       deps_->sink_->Success(flutter::EncodableValue(params));
     }
   }
@@ -115,7 +121,7 @@ class PeerConnectionObserver : public PeerConnectionObserverInterface {
     const std::lock_guard<std::mutex> lock(*deps_->lock_);
     if (deps_->sink_) {
       flutter::EncodableMap params;
-      params[EncodableValue("event")] = "OnIceCandidateError";
+      params[EncodableValue("event")] = "onIceCandidateError";
       params[flutter::EncodableValue("address")] = address;
       params[flutter::EncodableValue("errorCode")] = error_code;
       params[flutter::EncodableValue("errorText")] = error_text;
@@ -134,7 +140,7 @@ class PeerConnectionObserver : public PeerConnectionObserverInterface {
     const std::lock_guard<std::mutex> lock(*deps_->lock_);
     if (deps_->sink_) {
       flutter::EncodableMap params;
-      params[EncodableValue("event")] = "OnIceConnectionStateChange";
+      params[EncodableValue("event")] = "onIceConnectionStateChange";
       params[flutter::EncodableValue("state")] = new_state;
       deps_->sink_->Success(flutter::EncodableValue(params));
     }
@@ -148,7 +154,7 @@ class PeerConnectionObserver : public PeerConnectionObserverInterface {
     const std::lock_guard<std::mutex> lock(*deps_->lock_);
     if (deps_->sink_) {
       flutter::EncodableMap params;
-      params[EncodableValue("event")] = "OnIceGatheringStateChange";
+      params[EncodableValue("event")] = "onIceGatheringStateChange";
       params[flutter::EncodableValue("state")] = new_state;
       deps_->sink_->Success(flutter::EncodableValue(params));
     }
@@ -161,7 +167,7 @@ class PeerConnectionObserver : public PeerConnectionObserverInterface {
     const std::lock_guard<std::mutex> lock(*deps_->lock_);
     if (deps_->sink_) {
       flutter::EncodableMap params;
-      params[EncodableValue("event")] = "OnNegotiationNeededEvent";
+      params[EncodableValue("event")] = "onNegotiationNeeded";
       deps_->sink_->Success(flutter::EncodableValue(params));
     }
   };
@@ -174,7 +180,7 @@ class PeerConnectionObserver : public PeerConnectionObserverInterface {
     const std::lock_guard<std::mutex> lock(*deps_->lock_);
     if (deps_->sink_) {
       flutter::EncodableMap params;
-      params[EncodableValue("event")] = "OnSignalingChange";
+      params[EncodableValue("event")] = "onSignalingStateChange";
       params[flutter::EncodableValue("state")] = new_state;
       deps_->sink_->Success(flutter::EncodableValue(params));
     }
@@ -183,6 +189,24 @@ class PeerConnectionObserver : public PeerConnectionObserverInterface {
  private:
   // `PeerConnectionObserver` dependencies.
   std::shared_ptr<Dependencies> deps_;
+};
+
+// `AddIceCandidateCallbackInterface` implementation forwarding completion
+// result to the Flutter side via inner `flutter::MethodResult`.
+class AddIceCandidateCallback : public AddIceCandidateCallbackInterface {
+ public:
+  AddIceCandidateCallback(
+      std::shared_ptr<flutter::MethodResult<flutter::EncodableValue>> res)
+      : result_(std::move(res)) {}
+
+  // Successfully completes an inner `flutter::MethodResult`.
+  void OnSuccess() { result_->Success(); }
+
+  // Forwards the provided `error` to the `flutter::MethodResult` error.
+  void OnFail(const std::string& error) { result_->Error(error); }
+
+ private:
+  std::shared_ptr<flutter::MethodResult<flutter::EncodableValue>> result_;
 };
 
 namespace flutter_webrtc_plugin {
@@ -211,12 +235,40 @@ void CreateRTCPeerConnection(
     flutter::BinaryMessenger* messenger,
     const flutter::MethodCall<EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
-
   auto ctx = std::make_shared<PeerConnectionObserver::Dependencies>();
   auto observer = std::make_unique<PeerConnectionObserver>(ctx);
 
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap parameters =
+      GetValue<EncodableMap>(*method_call.arguments());
+  const EncodableMap configuration = findMap(parameters, "configuration");
+
+  RtcConfiguration configuration_info;
+  configuration_info.ice_transport_policy =
+      findString(configuration, "iceTransportPolicy");
+  configuration_info.bundle_policy = findString(configuration, "bundlePolicy");
+
+  for (auto server_value : findList(configuration, "servers")) {
+    auto server = GetValue<EncodableMap>(server_value);
+    RtcIceServer ice_server;
+
+    for (auto url : findList(server, "urls")) {
+      ice_server.urls.push_back(GetValue<std::string>(url));
+    }
+
+    ice_server.username = findString(server, "username");
+    ice_server.credential = findString(server, "password");
+
+    configuration_info.ice_servers.push_back(ice_server);
+  }
+
   rust::String error;
-  uint64_t id = webrtc->CreatePeerConnection(std::move(observer), error);
+  uint64_t id = webrtc->CreatePeerConnection(std::move(observer),
+                                             configuration_info, error);
   if (error == "") {
     std::string peer_id = std::to_string(id);
     auto event_channel = std::make_unique<EventChannel<EncodableValue>>(
@@ -226,7 +278,8 @@ void CreateRTCPeerConnection(
     std::weak_ptr<PeerConnectionObserver::Dependencies> weak_deps(ctx);
     auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
         [=](const flutter::EncodableValue* arguments,
-            std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
+            std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&&
+                events)
             -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
           auto context = weak_deps.lock();
           if (context) {
@@ -244,14 +297,14 @@ void CreateRTCPeerConnection(
           }
           return nullptr;
         });
-      event_channel->SetStreamHandler(std::move(handler));
-      ctx->chan_ = std::move(event_channel);
+    event_channel->SetStreamHandler(std::move(handler));
+    ctx->chan_ = std::move(event_channel);
 
-      EncodableMap params;
-      params[EncodableValue("peerConnectionId")] = peer_id;
-      result->Success(EncodableValue(params));
-    } else {
-     result->Error(std::string(error));
+    EncodableMap params;
+    params[EncodableValue("peerConnectionId")] = peer_id;
+    result->Success(EncodableValue(params));
+  } else {
+    result->Error(std::string(error));
   }
 }
 
@@ -616,6 +669,65 @@ void SenderReplaceTrack(
   } else {
     result->Error("Failed to replace track in sender", std::string(error));
   }
+}
+
+// Calls Rust `AddIceCandidate()`.
+void AddIceCandidate(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+  const EncodableMap candidate = findMap(params, "candidate");
+
+  auto shared_result =
+      std::shared_ptr<flutter::MethodResult<EncodableValue>>(result.release());
+
+  auto callback = std::unique_ptr<AddIceCandidateCallbackInterface>(
+      new AddIceCandidateCallback(shared_result));
+
+  webrtc->AddIceCandidate(
+      std::stoi(findString(params, "peerConnectionId")),
+      findString(candidate, "candidate"), findString(candidate, "sdpMid"),
+      findInt(candidate, "sdpMLineIndex"), std::move(callback));
+}
+
+// Calls Rust `RestartIce()`.
+void RestartIce(Box<Webrtc>& webrtc,
+                const flutter::MethodCall<EncodableValue>& method_call,
+                std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+
+  webrtc->RestartIce(std::stoi(findString(params, "peerConnectionId")));
+
+  result->Success();
+}
+
+// Calls Rust `DisposePeerConnection()`.
+void DisposePeerConnection(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null constraints arguments received");
+    return;
+  }
+
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+
+  webrtc->DisposePeerConnection(
+      std::stoi(findString(params, "peerConnectionId")));
+
+  result->Success();
 }
 
 }  // namespace flutter_webrtc_plugin

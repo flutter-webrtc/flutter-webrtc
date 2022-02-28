@@ -5,8 +5,8 @@ use libwebrtc_sys as sys;
 use crate::{
     api,
     internal::{
-        CreateSdpCallbackInterface, PeerConnectionObserverInterface,
-        SetDescriptionCallbackInterface,
+        AddIceCandidateCallbackInterface, CreateSdpCallbackInterface,
+        PeerConnectionObserverInterface, SetDescriptionCallbackInterface,
     },
     next_id, AudioTrackId, VideoTrackId, Webrtc,
 };
@@ -18,10 +18,14 @@ impl Webrtc {
     pub fn create_peer_connection(
         self: &mut Webrtc,
         obs: UniquePtr<PeerConnectionObserverInterface>,
+        configuration: api::RtcConfiguration,
         error: &mut String,
     ) -> u64 {
-        let peer =
-            PeerConnection::new(&mut self.0.peer_connection_factory, obs);
+        let peer = PeerConnection::new(
+            &mut self.0.peer_connection_factory,
+            obs,
+            configuration,
+        );
         match peer {
             Ok(peer) => self
                 .0
@@ -454,6 +458,65 @@ impl Webrtc {
         }
         .map_or_else(|e| e.to_string(), |_| String::new())
     }
+
+    /// Adds a [`sys::IceCandidateInterface`] to the given [`PeerConnection`].
+    ///
+    /// # Panics
+    ///
+    /// - If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    /// - If cannot add the given [`sys::IceCandidateInterface`].
+    pub fn add_ice_candidate(
+        &mut self,
+        peer_id: u64,
+        candidate: &str,
+        sdp_mid: &str,
+        sdp_mline_index: i32,
+        cb: UniquePtr<AddIceCandidateCallbackInterface>,
+    ) {
+        let candidate = sys::IceCandidateInterface::new(
+            sdp_mid,
+            sdp_mline_index,
+            candidate,
+        )
+        .unwrap();
+        self.0
+            .peer_connections
+            .get_mut(&PeerConnectionId(peer_id))
+            .unwrap()
+            .inner
+            .add_ice_candidate(
+                candidate,
+                Box::new(AddIceCandidateCallback(cb)),
+            );
+    }
+
+    /// Tells the [`PeerConnection`] that ICE should be restarted.
+    ///
+    /// # Panics
+    ///
+    /// If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    pub fn restart_ice(&mut self, peer_id: u64) {
+        self.0
+            .peer_connections
+            .get_mut(&PeerConnectionId(peer_id))
+            .unwrap()
+            .inner
+            .restart_ice();
+    }
+
+    /// Closes the [`PeerConnection`].
+    ///
+    /// # Panics
+    ///
+    /// If cannot find any [`PeerConnection`]s by the specified `peer_id`.
+    pub fn dispose_peer_connection(&mut self, peer_id: u64) {
+        self.0
+            .peer_connections
+            .remove(&PeerConnectionId(peer_id))
+            .unwrap()
+            .inner
+            .close();
+    }
 }
 
 /// ID of a [`PeerConnection`].
@@ -477,12 +540,50 @@ impl PeerConnection {
     fn new(
         factory: &mut sys::PeerConnectionFactoryInterface,
         observer: UniquePtr<PeerConnectionObserverInterface>,
+        configuration: api::RtcConfiguration,
     ) -> anyhow::Result<Self> {
         let observer = sys::PeerConnectionObserver::new(Box::new(
             PeerConnectionObserver(observer),
         ));
+
+        let mut sys_configuration = sys::RtcConfiguration::default();
+
+        if !configuration.ice_transport_policy.is_empty() {
+            sys_configuration.set_ice_transport_type(
+                configuration.ice_transport_policy.as_str().try_into()?,
+            );
+        }
+
+        if !configuration.bundle_policy.is_empty() {
+            sys_configuration.set_bundle_policy(
+                configuration.bundle_policy.as_str().try_into()?,
+            );
+        }
+
+        for server in configuration.ice_servers {
+            let mut ice_server = sys::IceServer::default();
+            let mut have_ice_servers = false;
+
+            for url in server.urls {
+                if !url.is_empty() {
+                    ice_server.add_url(url);
+                    have_ice_servers = true;
+                }
+            }
+
+            if have_ice_servers {
+                if !server.username.is_empty() || !server.credential.is_empty()
+                {
+                    ice_server
+                        .set_credentials(server.username, server.credential);
+                }
+
+                sys_configuration.add_server(ice_server);
+            }
+        }
+
         let inner = factory.create_peer_connection_or_error(
-            &sys::RTCConfiguration::default(),
+            &sys_configuration,
             sys::PeerConnectionDependencies::new(observer),
         )?;
 
@@ -569,13 +670,12 @@ impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
         // This is a non-spec-compliant event.
     }
 
-    fn on_ice_candidate(
-        &mut self,
-        candidate: *const sys::IceCandidateInterface,
-    ) {
-        let mut string =
-            unsafe { sys::ice_candidate_interface_to_string(candidate) };
-        self.0.pin_mut().on_ice_candidate(&string.pin_mut());
+    fn on_ice_candidate(&mut self, candidate: sys::IceCandidateInterface) {
+        self.0.pin_mut().on_ice_candidate(
+            candidate.candidate(),
+            candidate.mid(),
+            candidate.mline_index(),
+        );
     }
 
     fn on_ice_candidates_removed(&mut self, _: &CxxVector<sys::Candidate>) {
@@ -587,5 +687,18 @@ impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
         _: &sys::CandidatePairChangeEvent,
     ) {
         // This is a non-spec-compliant event.
+    }
+}
+
+/// [`sys::AddIceCandidateCallback`] wrapper.
+pub struct AddIceCandidateCallback(UniquePtr<AddIceCandidateCallbackInterface>);
+
+impl sys::AddIceCandidateCallback for AddIceCandidateCallback {
+    fn on_success(&mut self) {
+        self.0.pin_mut().on_add_ice_candidate_success();
+    }
+
+    fn on_fail(&mut self, error: &CxxString) {
+        self.0.pin_mut().on_add_ice_candidate_fail(error);
     }
 }

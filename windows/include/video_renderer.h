@@ -3,12 +3,12 @@
 #include <mutex>
 #include <optional>
 
+#include "flutter/encodable_value.h"
 #include "flutter/event_channel.h"
 #include "flutter/event_stream_handler_functions.h"
-#include "flutter/plugin_registrar.h"
 #include "flutter/method_result.h"
+#include "flutter/plugin_registrar.h"
 #include "flutter/texture_registrar.h"
-#include "flutter/encodable_value.h"
 #include "flutter_webrtc_native.h"
 
 using namespace flutter;
@@ -18,7 +18,6 @@ namespace flutter_webrtc_plugin {
 // Renderer of `VideoFrame`s on a Flutter texture.
 class TextureVideoRenderer {
  public:
-
   // Creates a new `TextureVideoRenderer`.
   TextureVideoRenderer(TextureRegistrar* registrar, BinaryMessenger* messenger);
 
@@ -95,15 +94,16 @@ class FlutterVideoRendererManager {
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
   // Changes a media source of the specific `TextureVideoRenderer`.
-  void SetMediaStream(const flutter::MethodCall<EncodableValue>& method_call,
-                      rust::Box<Webrtc>& webrtc,
-                      std::unique_ptr<MethodResult<EncodableValue>> result);
+  void SetMediaStream(
+      rust::Box<Webrtc>& webrtc,
+      const flutter::MethodCall<EncodableValue>& method_call,
+      std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 
   // Disposes the specific `TextureVideoRenderer`.
   void VideoRendererDispose(
-      const flutter::MethodCall<EncodableValue>& method_call,
       rust::Box<Webrtc>& webrtc,
-      std::unique_ptr<MethodResult<EncodableValue>> result);
+      const flutter::MethodCall<EncodableValue>& method_call,
+      std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 
  private:
   // Object keeping track of external textures.
@@ -120,7 +120,6 @@ class FlutterVideoRendererManager {
 // `TextureVideoRenderer`.
 class FrameHandler : public OnFrameCallbackInterface {
  public:
-
   // Creates a new `FrameHandler`.
   FrameHandler(std::shared_ptr<TextureVideoRenderer> renderer);
 

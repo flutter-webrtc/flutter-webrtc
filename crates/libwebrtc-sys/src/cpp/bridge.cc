@@ -109,6 +109,11 @@ std::unique_ptr<rtc::Thread> create_thread() {
   return rtc::Thread::Create();
 }
 
+// Calls `Thread->CreateWithSocketServer()`.
+std::unique_ptr<rtc::Thread> create_thread_with_socket_server() {
+  return rtc::Thread::CreateWithSocketServer();
+}
+
 // Creates a new `DeviceVideoCapturer` with the specified constraints and
 // calls `CreateVideoTrackSourceProxy()`.
 std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
@@ -288,18 +293,13 @@ std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
     const std::unique_ptr<Thread>& worker_thread,
     const std::unique_ptr<Thread>& signaling_thread,
     const std::unique_ptr<AudioDeviceModule>& default_adm) {
-
   auto factory = webrtc::CreatePeerConnectionFactory(
-      network_thread.get(),
-      worker_thread.get(),
-      signaling_thread.get(),
+      network_thread.get(), worker_thread.get(), signaling_thread.get(),
       default_adm ? *default_adm : nullptr,
       webrtc::CreateBuiltinAudioEncoderFactory(),
       webrtc::CreateBuiltinAudioDecoderFactory(),
       webrtc::CreateBuiltinVideoEncoderFactory(),
-      webrtc::CreateBuiltinVideoDecoderFactory(),
-      nullptr,
-      nullptr);
+      webrtc::CreateBuiltinVideoDecoderFactory(), nullptr, nullptr);
 
   if (factory == nullptr) {
     return nullptr;
@@ -331,6 +331,44 @@ std::unique_ptr<RTCConfiguration> create_default_rtc_configuration() {
   return std::make_unique<RTCConfiguration>(config);
 }
 
+// Sets the `type` field of the provided `RTCConfiguration`.
+void set_rtc_configuration_ice_transport_type(
+    RTCConfiguration& config,
+    IceTransportsType transport_type) {
+  config.type = transport_type;
+}
+
+// Sets the `bundle_policy` field of the provided `RTCConfiguration`.
+void set_rtc_configuration_bundle_policy(RTCConfiguration& config,
+                                         BundlePolicy bundle_policy) {
+  config.bundle_policy = bundle_policy;
+}
+
+// Adds the specified `IceServer` to the `servers` list of the provided
+// `RTCConfiguration`.
+void add_rtc_configuration_server(RTCConfiguration& config, IceServer& server) {
+  config.servers.push_back(server);
+}
+
+// Creates a new empty `IceServer`.
+std::unique_ptr<IceServer> create_ice_server() {
+  return std::make_unique<IceServer>();
+}
+
+// Adds the specified `url` to the list of `urls` of the provided `IceServer`.
+void add_ice_server_url(IceServer& server, rust::String url) {
+  server.urls.push_back(std::string(url));
+}
+
+// Sets the specified `username` and `password` fields of the provided
+// `IceServer`.
+void set_ice_server_credentials(IceServer& server,
+                                rust::String username,
+                                rust::String password) {
+  server.username = std::string(username);
+  server.password = std::string(password);
+}
+
 // Creates a new `PeerConnectionObserver`.
 std::unique_ptr<PeerConnectionObserver> create_peer_connection_observer(
     rust::Box<bridge::DynPeerConnectionEventsHandler> cb) {
@@ -358,10 +396,9 @@ std::unique_ptr<RTCOfferAnswerOptions> create_rtc_offer_answer_options(
     bool voice_activity_detection,
     bool ice_restart,
     bool use_rtp_mux) {
-  return std::make_unique<RTCOfferAnswerOptions>(offer_to_receive_video,
-                                                 offer_to_receive_audio,
-                                                 voice_activity_detection,
-                                                 ice_restart, use_rtp_mux);
+  return std::make_unique<RTCOfferAnswerOptions>(
+      offer_to_receive_video, offer_to_receive_audio, voice_activity_detection,
+      ice_restart, use_rtp_mux);
 }
 
 // Creates a new `CreateSessionDescriptionObserver` from the provided
@@ -387,44 +424,11 @@ create_set_remote_description_observer(
   return std::make_unique<SetRemoteDescriptionObserver>(std::move(cb));
 }
 
-// Calls `PeerConnectionInterface->CreateOffer`.
-void create_offer(PeerConnectionInterface& peer_connection_interface,
-                  const RTCOfferAnswerOptions& options,
-                  std::unique_ptr<CreateSessionDescriptionObserver> obs) {
-  peer_connection_interface->CreateOffer(obs.release(), options);
-}
-
-// Calls `PeerConnectionInterface->CreateAnswer`.
-void create_answer(PeerConnectionInterface& peer_connection_interface,
-                   const RTCOfferAnswerOptions& options,
-                   std::unique_ptr<CreateSessionDescriptionObserver> obs) {
-  peer_connection_interface->CreateAnswer(obs.release(), options);
-}
-
-// Calls `PeerConnectionInterface->SetLocalDescription`.
-void set_local_description(PeerConnectionInterface& peer_connection_interface,
-                           std::unique_ptr<SessionDescriptionInterface> desc,
-                           std::unique_ptr<SetLocalDescriptionObserver> obs) {
-  auto observer =
-      rtc::scoped_refptr<webrtc::SetLocalDescriptionObserverInterface>(
-          obs.release());
-  peer_connection_interface->SetLocalDescription(std::move(desc), observer);
-}
-
-// Calls `PeerConnectionInterface->SetRemoteDescription`.
-void set_remote_description(PeerConnectionInterface& peer_connection_interface,
-                            std::unique_ptr<SessionDescriptionInterface> desc,
-                            std::unique_ptr<SetRemoteDescriptionObserver> obs) {
-  auto observer =
-      rtc::scoped_refptr<SetRemoteDescriptionObserver>(obs.release());
-  peer_connection_interface->SetRemoteDescription(std::move(desc), observer);
-}
-
 // Calls `IceCandidateInterface->ToString`.
 std::unique_ptr<std::string> ice_candidate_interface_to_string(
-    const IceCandidateInterface* candidate) {
+    const IceCandidateInterface& candidate) {
   std::string out;
-  candidate->ToString(&out);
+  candidate.ToString(&out);
   return std::make_unique<std::string>(out);
 };
 
@@ -459,34 +463,7 @@ int64_t get_estimated_disconnected_time_ms(
   return event.estimated_disconnected_time_ms;
 }
 
-// Calls `PeerConnectionInterface->AddTransceiver`.
-std::unique_ptr<RtpTransceiverInterface> add_transceiver(
-    PeerConnectionInterface& peer,
-    cricket::MediaType media_type,
-    RtpTransceiverDirection direction) {
-  auto transceiver_init = webrtc::RtpTransceiverInit();
-  transceiver_init.direction = direction;
-
-  return std::make_unique<RtpTransceiverInterface>(
-      peer->AddTransceiver(media_type, transceiver_init).MoveValue());
-}
-
-// Calls `PeerConnectionInterface->GetTransceivers`.
-rust::Vec<TransceiverContainer> get_transceivers(
-    const PeerConnectionInterface& peer) {
-  rust::Vec<TransceiverContainer> transceivers;
-
-  for (auto transceiver : peer->GetTransceivers()) {
-    TransceiverContainer container = {
-        std::make_unique<RtpTransceiverInterface>(transceiver)
-    };
-    transceivers.push_back(std::move(container));
-  }
-
-  return transceivers;
-}
-
-// Calls `PeerConnectionInterface->mid()`.
+// Calls `RtpTransceiverInterface->mid()`.
 rust::String get_transceiver_mid(const RtpTransceiverInterface& transceiver) {
   return rust::String(transceiver->mid().value_or(""));
 }
@@ -497,7 +474,7 @@ MediaType get_transceiver_media_type(
   return transceiver->media_type();
 }
 
-// Calls `PeerConnectionInterface->direction()`.
+// Calls `RtpTransceiverInterface->direction()`.
 RtpTransceiverDirection get_transceiver_direction(
     const RtpTransceiverInterface& transceiver) {
   return transceiver->direction();
@@ -552,6 +529,36 @@ bool replace_sender_audio_track(
     return sender->SetTrack(nullptr);
   } else {
     return sender->SetTrack(track.get()->get());
+  }
+}
+
+// Calls `IceCandidateInterface->sdp_mid()`.
+std::unique_ptr<std::string> sdp_mid_of_ice_candidate(
+    const IceCandidateInterface& candidate) {
+  return std::make_unique<std::string>(candidate.sdp_mid());
+}
+
+// Calls `IceCandidateInterface->sdp_mline_index()`.
+int sdp_mline_index_of_ice_candidate(const IceCandidateInterface& candidate) {
+  return candidate.sdp_mline_index();
+}
+
+// Calls `webrtc::CreateIceCandidate` with the given values.
+std::unique_ptr<webrtc::IceCandidateInterface> create_ice_candidate(
+    rust::Str sdp_mid,
+    int sdp_mline_index,
+    rust::Str candidate,
+    rust::String& error) {
+  webrtc::SdpParseError* sdp_error;
+  std::unique_ptr<webrtc::IceCandidateInterface> owned_candidate(
+      webrtc::CreateIceCandidate(std::string(sdp_mid), sdp_mline_index,
+                                 std::string(candidate), sdp_error));
+
+  if (!owned_candidate.get()) {
+    error = sdp_error->description;
+    return nullptr;
+  } else {
+    return owned_candidate;
   }
 }
 

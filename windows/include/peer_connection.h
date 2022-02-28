@@ -17,10 +17,9 @@ void CreateRTCPeerConnection(
 
 // Calls Rust `CreateOffer()` and writes the returned session description to the
 // provided `MethodResult`.
-void CreateOffer(
-    Box<Webrtc>& webrtc,
-    const flutter::MethodCall<EncodableValue>& method_call,
-    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+void CreateOffer(Box<Webrtc>& webrtc,
+                 const flutter::MethodCall<EncodableValue>& method_call,
+                 std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 
 // Calls Rust `CreateAnswer()`and writes the returned session description to the
 // provided `MethodResult`.
@@ -89,6 +88,23 @@ void GetTransceiverMid(
 // Replaces the `MediaStreamTrackInterface` to the `RTCRtpTransceiver`'s
 // `RTCRtpSender`.
 void SenderReplaceTrack(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
+// Adds the `IceCandidateInterface` to the `PeerConnectionInterface`.
+void AddIceCandidate(
+    Box<Webrtc>& webrtc,
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
+// Tells the `PeerConnectionInterface` that ICE should be restarted.
+void RestartIce(Box<Webrtc>& webrtc,
+                const flutter::MethodCall<EncodableValue>& method_call,
+                std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
+
+// Closes the `PeerConnectionInterface`.
+void DisposePeerConnection(
     Box<Webrtc>& webrtc,
     const flutter::MethodCall<EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<EncodableValue>> result);

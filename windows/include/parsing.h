@@ -2,14 +2,24 @@
 
 #include "flutter/encodable_value.h"
 
-template<typename T>
+template <typename T>
 inline bool TypeIs(const EncodableValue val) {
   return std::holds_alternative<T>(val);
 }
 
-template<typename T>
+template <typename T>
 inline const T GetValue(EncodableValue val) {
   return std::get<T>(val);
+}
+
+// Returns an `int` value from the given `EncodableMap` by the given `key`
+// if any, or a `-1` otherwise.
+inline int findInt(const EncodableMap& map, const std::string& key) {
+  auto it = map.find(EncodableValue(key));
+  if (it != map.end() && TypeIs<int>(it->second))
+    return GetValue<int>(it->second);
+
+  return -1;
 }
 
 // Returns an `int64_t` value from the given `EncodableMap` by the given `key`

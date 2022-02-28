@@ -94,6 +94,8 @@ abstract class RTCPeerConnection {
 
   Future<void> close();
 
+  Future<void> restartIce();
+
   RTCDTMFSender createDtmfSender(MediaStreamTrack track);
 
   /// Unified-Plan.

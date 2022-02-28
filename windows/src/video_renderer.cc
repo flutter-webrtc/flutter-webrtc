@@ -28,9 +28,9 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
 
 // Changes a media source of the specific `TextureVideoRenderer`.
 void FlutterVideoRendererManager::SetMediaStream(
-    const flutter::MethodCall<EncodableValue>& method_call,
     rust::Box<Webrtc>& webrtc,
-    std::unique_ptr<MethodResult<EncodableValue>> result) {
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
   if (!method_call.arguments()) {
     result->Error("Bad Arguments", "Null constraints arguments received");
     return;
@@ -56,9 +56,9 @@ void FlutterVideoRendererManager::SetMediaStream(
 
 // Disposes the specific `TextureVideoRenderer`.
 void FlutterVideoRendererManager::VideoRendererDispose(
-    const flutter::MethodCall<EncodableValue>& method_call,
     rust::Box<Webrtc>& webrtc,
-    std::unique_ptr<MethodResult<EncodableValue>> result) {
+    const flutter::MethodCall<EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
   if (!method_call.arguments()) {
     result->Error("Bad Arguments", "Null constraints arguments received");
     return;
@@ -95,18 +95,18 @@ TextureVideoRenderer::TextureVideoRenderer(TextureRegistrar* registrar,
   event_channel_.reset(new EventChannel<EncodableValue>(
       messenger, event_channel, &StandardMethodCodec::GetInstance()));
 
-  auto handler = std::make_unique < StreamHandlerFunctions < EncodableValue >> (
+  auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
       [&](const flutter::EncodableValue* arguments,
           std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
           -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
         event_sink_ = std::move(events);
         return nullptr;
       },
-          [&](const flutter::EncodableValue* arguments)
-              -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-            event_sink_ = nullptr;
-            return nullptr;
-          });
+      [&](const flutter::EncodableValue* arguments)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = nullptr;
+        return nullptr;
+      });
 
   event_channel_->SetStreamHandler(std::move(handler));
 }

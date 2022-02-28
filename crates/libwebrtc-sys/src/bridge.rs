@@ -4,8 +4,8 @@ use anyhow::anyhow;
 use cxx::{CxxString, CxxVector, UniquePtr};
 
 use crate::{
-    CreateSdpCallback, OnFrameCallback, PeerConnectionEventsHandler,
-    SetDescriptionCallback,
+    AddIceCandidateCallback, CreateSdpCallback, IceCandidateInterface,
+    OnFrameCallback, PeerConnectionEventsHandler, SetDescriptionCallback,
 };
 
 /// [`CreateSdpCallback`] transferable to the C++ side.
@@ -19,6 +19,9 @@ type DynOnFrameCallback = Box<dyn OnFrameCallback>;
 
 /// [`PeerConnectionEventsHandler`] transferable to the C++ side.
 type DynPeerConnectionEventsHandler = Box<dyn PeerConnectionEventsHandler>;
+
+/// [`AddIceCandidateCallback`] transferable to the C++ side.
+type DynAddIceCandidateCallback = Box<dyn AddIceCandidateCallback>;
 
 #[allow(
     clippy::expl_impl_clone_on_copy,
@@ -258,6 +261,64 @@ pub(crate) mod webrtc {
         kIceConnectionMax,
     }
 
+    /// [RTCIceTransportPolicy][1] representation.
+    ///
+    /// It defines an ICE candidate policy the [ICE Agent][2] uses to surface
+    /// the permitted candidates to the application. Only these candidates will
+    /// be used for connectivity checks.
+    ///
+    /// [1]: https://w3.org/TR/webrtc#dom-rtcicetransportpolicy
+    /// [2]: https://w3.org/TR/webrtc#dfn-ice-agent
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    enum IceTransportsType {
+        /// Non-spec-compliant variant.
+        kNone,
+
+        /// [RTCIceTransportPolicy.relay][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcicetransportpolicy-relay
+        kRelay,
+
+        /// ICE Agent can't use `typ host` candidates when this value is
+        /// specified.
+        ///
+        /// Non-spec-compliant variant.
+        kNoHost,
+
+        /// [RTCIceTransportPolicy.all][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcicetransportpolicy-all
+        kAll,
+    }
+
+    /// [RTCBundlePolicy][1] representation.
+    ///
+    /// Affects which media tracks are negotiated if the remote endpoint is not
+    /// bundle-aware, and what ICE candidates are gathered. If the remote
+    /// endpoint is bundle-aware, all media tracks and data channels are bundled
+    /// onto the same transport.
+    ///
+    /// [1]: https://w3.org/TR/webrtc#dom-rtcbundlepolicy
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    enum BundlePolicy {
+        /// [RTCBundlePolicy.balanced][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcbundlepolicy-balanced
+        kBundlePolicyBalanced,
+
+        /// [RTCBundlePolicy.max-bundle][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcbundlepolicy-max-bundle
+        kBundlePolicyMaxBundle,
+
+        /// [RTCBundlePolicy.max-compat][1] representation.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcbundlepolicy-max-compat
+        kBundlePolicyMaxCompat,
+    }
+
     #[rustfmt::skip]
     unsafe extern "C++" {
         include!("libwebrtc-sys/include/bridge.h");
@@ -275,6 +336,9 @@ pub(crate) mod webrtc {
 
         /// Creates a new [`Thread`].
         pub fn create_thread() -> UniquePtr<Thread>;
+
+        /// Creates a new [`Thread`] with an attached socket server.
+        pub fn create_thread_with_socket_server() -> UniquePtr<Thread>;
 
         /// Starts the current [`Thread`].
         #[cxx_name = "Start"]
@@ -360,6 +424,21 @@ pub(crate) mod webrtc {
         ) -> i32;
     }
 
+    extern "Rust" {
+        type DynAddIceCandidateCallback;
+
+        /// Calls the success [`DynAddIceCandidateCallback`].
+        pub fn add_ice_candidate_success(
+            mut cb: Box<DynAddIceCandidateCallback>,
+        );
+
+        /// Calls the fail [`DynAddIceCandidateCallback`].
+        pub fn add_ice_candidate_fail(
+            mut cb: Box<DynAddIceCandidateCallback>,
+            error: &CxxString,
+        );
+    }
+
     #[rustfmt::skip]
     unsafe extern "C++" {
         #[namespace = "cricket"]
@@ -378,6 +457,9 @@ pub(crate) mod webrtc {
         type PeerConnectionObserver;
         type PeerConnectionState;
         type RTCConfiguration;
+        type IceTransportsType;
+        type BundlePolicy;
+        type IceServer;
         type RTCOfferAnswerOptions;
         type RtpTransceiverDirection;
         type RtpTransceiverInterface;
@@ -391,6 +473,42 @@ pub(crate) mod webrtc {
         /// Creates a default [`RTCConfiguration`].
         pub fn create_default_rtc_configuration()
             -> UniquePtr<RTCConfiguration>;
+
+        /// Changes the configured [`IceTransportsType`] of the provided
+        /// [`RTCConfiguration`].
+        pub fn set_rtc_configuration_ice_transport_type(
+            config: Pin<&mut RTCConfiguration>,
+            transport_type: IceTransportsType
+        );
+
+        /// Changes the configured [`BundlePolicy`] of the provided
+        /// [`RTCConfiguration`].
+        pub fn set_rtc_configuration_bundle_policy(
+            config: Pin<&mut RTCConfiguration>,
+            bundle_policy: BundlePolicy
+        );
+
+        /// Adds an [`IceServer`] to the provided [`RTCConfiguration`].
+        pub fn add_rtc_configuration_server(
+            config: Pin<&mut RTCConfiguration>,
+            server: Pin<&mut IceServer>
+        );
+
+        /// Creates a new empty [`IceServer`].
+        pub fn create_ice_server() -> UniquePtr<IceServer>;
+
+        /// Adds the spcified `url` to the provided [`IceServer`].
+        pub fn add_ice_server_url(
+            server: Pin<&mut IceServer>,
+            url: String
+        );
+
+        /// Sets the credentials for the provided [`IceServer`].
+        pub fn set_ice_server_credentials(
+            server: Pin<&mut IceServer>,
+            username: String,
+            password: String
+        );
 
         /// Creates a new [`PeerConnectionInterface`].
         ///
@@ -493,6 +611,14 @@ pub(crate) mod webrtc {
             sdp: &CxxString,
         ) -> UniquePtr<SessionDescriptionInterface>;
 
+        /// Creates a new [`IceCandidateInterface`] from the provided data.
+        pub fn create_ice_candidate(
+            sdp_mid: &str,
+            sdp_mline_index: i32,
+            candidate: &str,
+            error: &mut String
+        ) -> UniquePtr<IceCandidateInterface>;
+
         /// Returns the spec-compliant string representation of the provided
         /// [`IceCandidateInterface`].
         ///
@@ -500,9 +626,47 @@ pub(crate) mod webrtc {
         ///
         /// `candidate` must be a valid [`IceCandidateInterface`] pointer.
         #[must_use]
-        pub unsafe fn ice_candidate_interface_to_string(
-            candidate: *const IceCandidateInterface
+        pub fn ice_candidate_interface_to_string(
+            candidate: &IceCandidateInterface
         ) -> UniquePtr<CxxString>;
+
+        /// Returns the [sdpMid][1] string of the provided
+        /// [`IceCandidateInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate-sdpmid
+        #[must_use]
+        pub fn sdp_mid_of_ice_candidate(
+            candidate: &IceCandidateInterface
+        ) -> UniquePtr<CxxString>;
+
+        /// Returns the [sdpMLineIndex][1] of the provided
+        /// [`IceCandidateInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate-sdpmlineindex
+        #[must_use]
+        pub fn sdp_mline_index_of_ice_candidate(
+            candidate: &IceCandidateInterface
+        ) -> i32;
+
+        /// Adds the specified [`IceCandidateInterface`] to the underlying
+        /// [ICE agent][1] of the provided [`PeerConnectionInterface`].
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dfn-ice-agent
+        pub fn add_ice_candidate(
+            peer: &PeerConnectionInterface,
+            candidate: UniquePtr<IceCandidateInterface>,
+            cb: Box<DynAddIceCandidateCallback>
+        );
+
+        /// Tells the provided [`PeerConnectionInterface`] that ICE should be
+        /// restarted.
+        ///
+        /// Subsequent calls to [`create_offer()`] will create descriptions
+        /// restarting ICE.
+        pub fn restart_ice(peer: &PeerConnectionInterface);
+
+        /// Closes the provided [`PeerConnectionInterface`].
+        pub fn close_peer_connection(peer: &PeerConnectionInterface);
 
         /// Returns the spec-compliant string representation of the provided
         /// [`Candidate`].
@@ -876,9 +1040,9 @@ pub(crate) mod webrtc {
         /// occurs in the attached [`PeerConnectionInterface`].
         ///
         /// [1]: https://w3.org/TR/webrtc#event-icecandidate
-        pub unsafe fn on_ice_candidate(
+        pub fn on_ice_candidate(
             cb: &mut DynPeerConnectionEventsHandler,
-            candidate: *const IceCandidateInterface,
+            candidate: UniquePtr<IceCandidateInterface>,
         );
 
         /// Forwards the removed [`Candidate`]s to the given
@@ -1046,9 +1210,9 @@ pub fn on_ice_connection_receiving_change(
 /// [1]: https://w3.org/TR/webrtc#event-icecandidate
 pub fn on_ice_candidate(
     cb: &mut DynPeerConnectionEventsHandler,
-    candidate: *const webrtc::IceCandidateInterface,
+    candidate: UniquePtr<webrtc::IceCandidateInterface>,
 ) {
-    cb.on_ice_candidate(candidate);
+    cb.on_ice_candidate(IceCandidateInterface(candidate));
 }
 
 /// Forwards the removed [`Candidate`]s to the given
@@ -1080,6 +1244,21 @@ pub fn on_ice_selected_candidate_pair_changed(
     event: &webrtc::CandidatePairChangeEvent,
 ) {
     cb.on_ice_selected_candidate_pair_changed(event);
+}
+
+/// Calls the success [`DynAddIceCandidateCallback`].
+#[allow(clippy::boxed_local)]
+pub fn add_ice_candidate_success(mut cb: Box<DynAddIceCandidateCallback>) {
+    cb.on_success();
+}
+
+/// Calls the fail [`DynAddIceCandidateCallback`].
+#[allow(clippy::boxed_local)]
+pub fn add_ice_candidate_fail(
+    mut cb: Box<DynAddIceCandidateCallback>,
+    error: &CxxString,
+) {
+    cb.on_fail(error);
 }
 
 impl TryFrom<&str> for webrtc::SdpType {
@@ -1121,6 +1300,33 @@ impl TryFrom<&str> for webrtc::RtpTransceiverDirection {
             "stopped" => Ok(Self::kStopped),
             "inactive" => Ok(Self::kInactive),
             v => Err(anyhow!("Invalid `RtpTransceiverDirection`: {v}")),
+        }
+    }
+}
+
+impl TryFrom<&str> for webrtc::IceTransportsType {
+    type Error = anyhow::Error;
+
+    fn try_from(val: &str) -> Result<Self, Self::Error> {
+        match val {
+            "none" => Ok(Self::kNone),
+            "relay" => Ok(Self::kRelay),
+            "nohost" => Ok(Self::kNoHost),
+            "all" => Ok(Self::kAll),
+            v => Err(anyhow!("Invalid `IceTransportsType`: {v}")),
+        }
+    }
+}
+
+impl TryFrom<&str> for webrtc::BundlePolicy {
+    type Error = anyhow::Error;
+
+    fn try_from(val: &str) -> Result<Self, Self::Error> {
+        match val {
+            "balanced" => Ok(Self::kBundlePolicyBalanced),
+            "maxbundle" => Ok(Self::kBundlePolicyMaxBundle),
+            "maxcompat" => Ok(Self::kBundlePolicyMaxCompat),
+            v => Err(anyhow!("Invalid `BundlePolicy`: {v}")),
         }
     }
 }

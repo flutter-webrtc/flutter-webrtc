@@ -78,27 +78,30 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
     final Map<dynamic, dynamic> map = event;
 
     switch (map['event']) {
-      case 'signalingState':
+      case 'onSignalingStateChange':
         _signalingState = signalingStateForString(map['state']);
         onSignalingState?.call(_signalingState!);
         break;
-      case 'peerConnectionState':
+      case 'onConnectionStateChange':
         _connectionState = peerConnectionStateForString(map['state']);
         onConnectionState?.call(_connectionState!);
         break;
-      case 'iceGatheringState':
+      case 'onIceGatheringStateChange':
         _iceGatheringState = iceGatheringStateforString(map['state']);
         onIceGatheringState?.call(_iceGatheringState!);
         break;
-      case 'iceConnectionState':
+      case 'onIceConnectionStateChange':
         _iceConnectionState = iceConnectionStateForString(map['state']);
         onIceConnectionState?.call(_iceConnectionState!);
         break;
-      case 'onCandidate':
+      case 'onIceCandidate':
         Map<dynamic, dynamic> cand = map['candidate'];
         var candidate = RTCIceCandidate(
             cand['candidate'], cand['sdpMid'], cand['sdpMLineIndex']);
         onIceCandidate?.call(candidate);
+        break;
+      case 'onNegotiationNeeded':
+        onRenegotiationNeeded?.call();
         break;
       case 'onAddStream':
         String streamId = map['streamId'];
@@ -229,6 +232,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       'peerConnectionDispose',
       <String, dynamic>{'peerConnectionId': _peerConnectionId},
     );
+    onConnectionState
+        ?.call(RTCPeerConnectionState.RTCPeerConnectionStateClosed);
   }
 
   EventChannel _eventChannelFor(String peerConnectionId) {
@@ -369,7 +374,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
   @override
   Future<void> addCandidate(RTCIceCandidate candidate) async {
-    await WebRTC.invokeMethod('addCandidate', <String, dynamic>{
+    await WebRTC.invokeMethod('addIceCandidate', <String, dynamic>{
       'peerConnectionId': _peerConnectionId,
       'candidate': candidate.toMap(),
     });
@@ -435,6 +440,17 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   Future<void> close() async {
     try {
       await WebRTC.invokeMethod('peerConnectionClose', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+      });
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::close: ${e.message}';
+    }
+  }
+
+  @override
+  Future<void> restartIce() async {
+    try {
+      await WebRTC.invokeMethod('restartIce', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
       });
     } on PlatformException catch (e) {

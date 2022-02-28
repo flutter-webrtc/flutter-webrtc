@@ -26,9 +26,9 @@ void FlutterWebRTC::HandleMethodCall(
   } else if (method.compare("getSources") == 0) {
     EnumerateDevice(webrtc, std::move(result));
   } else if (method.compare("getUserMedia") == 0) {
-    GetMedia(method_call, webrtc, std::move(result), false);
+    GetMedia(webrtc, method_call, std::move(result), false);
   } else if (method.compare("getDisplayMedia") == 0) {
-    GetMedia(method_call, webrtc, std::move(result), true);
+    GetMedia(webrtc, method_call, std::move(result), true);
   } else if (method.compare("mediaStreamGetTracks") == 0) {
   } else if (method.compare("createOffer") == 0) {
     CreateOffer(webrtc, method_call, std::move(result));
@@ -40,24 +40,28 @@ void FlutterWebRTC::HandleMethodCall(
     SetLocalDescription(webrtc, method_call, std::move(result));
   } else if (method.compare("setRemoteDescription") == 0) {
     SetRemoteDescription(webrtc, method_call, std::move(result));
-  } else if (method.compare("addCandidate") == 0) {
+  } else if (method.compare("addIceCandidate") == 0) {
+    AddIceCandidate(webrtc, method_call, std::move(result));
   } else if (method.compare("getStats") == 0) {
   } else if (method.compare("createDataChannel") == 0) {
   } else if (method.compare("dataChannelSend") == 0) {
   } else if (method.compare("dataChannelClose") == 0) {
   } else if (method.compare("streamDispose") == 0) {
-    DisposeStream(method_call, webrtc, std::move(result));
+    DisposeStream(webrtc, method_call, std::move(result));
   } else if (method.compare("mediaStreamTrackSetEnable") == 0) {
-    SetTrackEnabled(method_call, webrtc, std::move(result));
+    SetTrackEnabled(webrtc, method_call, std::move(result));
   } else if (method.compare("trackDispose") == 0) {
   } else if (method.compare("peerConnectionClose") == 0) {
   } else if (method.compare("peerConnectionDispose") == 0) {
+    DisposePeerConnection(webrtc, method_call, std::move(result));
+  } else if (method.compare("restartIce") == 0) {
+    RestartIce(webrtc, method_call, std::move(result));
   } else if (method.compare("createVideoRenderer") == 0) {
     CreateVideoRendererTexture(std::move(result));
   } else if (method.compare("videoRendererDispose") == 0) {
-    VideoRendererDispose(method_call, webrtc, std::move(result));
+    VideoRendererDispose(webrtc, method_call, std::move(result));
   } else if (method.compare("videoRendererSetSrcObject") == 0) {
-    SetMediaStream(method_call, webrtc, std::move(result));
+    SetMediaStream(webrtc, method_call, std::move(result));
   } else if (method.compare("setVolume") == 0) {
   } else if (method.compare("getLocalDescription") == 0) {
   } else if (method.compare("getRemoteDescription") == 0) {

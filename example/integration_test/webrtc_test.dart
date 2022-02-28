@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:integration_test/integration_test.dart';
@@ -118,22 +120,122 @@ void main() {
     expect(mid, equals('0'));
   });
 
-  testWidgets('Get transceiver mid', (WidgetTester tester) async {
-    var pc = await createPeerConnection({});
+  testWidgets('Add Ice Candidate', (WidgetTester tester) async {
+    var pc1 = await createPeerConnection({});
+    var pc2 = await createPeerConnection({});
+
+    pc1.onIceCandidate = (RTCIceCandidate candidate) async {
+      await pc2.addCandidate(candidate);
+    };
+
+    pc2.onIceCandidate = (RTCIceCandidate candidate) async {
+      await pc1.addCandidate(candidate);
+    };
+
     var init = RTCRtpTransceiverInit();
     init.direction = TransceiverDirection.SendRecv;
-    var trans = await pc.addTransceiver(
+    await pc1.addTransceiver(
         kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
 
-    var mid = await trans.getMid();
+    var offer = await pc1.createOffer();
+    await pc1.setLocalDescription(offer);
+    await pc2.setRemoteDescription(offer);
 
-    expect(mid.isEmpty, isTrue);
+    var answer = await pc2.createAnswer({});
+    await pc2.setLocalDescription(answer);
+    await pc1.setRemoteDescription(answer);
+  });
 
-    var sess = await pc.createOffer();
-    await pc.setLocalDescription(sess);
+  testWidgets('Restart Ice', (WidgetTester tester) async {
+    var pc1 = await createPeerConnection({});
+    var pc2 = await createPeerConnection({});
 
-    mid = await trans.getMid();
+    var tx = StreamController<int>();
+    var rx = StreamIterator(tx.stream);
 
-    expect(mid, equals('0'));
+    var eventsCount = 0;
+    pc1.onRenegotiationNeeded = () async {
+      eventsCount++;
+      tx.add(eventsCount);
+    };
+
+    var init = RTCRtpTransceiverInit();
+    init.direction = TransceiverDirection.SendRecv;
+    await pc1.addTransceiver(
+        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+
+    var offer = await pc1.createOffer();
+    await pc1.setLocalDescription(offer);
+    await pc2.setRemoteDescription(offer);
+
+    var answer = await pc2.createAnswer({});
+    await pc2.setLocalDescription(answer);
+    await pc1.setRemoteDescription(answer);
+
+    pc1.onIceCandidate = (RTCIceCandidate candidate) async {
+      await pc2.addCandidate(candidate);
+    };
+
+    pc2.onIceCandidate = (RTCIceCandidate candidate) async {
+      await pc1.addCandidate(candidate);
+    };
+
+    expect(await rx.moveNext(), isTrue);
+    expect(rx.current, equals(1));
+
+    await pc1.restartIce();
+
+    expect(await rx.moveNext(), isTrue);
+    expect(rx.current, equals(2));
+  });
+
+  testWidgets('Ice state PeerConnection', (WidgetTester tester) async {
+    var pc1 = await createPeerConnection({});
+    var pc2 = await createPeerConnection({});
+
+    var tx = StreamController<RTCPeerConnectionState>();
+    var rx = StreamIterator(tx.stream);
+
+    pc1.onConnectionState = (RTCPeerConnectionState state) {
+      tx.add(state);
+    };
+
+    var init = RTCRtpTransceiverInit();
+    init.direction = TransceiverDirection.SendRecv;
+    await pc1.addTransceiver(
+        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+
+    var offer = await pc1.createOffer();
+    await pc1.setLocalDescription(offer);
+    await pc2.setRemoteDescription(offer);
+
+    var answer = await pc2.createAnswer({});
+    await pc2.setLocalDescription(answer);
+    await pc1.setRemoteDescription(answer);
+
+    pc1.onIceCandidate = (RTCIceCandidate candidate) async {
+      await pc2.addCandidate(candidate);
+    };
+
+    pc2.onIceCandidate = (RTCIceCandidate candidate) async {
+      await pc1.addCandidate(candidate);
+    };
+
+    expect(await rx.moveNext(), isTrue);
+    expect(
+        rx.current,
+        equals(RTCPeerConnectionState.RTCPeerConnectionStateConnecting));
+
+    expect(await rx.moveNext(), isTrue);
+    expect(
+        rx.current,
+        equals(RTCPeerConnectionState.RTCPeerConnectionStateConnected));
+
+    await pc1.dispose();
+
+    expect(await rx.moveNext(), isTrue);
+    expect(
+        rx.current,
+        equals(RTCPeerConnectionState.RTCPeerConnectionStateClosed));
   });
 }

@@ -17,10 +17,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
 
   factory RTCRtpSenderNative.fromMap(Map<dynamic, dynamic> map,
       {required String peerConnectionId}) {
-    return RTCRtpSenderNative(
-        map['transceiverId'],
-        null,
-        peerConnectionId);
+    return RTCRtpSenderNative(map['transceiverId'], null, peerConnectionId);
   }
 
   static List<RTCRtpSenderNative> fromMaps(List<dynamic> map,

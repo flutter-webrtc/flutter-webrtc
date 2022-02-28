@@ -8,17 +8,24 @@
 
 namespace bridge {
 
+using RTCOfferAnswerOptions =
+    webrtc::PeerConnectionInterface::RTCOfferAnswerOptions;
+using PeerConnectionInterface =
+    rtc::scoped_refptr<webrtc::PeerConnectionInterface>;
+using SessionDescriptionInterface = webrtc::SessionDescriptionInterface;
+using RtpTransceiverInterface =
+    rtc::scoped_refptr<webrtc::RtpTransceiverInterface>;
+using RtpTransceiverDirection = webrtc::RtpTransceiverDirection;
+
+struct TransceiverContainer;
 struct DynPeerConnectionEventsHandler;
 struct DynSetDescriptionCallback;
 struct DynCreateSdpCallback;
-
-}  // namespace bridge
-
-namespace observer {
+struct DynAddIceCandidateCallback;
 
 // `PeerConnectionObserver` propagating events to the Rust side.
 class PeerConnectionObserver : public webrtc::PeerConnectionObserver {
-public:
+ public:
   // Creates a new `PeerConnectionObserver`.
   PeerConnectionObserver(rust::Box<bridge::DynPeerConnectionEventsHandler> cb);
 
@@ -80,8 +87,8 @@ public:
   //       as `OnTrack`).
   void OnAddTrack(
       rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
-      const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams
-  ) override;
+      const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>&
+          streams) override;
 
   // Called when signaling indicates a transceiver will be receiving media from
   // a remote endpoint. It's fired during a call to `SetRemoteDescription`.
@@ -94,7 +101,7 @@ public:
   //       RTCSessionDescription" algorithm:
   //       https://w3c.github.io/webrtc-pc#set-description
   void OnTrack(
-    rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) override;
+      rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) override;
 
   // Called when signaling indicates that media will no longer be received on a
   // track.
@@ -138,7 +145,7 @@ class CreateSessionDescriptionObserver
 // Rust side.
 class SetLocalDescriptionObserver
     : public rtc::RefCountedObject<
-        webrtc::SetLocalDescriptionObserverInterface> {
+          webrtc::SetLocalDescriptionObserverInterface> {
  public:
   // Creates a new `SetLocalDescriptionObserver`.
   SetLocalDescriptionObserver(rust::Box<bridge::DynSetDescriptionCallback> cb);
@@ -155,7 +162,7 @@ class SetLocalDescriptionObserver
 // side.
 class SetRemoteDescriptionObserver
     : public rtc::RefCountedObject<
-        webrtc::SetRemoteDescriptionObserverInterface> {
+          webrtc::SetRemoteDescriptionObserverInterface> {
  public:
   // Creates a new `SetRemoteDescriptionObserver`.
   SetRemoteDescriptionObserver(rust::Box<bridge::DynSetDescriptionCallback> cb);
@@ -168,4 +175,48 @@ class SetRemoteDescriptionObserver
   std::optional<rust::Box<bridge::DynSetDescriptionCallback>> cb_;
 };
 
-}  // namespace observer
+// Calls `PeerConnectionInterface->CreateOffer`.
+void create_offer(PeerConnectionInterface& peer,
+                  const RTCOfferAnswerOptions& options,
+                  std::unique_ptr<CreateSessionDescriptionObserver> obs);
+
+// Calls `PeerConnectionInterface->CreateAnswer`.
+void create_answer(PeerConnectionInterface& peer,
+                   const RTCOfferAnswerOptions& options,
+                   std::unique_ptr<CreateSessionDescriptionObserver> obs);
+
+// Calls `PeerConnectionInterface->SetLocalDescription`.
+void set_local_description(PeerConnectionInterface& peer,
+                           std::unique_ptr<SessionDescriptionInterface> desc,
+                           std::unique_ptr<SetLocalDescriptionObserver> obs);
+
+// Calls `PeerConnectionInterface->SetRemoteDescription`.
+void set_remote_description(PeerConnectionInterface& peer,
+                            std::unique_ptr<SessionDescriptionInterface> desc,
+                            std::unique_ptr<SetRemoteDescriptionObserver> obs);
+
+// Adds a new `RtpTransceiverInterface` to the provided
+// `PeerConnectionInterface`.
+std::unique_ptr<RtpTransceiverInterface> add_transceiver(
+    PeerConnectionInterface& peer,
+    cricket::MediaType media_type,
+    RtpTransceiverDirection direction);
+
+// Returns a list of `RtpTransceiverInterface`s attached to the provided
+// `PeerConnectionInterface`.
+rust::Vec<TransceiverContainer> get_transceivers(
+    const PeerConnectionInterface& peer);
+
+// Adds the `IceCandidateInterface` to the provided `PeerConnectionInterface`.
+void add_ice_candidate(const PeerConnectionInterface& peer,
+                       std::unique_ptr<webrtc::IceCandidateInterface> candidate,
+                       rust::Box<DynAddIceCandidateCallback> cb);
+
+// Tells the provided `PeerConnectionInterface` that ICE should be restarted.
+// Subsequent calls to `create_offer` will create descriptions restarting ICE.
+void restart_ice(const PeerConnectionInterface& peer);
+
+// Closes the provided `PeerConnectionInterface`.
+void close_peer_connection(const PeerConnectionInterface& peer);
+
+}  // namespace bridge

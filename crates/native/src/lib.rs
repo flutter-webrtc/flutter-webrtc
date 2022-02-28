@@ -201,6 +201,55 @@ pub mod api {
         pub frame: Box<Frame>,
     }
 
+    /// [`PeerConnection`]'s configuration.
+    pub struct RtcConfiguration {
+        /// [iceTransportPolicy][1] configuration.
+        ///
+        /// Indicates which candidates the [ICE Agent][2] is allowed to use.
+        ///
+        /// [1]: https://tinyurl.com/icetransportpolicy
+        /// [2]: https://w3.org/TR/webrtc#dfn-ice-agent
+        pub ice_transport_policy: String,
+
+        /// [bundlePolicy][1] configuration.
+        ///
+        /// Indicates which media-bundling policy to use when gathering ICE
+        /// candidates.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcconfiguration-bundlepolicy
+        pub bundle_policy: String,
+
+        /// [iceServers][1] configuration.
+        ///
+        /// An array of objects describing servers available to be used by ICE,
+        /// such as STUN and TURN servers.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtcconfiguration-iceservers
+        pub ice_servers: Vec<RtcIceServer>,
+    }
+
+    /// Describes the STUN and TURN servers that can be used by the
+    /// [ICE Agent][1] to establish a connection with a peer.
+    ///
+    /// [1]: https://w3.org/TR/webrtc#dfn-ice-agent
+    pub struct RtcIceServer {
+        /// STUN or TURN URI(s).
+        pub urls: Vec<String>,
+
+        /// If this [`RtcIceServer`] object represents a TURN server, then this
+        /// attribute specifies the [username][1] to use with that TURN server.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtciceserver-username
+        pub username: String,
+
+        /// If this [`RtcIceServer`] object represents a TURN server, then this
+        /// attribute specifies the [credential][1] to use with that TURN
+        /// server.
+        ///
+        /// [1]: https://w3.org/TR/webrtc#dom-rtciceserver-credential
+        pub credential: String,
+    }
+
     extern "C++" {
         type CreateSdpCallbackInterface =
             crate::internal::CreateSdpCallbackInterface;
@@ -213,6 +262,9 @@ pub mod api {
 
         type OnFrameCallbackInterface =
             crate::internal::OnFrameCallbackInterface;
+
+        type AddIceCandidateCallbackInterface =
+            crate::internal::AddIceCandidateCallbackInterface;
     }
 
     extern "Rust" {
@@ -237,6 +289,7 @@ pub mod api {
         pub fn create_peer_connection(
             self: &mut Webrtc,
             cb: UniquePtr<PeerConnectionObserverInterface>,
+            configuration: RtcConfiguration,
             err: &mut String,
         ) -> u64;
 
@@ -377,6 +430,25 @@ pub mod api {
             track_id: u64,
         ) -> String;
 
+        /// Adds the new ICE candidate to the given [`PeerConnection`].
+        #[cxx_name = "AddIceCandidate"]
+        pub fn add_ice_candidate(
+            self: &mut Webrtc,
+            peer_id: u64,
+            candidate: &str,
+            sdp_mid: &str,
+            sdp_mline_index: i32,
+            cb: UniquePtr<AddIceCandidateCallbackInterface>,
+        );
+
+        /// Tells the [`PeerConnection`] that ICE should be restarted.
+        #[cxx_name = "RestartIce"]
+        pub fn restart_ice(self: &mut Webrtc, peer_id: u64);
+
+        /// Closes the [`PeerConnection`].
+        #[cxx_name = "DisposePeerConnection"]
+        pub fn dispose_peer_connection(self: &mut Webrtc, peer_id: u64);
+
         /// Creates a [`MediaStream`] with tracks according to provided
         /// [`MediaStreamConstraints`].
         #[cxx_name = "GetMedia"]
@@ -454,13 +526,13 @@ pub fn init() -> Box<Webrtc> {
     let mut task_queue_factory =
         TaskQueueFactory::create_default_task_queue_factory();
 
-    let mut network_thread = Thread::create().unwrap();
+    let mut network_thread = Thread::create(true).unwrap();
     network_thread.start().unwrap();
 
-    let mut worker_thread = Thread::create().unwrap();
+    let mut worker_thread = Thread::create(false).unwrap();
     worker_thread.start().unwrap();
 
-    let mut signaling_thread = Thread::create().unwrap();
+    let mut signaling_thread = Thread::create(false).unwrap();
     signaling_thread.start().unwrap();
 
     let audio_device_module = AudioDeviceModule::new(
