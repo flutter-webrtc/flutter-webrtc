@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: 2.2.3
+  FLUTTER_VERSION: 2.10
   FLUTTER_CHANNEL: stable
 
 jobs:
@@ -47,37 +47,3 @@ jobs:
       - run: flutter pub get
 
       - run: flutter pub run import_sorter:main --no-comments --exit-if-changed
-
-  google-java-format:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: axel-op/googlejavaformat-action@v3
-        with:
-          args: --set-exit-if-changed
-          files: android/src/main/java/com/cloudwebrtc/webrtc/**/*.java
-          version: 1.13.0
-
-
-
-
-  ###########
-  # Testing #
-  ###########
-
-  test:
-    name: Flutter unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2
-        with:
-          java-version: "12.x"
-          distribution: zulu
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: ${{ env.FLUTTER_CHANNEL }}
-
-      - run: flutter test
