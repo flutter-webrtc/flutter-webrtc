@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.8.3] - 2022-03-01
+
+* [Android/iOS] Update android/ios webrtc native sdk versions.
+* [Windows] Feature of selecting i/o audio devices by passing sourceId and/or deviceId constraints (#851).
+
 [0.8.2] - 2022-02-08
 
 * [Android/iOS/macOS/Web] Add restartIce.
