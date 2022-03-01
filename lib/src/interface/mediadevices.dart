@@ -91,6 +91,10 @@ class MediaTrackSupportedConstraints {
 }
 
 abstract class MediaDevices {
+  /// Callback, called when a media device has been added to or removed from the
+  /// system.
+  void Function()? onDeviceChange;
+
   /// Calling this method will prompts the user to select and grant permission
   /// to capture the contents of a display or portion thereof (such as a window)
   /// as a MediaStream. The resulting stream can then be recorded using the

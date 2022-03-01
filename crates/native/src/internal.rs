@@ -12,6 +12,7 @@ mod cpp_api_bindings {
         pub type OnFrameCallbackInterface;
         pub type PeerConnectionObserverInterface;
         pub type AddIceCandidateCallbackInterface;
+        pub type OnDeviceChangeCallback;
 
         type VideoFrame = crate::api::VideoFrame;
 
@@ -121,6 +122,10 @@ mod cpp_api_bindings {
             self: Pin<&mut AddIceCandidateCallbackInterface>,
             error: &CxxString,
         );
+
+        /// Calls C++ side `OnDeviceChangeCallback->OnDeviceChange`.
+        #[cxx_name = "OnDeviceChange"]
+        pub fn on_device_change(self: Pin<&mut OnDeviceChangeCallback>);
     }
 
     // This will trigger `cxx` to generate `UniquePtrTarget` trait for the
@@ -138,6 +143,9 @@ mod cpp_api_bindings {
         );
         fn _touch_unique_ptr_add_ice_candidate_interface(
             i: UniquePtr<AddIceCandidateCallbackInterface>,
+        );
+        fn _touch_unique_ptr_on_device_change(
+            i: UniquePtr<OnDeviceChangeCallback>,
         );
     }
 }
@@ -161,5 +169,10 @@ fn _touch_unique_ptr_peer_connection_on_event_interface(
 
 fn _touch_unique_ptr_add_ice_candidate_interface(
     _: cxx::UniquePtr<AddIceCandidateCallbackInterface>,
+) {
+}
+
+fn _touch_unique_ptr_on_device_change(
+    _: cxx::UniquePtr<OnDeviceChangeCallback>,
 ) {
 }

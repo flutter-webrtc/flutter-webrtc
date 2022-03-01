@@ -12,6 +12,7 @@ anyhow = "1.0"
 cxx = "1.0"
 derive_more = "0.99"
 libwebrtc-sys = { path = "../libwebrtc-sys" }
+winapi = { version = "0.3", features = ["winuser", "dbt"] }
 
 [build-dependencies]
 anyhow = "1.0"
