@@ -58,12 +58,6 @@ void StopTransceiver(
     const flutter::MethodCall<EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 
-// Calls Rust `DisposeTransceiver()` to free Rust side `RTCRtpTransceiver`.
-void DisposeTransceiver(
-    Box<Webrtc>& webrtc,
-    const flutter::MethodCall<EncodableValue>& method_call,
-    std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
-
 // Calls Rust `SetTransceiverDirection()` to change the preferred direction of
 // the given `RTCRtpTransceiver`.
 void SetTransceiverDirection(

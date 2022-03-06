@@ -9,14 +9,19 @@ mod video_sink;
 use std::{
     collections::HashMap,
     rc::Rc,
-    sync::atomic::{AtomicU64, Ordering},
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
 };
 
 use cxx::UniquePtr;
+use dashmap::DashMap;
 use libwebrtc_sys::{
     AudioLayer, AudioSourceInterface, PeerConnectionFactoryInterface,
     TaskQueueFactory, Thread, VideoDeviceInfo,
 };
+use threadpool::ThreadPool;
 
 use crate::video_sink::Id as VideoSinkId;
 
@@ -181,6 +186,32 @@ pub mod api {
         ///
         /// [1]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver-direction
         pub direction: String,
+
+        /// [`RtcRtpSender`] responsible for encoding and sending outgoing
+        /// media data for the transceiver's stream.
+        pub sender: RtcRtpSender,
+    }
+
+    /// [`RtcRtpSender`] object allowing to control how a [`MediaStreamTrack`]
+    /// is encoded and transmitted to a remote peer.
+    #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+    pub struct RtcRtpSender {
+        /// ID of this [`RtcRtpSender`].
+        pub id: u64,
+    }
+
+    /// [`RtcTrackEvent`] representing a track event, sent when a new
+    /// [`MediaStreamTrack`] is added to an [`RtcRtpTransceiver`] as part of a
+    /// [`PeerConnection`].
+    pub struct RtcTrackEvent {
+        /// [`MediaStreamTrack`] associated with the [RTCRtpReceiver] identified
+        /// by the receiver.
+        ///
+        /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
+        pub track: MediaStreamTrack,
+
+        /// [`RtcRtpTransceiver`] object associated with the event.
+        pub transceiver: RtcRtpTransceiver,
     }
 
     /// Single video frame.
@@ -415,14 +446,6 @@ pub mod api {
             transceiver_id: u64,
         ) -> String;
 
-        /// Disposes the specified [`RtcRtpTransceiver`].
-        #[cxx_name = "DisposeTransceiver"]
-        pub fn dispose_transceiver(
-            self: &mut Webrtc,
-            peer_id: u64,
-            transceiver_id: u64,
-        );
-
         /// Replaces the specified [`AudioTrack`] (or [`VideoTrack`]) on
         /// the [`sys::Transceiver`]'s `sender`.
         #[cxx_name = "SenderReplaceTrack"]
@@ -521,12 +544,16 @@ pub struct Context {
     video_device_info: VideoDeviceInfo,
     peer_connection_factory: PeerConnectionFactoryInterface,
     video_sources: HashMap<VideoDeviceId, Rc<VideoSource>>,
-    video_tracks: HashMap<VideoTrackId, VideoTrack>,
+    video_tracks: Arc<DashMap<VideoTrackId, VideoTrack>>,
     audio_source: Option<Rc<AudioSourceInterface>>,
-    audio_tracks: HashMap<AudioTrackId, AudioTrack>,
+    audio_tracks: Arc<DashMap<AudioTrackId, AudioTrack>>,
     local_media_streams: HashMap<MediaStreamId, MediaStream>,
     peer_connections: HashMap<PeerConnectionId, PeerConnection>,
     video_sinks: HashMap<VideoSinkId, VideoSink>,
+
+    /// [`ThreadPool`] used to offload blocking or CPU-intensive tasks, so they
+    /// won't block Flutter WebRTC threads.
+    callback_pool: ThreadPool,
 }
 
 /// Creates a new instance of [`Webrtc`].
@@ -574,12 +601,13 @@ pub fn init() -> Box<Webrtc> {
         video_device_info,
         peer_connection_factory,
         video_sources: HashMap::new(),
-        video_tracks: HashMap::new(),
+        video_tracks: Arc::new(DashMap::new()),
         audio_source: None,
-        audio_tracks: HashMap::new(),
+        audio_tracks: Arc::new(DashMap::new()),
         local_media_streams: HashMap::new(),
         peer_connections: HashMap::new(),
         video_sinks: HashMap::new(),
+        callback_pool: ThreadPool::new(4),
     })))
 }
 

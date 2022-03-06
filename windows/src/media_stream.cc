@@ -76,7 +76,7 @@ void GetMedia(rust::Box<Webrtc>& webrtc,
   EncodableMap params;
 
   params[EncodableValue("streamId")] =
-      EncodableValue(std::to_string(media.stream_id).c_str());
+      EncodableValue(std::to_string(media.stream_id));
   params[EncodableValue("videoTracks")] =
       EncodableValue(GetParams(TrackKind::kVideo, media));
   params[EncodableValue("audioTracks")] =
@@ -187,9 +187,9 @@ EncodableList GetParams(TrackKind type, MediaStream& media) {
     for (size_t i = 0; i < rust_tracks.size(); ++i) {
       EncodableMap info;
       info[EncodableValue("id")] =
-          EncodableValue(std::to_string(rust_tracks[i].id).c_str());
+          EncodableValue(std::to_string(rust_tracks[i].id));
       info[EncodableValue("label")] =
-          EncodableValue(rust_tracks[i].label.c_str());
+          EncodableValue(std::string(rust_tracks[i].label));
       info[EncodableValue("kind")] = EncodableValue(
           rust_tracks[i].kind == TrackKind::kVideo ? "video" : "audio");
       info[EncodableValue("enabled")] = EncodableValue(rust_tracks[i].enabled);

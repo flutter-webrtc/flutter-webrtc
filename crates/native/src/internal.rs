@@ -15,6 +15,7 @@ mod cpp_api_bindings {
         pub type OnDeviceChangeCallback;
 
         type VideoFrame = crate::api::VideoFrame;
+        type RtcTrackEvent = crate::api::RtcTrackEvent;
 
         /// Calls C++ side `CreateSdpCallbackInterface->OnSuccess`.
         #[cxx_name = "OnSuccess"]
@@ -123,6 +124,12 @@ mod cpp_api_bindings {
             error: &CxxString,
         );
 
+        /// Calls C++ side `PeerConnectionObserverInterface->OnTrack`.
+        #[cxx_name = "OnTrack"]
+        pub fn on_track(
+            self: Pin<&mut PeerConnectionObserverInterface>,
+            event: RtcTrackEvent,
+        );
         /// Calls C++ side `OnDeviceChangeCallback->OnDeviceChange`.
         #[cxx_name = "OnDeviceChange"]
         pub fn on_device_change(self: Pin<&mut OnDeviceChangeCallback>);
@@ -149,6 +156,8 @@ mod cpp_api_bindings {
         );
     }
 }
+
+unsafe impl Send for PeerConnectionObserverInterface {}
 
 fn _touch_create_sdp_callback(_: cxx::UniquePtr<CreateSdpCallbackInterface>) {}
 

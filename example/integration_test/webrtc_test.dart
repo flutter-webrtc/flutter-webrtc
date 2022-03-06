@@ -238,4 +238,18 @@ void main() {
         rx.current,
         equals(RTCPeerConnectionState.RTCPeerConnectionStateClosed));
   });
+
+  testWidgets('Peer connection event on track', (WidgetTester tester) async {
+    var pc1 = await createPeerConnection({});
+    var init = RTCRtpTransceiverInit();
+    init.direction = TransceiverDirection.SendRecv;
+
+    await pc1.addTransceiver(
+      kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+    var pc2 = await createPeerConnection({});
+    final completer = Completer<void>();
+    pc2.onTrack = (RTCTrackEvent e) => {completer.complete()};
+    await pc2.setRemoteDescription(await pc1.createOffer({}));
+    await completer.future.timeout(Duration(seconds: 1));
+  });
 }

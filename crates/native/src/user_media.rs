@@ -1,11 +1,12 @@
 use std::rc::Rc;
 
 use anyhow::bail;
+use dashmap::mapref::one::RefMut;
 use derive_more::{AsRef, Display, From};
 use libwebrtc_sys as sys;
 
 use crate::{
-    api::{self, AudioConstraints, VideoConstraints},
+    api::{self, AudioConstraints, TrackKind, VideoConstraints},
     next_id, VideoSink, VideoSinkId, Webrtc,
 };
 
@@ -34,13 +35,10 @@ impl Webrtc {
                 .unwrap();
             let track = self.create_video_track(source).unwrap();
 
-            stream.add_video_track(track).unwrap();
-            result.video_tracks.push(api::MediaStreamTrack {
-                id: track.id.0,
-                label: track.label.0.clone(),
-                kind: track.kind,
-                enabled: true,
-            });
+            stream.add_video_track(&track).unwrap();
+            result
+                .video_tracks
+                .push(api::MediaStreamTrack::from(&*track));
         }
 
         if constraints.audio.required {
@@ -48,13 +46,10 @@ impl Webrtc {
                 self.get_or_create_audio_source(&constraints.audio).unwrap();
             let track = self.create_audio_track(source).unwrap();
 
-            stream.add_audio_track(track).unwrap();
-            result.audio_tracks.push(api::MediaStreamTrack {
-                id: track.id.0,
-                label: track.label.0.clone(),
-                kind: track.kind,
-                enabled: true,
-            });
+            stream.add_audio_track(&track).unwrap();
+            result
+                .audio_tracks
+                .push(api::MediaStreamTrack::from(&*track));
         };
 
         self.0
@@ -79,21 +74,25 @@ impl Webrtc {
             let audio_tracks = stream.audio_tracks;
 
             for track in video_tracks {
-                let src = self.0.video_tracks.remove(&track).unwrap().src;
-
-                if Rc::strong_count(&src) == 2 {
-                    self.0.video_sources.remove(&src.device_id);
-                };
+                if let MediaTrackSource::Local(src) =
+                    self.0.video_tracks.remove(&track).unwrap().1.source
+                {
+                    if Rc::strong_count(&src) == 2 {
+                        self.0.video_sources.remove(&src.device_id);
+                    };
+                }
             }
 
             for track in audio_tracks {
-                let src = self.0.audio_tracks.remove(&track).unwrap().src;
-
-                if Rc::strong_count(&src) == 2 {
-                    self.0.audio_source.take();
-                    // TODO: We should make `AudioDeviceModule` to stop
-                    //       recording.
-                };
+                if let MediaTrackSource::Local(src) =
+                    self.0.audio_tracks.remove(&track).unwrap().1.source
+                {
+                    if Rc::strong_count(&src) == 2 {
+                        self.0.audio_source.take();
+                        // TODO: We should make `AudioDeviceModule` to stop
+                        //       recording.
+                    };
+                }
             }
         }
     }
@@ -102,13 +101,13 @@ impl Webrtc {
     fn create_video_track(
         &mut self,
         source: Rc<VideoSource>,
-    ) -> anyhow::Result<&mut VideoTrack> {
+    ) -> anyhow::Result<RefMut<'_, VideoTrackId, VideoTrack>> {
         let track = if source.is_display {
             // TODO: Support screens enumeration.
-            VideoTrack::new(
+            VideoTrack::create_local(
                 &self.0.peer_connection_factory,
                 source,
-                VideoLabel("screen:0".into()),
+                VideoLabel::from("screen:0"),
             )?
         } else {
             let device_index = if let Some(index) =
@@ -122,7 +121,7 @@ impl Webrtc {
                 );
             };
 
-            VideoTrack::new(
+            VideoTrack::create_local(
                 &self.0.peer_connection_factory,
                 source,
                 VideoLabel(
@@ -201,7 +200,7 @@ impl Webrtc {
     fn create_audio_track(
         &mut self,
         source: Rc<sys::AudioSourceInterface>,
-    ) -> anyhow::Result<&mut AudioTrack> {
+    ) -> anyhow::Result<RefMut<'_, AudioTrackId, AudioTrack>> {
         // PANIC: If there is a `sys::AudioSourceInterface` then we are sure
         //        that `current_device_id` is set in the `AudioDeviceModule`.
         let device_id = self
@@ -346,13 +345,15 @@ pub struct VideoTrackId(u64);
 pub struct AudioTrackId(u64);
 
 /// Label identifying a video track source.
-#[derive(AsRef, Clone, Debug, Default, Display, Eq, Hash, PartialEq)]
+#[derive(AsRef, Clone, Debug, Default, Display, Eq, From, Hash, PartialEq)]
 #[as_ref(forward)]
+#[from(forward)]
 pub struct VideoLabel(String);
 
 /// Label identifying an audio track source.
-#[derive(AsRef, Clone, Debug, Default, Display, Eq, Hash, PartialEq)]
+#[derive(AsRef, Clone, Debug, Default, Display, Eq, From, Hash, PartialEq)]
 #[as_ref(forward)]
+#[from(forward)]
 pub struct AudioLabel(String);
 
 /// [`sys::AudioDeviceModule`] wrapper tracking the currently used audio input
@@ -458,6 +459,12 @@ impl MediaStream {
     }
 }
 
+/// Possible kinds of media track's source.
+enum MediaTrackSource<T> {
+    Local(Rc<T>),
+    Remote(String),
+}
+
 /// Representation of a [`sys::VideoTrackInterface`].
 #[derive(AsRef)]
 pub struct VideoTrack {
@@ -469,7 +476,7 @@ pub struct VideoTrack {
     inner: sys::VideoTrackInterface,
 
     /// [`VideoSource`] that is used by this [`VideoTrack`].
-    src: Rc<VideoSource>,
+    source: MediaTrackSource<VideoSource>,
 
     /// [`api::TrackKind::kVideo`].
     kind: api::TrackKind,
@@ -484,7 +491,7 @@ pub struct VideoTrack {
 
 impl VideoTrack {
     /// Creates a new [`VideoTrack`].
-    fn new(
+    fn create_local(
         pc: &sys::PeerConnectionFactoryInterface,
         src: Rc<VideoSource>,
         label: VideoLabel,
@@ -493,11 +500,36 @@ impl VideoTrack {
         Ok(Self {
             id,
             inner: pc.create_video_track(id.to_string(), &src.inner)?,
-            src,
+            source: MediaTrackSource::Local(src),
             kind: api::TrackKind::kVideo,
             label,
             sinks: Vec::new(),
         })
+    }
+
+    /// Wraps the track of the `transceiver.receiver.track()` into a
+    /// [`VideoTrack`].
+    pub(crate) fn wrap_remote(
+        transceiver: &sys::RtpTransceiverInterface,
+    ) -> Self {
+        let receiver = transceiver.receiver();
+        let track = receiver.track();
+        Self {
+            id: VideoTrackId(next_id()),
+            inner: track.try_into().unwrap(),
+            // Safe to unwrap since transceiver is guaranteed to be negotiated
+            // at this point.
+            source: MediaTrackSource::Remote(transceiver.mid().unwrap()),
+            kind: TrackKind::kAudio,
+            label: VideoLabel::from("remote"),
+            sinks: Vec::new(),
+        }
+    }
+
+    /// Returns the [`VideoTrackId`] of this [`VideoTrack`].
+    #[must_use]
+    pub fn id(&self) -> VideoTrackId {
+        self.id
     }
 
     /// Adds the provided [`VideoSink`] to this [`VideoTrack`].
@@ -521,6 +553,17 @@ impl VideoTrack {
     }
 }
 
+impl From<&VideoTrack> for api::MediaStreamTrack {
+    fn from(track: &VideoTrack) -> Self {
+        Self {
+            id: track.id.0,
+            label: track.label.0.clone(),
+            kind: track.kind,
+            enabled: true,
+        }
+    }
+}
+
 /// Representation of a [`sys::AudioSourceInterface`].
 #[derive(AsRef)]
 pub struct AudioTrack {
@@ -532,7 +575,7 @@ pub struct AudioTrack {
     inner: sys::AudioTrackInterface,
 
     /// [`sys::AudioSourceInterface`] that is used by this [`AudioTrack`].
-    src: Rc<sys::AudioSourceInterface>,
+    source: MediaTrackSource<sys::AudioSourceInterface>,
 
     /// [`api::TrackKind::kAudio`].
     kind: api::TrackKind,
@@ -544,7 +587,12 @@ pub struct AudioTrack {
 
 impl AudioTrack {
     /// Creates a new [`AudioTrack`].
-    fn new(
+    ///
+    /// # Errors
+    ///
+    /// Whenever [`sys::PeerConnectionFactoryInterface::create_audio_track()`]
+    /// returns an error.
+    pub fn new(
         pc: &sys::PeerConnectionFactoryInterface,
         src: Rc<sys::AudioSourceInterface>,
         label: AudioLabel,
@@ -553,10 +601,34 @@ impl AudioTrack {
         Ok(Self {
             id,
             inner: pc.create_audio_track(id.to_string(), &src)?,
-            src,
+            source: MediaTrackSource::Local(src),
             kind: api::TrackKind::kAudio,
             label,
         })
+    }
+
+    /// Wraps the track of the `transceiver.receiver.track()` into an
+    /// [`AudioTrack`].
+    pub(crate) fn wrap_remote(
+        transceiver: &sys::RtpTransceiverInterface,
+    ) -> Self {
+        let receiver = transceiver.receiver();
+        let track = receiver.track();
+        Self {
+            id: AudioTrackId(next_id()),
+            inner: track.try_into().unwrap(),
+            // Safe to unwrap since transceiver is guaranteed to be negotiated
+            // at this point.
+            source: MediaTrackSource::Remote(transceiver.mid().unwrap()),
+            kind: TrackKind::kAudio,
+            label: AudioLabel::from("remote"),
+        }
+    }
+
+    /// Returns the [`AudioTrackId`] of this [`AudioTrack`].
+    #[must_use]
+    pub fn id(&self) -> AudioTrackId {
+        self.id
     }
 
     /// Changes the [enabled][1] property of the underlying
@@ -565,6 +637,17 @@ impl AudioTrack {
     /// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
     pub fn set_enabled(&self, enabled: bool) {
         self.inner.set_enabled(enabled);
+    }
+}
+
+impl From<&AudioTrack> for api::MediaStreamTrack {
+    fn from(track: &AudioTrack) -> Self {
+        Self {
+            id: track.id.0,
+            label: track.label.0.clone(),
+            kind: track.kind,
+            enabled: true,
+        }
     }
 }
 

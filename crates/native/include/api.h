@@ -13,6 +13,7 @@ class String;
 } // namespace rust
 
 struct VideoFrame;
+struct RtcTrackEvent;
 
 // Completion callback for the `Webrtc::CreateOffer` and `Webrtc::CreateAnswer`
 // functions.
@@ -50,8 +51,10 @@ class OnFrameCallbackInterface {
   virtual ~OnFrameCallbackInterface() = default;
 };
 
-// TODO: Add OnTrack event in #30.
 // Handler of events firing from a `PeerConnectionInterface`.
+//
+// Implementations must be thread safe, since these methods will be called on
+// the `PeerConnection`'s signalling thread.
 class PeerConnectionObserverInterface {
  public:
   // Called when a `connectionstatechange` event occurs.
@@ -94,6 +97,11 @@ class PeerConnectionObserverInterface {
   //
   // See: https://w3.org/TR/webrtc#event-signalingstatechange
   virtual void OnSignalingChange(const std::string& new_state) = 0;
+
+  // Called when a `track` event occurs.
+  //
+  // See: https://w3.org/TR/webrtc#event-track
+  virtual void OnTrack(RtcTrackEvent event) = 0;
 
   virtual ~PeerConnectionObserverInterface() = default;
 };

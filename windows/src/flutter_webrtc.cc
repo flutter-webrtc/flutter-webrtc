@@ -129,7 +129,6 @@ void FlutterWebRTC::HandleMethodCall(
   } else if (method.compare("rtpTransceiverStop") == 0) {
     StopTransceiver(webrtc, method_call, std::move(result));
   } else if (method.compare("rtpTransceiverDispose") == 0) {
-    DisposeTransceiver(webrtc, method_call, std::move(result));
   } else if (method.compare("rtpTransceiverSetDirection") == 0) {
     SetTransceiverDirection(webrtc, method_call, std::move(result));
   } else if (method.compare("rtpTransceiverGetDirection") == 0) {

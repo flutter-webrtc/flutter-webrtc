@@ -3,7 +3,6 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include <string>
 
 #include "api/media_stream_interface.h"
 #include "api/video/video_frame.h"
@@ -21,7 +20,6 @@ namespace video_sink {
 // side via `DynOnFrameCallback`.
 class ForwardingVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame> {
  public:
-
   // Creates a new `ForwardingVideoSink` backed by the provided
   // `DynOnFrameCallback`.
   ForwardingVideoSink(rust::Box<bridge::DynOnFrameCallback> cb_);
