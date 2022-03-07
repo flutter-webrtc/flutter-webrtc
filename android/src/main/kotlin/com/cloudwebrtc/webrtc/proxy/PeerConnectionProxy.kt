@@ -1,7 +1,5 @@
 package com.cloudwebrtc.webrtc.proxy
 
-import android.os.Handler
-import android.os.Looper
 import com.cloudwebrtc.webrtc.exception.AddIceCandidateException
 import com.cloudwebrtc.webrtc.exception.CreateSdpException
 import com.cloudwebrtc.webrtc.exception.SetSdpException
@@ -270,6 +268,16 @@ class PeerConnectionProxy(val id: Int, peer: PeerConnection) :
                 eventObservers.forEach { it.onNegotiationNeeded() }
             }
         }
+    }
+
+    /**
+     * Notifies about [RtpReceiverProxy]'s [MediaStreamTrackProxy] being ended.
+     *
+     * @param endedReceiver  [RtpReceiver] being ended.
+     */
+    fun receiverEnded(endedReceiver: RtpReceiver) {
+        val receiver = receivers[endedReceiver.id()]
+        receiver?.notifyRemoved()
     }
 
     /**

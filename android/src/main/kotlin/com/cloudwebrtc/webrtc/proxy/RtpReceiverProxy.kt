@@ -1,5 +1,6 @@
 package com.cloudwebrtc.webrtc.proxy
 
+import com.cloudwebrtc.webrtc.model.MediaStreamTrackState
 import org.webrtc.RtpReceiver
 
 /**
@@ -31,6 +32,16 @@ class RtpReceiverProxy(receiver: RtpReceiver) : Proxy<RtpReceiver> {
      */
     fun id(): String {
         return obj.id()
+    }
+
+    /**
+     * Notifies [RtpReceiverProxy] about its [MediaStreamTrackProxy] being
+     * removed from the receiver.
+     */
+    fun notifyRemoved() {
+        if (track?.state() == MediaStreamTrackState.ENDED) {
+            track?.observableEventBroadcaster()?.onEnded()
+        }
     }
 
     /**

@@ -22,6 +22,13 @@ class WebMediaStreamTrack extends MediaStreamTrack {
   }
 
   @override
+  void onEnded(OnEndedCallback cb) {
+    jsTrack.onEnded.listen((event) {
+      cb.call();
+    });
+  }
+
+  @override
   bool isEnabled() {
     return jsTrack.enabled ?? false;
   }

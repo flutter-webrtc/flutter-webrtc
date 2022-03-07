@@ -1,7 +1,9 @@
 package com.cloudwebrtc.webrtc.controller
 
 import com.cloudwebrtc.webrtc.proxy.MediaStreamTrackProxy
+import com.cloudwebrtc.webrtc.utils.AnyThreadSink
 import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
@@ -15,7 +17,7 @@ import io.flutter.plugin.common.MethodChannel
 class MediaStreamTrackController(
     private val messenger: BinaryMessenger,
     private val track: MediaStreamTrackProxy
-) : MethodChannel.MethodCallHandler, IdentifiableController {
+) : MethodChannel.MethodCallHandler, EventChannel.StreamHandler, IdentifiableController {
     /**
      * Unique ID of the [MethodChannel] of this controller.
      */
@@ -29,8 +31,37 @@ class MediaStreamTrackController(
         ChannelNameGenerator.name("MediaStreamTrack", channelId)
     )
 
+    /**
+     * Event channel to send all the [MediaStreamTrackProxy] events into.
+     */
+    private val eventChannel: EventChannel = EventChannel(
+        messenger,
+        ChannelNameGenerator.name("MediaStreamTrackEvent", channelId)
+    )
+
+    /**
+     * Event sink ito send all the [MediaStreamTrackProxy] events into.
+     */
+    private var eventSink: AnyThreadSink? = null
+
+    /**
+     * [MediaStreamTrackProxy] events observer, sending all the events to the
+     * [eventSink].
+     */
+    private val eventObserver = object : MediaStreamTrackProxy.Companion.EventObserver {
+        override fun onEnded() {
+            eventSink?.success(
+                mapOf(
+                    "event" to "onEnded"
+                )
+            )
+        }
+    }
+
     init {
         chan.setMethodCallHandler(this)
+        eventChannel.setStreamHandler(this)
+        track.addEventObserver(eventObserver)
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -61,6 +92,16 @@ class MediaStreamTrackController(
                 result.success(null)
             }
         }
+    }
+
+    override fun onListen(obj: Any?, sink: EventChannel.EventSink?) {
+        if (sink != null) {
+            eventSink = AnyThreadSink(sink)
+        }
+    }
+
+    override fun onCancel(obj: Any?) {
+        eventSink = null
     }
 
     /**

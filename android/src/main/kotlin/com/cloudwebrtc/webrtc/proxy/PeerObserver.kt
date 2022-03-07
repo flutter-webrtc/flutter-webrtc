@@ -92,6 +92,15 @@ class PeerObserver : PeerConnection.Observer {
         }
     }
 
+    override fun onRemoveTrack(receiver: RtpReceiver?) {
+        if (receiver != null) {
+            Handler(Looper.getMainLooper()).post {
+                peer?.receiverEnded(receiver)
+            }
+        }
+        super.onRemoveTrack(receiver)
+    }
+
     override fun onIceConnectionReceivingChange(receiving: Boolean) {}
     override fun onIceCandidatesRemoved(candidates: Array<out WIceCandidate>?) {}
     override fun onAddStream(stream: MediaStream?) {}

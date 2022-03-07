@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 
 import '/src/api/channel.dart';
@@ -9,7 +11,10 @@ class NativeMediaStreamTrack extends MediaStreamTrack {
   /// Creates a [NativeMediaStreamTrack] basing on the [Map] received from the
   /// native side.
   NativeMediaStreamTrack.fromMap(dynamic map) {
-    _chan = methodChannel('MediaStreamTrack', map['channelId']);
+    var channelId = map['channelId'];
+    _chan = methodChannel('MediaStreamTrack', channelId);
+    _eventChan = eventChannel('MediaStreamTrackEvent', channelId);
+    _eventSub = _eventChan.receiveBroadcastStream().listen(eventListener);
     _id = map['id'];
     _deviceId = map['deviceId'];
     _kind = MediaKind.values[map['kind']];
@@ -35,6 +40,31 @@ class NativeMediaStreamTrack extends MediaStreamTrack {
 
   /// [MethodChannel] used for the messaging with a native side.
   late MethodChannel _chan;
+
+  /// [EventChannel] to receive all the [PeerConnection] events from.
+  late EventChannel _eventChan;
+
+  /// [_eventChan] subscription to the [PeerConnection] events.
+  late StreamSubscription<dynamic>? _eventSub;
+
+  /// `on_ended` event subscriber.
+  OnEndedCallback? _onEnded;
+
+  /// Listener for all the [MediaStreamTrack] events received from the native
+  /// side.
+  void eventListener(dynamic event) {
+    final dynamic e = event;
+    switch (e['event']) {
+      case 'onEnded':
+        _onEnded?.call();
+        break;
+    }
+  }
+
+  @override
+  void onEnded(OnEndedCallback cb) {
+    _onEnded = cb;
+  }
 
   @override
   String id() {
@@ -67,9 +97,10 @@ class NativeMediaStreamTrack extends MediaStreamTrack {
     await _chan.invokeMethod('stop');
   }
 
-  // TODO(evdokimovs): implement disposing for native side
   @override
-  Future<void> dispose() async {}
+  Future<void> dispose() async {
+    await _eventSub?.cancel();
+  }
 
   @override
   Future<MediaStreamTrack> clone() async {

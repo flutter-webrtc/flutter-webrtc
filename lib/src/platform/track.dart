@@ -1,5 +1,8 @@
 import '/src/model/track.dart';
 
+/// Representation of the `onEnded` callback.
+typedef OnEndedCallback = void Function();
+
 /// Abstract representation of a single media unit on native or web side.
 abstract class MediaStreamTrack {
   /// Returns unique identifier of this [MediaStreamTrack].
@@ -32,6 +35,9 @@ abstract class MediaStreamTrack {
   /// This action will unheld the device in case of the last local
   /// [MediaStreamTrack]s of some device.
   Future<void> stop();
+
+  /// Subscribes provided callback to the `onEnded` events of this [MediaStreamTrack].
+  void onEnded(OnEndedCallback cb);
 
   /// Creates a new instance of [MediaStreamTrack], which will depend on the same
   /// media source as this [MediaStreamTrack].
