@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../helper.dart';
@@ -9,7 +10,11 @@ import '../interface/media_stream_track.dart';
 import 'utils.dart';
 
 class MediaStreamTrackNative extends MediaStreamTrack {
-  MediaStreamTrackNative(this._trackId, this._label, this._kind, this._enabled);
+  MediaStreamTrackNative(this._trackId, this._label, this._kind, this._enabled) {
+  _eventSubscription = EventChannel('MediaStreamTrack/$_trackId')
+    .receiveBroadcastStream()
+    .listen(eventListener, onError: errorListener);
+  }
 
   factory MediaStreamTrackNative.fromMap(Map<dynamic, dynamic> map) {
     return MediaStreamTrackNative(
@@ -19,8 +24,24 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   final String _label;
   final String _kind;
   bool _enabled;
+  StreamSubscription<dynamic>? _eventSubscription;
+
 
   bool _muted = false;
+
+  void errorListener(Object obj) {
+    if (obj is Exception) throw obj;
+  }
+
+  void eventListener(dynamic event) {
+    final Map<dynamic, dynamic> map = event;
+
+    switch (map['event']) {
+      case 'onended':
+        onEnded?.call();
+        break;
+    }
+  }
 
   @override
   set enabled(bool enabled) {

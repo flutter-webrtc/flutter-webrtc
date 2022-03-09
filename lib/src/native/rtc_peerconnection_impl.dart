@@ -190,7 +190,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
             // receiver: RTCRtpReceiverNative.fromMap(map['receiver'],
             //     peerConnectionId: _peerConnectionId),
             // streams: streams,
-            // track: MediaStreamTrackNative.fromMap(map['track']),
+            track: MediaStreamTrackNative.fromMap(map['track']),
             //transceiver: transceiver
             ));
         break;

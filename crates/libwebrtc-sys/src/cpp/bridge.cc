@@ -11,6 +11,28 @@
 
 namespace bridge {
 
+// Creates a new `TrackEventObserver`.
+TrackEventObserver::TrackEventObserver(
+    rust::Box<bridge::DynTrackEventCallback> cb)
+    : cb_(std::move(cb)){};
+
+// Called when the `MediaStreamTrackInterface`, that this `TrackEventObserver`
+// is attached to, has its state changed.
+void TrackEventObserver::OnChanged() {
+  if (track_) {
+    if (track_.value()->state() ==
+        webrtc::MediaStreamTrackInterface::TrackState::kEnded) {
+      bridge::on_ended(*cb_);
+    }
+  }
+}
+
+// Sets the inner `MediaStreamTrackInterface`.
+void TrackEventObserver::set_track(
+    rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) {
+  track_ = track;
+}
+
 // Calls `AudioDeviceModule->Create()`.
 std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     AudioLayer audio_layer,
@@ -542,6 +564,50 @@ rust::String stop_transceiver(const RtpTransceiverInterface& transceiver) {
     error = result.message();
   }
   return error;
+}
+
+// Creates a new `TrackEventObserver` from the provided
+// `bridge::DynTrackEventCallback`.
+std::unique_ptr<TrackEventObserver> create_track_event_observer(
+    rust::Box<bridge::DynTrackEventCallback> cb) {
+  return std::make_unique<TrackEventObserver>(
+      TrackEventObserver(std::move(cb)));
+}
+
+// Changes the `track` member of the provided `TrackEventObserver`.
+void set_track_observer_video_track(TrackEventObserver& obs,
+                                    const VideoTrackInterface& track) {
+  obs.set_track(track);
+}
+
+// Changes the `track` member of the provided `TrackEventObserver`.
+void set_track_observer_audio_track(TrackEventObserver& obs,
+                                    const AudioTrackInterface& track) {
+  obs.set_track(track);
+}
+
+// Calls `VideoTrackInterface->RegisterObserver`.
+void video_track_register_observer(VideoTrackInterface& track,
+                                   TrackEventObserver& obs) {
+  track->RegisterObserver(&obs);
+}
+
+// Calls `AudioTrackInterface->RegisterObserver`.
+void audio_track_register_observer(AudioTrackInterface& track,
+                                   TrackEventObserver& obs) {
+  track->RegisterObserver(&obs);
+}
+
+// Calls `VideoTrackInterface->UnregisterObserver`.
+void video_track_unregister_observer(VideoTrackInterface& track,
+                                     TrackEventObserver& obs) {
+  track->UnregisterObserver(&obs);
+}
+
+// Calls `AudioTrackInterface->UnregisterObserver`.
+void audio_track_unregister_observer(AudioTrackInterface& track,
+                                     TrackEventObserver& obs) {
+  track->UnregisterObserver(&obs);
 }
 
 // Calls `RtpTransceiverInterface->sender()`.

@@ -3,7 +3,7 @@
 
 mod bridge;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, mem};
 
 use anyhow::bail;
 use cxx::{let_cxx_string, CxxString, CxxVector, UniquePtr};
@@ -18,6 +18,15 @@ pub use crate::webrtc::{
     RtpTransceiverDirection, SdpType, SignalingState, VideoFrame,
     VideoRotation,
 };
+
+/// Handler of events firing from a [`MediaStreamTrackInterface`].
+pub trait TrackEventCallback {
+    /// Called when an [`ended`][1] event occurs in the attached
+    /// [`MediaStreamTrackInterface`].
+    ///
+    /// [1]: https://w3.org/TR/mediacapture-streams#event-mediastreamtrack-ended
+    fn on_ended(&mut self);
+}
 
 /// Completion callback for a [`CreateSessionDescriptionObserver`], used to call
 /// [`PeerConnectionInterface::create_offer()`] and
@@ -632,7 +641,7 @@ impl RtpSenderInterface {
     ) -> anyhow::Result<()> {
         let success = webrtc::replace_sender_video_track(
             &self.0,
-            track.map_or(&UniquePtr::null(), |t| &t.0),
+            track.map_or(&UniquePtr::null(), |t| &t.inner),
         );
 
         if !success {
@@ -650,7 +659,7 @@ impl RtpSenderInterface {
     ) -> anyhow::Result<()> {
         let success = webrtc::replace_sender_audio_track(
             &self.0,
-            track.map_or(&UniquePtr::null(), |t| &t.0),
+            track.map_or(&UniquePtr::null(), |t| &t.inner),
         );
 
         if !success {
@@ -1190,15 +1199,18 @@ impl PeerConnectionFactoryInterface {
         id: String,
         video_src: &VideoTrackSourceInterface,
     ) -> anyhow::Result<VideoTrackInterface> {
-        let ptr = webrtc::create_video_track(&self.0, id, &video_src.0);
+        let inner = webrtc::create_video_track(&self.0, id, &video_src.0);
 
-        if ptr.is_null() {
+        if inner.is_null() {
             bail!(
                 "`null` pointer returned from \
                  `webrtc::PeerConnectionFactoryInterface::CreateVideoTrack()`",
             );
         }
-        Ok(VideoTrackInterface(ptr))
+        Ok(VideoTrackInterface {
+            inner,
+            observers: Vec::new(),
+        })
     }
 
     /// Creates a new [`AudioTrackInterface`] sourced by the provided
@@ -1208,15 +1220,18 @@ impl PeerConnectionFactoryInterface {
         id: String,
         audio_src: &AudioSourceInterface,
     ) -> anyhow::Result<AudioTrackInterface> {
-        let ptr = webrtc::create_audio_track(&self.0, id, &audio_src.0);
+        let inner = webrtc::create_audio_track(&self.0, id, &audio_src.0);
 
-        if ptr.is_null() {
+        if inner.is_null() {
             bail!(
                 "`null` pointer returned from \
                  `webrtc::PeerConnectionFactoryInterface::CreateAudioTrack()`",
             );
         }
-        Ok(AudioTrackInterface(ptr))
+        Ok(AudioTrackInterface {
+            inner,
+            observers: Vec::new(),
+        })
     }
 
     /// Creates a new empty [`MediaStreamInterface`].
@@ -1363,10 +1378,39 @@ impl MediaStreamTrackInterface {
     }
 }
 
+/// C++ side [`TrackEventCallback`] handling [`MediaStreamTrackInterface`]
+/// events.
+pub struct TrackEventObserver(UniquePtr<webrtc::TrackEventObserver>);
+
+impl TrackEventObserver {
+    /// Creates a new [`TrackEventObserver`].
+    #[must_use]
+    pub fn new(cb: Box<dyn TrackEventCallback>) -> Self {
+        TrackEventObserver(webrtc::create_track_event_observer(Box::new(cb)))
+    }
+
+    /// Sets the observable track to the specified [`VideoTrackInterface`].
+    pub fn set_video_track(&mut self, track: &VideoTrackInterface) {
+        webrtc::set_track_observer_video_track(self.0.pin_mut(), &track.inner);
+    }
+
+    /// Sets the observable track to the specified [`AudioTrackInterface`].
+    pub fn set_audio_track(&mut self, track: &AudioTrackInterface) {
+        webrtc::set_track_observer_audio_track(self.0.pin_mut(), &track.inner);
+    }
+}
+
 /// Video [`MediaStreamTrack`][1].
 ///
 /// [1]: https://w3.org/TR/mediacapture-streams#dom-mediastreamtrack
-pub struct VideoTrackInterface(UniquePtr<webrtc::VideoTrackInterface>);
+pub struct VideoTrackInterface {
+    /// Pointer to the C++ side `VideoTrackInterface` object.
+    inner: UniquePtr<webrtc::VideoTrackInterface>,
+
+    /// [`TrackEventObserver`]s subscribed to this [`VideoTrackInterface`] state
+    /// changes.
+    observers: Vec<TrackEventObserver>,
+}
 
 impl VideoTrackInterface {
     /// Register the provided [`VideoSinkInterface`] for this
@@ -1375,27 +1419,50 @@ impl VideoTrackInterface {
     /// Used to connect this [`VideoTrackInterface`] to the underlying video
     /// engine.
     pub fn add_or_update_sink(&self, sink: &mut VideoSinkInterface) {
-        webrtc::add_or_update_video_sink(&self.0, sink.0.pin_mut());
+        webrtc::add_or_update_video_sink(&self.inner, sink.0.pin_mut());
     }
 
     /// Detaches the provided [`VideoSinkInterface`] from this
     /// [`VideoTrackInterface`].
     pub fn remove_sink(&self, sink: &mut VideoSinkInterface) {
-        webrtc::remove_video_sink(&self.0, sink.0.pin_mut());
+        webrtc::remove_video_sink(&self.inner, sink.0.pin_mut());
     }
 
     /// Changes the [enabled][1] property of this [`VideoTrackInterface`].
     ///
     /// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
     pub fn set_enabled(&self, enabled: bool) {
-        webrtc::set_video_track_enabled(&self.0, enabled);
+        webrtc::set_video_track_enabled(&self.inner, enabled);
+    }
+
+    /// Registers the given [`TrackEventCallback`] as an observer of this
+    /// [`MediaStreamTrackInterface`] events.
+    pub fn register_observer(&mut self, mut obs: TrackEventObserver) {
+        webrtc::video_track_register_observer(
+            self.inner.pin_mut(),
+            obs.0.pin_mut(),
+        );
+        self.observers.push(obs);
     }
 
     /// Returns the [`VideoTrackSourceInterface`] attached to this
     /// [`VideoTrackInterface`].
     #[must_use]
     pub fn source(&self) -> VideoTrackSourceInterface {
-        VideoTrackSourceInterface(webrtc::get_video_track_source(&self.0))
+        VideoTrackSourceInterface(webrtc::get_video_track_source(&self.inner))
+    }
+}
+
+impl Drop for VideoTrackInterface {
+    fn drop(&mut self) {
+        let observers = mem::take(&mut self.observers);
+
+        for mut obs in observers {
+            webrtc::video_track_unregister_observer(
+                self.inner.pin_mut(),
+                obs.0.pin_mut(),
+            );
+        }
     }
 }
 
@@ -1408,7 +1475,10 @@ impl TryFrom<MediaStreamTrackInterface> for VideoTrackInterface {
                 webrtc::media_stream_track_interface_downcast_video_track(
                     track.0,
                 );
-            Ok(VideoTrackInterface(inner))
+            Ok(VideoTrackInterface {
+                inner,
+                observers: Vec::new(),
+            })
         } else {
             bail!(
                 "The provided `MediaStreamTrackInterface` is not an instance \
@@ -1421,21 +1491,51 @@ impl TryFrom<MediaStreamTrackInterface> for VideoTrackInterface {
 /// Audio [`MediaStreamTrack`][1].
 ///
 /// [1]: https://w3.org/TR/mediacapture-streams#dom-mediastreamtrack
-pub struct AudioTrackInterface(UniquePtr<webrtc::AudioTrackInterface>);
+pub struct AudioTrackInterface {
+    /// Pointer to the C++ side `AudioTrackInterface` object.
+    inner: UniquePtr<webrtc::AudioTrackInterface>,
+
+    /// [`TrackEventObserver`]s subscribed to this [`AudioTrackInterface`] state
+    /// changes.
+    observers: Vec<TrackEventObserver>,
+}
 
 impl AudioTrackInterface {
     /// Changes the [enabled][1] property of this [`AudioTrackInterface`].
     ///
     /// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
     pub fn set_enabled(&self, enabled: bool) {
-        webrtc::set_audio_track_enabled(&self.0, enabled);
+        webrtc::set_audio_track_enabled(&self.inner, enabled);
+    }
+
+    /// Registers the provided [`TrackEventCallback`] as an observer of this
+    /// [`MediaStreamTrackInterface`] events.
+    pub fn register_observer(&mut self, mut obs: TrackEventObserver) {
+        webrtc::audio_track_register_observer(
+            self.inner.pin_mut(),
+            obs.0.pin_mut(),
+        );
+        self.observers.push(obs);
     }
 
     /// Returns the [`AudioSourceInterface`] attached to this
     /// [`AudioTrackInterface`].
     #[must_use]
     pub fn source(&self) -> AudioSourceInterface {
-        AudioSourceInterface(webrtc::get_audio_track_source(&self.0))
+        AudioSourceInterface(webrtc::get_audio_track_source(&self.inner))
+    }
+}
+
+impl Drop for AudioTrackInterface {
+    fn drop(&mut self) {
+        let observers = mem::take(&mut self.observers);
+
+        for mut obs in observers {
+            webrtc::audio_track_unregister_observer(
+                self.inner.pin_mut(),
+                obs.0.pin_mut(),
+            );
+        }
     }
 }
 
@@ -1448,7 +1548,10 @@ impl TryFrom<MediaStreamTrackInterface> for AudioTrackInterface {
                 webrtc::media_stream_track_interface_downcast_audio_track(
                     track.0,
                 );
-            Ok(AudioTrackInterface(inner))
+            Ok(AudioTrackInterface {
+                inner,
+                observers: Vec::new(),
+            })
         } else {
             bail!(
                 "The provided `MediaStreamTrackInterface` is not an instance \
@@ -1470,7 +1573,7 @@ impl MediaStreamInterface {
         &self,
         track: &VideoTrackInterface,
     ) -> anyhow::Result<()> {
-        let result = webrtc::add_video_track(&self.0, &track.0);
+        let result = webrtc::add_video_track(&self.0, &track.inner);
 
         if !result {
             bail!("`webrtc::MediaStreamInterface::AddTrack()` failed");
@@ -1484,7 +1587,7 @@ impl MediaStreamInterface {
         &self,
         track: &AudioTrackInterface,
     ) -> anyhow::Result<()> {
-        let result = webrtc::add_audio_track(&self.0, &track.0);
+        let result = webrtc::add_audio_track(&self.0, &track.inner);
 
         if !result {
             bail!("`webrtc::MediaStreamInterface::AddTrack()` failed");
@@ -1498,7 +1601,7 @@ impl MediaStreamInterface {
         &self,
         track: &VideoTrackInterface,
     ) -> anyhow::Result<()> {
-        let result = webrtc::remove_video_track(&self.0, &track.0);
+        let result = webrtc::remove_video_track(&self.0, &track.inner);
 
         if !result {
             bail!("`webrtc::MediaStreamInterface::RemoveTrack()` failed");
@@ -1512,7 +1615,7 @@ impl MediaStreamInterface {
         &self,
         track: &AudioTrackInterface,
     ) -> anyhow::Result<()> {
-        let result = webrtc::remove_audio_track(&self.0, &track.0);
+        let result = webrtc::remove_audio_track(&self.0, &track.inner);
 
         if !result {
             bail!("`webrtc::MediaStreamInterface::RemoveTrack()` failed");

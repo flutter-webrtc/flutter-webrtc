@@ -75,9 +75,9 @@ void FlutterWebRTC::HandleMethodCall(
   } else if (method.compare("getSources") == 0) {
     EnumerateDevice(webrtc, std::move(result));
   } else if (method.compare("getUserMedia") == 0) {
-    GetMedia(webrtc, method_call, std::move(result), false);
+    GetMedia(webrtc, messenger_, method_call, std::move(result), false);
   } else if (method.compare("getDisplayMedia") == 0) {
-    GetMedia(webrtc, method_call, std::move(result), true);
+    GetMedia(webrtc, messenger_, method_call, std::move(result), true);
   } else if (method.compare("mediaStreamGetTracks") == 0) {
   } else if (method.compare("createOffer") == 0) {
     CreateOffer(webrtc, method_call, std::move(result));

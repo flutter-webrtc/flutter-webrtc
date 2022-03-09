@@ -29,29 +29,18 @@ class TrackEventObserver : public webrtc::ObserverInterface {
  public:
   // Creates a new `TrackEventObserver`.
   TrackEventObserver(
-      rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track,
       rust::Box<bridge::DynTrackEventCallback> cb);
 
   // Called whenever the track calls `set_state()` or `set_enabled()`.
   void OnChanged();
 
+  // Sets the inner `MediaStreamTrackInterface`.
+  void set_track(rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track);
+
  private:
-  // `SourceEventObserver` propagating mute/unmute track events to the Rust
-  // side.
-  class SourceEventObserver : public webrtc::ObserverInterface {
-   public:
-    SourceEventObserver(std::function<void()> callback) : callback_(callback) {}
-    void OnChanged() { callback_(); }
-
-   private:
-    std::function<void()> callback_;
-  };
-
-  // `MediaStreamTrackInterface` for mute/unmute events.
-  std::unique_ptr<SourceEventObserver> source_obs;
 
   // `MediaStreamTrackInterface` to determine the event.
-  rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track_;
+  std::optional<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> track_;
 
   // Rust side callback.
   rust::Box<bridge::DynTrackEventCallback> cb_;
@@ -381,15 +370,16 @@ rust::String stop_transceiver(const RtpTransceiverInterface& transceiver);
 
 // Creates a new `TrackEventObserver` from the provided
 // `bridge::DynTrackEventCallback`.
-std::unique_ptr<TrackEventObserver> create_video_track_event_observer(
-    const VideoTrackInterface& track,
+std::unique_ptr<TrackEventObserver> create_track_event_observer(
     rust::Box<bridge::DynTrackEventCallback> cb);
 
-// Creates a new `TrackEventObserver` from the provided
-// `bridge::DynTrackEventCallback`.
-std::unique_ptr<TrackEventObserver> create_audio_track_event_observer(
-    const AudioTrackInterface& track,
-    rust::Box<bridge::DynTrackEventCallback> cb);
+// Changes the `track` member of the provided `TrackEventObserver`.
+void set_track_observer_video_track(TrackEventObserver& obs,
+                                    const VideoTrackInterface& track);
+
+// Changes the `track` member of the provided `TrackEventObserver`.
+void set_track_observer_audio_track(TrackEventObserver& obs,
+                                    const AudioTrackInterface& track);
 
 // Calls `VideoTrackInterface->RegisterObserver`.
 void video_track_register_observer(VideoTrackInterface& track,

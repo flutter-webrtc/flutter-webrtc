@@ -11,6 +11,7 @@ mod cpp_api_bindings {
         pub type SetDescriptionCallbackInterface;
         pub type OnFrameCallbackInterface;
         pub type PeerConnectionObserverInterface;
+        pub type TrackObserverInterface;
         pub type AddIceCandidateCallbackInterface;
         pub type OnDeviceChangeCallback;
 
@@ -130,6 +131,11 @@ mod cpp_api_bindings {
             self: Pin<&mut PeerConnectionObserverInterface>,
             event: RtcTrackEvent,
         );
+
+        /// Calls C++ side `TrackObserverInterface->OnEnded`.
+        #[cxx_name = "OnEnded"]
+        pub fn on_ended(self: Pin<&mut TrackObserverInterface>);
+
         /// Calls C++ side `OnDeviceChangeCallback->OnDeviceChange`.
         #[cxx_name = "OnDeviceChange"]
         pub fn on_device_change(self: Pin<&mut OnDeviceChangeCallback>);
@@ -151,6 +157,7 @@ mod cpp_api_bindings {
         fn _touch_unique_ptr_add_ice_candidate_interface(
             i: UniquePtr<AddIceCandidateCallbackInterface>,
         );
+        fn _touch_track_observer(i: UniquePtr<TrackObserverInterface>);
         fn _touch_unique_ptr_on_device_change(
             i: UniquePtr<OnDeviceChangeCallback>,
         );
@@ -165,6 +172,8 @@ fn _touch_set_description_callback(
     _: cxx::UniquePtr<SetDescriptionCallbackInterface>,
 ) {
 }
+
+fn _touch_track_observer(_: cxx::UniquePtr<TrackObserverInterface>) {}
 
 fn _touch_unique_ptr_on_frame_handler(
     _: cxx::UniquePtr<OnFrameCallbackInterface>,

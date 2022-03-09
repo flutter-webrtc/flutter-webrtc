@@ -1,12 +1,17 @@
 use std::rc::Rc;
 
 use anyhow::bail;
+use cxx::UniquePtr;
 use dashmap::mapref::one::RefMut;
 use derive_more::{AsRef, Display, From};
 use libwebrtc_sys as sys;
+use sys::TrackEventObserver;
 
 use crate::{
-    api::{self, AudioConstraints, TrackKind, VideoConstraints},
+    api::{
+        self, AudioConstraints, TrackKind, TrackObserverInterface,
+        VideoConstraints,
+    },
     next_id, VideoSink, VideoSinkId, Webrtc,
 };
 
@@ -318,6 +323,32 @@ impl Webrtc {
         } else {
             // TODO: Return error.
             panic!("Could not find track with `{id}` ID");
+        }
+    }
+
+    /// Registers an events observer for an [`AudioTrack`] or a [`VideoTrack`].
+    ///
+    /// # Warning
+    ///
+    /// Returns error message if cannot find any [`AudioTrack`] or
+    /// [`VideoTrack`] by the specified `id`.
+    pub fn register_track_observer(
+        &mut self,
+        id: u64,
+        cb: UniquePtr<TrackObserverInterface>,
+    ) -> String {
+        let mut obs = TrackEventObserver::new(Box::new(TrackEventHandler(cb)));
+        if let Some(mut track) = self.0.video_tracks.get_mut(&id.into()) {
+            obs.set_video_track(&track.inner);
+            track.inner.register_observer(obs);
+            String::new()
+        } else if let Some(mut track) = self.0.audio_tracks.get_mut(&id.into())
+        {
+            obs.set_audio_track(&track.inner);
+            track.inner.register_observer(obs);
+            String::new()
+        } else {
+            format!("Could not find track with `{id}` ID")
         }
     }
 }
@@ -706,5 +737,15 @@ impl VideoSource {
             device_id,
             is_display: true,
         })
+    }
+}
+
+/// Wrapper around [`TrackObserverInterface`] implementing
+/// [`sys::TrackEventCallback`].
+struct TrackEventHandler(UniquePtr<TrackObserverInterface>);
+
+impl sys::TrackEventCallback for TrackEventHandler {
+    fn on_ended(&mut self) {
+        self.0.pin_mut().on_ended();
     }
 }

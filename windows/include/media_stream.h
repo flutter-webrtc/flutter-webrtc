@@ -19,6 +19,7 @@ void EnumerateDevice(rust::Box<Webrtc>& webrtc,
 // Parses the received constraints from Dart and passes them to Rust
 // `GetMedia()`, then converts the backed `MediaStream` info for Dart.
 void GetMedia(Box<Webrtc>& webrtc,
+              flutter::BinaryMessenger* messenger,
               const flutter::MethodCall<EncodableValue>& method_call,
               std::unique_ptr<flutter::MethodResult<EncodableValue>> result,
               bool is_display = false);
@@ -44,5 +45,10 @@ AudioConstraints ParseAudioConstraints(const EncodableValue audio_arg);
 // Converts Rust `VideoConstraints` or `AudioConstraints` to `EncodableList`
 // for passing to Dart according to `TrackKind`.
 EncodableList GetParams(TrackKind type, MediaStream& user_media);
+
+// Registers an observer for the `MediaStreamTrackInterface`.
+void RegisterTrackObserver(Box<Webrtc>* webrtc,
+                           flutter::BinaryMessenger* messenger,
+                           uint64_t track_id);
 
 }  // namespace flutter_webrtc_plugin

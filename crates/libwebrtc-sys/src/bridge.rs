@@ -6,7 +6,7 @@ use cxx::{CxxString, CxxVector, UniquePtr};
 use crate::{
     AddIceCandidateCallback, CreateSdpCallback, IceCandidateInterface,
     OnFrameCallback, PeerConnectionEventsHandler, RtpReceiverInterface,
-    RtpTransceiverInterface, SetDescriptionCallback,
+    RtpTransceiverInterface, SetDescriptionCallback, TrackEventCallback,
 };
 
 /// [`CreateSdpCallback`] transferable to the C++ side.
@@ -23,6 +23,9 @@ type DynPeerConnectionEventsHandler = Box<dyn PeerConnectionEventsHandler>;
 
 /// [`AddIceCandidateCallback`] transferable to the C++ side.
 type DynAddIceCandidateCallback = Box<dyn AddIceCandidateCallback>;
+
+/// [`TrackEventCallback`] transferable to the C++ side.
+type DynTrackEventCallback = Box<dyn TrackEventCallback>;
 
 #[allow(
     clippy::expl_impl_clone_on_copy,
@@ -1017,6 +1020,7 @@ pub(crate) mod webrtc {
         type RtpExtension;
         #[namespace = "webrtc"]
         type RtcpParameters;
+        type TrackEventObserver;
 
         /// Creates a new [`VideoTrackSourceInterface`] sourced by a video input
         /// device with provided `device_index`.
@@ -1234,6 +1238,52 @@ pub(crate) mod webrtc {
         /// Returns the remote [`Candidate`] of the provided [`CandidatePair`].
         #[must_use]
         pub fn remote_candidate(self: &CandidatePair) -> &Candidate;
+
+        /// Creates a new [`DynTrackEventCallback`] backed by the provided
+        /// [`DynOnFrameCallback`].
+        pub fn create_track_event_observer(
+            cb: Box<DynTrackEventCallback>,
+        ) -> UniquePtr<TrackEventObserver>;
+
+        /// Changes the `track` member of the provided [`TrackEventObserver`].
+        pub fn set_track_observer_video_track(
+            obs: Pin<&mut TrackEventObserver>,
+            track: &VideoTrackInterface,
+        );
+
+        /// Changes the `track` member of the provided [`TrackEventObserver`].
+        pub fn set_track_observer_audio_track(
+            obs: Pin<&mut TrackEventObserver>,
+            track: &AudioTrackInterface,
+        );
+
+        /// Registers the given [`TrackEventObserver`] to receive events from
+        /// the provided [`AudioTrackInterface`].
+        pub fn audio_track_register_observer(
+            track: Pin<&mut AudioTrackInterface>,
+            obs: Pin<&mut TrackEventObserver>,
+        );
+
+        /// Registers the given [`TrackEventObserver`] to receive events from
+        /// the provided [`VideoTrackInterface`].
+        pub fn video_track_register_observer(
+            track: Pin<&mut VideoTrackInterface>,
+            obs: Pin<&mut TrackEventObserver>,
+        );
+
+        /// Unregisters the given [`TrackEventObserver`] from the specified
+        /// [`AudioTrackInterface`].
+        pub fn audio_track_unregister_observer(
+            track: Pin<&mut AudioTrackInterface>,
+            obs: Pin<&mut TrackEventObserver>,
+        );
+
+        /// Unregisters the given [`TrackEventObserver`] from the specified
+        /// [`VideoTrackInterface`].
+        pub fn video_track_unregister_observer(
+            track: Pin<&mut VideoTrackInterface>,
+            obs: Pin<&mut TrackEventObserver>,
+        );
     }
 
     extern "Rust" {
@@ -1245,6 +1295,16 @@ pub(crate) mod webrtc {
             cb: &mut DynOnFrameCallback,
             frame: UniquePtr<VideoFrame>,
         );
+    }
+
+    extern "Rust" {
+        type DynTrackEventCallback;
+
+        /// Forwards the [`ended`][1] event to the given
+        /// [`DynTrackEventCallback`].
+        ///
+        /// [1]: https://tinyurl.com/w3-streams#event-mediastreamtrack-ended
+        fn on_ended(cb: &mut DynTrackEventCallback);
     }
 
     extern "Rust" {
@@ -1607,6 +1667,13 @@ pub fn on_remove_track(
     receiver: UniquePtr<webrtc::RtpReceiverInterface>,
 ) {
     cb.on_remove_track(RtpReceiverInterface(receiver));
+}
+
+/// Forwards the [`ended`][1] event to the given [`DynTrackEventCallback`].
+///
+/// [1]: https://w3.org/TR/mediacapture-streams#event-mediastreamtrack-ended
+pub fn on_ended(cb: &mut DynTrackEventCallback) {
+    cb.on_ended();
 }
 
 /// Creates a new [`StringPair`].

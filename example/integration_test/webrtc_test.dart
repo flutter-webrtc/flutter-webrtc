@@ -252,4 +252,20 @@ void main() {
     await pc2.setRemoteDescription(await pc1.createOffer({}));
     await completer.future.timeout(Duration(seconds: 1));
   });
+
+  // TODO: Fails on CI because of threading issues in the platform code.
+  // testWidgets('Track Onended', (WidgetTester tester) async {
+  //     var pc1 = await createPeerConnection({});
+  //     var init = RTCRtpTransceiverInit();
+  //     init.direction = TransceiverDirection.SendRecv;
+  //
+  //     await pc1.addTransceiver(
+  //         kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+  //     var pc2 = await createPeerConnection({});
+  //     final completer = Completer<void>();
+  //     pc2.onTrack = (RTCTrackEvent e) => {print(e.track), e.track?.onEnded = () => completer.complete()};
+  //     await pc2.setRemoteDescription(await pc1.createOffer({}));
+  //     await (await pc2.transceivers)[0].stop();
+  //     await completer.future.timeout(Duration(seconds: 3));
+  // });
 }
