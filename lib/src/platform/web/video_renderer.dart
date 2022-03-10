@@ -10,6 +10,21 @@ import 'media_stream_track.dart';
 
 // ignore_for_file: avoid_web_libraries_in_flutter
 
+/// All active [WebVideoRenderer]s created by the library user.
+Map<int, WebVideoRenderer> _videoRenderers = {};
+
+/// Current global output audio sink ID.
+String? _outputAudioSinkId;
+
+/// Switches the current audio output sink of all [WebVideoRenderer]s to the
+/// provided [deviceId].
+void setOutputAudioSinkId(String deviceId) {
+  _outputAudioSinkId = deviceId;
+  for (var r in _videoRenderers.values) {
+    r._syncSinkId();
+  }
+}
+
 VideoRenderer createPlatformSpecificVideoRenderer() {
   return WebVideoRenderer();
 }
@@ -116,6 +131,14 @@ class WebVideoRenderer extends VideoRenderer {
     value = value.copyWith(renderVideo: renderVideo);
   }
 
+  /// Synchronizes this [WebVideoRenderer]'s output audio sink with the
+  /// [_outputAudioSinkId].
+  void _syncSinkId() {
+    if (_outputAudioSinkId != null) {
+      _audioElement?.setSinkId(_outputAudioSinkId!);
+    }
+  }
+
   html.VideoElement? findHtmlView() {
     final element = html.document.getElementById(_elementIdForVideo);
     if (null != element) {
@@ -141,6 +164,7 @@ class WebVideoRenderer extends VideoRenderer {
     if (audioManager != null && !audioManager.hasChildNodes()) {
       audioManager.remove();
     }
+    _videoRenderers.remove(_textureId);
     return super.dispose();
   }
 
@@ -197,6 +221,9 @@ class WebVideoRenderer extends VideoRenderer {
           );
         }),
       );
+
+      _videoRenderers[_textureId] = this;
+      _syncSinkId();
 
       return element;
     });

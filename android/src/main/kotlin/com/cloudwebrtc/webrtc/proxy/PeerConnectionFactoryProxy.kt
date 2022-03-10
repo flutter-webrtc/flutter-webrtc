@@ -1,5 +1,6 @@
 package com.cloudwebrtc.webrtc.proxy
 
+import android.media.AudioManager.*
 import com.cloudwebrtc.webrtc.State
 import com.cloudwebrtc.webrtc.model.PeerConnectionConfiguration
 
@@ -31,6 +32,10 @@ class PeerConnectionFactoryProxy(val state: State) {
      * @return  Newly created [PeerConnectionProxy].
      */
     fun create(config: PeerConnectionConfiguration): PeerConnectionProxy {
+        if (peerObservers.isEmpty()) {
+            state.getAudioManager().mode = MODE_IN_COMMUNICATION
+        }
+
         val id = nextId()
         val peerObserver = PeerObserver()
         val peer =
@@ -51,6 +56,9 @@ class PeerConnectionFactoryProxy(val state: State) {
      */
     private fun removePeerObserver(id: Int) {
         peerObservers.remove(id)
+        if (peerObservers.isEmpty()) {
+            state.getAudioManager().mode = MODE_NORMAL
+        }
     }
 
     /**

@@ -54,3 +54,11 @@ Future<List<NativeMediaStreamTrack>> getDisplayMedia(
       .invokeMethod('getDisplayMedia', {'constraints': constraints.toMap()});
   return res.map((t) => NativeMediaStreamTrack.fromMap(t)).toList();
 }
+
+/// Switches the current output audio device to the provided [deviceId].
+///
+/// List of output audio devices may be obtained via [enumerateDevices].
+Future<void> setOutputAudioId(String deviceId) async {
+  await _mediaDevicesMethodChannel
+      .invokeMethod('setOutputAudioId', {'deviceId': deviceId});
+}

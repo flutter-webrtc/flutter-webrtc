@@ -1,6 +1,9 @@
 package com.cloudwebrtc.webrtc
 
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothProfile
 import android.content.Context
+import android.media.AudioManager
 import com.cloudwebrtc.webrtc.exception.OverconstrainedException
 import com.cloudwebrtc.webrtc.model.*
 import com.cloudwebrtc.webrtc.proxy.AudioMediaTrackSource
@@ -36,12 +39,38 @@ private const val DEFAULT_HEIGHT = 576
 private const val DEFAULT_FPS = 30
 
 /**
+ * Identifier for the ear speaker audio output device.
+ */
+private const val EAR_SPEAKER_DEVICE_ID: String = "ear-speaker"
+
+/**
+ * Identifier for the speakerphone audio output device.
+ */
+private const val SPEAKERPHONE_DEVICE_ID: String = "speakerphone"
+
+/**
+ * Identifier for the bluetooth headset audio output device.
+ */
+private const val BLUETOOTH_HEADSET_DEVICE_ID: String = "bluetooth-headset"
+
+/**
  * Processor for `getUserMedia` requests.
  *
  * @property state  Global state used for enumerating devices and creation new
  *                  [MediaStreamTrackProxy]s.
  */
 class MediaDevices(val state: State) {
+    /**
+     * [BluetoothAdapter] used for detecting whether bluetooth headset is
+     * connected or not.
+     */
+    private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+
+    /**
+     * Indicator of bluetooth headset connection state.
+     */
+    private var isBluetoothHeadsetConnected: Boolean = false
+
     /**
      * Enumerator for the camera devices, based on which new video
      * [MediaStreamTrackProxy]s will be created.
@@ -67,6 +96,22 @@ class MediaDevices(val state: State) {
                 Camera1Enumerator(false)
             }
         }
+    }
+
+    init {
+        bluetoothAdapter.getProfileProxy(
+            state.getAppContext(),
+            object : BluetoothProfile.ServiceListener {
+                override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
+                    isBluetoothHeadsetConnected = proxy!!.connectedDevices.size > 0
+                }
+
+                override fun onServiceDisconnected(profile: Int) {
+                    isBluetoothHeadsetConnected = false
+                }
+            },
+            BluetoothProfile.HEADSET
+        )
     }
 
     /**
@@ -98,17 +143,70 @@ class MediaDevices(val state: State) {
     }
 
     /**
+     * Switches the current output audio device to the device with the provided
+     * identifier.
+     *
+     * @param deviceId  Identifier for the output audio device to be selected.
+     */
+    fun setOutputAudioId(deviceId: String) {
+        val audioManager =
+                state.getAppContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        when (deviceId) {
+            EAR_SPEAKER_DEVICE_ID -> {
+                audioManager.isBluetoothScoOn = false
+                audioManager.stopBluetoothSco()
+                audioManager.isSpeakerphoneOn = false
+            }
+            SPEAKERPHONE_DEVICE_ID -> {
+                audioManager.isBluetoothScoOn = false
+                audioManager.stopBluetoothSco()
+                audioManager.isSpeakerphoneOn = true
+            }
+            BLUETOOTH_HEADSET_DEVICE_ID -> {
+                audioManager.isSpeakerphoneOn = false
+                audioManager.isBluetoothScoOn = true
+                audioManager.startBluetoothSco()
+            }
+            else -> {
+                throw OverconstrainedException()
+            }
+        }
+    }
+
+    /**
      * @return  List of [MediaDeviceInfo]s for the currently available audio
      *          devices.
      */
     private fun enumerateAudioDevices(): List<MediaDeviceInfo> {
-        return listOf(
+        val devices = mutableListOf(
+            MediaDeviceInfo(
+                EAR_SPEAKER_DEVICE_ID,
+            "Ear-speaker",
+                MediaDeviceKind.AUDIO_OUTPUT
+            ),
+            MediaDeviceInfo(
+                SPEAKERPHONE_DEVICE_ID,
+                "Speakerphone",
+                MediaDeviceKind.AUDIO_OUTPUT
+            )
+        )
+        if (isBluetoothHeadsetConnected) {
+            devices.add(
+                MediaDeviceInfo(
+                    BLUETOOTH_HEADSET_DEVICE_ID,
+                    "Bluetooth headset",
+                    MediaDeviceKind.AUDIO_OUTPUT
+                )
+            )
+        }
+        devices.add(
             MediaDeviceInfo(
                 "default",
                 "default",
                 MediaDeviceKind.AUDIO_INPUT
             )
         )
+        return devices
     }
 
     /**

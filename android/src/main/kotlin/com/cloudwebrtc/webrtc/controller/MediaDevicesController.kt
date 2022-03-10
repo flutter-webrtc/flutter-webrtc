@@ -59,6 +59,11 @@ class MediaDevicesController(
                     result.error("OverconstrainedError", null, null)
                 }
             }
+            "setOutputAudioId" -> {
+                val deviceId: String = call.argument("deviceId")!!
+                mediaDevices.setOutputAudioId(deviceId);
+                result.success(null)
+            }
         }
     }
 }

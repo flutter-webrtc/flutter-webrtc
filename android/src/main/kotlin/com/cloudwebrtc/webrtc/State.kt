@@ -48,10 +48,6 @@ class State(private val context: Context) {
             .setUseHardwareNoiseSuppressor(true)
             .createAudioDeviceModule()
         val eglContext: EglBase.Context = EglUtils.rootEglBaseContext!!
-        val audioManager =
-            context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        audioManager.mode = AudioManager.MODE_IN_CALL
-        audioManager.isSpeakerphoneOn = true
         factory = PeerConnectionFactory.builder()
             .setOptions(PeerConnectionFactory.Options())
             .setVideoEncoderFactory(
@@ -81,5 +77,12 @@ class State(private val context: Context) {
      */
     fun getAppContext(): Context {
         return context
+    }
+
+    /**
+     * @return  [AudioManager] system service.
+     */
+    fun getAudioManager(): AudioManager {
+        return context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     }
 }
