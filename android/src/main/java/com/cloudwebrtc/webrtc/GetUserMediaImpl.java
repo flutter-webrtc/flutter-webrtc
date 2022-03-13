@@ -109,7 +109,7 @@ class GetUserMediaImpl {
     JavaAudioDeviceModule audioDeviceModule;
     private final SparseArray<MediaRecorderImpl> mediaRecorders = new SparseArray<>();
 
-    public void screenRequestPremissions(ResultReceiver resultReceiver) {
+    public void screenRequestPermissions(ResultReceiver resultReceiver) {
         final Activity activity = stateProvider.getActivity();
         if (activity == null) {
             // Activity went away, nothing we can do.
@@ -423,7 +423,7 @@ class GetUserMediaImpl {
     void getDisplayMedia(
             final ConstraintsMap constraints, final Result result, final MediaStream mediaStream) {
 
-        screenRequestPremissions(
+        screenRequestPermissions(
                 new ResultReceiver(new Handler(Looper.getMainLooper())) {
                     @Override
                     protected void onReceiveResult(int requestCode, Bundle resultData) {
@@ -433,7 +433,7 @@ class GetUserMediaImpl {
                         Intent mediaProjectionData = resultData.getParcelable(PROJECTION_DATA);
 
                         if (resultCode != Activity.RESULT_OK) {
-                            resultError("screenRequestPremissions", "User didn't give permission to capture the screen.", result);
+                            resultError("screenRequestPermissions", "User didn't give permission to capture the screen.", result);
                             return;
                         }
 
@@ -452,7 +452,7 @@ class GetUserMediaImpl {
                                             }
                                         });
                         if (videoCapturer == null) {
-                            resultError("screenRequestPremissions", "GetDisplayMediaFailed, User revoked permission to capture the screen.", result);
+                            resultError("screenRequestPermissions", "GetDisplayMediaFailed, User revoked permission to capture the screen.", result);
                             return;
                         }
 
