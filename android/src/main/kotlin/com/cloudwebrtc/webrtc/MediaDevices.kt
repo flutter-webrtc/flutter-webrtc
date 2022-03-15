@@ -78,7 +78,22 @@ class MediaDevices(val state: State) {
     private val cameraEnumerator: CameraEnumerator =
         getCameraEnumerator(state.getAppContext())
 
+    /**
+     * List of [EventObserver]s of these [MediaDevices].
+     */
+    private var eventObservers: HashSet<EventObserver> = HashSet()
+
     companion object {
+        /**
+         * Observer of [MediaDevices] events.
+         */
+        interface EventObserver {
+            /**
+             * Notifies the subscriber about [enumerateDevices] list update.
+             */
+            fun onDeviceChange()
+        }
+
         /**
          * Creates a new [CameraEnumerator] instance based on the supported
          * Camera API version.
@@ -103,11 +118,15 @@ class MediaDevices(val state: State) {
             state.getAppContext(),
             object : BluetoothProfile.ServiceListener {
                 override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
-                    isBluetoothHeadsetConnected = proxy!!.connectedDevices.size > 0
+                    eventBroadcaster().onDeviceChange()
+                    if (proxy!!.connectedDevices.isNotEmpty()) {
+                        isBluetoothHeadsetConnected = true
+                    }
                 }
 
                 override fun onServiceDisconnected(profile: Int) {
                     isBluetoothHeadsetConnected = false
+                    eventBroadcaster().onDeviceChange()
                 }
             },
             BluetoothProfile.HEADSET
@@ -169,6 +188,28 @@ class MediaDevices(val state: State) {
             }
             else -> {
                 throw OverconstrainedException()
+            }
+        }
+    }
+
+    /**
+     * Adds the provided [EventObserver] to the list of [EventObserver]s of
+     * these [MediaDevices].
+     *
+     * @param eventObserver  [EventObserver] to be subscribed.
+     */
+    fun addObserver(eventObserver: EventObserver) {
+        eventObservers.add(eventObserver)
+    }
+
+    /**
+     * @return  Broadcast [EventObserver] sending events to all the
+     *          [EventObserver]s of these [MediaDevices].
+     */
+    private fun eventBroadcaster(): EventObserver {
+        return object : EventObserver {
+            override fun onDeviceChange() {
+                eventObservers.forEach { it.onDeviceChange() }
             }
         }
     }

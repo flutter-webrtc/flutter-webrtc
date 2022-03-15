@@ -1,9 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 
 import '/src/model/constraints.dart';
 import '/src/model/device.dart';
 import '/src/platform/native/media_stream_track.dart';
 import 'channel.dart';
+
+/// Shortcut for the `on_device_change` callback.
+typedef OnDeviceChangeCallback = void Function();
+
+/// Event channel for `MediaDevices` events.
+final _mediaDevicesEventChannel = eventChannel('MediaDevicesEvent', 0);
+
+/// Last subscriber of the [_mediaDevicesEventChannel].
+StreamSubscription<dynamic>? _mediaDevicesEventSub;
 
 /// [Exception] thrown if the specified constraints resulted in no candidate
 /// devices which met the criteria requested. The error is an object of type
@@ -61,4 +72,18 @@ Future<List<NativeMediaStreamTrack>> getDisplayMedia(
 Future<void> setOutputAudioId(String deviceId) async {
   await _mediaDevicesMethodChannel
       .invokeMethod('setOutputAudioId', {'deviceId': deviceId});
+}
+
+/// Subscribes to the `devicechange` event of the `MediaDevices`.
+void onDeviceChange(OnDeviceChangeCallback f) {
+  _mediaDevicesEventSub?.cancel();
+  _mediaDevicesEventSub =
+      _mediaDevicesEventChannel.receiveBroadcastStream().listen((event) {
+    final dynamic e = event;
+    switch (e['event']) {
+      case 'onDeviceChange':
+        f.call();
+        break;
+    }
+  });
 }

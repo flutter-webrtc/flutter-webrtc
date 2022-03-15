@@ -1,11 +1,15 @@
 package com.cloudwebrtc.webrtc.controller
 
+import android.util.Log
 import com.cloudwebrtc.webrtc.MediaDevices
 import com.cloudwebrtc.webrtc.State
 import com.cloudwebrtc.webrtc.exception.OverconstrainedException
 import com.cloudwebrtc.webrtc.model.Constraints
 import com.cloudwebrtc.webrtc.proxy.MediaStreamTrackProxy
+import com.cloudwebrtc.webrtc.proxy.PeerConnectionProxy
+import com.cloudwebrtc.webrtc.utils.AnyThreadSink
 import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
@@ -19,7 +23,7 @@ class MediaDevicesController(
     private val messenger: BinaryMessenger,
     state: State
 ) :
-    MethodChannel.MethodCallHandler {
+    MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
     /**
      * Underlying [MediaDevices] to perform [MethodCall]s on.
      */
@@ -31,8 +35,38 @@ class MediaDevicesController(
     private val chan =
         MethodChannel(messenger, ChannelNameGenerator.name("MediaDevices", 0))
 
+    /**
+     * Event channel into which all [PeerConnectionProxy] events are sent.
+     */
+    private val eventChannel =
+        EventChannel(
+                messenger,
+                ChannelNameGenerator.name("MediaDevicesEvent", 0)
+        )
+
+    /**
+     * Event sink into which all [PeerConnectionProxy] events are sent.
+     */
+    private var eventSink: AnyThreadSink? = null
+
+    /**
+     * Observer for the [MediaDevices] events, which will send all the events to
+     * the Flutter side via [EventChannel].
+     */
+    private val eventObserver = object : MediaDevices.Companion.EventObserver {
+        override fun onDeviceChange() {
+            eventSink?.success(
+                mapOf(
+                    "event" to "onDeviceChange"
+                )
+            )
+        }
+    }
+
     init {
         chan.setMethodCallHandler(this)
+        eventChannel.setStreamHandler(this)
+        mediaDevices.addObserver(eventObserver)
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -65,5 +99,15 @@ class MediaDevicesController(
                 result.success(null)
             }
         }
+    }
+
+    override fun onListen(obj: Any?, sink: EventChannel.EventSink?) {
+        if (sink != null) {
+            eventSink = AnyThreadSink(sink)
+        }
+    }
+
+    override fun onCancel(obj: Any?) {
+        eventSink = null
     }
 }
