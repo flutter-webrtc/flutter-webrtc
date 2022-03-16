@@ -13,6 +13,7 @@ concurrency:
 env:
   FLUTTER_VERSION: 2.10
   FLUTTER_CHANNEL: stable
+  KTFMT_VERSION: 0.33
 
 jobs:
 
@@ -47,3 +48,18 @@ jobs:
       - run: flutter pub get
 
       - run: flutter pub run import_sorter:main --no-comments --exit-if-changed
+
+  ktfmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v2
+        with:
+            distribution: temurin
+            java-version: "17"
+
+      - name: Install ktfmt
+        run: wget -O ktfmt.jar https://search.maven.org/remotecontent?filepath=com/facebook/ktfmt/${{ env.KTFMT_VERSION }}/ktfmt-${{ env.KTFMT_VERSION }}-jar-with-dependencies.jar
+
+      - name: Check ktfmt
+        run: java -jar ktfmt.jar --set-exit-if-changed android/src/main/kotlin/

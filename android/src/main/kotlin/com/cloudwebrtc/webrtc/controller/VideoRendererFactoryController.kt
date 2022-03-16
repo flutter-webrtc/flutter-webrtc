@@ -9,38 +9,26 @@ import io.flutter.view.TextureRegistry
 /**
  * Controller of creating new [FlutterRtcVideoRenderer]s.
  *
- * @property messenger        Messenger used for creating new [MethodChannel]s.
- * @property textureRegistry  Registry to create new textures with.
+ * @property messenger Messenger used for creating new [MethodChannel]s.
+ * @property textureRegistry Registry to create new textures with.
  */
 class VideoRendererFactoryController(
     private val messenger: BinaryMessenger,
     private val textureRegistry: TextureRegistry
-) :
-    MethodChannel.MethodCallHandler {
-    /**
-     * Channel listened for the [MethodCall]s.
-     */
-    private val chan =
-        MethodChannel(
-            messenger,
-            ChannelNameGenerator.name("VideoRendererFactory", 0)
-        )
+) : MethodChannel.MethodCallHandler {
+  /** Channel listened for the [MethodCall]s. */
+  private val chan = MethodChannel(messenger, ChannelNameGenerator.name("VideoRendererFactory", 0))
 
-    init {
-        chan.setMethodCallHandler(this)
-    }
+  init {
+    chan.setMethodCallHandler(this)
+  }
 
-    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        when (call.method) {
-            "create" -> {
-                val renderer = FlutterRtcVideoRenderer(textureRegistry)
-                result.success(
-                    VideoRendererController(
-                        messenger,
-                        renderer
-                    ).asFlutterResult()
-                )
-            }
-        }
+  override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+    when (call.method) {
+      "create" -> {
+        val renderer = FlutterRtcVideoRenderer(textureRegistry)
+        result.success(VideoRendererController(messenger, renderer).asFlutterResult())
+      }
     }
+  }
 }
