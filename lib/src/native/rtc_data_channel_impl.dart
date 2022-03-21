@@ -24,16 +24,22 @@ class RTCDataChannelNative extends RTCDataChannel {
   }
   final String _peerConnectionId;
   final String _label;
-  final int _dataChannelId;
+  int? _dataChannelId;
   RTCDataChannelState? _state;
   StreamSubscription<dynamic>? _eventSubscription;
 
   @override
   RTCDataChannelState? get state => _state;
 
+  @override
+  int? get id => _dataChannelId;
+
   /// Get label.
   @override
   String? get label => _label;
+
+  @override
+  int? get bufferedAmount => throw UnimplementedError();
 
   final _stateChangeController =
       StreamController<RTCDataChannelState>.broadcast(sync: true);
@@ -45,7 +51,7 @@ class RTCDataChannelNative extends RTCDataChannel {
     final Map<dynamic, dynamic> map = event;
     switch (map['event']) {
       case 'dataChannelStateChanged':
-        //int dataChannelId = map['id'];
+        _dataChannelId = int.tryParse(map['id']);
         _state = rtcDataChannelStateForString(map['state']);
         onDataChannelState?.call(_state!);
 
@@ -70,7 +76,7 @@ class RTCDataChannelNative extends RTCDataChannel {
     }
   }
 
-  EventChannel _eventChannelFor(String peerConnectionId, int dataChannelId) {
+  EventChannel _eventChannelFor(String peerConnectionId, int? dataChannelId) {
     return EventChannel(
         'FlutterWebRTC/dataChannelEvent$peerConnectionId$dataChannelId');
   }
