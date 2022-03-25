@@ -38,6 +38,8 @@ class WebAudioRenderer extends AudioRenderer {
   Future<void> dispose() async {
     _srcObject = null;
     _element?.srcObject = null;
+    _element?.remove();
+    _element = null;
     final audioManager = html.document.getElementById(_elementIdForAudioManager)
         as html.DivElement?;
     if (audioManager != null && !audioManager.hasChildNodes()) {
