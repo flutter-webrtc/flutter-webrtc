@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-
 import '../flutter_webrtc.dart';
 
 class Helper {
