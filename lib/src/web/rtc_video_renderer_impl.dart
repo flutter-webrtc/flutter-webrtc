@@ -7,8 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:dart_webrtc/dart_webrtc.dart';
-import 'package:dart_webrtc/src/media_stream_impl.dart';
-import 'package:webrtc_interface/webrtc_interface.dart';
 
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
@@ -160,6 +158,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   html.VideoElement? findHtmlView() {
     final element = html.document.getElementById(_elementIdForVideo);
     if (null != element) return element as html.VideoElement;
+    return null;
   }
 
   @override
