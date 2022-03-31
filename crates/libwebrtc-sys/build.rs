@@ -3,6 +3,7 @@
 use std::{
     env, fs, io,
     path::{Path, PathBuf},
+    process,
 };
 
 use anyhow::anyhow;
@@ -18,34 +19,34 @@ fn main() -> anyhow::Result<()> {
     let path = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
     let cpp_files = get_cpp_files()?;
 
-    // TODO: `rustc` always links against non-debug Windows runtime, so we
-    //       always use a release build of `libwebrtc`:
-    //       https://github.com/rust-lang/rust/issues/39016
-    println!(
-        "cargo:rustc-link-search=native=crates/libwebrtc-sys/lib/release/"
-    );
     println!("cargo:rustc-link-lib=webrtc");
 
-    println!("cargo:rustc-link-lib=dylib=Gdi32");
-    println!("cargo:rustc-link-lib=dylib=Secur32");
-    println!("cargo:rustc-link-lib=dylib=amstrmid");
-    println!("cargo:rustc-link-lib=dylib=d3d11");
-    println!("cargo:rustc-link-lib=dylib=dmoguids");
-    println!("cargo:rustc-link-lib=dylib=dxgi");
-    println!("cargo:rustc-link-lib=dylib=msdmo");
-    println!("cargo:rustc-link-lib=dylib=winmm");
-    println!("cargo:rustc-link-lib=dylib=wmcodecdspuuid");
+    link_libs();
 
-    cxx_build::bridge("src/bridge.rs")
+    let mut build = cxx_build::bridge("src/bridge.rs");
+    build
         .files(&cpp_files)
         .include(path.join("include"))
         .include(path.join("lib/include"))
         .include(path.join("lib/include/third_party/abseil-cpp"))
-        .include(path.join("lib/include/third_party/libyuv/include"))
-        .flag("-DWEBRTC_WIN")
-        .flag("-DNOMINMAX")
-        .flag("/std:c++17")
-        .compile("libwebrtc-sys");
+        .include(path.join("lib/include/third_party/libyuv/include"));
+    #[cfg(target_os = "windows")]
+    {
+        build
+            .flag("-DWEBRTC_WIN")
+            .flag("-DNOMINMAX")
+            .flag("/std:c++17");
+    }
+    #[cfg(target_os = "linux")]
+    {
+        build
+            .flag("-DWEBRTC_LINUX")
+            .flag("-DWEBRTC_POSIX")
+            .flag("-DNOMINMAX")
+            .flag("-DWEBRTC_USE_X11")
+            .flag("-std=c++17");
+    }
+    build.compile("libwebrtc-sys");
 
     for file in cpp_files {
         println!("cargo:rerun-if-changed={}", file.display());
@@ -112,7 +113,7 @@ fn download_libwebrtc() -> anyhow::Result<()> {
     }
 
     // Untar the downloaded archive.
-    std::process::Command::new("tar")
+    process::Command::new("tar")
         .args(&[
             "-xf",
             archive
@@ -154,4 +155,51 @@ fn get_files_from_dir<P: AsRef<Path>>(dir: P) -> Vec<PathBuf> {
         .filter(|e| e.file_type().is_file())
         .map(DirEntry::into_path)
         .collect()
+}
+
+/// Emits all the required `rustc-link-lib` instructions.
+fn link_libs() {
+    #[cfg(target_os = "windows")]
+    {
+        for dep in [
+            "Gdi32",
+            "Secur32",
+            "amstrmid",
+            "d3d11",
+            "dmoguids",
+            "dxgi",
+            "msdmo",
+            "winmm",
+            "wmcodecdspuuid",
+        ] {
+            println!("cargo:rustc-link-lib=dylib={dep}");
+        }
+        // TODO: `rustc` always links against non-debug Windows runtime, so we
+        //       always use a release build of `libwebrtc`:
+        //       https://github.com/rust-lang/rust/issues/39016
+        println!(
+            "cargo:rustc-link-search=native=crates/libwebrtc-sys/lib/release/",
+        );
+    }
+    #[cfg(target_os = "linux")]
+    {
+        for dep in ["x11", "xfixes", "xdamage", "xext", "xtst", "xrandr"] {
+            pkg_config::Config::new().probe(dep).unwrap();
+        }
+        match env::var("PROFILE").unwrap().as_str() {
+            "debug" => {
+                println!(
+                    "cargo:rustc-link-search=\
+                     native=crates/libwebrtc-sys/lib/debug/",
+                );
+            }
+            "release" => {
+                println!(
+                    "cargo:rustc-link-search=\
+                     native=crates/libwebrtc-sys/lib/release/",
+                );
+            }
+            _ => (),
+        }
+    }
 }

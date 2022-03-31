@@ -101,6 +101,12 @@ int32_t set_audio_recording_device(const AudioDeviceModule& audio_device_module,
   return audio_device_module->SetRecordingDevice(index);
 }
 
+// Calls `AudioDeviceModule->SetPlayoutDevice()` with the provided device index.
+int32_t set_audio_playout_device(const AudioDeviceModule& audio_device_module,
+                                 uint16_t index) {
+  return audio_device_module->SetPlayoutDevice(index);
+}
+
 // Calls `VideoCaptureFactory->CreateDeviceInfo()`.
 std::unique_ptr<VideoDeviceInfo> create_video_device_info() {
   std::unique_ptr<VideoDeviceInfo> ptr(

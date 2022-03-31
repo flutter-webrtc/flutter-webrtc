@@ -14,6 +14,27 @@
 using namespace flutter;
 
 namespace flutter_webrtc_plugin {
+template <typename T>
+inline bool TypeIs(const EncodableValue val) {
+  return std::holds_alternative<T>(val);
+}
+
+template <typename T>
+inline const T GetValue(EncodableValue val) {
+  return std::get<T>(val);
+}
+
+// Returns an `int64_t` value from the given `EncodableMap` by the given `key`
+// if any, or a `-1` otherwise.
+inline int64_t findLongInt(const EncodableMap& map, const std::string& key) {
+  for (auto it : map) {
+    if (key == GetValue<std::string>(it.first) &&
+        (TypeIs<int64_t>(it.second) || TypeIs<int32_t>(it.second)))
+      return GetValue<int64_t>(it.second);
+  }
+
+  return -1;
+}
 
 // Renderer of `VideoFrame`s on a Flutter texture.
 class TextureVideoRenderer {
@@ -94,14 +115,12 @@ class FlutterVideoRendererManager {
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
   // Changes a media source of the specific `TextureVideoRenderer`.
-  void SetMediaStream(
-      rust::Box<Webrtc>& webrtc,
+  void CreateFrameHandler(
       const flutter::MethodCall<EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 
   // Disposes the specific `TextureVideoRenderer`.
   void VideoRendererDispose(
-      rust::Box<Webrtc>& webrtc,
       const flutter::MethodCall<EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<EncodableValue>> result);
 

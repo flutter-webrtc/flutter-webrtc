@@ -4,13 +4,10 @@ The following modifications follow Apache License 2.0 from shiguredo.
 
 screen_video_capturer.h
 screen_video_capturer.cpp
-SimulcastVideoEncoderFactoryWrapper.kt
 
 Apache License 2.0
 
 Copyright 2015-2021, tnoho (Original Author)
-Copyright 2017, Lyo Kato <lyo.kato at gmail.com> (Original Author)
-Copyright 2017-2021, Shiguredo Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,3 +22,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 #####################################################################################
+

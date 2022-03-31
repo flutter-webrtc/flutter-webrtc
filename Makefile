@@ -18,6 +18,15 @@ eq = $(if $(or $(1),$(2)),$(and $(findstring $(1),$(2)),\
 RUST_VER ?= 1.55
 RUST_NIGHTLY_VER ?= nightly-2021-09-08
 
+FLUTTER_RUST_BRIDGE_VER ?= $(strip \
+	$(shell grep -A1 'name = "flutter_rust_bridge"' Cargo.lock \
+	        | grep -v 'flutter_rust_bridge' \
+	        | cut -d '"' -f2))
+
+CURRENT_OS ?= $(strip $(or $(os),\
+	$(if $(call eq,$(OS),Windows_NT),windows,\
+	$(if $(call eq,$(shell uname -s),Darwin),macos,linux))))
+
 
 
 
@@ -27,13 +36,17 @@ RUST_NIGHTLY_VER ?= nightly-2021-09-08
 
 build: cargo.build
 
+clean: cargo.clean flutter.clean
+
+codegen: cargo.gen
+
 deps: flutter.pub
 
 docs: cargo.doc
 
-fmt: cargo.fmt
+fmt: cargo.fmt flutter.fmt
 
-lint: cargo.lint
+lint: cargo.lint flutter.analyze
 
 run: flutter.run
 
@@ -46,6 +59,27 @@ test: cargo.test flutter.test
 # Flutter commands #
 ####################
 
+# Lint Flutter Dart sources with dartanalyzer.
+#
+# Usage:
+#	make flutter.analyze
+
+flutter.analyze:
+ifeq ($(wildcard .packages),)
+	flutter pub get
+endif
+	flutter analyze
+
+
+# Clean built Flutter artifacts and cache.
+#
+# Usage:
+#	make flutter.clean
+
+flutter.clean:
+	flutter clean
+
+
 # Build Flutter example application for Windows.
 #
 # Usage:
@@ -54,6 +88,20 @@ test: cargo.test flutter.test
 flutter.build:
 	cd example/ && \
 	flutter build windows
+
+
+# Format Flutter Dart sources with dartfmt.
+#
+# Usage:
+#	make flutter.fmt [check=(no|yes)]
+
+flutter.fmt:
+	flutter format $(if $(call eq,$(check),yes),-n --set-exit-if-changed,) .
+ifeq ($(wildcard .packages),)
+	flutter pub get
+endif
+	flutter pub run import_sorter:main --no-comments \
+		$(if $(call eq,$(check),yes),--exit-if-changed,)
 
 
 # Install Flutter Pub dependencies.
@@ -79,6 +127,7 @@ flutter.run:
 #
 # Usage:
 #	make flutter.test [device=<device-id>]
+
 flutter.test:
 	cd example/ && \
 	flutter drive --driver=test_driver/integration_driver.dart \
@@ -93,6 +142,15 @@ flutter.test:
 # Cargo commands #
 ##################
 
+# Clean built Rust artifacts.
+#
+# Usage:
+#	make cargo.clean
+
+cargo.clean:
+	cargo clean
+
+
 # Build `flutter-webrtc-native` crate and copy final artifacts to appropriate
 # platform-specific directories.
 #
@@ -103,6 +161,11 @@ lib-out-path = target/$(if $(call eq,$(debug),no),release,debug)
 
 cargo.build:
 	cargo build -p flutter-webrtc-native $(if $(call eq,$(debug),no),--release,)
+ifeq ($(CURRENT_OS),linux)
+	cp -f $(lib-out-path)/libflutter_webrtc_native.so \
+		linux/lib/libflutter_webrtc_native.so
+endif
+ifeq ($(CURRENT_OS),windows)
 	@mkdir -p windows/rust/include/
 	@mkdir -p windows/rust/lib/
 	@mkdir -p windows/rust/src/
@@ -111,14 +174,13 @@ cargo.build:
 		windows/rust/lib/flutter_webrtc_native.dll
 	cp -f $(lib-out-path)/flutter_webrtc_native.dll.lib \
 		windows/rust/lib/flutter_webrtc_native.dll.lib
-	cp -f target/cxxbridge/cxxbridge1.lib \
-		windows/rust/lib/cxxbridge1.lib
-	cp -f target/cxxbridge/flutter-webrtc-native/src/lib.rs.h \
+	cp -f target/cxxbridge/flutter-webrtc-native/src/cpp_api.rs.h \
 		windows/rust/include/flutter_webrtc_native.h
 	cp -f crates/native/include/api.h \
 		windows/rust/include/flutter-webrtc-native/include/api.h
-	cp -f target/cxxbridge/flutter-webrtc-native/src/lib.rs.cc \
+	cp -f target/cxxbridge/flutter-webrtc-native/src/cpp_api.rs.cc \
 		windows/rust/src/flutter_webrtc_native.cc
+endif
 
 
 # Generate documentation for project crates.
@@ -150,6 +212,39 @@ ifeq ($(dockerized),yes)
 else
 	cargo +nightly fmt --all $(if $(call eq,$(check),yes),-- --check,)
 endif
+
+
+# Generates Rust and Dart side interop bridge.
+#
+# Usage:
+#	make cargo.gen
+
+cargo.gen:
+ifeq ($(shell which flutter_rust_bridge_codegen),)
+	cargo install flutter_rust_bridge_codegen --vers=$(FLUTTER_RUST_BRIDGE_VER)
+else
+ifneq ($(strip $(shell flutter_rust_bridge_codegen --version | cut -d ' ' -f2)),$(FLUTTER_RUST_BRIDGE_VER))
+	cargo install flutter_rust_bridge_codegen --force \
+	                                          --vers=$(FLUTTER_RUST_BRIDGE_VER)
+endif
+endif
+ifeq ($(shell which cbindgen),)
+	cargo install cbindgen
+endif
+ifeq ($(shell dart pub global list | grep 'ffigen '),)
+	dart pub global activate ffigen
+endif
+ifeq ($(CURRENT_OS),macos)
+ifeq ($(shell brew list | grep -Fx llvm),)
+	brew install llvm
+endif
+endif
+	flutter_rust_bridge_codegen --rust-input=crates/native/src/api.rs \
+		--dart-output=lib/src/api/bridge.g.dart \
+		--skip-add-mod-to-lib \
+		--no-build-runner \
+		--dart-format-line-length=80
+	flutter pub run build_runner build --delete-conflicting-outputs
 
 
 # Lint Rust sources with Clippy.
@@ -204,8 +299,10 @@ test.flutter: flutter.test
 # .PHONY section #
 ##################
 
-.PHONY: build deps docs fmt lint run test \
-        cargo.build cargo.doc cargo.fmt cargo.lint cargo.test \
+.PHONY: build clean codegen deps docs fmt lint run test \
+        cargo.clean cargo.build cargo.doc cargo.fmt cargo.gen cargo.lint \
+        	cargo.test \
         docs.rust \
-        flutter.build flutter.pub flutter.run flutter.test \
+        flutter.analyze flutter.clean flutter.build flutter.fmt flutter.pub \
+        	flutter.run flutter.test \
         test.cargo test.flutter

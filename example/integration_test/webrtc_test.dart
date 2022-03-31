@@ -8,35 +8,29 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Add transceiver', (WidgetTester tester) async {
-    var pc = await createPeerConnection({});
-    var init = RTCRtpTransceiverInit();
-    init.direction = TransceiverDirection.SendRecv;
-
+    var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
 
-    expect(trans.mid.isEmpty, isTrue);
+    expect(trans.mid, isNull);
 
     var response = await pc.createOffer();
 
-    expect(response.sdp!.contains('m=video'), isTrue);
-    expect(response.sdp!.contains('sendrecv'), isTrue);
+    expect(response.description.contains('m=video'), isTrue);
+    expect(response.description.contains('sendrecv'), isTrue);
   });
 
   testWidgets('Get transceivers', (WidgetTester tester) async {
-    var pc = await createPeerConnection({});
-    var init = RTCRtpTransceiverInit();
-    init.direction = TransceiverDirection.SendRecv;
-
+    var pc = await PeerConnection.create(IceTransportType.all, []);
     await pc.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
     await pc.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeAudio, init: init);
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
 
     var before = await pc.getTransceivers();
 
-    expect(before[0].mid.isEmpty, isTrue);
-    expect(before[1].mid.isEmpty, isTrue);
+    expect(before[0].mid, isNull);
+    expect(before[1].mid, isNull);
 
     var offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
@@ -45,33 +39,30 @@ void main() {
 
     expect(after[0].mid, equals('0'));
     expect(after[1].mid, equals('1'));
+    expect(before[0].mid, equals('0'));
+    expect(before[1].mid, equals('1'));
   });
 
   testWidgets('Get transceiver direction', (WidgetTester tester) async {
-    var pc = await createPeerConnection({});
-    var init = RTCRtpTransceiverInit();
-    init.direction = TransceiverDirection.SendRecv;
+    var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
 
     var direction = await trans.getDirection();
-
-    expect(direction, equals(TransceiverDirection.SendRecv));
+    expect(direction, equals(TransceiverDirection.sendRecv));
   });
 
   testWidgets('Set transceiver direction', (WidgetTester tester) async {
-    var pc = await createPeerConnection({});
-    var init = RTCRtpTransceiverInit();
-    init.direction = TransceiverDirection.SendRecv;
+    var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
 
     var direction = await trans.getDirection();
 
-    expect(direction, equals(TransceiverDirection.SendRecv));
+    expect(direction, equals(TransceiverDirection.sendRecv));
 
     for (var dir in TransceiverDirection.values) {
-      if (dir == TransceiverDirection.Stopped) {
+      if (dir == TransceiverDirection.stopped) {
         continue;
       }
 
@@ -84,101 +75,88 @@ void main() {
   });
 
   testWidgets('Stop transceiver', (WidgetTester tester) async {
-    var pc = await createPeerConnection({});
-    var init = RTCRtpTransceiverInit();
-    init.direction = TransceiverDirection.SendRecv;
+    var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
 
     var direction = await trans.getDirection();
 
-    expect(direction, equals(TransceiverDirection.SendRecv));
+    expect(direction, equals(TransceiverDirection.sendRecv));
 
     await trans.stop();
 
     direction = await trans.getDirection();
 
-    expect(direction, equals(TransceiverDirection.Stopped));
+    expect(direction, equals(TransceiverDirection.stopped));
   });
 
   testWidgets('Get transceiver mid', (WidgetTester tester) async {
-    var pc = await createPeerConnection({});
-    var init = RTCRtpTransceiverInit();
-    init.direction = TransceiverDirection.SendRecv;
+    var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
 
-    var mid = await trans.getMid();
-
-    expect(mid.isEmpty, isTrue);
+    expect(trans.mid, isNull);
 
     var sess = await pc.createOffer();
     await pc.setLocalDescription(sess);
 
-    mid = await trans.getMid();
-
-    expect(mid, equals('0'));
+    expect(trans.mid, equals('0'));
   });
 
   testWidgets('Add Ice Candidate', (WidgetTester tester) async {
-    var pc1 = await createPeerConnection({});
-    var pc2 = await createPeerConnection({});
+    var pc1 = await PeerConnection.create(IceTransportType.all, []);
+    var pc2 = await PeerConnection.create(IceTransportType.all, []);
 
-    pc1.onIceCandidate = (RTCIceCandidate candidate) async {
-      await pc2.addCandidate(candidate);
-    };
+    pc1.onIceCandidate((candidate) async {
+      await pc2.addIceCandidate(candidate);
+    });
 
-    pc2.onIceCandidate = (RTCIceCandidate candidate) async {
-      await pc1.addCandidate(candidate);
-    };
-
-    var init = RTCRtpTransceiverInit();
-    init.direction = TransceiverDirection.SendRecv;
+    pc2.onIceCandidate((candidate) async {
+      await pc1.addIceCandidate(candidate);
+    });
     await pc1.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
 
     var offer = await pc1.createOffer();
     await pc1.setLocalDescription(offer);
     await pc2.setRemoteDescription(offer);
 
-    var answer = await pc2.createAnswer({});
+    var answer = await pc2.createAnswer();
     await pc2.setLocalDescription(answer);
     await pc1.setRemoteDescription(answer);
   });
 
   testWidgets('Restart Ice', (WidgetTester tester) async {
-    var pc1 = await createPeerConnection({});
-    var pc2 = await createPeerConnection({});
+    var pc1 = await PeerConnection.create(IceTransportType.all, []);
+    var pc2 = await PeerConnection.create(IceTransportType.all, []);
 
     var tx = StreamController<int>();
     var rx = StreamIterator(tx.stream);
 
     var eventsCount = 0;
-    pc1.onRenegotiationNeeded = () async {
+    pc1.onNegotiationNeeded(() {
       eventsCount++;
       tx.add(eventsCount);
-    };
+    });
 
-    var init = RTCRtpTransceiverInit();
-    init.direction = TransceiverDirection.SendRecv;
     await pc1.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
 
     var offer = await pc1.createOffer();
     await pc1.setLocalDescription(offer);
     await pc2.setRemoteDescription(offer);
 
-    var answer = await pc2.createAnswer({});
+    var answer = await pc2.createAnswer();
     await pc2.setLocalDescription(answer);
     await pc1.setRemoteDescription(answer);
 
-    pc1.onIceCandidate = (RTCIceCandidate candidate) async {
-      await pc2.addCandidate(candidate);
-    };
+    pc1.onIceCandidate((candidate) async {
+      await pc2.addIceCandidate(candidate);
+    });
 
-    pc2.onIceCandidate = (RTCIceCandidate candidate) async {
-      await pc1.addCandidate(candidate);
-    };
+    pc2.onIceCandidate((candidate) async {
+      await pc1.addIceCandidate(candidate);
+    });
 
     expect(await rx.moveNext(), isTrue);
     expect(rx.current, equals(1));
@@ -190,82 +168,75 @@ void main() {
   });
 
   testWidgets('Ice state PeerConnection', (WidgetTester tester) async {
-    var pc1 = await createPeerConnection({});
-    var pc2 = await createPeerConnection({});
+    var pc1 = await PeerConnection.create(IceTransportType.all, []);
+    var pc2 = await PeerConnection.create(IceTransportType.all, []);
 
-    var tx = StreamController<RTCPeerConnectionState>();
+    var tx = StreamController<PeerConnectionState>();
     var rx = StreamIterator(tx.stream);
 
-    pc1.onConnectionState = (RTCPeerConnectionState state) {
+    pc1.onConnectionStateChange((state) {
       tx.add(state);
-    };
+    });
 
-    var init = RTCRtpTransceiverInit();
-    init.direction = TransceiverDirection.SendRecv;
     await pc1.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
 
     var offer = await pc1.createOffer();
     await pc1.setLocalDescription(offer);
     await pc2.setRemoteDescription(offer);
 
-    var answer = await pc2.createAnswer({});
+    var answer = await pc2.createAnswer();
     await pc2.setLocalDescription(answer);
     await pc1.setRemoteDescription(answer);
 
-    pc1.onIceCandidate = (RTCIceCandidate candidate) async {
-      await pc2.addCandidate(candidate);
-    };
-
-    pc2.onIceCandidate = (RTCIceCandidate candidate) async {
-      await pc1.addCandidate(candidate);
-    };
-
-    expect(await rx.moveNext(), isTrue);
-    expect(
-        rx.current,
-        equals(RTCPeerConnectionState.RTCPeerConnectionStateConnecting));
+    pc1.onIceCandidate((candidate) async {
+      await pc2.addIceCandidate(candidate);
+    });
+    pc2.onIceCandidate((candidate) async {
+      await pc1.addIceCandidate(candidate);
+    });
 
     expect(await rx.moveNext(), isTrue);
-    expect(
-        rx.current,
-        equals(RTCPeerConnectionState.RTCPeerConnectionStateConnected));
-
-    await pc1.dispose();
+    expect(rx.current, equals(PeerConnectionState.connecting));
 
     expect(await rx.moveNext(), isTrue);
-    expect(
-        rx.current,
-        equals(RTCPeerConnectionState.RTCPeerConnectionStateClosed));
+    expect(rx.current, equals(PeerConnectionState.connected));
+
+    await pc1.close();
+
+    expect(await rx.moveNext(), isTrue);
+    expect(rx.current, equals(PeerConnectionState.closed));
   });
 
   testWidgets('Peer connection event on track', (WidgetTester tester) async {
-    var pc1 = await createPeerConnection({});
-    var init = RTCRtpTransceiverInit();
-    init.direction = TransceiverDirection.SendRecv;
-
+    var pc1 = await PeerConnection.create(IceTransportType.all, []);
     await pc1.addTransceiver(
-      kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
-    var pc2 = await createPeerConnection({});
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+
+    var pc2 = await PeerConnection.create(IceTransportType.all, []);
     final completer = Completer<void>();
-    pc2.onTrack = (RTCTrackEvent e) => {completer.complete()};
-    await pc2.setRemoteDescription(await pc1.createOffer({}));
-    await completer.future.timeout(Duration(seconds: 1));
+    pc2.onTrack((track, transceiver) {
+      completer.complete();
+    });
+    await pc2.setRemoteDescription(await pc1.createOffer());
+    await completer.future.timeout(const Duration(seconds: 1));
   });
 
-  // TODO: Fails on CI because of threading issues in the platform code.
-  // testWidgets('Track Onended', (WidgetTester tester) async {
-  //     var pc1 = await createPeerConnection({});
-  //     var init = RTCRtpTransceiverInit();
-  //     init.direction = TransceiverDirection.SendRecv;
-  //
-  //     await pc1.addTransceiver(
-  //         kind: RTCRtpMediaType.RTCRtpMediaTypeVideo, init: init);
-  //     var pc2 = await createPeerConnection({});
-  //     final completer = Completer<void>();
-  //     pc2.onTrack = (RTCTrackEvent e) => {print(e.track), e.track?.onEnded = () => completer.complete()};
-  //     await pc2.setRemoteDescription(await pc1.createOffer({}));
-  //     await (await pc2.transceivers)[0].stop();
-  //     await completer.future.timeout(Duration(seconds: 3));
-  // });
+  testWidgets('Track Onended', (WidgetTester tester) async {
+    var pc1 = await PeerConnection.create(IceTransportType.all, []);
+    await pc1.addTransceiver(
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+
+    var pc2 = await PeerConnection.create(IceTransportType.all, []);
+    final completer = Completer<void>();
+    pc2.onTrack((track, transceiver) {
+      track.onEnded(() {
+        completer.complete();
+      });
+    });
+
+    await pc2.setRemoteDescription(await pc1.createOffer());
+    await (await pc2.getTransceivers())[0].stop();
+    await completer.future.timeout(const Duration(seconds: 3));
+  });
 }

@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VER: 2.8.1
+  KTFMT_VER: 0.33
   RUST_BACKTRACE: 1
 
 jobs:
@@ -30,7 +30,46 @@ jobs:
           profile: minimal
           toolchain: stable
           components: clippy
+
       - run: make cargo.lint
+
+  dartanalyze:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+
+      - run: flutter pub get
+
+      - run: make flutter.analyze
+
+  dartfmt:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+
+      - run: flutter pub get
+
+      - run: make flutter.fmt check=yes
+
+  ktfmt:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install ktfmt
+        run: wget -O ktfmt.jar https://search.maven.org/remotecontent?filepath=com/facebook/ktfmt/${{ env.KTFMT_VER }}/ktfmt-${{ env.KTFMT_VER }}-jar-with-dependencies.jar
+
+      - name: Check ktfmt
+        run: java -jar ktfmt.jar --set-exit-if-changed android/src/main/kotlin/
 
   rustfmt:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}

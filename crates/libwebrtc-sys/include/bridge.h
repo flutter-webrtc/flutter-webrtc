@@ -28,8 +28,7 @@ struct DynTrackEventCallback;
 class TrackEventObserver : public webrtc::ObserverInterface {
  public:
   // Creates a new `TrackEventObserver`.
-  TrackEventObserver(
-      rust::Box<bridge::DynTrackEventCallback> cb);
+  TrackEventObserver(rust::Box<bridge::DynTrackEventCallback> cb);
 
   // Called whenever the track calls `set_state()` or `set_enabled()`.
   void OnChanged();
@@ -38,7 +37,6 @@ class TrackEventObserver : public webrtc::ObserverInterface {
   void set_track(rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track);
 
  private:
-
   // `MediaStreamTrackInterface` to determine the event.
   std::optional<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> track_;
 
@@ -121,6 +119,12 @@ int32_t recording_device_name(const AudioDeviceModule& audio_device_module,
 // `AudiDeviceModule::RecordingDeviceName`.
 int32_t set_audio_recording_device(const AudioDeviceModule& audio_device_module,
                                    uint16_t index);
+
+// Specifies which device to use for playout audio using an index
+// retrieved by the corresponding enumeration method which is
+// `AudiDeviceModule::PlayoutDeviceName`.
+int32_t set_audio_playout_device(const AudioDeviceModule& audio_device_module,
+                                 uint16_t index);
 
 // Creates a new `VideoDeviceInfo`.
 std::unique_ptr<VideoDeviceInfo> create_video_device_info();

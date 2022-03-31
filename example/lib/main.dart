@@ -1,45 +1,23 @@
 import 'dart:core';
 
-import 'package:flutter/foundation.dart'
-    show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
-import 'package:flutter_background/flutter_background.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
 
-import 'src/create_peer_connection_sample.dart';
-import 'src/data_channel_sample.dart';
-import 'src/get_display_media_sample.dart';
-import 'src/get_sources_sample.dart';
-import 'src/get_user_media_sample.dart'
+import 'src/create_peer_connection.dart';
+import 'src/get_display_media.dart';
+import 'src/get_sources.dart';
+import 'src/get_user_media.dart'
     if (dart.library.html) 'src/get_user_media_sample_web.dart';
-import 'src/loopback_sample.dart';
-import 'src/renderer.dart';
+import 'src/loopback.dart';
 import 'src/on_device_change.dart';
 import 'src/route_item.dart';
 
 void main() {
-  if (WebRTC.platformIsDesktop) {
-    debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
-  } else if (WebRTC.platformIsAndroid) {
-    WidgetsFlutterBinding.ensureInitialized();
-    startForegroundService();
-  }
-  runApp(MyApp());
-}
-
-Future<bool> startForegroundService() async {
-  final androidConfig = FlutterBackgroundAndroidConfig(
-    notificationTitle: 'Title of the notification',
-    notificationText: 'Text of the notification',
-    notificationImportance: AndroidNotificationImportance.Default,
-    notificationIcon: AndroidResource(
-        name: 'background_icon',
-        defType: 'drawable'), // Default is ic_launcher from folder mipmap
-  );
-  return FlutterBackground.initialize(androidConfig: androidConfig);
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -58,9 +36,9 @@ class _MyAppState extends State<MyApp> {
       ListTile(
         title: Text(item.title),
         onTap: () => item.push(context),
-        trailing: Icon(Icons.arrow_right),
+        trailing: const Icon(Icons.arrow_right),
       ),
-      Divider()
+      const Divider()
     ]);
   }
 
@@ -69,7 +47,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
           appBar: AppBar(
-            title: Text('Flutter-WebRTC example'),
+            title: const Text('Flutter-WebRTC example'),
           ),
           body: ListView.builder(
               shrinkWrap: true,
@@ -89,7 +67,8 @@ class _MyAppState extends State<MyApp> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (BuildContext context) => GetUserMediaSample()));
+                    builder: (BuildContext context) =>
+                        const GetUserMediaSample()));
           }),
       RouteItem(
           title: 'GetDisplayMedia',
@@ -98,7 +77,7 @@ class _MyAppState extends State<MyApp> {
                 context,
                 MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        GetDisplayMediaSample()));
+                        const GetDisplayMediaSample()));
           }),
       RouteItem(
           title: 'LoopBack Sample',
@@ -106,15 +85,7 @@ class _MyAppState extends State<MyApp> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (BuildContext context) => LoopBackSample()));
-          }),
-      RouteItem(
-          title: 'DataChannel',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) => DataChannelSample()));
+                    builder: (BuildContext context) => const Loopback()));
           }),
       RouteItem(
           title: 'getSources',
@@ -122,7 +93,8 @@ class _MyAppState extends State<MyApp> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (BuildContext context) => GetSourcesSample()));
+                    builder: (BuildContext context) =>
+                        const GetSourcesSample()));
           }),
       RouteItem(
           title: 'Basic RtcPeerConnection',
@@ -130,15 +102,8 @@ class _MyAppState extends State<MyApp> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (BuildContext context) => PeerConnectionSample()));
-          }),
-      RouteItem(
-          title: 'Renderer sample',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) => RendererSample()));
+                    builder: (BuildContext context) =>
+                        const PeerConnectionSample()));
           }),
       RouteItem(
           title: 'onDeviceChange notifier',
@@ -147,7 +112,7 @@ class _MyAppState extends State<MyApp> {
                 context,
                 MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        OnDeviceChangeNotifierSample()));
+                        const OnDeviceChangeNotifierSample()));
           }),
     ];
   }

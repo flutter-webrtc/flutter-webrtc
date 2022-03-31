@@ -36,4 +36,3 @@ flutter channel master
 flutter create --platforms windows .
 flutter run -d windows
 ```
-

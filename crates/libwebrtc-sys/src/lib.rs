@@ -13,10 +13,10 @@ use self::bridge::webrtc;
 pub use crate::webrtc::{
     candidate_to_string, get_candidate_pair,
     get_estimated_disconnected_time_ms, get_last_data_received_ms, get_reason,
-    video_frame_to_abgr, AudioLayer, Candidate, CandidatePairChangeEvent,
-    IceConnectionState, IceGatheringState, MediaType, PeerConnectionState,
-    RtpTransceiverDirection, SdpType, SignalingState, VideoFrame,
-    VideoRotation,
+    video_frame_to_abgr, AudioLayer, BundlePolicy, Candidate,
+    CandidatePairChangeEvent, IceConnectionState, IceGatheringState,
+    IceTransportsType, MediaType, PeerConnectionState, RtpTransceiverDirection,
+    SdpType, SignalingState, VideoFrame, VideoRotation,
 };
 
 /// Handler of events firing from a [`MediaStreamTrackInterface`].
@@ -167,6 +167,9 @@ impl TaskQueueFactory {
     }
 }
 
+unsafe impl Send for webrtc::TaskQueueFactory {}
+unsafe impl Sync for webrtc::TaskQueueFactory {}
+
 /// Available audio devices manager that is responsible for driving input
 /// (microphone) and output (speaker) audio in WebRTC.
 ///
@@ -196,7 +199,7 @@ impl AudioDeviceModule {
     pub fn init(&self) -> anyhow::Result<()> {
         let result = webrtc::init_audio_device_module(&self.0);
         if result != 0 {
-            bail!("`AudioDeviceModule::Init()` failed with `{}` code", result);
+            bail!("`AudioDeviceModule::Init()` failed with `{result}` code");
         }
         Ok(())
     }
@@ -207,8 +210,8 @@ impl AudioDeviceModule {
 
         if count < 0 {
             bail!(
-                "`AudioDeviceModule::PlayoutDevices()` failed with `{}` code",
-                count,
+                "`AudioDeviceModule::PlayoutDevices()` failed with `{count}` \
+                 code",
             );
         }
 
@@ -221,8 +224,8 @@ impl AudioDeviceModule {
 
         if count < 0 {
             bail!(
-                "`AudioDeviceModule::RecordingDevices()` failed with `{}` code",
-                count
+                "`AudioDeviceModule::RecordingDevices()` failed with `{count}` \
+                 code",
             );
         }
 
@@ -243,9 +246,8 @@ impl AudioDeviceModule {
 
         if result != 0 {
             bail!(
-                "`AudioDeviceModule::PlayoutDeviceName()` failed with `{}` \
-                 code",
-                result,
+                "`AudioDeviceModule::PlayoutDeviceName()` failed with \
+                 `{result}` code",
             );
         }
 
@@ -267,8 +269,7 @@ impl AudioDeviceModule {
         if result != 0 {
             bail!(
                 "`AudioDeviceModule::RecordingDeviceName()` failed with \
-                 `{}` code",
-                result,
+                 `{result}` code",
             );
         }
 
@@ -282,14 +283,30 @@ impl AudioDeviceModule {
         if result != 0 {
             bail!(
                 "`AudioDeviceModule::SetRecordingDevice()` failed with \
-                 `{}` code.",
-                result,
+                 `{result}` code",
+            );
+        }
+
+        Ok(())
+    }
+
+    /// Sets the playout audio device according to the given `index`.
+    pub fn set_playout_device(&self, index: u16) -> anyhow::Result<()> {
+        let result = webrtc::set_audio_playout_device(&self.0, index);
+
+        if result != 0 {
+            bail!(
+                "`AudioDeviceModule::SetPlayoutDevice()` failed with \
+                 `{result}` code",
             );
         }
 
         Ok(())
     }
 }
+
+unsafe impl Send for webrtc::AudioDeviceModule {}
+unsafe impl Sync for webrtc::AudioDeviceModule {}
 
 /// Interface for receiving information about available camera devices.
 pub struct VideoDeviceInfo(UniquePtr<webrtc::VideoDeviceInfo>);
@@ -330,14 +347,17 @@ impl VideoDeviceInfo {
 
         if result != 0 {
             bail!(
-                "`AudioDeviceModule::GetDeviceName()` failed with `{}` code",
-                result,
+                "`AudioDeviceModule::GetDeviceName()` failed with `{result}` \
+                 code",
             );
         }
 
         Ok((name, guid))
     }
 }
+
+unsafe impl Send for webrtc::VideoDeviceInfo {}
+unsafe impl Sync for webrtc::VideoDeviceInfo {}
 
 /// [RTCConfiguration][1] wrapper.
 ///
@@ -429,6 +449,9 @@ impl PeerConnectionObserver {
         Self(webrtc::create_peer_connection_observer(Box::new(cb)))
     }
 }
+
+unsafe impl Send for webrtc::PeerConnectionObserver {}
+unsafe impl Sync for webrtc::PeerConnectionObserver {}
 
 /// Contains all the [`PeerConnectionInterface`] dependencies.
 pub struct PeerConnectionDependencies {
@@ -625,6 +648,9 @@ impl RtpTransceiverInterface {
     }
 }
 
+unsafe impl Send for webrtc::RtpTransceiverInterface {}
+unsafe impl Sync for webrtc::RtpTransceiverInterface {}
+
 /// [RTCRtpSender] allowing to control how a [MediaStreamTrack][1] is encoded
 /// and transmitted to a remote peer.
 ///
@@ -670,6 +696,9 @@ impl RtpSenderInterface {
     }
 }
 
+unsafe impl Send for webrtc::RtpSenderInterface {}
+unsafe impl Sync for webrtc::RtpSenderInterface {}
+
 /// [RTCRtpReceiver][0] allowing to inspect the receipt of a
 /// [MediaStreamTrack][1].
 ///
@@ -693,6 +722,9 @@ impl RtpReceiverInterface {
         RtpParameters(webrtc::rtp_receiver_parameters(&self.0))
     }
 }
+
+unsafe impl Send for webrtc::RtpReceiverInterface {}
+unsafe impl Sync for webrtc::RtpReceiverInterface {}
 
 /// [RTCRtpCodecParameters][0] representation.
 ///
@@ -984,8 +1016,8 @@ pub struct PeerConnectionInterface {
     _observer: PeerConnectionObserver,
 }
 
-unsafe impl Sync for PeerConnectionInterface {}
-unsafe impl Send for PeerConnectionInterface {}
+unsafe impl Sync for webrtc::PeerConnectionInterface {}
+unsafe impl Send for webrtc::PeerConnectionInterface {}
 
 impl PeerConnectionInterface {
     /// [RTCPeerConnection.createOffer()][1] implementation.
@@ -1114,6 +1146,9 @@ impl Thread {
         Ok(())
     }
 }
+
+unsafe impl Send for webrtc::Thread {}
+unsafe impl Sync for webrtc::Thread {}
 
 /// [`PeerConnectionFactoryInterface`] is the main entry point to the
 /// `PeerConnection API` for clients it is responsible for creating
@@ -1252,6 +1287,9 @@ impl PeerConnectionFactoryInterface {
     }
 }
 
+unsafe impl Send for webrtc::PeerConnectionFactoryInterface {}
+unsafe impl Sync for webrtc::PeerConnectionFactoryInterface {}
+
 /// [`VideoTrackSourceInterface`] captures data from the specific video input
 /// device.
 ///
@@ -1328,12 +1366,18 @@ impl VideoTrackSourceInterface {
     }
 }
 
+unsafe impl Send for webrtc::VideoTrackSourceInterface {}
+unsafe impl Sync for webrtc::VideoTrackSourceInterface {}
+
 /// [`VideoTrackSourceInterface`] captures data from the specific audio input
 /// device.
 ///
 /// It can be later used to create a [`AudioTrackInterface`] with
 /// [`PeerConnectionFactoryInterface::create_audio_track()`].
 pub struct AudioSourceInterface(UniquePtr<webrtc::AudioSourceInterface>);
+
+unsafe impl Send for webrtc::AudioSourceInterface {}
+unsafe impl Sync for webrtc::AudioSourceInterface {}
 
 /// [MediaStreamTrack] object representing a media source in an User Agent.
 ///
@@ -1400,6 +1444,9 @@ impl TrackEventObserver {
     }
 }
 
+unsafe impl Send for webrtc::TrackEventObserver {}
+unsafe impl Sync for webrtc::TrackEventObserver {}
+
 /// Video [`MediaStreamTrack`][1].
 ///
 /// [1]: https://w3.org/TR/mediacapture-streams#dom-mediastreamtrack
@@ -1465,6 +1512,9 @@ impl Drop for VideoTrackInterface {
         }
     }
 }
+
+unsafe impl Send for webrtc::VideoTrackInterface {}
+unsafe impl Sync for webrtc::VideoTrackInterface {}
 
 impl TryFrom<MediaStreamTrackInterface> for VideoTrackInterface {
     type Error = anyhow::Error;
@@ -1538,6 +1588,9 @@ impl Drop for AudioTrackInterface {
         }
     }
 }
+
+unsafe impl Send for webrtc::AudioTrackInterface {}
+unsafe impl Sync for webrtc::AudioTrackInterface {}
 
 impl TryFrom<MediaStreamTrackInterface> for AudioTrackInterface {
     type Error = anyhow::Error;
@@ -1624,6 +1677,9 @@ impl MediaStreamInterface {
     }
 }
 
+unsafe impl Send for webrtc::MediaStreamInterface {}
+unsafe impl Sync for webrtc::MediaStreamInterface {}
+
 /// End point of a video pipeline.
 pub struct VideoSinkInterface(UniquePtr<webrtc::VideoSinkInterface>);
 
@@ -1635,3 +1691,6 @@ impl VideoSinkInterface {
         Self(webrtc::create_forwarding_video_sink(Box::new(cb)))
     }
 }
+
+unsafe impl Send for webrtc::VideoSinkInterface {}
+unsafe impl Sync for webrtc::VideoSinkInterface {}

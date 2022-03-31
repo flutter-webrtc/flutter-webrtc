@@ -138,10 +138,49 @@ pub(crate) mod webrtc {
     #[derive(Debug, Eq, Hash, PartialEq)]
     #[repr(i32)]
     pub enum RtpTransceiverDirection {
+        /// The [`RTCRtpTransceiver`]'s [RTCRtpSender] will offer to send RTP,
+        /// and will send RTP if the remote peer accepts.
+        /// The [`RTCRtpTransceiver`]'s [RTCRtpReceiver] will offer to receive
+        /// RTP, and will receive RTP if the remote peer accepts.
+        ///
+        /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
+        /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
         kSendRecv = 0,
+
+        /// The [`RTCRtpTransceiver`]'s [RTCRtpSender] will offer to send RTP,
+        /// and will send RTP if the remote peer accepts.
+        /// The [`RTCRtpTransceiver`]'s [RTCRtpReceiver] will not offer
+        /// to receive RTP, and will not receive RTP.
+        ///
+        /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
+        /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
         kSendOnly,
+
+        /// The [`RTCRtpTransceiver`]'s [RTCRtpSender] will not offer to send
+        /// RTP, and will not send RTP. The [`RTCRtpTransceiver`]'s
+        /// [RTCRtpReceiver] will offer to receive RTP, and will receive RTP
+        /// if the remote peer accepts.
+        ///
+        /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
+        /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
         kRecvOnly,
+
+        /// The [`RTCRtpTransceiver`]'s [RTCRtpSender] will not offer to send
+        /// RTP, and will not send RTP. The [`RTCRtpTransceiver`]'s
+        /// [RTCRtpReceiver] will not offer to receive RTP, and will not
+        /// receive RTP.
+        ///
+        /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
+        /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
         kInactive,
+
+        /// The [`RTCRtpTransceiver`] will neither send nor receive RTP. It will
+        /// generate a zero port in the offer. In answers, its [RTCRtpSender]
+        /// will not offer to send RTP, and its [RTCRtpReceiver] will not offer
+        /// to receive RTP. This is a terminal state.
+        ///
+        /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
+        /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
         kStopped,
     }
 
@@ -319,7 +358,7 @@ pub(crate) mod webrtc {
     /// [2]: https://w3.org/TR/webrtc#dfn-ice-agent
     #[derive(Debug, Eq, Hash, PartialEq)]
     #[repr(i32)]
-    enum IceTransportsType {
+    pub enum IceTransportsType {
         /// Non-spec-compliant variant.
         kNone,
 
@@ -350,7 +389,7 @@ pub(crate) mod webrtc {
     /// [1]: https://w3.org/TR/webrtc#dom-rtcbundlepolicy
     #[derive(Debug, Eq, Hash, PartialEq)]
     #[repr(i32)]
-    enum BundlePolicy {
+    pub enum BundlePolicy {
         /// [RTCBundlePolicy.balanced][1] representation.
         ///
         /// [1]: https://w3.org/TR/webrtc#dom-rtcbundlepolicy-balanced
@@ -371,9 +410,9 @@ pub(crate) mod webrtc {
     unsafe extern "C++" {
         include!("libwebrtc-sys/include/bridge.h");
 
-        type PeerConnectionFactoryInterface;
-        type TaskQueueFactory;
-        type Thread;
+        pub type PeerConnectionFactoryInterface;
+        pub type TaskQueueFactory;
+        pub type Thread;
 
         /// Creates a default [`TaskQueueFactory`] based on the current
         /// platform.
@@ -402,8 +441,8 @@ pub(crate) mod webrtc {
     }
 
     unsafe extern "C++" {
-        type AudioDeviceModule;
-        type AudioLayer;
+        pub type AudioDeviceModule;
+        pub type AudioLayer;
 
         /// Creates a new [`AudioDeviceModule`] for the given [`AudioLayer`].
         pub fn create_audio_device_module(
@@ -442,17 +481,25 @@ pub(crate) mod webrtc {
             id: &mut String,
         ) -> i32;
 
-        /// Specifies which microphone to use for recording audio using an
-        /// index retrieved by the corresponding enumeration method which is
+        /// Specifies which microphone to use for recording audio using an index
+        /// retrieved by the corresponding enumeration method which is
         /// [`AudiDeviceModule::RecordingDeviceName`].
         pub fn set_audio_recording_device(
+            audio_device_module: &AudioDeviceModule,
+            index: u16,
+        ) -> i32;
+
+        /// Specifies which speaker to use for playing out audio using an index
+        /// retrieved by the corresponding enumeration method
+        /// [`AudiDeviceModule::PlayoutDeviceName`].
+        pub fn set_audio_playout_device(
             audio_device_module: &AudioDeviceModule,
             index: u16,
         ) -> i32;
     }
 
     unsafe extern "C++" {
-        type VideoDeviceInfo;
+        pub type VideoDeviceInfo;
 
         /// Creates a new [`VideoDeviceInfo`].
         pub fn create_video_device_info() -> UniquePtr<VideoDeviceInfo>;
@@ -473,7 +520,7 @@ pub(crate) mod webrtc {
     }
 
     extern "Rust" {
-        type DynAddIceCandidateCallback;
+        pub type DynAddIceCandidateCallback;
 
         /// Calls the success [`DynAddIceCandidateCallback`].
         pub fn add_ice_candidate_success(
@@ -524,7 +571,7 @@ pub(crate) mod webrtc {
         include!("libwebrtc-sys/include/rtp_codec_parameters.h");
 
         #[namespace = "webrtc"]
-        type RtpCodecParameters;
+        pub type RtpCodecParameters;
 
         /// Returns the `name` of the provided [`RtpCodecParameters`].
         #[must_use]
@@ -590,7 +637,7 @@ pub(crate) mod webrtc {
     unsafe extern "C++" {
         include!("libwebrtc-sys/include/rtp_sender_interface.h");
 
-        type RtpSenderInterface;
+        pub type RtpSenderInterface;
 
         /// Replaces the track currently being used as the `sender`'s source
         /// with a new [`VideoTrackInterface`].
@@ -612,7 +659,7 @@ pub(crate) mod webrtc {
         include!("libwebrtc-sys/include/rtp_encoding_parameters.h");
 
         #[namespace = "webrtc"]
-        type RtpEncodingParameters;
+        pub type RtpEncodingParameters;
 
         /// Returns the `active` of the provided [`RtpEncodingParameters`].
         #[must_use]
@@ -663,7 +710,7 @@ pub(crate) mod webrtc {
         include!("libwebrtc-sys/include/rtp_parameters.h");
 
         #[namespace = "webrtc"]
-        type RtpParameters;
+        pub type RtpParameters;
 
         /// Returns the `transaction_id` of the provided [`RtpParameters`].
         #[must_use]
@@ -714,26 +761,26 @@ pub(crate) mod webrtc {
         pub type MediaType;
         pub type TrackState;
         #[namespace = "cricket"]
-        type CandidatePair;
-        type CreateSessionDescriptionObserver;
-        type IceConnectionState;
-        type IceGatheringState;
-        type PeerConnectionDependencies;
-        type PeerConnectionInterface;
-        type PeerConnectionObserver;
-        type PeerConnectionState;
-        type RTCConfiguration;
-        type IceTransportsType;
-        type BundlePolicy;
-        type IceServer;
-        type RTCOfferAnswerOptions;
-        type RtpTransceiverDirection;
+        pub type CandidatePair;
+        pub type CreateSessionDescriptionObserver;
+        pub type IceConnectionState;
+        pub type IceGatheringState;
+        pub type PeerConnectionDependencies;
+        pub type PeerConnectionInterface;
+        pub type PeerConnectionObserver;
+        pub type PeerConnectionState;
+        pub type RTCConfiguration;
+        pub type IceTransportsType;
+        pub type BundlePolicy;
+        pub type IceServer;
+        pub type RTCOfferAnswerOptions;
+        pub type RtpTransceiverDirection;
         pub type RtpTransceiverInterface;
-        type SdpType;
-        type SessionDescriptionInterface;
-        type SetLocalDescriptionObserver;
-        type SetRemoteDescriptionObserver;
-        type SignalingState;
+        pub type SdpType;
+        pub type SessionDescriptionInterface;
+        pub type SetLocalDescriptionObserver;
+        pub type SetRemoteDescriptionObserver;
+        pub type SignalingState;
 
         /// Creates a default [`RTCConfiguration`].
         pub fn create_default_rtc_configuration()
@@ -1007,20 +1054,20 @@ pub(crate) mod webrtc {
     }
 
     unsafe extern "C++" {
-        type AudioSourceInterface;
+        pub type AudioSourceInterface;
         pub type AudioTrackInterface;
-        type MediaStreamInterface;
+        pub type MediaStreamInterface;
         pub type VideoTrackInterface;
-        type VideoTrackSourceInterface;
+        pub type VideoTrackSourceInterface;
         #[namespace = "webrtc"]
         pub type VideoFrame;
-        type VideoSinkInterface;
-        type VideoRotation;
+        pub type VideoSinkInterface;
+        pub type VideoRotation;
         #[namespace = "webrtc"]
-        type RtpExtension;
+        pub type RtpExtension;
         #[namespace = "webrtc"]
-        type RtcpParameters;
-        type TrackEventObserver;
+        pub type RtcpParameters;
+        pub type TrackEventObserver;
 
         /// Creates a new [`VideoTrackSourceInterface`] sourced by a video input
         /// device with provided `device_index`.
@@ -1287,7 +1334,7 @@ pub(crate) mod webrtc {
     }
 
     extern "Rust" {
-        type DynOnFrameCallback;
+        pub type DynOnFrameCallback;
 
         /// Forwards the given [`webrtc::VideoFrame`] the the provided
         /// [`DynOnFrameCallback`].
@@ -1298,7 +1345,7 @@ pub(crate) mod webrtc {
     }
 
     extern "Rust" {
-        type DynTrackEventCallback;
+        pub type DynTrackEventCallback;
 
         /// Forwards the [`ended`][1] event to the given
         /// [`DynTrackEventCallback`].
@@ -1308,9 +1355,9 @@ pub(crate) mod webrtc {
     }
 
     extern "Rust" {
-        type DynSetDescriptionCallback;
-        type DynCreateSdpCallback;
-        type DynPeerConnectionEventsHandler;
+        pub type DynSetDescriptionCallback;
+        pub type DynCreateSdpCallback;
+        pub type DynPeerConnectionEventsHandler;
 
         /// Creates a new [`StringPair`] from the given [`CxxString`].
         pub fn new_string_pair(f: &CxxString, s: &CxxString) -> StringPair;

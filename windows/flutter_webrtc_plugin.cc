@@ -4,7 +4,7 @@
 #include "flutter_webrtc.h"
 #include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
 
-const char* kChannelName = "FlutterWebRTC.Method";
+const char* kChannelName = "FlutterWebRtc/VideoRendererFactory/0";
 
 namespace flutter_webrtc_plugin {
 

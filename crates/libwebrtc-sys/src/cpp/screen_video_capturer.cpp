@@ -35,7 +35,9 @@ webrtc::DesktopCaptureOptions CreateDesktopCaptureOptions() {
   webrtc::DesktopCaptureOptions options =
       webrtc::DesktopCaptureOptions::CreateDefault();
 
-  options.set_allow_directx_capturer(true);
+  #ifdef WEBRTC_WIN
+    options.set_allow_directx_capturer(true);
+  #endif
 
   return options;
 }
