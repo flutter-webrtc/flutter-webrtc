@@ -1,6 +1,12 @@
 # Changelog
 
 --------------------------------------------
+[0.8.4] - 2022-03-28
+
+* [Android] Fix simulcast factory not sending back EncoderInfo (#891)
+* [Android] fix: correct misspell in method screenRequestPermissions (#876)
+
+
 [0.8.3] - 2022-03-01
 
 * [Android/iOS] Update android/ios webrtc native sdk versions.
