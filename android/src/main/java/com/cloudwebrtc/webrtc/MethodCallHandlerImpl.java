@@ -156,7 +156,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     mFactory = PeerConnectionFactory.builder()
             .setOptions(new Options())
-            .setVideoEncoderFactory(new SimulcastVideoEncoderFactoryWrapper(eglContext, true, false))
+            .setVideoEncoderFactory(new SimulcastVideoEncoderFactoryWrapper(eglContext, true, true))
             .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
             .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory();
