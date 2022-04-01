@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.8.5] - 2022-04-01
+
+* [Dart] Expose RTCDataChannel.id (#898) 
+* [Android] Enable H264 high profile for SimulcastVideoEncoderFactoryWrapper (#890)
+
 [0.8.4] - 2022-03-28
 
 * [Android] Fix simulcast factory not sending back EncoderInfo (#891)
