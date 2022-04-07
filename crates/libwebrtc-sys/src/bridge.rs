@@ -446,6 +446,7 @@ pub(crate) mod webrtc {
 
         /// Creates a new [`AudioDeviceModule`] for the given [`AudioLayer`].
         pub fn create_audio_device_module(
+            worker_thread: Pin<&mut Thread>,
             audio_layer: AudioLayer,
             task_queue_factory: Pin<&mut TaskQueueFactory>,
         ) -> UniquePtr<AudioDeviceModule>;

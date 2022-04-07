@@ -20,6 +20,8 @@
 #include "screen_video_capturer.h"
 #include "video_sink.h"
 
+#include "adm_proxy.h"
+
 namespace bridge {
 
 struct DynTrackEventCallback;
@@ -88,8 +90,9 @@ using RtpReceiverInterface = rtc::scoped_refptr<webrtc::RtpReceiverInterface>;
 using MediaStreamTrackInterface =
     rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>;
 
-// Creates a new `AudioDeviceModule` for the given `AudioLayer`.
+// Creates a new proxied `AudioDeviceModule` for the given `AudioLayer`.
 std::unique_ptr<AudioDeviceModule> create_audio_device_module(
+    Thread& worker_thread,
     AudioLayer audio_layer,
     TaskQueueFactory& task_queue_factory);
 

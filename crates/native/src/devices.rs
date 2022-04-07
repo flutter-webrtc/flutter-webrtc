@@ -40,6 +40,7 @@ static ON_DEVICE_CHANGE: AtomicPtr<DeviceState> =
 struct DeviceState {
     cb: StreamSink<()>,
     adm: AudioDeviceModule,
+    _thread: sys::Thread,
     vdi: sys::VideoDeviceInfo,
     count: u32,
 }
@@ -50,13 +51,19 @@ impl DeviceState {
         cb: StreamSink<()>,
         tq: &mut sys::TaskQueueFactory,
     ) -> anyhow::Result<Self> {
-        let adm =
-            AudioDeviceModule::new(sys::AudioLayer::kPlatformDefaultAudio, tq)?;
+        let mut thread = sys::Thread::create(false)?;
+        thread.start()?;
+        let adm = AudioDeviceModule::new(
+            &mut thread,
+            sys::AudioLayer::kPlatformDefaultAudio,
+            tq,
+        )?;
 
         let vdi = sys::VideoDeviceInfo::create()?;
 
         let mut ds = Self {
             adm,
+            _thread: thread,
             vdi,
             count: 0,
             cb,

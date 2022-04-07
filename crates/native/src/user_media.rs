@@ -466,11 +466,15 @@ impl AudioDeviceModule {
     ///
     /// If could not find any available recording device.
     pub fn new(
+        worker_thread: &mut sys::Thread,
         audio_layer: sys::AudioLayer,
         task_queue_factory: &mut sys::TaskQueueFactory,
     ) -> anyhow::Result<Self> {
-        let inner =
-            sys::AudioDeviceModule::create(audio_layer, task_queue_factory)?;
+        let inner = sys::AudioDeviceModule::create_proxy(
+            worker_thread,
+            audio_layer,
+            task_queue_factory,
+        )?;
         inner.init()?;
 
         Ok(Self {
@@ -500,7 +504,7 @@ impl AudioDeviceModule {
     /// # Errors
     ///
     /// If [`sys::AudioDeviceModule::set_playout_device()`] fails.
-    pub fn set_playout_device(&mut self, index: u16) -> anyhow::Result<()> {
+    pub fn set_playout_device(&self, index: u16) -> anyhow::Result<()> {
         self.inner.set_playout_device(index)?;
 
         Ok(())
