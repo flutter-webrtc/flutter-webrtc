@@ -16,7 +16,7 @@ class _State extends State<OnDeviceChangeNotifierSample> {
   void initState() {
     super.initState();
 
-    DeviceHandler().setHandler(() {
+    onDeviceChange(() {
       count++;
 
       setState(() {
@@ -27,7 +27,7 @@ class _State extends State<OnDeviceChangeNotifierSample> {
 
   @override
   void dispose() {
-    DeviceHandler().setHandler(null);
+    onDeviceChange(null);
 
     super.dispose();
   }

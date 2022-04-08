@@ -1,4 +1,5 @@
 #pragma once
+
 struct VideoFrame;
 
 // Callback for video frames handlers provided to the

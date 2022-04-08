@@ -386,8 +386,8 @@ class _PeerConnectionFFI extends PeerConnection {
         iceServers: iceServers
             .map((server) => ffi.RtcIceServer(
                 urls: server.urls,
-                username: server.username!,
-                credential: server.password!))
+                username: server.username != null ? server.username! : '',
+                credential: server.password != null ? server.password! : ''))
             .toList());
 
     var peer = _PeerConnectionFFI();

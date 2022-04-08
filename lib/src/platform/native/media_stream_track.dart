@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-import '../../../flutter_webrtc.dart';
+import '/flutter_webrtc.dart';
 import '/src/api/bridge.g.dart' as ffi;
 import '/src/api/channel.dart';
 
@@ -169,7 +169,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   @override
   Future<void> setEnabled(bool enabled) async {
     if (!_stopped) {
-      api.setTrackEnabled(trackId: int.parse(_id), enabled: enabled);
+      await api.setTrackEnabled(trackId: int.parse(_id), enabled: enabled);
     }
 
     _enabled = enabled;
