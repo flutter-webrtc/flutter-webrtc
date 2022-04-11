@@ -233,7 +233,8 @@ public class RTCBluetoothManager {
   public void start() {
     ThreadUtils.checkIsOnMainThread();
     Log.d(TAG, "start");
-    if (!hasPermission(apprtcContext, android.Manifest.permission.BLUETOOTH)) {
+    if (!hasPermission(apprtcContext, android.Manifest.permission.BLUETOOTH) 
+        && !hasPermission(apprtcContext, android.Manifest.permission.BLUETOOTH_CONNECT)) {
       Log.w(TAG, "Process (pid=" + Process.myPid() + ") lacks BLUETOOTH permission");
       return;
     }
