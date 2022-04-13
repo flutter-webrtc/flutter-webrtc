@@ -236,10 +236,16 @@ public class RTCBluetoothManager {
   public void start() {
     ThreadUtils.checkIsOnMainThread();
     Log.d(TAG, "start");
-    if (!hasPermission(apprtcContext, android.Manifest.permission.BLUETOOTH)) {
+
+    // BLUETOOTH permission is required for API levels below S
+    if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.S
+            || apprtcContext.getApplicationInfo().targetSdkVersion < Build.VERSION_CODES.S)
+            && !hasPermission(apprtcContext, android.Manifest.permission.BLUETOOTH)) {
       Log.w(TAG, "Process (pid=" + Process.myPid() + ") lacks BLUETOOTH permission");
       return;
     }
+
+    // BLUETOOTH_CONNECT permissions is required for API level S onwards
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
             && apprtcContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.S
             && !hasPermission(apprtcContext, Manifest.permission.BLUETOOTH_CONNECT)) {
