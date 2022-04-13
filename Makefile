@@ -162,8 +162,17 @@ lib-out-path = target/$(if $(call eq,$(debug),no),release,debug)
 cargo.build:
 	cargo build -p flutter-webrtc-native $(if $(call eq,$(debug),no),--release,)
 ifeq ($(CURRENT_OS),linux)
+	@mkdir -p linux/rust/include/flutter-webrtc-native/include/
+	@mkdir -p linux/rust/lib/
+	@mkdir -p linux/rust/src/
 	cp -f $(lib-out-path)/libflutter_webrtc_native.so \
-		linux/lib/libflutter_webrtc_native.so
+		linux/rust/lib/libflutter_webrtc_native.so
+	cp -f target/cxxbridge/flutter-webrtc-native/src/cpp_api.rs.h \
+		linux/rust/include/flutter_webrtc_native.h
+	cp -f crates/native/include/api.h \
+		linux/rust/include/flutter-webrtc-native/include/api.h
+	cp -f target/cxxbridge/flutter-webrtc-native/src/cpp_api.rs.cc \
+		linux/rust/src/flutter_webrtc_native.cc
 endif
 ifeq ($(CURRENT_OS),windows)
 	@mkdir -p windows/rust/include/

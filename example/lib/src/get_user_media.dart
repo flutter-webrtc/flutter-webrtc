@@ -55,8 +55,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       var stream = await getUserMedia(caps);
       _mediaDevicesList = await enumerateDevices();
       _tracks = stream;
-      _localRenderer.srcObject =
-          _tracks!.firstWhere((track) => track.kind() == MediaKind.video);
+      await _localRenderer.setSrcObject(
+          _tracks!.firstWhere((track) => track.kind() == MediaKind.video));
     } catch (e) {
       print(e.toString());
     }
@@ -72,7 +72,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       for (var track in _tracks!) {
         track.dispose();
       }
-      _localRenderer.srcObject = null;
+      await _localRenderer.setSrcObject(null);
       setState(() {
         _inCalling = false;
       });

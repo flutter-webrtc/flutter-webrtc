@@ -10,6 +10,7 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 # This value is used when generating builds using this plugin, so it must
 # not be changed.
 set(PLUGIN_NAME "flutter_webrtc_plugin")
+set(CMAKE_CXX_STANDARD 17)
 
 # Define the plugin library target. Its name must not be changed (see comment
 # on PLUGIN_NAME above).
@@ -17,6 +18,12 @@ set(PLUGIN_NAME "flutter_webrtc_plugin")
 # Any new source files that you add to the plugin should be added here.
 add_library(${PLUGIN_NAME} SHARED
   "flutter_webrtc_plugin.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/flutter_webrtc_native.cc"
+)
+
+include_directories(
+  "${CMAKE_CURRENT_SOURCE_DIR}/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/include"
 )
 
 # Apply a standard set of build settings that are configured in the
@@ -38,10 +45,15 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter)
 target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
 
+target_link_libraries(${PLUGIN_NAME} PRIVATE
+  flutter
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/libflutter_webrtc_native.so"
+)
+
 # List of absolute paths to libraries that should be bundled with the plugin.
 # This list could contain prebuilt libraries, or libraries created by an
 # external build triggered from this build file.
 set(flutter_webrtc_bundled_libraries
-  "${CMAKE_CURRENT_SOURCE_DIR}/lib/libflutter_webrtc_native.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/libflutter_webrtc_native.so"
   PARENT_SCOPE
 )

@@ -53,7 +53,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
       var _track = (await getDisplayMedia(caps))[0];
 
       _track = _track;
-      _localRenderer.srcObject = _track;
+      await _localRenderer.setSrcObject(_track);
     } catch (e) {
       print(e.toString());
     }
@@ -68,7 +68,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     try {
       await _track?.dispose();
       _track = null;
-      _localRenderer.srcObject = null;
+      await _localRenderer.setSrcObject(_track);
     } catch (e) {
       print(e.toString());
     }

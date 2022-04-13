@@ -57,8 +57,8 @@ class _LoopbackState extends State<Loopback> {
 
     try {
       _tracks = await getUserMedia(caps);
-      _localRenderer.srcObject =
-          _tracks!.firstWhere((track) => track.kind() == MediaKind.video);
+      await _localRenderer.setSrcObject(
+          _tracks!.firstWhere((track) => track.kind() == MediaKind.video));
 
       var server =
           IceServer(['stun:stun.l.google.com:19302'], 'username', 'password');
@@ -72,9 +72,9 @@ class _LoopbackState extends State<Loopback> {
         print(p0.errorText);
       });
 
-      _pc2?.onTrack((track, trans) {
+      _pc2?.onTrack((track, trans) async {
         if (track.kind() == MediaKind.video) {
-          _remoteRenderer.srcObject = track;
+          await _remoteRenderer.setSrcObject(track);
         }
       });
 
@@ -119,8 +119,8 @@ class _LoopbackState extends State<Loopback> {
 
   void _hangUp() async {
     try {
-      _localRenderer.srcObject = null;
-      _remoteRenderer.srcObject = null;
+      await _localRenderer.setSrcObject(null);
+      await _remoteRenderer.setSrcObject(null);
 
       for (var track in _tracks!) {
         await track.dispose();

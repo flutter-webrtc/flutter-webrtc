@@ -3,7 +3,7 @@ use std::{
     sync::Arc,
 };
 
-use anyhow::bail;
+use anyhow::{bail, Context};
 use dashmap::mapref::one::RefMut;
 use derive_more::{AsRef, Display, From};
 use flutter_rust_bridge::StreamSink;
@@ -41,9 +41,14 @@ impl Webrtc {
 
     /// Disposes a [`VideoTrack`] or [`AudioTrack`] by the provided `track_id`.
     pub fn dispose_track(&mut self, track_id: u64) {
-        let senders = if let Some((_, track)) =
+        let senders = if let Some((_, mut track)) =
             self.video_tracks.remove(&VideoTrackId::from(track_id))
         {
+            for id in track.sinks.clone() {
+                if let Some(sink) = self.video_sinks.remove(&id) {
+                    track.remove_video_sink(sink);
+                }
+            }
             if let MediaTrackSource::Local(src) = track.source {
                 if Arc::strong_count(&src) == 2 {
                     self.video_sources.remove(&src.device_id);
@@ -756,15 +761,20 @@ impl VideoSource {
         device_index: u32,
         device_id: VideoDeviceId,
     ) -> anyhow::Result<Self> {
+        let inner = sys::VideoTrackSourceInterface::create_proxy_from_device(
+            worker_thread,
+            signaling_thread,
+            caps.width as usize,
+            caps.height as usize,
+            caps.frame_rate as usize,
+            device_index,
+        )
+        .with_context(|| {
+            format!("Failed to acquire device with ID `{device_id}`")
+        })?;
+
         Ok(Self {
-            inner: sys::VideoTrackSourceInterface::create_proxy_from_device(
-                worker_thread,
-                signaling_thread,
-                caps.width as usize,
-                caps.height as usize,
-                caps.frame_rate as usize,
-                device_index,
-            )?,
+            inner,
             device_id,
             is_display: false,
         })

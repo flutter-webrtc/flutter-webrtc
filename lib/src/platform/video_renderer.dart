@@ -70,7 +70,7 @@ abstract class VideoRenderer extends ValueNotifier<RTCVideoValue> {
 
   MediaStreamTrack? get srcObject;
 
-  set srcObject(MediaStreamTrack? track);
+  Future<void> setSrcObject(MediaStreamTrack? track);
 
   @override
   @mustCallSuper

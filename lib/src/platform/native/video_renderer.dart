@@ -103,7 +103,7 @@ class _NativeVideoRendererChannel extends NativeVideoRenderer {
   }
 
   @override
-  set srcObject(MediaStreamTrack? track) {
+  Future<void> setSrcObject(MediaStreamTrack? track) async {
     if (textureId == null) {
       throw 'Renderer should be initialize before setting src';
     }
@@ -112,13 +112,13 @@ class _NativeVideoRendererChannel extends NativeVideoRenderer {
     }
     _srcObject = track;
 
-    _chan.invokeMethod('setSrcObject', {
+    await _chan.invokeMethod('setSrcObject', {
       'trackId': track?.id(),
-    }).then((_) {
-      value = (track == null)
-          ? RTCVideoValue.empty
-          : value.copyWith(renderVideo: renderVideo);
     });
+
+    value = (track == null)
+        ? RTCVideoValue.empty
+        : value.copyWith(renderVideo: renderVideo);
   }
 
   @override
@@ -143,7 +143,7 @@ class _NativeVideoRendererFFI extends NativeVideoRenderer {
   }
 
   @override
-  set srcObject(MediaStreamTrack? track) {
+  Future<void> setSrcObject(MediaStreamTrack? track) async {
     if (textureId == null) {
       throw 'Renderer should be initialize before setting src';
     }
@@ -157,24 +157,25 @@ class _NativeVideoRendererFFI extends NativeVideoRenderer {
       api.disposeVideoSink(sinkId: sinkId);
       value = RTCVideoValue.empty;
     } else {
-      _chan.invokeMethod('createFrameHandler', <String, dynamic>{
+      var handler =
+          await _chan.invokeMethod('createFrameHandler', <String, dynamic>{
         'textureId': textureId,
-      }).then((result) {
-        var trackId = int.parse(track.id());
-        api
-            .createVideoSink(
-                sinkId: sinkId,
-                trackId: trackId,
-                callbackPtr: result['handler_ptr'])
-            .then((_) => {value = value.copyWith(renderVideo: renderVideo)});
       });
+
+      var trackId = int.parse(track.id());
+      await api
+          .createVideoSink(
+              sinkId: sinkId,
+              trackId: trackId,
+              callbackPtr: handler['handler_ptr'])
+          .then((_) => {value = value.copyWith(renderVideo: renderVideo)});
     }
   }
 
   @override
   Future<void> dispose() async {
     await _eventChan?.cancel();
-    srcObject = null;
+    await setSrcObject(null);
     await _chan.invokeMethod('dispose', {'textureId': textureId});
     await super.dispose();
   }

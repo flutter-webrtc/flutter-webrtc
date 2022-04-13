@@ -109,7 +109,7 @@ class WebVideoRenderer extends VideoRenderer {
   MediaStreamTrack? get srcObject => _srcObject;
 
   @override
-  set srcObject(MediaStreamTrack? track) {
+  Future<void> setSrcObject(MediaStreamTrack? track) async {
     if (track == null) {
       findHtmlView()?.srcObject = null;
       _audioElement?.srcObject = null;
