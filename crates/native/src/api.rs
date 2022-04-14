@@ -750,7 +750,7 @@ pub fn create_peer_connection(
     WEBRTC
         .lock()
         .unwrap()
-        .create_peer_connection(&cb, configuration)
+        .create_peer_connection(&(cb.into()), configuration)
 }
 
 /// Initiates the creation of an SDP offer for the purpose of starting a new
@@ -961,7 +961,10 @@ pub fn register_track_observer(
     cb: StreamSink<TrackEvent>,
     track_id: u64,
 ) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().register_track_observer(track_id, cb)
+    WEBRTC
+        .lock()
+        .unwrap()
+        .register_track_observer(track_id, cb.into())
 }
 
 /// Sets the provided [`OnDeviceChangeCallback`] as the callback to be called
@@ -970,7 +973,7 @@ pub fn register_track_observer(
 /// Only one callback can be set at a time, so the previous one will be dropped,
 /// if any.
 pub fn set_on_device_changed(cb: StreamSink<()>) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().set_on_device_changed(cb)
+    WEBRTC.lock().unwrap().set_on_device_changed(cb.into())
 }
 
 /// Creates a new [`VideoSink`] attached to the specified video track.

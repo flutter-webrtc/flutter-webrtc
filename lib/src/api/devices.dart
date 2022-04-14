@@ -161,18 +161,17 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaChannel(
 /// FFI-based implementation of a [getUserMedia] function.
 Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
     DeviceConstraints constraints) async {
-  var audioConstraints = constraints.audio.mandatory != null
-      ? ffi.AudioConstraints(deviceId: constraints.audio.mandatory?.deviceId)
-      : null;
+  var audioConstraints = ffi.AudioConstraints(
+      deviceId: constraints.audio.mandatory?.deviceId ??
+          constraints.audio.optional?.deviceId);
 
-  var videoConstraints = constraints.video.mandatory != null
-      ? ffi.VideoConstraints(
-          deviceId: constraints.video.mandatory?.deviceId,
-          height: constraints.video.mandatory?.height ?? defaultUserMediaHeight,
-          width: constraints.video.mandatory?.width ?? defaultUserMediaWidth,
-          frameRate: constraints.video.mandatory?.fps ?? defaultFrameRate,
-          isDisplay: false)
-      : null;
+  var videoConstraints = ffi.VideoConstraints(
+      deviceId: constraints.video.mandatory?.deviceId ??
+          constraints.video.optional?.deviceId,
+      height: constraints.video.mandatory?.height ?? defaultUserMediaHeight,
+      width: constraints.video.mandatory?.width ?? defaultUserMediaWidth,
+      frameRate: constraints.video.mandatory?.fps ?? defaultFrameRate,
+      isDisplay: false);
 
   var tracks = await api.getMedia(
       constraints: ffi.MediaStreamConstraints(

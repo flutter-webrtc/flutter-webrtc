@@ -6,7 +6,6 @@ use std::{
 };
 
 use anyhow::anyhow;
-use flutter_rust_bridge::StreamSink;
 use libwebrtc_sys as sys;
 #[cfg(target_os = "windows")]
 use winapi::{
@@ -26,6 +25,7 @@ use winapi::{
 
 use crate::{
     api,
+    stream_sink::StreamSink,
     user_media::{AudioDeviceId, VideoDeviceId},
     AudioDeviceModule, Webrtc,
 };
@@ -77,11 +77,8 @@ impl DeviceState {
 
     /// Counts current media device number.
     fn count_devices(&mut self) -> u32 {
-        TryInto::<u32>::try_into(
-            self.adm.inner.playout_devices().unwrap()
-                + self.adm.inner.recording_devices().unwrap(),
-        )
-        .unwrap()
+        self.adm.playout_devices()
+            + self.adm.recording_devices()
             + self.vdi.number_of_devices()
     }
 
@@ -106,10 +103,8 @@ impl Webrtc {
         &mut self,
     ) -> anyhow::Result<Vec<api::MediaDeviceInfo>> {
         let mut audio = {
-            let count_playout =
-                self.audio_device_module.inner.playout_devices()?;
-            let count_recording =
-                self.audio_device_module.inner.recording_devices()?;
+            let count_playout = self.audio_device_module.playout_devices();
+            let count_recording = self.audio_device_module.recording_devices();
 
             #[allow(clippy::cast_sign_loss)]
             let mut result =
@@ -119,22 +114,20 @@ impl Webrtc {
                 api::MediaDeviceKind::AudioOutput,
                 api::MediaDeviceKind::AudioInput,
             ] {
-                let count = if let api::MediaDeviceKind::AudioOutput = kind {
-                    count_playout
-                } else {
-                    count_recording
-                };
+                let count: i16 =
+                    if let api::MediaDeviceKind::AudioOutput = kind {
+                        count_playout
+                    } else {
+                        count_recording
+                    }
+                    .try_into()?;
 
                 for i in 0..count {
                     let (label, device_id) =
                         if let api::MediaDeviceKind::AudioOutput = kind {
-                            self.audio_device_module
-                                .inner
-                                .playout_device_name(i)?
+                            self.audio_device_module.playout_device_name(i)?
                         } else {
-                            self.audio_device_module
-                                .inner
-                                .recording_device_name(i)?
+                            self.audio_device_module.recording_device_name(i)?
                         };
 
                     result.push(api::MediaDeviceInfo {
@@ -208,10 +201,10 @@ impl Webrtc {
         &mut self,
         device_id: &AudioDeviceId,
     ) -> anyhow::Result<Option<u16>> {
-        let count = self.audio_device_module.inner.recording_devices()?;
+        let count: i16 =
+            self.audio_device_module.recording_devices().try_into()?;
         for i in 0..count {
-            let (_, id) =
-                self.audio_device_module.inner.recording_device_name(i)?;
+            let (_, id) = self.audio_device_module.recording_device_name(i)?;
             if id == device_id.to_string() {
                 #[allow(clippy::cast_sign_loss)]
                 return Ok(Some(i as u16));
@@ -234,10 +227,10 @@ impl Webrtc {
         &mut self,
         device_id: &AudioDeviceId,
     ) -> anyhow::Result<Option<u16>> {
-        let count = self.audio_device_module.inner.playout_devices()?;
+        let count: i16 =
+            self.audio_device_module.playout_devices().try_into()?;
         for i in 0..count {
-            let (_, id) =
-                self.audio_device_module.inner.playout_device_name(i)?;
+            let (_, id) = self.audio_device_module.playout_device_name(i)?;
             if id == device_id.to_string() {
                 #[allow(clippy::cast_sign_loss)]
                 return Ok(Some(i as u16));

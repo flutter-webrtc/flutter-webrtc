@@ -210,31 +210,17 @@ impl AudioDeviceModule {
     }
 
     /// Returns count of available audio playout devices.
-    pub fn playout_devices(&self) -> anyhow::Result<i16> {
-        let count = webrtc::playout_devices(&self.0);
-
-        if count < 0 {
-            bail!(
-                "`AudioDeviceModule::PlayoutDevices()` failed with `{count}` \
-                 code",
-            );
-        }
-
-        Ok(count)
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    pub fn playout_devices(&self) -> u32 {
+        webrtc::playout_devices(&self.0).max(0) as u32
     }
 
     /// Returns count of available audio recording devices.
-    pub fn recording_devices(&self) -> anyhow::Result<i16> {
-        let count = webrtc::recording_devices(&self.0);
-
-        if count < 0 {
-            bail!(
-                "`AudioDeviceModule::RecordingDevices()` failed with `{count}` \
-                 code",
-            );
-        }
-
-        Ok(count)
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    pub fn recording_devices(&self) -> u32 {
+        webrtc::recording_devices(&self.0).max(0) as u32
     }
 
     /// Returns the `(label, id)` tuple for the given audio playout device

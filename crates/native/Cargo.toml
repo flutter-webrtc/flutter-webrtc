@@ -19,6 +19,7 @@ libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"
 once_cell = "1.10"
 threadpool = "1.8"
+xxhash-rust = { version = "0.8", features = ["xxh3"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = { version = "0.3", features = ["dbt", "winuser"] }

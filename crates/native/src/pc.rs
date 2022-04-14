@@ -8,13 +8,13 @@ use anyhow::{anyhow, bail};
 use cxx::{CxxString, CxxVector};
 use dashmap::DashMap;
 use derive_more::{Display, From, Into};
-use flutter_rust_bridge::StreamSink;
 use libwebrtc_sys as sys;
 use once_cell::sync::OnceCell;
 use threadpool::ThreadPool;
 
 use crate::{
-    api, next_id, AudioTrack, AudioTrackId, VideoTrack, VideoTrackId, Webrtc,
+    api, next_id, stream_sink::StreamSink, AudioTrack, AudioTrackId,
+    VideoTrack, VideoTrackId, Webrtc,
 };
 
 /// Timeout for [`mpsc::Receiver::recv_timeout()`] operations.

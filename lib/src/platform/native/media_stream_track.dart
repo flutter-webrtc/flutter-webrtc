@@ -157,11 +157,9 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   Future<void> dispose() async {
-    // TODO(logist322): Stuck on canceling `StreamSubscription`.
-    // await _eventSub?.cancel();
-
     if (!_stopped) {
       await api.disposeTrack(trackId: int.parse(_id));
+      await _eventSub?.cancel();
     }
     _stopped = true;
   }

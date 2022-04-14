@@ -163,9 +163,8 @@ std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
     return nullptr;
   }
 
-  auto src = webrtc::CreateVideoTrackSourceProxy(
-    &signaling_thread,
-    &worker_thread, dvc);
+  auto src = webrtc::CreateVideoTrackSourceProxy(&signaling_thread,
+                                                 &worker_thread, dvc);
   if (src == nullptr) {
     return nullptr;
   }
