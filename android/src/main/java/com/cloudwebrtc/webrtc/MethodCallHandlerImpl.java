@@ -1,29 +1,35 @@
 package com.cloudwebrtc.webrtc;
 
+import static com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils.parseMediaConstraints;
+
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.os.Build;
 import android.util.Log;
 import android.util.LongSparseArray;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
+import com.cloudwebrtc.webrtc.utils.Callback;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
-import com.cloudwebrtc.webrtc.SimulcastVideoEncoderFactoryWrapper;
+import com.cloudwebrtc.webrtc.utils.PermissionUtils;
 
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
 import org.webrtc.DefaultVideoDecoderFactory;
-import org.webrtc.DefaultVideoEncoderFactory;
 import org.webrtc.DtmfSender;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
@@ -72,8 +78,6 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.view.TextureRegistry;
 import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
-
-import static com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils.parseMediaConstraints;
 
 public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   interface AudioManager {
@@ -963,7 +967,20 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             observer);
     observer.setPeerConnection(peerConnection);
     if (mPeerConnectionObservers.size() == 0) {
-      audioManager.onAudioManagerRequested(true);
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S
+              || context.getApplicationInfo().targetSdkVersion < Build.VERSION_CODES.S) {
+        audioManager.onAudioManagerRequested(true);
+      } else {
+        ArrayList<String> permissions = new ArrayList<>();
+        permissions.add(Manifest.permission.BLUETOOTH_CONNECT);
+        requestPermissions(
+                permissions,
+                (args) -> {
+                  audioManager.onAudioManagerRequested(true);
+                },
+                (args) -> {
+                });
+      }
     }
     mPeerConnectionObservers.put(peerConnectionId, observer);
     return peerConnectionId;
@@ -1710,5 +1727,47 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         return localTracks.get(id).enabled();
       }
     });
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.M)
+  void requestPermissions(
+          final ArrayList<String> permissions,
+          final Callback successCallback,
+          final Callback errorCallback) {
+    PermissionUtils.Callback callback =
+            (permissions_, grantResults) -> {
+              List<String> grantedPermissions = new ArrayList<>();
+              List<String> deniedPermissions = new ArrayList<>();
+
+              for (int i = 0; i < permissions_.length; ++i) {
+                String permission = permissions_[i];
+                int grantResult = grantResults[i];
+
+                if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                  grantedPermissions.add(permission);
+                } else {
+                  deniedPermissions.add(permission);
+                }
+              }
+
+              // Success means that all requested permissions were granted.
+              for (String p : permissions) {
+                if (!grantedPermissions.contains(p)) {
+                  // According to step 6 of the getUserMedia() algorithm
+                  // "if the result is denied, jump to the step Permission
+                  // Failure."
+                  errorCallback.invoke(deniedPermissions);
+                  return;
+                }
+              }
+              successCallback.invoke(grantedPermissions);
+            };
+
+    final Activity activity = getActivity();
+    final Context context = getApplicationContext();
+    PermissionUtils.requestPermissions(
+            context,
+            activity,
+            permissions.toArray(new String[permissions.size()]), callback);
   }
 }
