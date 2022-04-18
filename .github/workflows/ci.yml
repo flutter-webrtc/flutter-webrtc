@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: ["windows-rework"]
+    branches: ["master"]
   pull_request:
-    branches: ["windows-rework"]
+    branches: ["master"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -105,8 +105,6 @@ jobs:
           profile: minimal
           toolchain: stable
       - uses: subosito/flutter-action@v1
-        with:
-          flutter-version: ${{ env.FLUTTER_VER }}
       - run: flutter config --enable-windows-desktop
 
       - run: make cargo.build
@@ -146,8 +144,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v1
-        with:
-          flutter-version: ${{ env.FLUTTER_VER }}
       - run: flutter config --enable-windows-desktop
 
       - uses: actions/download-artifact@v2
