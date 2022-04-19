@@ -110,7 +110,7 @@ jobs:
       - run: make cargo.build
       - run: make flutter.build
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: build-rust
           path: windows/rust/
