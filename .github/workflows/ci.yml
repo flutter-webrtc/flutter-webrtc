@@ -146,7 +146,7 @@ jobs:
       - uses: subosito/flutter-action@v1
       - run: flutter config --enable-windows-desktop
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: build-rust
           path: windows/rust/
