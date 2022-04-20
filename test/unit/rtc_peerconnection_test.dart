@@ -2,8 +2,8 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
 import 'package:flutter_webrtc/src/native/rtc_data_channel_impl.dart';
+import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
