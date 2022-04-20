@@ -5,7 +5,6 @@ use std::{
 };
 
 use anyhow::{bail, Context};
-use dashmap::mapref::one::RefMut;
 use derive_more::{AsRef, Display, From};
 use libwebrtc_sys as sys;
 use sys::TrackEventObserver;
@@ -25,19 +24,45 @@ impl Webrtc {
     ) -> anyhow::Result<Vec<api::MediaStreamTrack>> {
         let mut result = Vec::new();
 
-        if let Some(video) = constraints.video {
-            let source = self.get_or_create_video_source(&video)?;
-            let track = self.create_video_track(source)?;
-            result.push(api::MediaStreamTrack::from(&*track));
-        }
+        let inner_get_media = || -> anyhow::Result<()> {
+            if let Some(video) = constraints.video {
+                let src = self.get_or_create_video_source(&video)?;
+                let track = self.create_video_track(Arc::clone(&src));
+                if let Err(err) = track {
+                    if Arc::strong_count(&src) == 2 {
+                        self.video_sources.remove(&src.device_id);
+                    };
+                    return Err(err);
+                }
+                result.push(track?);
+            }
 
-        if let Some(audio) = constraints.audio {
-            let source = self.get_or_create_audio_source(&audio)?;
-            let track = self.create_audio_track(source)?;
-            result.push(api::MediaStreamTrack::from(&*track));
-        }
+            if let Some(audio) = constraints.audio {
+                let src = self.get_or_create_audio_source(&audio)?;
+                let track = self.create_audio_track(src);
+                if let Err(err) = track {
+                    if Arc::get_mut(self.audio_source.as_mut().unwrap())
+                        .is_some()
+                    {
+                        self.audio_source.take();
+                    }
+                    return Err(err);
+                }
+                result.push(track?);
+            }
 
-        Ok(result)
+            Ok(())
+        };
+
+        if let Err(err) = inner_get_media() {
+            for track in &result {
+                self.dispose_track(track.id);
+            }
+
+            Err(err)
+        } else {
+            Ok(result)
+        }
     }
 
     /// Disposes a [`VideoTrack`] or [`AudioTrack`] by the provided `track_id`.
@@ -86,13 +111,15 @@ impl Webrtc {
     fn create_video_track(
         &mut self,
         source: Arc<VideoSource>,
-    ) -> anyhow::Result<RefMut<'_, VideoTrackId, VideoTrack>> {
+    ) -> anyhow::Result<api::MediaStreamTrack> {
         let track =
             VideoTrack::create_local(&self.peer_connection_factory, source)?;
 
-        let track = self.video_tracks.entry(track.id).or_insert(track);
+        let api_track = api::MediaStreamTrack::from(&track);
 
-        Ok(track)
+        self.video_tracks.insert(track.id, track);
+
+        Ok(api_track)
     }
 
     /// Creates a new [`VideoSource`] based on the given [`VideoConstraints`].
@@ -158,7 +185,7 @@ impl Webrtc {
     fn create_audio_track(
         &mut self,
         source: Arc<sys::AudioSourceInterface>,
-    ) -> anyhow::Result<RefMut<'_, AudioTrackId, AudioTrack>> {
+    ) -> anyhow::Result<api::MediaStreamTrack> {
         // PANIC: If there is a `sys::AudioSourceInterface` then we are sure
         //        that `current_device_id` is set in the `AudioDeviceModule`.
         let device_id =
@@ -167,9 +194,11 @@ impl Webrtc {
         let track =
             AudioTrack::new(&self.peer_connection_factory, source, device_id)?;
 
-        let track = self.audio_tracks.entry(track.id).or_insert(track);
+        let api_track = api::MediaStreamTrack::from(&track);
 
-        Ok(track)
+        self.audio_tracks.insert(track.id, track);
+
+        Ok(api_track)
     }
 
     /// Creates a new [`sys::AudioSourceInterface`] based on the given
@@ -271,9 +300,7 @@ impl Webrtc {
 
             match source {
                 MediaTrackSource::Local(source) => {
-                    Ok(api::MediaStreamTrack::from(
-                        self.create_video_track(source).unwrap().value(),
-                    ))
+                    Ok(self.create_video_track(source)?)
                 }
                 MediaTrackSource::Remote { mid, peer_id } => {
                     let peer = self.peer_connections.get(&peer_id).unwrap();
@@ -314,9 +341,7 @@ impl Webrtc {
 
             match source {
                 MediaTrackSource::Local(source) => {
-                    Ok(api::MediaStreamTrack::from(
-                        self.create_audio_track(source).unwrap().value(),
-                    ))
+                    Ok(self.create_audio_track(source)?)
                 }
                 MediaTrackSource::Remote { mid, peer_id } => {
                     let peer = self.peer_connections.get(&peer_id).unwrap();
