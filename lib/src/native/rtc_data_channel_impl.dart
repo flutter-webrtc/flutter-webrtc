@@ -51,7 +51,7 @@ class RTCDataChannelNative extends RTCDataChannel {
     final Map<dynamic, dynamic> map = event;
     switch (map['event']) {
       case 'dataChannelStateChanged':
-        _dataChannelId = int.tryParse(map['id']);
+        _dataChannelId = map['id'];
         _state = rtcDataChannelStateForString(map['state']);
         onDataChannelState?.call(_state!);
 
