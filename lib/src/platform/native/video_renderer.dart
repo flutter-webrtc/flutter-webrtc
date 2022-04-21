@@ -162,7 +162,7 @@ class _NativeVideoRendererFFI extends NativeVideoRenderer {
         'textureId': textureId,
       });
 
-      var trackId = int.parse(track.id());
+      var trackId = track.id();
       await api
           .createVideoSink(
               sinkId: sinkId,

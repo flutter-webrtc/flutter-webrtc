@@ -10,7 +10,7 @@ impl Webrtc {
     pub fn create_video_sink(
         &mut self,
         sink_id: i64,
-        track_id: u64,
+        track_id: String,
         handler: UniquePtr<cpp_api::OnFrameCallbackInterface>,
     ) -> anyhow::Result<()> {
         self.dispose_video_sink(sink_id);
@@ -21,7 +21,7 @@ impl Webrtc {
             inner: sys::VideoSinkInterface::create_forwarding(Box::new(
                 OnFrameCallback(handler),
             )),
-            track_id,
+            track_id: track_id.clone(),
         };
 
         let mut track = self

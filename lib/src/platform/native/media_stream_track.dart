@@ -134,7 +134,10 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
     _id = track.id.toString();
     _deviceId = track.deviceId;
     _kind = MediaKind.values[track.kind.index];
-    _eventSub = api.registerTrackObserver(trackId: track.id).listen((event) {
+    _eventSub = api
+        .registerTrackObserver(
+            trackId: track.id, kind: ffi.MediaType.values[_kind.index])
+        .listen((event) {
       if (_onEnded != null) {
         _onEnded!();
       }
@@ -144,13 +147,13 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   @override
   Future<MediaStreamTrack> clone() async {
     if (!_stopped) {
-      return NativeMediaStreamTrack.from(
-          await api.cloneTrack(trackId: int.parse(_id)));
+      return NativeMediaStreamTrack.from(await api.cloneTrack(
+          trackId: _id, kind: ffi.MediaType.values[_kind.index]));
     } else {
       return NativeMediaStreamTrack.from(ffi.MediaStreamTrack(
           deviceId: _deviceId,
           enabled: _enabled,
-          id: int.parse(_id),
+          id: _id,
           kind: ffi.MediaType.values[_kind.index]));
     }
   }
@@ -158,7 +161,8 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   @override
   Future<void> dispose() async {
     if (!_stopped) {
-      await api.disposeTrack(trackId: int.parse(_id));
+      await api.disposeTrack(
+          trackId: _id, kind: ffi.MediaType.values[_kind.index]);
       await _eventSub?.cancel();
     }
     _stopped = true;
@@ -167,7 +171,10 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   @override
   Future<void> setEnabled(bool enabled) async {
     if (!_stopped) {
-      await api.setTrackEnabled(trackId: int.parse(_id), enabled: enabled);
+      await api.setTrackEnabled(
+          trackId: _id,
+          enabled: enabled,
+          kind: ffi.MediaType.values[_kind.index]);
     }
 
     _enabled = enabled;
@@ -176,7 +183,8 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   @override
   Future<void> stop() async {
     if (!_stopped) {
-      await api.disposeTrack(trackId: int.parse(_id));
+      await api.disposeTrack(
+          trackId: _id, kind: ffi.MediaType.values[_kind.index]);
     }
     _stopped = true;
   }
