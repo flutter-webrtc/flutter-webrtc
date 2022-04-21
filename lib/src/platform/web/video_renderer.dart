@@ -67,9 +67,22 @@ class WebVideoRenderer extends VideoRenderer {
 
   final int _textureId;
 
-  bool mirror = false;
+  bool _mirror = false;
 
-  bool enableContextMenu = true;
+  @override
+  set mirror(bool value) {
+    if (_mirror == value) return;
+    _mirror = value;
+    findHtmlView()?.style.transform = value ? 'rotateY(0.5turn)' : '';
+  }
+
+  bool _enableContextMenu = true;
+
+  set enableContextMenu(bool value) {
+    if (_enableContextMenu == value) return;
+    _enableContextMenu = value;
+    findHtmlView()?.setAttribute('oncontextmenu', value ? '' : 'return false;');
+  }
 
   final _subscriptions = <StreamSubscription>[];
 
@@ -186,12 +199,12 @@ class WebVideoRenderer extends VideoRenderer {
         ..style.border = 'none'
         ..style.width = '100%'
         ..style.height = '100%'
-        ..style.transform = mirror ? 'rotateY(0.5turn)' : ''
+        ..style.transform = _mirror ? 'rotateY(0.5turn)' : ''
         ..srcObject = _videoStream
         ..id = _elementIdForVideo
         ..setAttribute('playsinline', 'true')
         ..setAttribute(
-            'oncontextmenu', enableContextMenu ? '' : 'return false;');
+            'oncontextmenu', _enableContextMenu ? '' : 'return false;');
 
       _subscriptions.add(
         element.onCanPlay.listen((dynamic _) {
