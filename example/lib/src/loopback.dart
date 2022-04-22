@@ -24,11 +24,19 @@ class _LoopbackState extends State<Loopback> {
   bool _inCalling = false;
   bool _mic = true;
   bool _cam = true;
+  int _volume = -1;
+  bool _microIsAvailable = false;
 
   @override
   void initState() {
     super.initState();
     initRenderers();
+
+    microphoneVolume().then((value) {
+      setState(() {
+        _volume = value;
+      });
+    });
   }
 
   @override
@@ -112,8 +120,11 @@ class _LoopbackState extends State<Loopback> {
     }
     if (!mounted) return;
 
-    setState(() {
-      _inCalling = true;
+    _inCalling = true;
+    microphoneVolumeIsAvailable().then((value) {
+      setState(() {
+        _microIsAvailable = value;
+      });
     });
   }
 
@@ -143,9 +154,34 @@ class _LoopbackState extends State<Loopback> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GetUserMedia API Test'),
+        title: Text(
+            'GetUserMedia API Test. ${_inCalling ? (_microIsAvailable ? 'Micro volume: ' + _volume.toString() + '.' : 'Microphone is not available!') : ''}'),
         actions: _inCalling
             ? <Widget>[
+                IconButton(
+                  icon: const Icon(Icons.remove),
+                  tooltip: 'Micro lower',
+                  onPressed: _microIsAvailable
+                      ? () async {
+                          setState(() {
+                            _volume = _volume >= 10 ? _volume - 10 : 0;
+                          });
+                          await setMicrophoneVolume(_volume);
+                        }
+                      : null,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Micro louder',
+                  onPressed: _microIsAvailable
+                      ? () async {
+                          setState(() {
+                            _volume = _volume <= 90 ? _volume + 10 : 100;
+                          });
+                          await setMicrophoneVolume(_volume);
+                        }
+                      : null,
+                ),
                 IconButton(
                   icon:
                       _mic ? const Icon(Icons.mic_off) : const Icon(Icons.mic),

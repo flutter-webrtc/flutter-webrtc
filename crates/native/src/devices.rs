@@ -254,6 +254,22 @@ impl Webrtc {
         }
     }
 
+    /// Sets the microphone system volume according to the specified `level` in
+    /// percents.
+    pub fn set_microphone_volume(&mut self, level: u8) -> anyhow::Result<()> {
+        self.audio_device_module.set_microphone_volume(level)
+    }
+
+    /// Indicates if the microphone is available to set volume.
+    pub fn microphone_volume_is_available(&mut self) -> anyhow::Result<bool> {
+        self.audio_device_module.microphone_volume_is_available()
+    }
+
+    /// Returns the current level of the microphone volume in percents.
+    pub fn microphone_volume(&mut self) -> anyhow::Result<u32> {
+        self.audio_device_module.microphone_volume()
+    }
+
     /// Sets the provided [`OnDeviceChangeCallback`] as the callback to be
     /// called whenever the set of available media devices changes.
     ///

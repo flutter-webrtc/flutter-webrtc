@@ -456,6 +456,45 @@ pub(crate) mod webrtc {
             audio_device_module: &AudioDeviceModule,
         ) -> i32;
 
+        /// Initializes the microphone in the [`AudioDeviceModule`].
+        pub fn init_microphone(audio_device_module: &AudioDeviceModule) -> i32;
+
+        /// Indicates whether the microphone of the [`AudioDeviceModule`] is
+        /// initialized.
+        pub fn microphone_is_initialized(
+            audio_device_module: &AudioDeviceModule,
+        ) -> bool;
+
+        /// Sets the volume of the initialized microphone.
+        pub fn set_microphone_volume(
+            audio_device_module: &AudioDeviceModule,
+            volume: u32,
+        ) -> i32;
+
+        /// Indicates whether the microphone is available to set volume.
+        pub fn microphone_volume_is_available(
+            audio_device_module: &AudioDeviceModule,
+            is_available: &mut bool,
+        ) -> i32;
+
+        /// Returns the lowest possible level of the microphone volume.
+        pub fn min_microphone_volume(
+            audio_device_module: &AudioDeviceModule,
+            volume: &mut u32,
+        ) -> i32;
+
+        /// Returns the highest possible level of the microphone volume.
+        pub fn max_microphone_volume(
+            audio_device_module: &AudioDeviceModule,
+            volume: &mut u32,
+        ) -> i32;
+
+        /// Returns the current level of the microphone volume.
+        pub fn microphone_volume(
+            audio_device_module: &AudioDeviceModule,
+            volume: &mut u32,
+        ) -> i32;
+
         /// Returns count of available audio playout devices.
         pub fn playout_devices(audio_device_module: &AudioDeviceModule) -> i16;
 

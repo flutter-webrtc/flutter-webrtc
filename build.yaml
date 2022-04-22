@@ -1,0 +1,4 @@
+targets:
+  $default:
+    sources:
+      exclude: ["example/**"]

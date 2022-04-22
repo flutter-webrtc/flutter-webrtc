@@ -294,6 +294,100 @@ impl AudioDeviceModule {
 
         Ok(())
     }
+
+    /// Initializes the microphone in the [`AudioDeviceModule`].
+    pub fn init_microphone(&self) -> anyhow::Result<()> {
+        let result = webrtc::init_microphone(&self.0);
+        if result != 0 {
+            bail!(
+                "`AudioDeviceModule::InitMicrophone()` failed with `{result}` \
+                 code",
+            );
+        }
+
+        Ok(())
+    }
+
+    /// Indicates whether the microphone of the [`AudioDeviceModule`] is
+    /// initialized.
+    #[must_use]
+    pub fn microphone_is_initialized(&self) -> bool {
+        webrtc::microphone_is_initialized(&self.0)
+    }
+
+    /// Sets the volume of the initialized microphone.
+    pub fn set_microphone_volume(&self, volume: u32) -> anyhow::Result<()> {
+        let result = webrtc::set_microphone_volume(&self.0, volume);
+        if result != 0 {
+            bail!(
+                "`AudioDeviceModule::SetMicrophoneVolume()` failed with \
+                 `{result}` code",
+            );
+        }
+
+        Ok(())
+    }
+
+    /// Indicates whether the microphone is available to set volume.
+    pub fn microphone_volume_is_available(&self) -> anyhow::Result<bool> {
+        let mut is_available = false;
+
+        let result =
+            webrtc::microphone_volume_is_available(&self.0, &mut is_available);
+        if result != 0 {
+            bail!(
+                "`AudioDeviceModule::MicrophoneVolumeIsAvailable()` failed \
+                 with `{result}` code",
+            );
+        }
+
+        Ok(is_available)
+    }
+
+    /// Returns the lowest possible level of the microphone volume.
+    pub fn min_microphone_volume(&self) -> anyhow::Result<u32> {
+        let mut volume = 0;
+
+        let result = webrtc::min_microphone_volume(&self.0, &mut volume);
+        if result != 0 {
+            bail!(
+                "`AudioDeviceModule::MinMicrophoneVolume()` failed with \
+                 `{result}` code",
+            );
+        }
+
+        Ok(volume)
+    }
+
+    /// Returns the highest possible level of the microphone volume.
+    pub fn max_microphone_volume(&self) -> anyhow::Result<u32> {
+        let mut volume = 0;
+
+        let result = webrtc::max_microphone_volume(&self.0, &mut volume);
+        if result != 0 {
+            bail!(
+                "`AudioDeviceModule::MaxMicrophoneVolume()` failed with \
+                 `{result}` code",
+            );
+        }
+
+        Ok(volume)
+    }
+
+    /// Returns the current level of the microphone volume.
+    pub fn microphone_volume(&self) -> anyhow::Result<u32> {
+        let mut volume = 0;
+
+        let result = webrtc::microphone_volume(&self.0, &mut volume);
+        if result != 0 {
+            bail!(
+                "`AudioDeviceModule::MicrophoneVolume()` failed with \
+                 `{result}` code",
+            );
+        }
+
+        Ok(volume)
+    }
 }
 
 unsafe impl Send for webrtc::AudioDeviceModule {}

@@ -520,10 +520,17 @@ impl AudioDeviceModule {
         )?;
         inner.init()?;
 
-        Ok(Self {
+        let mut adm = Self {
             inner,
             current_device_id: None,
-        })
+        };
+        if adm.recording_devices() > 0 {
+            adm.set_recording_device(
+                AudioDeviceId(adm.recording_device_name(0)?.1),
+                0,
+            )?;
+        }
+        Ok(adm)
     }
 
     /// Returns the `(label, id)` tuple for the given audio playout device
@@ -607,7 +614,79 @@ impl AudioDeviceModule {
         self.inner.set_recording_device(index)?;
         self.current_device_id.replace(id);
 
+        if !self.inner.microphone_is_initialized() {
+            self.inner.init_microphone()?;
+        }
+
         Ok(())
+    }
+
+    /// Sets the microphone system volume according to the given level in
+    /// percents.
+    ///
+    /// # Errors
+    ///
+    /// Errors if any of the following calls fail:
+    ///     - [`sys::AudioDeviceModule::microphone_volume_is_available()`];
+    ///     - [`sys::AudioDeviceModule::min_microphone_volume()`];
+    ///     - [`sys::AudioDeviceModule::max_microphone_volume()`];
+    ///     - [`sys::AudioDeviceModule::set_microphone_volume()`].
+    pub fn set_microphone_volume(&self, mut level: u8) -> anyhow::Result<()> {
+        if !self.microphone_volume_is_available()? {
+            bail!("The microphone volume is unavailable.")
+        }
+
+        if level > 100 {
+            level = 100;
+        }
+
+        let min_volume = self.inner.min_microphone_volume()?;
+        let max_volume = self.inner.max_microphone_volume()?;
+
+        let volume = f64::from(min_volume)
+            + (f64::from(max_volume - min_volume) * (f64::from(level) / 100.0));
+
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        self.inner.set_microphone_volume(volume as u32)
+    }
+
+    /// Indicates if the microphone is available to set volume.
+    ///
+    /// # Errors
+    ///
+    /// If [`sys::AudioDeviceModule::microphone_volume_is_available()`] call
+    /// fails.
+    pub fn microphone_volume_is_available(&self) -> anyhow::Result<bool> {
+        Ok(
+            if let Ok(is_available) =
+                self.inner.microphone_volume_is_available()
+            {
+                is_available
+            } else {
+                false
+            },
+        )
+    }
+
+    /// Returns the current level of the microphone volume in percents.
+    ///
+    /// # Errors
+    ///
+    /// If fails on:
+    ///     - [`sys::AudioDeviceModule::microphone_volume()`] call
+    ///     - [`sys::AudioDeviceModule::min_microphone_volume()`] call
+    ///     - [`sys::AudioDeviceModule::max_microphone_volume()`] call
+    pub fn microphone_volume(&self) -> anyhow::Result<u32> {
+        let volume = self.inner.microphone_volume()?;
+        let min_volume = self.inner.min_microphone_volume()?;
+        let max_volume = self.inner.max_microphone_volume()?;
+
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let level = (f64::from(volume - min_volume)
+            / f64::from(max_volume - min_volume)
+            * 100.0) as u32;
+
+        Ok(level)
     }
 
     /// Changes the playout device for this [`AudioDeviceModule`].

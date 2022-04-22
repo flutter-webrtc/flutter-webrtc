@@ -125,11 +125,24 @@ abstract class FlutterWebrtcNative {
   /// Sets the specified `audio playout` device.
   Future<void> setAudioPlayoutDevice({required String deviceId, dynamic hint});
 
+  /// Indicates whether the microphone is available to set volume.
+  Future<bool> microphoneVolumeIsAvailable({dynamic hint});
+
+  /// Sets the microphone system volume according to the specified `level` in
+  /// percents.
+  ///
+  /// Valid values range is `[0; 100]`.
+  Future<void> setMicrophoneVolume({required int level, dynamic hint});
+
+  /// Returns the current level of the microphone volume in `[0; 100]` range.
+  Future<int> microphoneVolume({dynamic hint});
+
   /// Disposes the specified [`MediaStreamTrack`].
   Future<void> disposeTrack(
       {required String trackId, required MediaType kind, dynamic hint});
 
-  /// Changes the [enabled][1] property of the [`MediaStreamTrack`] by its ID.
+  /// Changes the [enabled][1] property of the [`MediaStreamTrack`] by its ID and
+  /// [`MediaType`].
   ///
   /// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
   Future<void> setTrackEnabled(
@@ -1113,6 +1126,43 @@ class FlutterWebrtcNativeImpl
         hint: hint,
       ));
 
+  Future<bool> microphoneVolumeIsAvailable({dynamic hint}) =>
+      executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) => inner.wire_microphone_volume_is_available(port_),
+        parseSuccessData: _wire2api_bool,
+        constMeta: const FlutterRustBridgeTaskConstMeta(
+          debugName: "microphone_volume_is_available",
+          argNames: [],
+        ),
+        argValues: [],
+        hint: hint,
+      ));
+
+  Future<void> setMicrophoneVolume({required int level, dynamic hint}) =>
+      executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) =>
+            inner.wire_set_microphone_volume(port_, _api2wire_u8(level)),
+        parseSuccessData: _wire2api_unit,
+        constMeta: const FlutterRustBridgeTaskConstMeta(
+          debugName: "set_microphone_volume",
+          argNames: ["level"],
+        ),
+        argValues: [level],
+        hint: hint,
+      ));
+
+  Future<int> microphoneVolume({dynamic hint}) =>
+      executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) => inner.wire_microphone_volume(port_),
+        parseSuccessData: _wire2api_u32,
+        constMeta: const FlutterRustBridgeTaskConstMeta(
+          debugName: "microphone_volume",
+          argNames: [],
+        ),
+        argValues: [],
+        hint: hint,
+      ));
+
   Future<void> disposeTrack(
           {required String trackId, required MediaType kind, dynamic hint}) =>
       executeNormal(FlutterRustBridgeTask(
@@ -1580,6 +1630,10 @@ TrackEvent _wire2api_track_event(dynamic raw) {
   return TrackEvent.values[raw];
 }
 
+int _wire2api_u32(dynamic raw) {
+  return raw as int;
+}
+
 int _wire2api_u64(dynamic raw) {
   return raw as int;
 }
@@ -1972,6 +2026,50 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
               ffi.Pointer<wire_uint_8_list>)>>('wire_set_audio_playout_device');
   late final _wire_set_audio_playout_device = _wire_set_audio_playout_devicePtr
       .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_microphone_volume_is_available(
+    int port_,
+  ) {
+    return _wire_microphone_volume_is_available(
+      port_,
+    );
+  }
+
+  late final _wire_microphone_volume_is_availablePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_microphone_volume_is_available');
+  late final _wire_microphone_volume_is_available =
+      _wire_microphone_volume_is_availablePtr.asFunction<void Function(int)>();
+
+  void wire_set_microphone_volume(
+    int port_,
+    int level,
+  ) {
+    return _wire_set_microphone_volume(
+      port_,
+      level,
+    );
+  }
+
+  late final _wire_set_microphone_volumePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64, ffi.Uint8)>>(
+          'wire_set_microphone_volume');
+  late final _wire_set_microphone_volume =
+      _wire_set_microphone_volumePtr.asFunction<void Function(int, int)>();
+
+  void wire_microphone_volume(
+    int port_,
+  ) {
+    return _wire_microphone_volume(
+      port_,
+    );
+  }
+
+  late final _wire_microphone_volumePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_microphone_volume');
+  late final _wire_microphone_volume =
+      _wire_microphone_volumePtr.asFunction<void Function(int)>();
 
   void wire_dispose_track(
     int port_,
