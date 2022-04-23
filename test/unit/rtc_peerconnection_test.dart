@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:flutter_webrtc/src/native/rtc_data_channel_impl.dart';
 import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
 
 void main() {
@@ -25,7 +26,7 @@ void main() {
   test(
       'Validate that not setting any public delegate this will not break the implementation by throwing NPE',
       () {
-    final rct = RTCPeerConnectionNative('', {});
+    final pc = RTCPeerConnectionNative('', {});
     final events = [
       'signalingState',
       'iceGatheringState',
@@ -39,8 +40,17 @@ void main() {
       'onRenegotiationNeeded'
     ];
 
+    pc.onDataChannel = (dc) {
+      final channel = dc as RTCDataChannelNative;
+      channel.eventListener(<String, dynamic>{
+        'event': 'dataChannelStateChanged',
+        'id': 0,
+        'state': 'open'
+      });
+    };
+
     events.forEach((event) {
-      rct.eventListener(<String, dynamic>{
+      pc.eventListener(<String, dynamic>{
         'event': event,
 
         //Minimum values for signalingState, iceGatheringState, iceConnectionState
