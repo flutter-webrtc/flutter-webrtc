@@ -4,6 +4,7 @@
     clippy::redundant_closure,
     clippy::useless_conversion,
     clippy::unit_arg,
+    clippy::double_parens,
     non_snake_case
 )]
 // AUTO GENERATED FILE, DO NOT EDIT.
@@ -1146,6 +1147,7 @@ impl support::IntoDart for PeerConnectionEvent {
         .into_dart()
     }
 }
+impl support::IntoDartExceptPrimitive for PeerConnectionEvent {}
 
 impl support::IntoDart for PeerConnectionState {
     fn into_dart(self) -> support::DartCObject {
