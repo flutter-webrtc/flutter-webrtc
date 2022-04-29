@@ -80,12 +80,12 @@ class RTCRtpSenderNative extends RTCRtpSender {
   }
 
   @override
-  Future<void> replaceTrack(MediaStreamTrack track) async {
+  Future<void> replaceTrack(MediaStreamTrack? track) async {
     try {
       await WebRTC.invokeMethod('rtpSenderReplaceTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
-        'trackId': track.id
+        'trackId': track != null ? track.id : ''
       });
 
       // change reference of associated MediaTrack
@@ -96,13 +96,13 @@ class RTCRtpSenderNative extends RTCRtpSender {
   }
 
   @override
-  Future<void> setTrack(MediaStreamTrack track,
+  Future<void> setTrack(MediaStreamTrack? track,
       {bool takeOwnership = true}) async {
     try {
       await WebRTC.invokeMethod('rtpSenderSetTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
-        'trackId': track.id,
+        'trackId': track != null ? track.id : '',
         'takeOwnership': takeOwnership,
       });
 
