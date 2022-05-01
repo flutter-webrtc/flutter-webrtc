@@ -1048,7 +1048,6 @@
 
 - (RTCMediaStreamTrack*)trackForId:(NSString*)trackId {
     RTCMediaStreamTrack *track = _localTracks[trackId];
-    //RTCMediaStreamTrack *track = self.localTracks[trackId];
     if (!track) {
         for (RTCPeerConnection *peerConnection in _peerConnections.allValues) {
             track = peerConnection.remoteTracks[trackId];
@@ -1058,10 +1057,6 @@
                         track = transceiver.receiver.track;
                         break;
                     }
-//                    if (transceiver.sender.track != nil && [transceiver.sender.track.trackId isEqual:trackId]) {
-//                        track = transceiver.sender.track;
-//                        break;
-//                    }
                 }
             }
             if (track) {
