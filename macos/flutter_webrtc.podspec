@@ -15,8 +15,7 @@ A new flutter plugin project.
   s.source_files     = ['Classes/**/*']
 
   s.private_header_files = 'third_party/include/**/*'
-  $dir = File.dirname(__FILE__) + "/third_party/include"
-  s.pod_target_xcconfig = { "HEADER_SEARCH_PATHS" => $dir}
+  s.pod_target_xcconfig = { "HEADER_SEARCH_PATHS" => "$PODS_TARGET_SRCROOT/third_party/include"}
   s.vendored_libraries = 'third_party/lib/*.a'
 
   s.dependency 'FlutterMacOS'
