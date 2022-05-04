@@ -16,6 +16,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.media.AudioDeviceInfo;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
@@ -1062,4 +1063,16 @@ class GetUserMediaImpl {
         int fps;
         boolean isScreenCapture = false;
     }
+
+    void setPreferredInputDevice(int i){
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+        } else {
+            android.media.AudioManager audioManager = ((android.media.AudioManager) applicationContext.getSystemService(Context.AUDIO_SERVICE));
+            final AudioDeviceInfo[] devices = audioManager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS);
+            if (devices.length>i){
+                audioDeviceModule.setPreferredInputDevice(devices[i]);
+            }
+        }
+    }
+
 }

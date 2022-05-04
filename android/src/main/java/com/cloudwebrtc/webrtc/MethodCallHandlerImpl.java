@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.media.AudioDeviceInfo;
 import android.os.Build;
 import android.util.Log;
 import android.util.LongSparseArray;
@@ -673,6 +674,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         getTransceivers(peerConnectionId, result);
         break;
       }
+      case "setPreferredInputDevice": {
+        String deviceId = call.argument("deviceId");
+        getUserMediaImpl.setPreferredInputDevice(Integer.parseInt(deviceId));
+        result.success(null);
+        break;
+      }
+
       default:
         result.notImplemented();
         break;
@@ -1124,12 +1132,30 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
     }
 
-    ConstraintsMap audio = new ConstraintsMap();
-    audio.putString("label", "Audio");
-    audio.putString("deviceId", "audio-1");
-    audio.putString("facing", "");
-    audio.putString("kind", "audioinput");
-    array.pushMap(audio);
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+      ConstraintsMap audio = new ConstraintsMap();
+      audio.putString("label", "Audio");
+      audio.putString("deviceId", "audio-1");
+      audio.putString("facing", "");
+      audio.putString("kind", "audioinput");
+      array.pushMap(audio);
+    } else {
+      android.media.AudioManager audioManager = ((android.media.AudioManager) context.getSystemService(Context.AUDIO_SERVICE));
+      final AudioDeviceInfo[] devices = audioManager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS);
+      for (int i=0;i<devices.length;i++) {
+        AudioDeviceInfo device=devices[i];
+        int type = (device.getType() & 0xFF);
+        String label=Build.VERSION.SDK_INT < Build.VERSION_CODES.P ? String.valueOf(i) : device.getAddress();
+        ConstraintsMap audio = new ConstraintsMap();
+        audio.putString("label", label);
+        audio.putString("deviceId", String.valueOf(i));
+        audio.putString("groupId", ""+type);
+        audio.putString("facing", "");
+        audio.putString("kind", "audioinput");
+        array.pushMap(audio);
+      }
+    }
+
 
     ConstraintsMap map = new ConstraintsMap();
     map.putArray("sources", array.toArrayList());
