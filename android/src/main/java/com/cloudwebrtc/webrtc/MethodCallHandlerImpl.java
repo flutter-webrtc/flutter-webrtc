@@ -675,12 +675,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       case "setPreferredInputDevice": {
-        String deviceId = call.argument("deviceId");
-        getUserMediaImpl.setPreferredInputDevice(Integer.parseInt(deviceId));
-        result.success(null);
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+          String deviceId = call.argument("deviceId");
+          getUserMediaImpl.setPreferredInputDevice(Integer.parseInt(deviceId));
+          result.success(null);
+        } else {
+          result.notImplemented();
+        }
         break;
       }
-
       default:
         result.notImplemented();
         break;

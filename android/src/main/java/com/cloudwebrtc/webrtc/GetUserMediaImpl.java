@@ -1064,15 +1064,12 @@ class GetUserMediaImpl {
         boolean isScreenCapture = false;
     }
 
+    @RequiresApi(api = VERSION_CODES.M)
     void setPreferredInputDevice(int i){
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-        } else {
-            android.media.AudioManager audioManager = ((android.media.AudioManager) applicationContext.getSystemService(Context.AUDIO_SERVICE));
-            final AudioDeviceInfo[] devices = audioManager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS);
-            if (devices.length>i){
-                audioDeviceModule.setPreferredInputDevice(devices[i]);
-            }
+        android.media.AudioManager audioManager = ((android.media.AudioManager) applicationContext.getSystemService(Context.AUDIO_SERVICE));
+        final AudioDeviceInfo[] devices = audioManager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS);
+        if (devices.length>i){
+            audioDeviceModule.setPreferredInputDevice(devices[i]);
         }
     }
-
 }
