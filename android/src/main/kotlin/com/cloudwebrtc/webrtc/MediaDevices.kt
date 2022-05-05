@@ -61,7 +61,7 @@ private const val BLUETOOTH_HEADSET_DEVICE_ID: String = "bluetooth-headset"
  */
 class MediaDevices(val state: State) : BroadcastReceiver() {
   /** [BluetoothAdapter] used for detecting whether bluetooth headset is connected or not. */
-  private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+  private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
 
   /** Indicator of bluetooth headset connection state. */
   private var isBluetoothHeadsetConnected: Boolean = false
@@ -102,7 +102,7 @@ class MediaDevices(val state: State) : BroadcastReceiver() {
     state
         .getAppContext()
         .registerReceiver(this, IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED))
-    bluetoothAdapter.getProfileProxy(
+    bluetoothAdapter?.getProfileProxy(
         state.getAppContext(),
         object : BluetoothProfile.ServiceListener {
           override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {

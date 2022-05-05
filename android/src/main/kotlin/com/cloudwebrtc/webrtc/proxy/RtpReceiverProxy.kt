@@ -1,6 +1,5 @@
 package com.cloudwebrtc.webrtc.proxy
 
-import com.cloudwebrtc.webrtc.model.MediaStreamTrackState
 import org.webrtc.RtpReceiver
 
 /**
@@ -13,7 +12,7 @@ class RtpReceiverProxy(receiver: RtpReceiver) : Proxy<RtpReceiver> {
   override var obj: RtpReceiver = receiver
 
   /** [MediaStreamTrackProxy] of this [RtpReceiverProxy]. */
-  private var track: MediaStreamTrackProxy? = null
+  private var track: MediaStreamTrackProxy = MediaStreamTrackProxy(obj.track()!!)
 
   init {
     syncWithObject()
@@ -28,13 +27,17 @@ class RtpReceiverProxy(receiver: RtpReceiver) : Proxy<RtpReceiver> {
     return obj.id()
   }
 
+  /** @return [MediaStreamTrackProxy] of this [RtpReceiverProxy]. */
+  fun getTrack(): MediaStreamTrackProxy {
+    return track
+  }
+
   /**
    * Notifies [RtpReceiverProxy] about its [MediaStreamTrackProxy] being removed from the receiver.
    */
   fun notifyRemoved() {
-    if (track?.state() == MediaStreamTrackState.ENDED) {
-      track?.observableEventBroadcaster()?.onEnded()
-    }
+    track.stop()
+    track.observableEventBroadcaster().onEnded()
   }
 
   /**
@@ -42,15 +45,6 @@ class RtpReceiverProxy(receiver: RtpReceiver) : Proxy<RtpReceiver> {
    * [RtpReceiver].
    */
   private fun syncMediaStreamTrack() {
-    val newReceiverTrack = obj.track()
-    if (newReceiverTrack == null) {
-      track = null
-    } else {
-      if (track == null) {
-        track = MediaStreamTrackProxy(newReceiverTrack)
-      } else {
-        track!!.replace(newReceiverTrack)
-      }
-    }
+    track.replace(obj.track()!!)
   }
 }

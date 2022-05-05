@@ -1,5 +1,6 @@
 package com.cloudwebrtc.webrtc.model
 
+import java.lang.IllegalArgumentException
 import org.webrtc.RtpTransceiver
 
 /**
@@ -27,7 +28,10 @@ enum class RtpTransceiverDirection(val value: Int) {
   RECV_ONLY(2),
 
   /** Indicates that the transceiver is inactive, neither sending nor receiving any media data. */
-  INACTIVE(3);
+  INACTIVE(3),
+
+  /** The Transceiver will neither send nor receive. */
+  STOPPED(4);
 
   companion object {
     /**
@@ -37,12 +41,16 @@ enum class RtpTransceiverDirection(val value: Int) {
      * @return [RtpTransceiverDirection] created based on the provided
      * [RtpTransceiver.RtpTransceiverDirection].
      */
-    fun fromWebRtc(direction: RtpTransceiver.RtpTransceiverDirection): RtpTransceiverDirection {
-      return when (direction) {
-        RtpTransceiver.RtpTransceiverDirection.SEND_RECV -> SEND_RECV
-        RtpTransceiver.RtpTransceiverDirection.SEND_ONLY -> SEND_ONLY
-        RtpTransceiver.RtpTransceiverDirection.RECV_ONLY -> RECV_ONLY
-        RtpTransceiver.RtpTransceiverDirection.INACTIVE -> INACTIVE
+    fun fromWebRtc(direction: RtpTransceiver): RtpTransceiverDirection {
+      return if (direction.isStopped) {
+        STOPPED
+      } else {
+        when (direction.direction) {
+          RtpTransceiver.RtpTransceiverDirection.SEND_RECV -> SEND_RECV
+          RtpTransceiver.RtpTransceiverDirection.SEND_ONLY -> SEND_ONLY
+          RtpTransceiver.RtpTransceiverDirection.RECV_ONLY -> RECV_ONLY
+          RtpTransceiver.RtpTransceiverDirection.INACTIVE -> INACTIVE
+        }
       }
     }
 
@@ -67,6 +75,9 @@ enum class RtpTransceiverDirection(val value: Int) {
       SEND_ONLY -> RtpTransceiver.RtpTransceiverDirection.SEND_ONLY
       RECV_ONLY -> RtpTransceiver.RtpTransceiverDirection.RECV_ONLY
       INACTIVE -> RtpTransceiver.RtpTransceiverDirection.INACTIVE
+      STOPPED ->
+          throw IllegalArgumentException(
+              "RtpTransceiver.RtpTransceiverDirection.STOPPED is not supported.")
     }
   }
 }

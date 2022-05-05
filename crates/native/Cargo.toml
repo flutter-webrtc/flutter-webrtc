@@ -11,9 +11,9 @@ crate-type = ["cdylib"]
 [dependencies]
 anyhow = "1.0"
 cxx = "1.0"
-dashmap = "5.2"
+dashmap = "5.3"
 derive_more = "0.99"
-flutter_rust_bridge = "1.27"
+flutter_rust_bridge = "1.28"
 lazy_static = "1.4"
 libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"

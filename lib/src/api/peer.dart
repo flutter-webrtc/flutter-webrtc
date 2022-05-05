@@ -261,6 +261,9 @@ class _PeerConnectionChannel extends PeerConnection {
       case 'onConnectionStateChange':
         var state = PeerConnectionState.values[e['state']];
         _connectionState = state;
+        if (state == PeerConnectionState.closed) {
+          _eventSub?.cancel();
+        }
         _onConnectionStateChange?.call(state);
         break;
       case 'onTrack':
@@ -369,7 +372,6 @@ class _PeerConnectionChannel extends PeerConnection {
     for (var e in _transceivers) {
       e.stoppedByPeer();
     }
-    await _eventSub?.cancel();
     await _chan.invokeMethod('dispose');
   }
 }

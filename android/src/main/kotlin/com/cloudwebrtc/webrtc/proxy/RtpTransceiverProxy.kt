@@ -42,11 +42,12 @@ class RtpTransceiverProxy(override var obj: RtpTransceiver) : Proxy<RtpTransceiv
 
   /** @return Preferred [RtpTransceiverDirection] of the underlying [RtpTransceiver]. */
   fun getDirection(): RtpTransceiverDirection {
-    return RtpTransceiverDirection.fromWebRtc(obj.direction)
+    return RtpTransceiverDirection.fromWebRtc(obj)
   }
 
   /** Stops the underlying [RtpTransceiver]. */
   fun stop() {
+    receiver.notifyRemoved()
     obj.stop()
   }
 

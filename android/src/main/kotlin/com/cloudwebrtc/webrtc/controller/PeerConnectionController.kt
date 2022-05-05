@@ -181,6 +181,9 @@ class PeerConnectionController(
   }
 
   override fun onCancel(obj: Any?) {
+    peer.removeEventObserver(eventObserver)
+    eventChannel.setStreamHandler(null)
+    eventSink?.endOfStream()
     eventSink = null
   }
 
@@ -198,10 +201,7 @@ class PeerConnectionController(
    * Disposes underlying [PeerConnectionProxy].
    */
   private fun dispose() {
-    chan.setMethodCallHandler(null)
-    peer.removeEventObserver(eventObserver)
     peer.dispose()
-    eventChannel.setStreamHandler(null)
-    eventSink?.endOfStream()
+    chan.setMethodCallHandler(null)
   }
 }
