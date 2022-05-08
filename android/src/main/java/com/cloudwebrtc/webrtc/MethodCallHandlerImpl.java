@@ -1703,11 +1703,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpSenderSetTrack", "peerConnection is null", result);
-    } else {
-      MediaStreamTrack track = localTracks.get(trackId);
-      if (track == null) {
-        resultError("rtpSenderSetTrack", "track is null", result);
-        return;
+    } else {      
+      MediaStreamTrack track = null;
+      if (trackId.length() > 0) {
+        track = localTracks.get(trackId);
+        if (track == null) {
+          resultError("rtpSenderSetTrack", "track is null", result);
+          return;
+        }
       }
       pco.rtpSenderSetTrack(rtpSenderId, track, result, replace);
     }

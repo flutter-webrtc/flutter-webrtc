@@ -852,12 +852,15 @@
             details:nil]);
             return;
         }
-        RTCMediaStreamTrack *track = [self trackForId:trackId];
-        if(track == nil) {
-            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
-            message:[NSString stringWithFormat:@"Error: track not found!"]
-            details:nil]);
-            return;
+        RTCMediaStreamTrack *track = nil;
+        if ([trackId length] > 0) {
+            track = [self trackForId:trackId];
+            if(track == nil) {
+                result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+                message:[NSString stringWithFormat:@"Error: track not found!"]
+                details:nil]);
+                return;
+            }
         }
         [sender setTrack:track];
         result(nil);
@@ -880,12 +883,15 @@
             details:nil]);
             return;
         }
-        RTCMediaStreamTrack *track = [self trackForId:trackId];
-        if(track == nil) {
-            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
-            message:[NSString stringWithFormat:@"Error: track not found!"]
-            details:nil]);
-            return;
+        RTCMediaStreamTrack *track = nil;
+        if ([trackId length] > 0) {
+            track = [self trackForId:trackId];
+            if(track == nil) {
+                result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+                message:[NSString stringWithFormat:@"Error: track not found!"]
+                details:nil]);
+                return;
+            }
         }
         [sender setTrack:track];
         result(nil);
