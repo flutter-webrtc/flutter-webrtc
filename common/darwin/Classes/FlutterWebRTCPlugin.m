@@ -5,6 +5,7 @@
 #import "FlutterRTCDesktopCapturer.h"
 #import "FlutterRTCVideoRenderer.h"
 #import "AudioUtils.h"
+#import "FlutterRTCCameraVideoCapturer.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
