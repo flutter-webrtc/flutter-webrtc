@@ -140,13 +140,9 @@
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getUserMedia:constraints result:result];
     } else if ([@"getDisplayMedia" isEqualToString:call.method]) {
-#if TARGET_OS_IPHONE
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getDisplayMedia:constraints result:result];
-#else
-        result(FlutterMethodNotImplemented);
-#endif
     } else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
         [self createLocalMediaStream:result];
     } else if ([@"getSources" isEqualToString:call.method]) {
@@ -366,11 +362,19 @@
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
                 RTCVideoSource *source = videoTrack.source;
                 if(source){
-                    shouldCallResult = NO;
-                    [self.videoCapturer stopCaptureWithCompletionHandler:^{
-                      result(nil);
-                    }];
-                    self.videoCapturer = nil;
+                    if(self.videoCapturer != nil) {
+                        shouldCallResult = NO;
+                        [self.videoCapturer stopCaptureWithCompletionHandler:^{
+                          result(nil);
+                        }];
+                        self.videoCapturer = nil;
+                    }
+#if TARGET_OS_MAC
+                    if(self.screenCapturer != nil) {
+                        [self.screenCapturer stopCapture];
+                    }
+                    self.screenCapturer = nil;
+#endif
                 }
             }
             for (RTCAudioTrack *track in stream.audioTracks) {

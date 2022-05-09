@@ -483,19 +483,30 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 #endif
 }
 
-#if TARGET_OS_IPHONE
+
 -(void)getDisplayMedia:(NSDictionary *)constraints
                 result:(FlutterResult)result {
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
 
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+
+#if TARGET_OS_IPHONE
     FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
 
     [screenCapturer startCapture];
 
     //TODO:
     self.videoCapturer = screenCapturer;
+#endif
+    
+#if TARGET_OS_MAC
+    RTCScreenCapturer *screenCapturer = [[RTCScreenCapturer alloc] initWithDelegate:videoSource];
+
+    [screenCapturer startCapture:30];
+
+    self.screenCapturer = screenCapturer;
+#endif
 
     NSString *trackUUID = [[NSUUID UUID] UUIDString];
     RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
@@ -512,7 +523,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     self.localStreams[mediaStreamId] = mediaStream;
     result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
 }
-#endif
+
 -(void)createLocalMediaStream:(FlutterResult)result{
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];

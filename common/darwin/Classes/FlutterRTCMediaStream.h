@@ -5,10 +5,8 @@
 
 -(void)getUserMedia:(NSDictionary *)constraints
              result:(FlutterResult)result;
-#if TARGET_OS_IPHONE
 -(void)getDisplayMedia:(NSDictionary *)constraints
              result:(FlutterResult)result;
-#endif
 -(void)createLocalMediaStream:(FlutterResult)result;
 
 -(void)getSources:(FlutterResult)result;
