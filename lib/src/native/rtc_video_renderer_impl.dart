@@ -124,4 +124,12 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     // TODO(cloudwebrtc): related to https://github.com/flutter-webrtc/flutter-webrtc/issues/395
     throw UnimplementedError('This is not implement yet');
   }
+
+  void setLandscapeMode(bool landscape) {
+    if (_textureId == null) throw 'Call initialize before setting the stream';
+    Helper.setLandscapeMode(
+      textureId: _textureId,
+      isLandscapeSupported: landscape,
+    );
+  }
 }

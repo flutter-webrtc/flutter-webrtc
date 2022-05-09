@@ -9,6 +9,7 @@
 
 @class FlutterRTCVideoRenderer;
 @class FlutterRTCFrameCapturer;
+@class FlutterRTCCameraVideoCapturer;
 
 typedef void (^CompletionHandler)(void);
 
@@ -28,7 +29,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler handler);
 #endif
 
 @property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
-@property (nonatomic, strong) RTCCameraVideoCapturer *videoCapturer;
+@property (nonatomic, strong) FlutterRTCCameraVideoCapturer *videoCapturer;
 @property (nonatomic, strong) FlutterRTCFrameCapturer *frameCapturer;
 @property (nonatomic) BOOL _usingFrontCamera;
 @property (nonatomic) int _targetWidth;
