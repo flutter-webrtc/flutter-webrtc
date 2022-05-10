@@ -187,7 +187,7 @@ jobs:
       - name: Test on Android
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 21
+          api-level: 24
           target: google_apis
           arch: x86_64
           profile: Nexus 6

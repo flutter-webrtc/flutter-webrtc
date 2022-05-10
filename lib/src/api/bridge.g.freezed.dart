@@ -15,6 +15,716 @@ final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 /// @nodoc
+class _$GetMediaErrorTearOff {
+  const _$GetMediaErrorTearOff();
+
+  Audio audio(String field0) {
+    return Audio(
+      field0,
+    );
+  }
+
+  Video video(String field0) {
+    return Video(
+      field0,
+    );
+  }
+}
+
+/// @nodoc
+const $GetMediaError = _$GetMediaErrorTearOff();
+
+/// @nodoc
+mixin _$GetMediaError {
+  String get field0 => throw _privateConstructorUsedError;
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String field0) audio,
+    required TResult Function(String field0) video,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(String field0)? audio,
+    TResult Function(String field0)? video,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String field0)? audio,
+    TResult Function(String field0)? video,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(Audio value) audio,
+    required TResult Function(Video value) video,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(Audio value)? audio,
+    TResult Function(Video value)? video,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(Audio value)? audio,
+    TResult Function(Video value)? video,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+
+  @JsonKey(ignore: true)
+  $GetMediaErrorCopyWith<GetMediaError> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $GetMediaErrorCopyWith<$Res> {
+  factory $GetMediaErrorCopyWith(
+          GetMediaError value, $Res Function(GetMediaError) then) =
+      _$GetMediaErrorCopyWithImpl<$Res>;
+  $Res call({String field0});
+}
+
+/// @nodoc
+class _$GetMediaErrorCopyWithImpl<$Res>
+    implements $GetMediaErrorCopyWith<$Res> {
+  _$GetMediaErrorCopyWithImpl(this._value, this._then);
+
+  final GetMediaError _value;
+  // ignore: unused_field
+  final $Res Function(GetMediaError) _then;
+
+  @override
+  $Res call({
+    Object? field0 = freezed,
+  }) {
+    return _then(_value.copyWith(
+      field0: field0 == freezed
+          ? _value.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+abstract class $AudioCopyWith<$Res> implements $GetMediaErrorCopyWith<$Res> {
+  factory $AudioCopyWith(Audio value, $Res Function(Audio) then) =
+      _$AudioCopyWithImpl<$Res>;
+  @override
+  $Res call({String field0});
+}
+
+/// @nodoc
+class _$AudioCopyWithImpl<$Res> extends _$GetMediaErrorCopyWithImpl<$Res>
+    implements $AudioCopyWith<$Res> {
+  _$AudioCopyWithImpl(Audio _value, $Res Function(Audio) _then)
+      : super(_value, (v) => _then(v as Audio));
+
+  @override
+  Audio get _value => super._value as Audio;
+
+  @override
+  $Res call({
+    Object? field0 = freezed,
+  }) {
+    return _then(Audio(
+      field0 == freezed
+          ? _value.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$Audio implements Audio {
+  const _$Audio(this.field0);
+
+  @override
+  final String field0;
+
+  @override
+  String toString() {
+    return 'GetMediaError.audio(field0: $field0)';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is Audio &&
+            const DeepCollectionEquality().equals(other.field0, field0));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(field0));
+
+  @JsonKey(ignore: true)
+  @override
+  $AudioCopyWith<Audio> get copyWith =>
+      _$AudioCopyWithImpl<Audio>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String field0) audio,
+    required TResult Function(String field0) video,
+  }) {
+    return audio(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(String field0)? audio,
+    TResult Function(String field0)? video,
+  }) {
+    return audio?.call(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String field0)? audio,
+    TResult Function(String field0)? video,
+    required TResult orElse(),
+  }) {
+    if (audio != null) {
+      return audio(field0);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(Audio value) audio,
+    required TResult Function(Video value) video,
+  }) {
+    return audio(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(Audio value)? audio,
+    TResult Function(Video value)? video,
+  }) {
+    return audio?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(Audio value)? audio,
+    TResult Function(Video value)? video,
+    required TResult orElse(),
+  }) {
+    if (audio != null) {
+      return audio(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class Audio implements GetMediaError {
+  const factory Audio(String field0) = _$Audio;
+
+  @override
+  String get field0;
+  @override
+  @JsonKey(ignore: true)
+  $AudioCopyWith<Audio> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $VideoCopyWith<$Res> implements $GetMediaErrorCopyWith<$Res> {
+  factory $VideoCopyWith(Video value, $Res Function(Video) then) =
+      _$VideoCopyWithImpl<$Res>;
+  @override
+  $Res call({String field0});
+}
+
+/// @nodoc
+class _$VideoCopyWithImpl<$Res> extends _$GetMediaErrorCopyWithImpl<$Res>
+    implements $VideoCopyWith<$Res> {
+  _$VideoCopyWithImpl(Video _value, $Res Function(Video) _then)
+      : super(_value, (v) => _then(v as Video));
+
+  @override
+  Video get _value => super._value as Video;
+
+  @override
+  $Res call({
+    Object? field0 = freezed,
+  }) {
+    return _then(Video(
+      field0 == freezed
+          ? _value.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$Video implements Video {
+  const _$Video(this.field0);
+
+  @override
+  final String field0;
+
+  @override
+  String toString() {
+    return 'GetMediaError.video(field0: $field0)';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is Video &&
+            const DeepCollectionEquality().equals(other.field0, field0));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(field0));
+
+  @JsonKey(ignore: true)
+  @override
+  $VideoCopyWith<Video> get copyWith =>
+      _$VideoCopyWithImpl<Video>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String field0) audio,
+    required TResult Function(String field0) video,
+  }) {
+    return video(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(String field0)? audio,
+    TResult Function(String field0)? video,
+  }) {
+    return video?.call(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String field0)? audio,
+    TResult Function(String field0)? video,
+    required TResult orElse(),
+  }) {
+    if (video != null) {
+      return video(field0);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(Audio value) audio,
+    required TResult Function(Video value) video,
+  }) {
+    return video(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(Audio value)? audio,
+    TResult Function(Video value)? video,
+  }) {
+    return video?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(Audio value)? audio,
+    TResult Function(Video value)? video,
+    required TResult orElse(),
+  }) {
+    if (video != null) {
+      return video(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class Video implements GetMediaError {
+  const factory Video(String field0) = _$Video;
+
+  @override
+  String get field0;
+  @override
+  @JsonKey(ignore: true)
+  $VideoCopyWith<Video> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+class _$GetMediaResultTearOff {
+  const _$GetMediaResultTearOff();
+
+  Ok ok(List<MediaStreamTrack> field0) {
+    return Ok(
+      field0,
+    );
+  }
+
+  Err err(GetMediaError field0) {
+    return Err(
+      field0,
+    );
+  }
+}
+
+/// @nodoc
+const $GetMediaResult = _$GetMediaResultTearOff();
+
+/// @nodoc
+mixin _$GetMediaResult {
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(List<MediaStreamTrack> field0) ok,
+    required TResult Function(GetMediaError field0) err,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(List<MediaStreamTrack> field0)? ok,
+    TResult Function(GetMediaError field0)? err,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(List<MediaStreamTrack> field0)? ok,
+    TResult Function(GetMediaError field0)? err,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(Ok value) ok,
+    required TResult Function(Err value) err,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(Ok value)? ok,
+    TResult Function(Err value)? err,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(Ok value)? ok,
+    TResult Function(Err value)? err,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $GetMediaResultCopyWith<$Res> {
+  factory $GetMediaResultCopyWith(
+          GetMediaResult value, $Res Function(GetMediaResult) then) =
+      _$GetMediaResultCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class _$GetMediaResultCopyWithImpl<$Res>
+    implements $GetMediaResultCopyWith<$Res> {
+  _$GetMediaResultCopyWithImpl(this._value, this._then);
+
+  final GetMediaResult _value;
+  // ignore: unused_field
+  final $Res Function(GetMediaResult) _then;
+}
+
+/// @nodoc
+abstract class $OkCopyWith<$Res> {
+  factory $OkCopyWith(Ok value, $Res Function(Ok) then) =
+      _$OkCopyWithImpl<$Res>;
+  $Res call({List<MediaStreamTrack> field0});
+}
+
+/// @nodoc
+class _$OkCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
+    implements $OkCopyWith<$Res> {
+  _$OkCopyWithImpl(Ok _value, $Res Function(Ok) _then)
+      : super(_value, (v) => _then(v as Ok));
+
+  @override
+  Ok get _value => super._value as Ok;
+
+  @override
+  $Res call({
+    Object? field0 = freezed,
+  }) {
+    return _then(Ok(
+      field0 == freezed
+          ? _value.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as List<MediaStreamTrack>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$Ok implements Ok {
+  const _$Ok(this.field0);
+
+  @override
+  final List<MediaStreamTrack> field0;
+
+  @override
+  String toString() {
+    return 'GetMediaResult.ok(field0: $field0)';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is Ok &&
+            const DeepCollectionEquality().equals(other.field0, field0));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(field0));
+
+  @JsonKey(ignore: true)
+  @override
+  $OkCopyWith<Ok> get copyWith => _$OkCopyWithImpl<Ok>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(List<MediaStreamTrack> field0) ok,
+    required TResult Function(GetMediaError field0) err,
+  }) {
+    return ok(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(List<MediaStreamTrack> field0)? ok,
+    TResult Function(GetMediaError field0)? err,
+  }) {
+    return ok?.call(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(List<MediaStreamTrack> field0)? ok,
+    TResult Function(GetMediaError field0)? err,
+    required TResult orElse(),
+  }) {
+    if (ok != null) {
+      return ok(field0);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(Ok value) ok,
+    required TResult Function(Err value) err,
+  }) {
+    return ok(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(Ok value)? ok,
+    TResult Function(Err value)? err,
+  }) {
+    return ok?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(Ok value)? ok,
+    TResult Function(Err value)? err,
+    required TResult orElse(),
+  }) {
+    if (ok != null) {
+      return ok(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class Ok implements GetMediaResult {
+  const factory Ok(List<MediaStreamTrack> field0) = _$Ok;
+
+  List<MediaStreamTrack> get field0;
+  @JsonKey(ignore: true)
+  $OkCopyWith<Ok> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ErrCopyWith<$Res> {
+  factory $ErrCopyWith(Err value, $Res Function(Err) then) =
+      _$ErrCopyWithImpl<$Res>;
+  $Res call({GetMediaError field0});
+
+  $GetMediaErrorCopyWith<$Res> get field0;
+}
+
+/// @nodoc
+class _$ErrCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
+    implements $ErrCopyWith<$Res> {
+  _$ErrCopyWithImpl(Err _value, $Res Function(Err) _then)
+      : super(_value, (v) => _then(v as Err));
+
+  @override
+  Err get _value => super._value as Err;
+
+  @override
+  $Res call({
+    Object? field0 = freezed,
+  }) {
+    return _then(Err(
+      field0 == freezed
+          ? _value.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as GetMediaError,
+    ));
+  }
+
+  @override
+  $GetMediaErrorCopyWith<$Res> get field0 {
+    return $GetMediaErrorCopyWith<$Res>(_value.field0, (value) {
+      return _then(_value.copyWith(field0: value));
+    });
+  }
+}
+
+/// @nodoc
+
+class _$Err implements Err {
+  const _$Err(this.field0);
+
+  @override
+  final GetMediaError field0;
+
+  @override
+  String toString() {
+    return 'GetMediaResult.err(field0: $field0)';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is Err &&
+            const DeepCollectionEquality().equals(other.field0, field0));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(field0));
+
+  @JsonKey(ignore: true)
+  @override
+  $ErrCopyWith<Err> get copyWith => _$ErrCopyWithImpl<Err>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(List<MediaStreamTrack> field0) ok,
+    required TResult Function(GetMediaError field0) err,
+  }) {
+    return err(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(List<MediaStreamTrack> field0)? ok,
+    TResult Function(GetMediaError field0)? err,
+  }) {
+    return err?.call(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(List<MediaStreamTrack> field0)? ok,
+    TResult Function(GetMediaError field0)? err,
+    required TResult orElse(),
+  }) {
+    if (err != null) {
+      return err(field0);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(Ok value) ok,
+    required TResult Function(Err value) err,
+  }) {
+    return err(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(Ok value)? ok,
+    TResult Function(Err value)? err,
+  }) {
+    return err?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(Ok value)? ok,
+    TResult Function(Err value)? err,
+    required TResult orElse(),
+  }) {
+    if (err != null) {
+      return err(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class Err implements GetMediaResult {
+  const factory Err(GetMediaError field0) = _$Err;
+
+  GetMediaError get field0;
+  @JsonKey(ignore: true)
+  $ErrCopyWith<Err> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
 class _$PeerConnectionEventTearOff {
   const _$PeerConnectionEventTearOff();
 

@@ -712,6 +712,24 @@ impl From<BundlePolicy> for sys::BundlePolicy {
     }
 }
 
+/// [`get_media()`] function result.
+pub enum GetMediaResult {
+    /// Requested media tracks.
+    Ok(Vec<MediaStreamTrack>),
+
+    /// Failed to get requested media.
+    Err(GetMediaError),
+}
+
+/// Media acquisition error.
+pub enum GetMediaError {
+    /// Could not acquire audio track.
+    Audio(String),
+
+    /// Could not acquire video track.
+    Video(String),
+}
+
 /// Description of STUN and TURN servers that can be used by an [ICE Agent][1]
 /// to establish a connection with a peer.
 ///
@@ -928,10 +946,11 @@ pub fn dispose_peer_connection(peer_id: u64) {
 
 /// Creates a [`MediaStream`] with tracks according to provided
 /// [`MediaStreamConstraints`].
-pub fn get_media(
-    constraints: MediaStreamConstraints,
-) -> anyhow::Result<Vec<MediaStreamTrack>> {
-    WEBRTC.lock().unwrap().get_media(constraints)
+pub fn get_media(constraints: MediaStreamConstraints) -> GetMediaResult {
+    match WEBRTC.lock().unwrap().get_media(constraints) {
+        Ok(tracks) => GetMediaResult::Ok(tracks),
+        Err(err) => GetMediaResult::Err(err),
+    }
 }
 
 /// Sets the specified `audio playout` device.

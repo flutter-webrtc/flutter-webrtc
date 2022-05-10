@@ -119,7 +119,7 @@ abstract class FlutterWebrtcNative {
 
   /// Creates a [`MediaStream`] with tracks according to provided
   /// [`MediaStreamConstraints`].
-  Future<List<MediaStreamTrack>> getMedia(
+  Future<GetMediaResult> getMedia(
       {required MediaStreamConstraints constraints, dynamic hint});
 
   /// Sets the specified `audio playout` device.
@@ -221,6 +221,34 @@ enum BundlePolicy {
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcbundlepolicy-max-compat
   MaxCompat,
+}
+
+@freezed
+class GetMediaError with _$GetMediaError {
+  /// The [`GetMediaError`] is caused while creating [`crate::VideoSource`]
+  /// or [`crate::VideoTrack`].
+  const factory GetMediaError.audio(
+    String field0,
+  ) = Audio;
+
+  /// The [`GetMediaError`] is caused while creating
+  /// [`crate::sys::AudioSourceInterface`] or [`crate::AudioTrack`].
+  const factory GetMediaError.video(
+    String field0,
+  ) = Video;
+}
+
+@freezed
+class GetMediaResult with _$GetMediaResult {
+  /// Getting the media is ok.
+  const factory GetMediaResult.ok(
+    List<MediaStreamTrack> field0,
+  ) = Ok;
+
+  /// Getting the media is failed.
+  const factory GetMediaResult.err(
+    GetMediaError field0,
+  ) = Err;
 }
 
 /// [RTCIceConnectionState][1] representation.
@@ -1098,12 +1126,12 @@ class FlutterWebrtcNativeImpl
         hint: hint,
       ));
 
-  Future<List<MediaStreamTrack>> getMedia(
+  Future<GetMediaResult> getMedia(
           {required MediaStreamConstraints constraints, dynamic hint}) =>
       executeNormal(FlutterRustBridgeTask(
         callFfi: (port_) => inner.wire_get_media(
             port_, _api2wire_box_autoadd_media_stream_constraints(constraints)),
-        parseSuccessData: _wire2api_list_media_stream_track,
+        parseSuccessData: _wire2api_get_media_result,
         constMeta: const FlutterRustBridgeTaskConstMeta(
           debugName: "get_media",
           argNames: ["constraints"],
@@ -1468,8 +1496,42 @@ bool _wire2api_bool(dynamic raw) {
   return raw as bool;
 }
 
+GetMediaError _wire2api_box_autoadd_get_media_error(dynamic raw) {
+  return _wire2api_get_media_error(raw);
+}
+
 RtcTrackEvent _wire2api_box_autoadd_rtc_track_event(dynamic raw) {
   return _wire2api_rtc_track_event(raw);
+}
+
+GetMediaError _wire2api_get_media_error(dynamic raw) {
+  switch (raw[0]) {
+    case 0:
+      return Audio(
+        _wire2api_String(raw[1]),
+      );
+    case 1:
+      return Video(
+        _wire2api_String(raw[1]),
+      );
+    default:
+      throw Exception("unreachable");
+  }
+}
+
+GetMediaResult _wire2api_get_media_result(dynamic raw) {
+  switch (raw[0]) {
+    case 0:
+      return Ok(
+        _wire2api_list_media_stream_track(raw[1]),
+      );
+    case 1:
+      return Err(
+        _wire2api_box_autoadd_get_media_error(raw[1]),
+      );
+    default:
+      throw Exception("unreachable");
+  }
 }
 
 int _wire2api_i32(dynamic raw) {

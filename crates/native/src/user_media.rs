@@ -24,25 +24,35 @@ impl Webrtc {
     pub fn get_media(
         &mut self,
         constraints: api::MediaStreamConstraints,
-    ) -> anyhow::Result<Vec<api::MediaStreamTrack>> {
-        let mut result = Vec::new();
+    ) -> Result<Vec<api::MediaStreamTrack>, api::GetMediaError> {
+        let mut tracks = Vec::new();
 
-        let inner_get_media = || -> anyhow::Result<()> {
+        let inner_get_media = || -> Result<(), api::GetMediaError> {
             if let Some(video) = constraints.video {
-                let src = self.get_or_create_video_source(&video)?;
-                let track = self.create_video_track(Arc::clone(&src));
+                let src =
+                    self.get_or_create_video_source(&video).map_err(|err| {
+                        api::GetMediaError::Video(err.to_string())
+                    })?;
+                let track = self
+                    .create_video_track(Arc::clone(&src))
+                    .map_err(|err| api::GetMediaError::Video(err.to_string()));
                 if let Err(err) = track {
                     if Arc::strong_count(&src) == 2 {
                         self.video_sources.remove(&src.device_id);
                     };
                     return Err(err);
                 }
-                result.push(track?);
+                tracks.push(track?);
             }
 
             if let Some(audio) = constraints.audio {
-                let src = self.get_or_create_audio_source(&audio)?;
-                let track = self.create_audio_track(src);
+                let src =
+                    self.get_or_create_audio_source(&audio).map_err(|err| {
+                        api::GetMediaError::Audio(err.to_string())
+                    })?;
+                let track = self
+                    .create_audio_track(src)
+                    .map_err(|err| api::GetMediaError::Audio(err.to_string()));
                 if let Err(err) = track {
                     if Arc::get_mut(self.audio_source.as_mut().unwrap())
                         .is_some()
@@ -51,20 +61,20 @@ impl Webrtc {
                     }
                     return Err(err);
                 }
-                result.push(track?);
+                tracks.push(track?);
             }
 
             Ok(())
         };
 
         if let Err(err) = inner_get_media() {
-            for track in result {
+            for track in tracks {
                 self.dispose_track(track.id, track.kind);
             }
 
             Err(err)
         } else {
-            Ok(result)
+            Ok(tracks)
         }
     }
 

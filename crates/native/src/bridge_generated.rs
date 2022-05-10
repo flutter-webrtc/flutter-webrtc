@@ -399,7 +399,7 @@ pub extern "C" fn wire_get_media(
         },
         move || {
             let api_constraints = constraints.wire2api();
-            move |task_callback| get_media(api_constraints)
+            move |task_callback| Ok(get_media(api_constraints))
         },
     )
 }
@@ -1028,6 +1028,26 @@ impl NewWithNullPtr for wire_VideoConstraints {
 }
 
 // Section: impl IntoDart
+
+impl support::IntoDart for GetMediaError {
+    fn into_dart(self) -> support::DartCObject {
+        match self {
+            Self::Audio(field0) => vec![0.into_dart(), field0.into_dart()],
+            Self::Video(field0) => vec![1.into_dart(), field0.into_dart()],
+        }
+        .into_dart()
+    }
+}
+
+impl support::IntoDart for GetMediaResult {
+    fn into_dart(self) -> support::DartCObject {
+        match self {
+            Self::Ok(field0) => vec![0.into_dart(), field0.into_dart()],
+            Self::Err(field0) => vec![1.into_dart(), field0.into_dart()],
+        }
+        .into_dart()
+    }
+}
 
 impl support::IntoDart for IceConnectionState {
     fn into_dart(self) -> support::DartCObject {

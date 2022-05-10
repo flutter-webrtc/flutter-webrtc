@@ -43,7 +43,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.flutter_webrtc_example"
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 31
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

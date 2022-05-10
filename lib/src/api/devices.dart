@@ -78,17 +78,37 @@ class _DeviceHandler {
   }
 }
 
-/// [Exception] thrown if the specified constraints resulted in no candidate
-/// devices which met the criteria requested. The error is an object of type
-/// [OverconstrainedException], and has a constraint property whose string value
-/// is the name of a constraint which was impossible to meet.
-class OverconstrainedException implements Exception {
-  /// Constructs a new [OverconstrainedException].
-  OverconstrainedException();
+/// Represents the `cause` of the [GetMediaException].
+enum GetMediaExceptionKind {
+  /// If the [getUserMedia] or [getDisplayMedia] request failed on getting
+  /// `audio`.
+  audio,
+
+  /// If the [getUserMedia] or [getDisplayMedia] request failed on getting
+  /// `video`.
+  video,
+}
+
+/// [Exception] thrown if there is an `error` while calling [getUserMedia] or
+/// [getDisplayMedia].
+class GetMediaException implements Exception {
+  /// Constructs a new [GetMediaException].
+  GetMediaException(this._kind, this._message);
+
+  /// [GetMediaExceptionKind] of this [GetMediaException].
+  final GetMediaExceptionKind _kind;
+
+  /// The `message` of this [GetMediaException].
+  final String? _message;
 
   @override
   String toString() {
-    return 'OverconstrainedException';
+    return _message ?? '';
+  }
+
+  /// Returns the [GetMediaExceptionKind] of this [GetMediaException]
+  GetMediaExceptionKind kind() {
+    return _kind;
   }
 }
 
@@ -171,8 +191,10 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaChannel(
         .invokeMethod('getUserMedia', {'constraints': constraints.toMap()});
     return res.map((t) => NativeMediaStreamTrack.from(t)).toList();
   } on PlatformException catch (e) {
-    if (e.code == 'OverconstrainedError') {
-      throw OverconstrainedException();
+    if (e.code == 'GetUserMediaAudioException') {
+      throw GetMediaException(GetMediaExceptionKind.audio, e.message);
+    } else if (e.code == 'GetUserMediaVideoException') {
+      throw GetMediaException(GetMediaExceptionKind.video, e.message);
     } else {
       rethrow;
     }
@@ -182,23 +204,37 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaChannel(
 /// FFI-based implementation of a [getUserMedia] function.
 Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
     DeviceConstraints constraints) async {
-  var audioConstraints = ffi.AudioConstraints(
-      deviceId: constraints.audio.mandatory?.deviceId ??
-          constraints.audio.optional?.deviceId);
+  var audioConstraints = constraints.audio.mandatory != null ||
+          constraints.audio.optional != null
+      ? ffi.AudioConstraints(deviceId: constraints.audio.mandatory?.deviceId)
+      : null;
 
-  var videoConstraints = ffi.VideoConstraints(
-      deviceId: constraints.video.mandatory?.deviceId ??
-          constraints.video.optional?.deviceId,
-      height: constraints.video.mandatory?.height ?? defaultUserMediaHeight,
-      width: constraints.video.mandatory?.width ?? defaultUserMediaWidth,
-      frameRate: constraints.video.mandatory?.fps ?? defaultFrameRate,
-      isDisplay: false);
+  var videoConstraints = constraints.video.mandatory != null ||
+          constraints.video.optional != null
+      ? ffi.VideoConstraints(
+          deviceId: constraints.video.mandatory?.deviceId ??
+              constraints.video.optional?.deviceId,
+          height: constraints.video.mandatory?.height ?? defaultUserMediaHeight,
+          width: constraints.video.mandatory?.width ?? defaultUserMediaWidth,
+          frameRate: constraints.video.mandatory?.fps ?? defaultFrameRate,
+          isDisplay: false)
+      : null;
 
-  var tracks = await api.getMedia(
+  var result = await api.getMedia(
       constraints: ffi.MediaStreamConstraints(
           audio: audioConstraints, video: videoConstraints));
 
-  return tracks.map((e) => NativeMediaStreamTrack.from(e)).toList();
+  if (result is ffi.Ok) {
+    return result.field0.map((e) => NativeMediaStreamTrack.from(e)).toList();
+  } else {
+    if ((result as ffi.Err).field0 is ffi.Video) {
+      throw GetMediaException(
+          GetMediaExceptionKind.video, result.field0.field0);
+    } else {
+      throw GetMediaException(
+          GetMediaExceptionKind.audio, result.field0.field0);
+    }
+  }
 }
 
 /// [MethodChannel]-based implementation of a [getDisplayMedia] function.
@@ -212,11 +248,13 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaChannel(
 /// FFI-based implementation of a [getDisplayMedia] function.
 Future<List<NativeMediaStreamTrack>> _getDisplayMediaFFI(
     DisplayConstraints constraints) async {
-  var audioConstraints = constraints.audio.mandatory != null
+  var audioConstraints = constraints.audio.mandatory != null ||
+          constraints.audio.optional != null
       ? ffi.AudioConstraints(deviceId: constraints.audio.mandatory?.deviceId)
       : null;
 
-  var videoConstraints = constraints.video.mandatory != null
+  var videoConstraints = constraints.video.mandatory != null ||
+          constraints.video.optional != null
       ? ffi.VideoConstraints(
           deviceId: constraints.video.mandatory?.deviceId,
           height:
@@ -226,11 +264,21 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaFFI(
           isDisplay: true)
       : null;
 
-  var tracks = await api.getMedia(
+  var result = await api.getMedia(
       constraints: ffi.MediaStreamConstraints(
           audio: audioConstraints, video: videoConstraints));
 
-  return tracks.map((e) => NativeMediaStreamTrack.from(e)).toList();
+  if (result is ffi.Ok) {
+    return result.field0.map((e) => NativeMediaStreamTrack.from(e)).toList();
+  } else {
+    if ((result as ffi.Err) is ffi.Video) {
+      throw GetMediaException(
+          GetMediaExceptionKind.video, result.field0.field0);
+    } else {
+      throw GetMediaException(
+          GetMediaExceptionKind.audio, result.field0.field0);
+    }
+  }
 }
 
 /// Sets the provided [`OnDeviceChangeCallback`] as the callback to be called
