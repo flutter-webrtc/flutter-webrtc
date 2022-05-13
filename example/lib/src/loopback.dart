@@ -68,8 +68,7 @@ class _LoopbackState extends State<Loopback> {
       await _localRenderer.setSrcObject(
           _tracks!.firstWhere((track) => track.kind() == MediaKind.video));
 
-      var server =
-          IceServer(['stun:stun.l.google.com:19302'], 'username', 'password');
+      var server = IceServer(['stun:stun.l.google.com:19302']);
       _pc1 = await PeerConnection.create(IceTransportType.all, [server]);
       _pc2 = await PeerConnection.create(IceTransportType.all, [server]);
 

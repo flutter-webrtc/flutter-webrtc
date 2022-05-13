@@ -134,12 +134,6 @@ jobs:
       - run: make cargo.build
       - run: make flutter.build
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: build-rust
-          path: windows/rust/
-          retention-days: 1
-
 
 
 
@@ -178,10 +172,8 @@ jobs:
       - run: make cargo.build platform=${{ matrix.platform }}
         if: ${{ matrix.platform != 'android' }}
 
-      - uses: actions/download-artifact@v3
-        with:
-          name: build-rust
-          path: ${{ matrix.platform }}/rust/
+      - run: make cargo.build platform=${{ matrix.platform }}
+                              args="--features fake_media"
         if: ${{ matrix.platform != 'android' }}
 
       - name: Test on Android
@@ -200,7 +192,11 @@ jobs:
   test-rust:
     name: Test Rust crates
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
-    runs-on: windows-latest
+    # TODO: Switch to `windows-latest` when stable Flutter stable will
+    #       support MSVC 2022:
+    #       https://github.com/flutter/flutter/issues/85922
+    #       https://github.com/flutter/flutter/issues/96138
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -219,7 +215,16 @@ jobs:
 
   rustdoc:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          # TODO: Switch to `windows-latest` when stable Flutter stable will
+          #       support MSVC 2022:
+          #       https://github.com/flutter/flutter/issues/85922
+          #       https://github.com/flutter/flutter/issues/96138
+          - windows-2019
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1

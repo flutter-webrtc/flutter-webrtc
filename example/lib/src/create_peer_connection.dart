@@ -37,8 +37,7 @@ class _PeerConnectionSampleState extends State<PeerConnectionSample> {
 
       _track = (await getUserMedia(caps))[0];
 
-      var server =
-          IceServer(['stun:stun.l.google.com:19302'], 'username', 'password');
+      var server = IceServer(['stun:stun.l.google.com:19302']);
       var pc1 = await PeerConnection.create(IceTransportType.all, [server]);
       var pc2 = await PeerConnection.create(IceTransportType.all, [server]);
 

@@ -239,4 +239,81 @@ void main() {
     await (await pc2.getTransceivers())[0].stop();
     await completer.future.timeout(const Duration(seconds: 3));
   });
+
+  testWidgets('Connect two peers', (WidgetTester tester) async {
+    var caps = DeviceConstraints();
+    caps.audio.mandatory = AudioConstraints();
+    caps.video.mandatory = DeviceVideoConstraints();
+    caps.video.mandatory!.width = 640;
+    caps.video.mandatory!.height = 480;
+    caps.video.mandatory!.fps = 30;
+
+    var tracks = await getUserMedia(caps);
+
+    var videoTrack =
+        tracks.firstWhere((track) => track.kind() == MediaKind.video);
+    var audioTrack =
+        tracks.firstWhere((track) => track.kind() == MediaKind.audio);
+
+    var server = IceServer(['stun:stun.l.google.com:19302']);
+    var pc1 = await PeerConnection.create(IceTransportType.all, [server]);
+    var pc2 = await PeerConnection.create(IceTransportType.all, [server]);
+
+    var futures = List<Completer>.generate(6, (_) => Completer());
+    pc1.onConnectionStateChange((state) {
+      if (state == PeerConnectionState.connected) {
+        futures[0].complete();
+      }
+    });
+
+    pc2.onConnectionStateChange((state) {
+      if (state == PeerConnectionState.connected) {
+        futures[1].complete();
+      }
+    });
+
+    pc2.onTrack((track, trans) async {
+      if (track.kind() == MediaKind.video) {
+        futures[2].complete();
+      } else {
+        futures[3].complete();
+      }
+    });
+
+    pc1.onIceCandidate((IceCandidate candidate) async {
+      await pc2.addIceCandidate(candidate);
+
+      if (!futures[4].isCompleted) {
+        futures[4].complete();
+      }
+    });
+
+    pc2.onIceCandidate((IceCandidate candidate) async {
+      await pc1.addIceCandidate(candidate);
+
+      if (!futures[5].isCompleted) {
+        futures[5].complete();
+      }
+    });
+
+    var videoTransceiver = await pc1.addTransceiver(
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
+
+    var audioTransceiver = await pc1.addTransceiver(
+        MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendOnly));
+
+    videoTransceiver.sender.replaceTrack(videoTrack);
+    audioTransceiver.sender.replaceTrack(audioTrack);
+
+    var offer = await pc1.createOffer();
+    await pc1.setLocalDescription(offer);
+    await pc2.setRemoteDescription(offer);
+
+    var answer = await pc2.createAnswer();
+    await pc2.setLocalDescription(answer);
+    await pc1.setRemoteDescription(answer);
+
+    await Future.wait(futures.map((e) => e.future))
+        .timeout(const Duration(seconds: 5));
+  });
 }

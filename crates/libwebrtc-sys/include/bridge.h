@@ -22,6 +22,10 @@
 
 #include "adm_proxy.h"
 
+#include "media/base/fake_frame_source.h"
+#include "pc/test/fake_video_track_source.h"
+#include "modules/audio_device/include/test_audio_device.h"
+
 namespace bridge {
 
 struct DynTrackEventCallback;

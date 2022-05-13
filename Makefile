@@ -113,14 +113,14 @@ flutter.pub:
 	flutter pub $(or $(cmd),get)
 
 
-# Run Flutter example application for Windows.
+# Run Flutter example application for the current OS.
 #
 # Usage:
 #	make flutter.run
 
 flutter.run:
 	cd example/ && \
-	flutter run -d windows --release
+	flutter run -d $(CURRENT_OS) --release
 
 
 # Run Flutter plugin integration tests on an attached device.
@@ -155,12 +155,14 @@ cargo.clean:
 # platform-specific directories.
 #
 # Usage:
-#	make cargo.build [debug=(yes|no)]
+#	make cargo.build [debug=(yes|no)] [args=<cargo-build-args>]
 
 lib-out-path = target/$(if $(call eq,$(debug),no),release,debug)
 
 cargo.build:
-	cargo build -p flutter-webrtc-native $(if $(call eq,$(debug),no),--release,)
+	cargo build -p flutter-webrtc-native \
+		$(if $(call eq,$(debug),no),--release,) \
+		$(args)
 ifeq ($(CURRENT_OS),linux)
 	@mkdir -p linux/rust/include/flutter-webrtc-native/include/
 	@mkdir -p linux/rust/lib/

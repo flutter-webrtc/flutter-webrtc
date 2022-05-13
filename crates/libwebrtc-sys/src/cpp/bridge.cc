@@ -2,6 +2,9 @@
 #include <memory>
 #include <string>
 
+#include <chrono>
+#include <thread>
+
 #include "api/video/i420_buffer.h"
 #include "libwebrtc-sys/include/bridge.h"
 #include "libyuv.h"
@@ -33,6 +36,79 @@ void TrackEventObserver::set_track(
   track_ = track;
 }
 
+#ifdef FAKE_MEDIA
+// Creates a new fake `DeviceVideoCapturer` with the specified constraints and
+// calls `CreateVideoTrackSourceProxy()`.
+std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
+    Thread& worker_thread,
+    Thread& signaling_thread,
+    size_t width,
+    size_t height,
+    size_t fps,
+    uint32_t device) {
+
+  auto fake_video_source = webrtc::FakeVideoTrackSource::Create(false);
+
+  int fps_ms = 1000 / fps;
+  int timestamp_offset_us = 1000000 / fps;
+  auto th = std::thread([=] {
+    auto frame = cricket::FakeFrameSource(width,height,timestamp_offset_us);
+    while(true) {
+      fake_video_source->InjectFrame(frame.GetFrame());
+      std::this_thread::sleep_for(std::chrono::milliseconds(fps_ms));
+    }
+  });
+  th.detach();
+
+  auto src = webrtc::CreateVideoTrackSourceProxy(&signaling_thread,
+                                                 &worker_thread, fake_video_source);
+  if (src == nullptr) {
+    return nullptr;
+  }
+
+  return std::make_unique<VideoTrackSourceInterface>(src);
+}
+
+// Creates a new fake `AudioDeviceModule`
+// with `PulsedNoiseCapturer` and without audio renderer.
+std::unique_ptr<AudioDeviceModule> create_audio_device_module(
+    Thread& worker_thread,
+    AudioLayer audio_layer,
+    TaskQueueFactory& task_queue_factory) {
+
+    auto capture = webrtc::TestAudioDeviceModule::CreatePulsedNoiseCapturer(1024, 8000);
+    auto renderer = webrtc::TestAudioDeviceModule::CreateDiscardRenderer(8000);
+
+    auto adm_fake = webrtc::TestAudioDeviceModule::Create(
+      &task_queue_factory,
+      std::move(capture),
+      std::move(renderer));
+  return std::make_unique<AudioDeviceModule>(adm_fake);
+}
+#else
+// Creates a new `DeviceVideoCapturer` with the specified constraints and
+// calls `CreateVideoTrackSourceProxy()`.
+std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
+    Thread& worker_thread,
+    Thread& signaling_thread,
+    size_t width,
+    size_t height,
+    size_t fps,
+    uint32_t device) {
+  auto dvc = DeviceVideoCapturer::Create(width, height, fps, device);
+  if (dvc == nullptr) {
+    return nullptr;
+  }
+
+  auto src = webrtc::CreateVideoTrackSourceProxy(&signaling_thread,
+                                                 &worker_thread, dvc);
+  if (src == nullptr) {
+    return nullptr;
+  }
+
+  return std::make_unique<VideoTrackSourceInterface>(src);
+}
+
 // Creates a new `AudioDeviceModuleProxy`.
 std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     Thread& worker_thread,
@@ -53,6 +129,7 @@ std::unique_ptr<AudioDeviceModule> create_audio_device_module(
 
   return std::make_unique<AudioDeviceModule>(proxied);
 }
+#endif
 
 // Calls `AudioDeviceModule->Init()`.
 int32_t init_audio_device_module(const AudioDeviceModule& audio_device_module) {
@@ -188,29 +265,6 @@ std::unique_ptr<rtc::Thread> create_thread() {
 // Calls `Thread->CreateWithSocketServer()`.
 std::unique_ptr<rtc::Thread> create_thread_with_socket_server() {
   return rtc::Thread::CreateWithSocketServer();
-}
-
-// Creates a new `DeviceVideoCapturer` with the specified constraints and
-// calls `CreateVideoTrackSourceProxy()`.
-std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
-    Thread& worker_thread,
-    Thread& signaling_thread,
-    size_t width,
-    size_t height,
-    size_t fps,
-    uint32_t device) {
-  auto dvc = DeviceVideoCapturer::Create(width, height, fps, device);
-  if (dvc == nullptr) {
-    return nullptr;
-  }
-
-  auto src = webrtc::CreateVideoTrackSourceProxy(&signaling_thread,
-                                                 &worker_thread, dvc);
-  if (src == nullptr) {
-    return nullptr;
-  }
-
-  return std::make_unique<VideoTrackSourceInterface>(src);
 }
 
 // Creates a new `ScreenVideoCapturer` with the specified constraints and
