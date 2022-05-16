@@ -1038,6 +1038,7 @@ impl support::IntoDart for GetMediaError {
         .into_dart()
     }
 }
+impl support::IntoDartExceptPrimitive for GetMediaError {}
 
 impl support::IntoDart for GetMediaResult {
     fn into_dart(self) -> support::DartCObject {
@@ -1048,6 +1049,7 @@ impl support::IntoDart for GetMediaResult {
         .into_dart()
     }
 }
+impl support::IntoDartExceptPrimitive for GetMediaResult {}
 
 impl support::IntoDart for IceConnectionState {
     fn into_dart(self) -> support::DartCObject {

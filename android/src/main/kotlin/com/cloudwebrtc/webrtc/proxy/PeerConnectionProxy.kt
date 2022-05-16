@@ -324,27 +324,25 @@ class PeerConnectionProxy(val id: Int, peer: PeerConnection) : Proxy<PeerConnect
   /** Adds a new [IceCandidate] to the underlying [PeerConnection]. */
   suspend fun addIceCandidate(candidate: IceCandidate) {
     suspendCoroutine<Unit> { continuation ->
-      run {
-        if (obj.remoteDescription != null) {
-          obj.addIceCandidate(
-              candidate.intoWebRtc(),
-              object : AddIceObserver {
-                override fun onAddSuccess() {
-                  continuation.resume(Unit)
-                }
+      if (obj.remoteDescription != null) {
+        obj.addIceCandidate(
+            candidate.intoWebRtc(),
+            object : AddIceObserver {
+              override fun onAddSuccess() {
+                continuation.resume(Unit)
+              }
 
-                override fun onAddFailure(msg: String?) {
-                  var message = msg
-                  if (message == null) {
-                    message = ""
-                  }
-                  continuation.resumeWithException(AddIceCandidateException(message))
+              override fun onAddFailure(msg: String?) {
+                var message = msg
+                if (message == null) {
+                  message = ""
                 }
-              })
-        } else {
-          candidatesBuffer.add(candidate)
-          continuation.resume(Unit)
-        }
+                continuation.resumeWithException(AddIceCandidateException(message))
+              }
+            })
+      } else {
+        candidatesBuffer.add(candidate)
+        continuation.resume(Unit)
       }
     }
   }

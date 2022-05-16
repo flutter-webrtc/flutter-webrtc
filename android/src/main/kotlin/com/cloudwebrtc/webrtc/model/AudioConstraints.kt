@@ -15,13 +15,21 @@ data class AudioConstraints(val mandatory: Map<String, String>, val optional: Ma
      *
      * @return [AudioConstraints] based on the provided [Map].
      */
-    fun fromMap(map: Map<*, *>): AudioConstraints {
-      val mandatoryArg = map["mandatory"] as Map<*, *>? ?: mapOf<String, String>()
-      val optionalArg = map["optional"] as Map<*, *>? ?: mapOf<String, String>()
-      val mandatory = mandatoryArg.entries.associate { it.key as String to it.value as String }
-      val optional = optionalArg.entries.associate { it.key as String to it.value as String }
+    fun fromMap(map: Map<*, *>): AudioConstraints? {
+      val mandatoryArg = map["mandatory"] as Map<*, *>?
+      val optionalArg = map["optional"] as Map<*, *>?
 
-      return AudioConstraints(mandatory, optional)
+      if (mandatoryArg == null && optionalArg == null) {
+        return null
+      } else {
+        val mandatory = mapOf<String, String>()
+        val optional = mapOf<String, String>()
+
+        optionalArg?.entries?.associate { it.key as String to it.value as String }
+        mandatoryArg?.entries?.associate { it.key as String to it.value as String }
+
+        return AudioConstraints(mandatory, optional)
+      }
     }
   }
 
