@@ -504,8 +504,11 @@
 
     dataChannel.eventChannel = eventChannel;
     dataChannel.flutterChannelId = dataChannelId;
-    [eventChannel setStreamHandler:dataChannel];
 
+    dispatch_async(dispatch_get_main_queue(), ^{
+       [eventChannel setStreamHandler:dataChannel];
+    });
+ 
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
