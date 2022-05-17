@@ -1181,8 +1181,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   public void mediaStreamTrackSetVolume(final String id, final double volume) {
-    MediaStreamTrack track = localTracks.get(id);
-    if (track != null && track instanceof AudioTrack) {
+    MediaStreamTrack track = getTrackForId(id);
+    if (track instanceof AudioTrack) {
       Log.d(TAG, "setVolume(): " + id + "," + volume);
       try {
         ((AudioTrack) track).setVolume(volume);
