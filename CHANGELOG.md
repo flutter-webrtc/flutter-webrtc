@@ -1,6 +1,14 @@
 # Changelog
 
 --------------------------------------------
+[0.8.7] - 2022-05-18
+
+* [iOS/macOS] fix: Use RTCYUVHelper instead of external libyuv library (#954).
+* [iOS/macOS] Flutter 3.0 crash fixes, setStreamHandler on main thread (#953)
+* [Android] Use mavenCentral() instead of jcenter() (#952)
+* [Windows] Use uint8_t* instead of string in DataChannel::Send method, fix binary send bug.
+* [Android] fix: "Reply already submitted" error and setVolume() not working on remote streams.
+
 [0.8.6] - 2022-05-08
 
 * [Web/Android/iOS/macOS] Support null tracks in replaceTrack/setTrack.
