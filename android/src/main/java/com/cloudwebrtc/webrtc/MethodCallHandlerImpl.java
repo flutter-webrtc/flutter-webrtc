@@ -545,7 +545,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           params.putString("type", sdp.type.canonicalForm());
           result.success(params.toMap());
         } else {
-          resultError("getLocalDescription", "peerConnection is nulll", result);
+          resultError("getLocalDescription", "peerConnection is null", result);
         }
         break;
       }
@@ -563,7 +563,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             result.success(params.toMap());
           }
         } else {
-          resultError("getRemoteDescription", "peerConnection is nulll", result);
+          resultError("getRemoteDescription", "peerConnection is null", result);
         }
         break;
       }
@@ -575,7 +575,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           peerConnectionSetConfiguration(new ConstraintsMap(configuration), peerConnection);
           result.success(null);
         } else {
-          resultError("setConfiguration", "peerConnection is nulll", result);
+          resultError("setConfiguration", "peerConnection is null", result);
         }
         break;
       }
@@ -1181,8 +1181,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   public void mediaStreamTrackSetVolume(final String id, final double volume) {
-    MediaStreamTrack track = localTracks.get(id);
-    if (track != null && track instanceof AudioTrack) {
+    MediaStreamTrack track = getTrackForId(id);
+    if (track instanceof AudioTrack) {
       Log.d(TAG, "setVolume(): " + id + "," + volume);
       try {
         ((AudioTrack) track).setVolume(volume);
@@ -1199,10 +1199,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     if (mediaStream != null) {
       MediaStreamTrack track = getTrackForId(trackId);//localTracks.get(trackId);
       if (track != null) {
-        if (track.kind().equals("audio")) {
+        String kind = track.kind();
+        if (kind.equals("audio")) {
           mediaStream.addTrack((AudioTrack) track);
-        } else if (track.kind().equals("video")) {
+          result.success(null);
+        } else if (kind.equals("video")) {
           mediaStream.addTrack((VideoTrack) track);
+          result.success(null);
+        } else {
+          resultError("mediaStreamRemoveTrack", "mediaStreamAddTrack() track [" + trackId + "] has unsupported type: " + kind, result);
         }
       } else {
         resultError("mediaStreamAddTrack", "mediaStreamAddTrack() track [" + trackId + "] is null", result);
@@ -1210,7 +1215,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     } else {
       resultError("mediaStreamAddTrack", "mediaStreamAddTrack() stream [" + streamId + "] is null", result);
     }
-    result.success(null);
   }
 
   public void mediaStreamRemoveTrack(final String streamId, final String trackId, Result result) {
@@ -1218,10 +1222,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     if (mediaStream != null) {
       MediaStreamTrack track = localTracks.get(trackId);
       if (track != null) {
-        if (track.kind().equals("audio")) {
+        String kind = track.kind();
+        if (kind.equals("audio")) {
           mediaStream.removeTrack((AudioTrack) track);
-        } else if (track.kind().equals("video")) {
+          result.success(null);
+        } else if (kind.equals("video")) {
           mediaStream.removeTrack((VideoTrack) track);
+          result.success(null);
+        } else {
+          resultError("mediaStreamRemoveTrack", "mediaStreamAddTrack() track [" + trackId + "] has unsupported type: " + kind, result);
         }
       } else {
         resultError("mediaStreamRemoveTrack", "mediaStreamAddTrack() track [" + trackId + "] is null", result);
@@ -1229,7 +1238,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     } else {
       resultError("mediaStreamRemoveTrack", "mediaStreamAddTrack() stream [" + streamId + "] is null", result);
     }
-    result.success(null);
   }
 
   public void mediaStreamTrackRelease(final String streamId, final String _trackId) {
