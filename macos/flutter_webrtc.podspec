@@ -14,11 +14,7 @@ A new flutter plugin project.
   s.source           = { :path => '.' }
   s.source_files     = ['Classes/**/*']
 
-  s.private_header_files = 'third_party/include/**/*'
-  s.pod_target_xcconfig = { "HEADER_SEARCH_PATHS" => "$PODS_TARGET_SRCROOT/third_party/include"}
-  s.vendored_libraries = 'third_party/lib/*.a'
-
   s.dependency 'FlutterMacOS'
-  s.dependency 'WebRTC-SDK', '97.4692.02'
+  s.dependency 'WebRTC-SDK', '97.4692.05'
   s.osx.deployment_target = '10.11'
 end
