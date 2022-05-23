@@ -7,10 +7,19 @@
 
 namespace libwebrtc {
 
+class RTCDesktopCapturer : public RefCountInterface {
+ public:
+  virtual ~RTCDesktopCapturer() {}
+};
+
 class RTCDesktopDevice : public RefCountInterface {
  public:
-  virtual scoped_refptr<RTCVideoCapturer> CreateScreenCapturer() = 0;
+  virtual scoped_refptr<RTCDesktopCapturer> CreateScreenCapturer() = 0;
   virtual scoped_refptr<RTCVideoCapturer> CreateWindowCapturer() = 0;
+
+  virtual bool GetScreenList(SourceList& sources) = 0;
+  virtual bool GetWindowList(SourceList& sources) = 0;
+  // virtual SourceList EnumerateWindow() = 0;
 
  protected:
   virtual ~RTCDesktopDevice() {}

@@ -43,6 +43,11 @@ class RTCPeerConnectionFactory : public RefCountInterface {
       const string video_source_label,
       scoped_refptr<RTCMediaConstraints> constraints) = 0;
 
+  virtual scoped_refptr<RTCVideoSource> CreateDesktopSource(
+      scoped_refptr<RTCDesktopCapturer> capturer,
+      const string video_source_label,
+      scoped_refptr<RTCMediaConstraints> constraints) = 0;
+
   virtual scoped_refptr<RTCAudioTrack> CreateAudioTrack(
       scoped_refptr<RTCAudioSource> source,
       const string track_id) = 0;

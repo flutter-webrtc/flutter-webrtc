@@ -10,6 +10,7 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
       FlutterVideoRendererManager::FlutterVideoRendererManager(this),
       FlutterMediaStream::FlutterMediaStream(this),
       FlutterPeerConnection::FlutterPeerConnection(this),
+      FlutterScreenCapture::FlutterScreenCapture(this), 
       FlutterDataChannel::FlutterDataChannel(this) {}
 
 FlutterWebRTC::~FlutterWebRTC() {}
@@ -44,7 +45,15 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableMap params =
         GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap constraints = findMap(params, "constraints");
-    result->NotImplemented();
+    CreateScreenCapture(constraints, std::move(result));
+  } else if (method_call.method_name().compare("getScreenList") == 0) {
+    EnumerateScreen(std::move(result));
+  } else if (method_call.method_name().compare("getWindowList") == 0) {
+    EnumerateWindow(std::move(result));
+  } else if (method_call.method_name().compare("getScreenCapture") == 0) {
+    const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+    const EncodableMap constraints = findMap(params, "constraints");
+    CreateScreenCapture(constraints, std::move(result));
   } else if (method_call.method_name().compare("getSources") == 0) {
     GetSources(std::move(result));
   } else if (method_call.method_name().compare("mediaStreamGetTracks") == 0) {

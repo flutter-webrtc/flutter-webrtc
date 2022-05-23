@@ -357,12 +357,12 @@ void FlutterMediaStream::MediaStreamGetTracks(
       info[EncodableValue("enabled")] = EncodableValue(track->enabled());
       info[EncodableValue("remote")] = EncodableValue(true);
       info[EncodableValue("readyState")] = "live";
-      videoTracks.push_back(EncodableValue("info"));
+      videoTracks.push_back(EncodableValue(info));
     }
 
     params[EncodableValue("videoTracks")] = EncodableValue(videoTracks);
 
-    result->Success(EncodableValue("params"));
+    result->Success(EncodableValue(params));
   } else {
     result->Error("MediaStreamGetTracksFailed",
                   "MediaStreamGetTracks() media stream is null !");

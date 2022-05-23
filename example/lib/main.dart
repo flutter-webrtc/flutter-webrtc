@@ -8,10 +8,10 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'src/data_channel_sample.dart';
 import 'src/get_display_media_sample.dart';
+import 'src/get_screen_capture.dart';
 import 'src/get_user_media_sample.dart'
     if (dart.library.html) 'src/get_user_media_sample_web.dart';
 import 'src/loopback_sample.dart';
-import 'src/loopback_sample_unified_tracks.dart';
 import 'src/route_item.dart';
 
 void main() {
@@ -99,21 +99,20 @@ class _MyAppState extends State<MyApp> {
                         GetDisplayMediaSample()));
           }),
       RouteItem(
+          title: 'GetScreenCapture',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) => GetScreenCapture()));
+          }),
+      RouteItem(
           title: 'LoopBack Sample',
           push: (BuildContext context) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (BuildContext context) => LoopBackSample()));
-          }),
-      RouteItem(
-          title: 'LoopBack Sample (Unified Tracks)',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        LoopBackSampleUnifiedTracks()));
           }),
       RouteItem(
           title: 'DataChannel',

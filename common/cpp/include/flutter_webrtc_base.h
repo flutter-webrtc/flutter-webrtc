@@ -113,6 +113,7 @@ class FlutterWebRTCBase {
   friend class FlutterVideoRendererManager;
   friend class FlutterDataChannel;
   friend class FlutterPeerConnectionObserver;
+  friend class FlutterScreenCapture;
   enum ParseConstraintType { kMandatory, kOptional };
 
  public:
@@ -163,6 +164,7 @@ class FlutterWebRTCBase {
   scoped_refptr<RTCPeerConnectionFactory> factory_;
   scoped_refptr<RTCAudioDevice> audio_device_;
   scoped_refptr<RTCVideoDevice> video_device_;
+  scoped_refptr<RTCDesktopDevice> desktop_device_;
   RTCConfiguration configuration_;
 
   std::map<std::string, scoped_refptr<RTCPeerConnection>> peerconnections_;
