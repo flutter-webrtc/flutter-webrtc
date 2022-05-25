@@ -37,7 +37,9 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap constraints = findMap(params, "constraints");
     GetUserMedia(constraints, std::move(result));
-  } else if (method_call.method_name().compare("getDisplayMedia") == 0) {
+  } 
+
+  else if (method_call.method_name().compare("getDisplayMedia") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
       return;
@@ -45,16 +47,40 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableMap params =
         GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap constraints = findMap(params, "constraints");
-    CreateScreenCapture(constraints, std::move(result));
-  } else if (method_call.method_name().compare("getScreenList") == 0) {
-    EnumerateScreen(std::move(result));
-  } else if (method_call.method_name().compare("getWindowList") == 0) {
-    EnumerateWindow(std::move(result));
-  } else if (method_call.method_name().compare("getScreenCapture") == 0) {
+    CreateCapture(libwebrtc::SourceType::kEntireScreen, 0, constraints, std::move(result));
+  } 
+
+  else if (method_call.method_name().compare("getScreenList") == 0) {
+    EnumerateScreens(std::move(result));
+  } 
+
+  else if (method_call.method_name().compare("getWindowList") == 0) {
+    EnumerateWindows(std::move(result));
+  } 
+
+  else if (method_call.method_name().compare("getScreenCapture") == 0) {
     const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap constraints = findMap(params, "constraints");
-    CreateScreenCapture(constraints, std::move(result));
-  } else if (method_call.method_name().compare("getSources") == 0) {
+    CreateCapture(libwebrtc::SourceType::kEntireScreen, 0, constraints,  std::move(result));
+  } 
+
+  else if (method_call.method_name().compare("getWindowCapture") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+
+    const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+    const EncodableMap constraints = findMap(params, "constraints");
+    int window_id = findInt(params, "windowId");
+    if (window_id == -1) {
+      result->Error("Bad Arguments", "Incorrect windowId");
+      return;
+    }
+    CreateCapture(libwebrtc::SourceType::kWindow, window_id, constraints,  std::move(result));
+  } 
+
+  else if (method_call.method_name().compare("getSources") == 0) {
     GetSources(std::move(result));
   } else if (method_call.method_name().compare("mediaStreamGetTracks") == 0) {
     if (!method_call.arguments()) {

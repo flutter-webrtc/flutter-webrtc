@@ -55,6 +55,26 @@ class _GetScreenCaptureState extends State<GetScreenCapture> {
     print(response);
   }
 
+  Future<MediaStream> getWindowCapture(
+      int windowId,
+      Map<String, dynamic> mediaConstraints) async {
+    try {
+      final response = await WebRTC.invokeMethod(
+        'getWindowCapture',
+        <String, dynamic>{'constraints': mediaConstraints, 'windowId': windowId},
+      );
+      if (response == null) {
+        throw Exception('getWindowCapture return null, something wrong');
+      }
+      String streamId = response['streamId'];
+      var stream = MediaStreamNative(streamId, 'local');
+      stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
+      return stream;
+    } on PlatformException catch (e) {
+      throw 'Unable to getWindowCapture: ${e.message}';
+    }
+  }
+
   // Platform messages are asynchronous, so we initialize in an async method.
   void _makeCall() async {
     final mediaConstraints = <String, dynamic>{'audio': true, 'video': true};
@@ -63,10 +83,13 @@ class _GetScreenCaptureState extends State<GetScreenCapture> {
       _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
       debugPrint('_mediaDevicesList = $_mediaDevicesList');
 
-      await getScreenList();
+      // await getScreenList();
       await getWindowList();
 
-      var stream = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
+      // var stream = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
+      var stream = await getWindowCapture(3607232, mediaConstraints); // TODO(dkubrakov): paste id from getWindowList() result
+      // var stream = await getWindowCapture(3346646, mediaConstraints);
+      // var stream = await getWindowCapture(4458914, mediaConstraints);
 
       _localStream = stream;
       _localRenderer.srcObject = _localStream;

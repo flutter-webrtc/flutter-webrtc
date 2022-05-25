@@ -2,7 +2,7 @@
 
 namespace flutter_webrtc_plugin {
 
-void FlutterScreenCapture::EnumerateScreen(std::unique_ptr<MethodResult<EncodableValue>> result) {
+void FlutterScreenCapture::EnumerateScreens(std::unique_ptr<MethodResult<EncodableValue>> result) {
   SourceList sources;
 
   base_->desktop_device_->GetScreenList(sources);
@@ -10,28 +10,29 @@ void FlutterScreenCapture::EnumerateScreen(std::unique_ptr<MethodResult<Encodabl
   std::cout << "GetScreenList():" << sources.size() << std::endl;
   
   for (const auto& source : sources.std_vector()) {
-    std::cout << " id:" << source.id.std_string() << " title:" << source.title.std_string() << " type:" << source.type << std::endl;
+    std::cout << " id: " << source.id << " title: " << source.title.std_string() << " type: " << source.type << std::endl;
   }
 
   result->Success(EncodableValue("screen"));
 }
 
-void FlutterScreenCapture::EnumerateWindow(std::unique_ptr<MethodResult<EncodableValue>> result) {
+void FlutterScreenCapture::EnumerateWindows(std::unique_ptr<MethodResult<EncodableValue>> result) {
   SourceList sources;
 
-  base_->desktop_device_->GetWindowList(sources);
+  sources = base_->desktop_device_->EnumerateWindows();
   
-  std::cout << "GetWindowList():" << sources.size() << std::endl;
+  std::cout << "EnumerateWindows():" << sources.size() << std::endl;
   
   for (const auto& source : sources.std_vector()) {
-    std::cout << " id:" << source.id.std_string() << " title:" << source.title.std_string() << " type:" << source.type << std::endl;
+    std::cout << " id: " << source.id << " title: " << source.title.std_string() << " type: " << source.type << std::endl;
   }
 
   result->Success(EncodableValue("windows"));
 }
 
-void FlutterScreenCapture::CreateScreenCapture(const EncodableMap& constraints, 
-                                               std::unique_ptr<MethodResult<EncodableValue>> result) {
+void FlutterScreenCapture::CreateCapture(libwebrtc::SourceType type, uint64_t id,
+                                         const EncodableMap& constraints, 
+                                         std::unique_ptr<MethodResult<EncodableValue>> result) {
 
   std::string uuid = base_->GenerateUUID();
 
@@ -53,8 +54,12 @@ void FlutterScreenCapture::CreateScreenCapture(const EncodableMap& constraints,
     video_constraints = GetValue<EncodableMap>(it->second);
   } 
 
-  scoped_refptr<RTCDesktopCapturer> desktop_capturer = 
-      base_->desktop_device_->CreateScreenCapturer();
+  scoped_refptr<RTCDesktopCapturer> desktop_capturer;
+  if (type == libwebrtc::SourceType::kEntireScreen) {
+    desktop_capturer = base_->desktop_device_->CreateScreenCapturer(id);
+  } else {
+    desktop_capturer = base_->desktop_device_->CreateWindowCapturer(id);
+  }
 
   if (!desktop_capturer.get()) return; // TODO: result->Error()
 
@@ -85,11 +90,6 @@ void FlutterScreenCapture::CreateScreenCapture(const EncodableMap& constraints,
   base_->local_streams_[uuid] = stream;
 
   result->Success(EncodableValue(params));
-}
-
-void FlutterScreenCapture::CreateWindowsCapture(const EncodableMap& constraints, 
-                                               std::unique_ptr<MethodResult<EncodableValue>> result) {
-    result->Success(EncodableValue("params"));
 }
 
 }

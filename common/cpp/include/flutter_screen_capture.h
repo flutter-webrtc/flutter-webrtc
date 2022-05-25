@@ -11,15 +11,13 @@ class FlutterScreenCapture {
  public:
   FlutterScreenCapture(FlutterWebRTCBase *base) : base_(base) {}
   
-  void EnumerateWindow(std::unique_ptr<MethodResult<EncodableValue>> result);
+  void EnumerateWindows(std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void EnumerateScreen(std::unique_ptr<MethodResult<EncodableValue>> result);
+  void EnumerateScreens(std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void CreateScreenCapture(const EncodableMap& constraints, 
-                                               std::unique_ptr<MethodResult<EncodableValue>> result);
-
-  void CreateWindowsCapture(const EncodableMap& constraints, 
-                                               std::unique_ptr<MethodResult<EncodableValue>> result);
+  void CreateCapture(libwebrtc::SourceType type, uint64_t id,
+                     const EncodableMap& constraints,
+                     std::unique_ptr<MethodResult<EncodableValue>> result);
 
  private:
   FlutterWebRTCBase *base_;
