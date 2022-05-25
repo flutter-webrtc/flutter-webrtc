@@ -12,18 +12,18 @@ import io.flutter.plugin.common.EventChannel;
 
 class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHandler {
 
-    private final String internalId;
+    private final String flutterId;
     private final DataChannel dataChannel;
 
     private EventChannel eventChannel;
     private EventChannel.EventSink eventSink;
 
-    DataChannelObserver(BinaryMessenger messenger, String peerConnectionId, String internalId,
+    DataChannelObserver(BinaryMessenger messenger, String peerConnectionId, String flutterId,
                         DataChannel dataChannel) {
-        this.internalId = internalId;
+        this.flutterId = flutterId;
         this.dataChannel = dataChannel;
         eventChannel =
-                new EventChannel(messenger, "FlutterWebRTC/dataChannelEvent" + peerConnectionId + internalId);
+                new EventChannel(messenger, "FlutterWebRTC/dataChannelEvent" + peerConnectionId + flutterId);
         eventChannel.setStreamHandler(this);
     }
 

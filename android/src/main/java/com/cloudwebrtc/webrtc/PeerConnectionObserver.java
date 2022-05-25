@@ -122,15 +122,15 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     // been deprecated in Chromium, and Google have decided (in 2015) to no
     // longer support them (in the face of multiple reported issues of
     // breakages).
-    String internalId = getNextDataChannelUUID();
+    String flutterId = getNextDataChannelUUID();
     if (dataChannel != null) {
-        dataChannels.put(internalId, dataChannel);
-        registerDataChannelObserver(internalId, dataChannel);
+        dataChannels.put(flutterId, dataChannel);
+        registerDataChannelObserver(flutterId, dataChannel);
 
         ConstraintsMap params = new ConstraintsMap();
         params.putInt("id", dataChannel.id());
         params.putString("label", dataChannel.label());
-        params.putString("internalId", internalId);
+        params.putString("flutterId", flutterId);
         result.success(params.toMap());
     } else {
         resultError("createDataChannel", "Can't create data-channel for id: " + init.id, result);
@@ -480,15 +480,15 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
     @Override
   public void onDataChannel(DataChannel dataChannel) {
-    String internalId = getNextDataChannelUUID();
+    String flutterId = getNextDataChannelUUID();
     ConstraintsMap params = new ConstraintsMap();
     params.putString("event", "didOpenDataChannel");
     params.putInt("id", dataChannel.id());
     params.putString("label", dataChannel.label());
-    params.putString("internalId", internalId);
+    params.putString("flutterId", flutterId);
 
-    dataChannels.put(internalId, dataChannel);
-    registerDataChannelObserver(internalId, dataChannel);
+    dataChannels.put(flutterId, dataChannel);
+    registerDataChannelObserver(flutterId, dataChannel);
 
     sendEvent(params);
   }

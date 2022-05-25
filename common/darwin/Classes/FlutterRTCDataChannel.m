@@ -72,19 +72,19 @@
     
     if (nil != dataChannel) {
         dataChannel.peerConnectionId = peerConnectionId;
-        NSNumber *dataChannelId = [NSNumber numberWithInteger:config.channelId];
-        peerConnection.dataChannels[dataChannelId] = dataChannel;
-        dataChannel.flutterChannelId = dataChannelId;
+        NSString *flutterId = [[NSUUID UUID] UUIDString];
+        peerConnection.dataChannels[flutterId] = dataChannel;
+        dataChannel.flutterChannelId = flutterId;
         dataChannel.delegate = self;
         
         FlutterEventChannel *eventChannel = [FlutterEventChannel
-                                             eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$d", peerConnectionId, [dataChannelId intValue]]
+                                             eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$@", peerConnectionId, flutterId]
                                              binaryMessenger:messenger];
         
         dataChannel.eventChannel = eventChannel;
         [eventChannel setStreamHandler:dataChannel];
         
-        result(@{@"label": label, @"id": dataChannelId});
+        result(@{@"label": label, @"id": [NSNumber numberWithInt:dataChannel.channelId], @"flutterId": flutterId});
     }
 }
 
@@ -102,7 +102,7 @@
 }
 
 -(void)dataChannelSend:(nonnull NSString *)peerConnectionId
-                    dataChannelId:(nonnull NSNumber *)dataChannelId
+                    dataChannelId:(nonnull NSString *)dataChannelId
                              data:(id)data
                              type:(NSString *)type
 {
@@ -136,7 +136,7 @@
     FlutterEventSink eventSink = channel.eventSink;
     if(eventSink) {
         eventSink(@{ @"event" : @"dataChannelStateChanged",
-                     @"id": channel.flutterChannelId,
+                     @"id": [NSNumber numberWithInt:channel.channelId],
                      @"state": [self stringForDataChannelState:channel.readyState]});
     }
 }
@@ -158,7 +158,7 @@
     FlutterEventSink eventSink = channel.eventSink;
     if(eventSink) {
         eventSink(@{ @"event" : @"dataChannelReceiveMessage",
-                     @"id": channel.flutterChannelId,
+                     @"id": [NSNumber numberWithInt:channel.channelId],
                      @"type": type,
                      @"data": (data ? data : [NSNull null])});
     }
