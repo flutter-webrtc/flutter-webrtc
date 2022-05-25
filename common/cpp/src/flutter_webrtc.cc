@@ -239,10 +239,10 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    int dataChannelId = findInt(params, "dataChannelId");
+    int dataChannelId = findString(params, "dataChannelId");
     const std::string type = findString(params, "type");
     const EncodableValue data = findEncodableValue(params, "data");
-    RTCDataChannel* data_channel = DataChannelFormId(dataChannelId);
+    RTCDataChannel* data_channel = DataChannelForId(dataChannelId);
     if (data_channel == nullptr) {
       result->Error("dataChannelSendFailed",
                     "dataChannelSend() data_channel is null");
@@ -264,8 +264,8 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    int dataChannelId = findInt(params, "dataChannelId");
-    RTCDataChannel* data_channel = DataChannelFormId(dataChannelId);
+    int dataChannelId = findString(params, "dataChannelId");
+    RTCDataChannel* data_channel = DataChannelForId(dataChannelId);
     if (data_channel == nullptr) {
       result->Error("dataChannelCloseFailed",
                     "dataChannelClose() data_channel is null");

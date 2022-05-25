@@ -168,9 +168,8 @@ class FlutterWebRTCBase {
   std::map<std::string, scoped_refptr<RTCPeerConnection>> peerconnections_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
   std::map<std::string, scoped_refptr<RTCMediaTrack>> local_tracks_;
-  std::map<std::string, scoped_refptr<RTCDataChannel>> data_channels_;
   std::map<int64_t, std::shared_ptr<FlutterVideoRenderer>> renders_;
-  std::map<int, std::shared_ptr<FlutterRTCDataChannelObserver>>
+  std::map<std::string, std::shared_ptr<FlutterRTCDataChannelObserver>>
       data_channel_observers_;
   std::map<std::string, std::shared_ptr<FlutterPeerConnectionObserver>>
       peerconnection_observers_;
