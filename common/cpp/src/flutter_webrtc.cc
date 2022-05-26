@@ -239,7 +239,7 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    int dataChannelId = findString(params, "dataChannelId");
+    const std::string dataChannelId = findString(params, "dataChannelId");
     const std::string type = findString(params, "type");
     const EncodableValue data = findEncodableValue(params, "data");
     RTCDataChannel* data_channel = DataChannelForId(dataChannelId);
@@ -264,14 +264,14 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    int dataChannelId = findString(params, "dataChannelId");
+    const std::string dataChannelId = findString(params, "dataChannelId");
     RTCDataChannel* data_channel = DataChannelForId(dataChannelId);
     if (data_channel == nullptr) {
       result->Error("dataChannelCloseFailed",
                     "dataChannelClose() data_channel is null");
       return;
     }
-    DataChannelClose(data_channel, std::move(result));
+    DataChannelClose(data_channel, dataChannelId, std::move(result));
   } else if (method_call.method_name().compare("streamDispose") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");

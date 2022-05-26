@@ -101,7 +101,6 @@ void FlutterDataChannel::DataChannelClose(
     RTCDataChannel *data_channel,
     const std::string &data_channel_uuid,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
-  int id = data_channel->id();
   data_channel->Close();
   auto it = base_->data_channel_observers_.find(data_channel_uuid);
   if (it != base_->data_channel_observers_.end())
