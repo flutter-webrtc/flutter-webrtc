@@ -59,7 +59,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     public void onStateChange() {
         ConstraintsMap params = new ConstraintsMap();
         params.putString("event", "dataChannelStateChanged");
-        params.putInt("id", mDataChannel.id());
+        params.putInt("id", mId);
         params.putString("state", dataChannelStateString(mDataChannel.state()));
         sendEvent(params);
     }
@@ -68,7 +68,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     public void onMessage(DataChannel.Buffer buffer) {
         ConstraintsMap params = new ConstraintsMap();
         params.putString("event", "dataChannelReceiveMessage");
-        params.putInt("id", mDataChannel.id());
+        params.putInt("id", mId);
 
         byte[] bytes;
         if (buffer.data.hasArray()) {
