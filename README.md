@@ -22,6 +22,7 @@ Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/chat/flutt
 <br />
    <a href="https://livekit.io/?utm_source=opencollective&utm_medium=github&utm_campaign=flutter-webrtc" target="_blank">LiveKit</a> - Open source WebRTC infrastructure
 <p>
+
 ## Functionality
 
 | Feature | Android | iOS | [Web](https://flutter.dev/web) | macOS | Windows | Linux | [Embedded](https://github.com/sony/flutter-elinux) | [Fuchsia](https://fuchsia.dev/) |
