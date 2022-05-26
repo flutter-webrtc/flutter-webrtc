@@ -1097,29 +1097,17 @@ void FlutterPeerConnectionObserver::OnDataChannel(
     scoped_refptr<RTCDataChannel> data_channel) {
 
   int channel_id = data_channel->id();
-
-  base_->lock();
-  if (base_->data_channel_observers_.find(channel_id) !=
-      base_->data_channel_observers_.end()) {
-    for(int i = 1024; i < 65535; i++){
-      if(base_->data_channel_observers_.find(i) ==
-      base_->data_channel_observers_.end()){
-        channel_id = i;
-        break;
-      }
-    }
-  }
-   base_->unlock();
+  std::string channel_uuid = base_->GenerateUUID();
 
   std::string event_channel =
-      "FlutterWebRTC/dataChannelEvent" + id_ + std::to_string(channel_id);
+      "FlutterWebRTC/dataChannelEvent" + id_ + channel_uuid;
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
                                         event_channel));
 
   base_->lock();
-  base_->data_channel_observers_[channel_id] = std::move(observer);
+  base_->data_channel_observers_[channel_uuid] = std::move(observer);
   base_->unlock();
 
   if (event_sink_) {
@@ -1127,6 +1115,7 @@ void FlutterPeerConnectionObserver::OnDataChannel(
     params[EncodableValue("event")] = "didOpenDataChannel";
     params[EncodableValue("id")] = EncodableValue(channel_id);
     params[EncodableValue("label")] = EncodableValue(data_channel->label().std_string());
+    params[EncodableValue("flutterId")] = EncodableValue(channel_uuid);
     event_sink_->Success(EncodableValue(params));
   }
 }

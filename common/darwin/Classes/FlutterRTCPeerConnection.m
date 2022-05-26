@@ -41,7 +41,7 @@
     objc_setAssociatedObject(self, @selector(eventChannel), eventChannel, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-- (NSMutableDictionary<NSNumber *, RTCDataChannel *> *)dataChannels
+- (NSMutableDictionary<NSString *, RTCDataChannel *> *)dataChannels
 {
     return objc_getAssociatedObject(self, _cmd);
 }
@@ -184,9 +184,9 @@
     [peerConnection.remoteTracks removeAllObjects];
 
     // Clean up peerConnection's dataChannels.
-    NSMutableDictionary<NSNumber *, RTCDataChannel *> *dataChannels
+    NSMutableDictionary<NSString *, RTCDataChannel *> *dataChannels
     = peerConnection.dataChannels;
-    for (NSNumber *dataChannelId in dataChannels) {
+    for (NSString *dataChannelId in dataChannels) {
         dataChannels[dataChannelId].delegate = nil;
         // There is no need to close the RTCDataChannel because it is owned by the
         // RTCPeerConnection and the latter will close the former.
@@ -493,24 +493,26 @@
         return;
     }
 
+    NSString *flutterChannelId = [[NSUUID UUID] UUIDString];
     NSNumber *dataChannelId = [NSNumber numberWithInteger:dataChannel.channelId];
     dataChannel.peerConnectionId = peerConnection.flutterId;
     dataChannel.delegate = self;
     peerConnection.dataChannels[dataChannelId] = dataChannel;
 
     FlutterEventChannel *eventChannel = [FlutterEventChannel
-                                         eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$d", peerConnection.flutterId, dataChannel.channelId]
+                                         eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$@", peerConnection.flutterId, flutterChannelId]
                                          binaryMessenger:self.messenger];
 
     dataChannel.eventChannel = eventChannel;
-    dataChannel.flutterChannelId = dataChannelId;
+    dataChannel.flutterChannelId = flutterChannelId;
 
     FlutterEventSink eventSink = peerConnection.eventSink;
     if(eventSink){
         eventSink(@{
                     @"event" : @"didOpenDataChannel",
                     @"id": dataChannelId,
-                    @"label": dataChannel.label
+                    @"label": dataChannel.label,
+                    @"flutterId": flutterChannelId
                     });
     }
 

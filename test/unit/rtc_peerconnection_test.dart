@@ -45,6 +45,7 @@ void main() {
       channel.eventListener(<String, dynamic>{
         'event': 'dataChannelStateChanged',
         'id': 0,
+        'flutterId': '',
         'state': 'open'
       });
     };
@@ -76,6 +77,7 @@ void main() {
         },
         'id': 0,
         'label': '',
+        'flutterId': '',
       });
     });
   });
