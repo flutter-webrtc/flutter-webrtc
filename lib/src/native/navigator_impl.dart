@@ -1,6 +1,7 @@
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 import 'mediadevices_impl.dart';
+import 'desktopcapturer_impl.dart';
 
 class NavigatorNative extends Navigator {
   @override
@@ -20,4 +21,7 @@ class NavigatorNative extends Navigator {
 
   @override
   MediaDevices get mediaDevices => MediaDeviceNative();
+
+  @override
+  DesktopCapturer get desktopCapturer => DesktopCapturerNative();
 }

@@ -1,5 +1,4 @@
 import 'dart:core';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +20,7 @@ class _GetScreenCaptureState extends State<GetScreenCapture> {
   bool _inCalling = false;
 
   List<MediaDeviceInfo>? _mediaDevicesList;
+  List<DesktopCapturerSource>? _sources;
 
   @override
   void initState() {
@@ -39,75 +39,61 @@ class _GetScreenCaptureState extends State<GetScreenCapture> {
 
   void initRenderers() async {
     await _localRenderer.initialize();
-  }
 
-  Future<void> getScreenList() async {
-    final response = await WebRTC.invokeMethod(
-      'getScreenList',
+    _sources = await navigator.desktopCapturer.getSources(
+        [SourceType.kScreen, SourceType.kWindow],
+        ThumbnailSize(320, 180)
     );
-    print(response);
   }
 
-  Future<void> getWindowList() async {
-    final response = await WebRTC.invokeMethod(
-      'getWindowList',
-    );
-    print(response);
-  }
+  void _makeCall() =>
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => Container(
+        width: MediaQuery.of(context).size.width - 40,
+        height: MediaQuery.of(context).size.height - 60,
+        child: Dialog(
+          child: ListView.builder(
+            itemCount: _sources!.length,
+            itemBuilder: (context, index) => SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, _sources![index].id),
+              child: ListTile(
+                title: Text('$index. ${_sources![index].name} ${_sources![index].id}'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ).then((value) async {
+      print('selected source: $value');
 
-  Future<MediaStream> getWindowCapture(
-      int windowId,
-      Map<String, dynamic> mediaConstraints) async {
-    try {
-      final response = await WebRTC.invokeMethod(
-        'getWindowCapture',
-        <String, dynamic>{'constraints': mediaConstraints, 'windowId': windowId},
-      );
-      if (response == null) {
-        throw Exception('getWindowCapture return null, something wrong');
+      try {
+        final mediaConstraintsForSelectedSource = <String, dynamic>{
+          'video': {
+            'deviceId': {
+              'exact': value
+            },
+            'mandatory': {
+              'minWidth': 1280,
+              'minHeight': 720,
+              'frameRate': 30.0
+            }
+          }
+        };
+
+        var stream = await navigator.mediaDevices.getDisplayMedia(mediaConstraintsForSelectedSource);
+
+        _localStream = stream;
+        _localRenderer.srcObject = _localStream;
+      } catch (e) {
+        print(e.toString());
       }
-      String streamId = response['streamId'];
-      var stream = MediaStreamNative(streamId, 'local');
-      stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
-      return stream;
-    } on PlatformException catch (e) {
-      throw 'Unable to getWindowCapture: ${e.message}';
-    }
-  }
+      if (!mounted) return;
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  void _makeCall() async {
-    final mediaConstraints = <String, dynamic>{'audio': true, 'video': true};
-
-    try {
-      _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
-      debugPrint('_mediaDevicesList = $_mediaDevicesList');
-
-      // await getScreenList();
-      await getWindowList();
-
-      // var stream = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
-      var stream = await getWindowCapture(3607232, mediaConstraints); // TODO(dkubrakov): paste id from getWindowList() result
-      // var stream = await getWindowCapture(3346646, mediaConstraints);
-      // var stream = await getWindowCapture(4458914, mediaConstraints);
-
-      _localStream = stream;
-      _localRenderer.srcObject = _localStream;
-
-      // await stream.getMediaTracks();
-      stream.getTracks().forEach((track) {
-        print(track);
+      setState(() {
+        _inCalling = true;
       });
-
-    } catch (e) {
-      print(e.toString());
-    }
-    if (!mounted) return;
-
-    setState(() {
-      _inCalling = true;
     });
-  }
 
   void _hangUp() async {
     try {

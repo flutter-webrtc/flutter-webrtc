@@ -47,21 +47,33 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableMap params =
         GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap constraints = findMap(params, "constraints");
-    CreateCapture(libwebrtc::SourceType::kEntireScreen, 0, constraints, std::move(result));
+
+    int window_id = 0;
+    libwebrtc::SourceType source_type = libwebrtc::SourceType::kEntireScreen;
+
+    const EncodableMap video = findMap(constraints, "video");
+    if (video != EncodableMap()) {
+      const EncodableMap deviceId = findMap(video, "deviceId");
+      if (deviceId != EncodableMap()) {
+        std::string windowId = findString(deviceId, "exact");
+        if (windowId.empty()) {
+          result->Error("Bad Arguments", "Incorrect video->deviceId->exact");
+          return;
+        }
+        window_id = std::stoi(windowId);
+        source_type = libwebrtc::SourceType::kWindow;
+      }
+    }
+
+    CreateCapture(source_type, window_id, constraints, std::move(result));
   } 
 
-  else if (method_call.method_name().compare("getScreenList") == 0) {
+  else if (method_call.method_name().compare("enumerateScreens") == 0) {
     EnumerateScreens(std::move(result));
   } 
 
-  else if (method_call.method_name().compare("getWindowList") == 0) {
+  else if (method_call.method_name().compare("enumerateWindows") == 0) {
     EnumerateWindows(std::move(result));
-  } 
-
-  else if (method_call.method_name().compare("getScreenCapture") == 0) {
-    const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
-    const EncodableMap constraints = findMap(params, "constraints");
-    CreateCapture(libwebrtc::SourceType::kEntireScreen, 0, constraints,  std::move(result));
   } 
 
   else if (method_call.method_name().compare("getWindowCapture") == 0) {
@@ -72,11 +84,14 @@ void FlutterWebRTC::HandleMethodCall(
 
     const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap constraints = findMap(params, "constraints");
-    int window_id = findInt(params, "windowId");
-    if (window_id == -1) {
+
+    std::string windowId = findString(params, "windowId");
+    if (windowId.empty()) {
       result->Error("Bad Arguments", "Incorrect windowId");
       return;
     }
+
+    int window_id = std::stoi(windowId);
     CreateCapture(libwebrtc::SourceType::kWindow, window_id, constraints,  std::move(result));
   } 
 

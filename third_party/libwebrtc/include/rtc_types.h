@@ -106,7 +106,7 @@ enum SourceType {
 
 struct Source {
   public:
-    uint64_t id;
+    string id;
     string title;
     SourceType type;
 };

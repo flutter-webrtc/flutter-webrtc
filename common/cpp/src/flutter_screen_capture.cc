@@ -5,15 +5,19 @@ namespace flutter_webrtc_plugin {
 void FlutterScreenCapture::EnumerateScreens(std::unique_ptr<MethodResult<EncodableValue>> result) {
   SourceList sources;
 
-  base_->desktop_device_->GetScreenList(sources);
+  sources = base_->desktop_device_->EnumerateScreens();
   
-  std::cout << "GetScreenList():" << sources.size() << std::endl;
-  
+  EncodableList list;
   for (const auto& source : sources.std_vector()) {
-    std::cout << " id: " << source.id << " title: " << source.title.std_string() << " type: " << source.type << std::endl;
+    // std::cout << " id: " << source.id.std_string() << " title: " << source.title.std_string() << " type: " << source.type << std::endl;
+    EncodableMap info;
+    info[EncodableValue("id")] = EncodableValue(source.id.std_string());
+    info[EncodableValue("name")] = EncodableValue(source.title.std_string());
+    info[EncodableValue("type")] = EncodableValue(source.type);
+    list.push_back(EncodableValue(info));
   }
 
-  result->Success(EncodableValue("screen"));
+  result->Success(EncodableValue(list));
 }
 
 void FlutterScreenCapture::EnumerateWindows(std::unique_ptr<MethodResult<EncodableValue>> result) {
@@ -21,13 +25,17 @@ void FlutterScreenCapture::EnumerateWindows(std::unique_ptr<MethodResult<Encodab
 
   sources = base_->desktop_device_->EnumerateWindows();
   
-  std::cout << "EnumerateWindows():" << sources.size() << std::endl;
-  
+  EncodableList list;
   for (const auto& source : sources.std_vector()) {
-    std::cout << " id: " << source.id << " title: " << source.title.std_string() << " type: " << source.type << std::endl;
+    // std::cout << " id: " << source.id.std_string() << " title: " << source.title.std_string() << " type: " << source.type << std::endl;
+    EncodableMap info;
+    info[EncodableValue("id")] = EncodableValue(source.id.std_string());
+    info[EncodableValue("name")] = EncodableValue(source.title.std_string());
+    info[EncodableValue("type")] = EncodableValue(source.type);
+    list.push_back(EncodableValue(info));
   }
 
-  result->Success(EncodableValue("windows"));
+  result->Success(EncodableValue(list));
 }
 
 void FlutterScreenCapture::CreateCapture(libwebrtc::SourceType type, uint64_t id,
