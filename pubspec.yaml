@@ -11,9 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider: ^2.0.2
-  webrtc_interface: #^1.0.5
-    git:
-      url: https://github.com/abhay-s-rawat/webrtc-interface
+  webrtc_interface: ^1.0.4
   
 dev_dependencies:
   flutter_test:
