@@ -44,7 +44,7 @@ class RTCDataChannelNative extends RTCDataChannel {
   String? get label => _label;
 
   @override
-  int? get bufferedAmount => _bufferedAmount;
+  int get bufferedAmount => _bufferedAmount;
 
   final _stateChangeController =
       StreamController<RTCDataChannelState>.broadcast(sync: true);
@@ -80,10 +80,8 @@ class RTCDataChannelNative extends RTCDataChannel {
         break;
 
       case 'dataChannelBufferedAmountChange':
-        print(
-            'BUFFERED AMOUNT CHANGED: ID : ${map["id"]} : ${map["bufferedAmount"].toString()}');
         _bufferedAmount = map['bufferedAmount'];
-        onBufferedAmountChange?.call(_bufferedAmount);
+        onBufferedAmountChange?.call(_bufferedAmount, map['changedAmount']);
         break;
     }
   }

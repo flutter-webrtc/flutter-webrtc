@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.8.8] - 2022-05-31
+
+* [Android] Added onBufferedAmountChange callback which will return currentBuffer and changedBuffer and implemented bufferedAmount.
+
 [0.8.7] - 2022-05-18
 
 * [iOS/macOS] fix: Use RTCYUVHelper instead of external libyuv library (#954).
