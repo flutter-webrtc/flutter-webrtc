@@ -50,9 +50,14 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     public void onCancel(Object o) {
         eventSink = null;
     }
-
+    
     @Override
     public void onBufferedAmountChange(long amount) {
+        ConstraintsMap params = new ConstraintsMap();
+        params.putString("event", "dataChannelBufferedAmountChange");
+        params.putInt("id", mDataChannel.id());
+        params.putLong("bufferedAmount", amount);
+        sendEvent(params);
     }
 
     @Override
