@@ -313,6 +313,33 @@ pub enum MediaDeviceKind {
     VideoInput,
 }
 
+/// Indicator of the current [MediaStreamTrackState][0] of a
+/// [`MediaStreamTrack`].
+///
+/// [0]: https://w3.org/TR/mediacapture-streams#dom-mediastreamtrackstate
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum TrackState {
+    /// [MediaStreamTrackState.live][0] representation.
+    ///
+    /// [0]: https://tinyurl.com/w3mcs#idl-def-MediaStreamTrackState.live
+    Live,
+
+    /// [MediaStreamTrackState.ended][0] representation.
+    ///
+    /// [0]: https://tinyurl.com/w3mcs#idl-def-MediaStreamTrackState.ended
+    Ended,
+}
+
+impl From<sys::TrackState> for TrackState {
+    fn from(state: sys::TrackState) -> Self {
+        match state {
+            sys::TrackState::kLive => Self::Live,
+            sys::TrackState::kEnded => Self::Ended,
+            _ => unreachable!(),
+        }
+    }
+}
+
 /// [RTCRtpTransceiverDirection][1] representation.
 ///
 /// [1]: https://w3.org/TR/webrtc#dom-rtcrtptransceiverdirection
@@ -979,6 +1006,17 @@ pub fn microphone_volume() -> anyhow::Result<u32> {
 /// Disposes the specified [`MediaStreamTrack`].
 pub fn dispose_track(track_id: String, kind: MediaType) {
     WEBRTC.lock().unwrap().dispose_track(track_id, kind);
+}
+
+/// Returns the [readyState][0] property of the [`MediaStreamTrack`] by its ID
+/// and [`MediaType`].
+///
+/// [0]: https://w3.org/TR/mediacapture-streams#dfn-readystate
+pub fn track_state(
+    track_id: String,
+    kind: MediaType,
+) -> anyhow::Result<TrackState> {
+    WEBRTC.lock().unwrap().track_state(track_id, kind)
 }
 
 /// Changes the [enabled][1] property of the [`MediaStreamTrack`] by its ID and

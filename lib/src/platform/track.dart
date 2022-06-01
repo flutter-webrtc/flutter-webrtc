@@ -21,6 +21,9 @@ abstract class MediaStreamTrack {
   /// media will be transmitted.
   bool isEnabled();
 
+  /// Returns [MediaStreamTrackState] of the [MediaStreamTrack].
+  Future<MediaStreamTrackState> state();
+
   /// Sets enabled state of the [MediaStreamTrack].
   ///
   /// If `false` is provided then blank (black screen for video and `0dB` for

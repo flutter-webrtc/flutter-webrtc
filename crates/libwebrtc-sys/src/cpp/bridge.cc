@@ -388,6 +388,16 @@ void set_audio_track_enabled(const AudioTrackInterface& track, bool enabled) {
   track->set_enabled(enabled);
 }
 
+// Calls `VideoTrackInterface->state()`.
+TrackState video_track_state(const VideoTrackInterface& track) {
+  return track->state();
+}
+
+// Calls `AudioTrackInterface->state()`.
+TrackState audio_track_state(const AudioTrackInterface& track) {
+  return track->state();
+}
+
 // Registers the provided video `sink` for the given `track`.
 //
 // Used to connect the given `track` to the underlying video engine.

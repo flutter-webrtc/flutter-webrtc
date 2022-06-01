@@ -141,6 +141,13 @@ abstract class FlutterWebrtcNative {
   Future<void> disposeTrack(
       {required String trackId, required MediaType kind, dynamic hint});
 
+  /// Returns the [readyState][0] property of the [`MediaStreamTrack`] by its ID
+  /// and [`MediaType`].
+  ///
+  /// [0]: https://w3.org/TR/mediacapture-streams#dfn-readystate
+  Future<TrackState> trackState(
+      {required String trackId, required MediaType kind, dynamic hint});
+
   /// Changes the [enabled][1] property of the [`MediaStreamTrack`] by its ID and
   /// [`MediaType`].
   ///
@@ -225,14 +232,12 @@ enum BundlePolicy {
 
 @freezed
 class GetMediaError with _$GetMediaError {
-  /// The [`GetMediaError`] is caused while creating [`crate::VideoSource`]
-  /// or [`crate::VideoTrack`].
+  /// Could not acquire audio track.
   const factory GetMediaError.audio(
     String field0,
   ) = Audio;
 
-  /// The [`GetMediaError`] is caused while creating
-  /// [`crate::sys::AudioSourceInterface`] or [`crate::AudioTrack`].
+  /// Could not acquire video track.
   const factory GetMediaError.video(
     String field0,
   ) = Video;
@@ -240,12 +245,12 @@ class GetMediaError with _$GetMediaError {
 
 @freezed
 class GetMediaResult with _$GetMediaResult {
-  /// Getting the media is ok.
+  /// Requested media tracks.
   const factory GetMediaResult.ok(
     List<MediaStreamTrack> field0,
   ) = Ok;
 
-  /// Getting the media is failed.
+  /// Failed to get requested media.
   const factory GetMediaResult.err(
     GetMediaError field0,
   ) = Err;
@@ -803,6 +808,22 @@ enum TrackEvent {
   Ended,
 }
 
+/// Indicator of the current [MediaStreamTrackState][0] of a
+/// [`MediaStreamTrack`].
+///
+/// [0]: https://w3.org/TR/mediacapture-streams#dom-mediastreamtrackstate
+enum TrackState {
+  /// [MediaStreamTrackState.live][0] representation.
+  ///
+  /// [0]: https://tinyurl.com/w3mcs#idl-def-MediaStreamTrackState.live
+  Live,
+
+  /// [MediaStreamTrackState.ended][0] representation.
+  ///
+  /// [0]: https://tinyurl.com/w3mcs#idl-def-MediaStreamTrackState.ended
+  Ended,
+}
+
 /// Nature and settings of the video [`MediaStreamTrack`] returned by
 /// [`Webrtc::get_users_media()`].
 class VideoConstraints {
@@ -1199,6 +1220,20 @@ class FlutterWebrtcNativeImpl
         parseSuccessData: _wire2api_unit,
         constMeta: const FlutterRustBridgeTaskConstMeta(
           debugName: "dispose_track",
+          argNames: ["trackId", "kind"],
+        ),
+        argValues: [trackId, kind],
+        hint: hint,
+      ));
+
+  Future<TrackState> trackState(
+          {required String trackId, required MediaType kind, dynamic hint}) =>
+      executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) => inner.wire_track_state(
+            port_, _api2wire_String(trackId), _api2wire_media_type(kind)),
+        parseSuccessData: _wire2api_track_state,
+        constMeta: const FlutterRustBridgeTaskConstMeta(
+          debugName: "track_state",
           argNames: ["trackId", "kind"],
         ),
         argValues: [trackId, kind],
@@ -1692,6 +1727,10 @@ TrackEvent _wire2api_track_event(dynamic raw) {
   return TrackEvent.values[raw];
 }
 
+TrackState _wire2api_track_state(dynamic raw) {
+  return TrackState.values[raw];
+}
+
 int _wire2api_u32(dynamic raw) {
   return raw as int;
 }
@@ -2150,6 +2189,25 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
           ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>,
               ffi.Int32)>>('wire_dispose_track');
   late final _wire_dispose_track = _wire_dispose_trackPtr
+      .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>, int)>();
+
+  void wire_track_state(
+    int port_,
+    ffi.Pointer<wire_uint_8_list> track_id,
+    int kind,
+  ) {
+    return _wire_track_state(
+      port_,
+      track_id,
+      kind,
+    );
+  }
+
+  late final _wire_track_statePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>,
+              ffi.Int32)>>('wire_track_state');
+  late final _wire_track_state = _wire_track_statePtr
       .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>, int)>();
 
   void wire_set_track_enabled(

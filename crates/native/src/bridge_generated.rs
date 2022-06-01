@@ -482,6 +482,26 @@ pub extern "C" fn wire_dispose_track(
 }
 
 #[no_mangle]
+pub extern "C" fn wire_track_state(
+    port_: i64,
+    track_id: *mut wire_uint_8_list,
+    kind: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "track_state",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_track_id = track_id.wire2api();
+            let api_kind = kind.wire2api();
+            move |task_callback| track_state(api_track_id, api_kind)
+        },
+    )
+}
+
+#[no_mangle]
 pub extern "C" fn wire_set_track_enabled(
     port_: i64,
     track_id: *mut wire_uint_8_list,
@@ -1255,6 +1275,16 @@ impl support::IntoDart for TrackEvent {
     fn into_dart(self) -> support::DartCObject {
         match self {
             Self::Ended => 0,
+        }
+        .into_dart()
+    }
+}
+
+impl support::IntoDart for TrackState {
+    fn into_dart(self) -> support::DartCObject {
+        match self {
+            Self::Live => 0,
+            Self::Ended => 1,
         }
         .into_dart()
     }

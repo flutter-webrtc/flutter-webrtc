@@ -240,6 +240,59 @@ void main() {
     await completer.future.timeout(const Duration(seconds: 3));
   });
 
+  testWidgets('Track Onended not working after stop()',
+      (WidgetTester tester) async {
+    var capsAudioOnly = DeviceConstraints();
+    capsAudioOnly.audio.mandatory = AudioConstraints();
+
+    var tracksAudioOnly = await getUserMedia(capsAudioOnly);
+    expect(tracksAudioOnly.length, equals(1));
+
+    var track = tracksAudioOnly[0];
+
+    final completer = Completer<void>();
+    track.onEnded(() {
+      completer.complete();
+    });
+
+    var server = IceServer(['stun:stun.l.google.com:19302']);
+    var pc1 = await PeerConnection.create(IceTransportType.all, [server]);
+    var pc2 = await PeerConnection.create(IceTransportType.all, [server]);
+
+    pc1.onIceCandidate((IceCandidate candidate) async {
+      await pc2.addIceCandidate(candidate);
+    });
+
+    pc2.onIceCandidate((IceCandidate candidate) async {
+      await pc1.addIceCandidate(candidate);
+    });
+
+    var audioTransceiver = await pc1.addTransceiver(
+        MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendOnly));
+
+    audioTransceiver.sender.replaceTrack(track);
+
+    var offer = await pc1.createOffer();
+    await pc1.setLocalDescription(offer);
+    await pc2.setRemoteDescription(offer);
+
+    var answer = await pc2.createAnswer();
+    await pc2.setLocalDescription(answer);
+    await pc1.setRemoteDescription(answer);
+
+    expect(await track.state(), equals(MediaStreamTrackState.live));
+
+    await track.stop();
+
+    try {
+      await completer.future.timeout(const Duration(seconds: 3));
+      throw Exception('Completer completed');
+    } catch (e) {
+      expect(e is TimeoutException, isTrue);
+      expect(await track.state(), equals(MediaStreamTrackState.ended));
+    }
+  });
+
   testWidgets('Connect two peers', (WidgetTester tester) async {
     var caps = DeviceConstraints();
     caps.audio.mandatory = AudioConstraints();
@@ -449,7 +502,7 @@ void main() {
       });
 
       await Future.wait(futures.map((e) => e.future))
-          .timeout(const Duration(minutes: 1));
+          .timeout(const Duration(minutes: 2));
 
       expect(hasRelay, isFalse);
       expect(hasSrflx, isTrue);
@@ -496,7 +549,7 @@ void main() {
       });
 
       await Future.wait(futures.map((e) => e.future))
-          .timeout(const Duration(minutes: 1));
+          .timeout(const Duration(minutes: 2));
 
       expect(candidatesFired, equals(0));
     }
