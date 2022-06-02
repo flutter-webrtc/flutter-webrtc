@@ -83,7 +83,7 @@ class RTCDataChannelNative extends RTCDataChannel {
       case 'dataChannelBufferedAmountChange':
         _bufferedAmount = map['bufferedAmount'];
         if (bufferedAmountLowThreshold != null) {
-          if (_bufferedAmount < bufferedAmountLowThreshold) {
+          if (_bufferedAmount < bufferedAmountLowThreshold!) {
             onBufferedAmountLow?.call(_bufferedAmount);
           }
         }
