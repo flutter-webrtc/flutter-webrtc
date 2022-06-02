@@ -25,6 +25,7 @@ class RTCDataChannelNative extends RTCDataChannel {
   final String _peerConnectionId;
   final String _label;
   int _bufferedAmount = 0;
+  int? bufferedAmountLowThreshold;
 
   /// Id for the datachannel in the Flutter <-> Native layer.
   final String _flutterId;
@@ -44,7 +45,7 @@ class RTCDataChannelNative extends RTCDataChannel {
   String? get label => _label;
 
   @override
-  int get bufferedAmount => _bufferedAmount;
+  int? get bufferedAmount => _bufferedAmount;
 
   final _stateChangeController =
       StreamController<RTCDataChannelState>.broadcast(sync: true);
@@ -81,6 +82,11 @@ class RTCDataChannelNative extends RTCDataChannel {
 
       case 'dataChannelBufferedAmountChange':
         _bufferedAmount = map['bufferedAmount'];
+        if (bufferedAmountLowThreshold != null) {
+          if (_bufferedAmount < bufferedAmountLowThreshold) {
+            onBufferedAmountLow?.call(_bufferedAmount);
+          }
+        }
         onBufferedAmountChange?.call(_bufferedAmount, map['changedAmount']);
         break;
     }

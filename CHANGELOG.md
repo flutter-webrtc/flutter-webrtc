@@ -4,6 +4,7 @@
 [0.8.8] - 2022-05-31
 
 * [Android] Added onBufferedAmountChange callback which will return currentBuffer and changedBuffer and implemented bufferedAmount.
+* [Android] Added onBufferedAmountLow callback which will return currentBuffer ans will be called if bufferedAmountLowThreshold is set a value.
 
 [0.8.7] - 2022-05-18
 
