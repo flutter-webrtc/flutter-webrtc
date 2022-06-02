@@ -55,7 +55,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     public void onBufferedAmountChange(long amount) {
         ConstraintsMap params = new ConstraintsMap();
         params.putString("event", "dataChannelBufferedAmountChange");
-        params.putInt("id", mDataChannel.id());
+        params.putInt("id", dataChannel.id());
         params.putLong("bufferedAmount", dataChannel.bufferedAmount());
         params.putLong("changedAmount", amount);
         sendEvent(params);
