@@ -25,6 +25,7 @@ class RTCDataChannelNative extends RTCDataChannel {
   final String _peerConnectionId;
   final String _label;
   int _bufferedAmount = 0;
+  @override
   int? bufferedAmountLowThreshold;
 
   /// Id for the datachannel in the Flutter <-> Native layer.
