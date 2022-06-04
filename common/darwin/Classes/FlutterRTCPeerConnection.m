@@ -506,19 +506,18 @@
     dataChannel.eventChannel = eventChannel;
     dataChannel.flutterChannelId = flutterChannelId;
 
-    FlutterEventSink eventSink = peerConnection.eventSink;
-    if(eventSink){
-        eventSink(@{
-                    @"event" : @"didOpenDataChannel",
-                    @"id": dataChannelId,
-                    @"label": dataChannel.label,
-                    @"flutterId": flutterChannelId
-                    });
-    }
-
     dispatch_async(dispatch_get_main_queue(), ^{
        // setStreamHandler on main thread
        [eventChannel setStreamHandler:dataChannel];
+       FlutterEventSink eventSink = peerConnection.eventSink;
+       if(eventSink){
+           eventSink(@{
+                       @"event" : @"didOpenDataChannel",
+                       @"id": dataChannelId,
+                       @"label": dataChannel.label,
+                       @"flutterId": flutterChannelId
+                       });
+       }
     });
 }
 
