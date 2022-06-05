@@ -687,7 +687,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       if(encodingsParams != null) {
           for (int i=0;i< encodingsParams.size();i++){
               Map<String, Object> params = encodingsParams.get(i);
-              sendEncodings.add(0, mapToEncoding(params));
+              sendEncodings.add(mapToEncoding(params));
           }
           init = new RtpTransceiver.RtpTransceiverInit(stringToTransceiverDirection(direction) ,streamIds, sendEncodings);
       } else {
