@@ -900,11 +900,41 @@ static const char* signalingStateString(RTCSignalingState state) {
   }
   return "";
 }
+
 void FlutterPeerConnectionObserver::OnSignalingState(RTCSignalingState state) {
   if (event_sink_ != nullptr) {
     EncodableMap params;
     params[EncodableValue("event")] = "signalingState";
     params[EncodableValue("state")] = signalingStateString(state);
+    event_sink_->Success(EncodableValue(params));
+  }
+}
+
+
+static const char *peerConnectionStateString(RTCPeerConnectionState state) {
+  switch (state) {
+    case RTCPeerConnectionStateNew:
+      return "new";
+    case RTCPeerConnectionStateConnecting:
+      return "connecting";
+    case RTCPeerConnectionStateConnected:
+      return "connected";
+    case RTCPeerConnectionStateDisconnected:
+      return "disconnected";
+    case RTCPeerConnectionStateFailed:
+      return "failed";
+    case RTCPeerConnectionStateClosed:
+      return "closed";
+  }
+  return "";
+}
+
+
+void FlutterPeerConnectionObserver::OnPeerConnectionState(RTCPeerConnectionState state) {
+  if (event_sink_ != nullptr) {
+    EncodableMap params;
+    params[EncodableValue("event")] = "peerConnectionState";
+    params[EncodableValue("state")] = peerConnectionStateString(state);
     event_sink_->Success(EncodableValue(params));
   }
 }
