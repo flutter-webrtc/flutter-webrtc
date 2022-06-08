@@ -1,6 +1,15 @@
 # Changelog
 
 --------------------------------------------
+[0.8.9] - 2022-06-08
+
+* [Android] Fixes DataChannel issue described in #974
+* [iOS] Fixes DataChannel issue described in #974
+* [Dawrin/Android/Windows] Split data channel's webrtc id from our internal id (#961)
+* [Windows] Update to m97.
+* [Windows] Add PeerConnectionState
+* [Windows] Fix can't open mic alone when built-in AEC is enabled.
+
 [0.8.8] - 2022-05-31
 
 * [Android] Added onBufferedAmountChange callback which will return currentBuffer and changedBuffer and implemented bufferedAmount.
