@@ -45,8 +45,6 @@ class RTCMediaConstraints : public RefCountInterface {
   LIB_WEBRTC_API static const char* kValueFalse;  // false
 
   // PeerConnection constraint keys.
-  // Temporary pseudo-constraints used to enable DTLS-SRTP
-  LIB_WEBRTC_API static const char* kEnableDtlsSrtp;  // Enable DTLS-SRTP
   // Temporary pseudo-constraints used to enable DataChannels
   LIB_WEBRTC_API static const char*
       kEnableRtpDataChannels;  // Enable RTP DataChannels
