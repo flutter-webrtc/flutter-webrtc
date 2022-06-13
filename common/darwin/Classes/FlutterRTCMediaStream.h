@@ -5,8 +5,7 @@
 
 -(void)getUserMedia:(NSDictionary *)constraints
              result:(FlutterResult)result;
--(void)getDisplayMedia:(NSDictionary *)constraints
-             result:(FlutterResult)result;
+
 -(void)createLocalMediaStream:(FlutterResult)result;
 
 -(void)getSources:(FlutterResult)result;

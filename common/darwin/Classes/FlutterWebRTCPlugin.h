@@ -24,7 +24,7 @@
 @property (nonatomic, strong) RTCCameraVideoCapturer *videoCapturer;
 @property (nonatomic, strong) FlutterRTCFrameCapturer *frameCapturer;
 #if TARGET_OS_MAC
-@property (nonatomic, strong) RTCScreenCapturer *screenCapturer;
+@property (nonatomic, strong) RTCDesktopCapturer *desktopCapturer;
 #endif
 @property (nonatomic) BOOL _usingFrontCamera;
 @property (nonatomic) int _targetWidth;

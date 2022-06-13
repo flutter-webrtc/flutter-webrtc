@@ -2,6 +2,7 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCDataChannel.h"
+#import "FlutterRTCDesktopCapturer.h"
 #import "FlutterRTCVideoRenderer.h"
 #import "AudioUtils.h"
 
@@ -370,10 +371,10 @@
                         self.videoCapturer = nil;
                     }
 #if TARGET_OS_MAC
-                    if(self.screenCapturer != nil) {
-                        [self.screenCapturer stopCapture];
+                    if(self.desktopCapturer != nil) {
+                        [self.desktopCapturer stopCapture];
                     }
-                    self.screenCapturer = nil;
+                    self.desktopCapturer = nil;
 #endif
                 }
             }
@@ -970,6 +971,12 @@
         }
 
         result(@{ @"transceivers":transceivers});
+    } else  if ([@"getDesktopSources" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        [self getDesktopSources:argsMap result:result];
+    }  else  if ([@"getDesktopSourceThumbnail" isEqualToString:call.method]){
+         NSDictionary* argsMap = call.arguments;
+        [self getDesktopSourceThumbnail:argsMap result:result];
     } else {
         result(FlutterMethodNotImplemented);
     }
