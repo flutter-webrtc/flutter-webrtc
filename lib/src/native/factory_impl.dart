@@ -9,6 +9,7 @@ import 'navigator_impl.dart';
 import 'rtc_peerconnection_impl.dart';
 import 'rtc_video_renderer_impl.dart';
 import 'utils.dart';
+import '../desktop_capturer.dart';
 
 class RTCFactoryNative extends RTCFactory {
   RTCFactoryNative._internal();

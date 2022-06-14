@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:webrtc_interface/webrtc_interface.dart';
+import '../desktop_capturer.dart';
 
 import 'utils.dart';
 
