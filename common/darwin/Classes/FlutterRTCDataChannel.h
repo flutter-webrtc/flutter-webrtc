@@ -3,7 +3,7 @@
 
 @interface RTCDataChannel (Flutter) <FlutterStreamHandler>
 @property (nonatomic, strong, nonnull) NSString *peerConnectionId;
-@property (nonatomic, strong, nonnull) NSNumber *flutterChannelId;
+@property (nonatomic, strong, nonnull) NSString *flutterChannelId;
 @property (nonatomic, strong, nullable) FlutterEventSink eventSink;
 @property (nonatomic, strong, nullable) FlutterEventChannel *eventChannel;
 @end

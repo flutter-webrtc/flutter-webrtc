@@ -10,10 +10,10 @@ void main() {
   final channel = MethodChannel('FlutterWebRTC.Method');
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      await ServicesBinding.instance?.defaultBinaryMessenger
+      await ServicesBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
               'FlutterWebRTC/peerConnectoinEvent', null, (ByteData? data) {});
-      await ServicesBinding.instance?.defaultBinaryMessenger
+      await ServicesBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
               'FlutterWebRTC/dataChannelEvent', null, (ByteData? data) {});
     });
@@ -45,6 +45,7 @@ void main() {
       channel.eventListener(<String, dynamic>{
         'event': 'dataChannelStateChanged',
         'id': 0,
+        'flutterId': '',
         'state': 'open'
       });
     };
@@ -76,6 +77,7 @@ void main() {
         },
         'id': 0,
         'label': '',
+        'flutterId': '',
       });
     });
   });

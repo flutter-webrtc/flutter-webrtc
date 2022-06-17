@@ -16,6 +16,7 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
                                 std::string& peerConnectionId);
 
   virtual void OnSignalingState(RTCSignalingState state) override;
+  virtual void OnPeerConnectionState(RTCPeerConnectionState state) override;
   virtual void OnIceGatheringState(RTCIceGatheringState state) override;
   virtual void OnIceConnectionState(RTCIceConnectionState state) override;
   virtual void OnIceCandidate(

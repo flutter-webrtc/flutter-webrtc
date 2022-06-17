@@ -39,9 +39,10 @@ class FlutterDataChannel {
                        std::unique_ptr<MethodResult<EncodableValue>>);
 
   void DataChannelClose(RTCDataChannel *data_channel,
+                        const std::string &data_channel_uuid,
                         std::unique_ptr<MethodResult<EncodableValue>>);
 
-  RTCDataChannel *DataChannelFormId(int id);
+  RTCDataChannel *DataChannelForId(const std::string &id);
 
  private:
   FlutterWebRTCBase *base_;

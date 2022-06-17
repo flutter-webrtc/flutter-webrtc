@@ -39,20 +39,6 @@ void FlutterDataChannel::CreateDataChannel(
 
   RTCDataChannelInit init;
   init.id = GetValue<int>(dataChannelDict.find(EncodableValue("id"))->second);
-
-  base_->lock();
-  if (base_->data_channel_observers_.find( init.id) !=
-      base_->data_channel_observers_.end()) {
-    for(int i = 1024; i < 65535; i++){
-      if(base_->data_channel_observers_.find(i) ==
-      base_->data_channel_observers_.end()){
-         init.id = i;
-        break;
-      }
-    }
-  }
-  base_->unlock();
-
   init.ordered =
       GetValue<bool>(dataChannelDict.find(EncodableValue("ordered"))->second);
 
@@ -77,21 +63,22 @@ void FlutterDataChannel::CreateDataChannel(
   scoped_refptr<RTCDataChannel> data_channel =
       pc->CreateDataChannel(label.c_str(), &init);
 
-
+  std::string uuid = base_->GenerateUUID();
   std::string event_channel = "FlutterWebRTC/dataChannelEvent" +
-                              peerConnectionId + std::to_string(init.id);
+                              peerConnectionId + uuid;
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
                                         event_channel));
 
   base_->lock();
-  base_->data_channel_observers_[init.id] = std::move(observer);
+  base_->data_channel_observers_[uuid] = std::move(observer);
   base_->unlock();
 
   EncodableMap params;
   params[EncodableValue("id")] = EncodableValue(init.id);
   params[EncodableValue("label")] = EncodableValue(data_channel->label().std_string());
+  params[EncodableValue("flutterId")] = EncodableValue(uuid);
   result->Success(EncodableValue(params));
 }
 
@@ -112,17 +99,17 @@ void FlutterDataChannel::DataChannelSend(
 
 void FlutterDataChannel::DataChannelClose(
     RTCDataChannel *data_channel,
+    const std::string &data_channel_uuid,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
-  int id = data_channel->id();
   data_channel->Close();
-  auto it = base_->data_channel_observers_.find(id);
+  auto it = base_->data_channel_observers_.find(data_channel_uuid);
   if (it != base_->data_channel_observers_.end())
     base_->data_channel_observers_.erase(it);
   result->Success();
 }
 
-RTCDataChannel *FlutterDataChannel::DataChannelFormId(int id) {
-  auto it = base_->data_channel_observers_.find(id);
+RTCDataChannel *FlutterDataChannel::DataChannelForId(const std::string &uuid) {
+  auto it = base_->data_channel_observers_.find(uuid);
 
   if (it != base_->data_channel_observers_.end()) {
     FlutterRTCDataChannelObserver *observer = it->second.get();
