@@ -152,7 +152,7 @@ NSArray<RTCDesktopSource *>* _captureSources;
     NSEnumerator *enumerator = [_captureSources objectEnumerator];
     RTCDesktopSource *object;
     while ((object = enumerator.nextObject) != nil) {
-        if(sourceId == object.sourceId) {
+        if([sourceId isEqualToString:object.sourceId]) {
             return object;
         }
     }
