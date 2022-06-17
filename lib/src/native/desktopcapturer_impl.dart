@@ -30,7 +30,7 @@ class DesktopCapturerSourceNative implements DesktopCapturerSource {
   String get name => name_;
 
   @override
-  ByteBuffer get thumbnail => bytes.buffer;
+  Uint8List get thumbnail => bytes;
 
   @override
   ThumbnailSize get thumbnailSize => thumbnailSize_;
@@ -79,7 +79,7 @@ class DesktopCapturerNative implements DesktopCapturer {
   }
 
   @override
-  Future<List<DesktopCapturerSource>> getSources(List<SourceType> types, ThumbnailSize thumbnailSize) async {
+  Future<List<DesktopCapturerSource>> getSources({required List<SourceType> types, ThumbnailSize? thumbnailSize}) async {
 
     if (!WebRTC.platformIsWindows) {
       throw UnimplementedError();

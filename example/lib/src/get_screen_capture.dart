@@ -41,8 +41,8 @@ class _GetScreenCaptureState extends State<GetScreenCapture> {
     await _localRenderer.initialize();
 
     _sources = await navigator.desktopCapturer.getSources(
-        [SourceType.kScreen, SourceType.kWindow],
-        ThumbnailSize(320, 180)
+        types: [SourceType.kScreen, SourceType.kWindow],
+        thumbnailSize: ThumbnailSize(320, 180)
     );
   }
 
