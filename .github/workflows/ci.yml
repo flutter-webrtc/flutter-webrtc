@@ -21,8 +21,7 @@ jobs:
   ################
 
   pr:
-    if: ${{ github.event_name == 'pull_request'
-            && !contains(github.event.head_commit.message, '[skip ci]') }}
+    if: ${{ github.event_name == 'pull_request' }}
     needs:
       - build
       - clippy
@@ -45,7 +44,6 @@ jobs:
   ##########################
 
   clippy:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -58,7 +56,6 @@ jobs:
       - run: make cargo.lint
 
   dartanalyze:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -69,7 +66,6 @@ jobs:
       - run: make flutter.analyze
 
   dartfmt:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -80,7 +76,6 @@ jobs:
       - run: make flutter.fmt check=yes
 
   ktfmt:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -96,7 +91,6 @@ jobs:
         run: java -jar ktfmt.jar --set-exit-if-changed android/src/main/kotlin/
 
   rustfmt:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -116,7 +110,6 @@ jobs:
   ############
 
   build:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     # TODO: Switch to `windows-latest` when stable Flutter stable will support
     #       MSVC 2022:
     #       https://github.com/flutter/flutter/issues/85922
@@ -144,7 +137,6 @@ jobs:
   test-flutter:
     name: Test Flutter integration
     needs: ["build"]
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     strategy:
       fail-fast: false
       matrix:
@@ -191,7 +183,6 @@ jobs:
 
   test-rust:
     name: Test Rust crates
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     # TODO: Switch to `windows-latest` when stable Flutter stable will
     #       support MSVC 2022:
     #       https://github.com/flutter/flutter/issues/85922
@@ -214,7 +205,6 @@ jobs:
   #################
 
   rustdoc:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     strategy:
       fail-fast: false
       matrix:
