@@ -116,4 +116,12 @@ class Helper {
     }
     track.enabled = !mute;
   }
+
+  static Future<MediaStream> cloneStream(MediaStream stream) async {
+    var cloneStream = await createLocalMediaStream(stream.id);
+    cloneStream.getTracks().forEach((track) {
+      cloneStream.addTrack(track, addToNative: true);
+    });
+    return cloneStream;
+  }
 }
