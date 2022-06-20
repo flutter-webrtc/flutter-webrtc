@@ -8,7 +8,9 @@
 #import "AudioUtils.h"
 
 #if TARGET_OS_IPHONE
+#import <ReplayKit/ReplayKit.h>
 #import "FlutterRPScreenRecorder.h"
+#import "FlutterBroadcastScreenCapturer.h"
 #endif
 
 @implementation AVCaptureDevice (Flutter)
@@ -490,10 +492,22 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
 
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
-    FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
+    FlutterBroadcastScreenCapturer *screenCapturer = [[FlutterBroadcastScreenCapturer alloc] initWithDelegate:videoSource];
 
     [screenCapturer startCapture];
 
+    NSString *extension = [[[NSBundle mainBundle] infoDictionary] valueForKey: kRTCScreenSharingExtension];
+    
+    if(extension) {
+        RPSystemBroadcastPickerView *picker = [[RPSystemBroadcastPickerView alloc] init];
+        picker.preferredExtension = extension;
+        picker.showsMicrophoneButton = false;
+        
+        SEL selector = NSSelectorFromString(@"buttonPressed:");
+        if([picker respondsToSelector:selector]) {
+            [picker performSelector:selector withObject:nil];
+        }
+    }
     //TODO:
     self.videoCapturer = screenCapturer;
 
