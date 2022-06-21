@@ -161,11 +161,13 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
                                     print('id => ${e.id}');
                                     _makeCall(e);
                                   }, // Handle your callback
-                                  child: Image.memory(
-                                    e.thumbnail!,
-                                    scale: 1.0,
-                                    repeat: ImageRepeat.noRepeat,
-                                  ),
+                                  child: e.thumbnail != null
+                                      ? Image.memory(
+                                          e.thumbnail!,
+                                          scale: 1.0,
+                                          repeat: ImageRepeat.noRepeat,
+                                        )
+                                      : Container(),
                                 ),
                               )
                             ],

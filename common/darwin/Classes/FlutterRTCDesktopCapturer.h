@@ -3,14 +3,12 @@
 #elif TARGET_OS_OSX
 #import <FlutterMacOS/FlutterMacOS.h>
 #endif
-
 #import <Foundation/Foundation.h>
-#import "FlutterWebRTCPlugin.h"
 #import <WebRTC/WebRTC.h>
 
-//#if TARGET_OS_MAC
+#import "FlutterWebRTCPlugin.h"
 
-@interface FlutterWebRTCPlugin (DesktopCapturer) <RTCDesktopMediaListDelegate>
+@interface FlutterWebRTCPlugin (DesktopCapturer)
 
 -(void)getDisplayMedia:(NSDictionary *)constraints
              result:(FlutterResult)result;
@@ -21,5 +19,3 @@
 -(void)getDesktopSourceThumbnail:(NSDictionary *)argsMap
              result:(FlutterResult)result;
 @end
-
-//#endif

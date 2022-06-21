@@ -65,7 +65,12 @@ class DesktopCapturerNative extends DesktopCapturer {
           source['name'],
           ThumbnailSize.fromMap(source['thumbnailSize']),
           sourceType);
-      desktopSource.thumbnail = await getThumbnail(desktopSource);
+      try {
+        desktopSource.thumbnail = await getThumbnail(desktopSource);
+      } catch (e) {
+        print(e);
+      }
+
       sources.add(desktopSource);
     }
     return sources;

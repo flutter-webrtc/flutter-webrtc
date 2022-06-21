@@ -46,15 +46,11 @@ NSArray<RTCDesktopSource *>* _captureSources;
     
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
-
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
 
 #if TARGET_OS_IPHONE
     FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
-
     [screenCapturer startCapture];
-
-    //TODO:
     self.videoCapturer = screenCapturer;
 #endif
     
@@ -65,7 +61,7 @@ NSArray<RTCDesktopSource *>* _captureSources;
     } else {
         desktopCapturer  = [[RTCDesktopCapturer alloc] initWithSource:source delegate:videoSource];
     }
-    [desktopCapturer startCapture:30];
+    [desktopCapturer startCaptureWithFPS:30];
 
     self.desktopCapturer = desktopCapturer;
 #endif
@@ -159,49 +155,24 @@ NSArray<RTCDesktopSource *>* _captureSources;
     return nil;
 }
 
-
 -(void)StartHandling:(BOOL)captureWindow captureScreen:(BOOL) captureScreen {
     _captureSources = [NSMutableArray array];
 
     if(_captureWindow) {
-        if(!_window) _window = [[RTCDesktopMediaList alloc] initWithDelegate:self type:RTCDesktopSourceTypeWindow];
+        if(!_window) _window = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeWindow];
         [_window UpdateSourceList];
         NSArray<RTCDesktopSource *>* sources = [_window getSources];
         _captureSources = [_captureSources arrayByAddingObjectsFromArray:sources];
-        NSData *data = [sources[0].thumbnail TIFFRepresentation];
-        NSLog(@"Window: %lu, data %lu", [sources count], data.length);
     }
 
     if(_captureScreen) {
-        if(!_screen) _screen = [[RTCDesktopMediaList alloc] initWithDelegate:self type:RTCDesktopSourceTypeScreen];
-         [_screen UpdateSourceList];
+        if(!_screen) _screen = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeScreen];
+        [_screen UpdateSourceList];
         NSArray<RTCDesktopSource *>* sources = [_screen getSources];
-        NSData *data = [sources[0].thumbnail TIFFRepresentation];
         _captureSources = [_captureSources arrayByAddingObjectsFromArray:sources];
-        NSLog(@"Screen: %lu, data %lu", [sources count], data.length);
     }
     
     NSLog(@"captureSources: %lu", [_captureSources count]);
-}
-
--(void)mediaSourceAdded:(int)index fromSource:(RTCDesktopSource *) source {
-     NSLog(@"mediaSourceAdded");
-}
-
--(void)mediaSourceRemoved:(int)index fromSource:(RTCDesktopSource *) source {
-    NSLog(@"mediaSourceRemoved");
-}
-
--(void)mediaSourceMoved:(int) oldIndex newIndex:(int) newIndex fromSource:(RTCDesktopSource *) source {
-    NSLog(@"mediaSourceMoved");
-}
-
--(void)mediaSourceNameChanged:(int)index fromSource:(RTCDesktopSource *) source{
-    NSLog(@"mediaSourceNameChanged");
-}
-
--(void)mediaSourceThumbnailChanged:(int)index fromSource:(RTCDesktopSource *) source {
-    NSLog(@"mediaSourceThumbnailChanged");
 }
 
 @end
