@@ -21,7 +21,7 @@ jobs:
           java-version: '12.x'
       - uses: subosito/flutter-action@v1
         with:
-          flutter-version: '2.5.3'
+          flutter-version: '3.0.2'
           channel: 'stable'
       - run: flutter packages get
       - run: flutter format lib/ test/ --set-exit-if-changed
