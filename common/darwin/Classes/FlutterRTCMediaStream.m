@@ -490,22 +490,36 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                 result:(FlutterResult)result {
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
-
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
-    FlutterBroadcastScreenCapturer *screenCapturer = [[FlutterBroadcastScreenCapturer alloc] initWithDelegate:videoSource];
-
+    
+    BOOL useBroadcastExtension = false;
+    id videoConstraints = constraints[@"video"];
+    if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
+       // constraints.video.deviceId
+        useBroadcastExtension = [((NSDictionary *)videoConstraints)[@"deviceId"] isEqualToString:@"broadcast"];
+    }
+    
+    id screenCapturer;
+    
+    if(useBroadcastExtension){
+        screenCapturer = [[FlutterBroadcastScreenCapturer alloc] initWithDelegate:videoSource];
+    } else {
+        screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
+    }
+    
     [screenCapturer startCapture];
 
-    NSString *extension = [[[NSBundle mainBundle] infoDictionary] valueForKey: kRTCScreenSharingExtension];
-    
-    if(extension) {
-        RPSystemBroadcastPickerView *picker = [[RPSystemBroadcastPickerView alloc] init];
-        picker.preferredExtension = extension;
-        picker.showsMicrophoneButton = false;
-        
-        SEL selector = NSSelectorFromString(@"buttonPressed:");
-        if([picker respondsToSelector:selector]) {
-            [picker performSelector:selector withObject:nil];
+    if(useBroadcastExtension) {
+        NSString *extension = [[[NSBundle mainBundle] infoDictionary] valueForKey: kRTCScreenSharingExtension];
+        if(extension) {
+            RPSystemBroadcastPickerView *picker = [[RPSystemBroadcastPickerView alloc] init];
+            picker.preferredExtension = extension;
+            picker.showsMicrophoneButton = false;
+            
+            SEL selector = NSSelectorFromString(@"buttonPressed:");
+            if([picker respondsToSelector:selector]) {
+                [picker performSelector:selector withObject:nil];
+            }
         }
     }
     //TODO:
