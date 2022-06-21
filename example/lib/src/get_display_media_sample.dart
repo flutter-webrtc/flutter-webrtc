@@ -80,11 +80,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
             ? true
             : {
                 'deviceId': {'exact': selected_source_!.id},
-                'mandatory': {
-                  'minWidth': 1280,
-                  'minHeight': 720,
-                  'frameRate': 30.0
-                }
+                'mandatory': {'frameRate': 30.0}
               }
       });
       stream.getVideoTracks()[0].onEnded = () {
