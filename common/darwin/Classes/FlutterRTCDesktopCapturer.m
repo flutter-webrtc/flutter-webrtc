@@ -2,7 +2,7 @@
 
 #import "FlutterRTCDesktopCapturer.h"
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 RTCDesktopMediaList *_screen = nil;
 RTCDesktopMediaList *_window = nil;
 BOOL _captureWindow = NO;
@@ -21,20 +21,24 @@ NSArray<RTCDesktopSource *>* _captureSources;
 #if TARGET_OS_IPHONE
     FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
     [screenCapturer startCapture];
-    self.videoCapturer = screenCapturer;
+    NSLog(@"start replykit capture");
+    self.videoCapturerStopHandlers[mediaStreamId] = ^(CompletionHandler handler) {
+        NSLog(@"stop replykit capture");
+        [screenCapturer stopCaptureWithCompletionHandler:handler];
+    };
 #endif
     
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 /* example for constraints:
-{
-    'audio': false,
-    'video": {
-        'deviceId':  {'exact': sourceId},
-        'mandatory': {
-            'frameRate': 30.0
-        },
+    {
+        'audio': false,
+        'video": {
+            'deviceId':  {'exact': sourceId},
+            'mandatory': {
+                'frameRate': 30.0
+            },
+        }
     }
-}
 */
     NSString *sourceId = nil;
     NSInteger fps = 30;
@@ -59,10 +63,11 @@ NSArray<RTCDesktopSource *>* _captureSources;
         }
     }
     RTCDesktopCapturer *desktopCapturer;
+    RTCDesktopSource *source = nil;
     if([videoConstraints isKindOfClass:[NSNumber class]] && [videoConstraints boolValue] == YES){
         desktopCapturer  = [[RTCDesktopCapturer alloc] initWithDefaultScreen:videoSource];
     } else {
-        RTCDesktopSource *source = [self getSourceById:sourceId];
+         source = [self getSourceById:sourceId];
         if(source == nil) {
             result(@{@"error": @"No source found"});
             return;
@@ -70,8 +75,13 @@ NSArray<RTCDesktopSource *>* _captureSources;
         desktopCapturer  = [[RTCDesktopCapturer alloc] initWithSource:source delegate:videoSource];
     }
     [desktopCapturer startCaptureWithFPS:fps];
+    NSLog(@"start desktop capture: sourceId: %@, type: %@, fps: %lu", sourceId, source.sourceType == RTCDesktopSourceTypeScreen ? @"screen" : @"window", fps);
 
-    self.desktopCapturer = desktopCapturer;
+    self.videoCapturerStopHandlers[mediaStreamId] = ^(CompletionHandler handler) {
+        NSLog(@"stop desktop capture: sourceId: %@, type: %@", sourceId, source.sourceType == RTCDesktopSourceTypeScreen ? @"screen" : @"window");
+        [desktopCapturer stopCapture];
+        handler();
+    };
 #endif
 
     NSString *trackUUID = [[NSUUID UUID] UUIDString];
@@ -92,7 +102,7 @@ NSArray<RTCDesktopSource *>* _captureSources;
 
 -(void)getDesktopSources:(NSDictionary *)argsMap
              result:(FlutterResult)result {
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
     NSArray *types = [argsMap objectForKey:@"types"];
     if (types == nil) {
         result([FlutterError errorWithCode:@"ERROR"
@@ -147,7 +157,7 @@ NSArray<RTCDesktopSource *>* _captureSources;
 
 -(void)getDesktopSourceThumbnail:(NSDictionary *)argsMap
              result:(FlutterResult)result {
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
     NSString* sourceId = argsMap[@"sourceId"];
     RTCDesktopSource *object = [self getSourceById:sourceId];
     if(object == nil) {
@@ -163,7 +173,7 @@ NSArray<RTCDesktopSource *>* _captureSources;
 #endif
 }
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 -(RTCDesktopSource *)getSourceById:(NSString *)sourceId {
     NSEnumerator *enumerator = [_captureSources objectEnumerator];
     RTCDesktopSource *object;
