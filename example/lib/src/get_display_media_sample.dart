@@ -4,6 +4,7 @@ import 'dart:core';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc_example/src/widgets/screen_select_dialog.dart';
 
 /*
  * getDisplayMedia sample
@@ -19,9 +20,6 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   MediaStream? _localStream;
   final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   bool _inCalling = false;
-  Timer? _timer;
-  var _counter = 0;
-  List<DesktopCapturerSource> _sources = [];
   DesktopCapturerSource? selected_source_;
 
   @override
@@ -36,7 +34,6 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     if (_inCalling) {
       _stop();
     }
-    _timer?.cancel();
     _localRenderer.dispose();
   }
 
@@ -44,26 +41,13 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     await _localRenderer.initialize();
   }
 
-  void handleTimer(Timer timer) async {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  Future<void> _getSources() async {
-    try {
-      var sources = await desktopCapturer
-          .getSources(types: [SourceType.kScreen, SourceType.kWindow]);
-      sources.forEach((element) {
-        print(
-            'name: ${element.name}, id: ${element.id}, type: ${element.type}');
-      });
-      setState(() {
-        _sources = sources;
-      });
-      return;
-    } catch (e) {
-      print(e.toString());
+  Future<void> selectScreenSourceDialog(BuildContext context) async {
+    final source = await showDialog<DesktopCapturerSource>(
+      context: context,
+      builder: (context) => ScreenSelectDialog(),
+    );
+    if (source != null) {
+      await _makeCall(source);
     }
   }
 
@@ -98,8 +82,6 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     setState(() {
       _inCalling = true;
     });
-
-    _timer = Timer.periodic(Duration(milliseconds: 100), handleTimer);
   }
 
   Future<void> _stop() async {
@@ -120,7 +102,6 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     setState(() {
       _inCalling = false;
     });
-    _timer?.cancel();
   }
 
   @override
@@ -138,38 +119,6 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
             width: MediaQuery.of(context).size.width,
             color: Colors.white10,
             child: Stack(children: <Widget>[
-              if (!_inCalling)
-                GridView.count(
-                  // Create a grid with 2 columns. If you change the scrollDirection to
-                  // horizontal, this produces 2 rows.
-                  crossAxisCount: 4,
-                  // Generate 100 widgets that display their index in the List.
-                  children: _sources
-                      .map((e) => Column(
-                            children: [
-                              Text(
-                                e.name,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () {
-                                    print('id => ${e.id}');
-                                    _makeCall(e);
-                                  }, // Handle your callback
-                                  child: e.thumbnail != null
-                                      ? Image.memory(
-                                          e.thumbnail!,
-                                          scale: 1.0,
-                                          repeat: ImageRepeat.noRepeat,
-                                        )
-                                      : Container(),
-                                ),
-                              )
-                            ],
-                          ))
-                      .toList(),
-                ),
               if (_inCalling)
                 Container(
                   margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
@@ -183,7 +132,9 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _inCalling ? _hangUp : _getSources,
+        onPressed: () {
+          _inCalling ? _hangUp() : selectScreenSourceDialog(context);
+        },
         tooltip: _inCalling ? 'Hangup' : 'Call',
         child: Icon(_inCalling ? Icons.call_end : Icons.phone),
       ),

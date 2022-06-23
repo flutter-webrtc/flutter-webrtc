@@ -22,6 +22,7 @@ NSArray<RTCDesktopSource *>* _captureSources;
     FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
     [screenCapturer startCapture];
     NSLog(@"start replykit capture");
+        
     self.videoCapturerStopHandlers[mediaStreamId] = ^(CompletionHandler handler) {
         NSLog(@"stop replykit capture");
         [screenCapturer stopCaptureWithCompletionHandler:handler];
@@ -139,10 +140,15 @@ NSArray<RTCDesktopSource *>* _captureSources;
     [self StartHandling:_captureWindow captureScreen:_captureScreen];
     NSEnumerator *enumerator = [_captureSources objectEnumerator];
     RTCDesktopSource *object;
+    int screenIndex = 0;
     while ((object = enumerator.nextObject) != nil) {
+        NSString *name = object.name;
+        if([name isEqualToString:@""] && object.sourceType == RTCDesktopSourceTypeScreen) {
+            name = [NSString stringWithFormat:@"Screen %d", ++screenIndex];
+        }
         [sources addObject:@{
                              @"id": object.sourceId,
-                             @"name": object.name,
+                             @"name": name,
                              @"thumbnailSize": @{@"width": @0, @"height": @0},
                              @"type": object.sourceType == RTCDesktopSourceTypeScreen? @"screen" : @"window",
                              }];
@@ -164,8 +170,15 @@ NSArray<RTCDesktopSource *>* _captureSources;
         result(@{@"error": @"No source found"});
         return;
     }
-   NSData *data = [object.thumbnail TIFFRepresentation];
-   result(data);
+    NSImage *image = [object thumbnail];
+    if(image != nil) {
+        NSImage *resizedImg = [self resizeImage:image forSize:NSMakeSize(140, 140)];
+        NSData *data = [resizedImg TIFFRepresentation];
+        result(data);
+    } else {
+        result(@{@"error": @"No thumbnail found"});
+    }
+    
 #else
     result([FlutterError errorWithCode:@"ERROR"
                                message:@"Not supported on iOS"
@@ -174,6 +187,45 @@ NSArray<RTCDesktopSource *>* _captureSources;
 }
 
 #if TARGET_OS_OSX
+- (NSImage*)resizeImage:(NSImage*)sourceImage forSize:(CGSize)targetSize {
+    CGSize imageSize = sourceImage.size;
+    CGFloat width = imageSize.width;
+    CGFloat height = imageSize.height;
+    CGFloat targetWidth = targetSize.width;
+    CGFloat targetHeight = targetSize.height;
+    CGFloat scaleFactor = 0.0;
+    CGFloat scaledWidth = targetWidth;
+    CGFloat scaledHeight = targetHeight;
+    CGPoint thumbnailPoint = CGPointMake(0.0,0.0);
+
+    if (CGSizeEqualToSize(imageSize, targetSize) == NO) {
+        CGFloat widthFactor = targetWidth / width;
+        CGFloat heightFactor = targetHeight / height;
+
+        // scale to fit the longer
+        scaleFactor = (widthFactor>heightFactor)?widthFactor:heightFactor;
+        scaledWidth  = ceil(width * scaleFactor);
+        scaledHeight = ceil(height * scaleFactor);
+
+        // center the image
+        if (widthFactor > heightFactor) {
+            thumbnailPoint.y = (targetHeight - scaledHeight) * 0.5;
+        } else if (widthFactor < heightFactor) {
+            thumbnailPoint.x = (targetWidth - scaledWidth) * 0.5;
+        }
+    }
+
+    NSImage *newImage = [[NSImage alloc] initWithSize:NSMakeSize(scaledWidth, scaledHeight)];
+    CGRect thumbnailRect = {thumbnailPoint, {scaledWidth, scaledHeight}};
+    NSRect imageRect = NSMakeRect(0.0, 0.0, width, height);
+
+    [newImage lockFocus];
+    [sourceImage drawInRect:thumbnailRect fromRect:imageRect operation:NSCompositeCopy fraction:1.0];
+    [newImage unlockFocus];
+
+    return newImage;
+}
+
 -(RTCDesktopSource *)getSourceById:(NSString *)sourceId {
     NSEnumerator *enumerator = [_captureSources objectEnumerator];
     RTCDesktopSource *object;
