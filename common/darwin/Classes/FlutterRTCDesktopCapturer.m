@@ -2,6 +2,12 @@
 
 #import "FlutterRTCDesktopCapturer.h"
 
+#if TARGET_OS_IPHONE
+#import <ReplayKit/ReplayKit.h>
+#import "FlutterRPScreenRecorder.h"
+#import "FlutterBroadcastScreenCapturer.h"
+#endif
+
 #if TARGET_OS_OSX
 RTCDesktopMediaList *_screen = nil;
 RTCDesktopMediaList *_window = nil;
@@ -19,14 +25,42 @@ NSArray<RTCDesktopSource *>* _captureSources;
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
 
 #if TARGET_OS_IPHONE
-    FlutterRPScreenRecorder *screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
+ BOOL useBroadcastExtension = false;
+    id videoConstraints = constraints[@"video"];
+    if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
+       // constraints.video.deviceId
+        useBroadcastExtension = [((NSDictionary *)videoConstraints)[@"deviceId"] isEqualToString:@"broadcast"];
+    }
+    
+    id screenCapturer;
+    
+    if(useBroadcastExtension){
+        screenCapturer = [[FlutterBroadcastScreenCapturer alloc] initWithDelegate:videoSource];
+    } else {
+        screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
+    }
+    
     [screenCapturer startCapture];
-    NSLog(@"start replykit capture");
+    NSLog(@"start %@ capture", useBroadcastExtension ? @"broadcast" : @"replykit");
         
     self.videoCapturerStopHandlers[mediaStreamId] = ^(CompletionHandler handler) {
-        NSLog(@"stop replykit capture");
+        NSLog(@"stop %@ capture", useBroadcastExtension ? @"broadcast" : @"replykit");
         [screenCapturer stopCaptureWithCompletionHandler:handler];
     };
+
+    if(useBroadcastExtension) {
+        NSString *extension = [[[NSBundle mainBundle] infoDictionary] valueForKey: kRTCScreenSharingExtension];
+        if(extension) {
+            RPSystemBroadcastPickerView *picker = [[RPSystemBroadcastPickerView alloc] init];
+            picker.preferredExtension = extension;
+            picker.showsMicrophoneButton = false;
+            
+            SEL selector = NSSelectorFromString(@"buttonPressed:");
+            if([picker respondsToSelector:selector]) {
+                [picker performSelector:selector withObject:nil];
+            }
+        }
+    }
 #endif
     
 #if TARGET_OS_OSX

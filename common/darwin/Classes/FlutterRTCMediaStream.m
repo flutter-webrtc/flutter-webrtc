@@ -7,10 +7,6 @@
 #import "FlutterRTCPeerConnection.h"
 #import "AudioUtils.h"
 
-#if TARGET_OS_IPHONE
-#import "FlutterRPScreenRecorder.h"
-#endif
-
 @implementation AVCaptureDevice (Flutter)
 
 - (NSString*)positionString {
