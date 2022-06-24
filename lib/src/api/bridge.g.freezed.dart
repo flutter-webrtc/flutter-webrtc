@@ -12,32 +12,11 @@ part of 'bridge.g.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
-
-/// @nodoc
-class _$GetMediaErrorTearOff {
-  const _$GetMediaErrorTearOff();
-
-  Audio audio(String field0) {
-    return Audio(
-      field0,
-    );
-  }
-
-  Video video(String field0) {
-    return Video(
-      field0,
-    );
-  }
-}
-
-/// @nodoc
-const $GetMediaError = _$GetMediaErrorTearOff();
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 /// @nodoc
 mixin _$GetMediaError {
   String get field0 => throw _privateConstructorUsedError;
-
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(String field0) audio,
@@ -113,27 +92,27 @@ class _$GetMediaErrorCopyWithImpl<$Res>
 }
 
 /// @nodoc
-abstract class $AudioCopyWith<$Res> implements $GetMediaErrorCopyWith<$Res> {
-  factory $AudioCopyWith(Audio value, $Res Function(Audio) then) =
-      _$AudioCopyWithImpl<$Res>;
+abstract class _$$AudioCopyWith<$Res> implements $GetMediaErrorCopyWith<$Res> {
+  factory _$$AudioCopyWith(_$Audio value, $Res Function(_$Audio) then) =
+      __$$AudioCopyWithImpl<$Res>;
   @override
   $Res call({String field0});
 }
 
 /// @nodoc
-class _$AudioCopyWithImpl<$Res> extends _$GetMediaErrorCopyWithImpl<$Res>
-    implements $AudioCopyWith<$Res> {
-  _$AudioCopyWithImpl(Audio _value, $Res Function(Audio) _then)
-      : super(_value, (v) => _then(v as Audio));
+class __$$AudioCopyWithImpl<$Res> extends _$GetMediaErrorCopyWithImpl<$Res>
+    implements _$$AudioCopyWith<$Res> {
+  __$$AudioCopyWithImpl(_$Audio _value, $Res Function(_$Audio) _then)
+      : super(_value, (v) => _then(v as _$Audio));
 
   @override
-  Audio get _value => super._value as Audio;
+  _$Audio get _value => super._value as _$Audio;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(Audio(
+    return _then(_$Audio(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -159,7 +138,7 @@ class _$Audio implements Audio {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is Audio &&
+            other is _$Audio &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -169,8 +148,8 @@ class _$Audio implements Audio {
 
   @JsonKey(ignore: true)
   @override
-  $AudioCopyWith<Audio> get copyWith =>
-      _$AudioCopyWithImpl<Audio>(this, _$identity);
+  _$$AudioCopyWith<_$Audio> get copyWith =>
+      __$$AudioCopyWithImpl<_$Audio>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -236,37 +215,37 @@ class _$Audio implements Audio {
 }
 
 abstract class Audio implements GetMediaError {
-  const factory Audio(String field0) = _$Audio;
+  const factory Audio(final String field0) = _$Audio;
 
   @override
-  String get field0;
+  String get field0 => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  $AudioCopyWith<Audio> get copyWith => throw _privateConstructorUsedError;
+  _$$AudioCopyWith<_$Audio> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $VideoCopyWith<$Res> implements $GetMediaErrorCopyWith<$Res> {
-  factory $VideoCopyWith(Video value, $Res Function(Video) then) =
-      _$VideoCopyWithImpl<$Res>;
+abstract class _$$VideoCopyWith<$Res> implements $GetMediaErrorCopyWith<$Res> {
+  factory _$$VideoCopyWith(_$Video value, $Res Function(_$Video) then) =
+      __$$VideoCopyWithImpl<$Res>;
   @override
   $Res call({String field0});
 }
 
 /// @nodoc
-class _$VideoCopyWithImpl<$Res> extends _$GetMediaErrorCopyWithImpl<$Res>
-    implements $VideoCopyWith<$Res> {
-  _$VideoCopyWithImpl(Video _value, $Res Function(Video) _then)
-      : super(_value, (v) => _then(v as Video));
+class __$$VideoCopyWithImpl<$Res> extends _$GetMediaErrorCopyWithImpl<$Res>
+    implements _$$VideoCopyWith<$Res> {
+  __$$VideoCopyWithImpl(_$Video _value, $Res Function(_$Video) _then)
+      : super(_value, (v) => _then(v as _$Video));
 
   @override
-  Video get _value => super._value as Video;
+  _$Video get _value => super._value as _$Video;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(Video(
+    return _then(_$Video(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -292,7 +271,7 @@ class _$Video implements Video {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is Video &&
+            other is _$Video &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -302,8 +281,8 @@ class _$Video implements Video {
 
   @JsonKey(ignore: true)
   @override
-  $VideoCopyWith<Video> get copyWith =>
-      _$VideoCopyWithImpl<Video>(this, _$identity);
+  _$$VideoCopyWith<_$Video> get copyWith =>
+      __$$VideoCopyWithImpl<_$Video>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -369,34 +348,14 @@ class _$Video implements Video {
 }
 
 abstract class Video implements GetMediaError {
-  const factory Video(String field0) = _$Video;
+  const factory Video(final String field0) = _$Video;
 
   @override
-  String get field0;
+  String get field0 => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  $VideoCopyWith<Video> get copyWith => throw _privateConstructorUsedError;
+  _$$VideoCopyWith<_$Video> get copyWith => throw _privateConstructorUsedError;
 }
-
-/// @nodoc
-class _$GetMediaResultTearOff {
-  const _$GetMediaResultTearOff();
-
-  Ok ok(List<MediaStreamTrack> field0) {
-    return Ok(
-      field0,
-    );
-  }
-
-  Err err(GetMediaError field0) {
-    return Err(
-      field0,
-    );
-  }
-}
-
-/// @nodoc
-const $GetMediaResult = _$GetMediaResultTearOff();
 
 /// @nodoc
 mixin _$GetMediaResult {
@@ -458,28 +417,28 @@ class _$GetMediaResultCopyWithImpl<$Res>
 }
 
 /// @nodoc
-abstract class $OkCopyWith<$Res> {
-  factory $OkCopyWith(Ok value, $Res Function(Ok) then) =
-      _$OkCopyWithImpl<$Res>;
+abstract class _$$OkCopyWith<$Res> {
+  factory _$$OkCopyWith(_$Ok value, $Res Function(_$Ok) then) =
+      __$$OkCopyWithImpl<$Res>;
   $Res call({List<MediaStreamTrack> field0});
 }
 
 /// @nodoc
-class _$OkCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
-    implements $OkCopyWith<$Res> {
-  _$OkCopyWithImpl(Ok _value, $Res Function(Ok) _then)
-      : super(_value, (v) => _then(v as Ok));
+class __$$OkCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
+    implements _$$OkCopyWith<$Res> {
+  __$$OkCopyWithImpl(_$Ok _value, $Res Function(_$Ok) _then)
+      : super(_value, (v) => _then(v as _$Ok));
 
   @override
-  Ok get _value => super._value as Ok;
+  _$Ok get _value => super._value as _$Ok;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(Ok(
+    return _then(_$Ok(
       field0 == freezed
-          ? _value.field0
+          ? _value._field0
           : field0 // ignore: cast_nullable_to_non_nullable
               as List<MediaStreamTrack>,
     ));
@@ -489,10 +448,14 @@ class _$OkCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
 /// @nodoc
 
 class _$Ok implements Ok {
-  const _$Ok(this.field0);
+  const _$Ok(final List<MediaStreamTrack> field0) : _field0 = field0;
 
+  final List<MediaStreamTrack> _field0;
   @override
-  final List<MediaStreamTrack> field0;
+  List<MediaStreamTrack> get field0 {
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_field0);
+  }
 
   @override
   String toString() {
@@ -503,17 +466,18 @@ class _$Ok implements Ok {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is Ok &&
-            const DeepCollectionEquality().equals(other.field0, field0));
+            other is _$Ok &&
+            const DeepCollectionEquality().equals(other._field0, _field0));
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, const DeepCollectionEquality().hash(field0));
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(_field0));
 
   @JsonKey(ignore: true)
   @override
-  $OkCopyWith<Ok> get copyWith => _$OkCopyWithImpl<Ok>(this, _$identity);
+  _$$OkCopyWith<_$Ok> get copyWith =>
+      __$$OkCopyWithImpl<_$Ok>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -579,36 +543,36 @@ class _$Ok implements Ok {
 }
 
 abstract class Ok implements GetMediaResult {
-  const factory Ok(List<MediaStreamTrack> field0) = _$Ok;
+  const factory Ok(final List<MediaStreamTrack> field0) = _$Ok;
 
-  List<MediaStreamTrack> get field0;
+  List<MediaStreamTrack> get field0 => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $OkCopyWith<Ok> get copyWith => throw _privateConstructorUsedError;
+  _$$OkCopyWith<_$Ok> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $ErrCopyWith<$Res> {
-  factory $ErrCopyWith(Err value, $Res Function(Err) then) =
-      _$ErrCopyWithImpl<$Res>;
+abstract class _$$ErrCopyWith<$Res> {
+  factory _$$ErrCopyWith(_$Err value, $Res Function(_$Err) then) =
+      __$$ErrCopyWithImpl<$Res>;
   $Res call({GetMediaError field0});
 
   $GetMediaErrorCopyWith<$Res> get field0;
 }
 
 /// @nodoc
-class _$ErrCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
-    implements $ErrCopyWith<$Res> {
-  _$ErrCopyWithImpl(Err _value, $Res Function(Err) _then)
-      : super(_value, (v) => _then(v as Err));
+class __$$ErrCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
+    implements _$$ErrCopyWith<$Res> {
+  __$$ErrCopyWithImpl(_$Err _value, $Res Function(_$Err) _then)
+      : super(_value, (v) => _then(v as _$Err));
 
   @override
-  Err get _value => super._value as Err;
+  _$Err get _value => super._value as _$Err;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(Err(
+    return _then(_$Err(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -641,7 +605,7 @@ class _$Err implements Err {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is Err &&
+            other is _$Err &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -651,7 +615,8 @@ class _$Err implements Err {
 
   @JsonKey(ignore: true)
   @override
-  $ErrCopyWith<Err> get copyWith => _$ErrCopyWithImpl<Err>(this, _$identity);
+  _$$ErrCopyWith<_$Err> get copyWith =>
+      __$$ErrCopyWithImpl<_$Err>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -717,86 +682,12 @@ class _$Err implements Err {
 }
 
 abstract class Err implements GetMediaResult {
-  const factory Err(GetMediaError field0) = _$Err;
+  const factory Err(final GetMediaError field0) = _$Err;
 
-  GetMediaError get field0;
+  GetMediaError get field0 => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $ErrCopyWith<Err> get copyWith => throw _privateConstructorUsedError;
+  _$$ErrCopyWith<_$Err> get copyWith => throw _privateConstructorUsedError;
 }
-
-/// @nodoc
-class _$PeerConnectionEventTearOff {
-  const _$PeerConnectionEventTearOff();
-
-  PeerCreated peerCreated({required int id}) {
-    return PeerCreated(
-      id: id,
-    );
-  }
-
-  IceCandidate iceCandidate(
-      {required String sdpMid,
-      required int sdpMlineIndex,
-      required String candidate}) {
-    return IceCandidate(
-      sdpMid: sdpMid,
-      sdpMlineIndex: sdpMlineIndex,
-      candidate: candidate,
-    );
-  }
-
-  IceGatheringStateChange iceGatheringStateChange(IceGatheringState field0) {
-    return IceGatheringStateChange(
-      field0,
-    );
-  }
-
-  IceCandidateError iceCandidateError(
-      {required String address,
-      required int port,
-      required String url,
-      required int errorCode,
-      required String errorText}) {
-    return IceCandidateError(
-      address: address,
-      port: port,
-      url: url,
-      errorCode: errorCode,
-      errorText: errorText,
-    );
-  }
-
-  NegotiationNeeded negotiationNeeded() {
-    return const NegotiationNeeded();
-  }
-
-  SignallingChange signallingChange(SignalingState field0) {
-    return SignallingChange(
-      field0,
-    );
-  }
-
-  IceConnectionStateChange iceConnectionStateChange(IceConnectionState field0) {
-    return IceConnectionStateChange(
-      field0,
-    );
-  }
-
-  ConnectionStateChange connectionStateChange(PeerConnectionState field0) {
-    return ConnectionStateChange(
-      field0,
-    );
-  }
-
-  Track track(RtcTrackEvent field0) {
-    return Track(
-      field0,
-    );
-  }
-}
-
-/// @nodoc
-const $PeerConnectionEvent = _$PeerConnectionEventTearOff();
 
 /// @nodoc
 mixin _$PeerConnectionEvent {
@@ -914,29 +805,29 @@ class _$PeerConnectionEventCopyWithImpl<$Res>
 }
 
 /// @nodoc
-abstract class $PeerCreatedCopyWith<$Res> {
-  factory $PeerCreatedCopyWith(
-          PeerCreated value, $Res Function(PeerCreated) then) =
-      _$PeerCreatedCopyWithImpl<$Res>;
+abstract class _$$PeerCreatedCopyWith<$Res> {
+  factory _$$PeerCreatedCopyWith(
+          _$PeerCreated value, $Res Function(_$PeerCreated) then) =
+      __$$PeerCreatedCopyWithImpl<$Res>;
   $Res call({int id});
 }
 
 /// @nodoc
-class _$PeerCreatedCopyWithImpl<$Res>
+class __$$PeerCreatedCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements $PeerCreatedCopyWith<$Res> {
-  _$PeerCreatedCopyWithImpl(
-      PeerCreated _value, $Res Function(PeerCreated) _then)
-      : super(_value, (v) => _then(v as PeerCreated));
+    implements _$$PeerCreatedCopyWith<$Res> {
+  __$$PeerCreatedCopyWithImpl(
+      _$PeerCreated _value, $Res Function(_$PeerCreated) _then)
+      : super(_value, (v) => _then(v as _$PeerCreated));
 
   @override
-  PeerCreated get _value => super._value as PeerCreated;
+  _$PeerCreated get _value => super._value as _$PeerCreated;
 
   @override
   $Res call({
     Object? id = freezed,
   }) {
-    return _then(PeerCreated(
+    return _then(_$PeerCreated(
       id: id == freezed
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -950,9 +841,8 @@ class _$PeerCreatedCopyWithImpl<$Res>
 class _$PeerCreated implements PeerCreated {
   const _$PeerCreated({required this.id});
 
-  @override
-
   /// ID of the created [`PeerConnection`].
+  @override
   final int id;
 
   @override
@@ -964,7 +854,7 @@ class _$PeerCreated implements PeerCreated {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is PeerCreated &&
+            other is _$PeerCreated &&
             const DeepCollectionEquality().equals(other.id, id));
   }
 
@@ -974,8 +864,8 @@ class _$PeerCreated implements PeerCreated {
 
   @JsonKey(ignore: true)
   @override
-  $PeerCreatedCopyWith<PeerCreated> get copyWith =>
-      _$PeerCreatedCopyWithImpl<PeerCreated>(this, _$identity);
+  _$$PeerCreatedCopyWith<_$PeerCreated> get copyWith =>
+      __$$PeerCreatedCopyWithImpl<_$PeerCreated>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1097,33 +987,33 @@ class _$PeerCreated implements PeerCreated {
 }
 
 abstract class PeerCreated implements PeerConnectionEvent {
-  const factory PeerCreated({required int id}) = _$PeerCreated;
+  const factory PeerCreated({required final int id}) = _$PeerCreated;
 
   /// ID of the created [`PeerConnection`].
-  int get id;
+  int get id => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $PeerCreatedCopyWith<PeerCreated> get copyWith =>
+  _$$PeerCreatedCopyWith<_$PeerCreated> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $IceCandidateCopyWith<$Res> {
-  factory $IceCandidateCopyWith(
-          IceCandidate value, $Res Function(IceCandidate) then) =
-      _$IceCandidateCopyWithImpl<$Res>;
+abstract class _$$IceCandidateCopyWith<$Res> {
+  factory _$$IceCandidateCopyWith(
+          _$IceCandidate value, $Res Function(_$IceCandidate) then) =
+      __$$IceCandidateCopyWithImpl<$Res>;
   $Res call({String sdpMid, int sdpMlineIndex, String candidate});
 }
 
 /// @nodoc
-class _$IceCandidateCopyWithImpl<$Res>
+class __$$IceCandidateCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements $IceCandidateCopyWith<$Res> {
-  _$IceCandidateCopyWithImpl(
-      IceCandidate _value, $Res Function(IceCandidate) _then)
-      : super(_value, (v) => _then(v as IceCandidate));
+    implements _$$IceCandidateCopyWith<$Res> {
+  __$$IceCandidateCopyWithImpl(
+      _$IceCandidate _value, $Res Function(_$IceCandidate) _then)
+      : super(_value, (v) => _then(v as _$IceCandidate));
 
   @override
-  IceCandidate get _value => super._value as IceCandidate;
+  _$IceCandidate get _value => super._value as _$IceCandidate;
 
   @override
   $Res call({
@@ -1131,7 +1021,7 @@ class _$IceCandidateCopyWithImpl<$Res>
     Object? sdpMlineIndex = freezed,
     Object? candidate = freezed,
   }) {
-    return _then(IceCandidate(
+    return _then(_$IceCandidate(
       sdpMid: sdpMid == freezed
           ? _value.sdpMid
           : sdpMid // ignore: cast_nullable_to_non_nullable
@@ -1156,23 +1046,21 @@ class _$IceCandidate implements IceCandidate {
       required this.sdpMlineIndex,
       required this.candidate});
 
-  @override
-
   /// Media stream "identification-tag" defined in [RFC 5888] for the
   /// media component the discovered [RTCIceCandidate][1] is associated
   /// with.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate
   /// [RFC 5888]: https://tools.ietf.org/html/rfc5888
-  final String sdpMid;
   @override
+  final String sdpMid;
 
   /// Index (starting at zero) of the media description in the SDP this
   /// [RTCIceCandidate][1] is associated with.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate
-  final int sdpMlineIndex;
   @override
+  final int sdpMlineIndex;
 
   /// Candidate-attribute as defined in Section 15.1 of [RFC 5245].
   ///
@@ -1182,6 +1070,7 @@ class _$IceCandidate implements IceCandidate {
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate
   /// [RFC 5245]: https://tools.ietf.org/html/rfc5245
+  @override
   final String candidate;
 
   @override
@@ -1193,7 +1082,7 @@ class _$IceCandidate implements IceCandidate {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is IceCandidate &&
+            other is _$IceCandidate &&
             const DeepCollectionEquality().equals(other.sdpMid, sdpMid) &&
             const DeepCollectionEquality()
                 .equals(other.sdpMlineIndex, sdpMlineIndex) &&
@@ -1209,8 +1098,8 @@ class _$IceCandidate implements IceCandidate {
 
   @JsonKey(ignore: true)
   @override
-  $IceCandidateCopyWith<IceCandidate> get copyWith =>
-      _$IceCandidateCopyWithImpl<IceCandidate>(this, _$identity);
+  _$$IceCandidateCopyWith<_$IceCandidate> get copyWith =>
+      __$$IceCandidateCopyWithImpl<_$IceCandidate>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1333,9 +1222,9 @@ class _$IceCandidate implements IceCandidate {
 
 abstract class IceCandidate implements PeerConnectionEvent {
   const factory IceCandidate(
-      {required String sdpMid,
-      required int sdpMlineIndex,
-      required String candidate}) = _$IceCandidate;
+      {required final String sdpMid,
+      required final int sdpMlineIndex,
+      required final String candidate}) = _$IceCandidate;
 
   /// Media stream "identification-tag" defined in [RFC 5888] for the
   /// media component the discovered [RTCIceCandidate][1] is associated
@@ -1343,13 +1232,13 @@ abstract class IceCandidate implements PeerConnectionEvent {
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate
   /// [RFC 5888]: https://tools.ietf.org/html/rfc5888
-  String get sdpMid;
+  String get sdpMid => throw _privateConstructorUsedError;
 
   /// Index (starting at zero) of the media description in the SDP this
   /// [RTCIceCandidate][1] is associated with.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate
-  int get sdpMlineIndex;
+  int get sdpMlineIndex => throw _privateConstructorUsedError;
 
   /// Candidate-attribute as defined in Section 15.1 of [RFC 5245].
   ///
@@ -1359,36 +1248,37 @@ abstract class IceCandidate implements PeerConnectionEvent {
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate
   /// [RFC 5245]: https://tools.ietf.org/html/rfc5245
-  String get candidate;
+  String get candidate => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $IceCandidateCopyWith<IceCandidate> get copyWith =>
+  _$$IceCandidateCopyWith<_$IceCandidate> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $IceGatheringStateChangeCopyWith<$Res> {
-  factory $IceGatheringStateChangeCopyWith(IceGatheringStateChange value,
-          $Res Function(IceGatheringStateChange) then) =
-      _$IceGatheringStateChangeCopyWithImpl<$Res>;
+abstract class _$$IceGatheringStateChangeCopyWith<$Res> {
+  factory _$$IceGatheringStateChangeCopyWith(_$IceGatheringStateChange value,
+          $Res Function(_$IceGatheringStateChange) then) =
+      __$$IceGatheringStateChangeCopyWithImpl<$Res>;
   $Res call({IceGatheringState field0});
 }
 
 /// @nodoc
-class _$IceGatheringStateChangeCopyWithImpl<$Res>
+class __$$IceGatheringStateChangeCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements $IceGatheringStateChangeCopyWith<$Res> {
-  _$IceGatheringStateChangeCopyWithImpl(IceGatheringStateChange _value,
-      $Res Function(IceGatheringStateChange) _then)
-      : super(_value, (v) => _then(v as IceGatheringStateChange));
+    implements _$$IceGatheringStateChangeCopyWith<$Res> {
+  __$$IceGatheringStateChangeCopyWithImpl(_$IceGatheringStateChange _value,
+      $Res Function(_$IceGatheringStateChange) _then)
+      : super(_value, (v) => _then(v as _$IceGatheringStateChange));
 
   @override
-  IceGatheringStateChange get _value => super._value as IceGatheringStateChange;
+  _$IceGatheringStateChange get _value =>
+      super._value as _$IceGatheringStateChange;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(IceGatheringStateChange(
+    return _then(_$IceGatheringStateChange(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -1414,7 +1304,7 @@ class _$IceGatheringStateChange implements IceGatheringStateChange {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is IceGatheringStateChange &&
+            other is _$IceGatheringStateChange &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -1424,8 +1314,8 @@ class _$IceGatheringStateChange implements IceGatheringStateChange {
 
   @JsonKey(ignore: true)
   @override
-  $IceGatheringStateChangeCopyWith<IceGatheringStateChange> get copyWith =>
-      _$IceGatheringStateChangeCopyWithImpl<IceGatheringStateChange>(
+  _$$IceGatheringStateChangeCopyWith<_$IceGatheringStateChange> get copyWith =>
+      __$$IceGatheringStateChangeCopyWithImpl<_$IceGatheringStateChange>(
           this, _$identity);
 
   @override
@@ -1548,34 +1438,34 @@ class _$IceGatheringStateChange implements IceGatheringStateChange {
 }
 
 abstract class IceGatheringStateChange implements PeerConnectionEvent {
-  const factory IceGatheringStateChange(IceGatheringState field0) =
+  const factory IceGatheringStateChange(final IceGatheringState field0) =
       _$IceGatheringStateChange;
 
-  IceGatheringState get field0;
+  IceGatheringState get field0 => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $IceGatheringStateChangeCopyWith<IceGatheringStateChange> get copyWith =>
+  _$$IceGatheringStateChangeCopyWith<_$IceGatheringStateChange> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $IceCandidateErrorCopyWith<$Res> {
-  factory $IceCandidateErrorCopyWith(
-          IceCandidateError value, $Res Function(IceCandidateError) then) =
-      _$IceCandidateErrorCopyWithImpl<$Res>;
+abstract class _$$IceCandidateErrorCopyWith<$Res> {
+  factory _$$IceCandidateErrorCopyWith(
+          _$IceCandidateError value, $Res Function(_$IceCandidateError) then) =
+      __$$IceCandidateErrorCopyWithImpl<$Res>;
   $Res call(
       {String address, int port, String url, int errorCode, String errorText});
 }
 
 /// @nodoc
-class _$IceCandidateErrorCopyWithImpl<$Res>
+class __$$IceCandidateErrorCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements $IceCandidateErrorCopyWith<$Res> {
-  _$IceCandidateErrorCopyWithImpl(
-      IceCandidateError _value, $Res Function(IceCandidateError) _then)
-      : super(_value, (v) => _then(v as IceCandidateError));
+    implements _$$IceCandidateErrorCopyWith<$Res> {
+  __$$IceCandidateErrorCopyWithImpl(
+      _$IceCandidateError _value, $Res Function(_$IceCandidateError) _then)
+      : super(_value, (v) => _then(v as _$IceCandidateError));
 
   @override
-  IceCandidateError get _value => super._value as IceCandidateError;
+  _$IceCandidateError get _value => super._value as _$IceCandidateError;
 
   @override
   $Res call({
@@ -1585,7 +1475,7 @@ class _$IceCandidateErrorCopyWithImpl<$Res>
     Object? errorCode = freezed,
     Object? errorText = freezed,
   }) {
-    return _then(IceCandidateError(
+    return _then(_$IceCandidateError(
       address: address == freezed
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
@@ -1620,20 +1510,18 @@ class _$IceCandidateError implements IceCandidateError {
       required this.errorCode,
       required this.errorText});
 
-  @override
-
   /// Local IP address used to communicate with the STUN or TURN server.
-  final String address;
   @override
+  final String address;
 
   /// Port used to communicate with the STUN or TURN server.
-  final int port;
   @override
+  final int port;
 
   /// STUN or TURN URL identifying the STUN or TURN server for which the
   /// failure occurred.
-  final String url;
   @override
+  final String url;
 
   /// Numeric STUN error code returned by the STUN or TURN server
   /// [`STUN-PARAMETERS`][1].
@@ -1642,8 +1530,8 @@ class _$IceCandidateError implements IceCandidateError {
   /// value `701` which is outside the STUN error code range.
   ///
   /// [1]: https://tinyurl.com/stun-parameters-6
-  final int errorCode;
   @override
+  final int errorCode;
 
   /// STUN reason text returned by the STUN or TURN server
   /// [`STUN-PARAMETERS`][1].
@@ -1652,6 +1540,7 @@ class _$IceCandidateError implements IceCandidateError {
   /// implementation-specific value providing details about the error.
   ///
   /// [1]: https://tinyurl.com/stun-parameters-6
+  @override
   final String errorText;
 
   @override
@@ -1663,7 +1552,7 @@ class _$IceCandidateError implements IceCandidateError {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is IceCandidateError &&
+            other is _$IceCandidateError &&
             const DeepCollectionEquality().equals(other.address, address) &&
             const DeepCollectionEquality().equals(other.port, port) &&
             const DeepCollectionEquality().equals(other.url, url) &&
@@ -1682,8 +1571,8 @@ class _$IceCandidateError implements IceCandidateError {
 
   @JsonKey(ignore: true)
   @override
-  $IceCandidateErrorCopyWith<IceCandidateError> get copyWith =>
-      _$IceCandidateErrorCopyWithImpl<IceCandidateError>(this, _$identity);
+  _$$IceCandidateErrorCopyWith<_$IceCandidateError> get copyWith =>
+      __$$IceCandidateErrorCopyWithImpl<_$IceCandidateError>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1806,21 +1695,21 @@ class _$IceCandidateError implements IceCandidateError {
 
 abstract class IceCandidateError implements PeerConnectionEvent {
   const factory IceCandidateError(
-      {required String address,
-      required int port,
-      required String url,
-      required int errorCode,
-      required String errorText}) = _$IceCandidateError;
+      {required final String address,
+      required final int port,
+      required final String url,
+      required final int errorCode,
+      required final String errorText}) = _$IceCandidateError;
 
   /// Local IP address used to communicate with the STUN or TURN server.
-  String get address;
+  String get address => throw _privateConstructorUsedError;
 
   /// Port used to communicate with the STUN or TURN server.
-  int get port;
+  int get port => throw _privateConstructorUsedError;
 
   /// STUN or TURN URL identifying the STUN or TURN server for which the
   /// failure occurred.
-  String get url;
+  String get url => throw _privateConstructorUsedError;
 
   /// Numeric STUN error code returned by the STUN or TURN server
   /// [`STUN-PARAMETERS`][1].
@@ -1829,7 +1718,7 @@ abstract class IceCandidateError implements PeerConnectionEvent {
   /// value `701` which is outside the STUN error code range.
   ///
   /// [1]: https://tinyurl.com/stun-parameters-6
-  int get errorCode;
+  int get errorCode => throw _privateConstructorUsedError;
 
   /// STUN reason text returned by the STUN or TURN server
   /// [`STUN-PARAMETERS`][1].
@@ -1838,29 +1727,29 @@ abstract class IceCandidateError implements PeerConnectionEvent {
   /// implementation-specific value providing details about the error.
   ///
   /// [1]: https://tinyurl.com/stun-parameters-6
-  String get errorText;
+  String get errorText => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $IceCandidateErrorCopyWith<IceCandidateError> get copyWith =>
+  _$$IceCandidateErrorCopyWith<_$IceCandidateError> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $NegotiationNeededCopyWith<$Res> {
-  factory $NegotiationNeededCopyWith(
-          NegotiationNeeded value, $Res Function(NegotiationNeeded) then) =
-      _$NegotiationNeededCopyWithImpl<$Res>;
+abstract class _$$NegotiationNeededCopyWith<$Res> {
+  factory _$$NegotiationNeededCopyWith(
+          _$NegotiationNeeded value, $Res Function(_$NegotiationNeeded) then) =
+      __$$NegotiationNeededCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class _$NegotiationNeededCopyWithImpl<$Res>
+class __$$NegotiationNeededCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements $NegotiationNeededCopyWith<$Res> {
-  _$NegotiationNeededCopyWithImpl(
-      NegotiationNeeded _value, $Res Function(NegotiationNeeded) _then)
-      : super(_value, (v) => _then(v as NegotiationNeeded));
+    implements _$$NegotiationNeededCopyWith<$Res> {
+  __$$NegotiationNeededCopyWithImpl(
+      _$NegotiationNeeded _value, $Res Function(_$NegotiationNeeded) _then)
+      : super(_value, (v) => _then(v as _$NegotiationNeeded));
 
   @override
-  NegotiationNeeded get _value => super._value as NegotiationNeeded;
+  _$NegotiationNeeded get _value => super._value as _$NegotiationNeeded;
 }
 
 /// @nodoc
@@ -1876,7 +1765,7 @@ class _$NegotiationNeeded implements NegotiationNeeded {
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is NegotiationNeeded);
+        (other.runtimeType == runtimeType && other is _$NegotiationNeeded);
   }
 
   @override
@@ -2006,29 +1895,29 @@ abstract class NegotiationNeeded implements PeerConnectionEvent {
 }
 
 /// @nodoc
-abstract class $SignallingChangeCopyWith<$Res> {
-  factory $SignallingChangeCopyWith(
-          SignallingChange value, $Res Function(SignallingChange) then) =
-      _$SignallingChangeCopyWithImpl<$Res>;
+abstract class _$$SignallingChangeCopyWith<$Res> {
+  factory _$$SignallingChangeCopyWith(
+          _$SignallingChange value, $Res Function(_$SignallingChange) then) =
+      __$$SignallingChangeCopyWithImpl<$Res>;
   $Res call({SignalingState field0});
 }
 
 /// @nodoc
-class _$SignallingChangeCopyWithImpl<$Res>
+class __$$SignallingChangeCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements $SignallingChangeCopyWith<$Res> {
-  _$SignallingChangeCopyWithImpl(
-      SignallingChange _value, $Res Function(SignallingChange) _then)
-      : super(_value, (v) => _then(v as SignallingChange));
+    implements _$$SignallingChangeCopyWith<$Res> {
+  __$$SignallingChangeCopyWithImpl(
+      _$SignallingChange _value, $Res Function(_$SignallingChange) _then)
+      : super(_value, (v) => _then(v as _$SignallingChange));
 
   @override
-  SignallingChange get _value => super._value as SignallingChange;
+  _$SignallingChange get _value => super._value as _$SignallingChange;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(SignallingChange(
+    return _then(_$SignallingChange(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2054,7 +1943,7 @@ class _$SignallingChange implements SignallingChange {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is SignallingChange &&
+            other is _$SignallingChange &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -2064,8 +1953,8 @@ class _$SignallingChange implements SignallingChange {
 
   @JsonKey(ignore: true)
   @override
-  $SignallingChangeCopyWith<SignallingChange> get copyWith =>
-      _$SignallingChangeCopyWithImpl<SignallingChange>(this, _$identity);
+  _$$SignallingChangeCopyWith<_$SignallingChange> get copyWith =>
+      __$$SignallingChangeCopyWithImpl<_$SignallingChange>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2187,39 +2076,40 @@ class _$SignallingChange implements SignallingChange {
 }
 
 abstract class SignallingChange implements PeerConnectionEvent {
-  const factory SignallingChange(SignalingState field0) = _$SignallingChange;
+  const factory SignallingChange(final SignalingState field0) =
+      _$SignallingChange;
 
-  SignalingState get field0;
+  SignalingState get field0 => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $SignallingChangeCopyWith<SignallingChange> get copyWith =>
+  _$$SignallingChangeCopyWith<_$SignallingChange> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $IceConnectionStateChangeCopyWith<$Res> {
-  factory $IceConnectionStateChangeCopyWith(IceConnectionStateChange value,
-          $Res Function(IceConnectionStateChange) then) =
-      _$IceConnectionStateChangeCopyWithImpl<$Res>;
+abstract class _$$IceConnectionStateChangeCopyWith<$Res> {
+  factory _$$IceConnectionStateChangeCopyWith(_$IceConnectionStateChange value,
+          $Res Function(_$IceConnectionStateChange) then) =
+      __$$IceConnectionStateChangeCopyWithImpl<$Res>;
   $Res call({IceConnectionState field0});
 }
 
 /// @nodoc
-class _$IceConnectionStateChangeCopyWithImpl<$Res>
+class __$$IceConnectionStateChangeCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements $IceConnectionStateChangeCopyWith<$Res> {
-  _$IceConnectionStateChangeCopyWithImpl(IceConnectionStateChange _value,
-      $Res Function(IceConnectionStateChange) _then)
-      : super(_value, (v) => _then(v as IceConnectionStateChange));
+    implements _$$IceConnectionStateChangeCopyWith<$Res> {
+  __$$IceConnectionStateChangeCopyWithImpl(_$IceConnectionStateChange _value,
+      $Res Function(_$IceConnectionStateChange) _then)
+      : super(_value, (v) => _then(v as _$IceConnectionStateChange));
 
   @override
-  IceConnectionStateChange get _value =>
-      super._value as IceConnectionStateChange;
+  _$IceConnectionStateChange get _value =>
+      super._value as _$IceConnectionStateChange;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(IceConnectionStateChange(
+    return _then(_$IceConnectionStateChange(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2245,7 +2135,7 @@ class _$IceConnectionStateChange implements IceConnectionStateChange {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is IceConnectionStateChange &&
+            other is _$IceConnectionStateChange &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -2255,9 +2145,10 @@ class _$IceConnectionStateChange implements IceConnectionStateChange {
 
   @JsonKey(ignore: true)
   @override
-  $IceConnectionStateChangeCopyWith<IceConnectionStateChange> get copyWith =>
-      _$IceConnectionStateChangeCopyWithImpl<IceConnectionStateChange>(
-          this, _$identity);
+  _$$IceConnectionStateChangeCopyWith<_$IceConnectionStateChange>
+      get copyWith =>
+          __$$IceConnectionStateChangeCopyWithImpl<_$IceConnectionStateChange>(
+              this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2379,39 +2270,39 @@ class _$IceConnectionStateChange implements IceConnectionStateChange {
 }
 
 abstract class IceConnectionStateChange implements PeerConnectionEvent {
-  const factory IceConnectionStateChange(IceConnectionState field0) =
+  const factory IceConnectionStateChange(final IceConnectionState field0) =
       _$IceConnectionStateChange;
 
-  IceConnectionState get field0;
+  IceConnectionState get field0 => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $IceConnectionStateChangeCopyWith<IceConnectionStateChange> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$IceConnectionStateChangeCopyWith<_$IceConnectionStateChange>
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $ConnectionStateChangeCopyWith<$Res> {
-  factory $ConnectionStateChangeCopyWith(ConnectionStateChange value,
-          $Res Function(ConnectionStateChange) then) =
-      _$ConnectionStateChangeCopyWithImpl<$Res>;
+abstract class _$$ConnectionStateChangeCopyWith<$Res> {
+  factory _$$ConnectionStateChangeCopyWith(_$ConnectionStateChange value,
+          $Res Function(_$ConnectionStateChange) then) =
+      __$$ConnectionStateChangeCopyWithImpl<$Res>;
   $Res call({PeerConnectionState field0});
 }
 
 /// @nodoc
-class _$ConnectionStateChangeCopyWithImpl<$Res>
+class __$$ConnectionStateChangeCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements $ConnectionStateChangeCopyWith<$Res> {
-  _$ConnectionStateChangeCopyWithImpl(
-      ConnectionStateChange _value, $Res Function(ConnectionStateChange) _then)
-      : super(_value, (v) => _then(v as ConnectionStateChange));
+    implements _$$ConnectionStateChangeCopyWith<$Res> {
+  __$$ConnectionStateChangeCopyWithImpl(_$ConnectionStateChange _value,
+      $Res Function(_$ConnectionStateChange) _then)
+      : super(_value, (v) => _then(v as _$ConnectionStateChange));
 
   @override
-  ConnectionStateChange get _value => super._value as ConnectionStateChange;
+  _$ConnectionStateChange get _value => super._value as _$ConnectionStateChange;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(ConnectionStateChange(
+    return _then(_$ConnectionStateChange(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2437,7 +2328,7 @@ class _$ConnectionStateChange implements ConnectionStateChange {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is ConnectionStateChange &&
+            other is _$ConnectionStateChange &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -2447,8 +2338,8 @@ class _$ConnectionStateChange implements ConnectionStateChange {
 
   @JsonKey(ignore: true)
   @override
-  $ConnectionStateChangeCopyWith<ConnectionStateChange> get copyWith =>
-      _$ConnectionStateChangeCopyWithImpl<ConnectionStateChange>(
+  _$$ConnectionStateChangeCopyWith<_$ConnectionStateChange> get copyWith =>
+      __$$ConnectionStateChangeCopyWithImpl<_$ConnectionStateChange>(
           this, _$identity);
 
   @override
@@ -2571,36 +2462,37 @@ class _$ConnectionStateChange implements ConnectionStateChange {
 }
 
 abstract class ConnectionStateChange implements PeerConnectionEvent {
-  const factory ConnectionStateChange(PeerConnectionState field0) =
+  const factory ConnectionStateChange(final PeerConnectionState field0) =
       _$ConnectionStateChange;
 
-  PeerConnectionState get field0;
+  PeerConnectionState get field0 => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $ConnectionStateChangeCopyWith<ConnectionStateChange> get copyWith =>
+  _$$ConnectionStateChangeCopyWith<_$ConnectionStateChange> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $TrackCopyWith<$Res> {
-  factory $TrackCopyWith(Track value, $Res Function(Track) then) =
-      _$TrackCopyWithImpl<$Res>;
+abstract class _$$TrackCopyWith<$Res> {
+  factory _$$TrackCopyWith(_$Track value, $Res Function(_$Track) then) =
+      __$$TrackCopyWithImpl<$Res>;
   $Res call({RtcTrackEvent field0});
 }
 
 /// @nodoc
-class _$TrackCopyWithImpl<$Res> extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements $TrackCopyWith<$Res> {
-  _$TrackCopyWithImpl(Track _value, $Res Function(Track) _then)
-      : super(_value, (v) => _then(v as Track));
+class __$$TrackCopyWithImpl<$Res>
+    extends _$PeerConnectionEventCopyWithImpl<$Res>
+    implements _$$TrackCopyWith<$Res> {
+  __$$TrackCopyWithImpl(_$Track _value, $Res Function(_$Track) _then)
+      : super(_value, (v) => _then(v as _$Track));
 
   @override
-  Track get _value => super._value as Track;
+  _$Track get _value => super._value as _$Track;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(Track(
+    return _then(_$Track(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2626,7 +2518,7 @@ class _$Track implements Track {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is Track &&
+            other is _$Track &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -2636,8 +2528,8 @@ class _$Track implements Track {
 
   @JsonKey(ignore: true)
   @override
-  $TrackCopyWith<Track> get copyWith =>
-      _$TrackCopyWithImpl<Track>(this, _$identity);
+  _$$TrackCopyWith<_$Track> get copyWith =>
+      __$$TrackCopyWithImpl<_$Track>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2759,9 +2651,9 @@ class _$Track implements Track {
 }
 
 abstract class Track implements PeerConnectionEvent {
-  const factory Track(RtcTrackEvent field0) = _$Track;
+  const factory Track(final RtcTrackEvent field0) = _$Track;
 
-  RtcTrackEvent get field0;
+  RtcTrackEvent get field0 => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $TrackCopyWith<Track> get copyWith => throw _privateConstructorUsedError;
+  _$$TrackCopyWith<_$Track> get copyWith => throw _privateConstructorUsedError;
 }

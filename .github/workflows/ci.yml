@@ -44,7 +44,16 @@ jobs:
   ##########################
 
   clippy:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux
+          #- macos  # TODO: Add `macos-latest`.
+          - windows
+    runs-on: ${{ (matrix.platform == 'linux' && 'ubuntu-22.04')
+                 || (matrix.platform == 'windows' && 'windows-2019')
+                 || 'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -52,6 +61,20 @@ jobs:
           profile: minimal
           toolchain: stable
           components: clippy
+
+      - name: Install Linux platform dependencies
+        # TODO: Unpin `libudev` version once this issues is resolved:
+        #       https://github.com/actions/virtual-environments/issues/5806
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+                       libudev1=249.11-0ubuntu3.3 \
+                       libudev-dev=249.11-0ubuntu3.3
+          sudo apt-get install -y \
+                       libgtk-3-dev libpulse-dev libxcomposite-dev \
+                       libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
+                       ninja-build
+        if: ${{ matrix.platform == 'linux' }}
 
       - run: make cargo.lint
 
@@ -110,11 +133,16 @@ jobs:
   ############
 
   build:
-    # TODO: Switch to `windows-latest` when stable Flutter stable will support
-    #       MSVC 2022:
-    #       https://github.com/flutter/flutter/issues/85922
-    #       https://github.com/flutter/flutter/issues/96138
-    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux
+          #- macos  # TODO: Add `macos-latest`.
+          - windows
+    runs-on: ${{ (matrix.platform == 'linux' && 'ubuntu-22.04')
+                 || (matrix.platform == 'windows' && 'windows-2019')
+                 || 'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -122,10 +150,24 @@ jobs:
           profile: minimal
           toolchain: stable
       - uses: subosito/flutter-action@v2
-      - run: flutter config --enable-windows-desktop
+      - run: flutter config --enable-${{ matrix.platform }}-desktop
+
+      - name: Install Linux platform dependencies
+        # TODO: Unpin `libudev` version once this issues is resolved:
+        #       https://github.com/actions/virtual-environments/issues/5806
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+                       libudev1=249.11-0ubuntu3.3 \
+                       libudev-dev=249.11-0ubuntu3.3
+          sudo apt-get install -y \
+                       libgtk-3-dev libpulse-dev libxcomposite-dev \
+                       libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
+                       ninja-build
+        if: ${{ matrix.platform == 'linux' }}
 
       - run: make cargo.build
-      - run: make flutter.build
+      - run: make flutter.build platform=${{ matrix.platform }}
 
 
 
@@ -140,16 +182,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - platform: android
-            os: macos-latest
-          - platform: windows
-            # TODO: Switch to `windows-latest` when stable Flutter stable will
-            #       support MSVC 2022:
-            #       https://github.com/flutter/flutter/issues/85922
-            #       https://github.com/flutter/flutter/issues/96138
-            os: windows-2019
-    runs-on: ${{ matrix.os }}
+        platform:
+          - android
+          - linux
+          #- macos  # TODO: Add `macos-latest`.
+          - windows
+    # TODO: Switch to `windows-latest` once stable Flutter supports MSVC 2022:
+    #       https://github.com/flutter/flutter/issues/85922
+    #       https://github.com/flutter/flutter/issues/96138
+    runs-on: ${{ (matrix.platform == 'linux' && 'ubuntu-22.04')
+                 || (matrix.platform == 'windows' && 'windows-2019')
+                 || 'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -157,12 +200,23 @@ jobs:
           profile: minimal
           toolchain: stable
       - uses: subosito/flutter-action@v2
-
       - run: flutter config --enable-${{ matrix.platform }}-desktop
         if: ${{ matrix.platform != 'android' }}
 
-      - run: make cargo.build platform=${{ matrix.platform }}
-        if: ${{ matrix.platform != 'android' }}
+      - name: Install Linux platform dependencies
+        # TODO: Unpin `libudev` version once this issues is resolved:
+        #       https://github.com/actions/virtual-environments/issues/5806
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+                       libudev1=249.11-0ubuntu3.3 \
+                       libudev-dev=249.11-0ubuntu3.3
+          sudo apt-get install -y \
+                       cmake \
+                       libgtk-3-dev liblzma-dev libpulse-dev \
+                       ninja-build \
+                       xvfb
+        if: ${{ matrix.platform == 'linux' }}
 
       - run: make cargo.build platform=${{ matrix.platform }}
                               args="--features fake_media"
@@ -178,22 +232,49 @@ jobs:
           script: make flutter.test
         if: ${{ matrix.platform == 'android' }}
 
-      - run: make flutter.test device=windows
+      - name: Test on Linux
+        run: xvfb-run -a make flutter.test device=linux
+        if: ${{ matrix.platform == 'linux' }}
+
+      - name: Test on Windows
+        run: make flutter.test device=windows
         if: ${{ matrix.platform == 'windows' }}
 
   test-rust:
     name: Test Rust crates
-    # TODO: Switch to `windows-latest` when stable Flutter stable will
-    #       support MSVC 2022:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux
+          #- macos  # TODO: Add `macos-latest`.
+          - windows
+    # TODO: Switch to `windows-latest` once stable Flutter supports MSVC 2022:
     #       https://github.com/flutter/flutter/issues/85922
     #       https://github.com/flutter/flutter/issues/96138
-    runs-on: windows-2019
+    runs-on: ${{ (matrix.platform == 'linux' && 'ubuntu-22.04')
+                 || (matrix.platform == 'windows' && 'windows-2019')
+                 || 'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
+
+      - name: Install Linux platform dependencies
+        # TODO: Unpin `libudev` version once this issues is resolved:
+        #       https://github.com/actions/virtual-environments/issues/5806
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+                       libudev1=249.11-0ubuntu3.3 \
+                       libudev-dev=249.11-0ubuntu3.3
+          sudo apt-get install -y \
+                       libgtk-3-dev libpulse-dev libxcomposite-dev \
+                       libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
+                       ninja-build
+        if: ${{ matrix.platform == 'linux' }}
 
       - run: make cargo.test
 
@@ -208,18 +289,35 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          # TODO: Switch to `windows-latest` when stable Flutter stable will
-          #       support MSVC 2022:
-          #       https://github.com/flutter/flutter/issues/85922
-          #       https://github.com/flutter/flutter/issues/96138
-          - windows-2019
-    runs-on: ${{ matrix.os }}
+        platform:
+          - linux
+          #- macos  # TODO: Add `macos-latest`.
+          - windows
+    # TODO: Switch to `windows-latest` once stable Flutter supports MSVC 2022:
+    #       https://github.com/flutter/flutter/issues/85922
+    #       https://github.com/flutter/flutter/issues/96138
+    runs-on: ${{ (matrix.platform == 'linux' && 'ubuntu-22.04')
+                 || (matrix.platform == 'windows' && 'windows-2019')
+                 || 'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
+
+      - name: Install Linux platform dependencies
+        # TODO: Unpin `libudev` version once this issues is resolved:
+        #       https://github.com/actions/virtual-environments/issues/5806
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+                       libudev1=249.11-0ubuntu3.3 \
+                       libudev-dev=249.11-0ubuntu3.3
+          sudo apt-get install -y \
+                       libgtk-3-dev libpulse-dev libxcomposite-dev \
+                       libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
+                       ninja-build
+        if: ${{ matrix.platform == 'linux' }}
 
       - run: make cargo.doc

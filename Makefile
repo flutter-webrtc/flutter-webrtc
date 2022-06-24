@@ -83,11 +83,11 @@ flutter.clean:
 # Build Flutter example application for Windows.
 #
 # Usage:
-#	make flutter.build
+#	make flutter.build [platform=(apk|linux|macos|windows)]
 
 flutter.build:
 	cd example/ && \
-	flutter build windows
+	flutter build $(platform)
 
 
 # Format Flutter Dart sources with dartfmt.

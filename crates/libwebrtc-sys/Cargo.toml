@@ -16,8 +16,10 @@ cxx = "1.0"
 [build-dependencies]
 anyhow = "1.0"
 cxx-build = "1.0"
-dotenv = "0.15"
+flate2 = "1.0"
 reqwest = { version = "0.11", features = ["blocking"] }
+sha2 = "0.10"
+tar = "0.4"
 walkdir = "2.3"
 
 [target.'cfg(target_os = "linux")'.build-dependencies]
