@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
+import 'desktop_capturer_impl.dart';
 import 'media_recorder_impl.dart';
 import 'media_stream_impl.dart';
 import 'navigator_impl.dart';
 import 'rtc_peerconnection_impl.dart';
 import 'rtc_video_renderer_impl.dart';
 import 'utils.dart';
+import '../desktop_capturer.dart';
 
 class RTCFactoryNative extends RTCFactory {
   RTCFactoryNative._internal();
@@ -76,3 +78,5 @@ MediaRecorder mediaRecorder() {
 }
 
 Navigator get navigator => RTCFactoryNative.instance.navigator;
+
+DesktopCapturer get desktopCapturer => DesktopCapturerNative.instance;

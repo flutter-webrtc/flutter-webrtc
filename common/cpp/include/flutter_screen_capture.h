@@ -11,6 +11,14 @@ class FlutterScreenCapture {
  public:
   FlutterScreenCapture(FlutterWebRTCBase *base) : base_(base) {}
   
+  void GetDisplayMedia(const EncodableMap& constraints,
+                    std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void GetDesktopSources(const EncodableList &types, std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void GetDesktopSourceThumbnail(uint64_t source_id, int width, int height,
+                     std::unique_ptr<MethodResult<EncodableValue>> result);
+
   void EnumerateWindows(std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void EnumerateScreens(std::unique_ptr<MethodResult<EncodableValue>> result);

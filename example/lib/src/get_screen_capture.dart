@@ -2,10 +2,8 @@ import 'dart:core';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
-import 'package:flutter_webrtc/src/native/media_stream_impl.dart';
 
 class GetScreenCapture extends StatefulWidget {
   static String tag = 'get_screen_capture';
@@ -40,7 +38,7 @@ class _GetScreenCaptureState extends State<GetScreenCapture> {
   void initRenderers() async {
     await _localRenderer.initialize();
 
-    _sources = await navigator.desktopCapturer.getSources(
+    _sources = await desktopCapturer.getSources(
         types: [SourceType.kScreen, SourceType.kWindow],
         thumbnailSize: ThumbnailSize(320, 180)
     );

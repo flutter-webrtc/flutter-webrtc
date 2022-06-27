@@ -48,25 +48,69 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap constraints = findMap(params, "constraints");
 
-    int window_id = 0;
-    libwebrtc::SourceType source_type = libwebrtc::SourceType::kEntireScreen;
+    GetDisplayMedia(constraints, std::move(result));
+    
+  } 
 
-    const EncodableMap video = findMap(constraints, "video");
-    if (video != EncodableMap()) {
-      const EncodableMap deviceId = findMap(video, "deviceId");
-      if (deviceId != EncodableMap()) {
-        std::string windowId = findString(deviceId, "exact");
-        if (windowId.empty()) {
-          result->Error("Bad Arguments", "Incorrect video->deviceId->exact");
-          return;
-        }
-        window_id = std::stoi(windowId);
-        source_type = libwebrtc::SourceType::kWindow;
-      }
+  else if (method_call.method_name().compare("getDesktopSources") == 0) {
+      // types: ["screen", "window"]
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Bad arguments received");
+      return;
     }
 
-    CreateCapture(source_type, window_id, constraints, std::move(result));
-  } 
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+    const EncodableList types = findList(params, "types");
+    if (types == EncodableList()) {
+      result->Error("Bad Arguments", "Types is required");
+      return;
+    }
+
+    GetDesktopSources(types, std::move(result));
+  }
+
+  else if (method_call.method_name().compare("getDesktopSourceThumbnail") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Bad arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    
+    std::string sourceId = findString(params, "sourceId");
+    if (sourceId.empty()) {
+      result->Error("Bad Arguments", "Incorrect sourceId");
+      return;
+    }
+    int source_id = std::stoi(sourceId);
+
+
+    const EncodableMap thumbnailSize = findMap(params, "thumbnailSize");
+    if (thumbnailSize != EncodableMap()) {
+      // auto it = thumbnailSize.find(EncodableValue("width"));
+      // if (it != thumbnailSize.end()) {
+      //   const EncodableValue optional = it->second;
+      //   int width1 = GetValue<int>(optional);
+      //   std::cout << " width1: " << width1 << std::endl;
+      // } else {
+      //   std::cout << " width not found !!! " << std::endl;
+      // }
+
+      int width = 0;
+      // width = findInt(thumbnailSize, "width");
+      // std::cout << " width: " << width << std::endl;
+      
+      int height = 0;
+      // height = findInt(thumbnailSize, "height");
+      // std::cout << " height: " << height << std::endl;
+
+      GetDesktopSourceThumbnail(source_id, width, height, std::move(result));
+    } else {
+      result->Error("Bad Arguments", "Bad arguments received");
+    }
+  }
 
   else if (method_call.method_name().compare("enumerateScreens") == 0) {
     EnumerateScreens(std::move(result));

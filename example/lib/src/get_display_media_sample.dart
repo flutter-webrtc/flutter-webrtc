@@ -21,6 +21,8 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   bool _inCalling = false;
   Timer? _timer;
   var _counter = 0;
+  List<DesktopCapturerSource> _sources = [];
+  DesktopCapturerSource? selected_source_;
 
   @override
   void initState() {
@@ -48,13 +50,43 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     });
   }
 
+  Future<void> _getSources() async {
+    try {
+      var sources = await desktopCapturer
+          .getSources(types: [SourceType.kScreen, SourceType.kWindow]);
+      sources.forEach((element) {
+        print(
+            'name: ${element.name}, id: ${element.id}, type: ${element.type}');
+      });
+      setState(() {
+        _sources = sources;
+      });
+      return;
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
   // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> _makeCall() async {
-    final mediaConstraints = <String, dynamic>{'audio': true, 'video': true};
+  Future<void> _makeCall(DesktopCapturerSource source) async {
+    setState(() {
+      selected_source_ = source;
+    });
 
     try {
       var stream =
-          await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
+      await navigator.mediaDevices.getDisplayMedia(<String, dynamic>{
+        'video': selected_source_ == null
+            ? true
+            : {
+          'deviceId': {'exact': selected_source_!.id},
+          'mandatory': {
+            'minWidth': 1280,
+            'minHeight': 720,
+            'frameRate': 30.0
+          }
+        }
+      });
       stream.getVideoTracks()[0].onEnded = () {
         print(
             'By adding a listener on onEnded you can: 1) catch stop video sharing on Web');
@@ -99,29 +131,61 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('GetUserMedia API Test'),
+        title: Text('GetDisplayMedia source: ' +
+            (selected_source_ != null ? selected_source_!.name : '')),
         actions: [],
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
-            child: Stack(children: <Widget>[
-              Center(
-                child: Text('counter: ' + _counter.toString()),
-              ),
-              Container(
-                margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+              child: Container(
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                decoration: BoxDecoration(color: Colors.black54),
-                child: RTCVideoView(_localRenderer),
-              )
-            ]),
-          );
+                color: Colors.white10,
+                child: Stack(children: <Widget>[
+                  if (!_inCalling)
+                    GridView.count(
+                      // Create a grid with 2 columns. If you change the scrollDirection to
+                      // horizontal, this produces 2 rows.
+                      crossAxisCount: 4,
+                      // Generate 100 widgets that display their index in the List.
+                      children: _sources
+                          .map((e) => Column(
+                        children: [
+                          Text(
+                            e.name,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                print('id: ${e.id} type: ${e.type}');
+                                _makeCall(e);
+                              }, // Handle your callback
+                              child: Image.memory(
+                                e.thumbnail!,
+                                scale: 1.0,
+                                repeat: ImageRepeat.noRepeat,
+                              ),
+                            ),
+                          )
+                        ],
+                      ))
+                          .toList(),
+                    ),
+                  if (_inCalling)
+                    Container(
+                      margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height,
+                      decoration: BoxDecoration(color: Colors.black54),
+                      child: RTCVideoView(_localRenderer),
+                    )
+                ]),
+              ));
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _inCalling ? _hangUp : _makeCall,
+        onPressed: _inCalling ? _hangUp : _getSources,
         tooltip: _inCalling ? 'Hangup' : 'Call',
         child: Icon(_inCalling ? Icons.call_end : Icons.phone),
       ),
