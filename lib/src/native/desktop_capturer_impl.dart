@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import '../desktop_capturer.dart';
-
 import 'utils.dart';
 
 class DesktopCapturerSourceNative extends DesktopCapturerSource {
