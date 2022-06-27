@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
+// ignore: must_be_immutable
 class ScreenSelectDialog extends Dialog {
   ScreenSelectDialog() {
     Future.delayed(Duration(milliseconds: 100), () {
