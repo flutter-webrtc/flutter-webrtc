@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.8.10] - 2022-06-28
+
+* [iOS] IPC Broadcast Upload Extension support for Screenshare
+
 [0.8.9] - 2022-06-08
 
 * [Android] Fixes DataChannel issue described in #974
