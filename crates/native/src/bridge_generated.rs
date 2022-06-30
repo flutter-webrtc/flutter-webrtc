@@ -232,6 +232,62 @@ pub extern "C" fn wire_set_transceiver_direction(
 }
 
 #[no_mangle]
+pub extern "C" fn wire_set_transceiver_recv(
+    port_: i64,
+    peer_id: u64,
+    transceiver_index: u32,
+    recv: bool,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "set_transceiver_recv",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_peer_id = peer_id.wire2api();
+            let api_transceiver_index = transceiver_index.wire2api();
+            let api_recv = recv.wire2api();
+            move |task_callback| {
+                set_transceiver_recv(
+                    api_peer_id,
+                    api_transceiver_index,
+                    api_recv,
+                )
+            }
+        },
+    )
+}
+
+#[no_mangle]
+pub extern "C" fn wire_set_transceiver_send(
+    port_: i64,
+    peer_id: u64,
+    transceiver_index: u32,
+    send: bool,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "set_transceiver_send",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_peer_id = peer_id.wire2api();
+            let api_transceiver_index = transceiver_index.wire2api();
+            let api_send = send.wire2api();
+            move |task_callback| {
+                set_transceiver_send(
+                    api_peer_id,
+                    api_transceiver_index,
+                    api_send,
+                )
+            }
+        },
+    )
+}
+
+#[no_mangle]
 pub extern "C" fn wire_get_transceiver_mid(
     port_: i64,
     peer_id: u64,
@@ -612,18 +668,16 @@ pub extern "C" fn wire_create_video_sink(
 }
 
 #[no_mangle]
-pub extern "C" fn wire_dispose_video_sink(
-    sink_id: i64,
-) -> support::WireSyncReturnStruct {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync(
+pub extern "C" fn wire_dispose_video_sink(port_: i64, sink_id: i64) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
         WrapInfo {
             debug_name: "dispose_video_sink",
-            port: None,
-            mode: FfiCallMode::Sync,
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
         },
         move || {
             let api_sink_id = sink_id.wire2api();
-            Ok(dispose_video_sink(api_sink_id))
+            move |task_callback| Ok(dispose_video_sink(api_sink_id))
         },
     )
 }

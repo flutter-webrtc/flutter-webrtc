@@ -1,7 +1,7 @@
 use std::{mem, sync::Mutex};
 
 use cxx::UniquePtr;
-use flutter_rust_bridge::{StreamSink, SyncReturn};
+use flutter_rust_bridge::StreamSink;
 use libwebrtc_sys as sys;
 
 use crate::{cpp_api::OnFrameCallbackInterface, Webrtc};
@@ -890,6 +890,32 @@ pub fn set_transceiver_direction(
     )
 }
 
+/// Changes the receive direction of the specified [`RtcRtpTransceiver`].
+pub fn set_transceiver_recv(
+    peer_id: u64,
+    transceiver_index: u32,
+    recv: bool,
+) -> anyhow::Result<()> {
+    WEBRTC.lock().unwrap().set_transceiver_recv(
+        peer_id,
+        transceiver_index,
+        recv,
+    )
+}
+
+/// Changes the send direction of the specified [`RtcRtpTransceiver`].
+pub fn set_transceiver_send(
+    peer_id: u64,
+    transceiver_index: u32,
+    send: bool,
+) -> anyhow::Result<()> {
+    WEBRTC.lock().unwrap().set_transceiver_send(
+        peer_id,
+        transceiver_index,
+        send,
+    )
+}
+
 /// Returns the [negotiated media ID (mid)][1] of the specified
 /// [`RtcRtpTransceiver`].
 ///
@@ -1083,8 +1109,6 @@ pub fn create_video_sink(
 }
 
 /// Destroys the [`VideoSink`] by the provided ID.
-// TODO: Fix return type when SyncReturn allows other types.
-pub fn dispose_video_sink(sink_id: i64) -> SyncReturn<Vec<u8>> {
+pub fn dispose_video_sink(sink_id: i64) {
     WEBRTC.lock().unwrap().dispose_video_sink(sink_id);
-    SyncReturn(Vec::new())
 }

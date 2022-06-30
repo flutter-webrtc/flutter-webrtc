@@ -526,4 +526,94 @@ void main() {
       expect(candidatesFired, equals(0));
     }
   });
+
+  testWidgets('Set recv direction', (WidgetTester tester) async {
+    var pc = await PeerConnection.create(IceTransportType.all, []);
+    // ignore: prefer_function_declarations_over_variables
+    var testEnableRecv = (beforeDirection, afterDirection) async {
+      var transceiver = await pc.addTransceiver(
+          MediaKind.video, RtpTransceiverInit(beforeDirection));
+      await transceiver.setRecv(true);
+      expect(await transceiver.getDirection(), afterDirection);
+    };
+
+    // ignore: prefer_function_declarations_over_variables
+    var testDisableRecv = (beforeDirection, afterDirection) async {
+      var transceiver = await pc.addTransceiver(
+          MediaKind.video, RtpTransceiverInit(beforeDirection));
+      await transceiver.setRecv(false);
+      expect(await transceiver.getDirection(), afterDirection);
+    };
+
+    var testEnable = [
+      [TransceiverDirection.inactive, TransceiverDirection.recvOnly],
+      [TransceiverDirection.recvOnly, TransceiverDirection.recvOnly],
+      [TransceiverDirection.sendOnly, TransceiverDirection.sendRecv],
+      [TransceiverDirection.sendRecv, TransceiverDirection.sendRecv],
+    ];
+
+    var testDisable = [
+      [TransceiverDirection.inactive, TransceiverDirection.inactive],
+      [TransceiverDirection.recvOnly, TransceiverDirection.inactive],
+      [TransceiverDirection.sendOnly, TransceiverDirection.sendOnly],
+      [TransceiverDirection.sendRecv, TransceiverDirection.sendOnly],
+    ];
+
+    for (var value = testEnable.removeAt(0);
+        testEnable.isNotEmpty;
+        value = testEnable.removeAt(0)) {
+      await testEnableRecv(value[0], value[1]);
+    }
+
+    for (var value = testDisable.removeAt(0);
+        testDisable.isNotEmpty;
+        value = testDisable.removeAt(0)) {
+      await testDisableRecv(value[0], value[1]);
+    }
+  });
+
+  testWidgets('Set send direction', (WidgetTester tester) async {
+    var pc = await PeerConnection.create(IceTransportType.all, []);
+    // ignore: prefer_function_declarations_over_variables
+    var testEnableRecv = (beforeDirection, afterDirection) async {
+      var transceiver = await pc.addTransceiver(
+          MediaKind.video, RtpTransceiverInit(beforeDirection));
+      await transceiver.setSend(true);
+      expect(await transceiver.getDirection(), afterDirection);
+    };
+
+    // ignore: prefer_function_declarations_over_variables
+    var testDisableRecv = (beforeDirection, afterDirection) async {
+      var transceiver = await pc.addTransceiver(
+          MediaKind.video, RtpTransceiverInit(beforeDirection));
+      await transceiver.setSend(false);
+      expect(await transceiver.getDirection(), afterDirection);
+    };
+
+    var testEnable = [
+      [TransceiverDirection.inactive, TransceiverDirection.sendOnly],
+      [TransceiverDirection.sendOnly, TransceiverDirection.sendOnly],
+      [TransceiverDirection.recvOnly, TransceiverDirection.sendRecv],
+      [TransceiverDirection.sendRecv, TransceiverDirection.sendRecv],
+    ];
+
+    var testDisable = [
+      [TransceiverDirection.inactive, TransceiverDirection.inactive],
+      [TransceiverDirection.sendOnly, TransceiverDirection.inactive],
+      [TransceiverDirection.recvOnly, TransceiverDirection.recvOnly],
+      [TransceiverDirection.sendRecv, TransceiverDirection.recvOnly],
+    ];
+
+    for (var value = testEnable.removeAt(0);
+        testEnable.isNotEmpty;
+        value = testEnable.removeAt(0)) {
+      await testEnableRecv(value[0], value[1]);
+    }
+
+    for (var value = testDisable.removeAt(0);
+        testDisable.isNotEmpty;
+        value = testDisable.removeAt(0)) {
+      await testDisableRecv(value[0], value[1]);
+    }
+  });
 }

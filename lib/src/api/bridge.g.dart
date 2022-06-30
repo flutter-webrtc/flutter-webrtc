@@ -94,6 +94,24 @@ abstract class FlutterWebrtcNative {
 
   FlutterRustBridgeTaskConstMeta get kSetTransceiverDirectionConstMeta;
 
+  /// Changes the receive direction of the specified [`RtcRtpTransceiver`].
+  Future<void> setTransceiverRecv(
+      {required int peerId,
+      required int transceiverIndex,
+      required bool recv,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetTransceiverRecvConstMeta;
+
+  /// Changes the send direction of the specified [`RtcRtpTransceiver`].
+  Future<void> setTransceiverSend(
+      {required int peerId,
+      required int transceiverIndex,
+      required bool send,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetTransceiverSendConstMeta;
+
   /// Returns the [negotiated media ID (mid)][1] of the specified
   /// [`RtcRtpTransceiver`].
   ///
@@ -240,7 +258,7 @@ abstract class FlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kCreateVideoSinkConstMeta;
 
   /// Destroys the [`VideoSink`] by the provided ID.
-  Uint8List disposeVideoSink({required int sinkId, dynamic hint});
+  Future<void> disposeVideoSink({required int sinkId, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kDisposeVideoSinkConstMeta;
 }
@@ -1122,6 +1140,46 @@ class FlutterWebrtcNativeImpl
         argNames: ["peerId", "transceiverIndex", "direction"],
       );
 
+  Future<void> setTransceiverRecv(
+          {required int peerId,
+          required int transceiverIndex,
+          required bool recv,
+          dynamic hint}) =>
+      executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) => inner.wire_set_transceiver_recv(port_,
+            _api2wire_u64(peerId), _api2wire_u32(transceiverIndex), recv),
+        parseSuccessData: _wire2api_unit,
+        constMeta: kSetTransceiverRecvConstMeta,
+        argValues: [peerId, transceiverIndex, recv],
+        hint: hint,
+      ));
+
+  FlutterRustBridgeTaskConstMeta get kSetTransceiverRecvConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_transceiver_recv",
+        argNames: ["peerId", "transceiverIndex", "recv"],
+      );
+
+  Future<void> setTransceiverSend(
+          {required int peerId,
+          required int transceiverIndex,
+          required bool send,
+          dynamic hint}) =>
+      executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) => inner.wire_set_transceiver_send(port_,
+            _api2wire_u64(peerId), _api2wire_u32(transceiverIndex), send),
+        parseSuccessData: _wire2api_unit,
+        constMeta: kSetTransceiverSendConstMeta,
+        argValues: [peerId, transceiverIndex, send],
+        hint: hint,
+      ));
+
+  FlutterRustBridgeTaskConstMeta get kSetTransceiverSendConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_transceiver_send",
+        argNames: ["peerId", "transceiverIndex", "send"],
+      );
+
   Future<String?> getTransceiverMid(
           {required int peerId, required int transceiverIndex, dynamic hint}) =>
       executeNormal(FlutterRustBridgeTask(
@@ -1459,9 +1517,11 @@ class FlutterWebrtcNativeImpl
         argNames: ["sinkId", "trackId", "callbackPtr"],
       );
 
-  Uint8List disposeVideoSink({required int sinkId, dynamic hint}) =>
-      executeSync(FlutterRustBridgeSyncTask(
-        callFfi: () => inner.wire_dispose_video_sink(_api2wire_i64(sinkId)),
+  Future<void> disposeVideoSink({required int sinkId, dynamic hint}) =>
+      executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) =>
+            inner.wire_dispose_video_sink(port_, _api2wire_i64(sinkId)),
+        parseSuccessData: _wire2api_unit,
         constMeta: kDisposeVideoSinkConstMeta,
         argValues: [sinkId],
         hint: hint,
@@ -1666,10 +1726,6 @@ class FlutterWebrtcNativeImpl
 // Section: wire2api
 String _wire2api_String(dynamic raw) {
   return raw as String;
-}
-
-Uint8List _wire2api_SyncReturnVecU8(dynamic raw) {
-  return raw as Uint8List;
 }
 
 bool _wire2api_bool(dynamic raw) {
@@ -2099,6 +2155,48 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
       _wire_set_transceiver_directionPtr
           .asFunction<void Function(int, int, int, int)>();
 
+  void wire_set_transceiver_recv(
+    int port_,
+    int peer_id,
+    int transceiver_index,
+    bool recv,
+  ) {
+    return _wire_set_transceiver_recv(
+      port_,
+      peer_id,
+      transceiver_index,
+      recv ? 1 : 0,
+    );
+  }
+
+  late final _wire_set_transceiver_recvPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Uint32,
+              ffi.Uint8)>>('wire_set_transceiver_recv');
+  late final _wire_set_transceiver_recv = _wire_set_transceiver_recvPtr
+      .asFunction<void Function(int, int, int, int)>();
+
+  void wire_set_transceiver_send(
+    int port_,
+    int peer_id,
+    int transceiver_index,
+    bool send,
+  ) {
+    return _wire_set_transceiver_send(
+      port_,
+      peer_id,
+      transceiver_index,
+      send ? 1 : 0,
+    );
+  }
+
+  late final _wire_set_transceiver_sendPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Uint32,
+              ffi.Uint8)>>('wire_set_transceiver_send');
+  late final _wire_set_transceiver_send = _wire_set_transceiver_sendPtr
+      .asFunction<void Function(int, int, int, int)>();
+
   void wire_get_transceiver_mid(
     int port_,
     int peer_id,
@@ -2449,19 +2547,21 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
   late final _wire_create_video_sink = _wire_create_video_sinkPtr.asFunction<
       void Function(int, int, ffi.Pointer<wire_uint_8_list>, int)>();
 
-  WireSyncReturnStruct wire_dispose_video_sink(
+  void wire_dispose_video_sink(
+    int port_,
     int sink_id,
   ) {
     return _wire_dispose_video_sink(
+      port_,
       sink_id,
     );
   }
 
   late final _wire_dispose_video_sinkPtr =
-      _lookup<ffi.NativeFunction<WireSyncReturnStruct Function(ffi.Int64)>>(
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64, ffi.Int64)>>(
           'wire_dispose_video_sink');
-  late final _wire_dispose_video_sink = _wire_dispose_video_sinkPtr
-      .asFunction<WireSyncReturnStruct Function(int)>();
+  late final _wire_dispose_video_sink =
+      _wire_dispose_video_sinkPtr.asFunction<void Function(int, int)>();
 
   ffi.Pointer<wire_StringList> new_StringList(
     int len,

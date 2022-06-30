@@ -34,6 +34,16 @@ class RtpTransceiverController(
         transceiver.setDirection(direction)
         result.success(null)
       }
+      "setRecv" -> {
+        val recv = call.argument<Boolean>("recv")!!
+        transceiver.setRecv(recv)
+        result.success(null)
+      }
+      "setSend" -> {
+        val send = call.argument<Boolean>("send")!!
+        transceiver.setSend(send)
+        result.success(null)
+      }
       "getMid" -> {
         result.success(transceiver.getMid())
       }

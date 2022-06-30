@@ -43,6 +43,22 @@ abstract class RtpTransceiver {
   /// Changes the [TransceiverDirection] of this [RtpTransceiver].
   Future<void> setDirection(TransceiverDirection direction);
 
+  /// Changes the receive direction of this [RtpTransceiver].
+  ///
+  /// This is designed to allow atomic change of an [RtpTransceiver] direction
+  /// based on the current direction. Since [getDirection] and [setDirection]
+  /// are both asynchronous operations changing direction might introduce data
+  /// races.
+  Future<void> setRecv(bool recv);
+
+  /// Changes the send direction of this [RtpTransceiver].
+  ///
+  /// This is designed to allow atomic change of an [RtpTransceiver] direction
+  /// based on the current direction. Since [getDirection] and [setDirection]
+  /// are both asynchronous operations changing direction might introduce data
+  /// races.
+  Future<void> setSend(bool send);
+
   /// Returns current preferred [TransceiverDirection] of this [RtpTransceiver].
   Future<TransceiverDirection> getDirection();
 
@@ -101,6 +117,16 @@ class _RtpTransceiverChannel extends RtpTransceiver {
     _isStopped = true;
     await _chan.invokeMethod('stop');
   }
+
+  @override
+  Future<void> setRecv(bool recv) async {
+    await _chan.invokeMethod('setRecv', {'recv': recv});
+  }
+
+  @override
+  Future<void> setSend(bool send) async {
+    await _chan.invokeMethod('setSend', {'send': send});
+  }
 }
 
 /// FFI-based implementation of an [RtpTransceiver].
@@ -144,5 +170,17 @@ class RtpTransceiverFFI extends RtpTransceiver {
   @override
   Future<void> syncMid() async {
     _mid = await api.getTransceiverMid(peerId: _peerId, transceiverIndex: _id);
+  }
+
+  @override
+  Future<void> setRecv(bool recv) async {
+    await api.setTransceiverRecv(
+        peerId: _peerId, transceiverIndex: _id, recv: recv);
+  }
+
+  @override
+  Future<void> setSend(bool send) async {
+    await api.setTransceiverSend(
+        peerId: _peerId, transceiverIndex: _id, send: send);
   }
 }

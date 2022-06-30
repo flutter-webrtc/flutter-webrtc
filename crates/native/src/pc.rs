@@ -278,6 +278,90 @@ impl Webrtc {
         transceiver.set_direction(direction.into())
     }
 
+    /// Changes the receive direction of the specified [`RtcRtpTransceiver`].
+    ///
+    /// # Panics
+    ///
+    /// If the mutex guarding the [`sys::PeerConnectionInterface`] is poisoned.
+    pub fn set_transceiver_recv(
+        &self,
+        peer_id: u64,
+        transceiver_index: u32,
+        recv: bool,
+    ) -> anyhow::Result<()> {
+        use sys::RtpTransceiverDirection as D;
+
+        let peer_id = PeerConnectionId::from(peer_id);
+        let peer = self.peer_connections.get(&peer_id).ok_or_else(|| {
+            anyhow!("`PeerConnection` with ID `{peer_id}` doesn't exist")
+        })?;
+
+        let transceivers = peer.inner.lock().unwrap().get_transceivers();
+        let transceiver = transceivers
+            .get(transceiver_index as usize)
+            .ok_or_else(|| {
+                anyhow!(
+                    "`Transceiver` with ID `{transceiver_index}` doesn't exist",
+                )
+            })?;
+
+        let new_direction = match (transceiver.direction(), recv) {
+            (D::kInactive | D::kRecvOnly, true) => D::kRecvOnly,
+            (D::kSendOnly | D::kSendRecv, true) => D::kSendRecv,
+            (D::kInactive | D::kRecvOnly, false) => D::kInactive,
+            (D::kSendOnly | D::kSendRecv, false) => D::kSendOnly,
+            _ => D::kStopped,
+        };
+
+        if new_direction == D::kStopped {
+            Ok(())
+        } else {
+            transceiver.set_direction(new_direction)
+        }
+    }
+
+    /// Changes the send direction of the specified [`RtcRtpTransceiver`].
+    ///
+    /// # Panics
+    ///
+    /// If the mutex guarding the [`sys::PeerConnectionInterface`] is poisoned.
+    pub fn set_transceiver_send(
+        &self,
+        peer_id: u64,
+        transceiver_index: u32,
+        send: bool,
+    ) -> anyhow::Result<()> {
+        use sys::RtpTransceiverDirection as D;
+
+        let peer_id = PeerConnectionId::from(peer_id);
+        let peer = self.peer_connections.get(&peer_id).ok_or_else(|| {
+            anyhow!("`PeerConnection` with ID `{peer_id}` doesn't exist")
+        })?;
+
+        let transceivers = peer.inner.lock().unwrap().get_transceivers();
+        let transceiver = transceivers
+            .get(transceiver_index as usize)
+            .ok_or_else(|| {
+                anyhow!(
+                    "`Transceiver` with ID `{transceiver_index}` doesn't exist",
+                )
+            })?;
+
+        let new_direction = match (transceiver.direction(), send) {
+            (D::kInactive | D::kSendOnly, true) => D::kSendOnly,
+            (D::kRecvOnly | D::kSendRecv, true) => D::kSendRecv,
+            (D::kInactive | D::kSendOnly, false) => D::kInactive,
+            (D::kSendRecv | D::kRecvOnly, false) => D::kRecvOnly,
+            _ => D::kStopped,
+        };
+
+        if new_direction == D::kStopped {
+            Ok(())
+        } else {
+            transceiver.set_direction(new_direction)
+        }
+    }
+
     /// Returns the [Negotiated media ID (mid)][1] of the specified
     /// [`RtcRtpTransceiver`].
     ///
