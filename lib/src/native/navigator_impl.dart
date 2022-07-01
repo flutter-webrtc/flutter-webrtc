@@ -20,5 +20,4 @@ class NavigatorNative extends Navigator {
 
   @override
   MediaDevices get mediaDevices => MediaDeviceNative();
-
 }
