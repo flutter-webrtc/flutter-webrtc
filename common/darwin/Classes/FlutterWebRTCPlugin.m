@@ -2,6 +2,7 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCDataChannel.h"
+#import "FlutterRTCDesktopCapturer.h"
 #import "FlutterRTCVideoRenderer.h"
 #import "AudioUtils.h"
 
@@ -77,7 +78,8 @@
     self.peerConnections = [NSMutableDictionary new];
     self.localStreams = [NSMutableDictionary new];
     self.localTracks = [NSMutableDictionary new];
-    self.renders = [[NSMutableDictionary alloc] init];
+    self.renders = [NSMutableDictionary new];
+    self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
@@ -140,13 +142,9 @@
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getUserMedia:constraints result:result];
     } else if ([@"getDisplayMedia" isEqualToString:call.method]) {
-#if TARGET_OS_IPHONE
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getDisplayMedia:constraints result:result];
-#else
-        result(FlutterMethodNotImplemented);
-#endif
     } else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
         [self createLocalMediaStream:result];
     } else if ([@"getSources" isEqualToString:call.method]) {
@@ -365,12 +363,14 @@
                 [self.localTracks removeObjectForKey:track.trackId];
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
                 RTCVideoSource *source = videoTrack.source;
-                if(source){
+                CapturerStopHandler stopHandler = self.videoCapturerStopHandlers[streamId];
+                if(stopHandler) {
                     shouldCallResult = NO;
-                    [self.videoCapturer stopCaptureWithCompletionHandler:^{
-                      result(nil);
-                    }];
-                    self.videoCapturer = nil;
+                    stopHandler(^{
+                          NSLog(@"video capturer stopped, id = %@", streamId);
+                          result(nil);
+                        });
+                    [self.videoCapturerStopHandlers removeObjectForKey:source];
                 }
             }
             for (RTCAudioTrack *track in stream.audioTracks) {
@@ -966,6 +966,12 @@
         }
 
         result(@{ @"transceivers":transceivers});
+    } else  if ([@"getDesktopSources" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        [self getDesktopSources:argsMap result:result];
+    }  else  if ([@"getDesktopSourceThumbnail" isEqualToString:call.method]){
+         NSDictionary* argsMap = call.arguments;
+        [self getDesktopSourceThumbnail:argsMap result:result];
     } else {
         result(FlutterMethodNotImplemented);
     }

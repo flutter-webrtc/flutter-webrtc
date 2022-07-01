@@ -7,12 +7,6 @@
 #import "FlutterRTCPeerConnection.h"
 #import "AudioUtils.h"
 
-#if TARGET_OS_IPHONE
-#import <ReplayKit/ReplayKit.h>
-#import "FlutterRPScreenRecorder.h"
-#import "FlutterBroadcastScreenCapturer.h"
-#endif
-
 @implementation AVCaptureDevice (Flutter)
 
 - (NSString*)positionString {
@@ -485,62 +479,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 #endif
 }
 
-#if TARGET_OS_IPHONE
--(void)getDisplayMedia:(NSDictionary *)constraints
-                result:(FlutterResult)result {
-    NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
-    RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
-    RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
-    
-    BOOL useBroadcastExtension = false;
-    id videoConstraints = constraints[@"video"];
-    if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
-       // constraints.video.deviceId
-        useBroadcastExtension = [((NSDictionary *)videoConstraints)[@"deviceId"] isEqualToString:@"broadcast"];
-    }
-    
-    id screenCapturer;
-    
-    if(useBroadcastExtension){
-        screenCapturer = [[FlutterBroadcastScreenCapturer alloc] initWithDelegate:videoSource];
-    } else {
-        screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoSource];
-    }
-    
-    [screenCapturer startCapture];
-
-    if(useBroadcastExtension) {
-        NSString *extension = [[[NSBundle mainBundle] infoDictionary] valueForKey: kRTCScreenSharingExtension];
-        if(extension) {
-            RPSystemBroadcastPickerView *picker = [[RPSystemBroadcastPickerView alloc] init];
-            picker.preferredExtension = extension;
-            picker.showsMicrophoneButton = false;
-            
-            SEL selector = NSSelectorFromString(@"buttonPressed:");
-            if([picker respondsToSelector:selector]) {
-                [picker performSelector:selector withObject:nil];
-            }
-        }
-    }
-    //TODO:
-    self.videoCapturer = screenCapturer;
-
-    NSString *trackUUID = [[NSUUID UUID] UUIDString];
-    RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
-    [mediaStream addVideoTrack:videoTrack];
-
-    NSMutableArray *audioTracks = [NSMutableArray array];
-    NSMutableArray *videoTracks = [NSMutableArray array];
-
-    for (RTCVideoTrack *track in mediaStream.videoTracks) {
-        [self.localTracks setObject:track forKey:track.trackId];
-        [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
-    }
-
-    self.localStreams[mediaStreamId] = mediaStream;
-    result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
-}
-#endif
 -(void)createLocalMediaStream:(FlutterResult)result{
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
