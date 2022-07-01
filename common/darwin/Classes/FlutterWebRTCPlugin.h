@@ -1,6 +1,6 @@
 #if TARGET_OS_IPHONE
 #import <Flutter/Flutter.h>
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
 #import <FlutterMacOS/FlutterMacOS.h>
 #endif
 
@@ -10,6 +10,10 @@
 @class FlutterRTCVideoRenderer;
 @class FlutterRTCFrameCapturer;
 
+typedef void (^CompletionHandler)(void);
+
+typedef void (^CapturerStopHandler)(CompletionHandler handler);
+
 @interface FlutterWebRTCPlugin : NSObject<FlutterPlugin, RTCPeerConnectionDelegate>
 
 @property (nonatomic, strong) RTCPeerConnectionFactory *peerConnectionFactory;
@@ -17,9 +21,12 @@
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStream *> *localStreams;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *localTracks;
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, FlutterRTCVideoRenderer *> *renders;
+@property (nonatomic, strong) NSMutableDictionary<RTCVideoSource *, CapturerStopHandler> *videoCapturerStopHandlers;
+
 #if TARGET_OS_IPHONE
 @property (nonatomic, retain) UIViewController *viewController;/*for broadcast or ReplayKit */
 #endif
+
 @property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
 @property (nonatomic, strong) RTCCameraVideoCapturer *videoCapturer;
 @property (nonatomic, strong) FlutterRTCFrameCapturer *frameCapturer;
