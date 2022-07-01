@@ -76,18 +76,24 @@ NSArray<RTCDesktopSource *>* _captureSources;
     }
 */
     NSString *sourceId = nil;
+    BOOL useDefaultScreen = NO;
     NSInteger fps = 30;
     id videoConstraints = constraints[@"video"];
-    if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
-         NSDictionary *deviceId = videoConstraints[@"deviceId"];
+    if([videoConstraints isKindOfClass:[NSNumber class]] && [videoConstraints boolValue] == YES) {
+        useDefaultScreen = YES;
+    } else if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
+        NSDictionary *deviceId = videoConstraints[@"deviceId"];
         if (deviceId != nil && [deviceId isKindOfClass:[NSDictionary class]]) {
             if(deviceId[@"exact"] != nil) {
                 sourceId = deviceId[@"exact"];
                 if(sourceId == nil) {
-                    result(@{@"error": @"No sourceId found"});
+                    result(@{@"error": @"No deviceId.exact found"});
                     return;
                 }
             }
+        } else {
+            // fall back to default screen if no deviceId is specified
+            useDefaultScreen = YES;
         }
         id mandatory = videoConstraints[@"mandatory"];
         if (mandatory != nil && [mandatory isKindOfClass:[NSDictionary class]]) {
@@ -99,12 +105,12 @@ NSArray<RTCDesktopSource *>* _captureSources;
     }
     RTCDesktopCapturer *desktopCapturer;
     RTCDesktopSource *source = nil;
-    if([videoConstraints isKindOfClass:[NSNumber class]] && [videoConstraints boolValue] == YES){
+    if(useDefaultScreen){
         desktopCapturer  = [[RTCDesktopCapturer alloc] initWithDefaultScreen:videoSource];
     } else {
          source = [self getSourceById:sourceId];
         if(source == nil) {
-            result(@{@"error": @"No source found"});
+            result(@{@"error": @"No source found by id %@", sourceId});
             return;
         }
         desktopCapturer  = [[RTCDesktopCapturer alloc] initWithSource:source delegate:videoSource];
