@@ -39,7 +39,7 @@ class _GetScreenCaptureState extends State<GetScreenCapture> {
     await _localRenderer.initialize();
 
     _sources = await desktopCapturer.getSources(
-        types: [SourceType.kScreen, SourceType.kWindow],
+        types: [SourceType.Screen, SourceType.Window],
         thumbnailSize: ThumbnailSize(320, 180)
     );
   }

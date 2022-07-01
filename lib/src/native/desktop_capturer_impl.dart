@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import '../desktop_capturer.dart';
-
 import 'utils.dart';
 
 class DesktopCapturerSourceNative extends DesktopCapturerSource {
@@ -41,7 +40,7 @@ class DesktopCapturerSourceNative extends DesktopCapturerSource {
 class DesktopCapturerNative extends DesktopCapturer {
   DesktopCapturerNative._internal();
   static final DesktopCapturerNative instance =
-  DesktopCapturerNative._internal();
+      DesktopCapturerNative._internal();
 
   @override
   Future<List<DesktopCapturerSource>> getSources(
@@ -58,14 +57,19 @@ class DesktopCapturerNative extends DesktopCapturer {
     var sources = <DesktopCapturerSourceNative>[];
     for (var source in response['sources']) {
       var sourceType = (source['type'] as String) == 'window'
-          ? SourceType.kWindow
-          : SourceType.kScreen;
+          ? SourceType.Window
+          : SourceType.Screen;
       var desktopSource = DesktopCapturerSourceNative(
           source['id'],
           source['name'],
           ThumbnailSize.fromMap(source['thumbnailSize']),
           sourceType);
-      desktopSource.thumbnail = await getThumbnail(desktopSource);
+      try {
+        desktopSource.thumbnail = await getThumbnail(desktopSource);
+      } catch (e) {
+        print(e);
+      }
+
       sources.add(desktopSource);
     }
     return sources;
