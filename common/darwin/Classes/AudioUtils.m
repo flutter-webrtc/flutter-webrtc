@@ -20,20 +20,25 @@
     config.categoryOptions = AVAudioSessionCategoryOptionDefaultToSpeaker |
         AVAudioSessionCategoryOptionAllowBluetooth |
         AVAudioSessionCategoryOptionAllowBluetoothA2DP;
+
+    [session lockForConfiguration];
     [session setCategory:config.category
       withOptions:config.categoryOptions
       error:nil];
     [session setMode:config.mode error:nil];
+    [session unlockForConfiguration];
   } else if (!recording && (session.category == AVAudioSessionCategoryAmbient
       || session.category == AVAudioSessionCategorySoloAmbient)) {
     config.category = AVAudioSessionCategoryPlayback;
     config.categoryOptions = 0;
 
     // upgrade from ambient if needed
+    [session lockForConfiguration];
     [session setCategory:config.category
       withOptions:config.categoryOptions
       error:nil];
     [session setMode:config.mode error:nil];
+    [session unlockForConfiguration];
   }
 #endif
 }
