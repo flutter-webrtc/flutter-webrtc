@@ -9,6 +9,7 @@
 #include "flutter_media_stream.h"
 #include "flutter_peerconnection.h"
 #include "flutter_video_renderer.h"
+#include "flutter_screen_capture.h"
 #include "libwebrtc.h"
 
 namespace flutter_webrtc_plugin {
@@ -25,6 +26,7 @@ class FlutterWebRTC : public FlutterWebRTCBase,
                       public FlutterVideoRendererManager,
                       public FlutterMediaStream,
                       public FlutterPeerConnection,
+                      public FlutterScreenCapture,
                       public FlutterDataChannel {
  public:
   FlutterWebRTC(FlutterWebRTCPlugin *plugin);
