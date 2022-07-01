@@ -7,7 +7,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 class ScreenSelectDialog extends Dialog {
   ScreenSelectDialog() {
     Future.delayed(Duration(milliseconds: 100), () {
-      _getSources(SourceType.kScreen);
+      _getSources(SourceType.Screen);
     });
   }
   List<DesktopCapturerSource> _sources = [];
@@ -84,8 +84,8 @@ class ScreenSelectDialog extends Dialog {
                                 onTap: (value) => Future.delayed(
                                         Duration(milliseconds: 300), () {
                                       _getSources(value == 0
-                                          ? SourceType.kScreen
-                                          : SourceType.kWindow);
+                                          ? SourceType.Screen
+                                          : SourceType.Window);
                                     }),
                                 tabs: [
                                   Tab(
@@ -115,7 +115,7 @@ class ScreenSelectDialog extends Dialog {
                                         children: _sources
                                             .where((element) =>
                                                 element.type ==
-                                                SourceType.kScreen)
+                                                SourceType.Screen)
                                             .map((e) => Column(
                                                   children: [
                                                     Expanded(
@@ -179,7 +179,7 @@ class ScreenSelectDialog extends Dialog {
                                         children: _sources
                                             .where((element) =>
                                                 element.type ==
-                                                SourceType.kWindow)
+                                                SourceType.Window)
                                             .map((e) => Column(
                                                   children: [
                                                     Expanded(

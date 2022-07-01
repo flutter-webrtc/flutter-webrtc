@@ -57,8 +57,8 @@ class DesktopCapturerNative extends DesktopCapturer {
     var sources = <DesktopCapturerSourceNative>[];
     for (var source in response['sources']) {
       var sourceType = (source['type'] as String) == 'window'
-          ? SourceType.kWindow
-          : SourceType.kScreen;
+          ? SourceType.Window
+          : SourceType.Screen;
       var desktopSource = DesktopCapturerSourceNative(
           source['id'],
           source['name'],

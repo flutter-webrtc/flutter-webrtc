@@ -1,18 +1,18 @@
 import 'dart:typed_data';
 
 enum SourceType {
-  kScreen,
-  kWindow,
+  Screen,
+  Window,
 }
 
 final desktopSourceTypeToString = <SourceType, String>{
-  SourceType.kScreen: 'screen',
-  SourceType.kWindow: 'window',
+  SourceType.Screen: 'screen',
+  SourceType.Window: 'window',
 };
 
 final tringToDesktopSourceType = <String, SourceType>{
-  'screen': SourceType.kScreen,
-  'window': SourceType.kWindow,
+  'screen': SourceType.Screen,
+  'window': SourceType.Window,
 };
 
 class ThumbnailSize {
