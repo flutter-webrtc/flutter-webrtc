@@ -12,6 +12,7 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger *messenger,
   factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
+  desktop_device_ = factory_->GetDesktopDevice();
 }
 
 FlutterWebRTCBase::~FlutterWebRTCBase() {
