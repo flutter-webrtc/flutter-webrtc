@@ -110,7 +110,7 @@ NSArray<RTCDesktopSource *>* _captureSources;
     } else {
          source = [self getSourceById:sourceId];
         if(source == nil) {
-            result(@{@"error": @"No source found by id %@", sourceId});
+            result(@{@"error":  [NSString stringWithFormat:@"No source found for id: %@",sourceId]});
             return;
         }
         desktopCapturer  = [[RTCDesktopCapturer alloc] initWithSource:source delegate:videoSource];
