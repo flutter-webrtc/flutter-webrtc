@@ -7,20 +7,26 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 class ScreenSelectDialog extends Dialog {
   ScreenSelectDialog() {
     Future.delayed(Duration(milliseconds: 100), () {
-      _getSources(SourceType.Screen);
+      _getSources();
+      _timer = Timer.periodic(Duration(milliseconds: 2000), (timer) {
+        _getSources();
+      });
     });
   }
   List<DesktopCapturerSource> _sources = [];
+  SourceType _sourceType = SourceType.Screen;
   DesktopCapturerSource? _selected_source;
   StateSetter? _stateSetter;
+  Timer? _timer;
 
   void _pop(context) {
+    _timer?.cancel();
     Navigator.pop<DesktopCapturerSource>(context, _selected_source);
   }
 
-  Future<void> _getSources(SourceType type) async {
+  Future<void> _getSources() async {
     try {
-      var sources = await desktopCapturer.getSources(types: [type]);
+      var sources = await desktopCapturer.getSources(types: [_sourceType]);
       sources.forEach((element) {
         print(
             'name: ${element.name}, id: ${element.id}, type: ${element.type}');
@@ -83,9 +89,10 @@ class ScreenSelectDialog extends Dialog {
                             child: TabBar(
                                 onTap: (value) => Future.delayed(
                                         Duration(milliseconds: 300), () {
-                                      _getSources(value == 0
+                                      _sourceType = value == 0
                                           ? SourceType.Screen
-                                          : SourceType.Window);
+                                          : SourceType.Window;
+                                      _getSources();
                                     }),
                                 tabs: [
                                   Tab(
