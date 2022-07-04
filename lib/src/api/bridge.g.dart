@@ -1546,8 +1546,8 @@ class FlutterWebrtcNativeImpl
     return ans;
   }
 
-  int _api2wire_bool(bool raw) {
-    return raw ? 1 : 0;
+  bool _api2wire_bool(bool raw) {
+    return raw;
   }
 
   ffi.Pointer<wire_AudioConstraints> _api2wire_box_autoadd_audio_constraints(

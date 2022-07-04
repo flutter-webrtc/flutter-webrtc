@@ -2,7 +2,7 @@
 name = "flutter-webrtc-native"
 version = "0.0.0"
 edition = "2021"
-rust-version = "1.58"
+rust-version = "1.62"
 publish = false
 
 [lib]
@@ -16,7 +16,7 @@ anyhow = "1.0"
 cxx = "1.0"
 dashmap = "5.3"
 derive_more = "0.99"
-flutter_rust_bridge = "1.34"
+flutter_rust_bridge = "1.36"
 lazy_static = "1.4"
 libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"

@@ -705,7 +705,7 @@ impl RtpTransceiverInterface {
     #[must_use]
     pub fn mid(&self) -> Option<String> {
         let mid = webrtc::get_transceiver_mid(&self.inner);
-        (!mid.is_empty()).then(|| mid)
+        (!mid.is_empty()).then_some(mid)
     }
 
     /// Returns a [`direction`][0] of this [`RtpTransceiverInterface`].
