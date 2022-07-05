@@ -175,43 +175,24 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
   for (size_t i = 0; i < size; i++) {
     IceServer &ice_server = ice_servers[i];
     EncodableMap iceServerMap = GetValue<EncodableMap>(iceServersArray[i]);
-    bool hasUsernameAndCredential =
-        iceServerMap.find(EncodableValue("username")) != iceServerMap.end() &&
-        iceServerMap.find(EncodableValue("credential")) != iceServerMap.end();
+    
+    if (iceServerMap.find(EncodableValue("username")) != iceServerMap.end()) {;
+          ice_server.username = GetValue<std::string>(
+              iceServerMap.find(EncodableValue("username"))->second);
+    }
+    if (iceServerMap.find(EncodableValue("credential")) != iceServerMap.end()) {
+          ice_server.password = GetValue<std::string>(
+              iceServerMap.find(EncodableValue("credential"))->second);
+    }
+
     auto it = iceServerMap.find(EncodableValue("url"));
     if (it != iceServerMap.end() && TypeIs<std::string>(it->second)) {
-      if (hasUsernameAndCredential) {
-        std::string username =
-             GetValue<std::string>(iceServerMap.find(EncodableValue("username"))->second);
-        std::string credential =
-             GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
-                ->second);
-        std::string uri =  GetValue<std::string>(it->second);
-        ice_server.username = username;
-        ice_server.password = credential;
-        ice_server.uri = uri;
-      } else {
-        std::string uri = GetValue<std::string>(it->second);
-        ice_server.uri = uri;
-      }
+      ice_server.uri = GetValue<std::string>(it->second);
     }
     it = iceServerMap.find(EncodableValue("urls"));
     if (it != iceServerMap.end()) {
       if (TypeIs<std::string>(it->second)) {
-        if (hasUsernameAndCredential) {
-          std::string username =  GetValue<std::string>(iceServerMap.find(EncodableValue("username"))
-                                     ->second);
-          std::string credential =
-               GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
-                  ->second);
-          std::string uri =  GetValue<std::string>(it->second);
-          ice_server.username = username;
-          ice_server.password = credential;
-          ice_server.uri = uri;
-        } else {
-          std::string uri =  GetValue<std::string>(it->second);
-          ice_server.uri = uri;
-        }
+        ice_server.uri = GetValue<std::string>(it->second);
       }
       if (TypeIs<EncodableList>(it->second)) {
         const EncodableList urls = GetValue<EncodableList>(it->second);
@@ -221,25 +202,10 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
             std::string value;
             auto it2 = map.find(EncodableValue("url"));
             if (it2 != map.end()) {
-              value =  GetValue<std::string>(it2->second);
-              if (hasUsernameAndCredential) {
-                std::string username =
-                     GetValue<std::string>(iceServerMap.find(EncodableValue("username"))
-                        ->second);
-                std::string credential =
-                    GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
-                        ->second);
-                ice_server.username = username;
-                ice_server.password = credential;
-                ice_server.uri = value;
-              } else {
-                ice_server.uri = value;
-              }
+              ice_server.uri = GetValue<std::string>(it2->second);
             }
-          }
-          else if (TypeIs<std::string>(url)) {
-              std::string urlString = GetValue<std::string>(url);
-              ice_server.uri = urlString;
+          } else if (TypeIs<std::string>(url)) {
+            ice_server.uri = GetValue<std::string>(url);
           }
         }
       }
