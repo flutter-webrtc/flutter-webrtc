@@ -107,8 +107,8 @@ class _NativeVideoRendererChannel extends NativeVideoRenderer {
     if (textureId == null) {
       throw 'Renderer should be initialize before setting src';
     }
-    if (track?.kind() != MediaKind.video) {
-      throw 'VideoRenderer do not supports MediaStreamTrack with video kind!';
+    if (track != null && track.kind() != MediaKind.video) {
+      throw 'VideoRenderer do not supports MediaStreamTrack with audio kind!';
     }
     _srcObject = track;
 
@@ -154,7 +154,7 @@ class _NativeVideoRendererFFI extends NativeVideoRenderer {
     _srcObject = track;
     var sinkId = textureId ?? 0;
     if (track == null) {
-      api.disposeVideoSink(sinkId: sinkId);
+      api!.disposeVideoSink(sinkId: sinkId);
       value = RTCVideoValue.empty;
     } else {
       var handler =
@@ -163,7 +163,7 @@ class _NativeVideoRendererFFI extends NativeVideoRenderer {
       });
 
       var trackId = track.id();
-      await api
+      await api!
           .createVideoSink(
               sinkId: sinkId,
               trackId: trackId,

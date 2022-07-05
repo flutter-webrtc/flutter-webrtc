@@ -10,7 +10,7 @@ class PeerConnectionSample extends StatefulWidget {
   const PeerConnectionSample({Key? key}) : super(key: key);
 
   @override
-  _PeerConnectionSampleState createState() => _PeerConnectionSampleState();
+  State<PeerConnectionSample> createState() => _PeerConnectionSampleState();
 }
 
 class _PeerConnectionSampleState extends State<PeerConnectionSample> {

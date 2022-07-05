@@ -13,7 +13,7 @@ class GetUserMediaSample extends StatefulWidget {
   const GetUserMediaSample({Key? key}) : super(key: key);
 
   @override
-  _GetUserMediaSampleState createState() => _GetUserMediaSampleState();
+  State<GetUserMediaSample> createState() => _GetUserMediaSampleState();
 }
 
 class _GetUserMediaSampleState extends State<GetUserMediaSample> {
@@ -70,7 +70,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   void _hangUp() async {
     try {
       for (var track in _tracks!) {
-        track.dispose();
+        await track.stop();
+        await track.dispose();
       }
       await _localRenderer.setSrcObject(null);
       setState(() {

@@ -5,7 +5,7 @@ class OnDeviceChangeNotifierSample extends StatefulWidget {
   const OnDeviceChangeNotifierSample({Key? key}) : super(key: key);
 
   @override
-  _State createState() => _State();
+  State<OnDeviceChangeNotifierSample> createState() => _State();
 }
 
 class _State extends State<OnDeviceChangeNotifierSample> {

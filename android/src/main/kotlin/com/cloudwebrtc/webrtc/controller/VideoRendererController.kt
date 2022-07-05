@@ -62,11 +62,15 @@ class VideoRendererController(
   override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
     when (call.method) {
       "setSrcObject" -> {
-        val trackId: String = call.argument("trackId")!!
+        val trackId: String? = call.argument("trackId")
 
-        val track = TrackRepository.getTrack(trackId)!!
-        val videoTrack = VideoTrackProxy(track)
-        videoRenderer.setVideoTrack(videoTrack)
+        if (trackId == null) {
+          videoRenderer.setVideoTrack(null)
+        } else {
+          val track = TrackRepository.getTrack(trackId)!!
+          val videoTrack = VideoTrackProxy(track)
+          videoRenderer.setVideoTrack(videoTrack)
+        }
 
         result.success(null)
       }

@@ -31,7 +31,6 @@ jobs:
       - rustdoc
       - rustfmt
       - test-flutter
-      - test-rust
     runs-on: ubuntu-latest
     steps:
       - run: true
@@ -166,7 +165,7 @@ jobs:
                        ninja-build
         if: ${{ matrix.platform == 'linux' }}
 
-      - run: make cargo.build
+      - run: make cargo.build debug=no
       - run: make flutter.build platform=${{ matrix.platform }}
 
 
@@ -239,44 +238,6 @@ jobs:
       - name: Test on Windows
         run: make flutter.test device=windows
         if: ${{ matrix.platform == 'windows' }}
-
-  test-rust:
-    name: Test Rust crates
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-          - linux
-          #- macos  # TODO: Add `macos-latest`.
-          - windows
-    # TODO: Switch to `windows-latest` once stable Flutter supports MSVC 2022:
-    #       https://github.com/flutter/flutter/issues/85922
-    #       https://github.com/flutter/flutter/issues/96138
-    runs-on: ${{ (matrix.platform == 'linux' && 'ubuntu-22.04')
-                 || (matrix.platform == 'windows' && 'windows-2019')
-                 || 'macos-latest' }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-
-      - name: Install Linux platform dependencies
-        # TODO: Unpin `libudev` version once this issues is resolved:
-        #       https://github.com/actions/virtual-environments/issues/5806
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-                       libudev1=249.11-0ubuntu3.3 \
-                       libudev-dev=249.11-0ubuntu3.3
-          sudo apt-get install -y \
-                       libgtk-3-dev libpulse-dev libxcomposite-dev \
-                       libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
-                       ninja-build
-        if: ${{ matrix.platform == 'linux' }}
-
-      - run: make cargo.test
 
 
 

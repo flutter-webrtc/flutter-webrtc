@@ -22,7 +22,7 @@ class VideoView extends StatefulWidget {
   final FilterQuality filterQuality;
 
   @override
-  _VideoViewState createState() => _VideoViewState();
+  State<VideoView> createState() => _VideoViewState();
 }
 
 class _VideoViewState extends State<VideoView> {

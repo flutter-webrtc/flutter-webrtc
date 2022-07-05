@@ -20,23 +20,23 @@ use walkdir::{DirEntry, WalkDir};
 /// [`libwebrtc-bin`]: https://github.com/instrumentisto/libwebrtc-bin
 static LIBWEBRTC_URL: &str =
     "https://github.com/instrumentisto/libwebrtc-bin/releases/download\
-                                                    /101.0.4951.64";
+                                                    /102.0.5005.125";
 
 #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
 static SHA256SUM: &str =
-    "80301279c2435b3e33c5f610bb7785c37939c146965932755c0a4f693afad3a9";
+    "f1783411b791047ff50031b243bb08cacdb71eb6e06f272de97bbb4959af808b";
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 static SHA256SUM: &str =
-    "b78fdc44d7fabdb270aefa3007f22e4fd535521bb3e77227d33053f17c6157e3";
+    "a5d68978dba53bce2b12611ac3db03029595443333d0c67bd62350ea8f5f2113";
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 static SHA256SUM: &str =
-    "37eb55ed34bc6492d01806945b82f25c81404b5e122a8dca9e416640ece0cf51";
+    "b67a7fb44b163b7b839da967c04679b992712c9864d68979c1bd76c4a122f5f1";
 #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
 static SHA256SUM: &str =
-    "fc15c33464ea4f1515db0fb4d67ca46bfb69ec339339ef891be9c3f347ede326";
+    "1056dcf1b304f0f31d57dd49b87ce33550b16ef12a203e223aa5389bee00ce26";
 #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
 static SHA256SUM: &str =
-    "7c75df843059ebf1a264f5a5693875b38fd1dcf88ea8bff3b36902f0306b6587";
+    "fc68d3e690a467313de98475eca1b62217f8dceb78c96ddd7b3f16fc844cbc5e";
 
 fn main() -> anyhow::Result<()> {
     download_libwebrtc()?;

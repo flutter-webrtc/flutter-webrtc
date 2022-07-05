@@ -14,11 +14,14 @@ import 'bridge.g.dart' as ffi;
 import 'channel.dart';
 import 'transceiver.dart';
 
+/// Checks whether the running platform is a desktop.
+bool isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
 /// Bindings to the Rust side API.
-late final ffi.FlutterWebrtcNativeImpl api = buildBridge();
+final ffi.FlutterWebrtcNativeImpl? api = isDesktop ? buildBridge() : null;
 
 /// Opens the dynamic library and instantiates [ffi.FlutterWebrtcNativeImpl].
-ffi.FlutterWebrtcNativeImpl buildBridge() {
+ffi.FlutterWebrtcNativeImpl? buildBridge() {
   const base = 'flutter_webrtc_native';
   final path = Platform.isWindows ? '$base.dll' : 'lib$base.so';
   late final dylib = Platform.isMacOS
@@ -27,9 +30,6 @@ ffi.FlutterWebrtcNativeImpl buildBridge() {
 
   return ffi.FlutterWebrtcNativeImpl(dylib);
 }
-
-/// Checks whether running platform is a desktop.
-bool isDesktop = !Platform.isAndroid && !Platform.isIOS;
 
 /// Shortcut for the `on_track` callback.
 typedef OnTrackCallback = void Function(NativeMediaStreamTrack, RtpTransceiver);
@@ -313,8 +313,8 @@ class _PeerConnectionChannel extends PeerConnection {
 
   @override
   Future<List<RtpTransceiver>> getTransceivers() async {
-    List<dynamic> res = await _chan.invokeMethod('getTransceivers');
-    var transceivers = res.map((t) => RtpTransceiver.fromMap(t)).toList();
+    List<dynamic>? res = await _chan.invokeMethod('getTransceivers');
+    var transceivers = res!.map((t) => RtpTransceiver.fromMap(t)).toList();
     _transceivers.addAll(transceivers);
 
     return transceivers;
@@ -393,7 +393,7 @@ class _PeerConnectionFFI extends PeerConnection {
             .toList());
 
     var peer = _PeerConnectionFFI();
-    peer._stream = api.createPeerConnection(configuration: cfg);
+    peer._stream = api!.createPeerConnection(configuration: cfg);
     peer._stream!.listen(peer.eventListener);
 
     await peer._initialized.future;
@@ -460,7 +460,7 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<void> addIceCandidate(IceCandidate candidate) async {
-    await api.addIceCandidate(
+    await api!.addIceCandidate(
         peerId: _id!,
         candidate: candidate.candidate,
         sdpMid: candidate.sdpMid,
@@ -470,7 +470,7 @@ class _PeerConnectionFFI extends PeerConnection {
   @override
   Future<RtpTransceiver> addTransceiver(
       MediaKind mediaType, RtpTransceiverInit init) async {
-    var transceiver = RtpTransceiver.fromFFI(await api.addTransceiver(
+    var transceiver = RtpTransceiver.fromFFI(await api!.addTransceiver(
         peerId: _id!,
         mediaType: ffi.MediaType.values[mediaType.index],
         direction: ffi.RtpTransceiverDirection.values[init.direction.index]));
@@ -484,12 +484,12 @@ class _PeerConnectionFFI extends PeerConnection {
     for (var e in _transceivers) {
       e.stoppedByPeer();
     }
-    await api.disposePeerConnection(peerId: _id!);
+    await api!.disposePeerConnection(peerId: _id!);
   }
 
   @override
   Future<SessionDescription> createAnswer() async {
-    var res = await api.createAnswer(
+    var res = await api!.createAnswer(
         peerId: _id!,
         voiceActivityDetection: true,
         iceRestart: false,
@@ -500,7 +500,7 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<SessionDescription> createOffer() async {
-    var res = await api.createOffer(
+    var res = await api!.createOffer(
         peerId: _id!,
         voiceActivityDetection: true,
         iceRestart: false,
@@ -511,7 +511,7 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<List<RtpTransceiver>> getTransceivers() async {
-    var transceivers = (await api.getTransceivers(peerId: _id!))
+    var transceivers = (await api!.getTransceivers(peerId: _id!))
         .map((transceiver) => RtpTransceiver.fromFFI(transceiver))
         .toList();
     _transceivers.addAll(transceivers);
@@ -521,12 +521,12 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<void> restartIce() async {
-    return await api.restartIce(peerId: _id!);
+    return await api!.restartIce(peerId: _id!);
   }
 
   @override
   Future<void> setLocalDescription(SessionDescription description) async {
-    await api.setLocalDescription(
+    await api!.setLocalDescription(
         peerId: _id!,
         kind: ffi.SdpType.values[description.type.index],
         sdp: description.description);
@@ -535,7 +535,7 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<void> setRemoteDescription(SessionDescription description) async {
-    await api.setRemoteDescription(
+    await api!.setRemoteDescription(
         peerId: _id!,
         kind: ffi.SdpType.values[description.type.index],
         sdp: description.description);

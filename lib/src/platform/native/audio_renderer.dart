@@ -17,5 +17,7 @@ class NativeAudioRenderer extends AudioRenderer {
   set srcObject(MediaStreamTrack? track) => _srcObject = track;
 
   @override
-  Future<void> dispose() async {}
+  Future<void> dispose() async {
+    // no-op for FFI implementation
+  }
 }

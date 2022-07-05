@@ -2016,18 +2016,18 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
     return _wire_create_offer(
       port_,
       peer_id,
-      voice_activity_detection ? 1 : 0,
-      ice_restart ? 1 : 0,
-      use_rtp_mux ? 1 : 0,
+      voice_activity_detection,
+      ice_restart,
+      use_rtp_mux,
     );
   }
 
   late final _wire_create_offerPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Uint8, ffi.Uint8,
-              ffi.Uint8)>>('wire_create_offer');
+          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Bool, ffi.Bool,
+              ffi.Bool)>>('wire_create_offer');
   late final _wire_create_offer = _wire_create_offerPtr
-      .asFunction<void Function(int, int, int, int, int)>();
+      .asFunction<void Function(int, int, bool, bool, bool)>();
 
   void wire_create_answer(
     int port_,
@@ -2039,18 +2039,18 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
     return _wire_create_answer(
       port_,
       peer_id,
-      voice_activity_detection ? 1 : 0,
-      ice_restart ? 1 : 0,
-      use_rtp_mux ? 1 : 0,
+      voice_activity_detection,
+      ice_restart,
+      use_rtp_mux,
     );
   }
 
   late final _wire_create_answerPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Uint8, ffi.Uint8,
-              ffi.Uint8)>>('wire_create_answer');
+          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Bool, ffi.Bool,
+              ffi.Bool)>>('wire_create_answer');
   late final _wire_create_answer = _wire_create_answerPtr
-      .asFunction<void Function(int, int, int, int, int)>();
+      .asFunction<void Function(int, int, bool, bool, bool)>();
 
   void wire_set_local_description(
     int port_,
@@ -2165,16 +2165,16 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
       port_,
       peer_id,
       transceiver_index,
-      recv ? 1 : 0,
+      recv,
     );
   }
 
   late final _wire_set_transceiver_recvPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Uint32,
-              ffi.Uint8)>>('wire_set_transceiver_recv');
+              ffi.Bool)>>('wire_set_transceiver_recv');
   late final _wire_set_transceiver_recv = _wire_set_transceiver_recvPtr
-      .asFunction<void Function(int, int, int, int)>();
+      .asFunction<void Function(int, int, int, bool)>();
 
   void wire_set_transceiver_send(
     int port_,
@@ -2186,16 +2186,16 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
       port_,
       peer_id,
       transceiver_index,
-      send ? 1 : 0,
+      send,
     );
   }
 
   late final _wire_set_transceiver_sendPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Uint32,
-              ffi.Uint8)>>('wire_set_transceiver_send');
+              ffi.Bool)>>('wire_set_transceiver_send');
   late final _wire_set_transceiver_send = _wire_set_transceiver_sendPtr
-      .asFunction<void Function(int, int, int, int)>();
+      .asFunction<void Function(int, int, int, bool)>();
 
   void wire_get_transceiver_mid(
     int port_,
@@ -2463,16 +2463,16 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
       port_,
       track_id,
       kind,
-      enabled ? 1 : 0,
+      enabled,
     );
   }
 
   late final _wire_set_track_enabledPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>, ffi.Int32,
-              ffi.Uint8)>>('wire_set_track_enabled');
+              ffi.Bool)>>('wire_set_track_enabled');
   late final _wire_set_track_enabled = _wire_set_track_enabledPtr.asFunction<
-      void Function(int, ffi.Pointer<wire_uint_8_list>, int, int)>();
+      void Function(int, ffi.Pointer<wire_uint_8_list>, int, bool)>();
 
   void wire_clone_track(
     int port_,
@@ -2737,8 +2737,8 @@ class wire_VideoConstraints extends ffi.Struct {
   @ffi.Uint32()
   external int frame_rate;
 
-  @ffi.Uint8()
-  external int is_display;
+  @ffi.Bool()
+  external bool is_display;
 }
 
 class wire_MediaStreamConstraints extends ffi.Struct {
@@ -2748,5 +2748,5 @@ class wire_MediaStreamConstraints extends ffi.Struct {
 }
 
 typedef DartPostCObjectFnType = ffi.Pointer<
-    ffi.NativeFunction<ffi.Uint8 Function(DartPort, ffi.Pointer<ffi.Void>)>>;
+    ffi.NativeFunction<ffi.Bool Function(DartPort, ffi.Pointer<ffi.Void>)>>;
 typedef DartPort = ffi.Int64;

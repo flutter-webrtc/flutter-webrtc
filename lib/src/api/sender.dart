@@ -26,6 +26,9 @@ abstract class RtpSender {
 
   /// Replaces [MediaStreamTrack] of this [RtpSender].
   Future<void> replaceTrack(MediaStreamTrack? t);
+
+  /// Disposes this [RtpSender].
+  Future<void> dispose();
 }
 
 /// [MethodChannel]-based implementation of a [RtpSender].
@@ -43,6 +46,11 @@ class _RtpSenderChannel extends RtpSender {
     _track = t;
     await _chan.invokeMethod('replaceTrack', {'trackId': t?.id()});
   }
+
+  @override
+  Future<void> dispose() async {
+    await _chan.invokeMethod('dispose');
+  }
 }
 
 /// FFI-based implementation of a [RtpSender].
@@ -57,7 +65,12 @@ class _RtpSenderFFI extends RtpSender {
 
   @override
   Future<void> replaceTrack(MediaStreamTrack? t) async {
-    await api.senderReplaceTrack(
+    await api!.senderReplaceTrack(
         peerId: _peerId, transceiverIndex: _transceiverId, trackId: t?.id());
+  }
+
+  @override
+  Future<void> dispose() async {
+    // no-op for FFI implementation
   }
 }

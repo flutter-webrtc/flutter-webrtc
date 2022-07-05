@@ -9,7 +9,7 @@ class GetSourcesSample extends StatefulWidget {
   const GetSourcesSample({Key? key}) : super(key: key);
 
   @override
-  _GetSourcesSampleState createState() => _GetSourcesSampleState();
+  State<GetSourcesSample> createState() => _GetSourcesSampleState();
 }
 
 class _GetSourcesSampleState extends State<GetSourcesSample> {
@@ -25,7 +25,7 @@ class _GetSourcesSampleState extends State<GetSourcesSample> {
     setState(() {
       var devicesInfo = '';
       for (var device in mediaDeviceInfos) {
-        devicesInfo = devicesInfo +
+        devicesInfo +=
             'Kind: ${device.kind}\nName: ${device.label}\nId: ${device.deviceId}\n\n';
       }
       text = devicesInfo;

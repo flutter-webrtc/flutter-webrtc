@@ -49,7 +49,7 @@ class _DeviceHandler {
   /// Subscribes to the platform [Stream] emitting device change events.
   void _listen() async {
     if (isDesktop) {
-      api.setOnDeviceChanged().listen(
+      api!.setOnDeviceChanged().listen(
         (event) {
           if (_handler != null) {
             _handler!();
@@ -118,13 +118,13 @@ final _mediaDevicesMethodChannel = methodChannel('MediaDevices', 0);
 /// Returns list of [MediaDeviceInfo]s for the currently available devices.
 Future<List<MediaDeviceInfo>> enumerateDevices() async {
   if (isDesktop) {
-    return (await api.enumerateDevices())
+    return (await api!.enumerateDevices())
         .map((e) => MediaDeviceInfo.fromFFI(e))
         .toList();
   } else {
-    return (await _mediaDevicesMethodChannel.invokeMethod('enumerateDevices'))
-        .map((i) => MediaDeviceInfo.fromMap(i))
-        .toList();
+    final List<dynamic>? devices =
+        await _mediaDevicesMethodChannel.invokeMethod('enumerateDevices');
+    return devices!.map((i) => MediaDeviceInfo.fromMap(i)).toList();
   }
 }
 
@@ -155,7 +155,7 @@ Future<List<NativeMediaStreamTrack>> getDisplayMedia(
 /// List of output audio devices may be obtained via [enumerateDevices].
 Future<void> setOutputAudioId(String deviceId) async {
   if (isDesktop) {
-    await api.setAudioPlayoutDevice(deviceId: deviceId);
+    await api!.setAudioPlayoutDevice(deviceId: deviceId);
   } else {
     await _mediaDevicesMethodChannel
         .invokeMethod('setOutputAudioId', {'deviceId': deviceId});
@@ -165,7 +165,7 @@ Future<void> setOutputAudioId(String deviceId) async {
 /// Indicates whether the microphone is available to set volume.
 Future<bool> microphoneVolumeIsAvailable() async {
   if (isDesktop) {
-    return await api.microphoneVolumeIsAvailable();
+    return await api!.microphoneVolumeIsAvailable();
   } else {
     // TODO(logist322): Implement for Channel-based implementation.
     return false;
@@ -175,21 +175,21 @@ Future<bool> microphoneVolumeIsAvailable() async {
 /// Sets the microphone system volume according to the specified [level] in
 /// percents.
 Future<void> setMicrophoneVolume(int level) async {
-  await api.setMicrophoneVolume(level: level);
+  await api!.setMicrophoneVolume(level: level);
 }
 
 /// Returns the current level of the microphone volume in percents.
 Future<int> microphoneVolume() async {
-  return await api.microphoneVolume();
+  return await api!.microphoneVolume();
 }
 
 /// [MethodChannel]-based implementation of a [getUserMedia] function.
 Future<List<NativeMediaStreamTrack>> _getUserMediaChannel(
     DeviceConstraints constraints) async {
   try {
-    List<dynamic> res = await _mediaDevicesMethodChannel
+    List<dynamic>? res = await _mediaDevicesMethodChannel
         .invokeMethod('getUserMedia', {'constraints': constraints.toMap()});
-    return res.map((t) => NativeMediaStreamTrack.from(t)).toList();
+    return res!.map((t) => NativeMediaStreamTrack.from(t)).toList();
   } on PlatformException catch (e) {
     if (e.code == 'GetUserMediaAudioException') {
       throw GetMediaException(GetMediaExceptionKind.audio, e.message);
@@ -220,7 +220,7 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
           isDisplay: false)
       : null;
 
-  var result = await api.getMedia(
+  var result = await api!.getMedia(
       constraints: ffi.MediaStreamConstraints(
           audio: audioConstraints, video: videoConstraints));
 
@@ -240,9 +240,9 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
 /// [MethodChannel]-based implementation of a [getDisplayMedia] function.
 Future<List<NativeMediaStreamTrack>> _getDisplayMediaChannel(
     DisplayConstraints constraints) async {
-  List<dynamic> res = await _mediaDevicesMethodChannel
+  List<dynamic>? res = await _mediaDevicesMethodChannel
       .invokeMethod('getDisplayMedia', {'constraints': constraints.toMap()});
-  return res.map((t) => NativeMediaStreamTrack.from(t)).toList();
+  return res!.map((t) => NativeMediaStreamTrack.from(t)).toList();
 }
 
 /// FFI-based implementation of a [getDisplayMedia] function.
@@ -264,7 +264,7 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaFFI(
           isDisplay: true)
       : null;
 
-  var result = await api.getMedia(
+  var result = await api!.getMedia(
       constraints: ffi.MediaStreamConstraints(
           audio: audioConstraints, video: videoConstraints));
 

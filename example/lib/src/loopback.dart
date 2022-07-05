@@ -10,7 +10,7 @@ class Loopback extends StatefulWidget {
   const Loopback({Key? key}) : super(key: key);
 
   @override
-  _LoopbackState createState() => _LoopbackState();
+  State<Loopback> createState() => _LoopbackState();
 }
 
 class _LoopbackState extends State<Loopback> {
@@ -133,6 +133,7 @@ class _LoopbackState extends State<Loopback> {
       await _remoteRenderer.setSrcObject(null);
 
       for (var track in _tracks!) {
+        await track.stop();
         await track.dispose();
       }
 
@@ -154,7 +155,7 @@ class _LoopbackState extends State<Loopback> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'GetUserMedia API Test. ${_inCalling ? (_microIsAvailable ? 'Micro volume: ' + _volume.toString() + '.' : 'Microphone is not available!') : ''}'),
+            'GetUserMedia API Test. ${_inCalling ? (_microIsAvailable ? 'Micro volume: $_volume .' : 'Microphone is not available!') : ''}'),
         actions: _inCalling
             ? <Widget>[
                 IconButton(
