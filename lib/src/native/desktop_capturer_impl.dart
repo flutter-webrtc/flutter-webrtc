@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:typed_data';
+
+import 'package:flutter/services.dart';
 
 import '../desktop_capturer.dart';
 import 'utils.dart';
@@ -6,19 +9,30 @@ import 'utils.dart';
 class DesktopCapturerSourceNative extends DesktopCapturerSource {
   DesktopCapturerSourceNative(
       this._id, this._name, this._thumbnailSize, this._type);
+  factory DesktopCapturerSourceNative.fromMap(Map<dynamic, dynamic> map) {
+    var sourceType = (map['type'] as String) == 'window'
+        ? SourceType.Window
+        : SourceType.Screen;
+    return DesktopCapturerSourceNative(map['id'], map['name'],
+        ThumbnailSize.fromMap(map['thumbnailSize']), sourceType);
+  }
   Function(String name)? onNameChanged;
   Function()? onRemoved;
   Function()? onThumbnailChanged;
 
   Uint8List? _thumbnail;
+  String _name;
   final String _id;
-  final String _name;
   final ThumbnailSize _thumbnailSize;
   final SourceType _type;
 
   set thumbnail(Uint8List? value) {
     _thumbnail = value;
     onThumbnailChanged?.call();
+  }
+
+  set name(String name) {
+    _name = name;
   }
 
   @override
@@ -38,9 +52,61 @@ class DesktopCapturerSourceNative extends DesktopCapturerSource {
 }
 
 class DesktopCapturerNative extends DesktopCapturer {
-  DesktopCapturerNative._internal();
+  DesktopCapturerNative._internal() {
+    EventChannel('FlutterWebRTC/desktopSourcesEvent')
+        .receiveBroadcastStream()
+        .listen(eventListener, onError: errorListener);
+  }
+
   static final DesktopCapturerNative instance =
       DesktopCapturerNative._internal();
+
+  final Map<String, DesktopCapturerSourceNative> _sources = {};
+
+  void eventListener(dynamic event) async {
+    final Map<dynamic, dynamic> map = event;
+    switch (map['event']) {
+      case 'desktopSourceAdded':
+        final source = DesktopCapturerSourceNative.fromMap(map);
+        source.thumbnail = map['thumbnail'] as Uint8List;
+        if (_sources[source.id] == null) {
+          _sources[source.id] = source;
+          onAdded.add(source);
+        }
+        break;
+      case 'desktopSourceRemoved':
+        final source = _sources[map['id'] as String];
+        if (source != null) {
+          _sources.remove((source) => source.id == map['id']);
+          onRemoved.add(source);
+        }
+        break;
+      case 'desktopSourceThumbnailChanged':
+        final source = _sources[map['id'] as String];
+        if (source != null) {
+          try {
+            source.thumbnail = map['thumbnail'] as Uint8List;
+            onThumbnailChanged.add(source);
+          } catch (e) {
+            print('desktopSourceThumbnailChanged: $e');
+          }
+        }
+        break;
+      case 'desktopSourceNameChanged':
+        final source = _sources[map['id'] as String];
+        if (source != null) {
+          source.name = map['name'];
+          onNameChanged.add(source);
+        }
+        break;
+    }
+  }
+
+  void errorListener(Object obj) {
+    if (obj is Exception) {
+      throw obj;
+    }
+  }
 
   @override
   Future<List<DesktopCapturerSource>> getSources(
@@ -54,8 +120,8 @@ class DesktopCapturerNative extends DesktopCapturer {
     if (response == null) {
       throw Exception('getDesktopSources return null, something wrong');
     }
-    var sources = <DesktopCapturerSourceNative>[];
     for (var source in response['sources']) {
+      /*
       var sourceType = (source['type'] as String) == 'window'
           ? SourceType.Window
           : SourceType.Screen;
@@ -64,15 +130,10 @@ class DesktopCapturerNative extends DesktopCapturer {
           source['name'],
           ThumbnailSize.fromMap(source['thumbnailSize']),
           sourceType);
-      try {
-        desktopSource.thumbnail = await getThumbnail(desktopSource);
-      } catch (e) {
-        print(e);
-      }
-
-      sources.add(desktopSource);
+      //_sources[desktopSource.id] = desktopSource;
+      */
     }
-    return sources;
+    return _sources.values.toList();
   }
 
   Future<Uint8List?> getThumbnail(DesktopCapturerSourceNative source) async {
@@ -86,7 +147,7 @@ class DesktopCapturerNative extends DesktopCapturer {
         }
       },
     );
-    if (response == null) {
+    if (response == null || !response is Uint8List?) {
       throw Exception('getDesktopSourceThumbnail return null, something wrong');
     }
     return response as Uint8List?;

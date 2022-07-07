@@ -14,7 +14,12 @@ typedef void (^CompletionHandler)(void);
 
 typedef void (^CapturerStopHandler)(CompletionHandler handler);
 
-@interface FlutterWebRTCPlugin : NSObject<FlutterPlugin, RTCPeerConnectionDelegate>
+@interface FlutterWebRTCPlugin : NSObject<FlutterPlugin,
+RTCPeerConnectionDelegate,
+#if TARGET_OS_OSX
+RTCDesktopMediaListDelegate, RTCDesktopCapturerDelegate,  FlutterStreamHandler
+#endif
+>
 
 @property (nonatomic, strong) RTCPeerConnectionFactory *peerConnectionFactory;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCPeerConnection *> *peerConnections;

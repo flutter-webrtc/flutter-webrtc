@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 enum SourceType {
@@ -33,7 +34,7 @@ abstract class DesktopCapturerSource {
   /// while the name of a window source will match the window title.
   String get name;
 
-  ///A thumbnail image of the source. ARGB
+  ///A thumbnail image of the source. jpeg encoded.
   Uint8List? get thumbnail;
 
   /// specified in the options passed to desktopCapturer.getSources.
@@ -45,6 +46,15 @@ abstract class DesktopCapturerSource {
 }
 
 abstract class DesktopCapturer {
+  final StreamController<DesktopCapturerSource> onAdded =
+      StreamController.broadcast();
+  final StreamController<DesktopCapturerSource> onRemoved =
+      StreamController.broadcast();
+  final StreamController<DesktopCapturerSource> onNameChanged =
+      StreamController.broadcast();
+  final StreamController<DesktopCapturerSource> onThumbnailChanged =
+      StreamController.broadcast();
+
   Future<List<DesktopCapturerSource>> getSources(
       {required List<SourceType> types, ThumbnailSize? thumbnailSize});
 }

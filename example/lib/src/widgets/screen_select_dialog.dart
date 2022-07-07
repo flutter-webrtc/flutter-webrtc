@@ -8,20 +8,46 @@ class ScreenSelectDialog extends Dialog {
   ScreenSelectDialog() {
     Future.delayed(Duration(milliseconds: 100), () {
       _getSources();
-      _timer = Timer.periodic(Duration(milliseconds: 2000), (timer) {
-        _getSources();
-      });
     });
+    _subscriptions.add(desktopCapturer.onAdded.stream.listen((source) {
+      _sources[source.id] = source;
+      _stateSetter?.call(() {});
+    }));
+
+    _subscriptions.add(desktopCapturer.onRemoved.stream.listen((source) {
+      _sources.remove(source.id);
+      _stateSetter?.call(() {});
+    }));
+
+    _subscriptions.add(desktopCapturer.onNameChanged.stream.listen((source) {
+      _sources[source.id] = source;
+      _stateSetter?.call(() {});
+    }));
+
+    _subscriptions
+        .add(desktopCapturer.onThumbnailChanged.stream.listen((source) {
+      _sources[source.id] = source;
+      _stateSetter?.call(() {});
+    }));
   }
-  List<DesktopCapturerSource> _sources = [];
+  final Map<String, DesktopCapturerSource> _sources = {};
   SourceType _sourceType = SourceType.Screen;
   DesktopCapturerSource? _selected_source;
+  final List<StreamSubscription<DesktopCapturerSource>> _subscriptions = [];
   StateSetter? _stateSetter;
-  Timer? _timer;
 
-  void _pop(context) {
-    _timer?.cancel();
+  void _ok(context) {
+    _subscriptions.forEach((element) {
+      element.cancel();
+    });
     Navigator.pop<DesktopCapturerSource>(context, _selected_source);
+  }
+
+  void _cancel(context) {
+    _subscriptions.forEach((element) {
+      element.cancel();
+    });
+    Navigator.pop<DesktopCapturerSource>(context, null);
   }
 
   Future<void> _getSources() async {
@@ -32,7 +58,9 @@ class ScreenSelectDialog extends Dialog {
             'name: ${element.name}, id: ${element.id}, type: ${element.type}');
       });
       _stateSetter?.call(() {
-        _sources = sources;
+        sources.forEach((element) {
+          _sources[element.id] = element;
+        });
       });
       return;
     } catch (e) {
@@ -66,7 +94,7 @@ class ScreenSelectDialog extends Dialog {
                     alignment: Alignment.topRight,
                     child: InkWell(
                       child: Icon(Icons.close),
-                      onTap: () => _pop(context),
+                      onTap: () => _cancel(context),
                     ),
                   ),
                 ],
@@ -119,9 +147,9 @@ class ScreenSelectDialog extends Dialog {
                                       child: GridView.count(
                                         crossAxisSpacing: 8,
                                         crossAxisCount: 2,
-                                        children: _sources
+                                        children: _sources.entries
                                             .where((element) =>
-                                                element.type ==
+                                                element.value.type ==
                                                 SourceType.Screen)
                                             .map((e) => Column(
                                                   children: [
@@ -131,7 +159,7 @@ class ScreenSelectDialog extends Dialog {
                                                                   null &&
                                                               _selected_source!
                                                                       .id ==
-                                                                  e.id)
+                                                                  e.value.id)
                                                           ? BoxDecoration(
                                                               border: Border.all(
                                                                   width: 2,
@@ -141,16 +169,18 @@ class ScreenSelectDialog extends Dialog {
                                                       child: InkWell(
                                                         onTap: () {
                                                           print(
-                                                              'Selected screen id => ${e.id}');
+                                                              'Selected screen id => ${e.value.id}');
                                                           setState(() {
                                                             _selected_source =
-                                                                e;
+                                                                e.value;
                                                           });
                                                         },
                                                         child:
-                                                            e.thumbnail != null
+                                                            e.value.thumbnail !=
+                                                                    null
                                                                 ? Image.memory(
-                                                                    e.thumbnail!,
+                                                                    e.value
+                                                                        .thumbnail!,
                                                                     scale: 1.0,
                                                                     repeat: ImageRepeat
                                                                         .noRepeat,
@@ -159,7 +189,7 @@ class ScreenSelectDialog extends Dialog {
                                                       ),
                                                     )),
                                                     Text(
-                                                      e.name,
+                                                      e.value.name,
                                                       style: TextStyle(
                                                           fontSize: 12,
                                                           color: Colors.black87,
@@ -167,7 +197,8 @@ class ScreenSelectDialog extends Dialog {
                                                                       null &&
                                                                   _selected_source!
                                                                           .id ==
-                                                                      e.id)
+                                                                      e.value
+                                                                          .id)
                                                               ? FontWeight.bold
                                                               : FontWeight
                                                                   .normal),
@@ -183,9 +214,9 @@ class ScreenSelectDialog extends Dialog {
                                       child: GridView.count(
                                         crossAxisSpacing: 8,
                                         crossAxisCount: 3,
-                                        children: _sources
+                                        children: _sources.entries
                                             .where((element) =>
-                                                element.type ==
+                                                element.value.type ==
                                                 SourceType.Window)
                                             .map((e) => Column(
                                                   children: [
@@ -195,7 +226,7 @@ class ScreenSelectDialog extends Dialog {
                                                                   null &&
                                                               _selected_source!
                                                                       .id ==
-                                                                  e.id)
+                                                                  e.value.id)
                                                           ? BoxDecoration(
                                                               border: Border.all(
                                                                   width: 2,
@@ -205,16 +236,18 @@ class ScreenSelectDialog extends Dialog {
                                                       child: InkWell(
                                                         onTap: () {
                                                           print(
-                                                              'Selected window id => ${e.id}');
+                                                              'Selected window id => ${e.value.id}');
                                                           setState(() {
                                                             _selected_source =
-                                                                e;
+                                                                e.value;
                                                           });
                                                         },
                                                         child:
-                                                            e.thumbnail != null
+                                                            e.value.thumbnail !=
+                                                                    null
                                                                 ? Image.memory(
-                                                                    e.thumbnail!,
+                                                                    e.value
+                                                                        .thumbnail!,
                                                                     scale: 1.0,
                                                                     repeat: ImageRepeat
                                                                         .noRepeat,
@@ -223,7 +256,7 @@ class ScreenSelectDialog extends Dialog {
                                                       ),
                                                     )),
                                                     Text(
-                                                      e.name,
+                                                      e.value.name,
                                                       style: TextStyle(
                                                           fontSize: 12,
                                                           color: Colors.black87,
@@ -231,7 +264,8 @@ class ScreenSelectDialog extends Dialog {
                                                                       null &&
                                                                   _selected_source!
                                                                           .id ==
-                                                                      e.id)
+                                                                      e.value
+                                                                          .id)
                                                               ? FontWeight.bold
                                                               : FontWeight
                                                                   .normal),
@@ -261,7 +295,7 @@ class ScreenSelectDialog extends Dialog {
                       style: TextStyle(color: Colors.black54),
                     ),
                     onPressed: () {
-                      _pop(context);
+                      _cancel(context);
                     },
                   ),
                   MaterialButton(
@@ -270,7 +304,7 @@ class ScreenSelectDialog extends Dialog {
                       'Share',
                     ),
                     onPressed: () {
-                      _pop(context);
+                      _ok(context);
                     },
                   ),
                 ],

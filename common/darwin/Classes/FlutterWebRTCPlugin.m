@@ -84,6 +84,9 @@
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
+#if TARGET_OS_OSX
+    [self enableDesktopCapturerEventChannel:_messenger];
+#endif
     return self;
 }
 
