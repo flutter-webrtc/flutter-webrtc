@@ -57,4 +57,6 @@ abstract class DesktopCapturer {
 
   Future<List<DesktopCapturerSource>> getSources(
       {required List<SourceType> types, ThumbnailSize? thumbnailSize});
+
+  Future<void> stopRefershSources();
 }

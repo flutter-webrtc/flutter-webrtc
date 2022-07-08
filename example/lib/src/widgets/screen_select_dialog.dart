@@ -36,14 +36,16 @@ class ScreenSelectDialog extends Dialog {
   final List<StreamSubscription<DesktopCapturerSource>> _subscriptions = [];
   StateSetter? _stateSetter;
 
-  void _ok(context) {
+  void _ok(context) async {
+    await desktopCapturer.stopRefershSources();
     _subscriptions.forEach((element) {
       element.cancel();
     });
     Navigator.pop<DesktopCapturerSource>(context, _selected_source);
   }
 
-  void _cancel(context) {
+  void _cancel(context) async {
+    await desktopCapturer.stopRefershSources();
     _subscriptions.forEach((element) {
       element.cancel();
     });

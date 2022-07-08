@@ -16,6 +16,9 @@
 -(void)getDesktopSources:(NSDictionary *)argsMap
              result:(FlutterResult)result;
 
+-(void)stopDesktopSourcesRefersh:(NSDictionary *)argsMap
+             result:(FlutterResult)result;
+
 -(void)getDesktopSourceThumbnail:(NSDictionary *)argsMap
              result:(FlutterResult)result;
 

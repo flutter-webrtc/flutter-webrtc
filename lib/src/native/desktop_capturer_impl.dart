@@ -120,8 +120,8 @@ class DesktopCapturerNative extends DesktopCapturer {
     if (response == null) {
       throw Exception('getDesktopSources return null, something wrong');
     }
+    /*
     for (var source in response['sources']) {
-      /*
       var sourceType = (source['type'] as String) == 'window'
           ? SourceType.Window
           : SourceType.Screen;
@@ -130,10 +130,15 @@ class DesktopCapturerNative extends DesktopCapturer {
           source['name'],
           ThumbnailSize.fromMap(source['thumbnailSize']),
           sourceType);
-      //_sources[desktopSource.id] = desktopSource;
-      */
+      _sources[desktopSource.id] = desktopSource;
     }
+    */
     return _sources.values.toList();
+  }
+
+  @override
+  Future<void> stopRefershSources() async {
+    await WebRTC.invokeMethod('stopDesktopSourcesRefersh');
   }
 
   Future<Uint8List?> getThumbnail(DesktopCapturerSourceNative source) async {

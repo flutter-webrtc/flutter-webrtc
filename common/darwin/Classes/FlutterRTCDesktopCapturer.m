@@ -12,6 +12,7 @@
 dispatch_source_t refresh_timer;
 RTCDesktopMediaList *_screen = nil;
 RTCDesktopMediaList *_window = nil;
+BOOL _interruptSourcesRefresh = NO;
 BOOL _captureWindow = NO;
 BOOL _captureScreen = NO;
 NSMutableArray<RTCDesktopSource *>* _captureSources;
@@ -155,6 +156,7 @@ FlutterEventChannel* _eventChannel = nil;
 -(void)getDesktopSources:(NSDictionary *)argsMap
              result:(FlutterResult)result {
 #if TARGET_OS_OSX
+    NSLog(@"startGetDesktopSources");
     NSArray *types = [argsMap objectForKey:@"types"];
     if (types == nil) {
         result([FlutterError errorWithCode:@"ERROR"
@@ -167,6 +169,7 @@ FlutterEventChannel* _eventChannel = nil;
     NSString *type;
     _captureWindow = NO;
     _captureScreen = NO;
+    _interruptSourcesRefresh = NO;
     _captureSources = [NSMutableArray array];
     while ((type = typesEnumerator.nextObject) != nil) {
         if ([type isEqualToString:@"screen"]) {
@@ -226,6 +229,20 @@ FlutterEventChannel* _eventChannel = nil;
         result(@{@"error": @"No thumbnail found"});
     }
     
+#else
+    result([FlutterError errorWithCode:@"ERROR"
+                               message:@"Not supported on iOS"
+                               details:nil]);
+#endif
+}
+
+-(void)stopDesktopSourcesRefersh:(NSDictionary *)argsMap
+             result:(FlutterResult)result {
+#if TARGET_OS_OSX
+    NSLog(@"stopDesktopSourcesRefersh");
+    _interruptSourcesRefresh = YES;
+    [self stopHandling];
+    result(nil);
 #else
     result([FlutterError errorWithCode:@"ERROR"
                                message:@"Not supported on iOS"
@@ -304,9 +321,10 @@ FlutterEventChannel* _eventChannel = nil;
     dispatch_source_set_timer(refresh_timer, DISPATCH_TIME_NOW, 2.0 * NSEC_PER_SEC, 0 * NSEC_PER_SEC);
     __weak typeof (self) weak_self = self;
     dispatch_source_set_event_handler(refresh_timer, ^{
-        [weak_self refreshSources];
+        if(!_interruptSourcesRefresh) {
+            [weak_self refreshSources];
+        }
     });
-
     dispatch_resume(refresh_timer);
 }
 
@@ -411,6 +429,7 @@ FlutterEventChannel* _eventChannel = nil;
 
 -(void)didSourceCaptureStart:(RTCDesktopCapturer *) capturer {
     NSLog(@"didSourceCaptureStart");
+    _interruptSourcesRefresh = YES;
 }
 
 -(void)didSourceCapturePaused:(RTCDesktopCapturer *) capturer {
