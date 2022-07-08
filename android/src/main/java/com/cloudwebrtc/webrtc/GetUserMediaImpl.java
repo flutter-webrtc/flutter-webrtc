@@ -98,6 +98,7 @@ class GetUserMediaImpl {
     static final String TAG = FlutterWebRTCPlugin.TAG;
 
     private final Map<String, VideoCapturerInfo> mVideoCapturers = new HashMap<>();
+    private final Map<String, SurfaceTextureHelper> mSurfaceTextureHelpers = new HashMap<>();
 
     private final StateProvider stateProvider;
     private final Context applicationContext;
@@ -712,6 +713,7 @@ class GetUserMediaImpl {
 
         String trackId = stateProvider.getNextTrackUUID();
         mVideoCapturers.put(trackId, info);
+        mSurfaceTextureHelpers.put(trackId, surfaceTextureHelper);
 
         Log.d(TAG, "changeCaptureFormat: " + info.width + "x" + info.height + "@" + info.fps);
         videoSource.adaptOutputFormat(info.width, info.height, info.fps);
@@ -727,6 +729,12 @@ class GetUserMediaImpl {
             } catch (InterruptedException e) {
                 Log.e(TAG, "removeVideoCapturer() Failed to stop video capturer");
             } finally {
+
+                SurfaceTextureHelper helper = mSurfaceTextureHelpers.get(id);
+                helper.stopListening();
+                helper.dispose();
+                mSurfaceTextureHelpers.remove(id);
+
                 info.capturer.dispose();
                 mVideoCapturers.remove(id);
             }
