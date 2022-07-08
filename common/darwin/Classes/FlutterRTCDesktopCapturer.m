@@ -288,14 +288,14 @@ FlutterEventChannel* _eventChannel = nil;
     [self stopHandling];
      if(_captureWindow) {
         if(!_window) _window = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeWindow delegate:self];
-         [_window UpdateSourceList:NO];
+         [_window UpdateSourceList:YES updateAllThumbnails:NO];
         NSArray<RTCDesktopSource *>* sources = [_window getSources];
         _captureSources = [_captureSources arrayByAddingObjectsFromArray:sources];
     }
 
     if(_captureScreen) {
         if(!_screen) _screen = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeScreen  delegate:self];
-        [_screen UpdateSourceList:NO];
+        [_screen UpdateSourceList:YES updateAllThumbnails:NO];
         NSArray<RTCDesktopSource *>* sources = [_screen getSources];
         _captureSources = [_captureSources arrayByAddingObjectsFromArray:sources];
     }
@@ -312,10 +312,10 @@ FlutterEventChannel* _eventChannel = nil;
 
 - (void) refreshSources {
         if(_captureWindow && _window != nil) {
-            [_window UpdateSourceList:YES];
+            [_window UpdateSourceList:NO updateAllThumbnails:YES];
         }
         if(_captureScreen && _screen != nil) {
-            [_screen UpdateSourceList:YES];
+            [_screen UpdateSourceList:NO updateAllThumbnails:YES];
         }
 }
 
