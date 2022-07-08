@@ -62,15 +62,10 @@ jobs:
           components: clippy
 
       - name: Install Linux platform dependencies
-        # TODO: Unpin `libudev` version once this issues is resolved:
-        #       https://github.com/actions/virtual-environments/issues/5806
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-                       libudev1=249.11-0ubuntu3.3 \
-                       libudev-dev=249.11-0ubuntu3.3
-          sudo apt-get install -y \
-                       libgtk-3-dev libpulse-dev libxcomposite-dev \
+                       libgtk-3-dev libpulse-dev libudev-dev libxcomposite-dev \
                        libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
                        ninja-build
         if: ${{ matrix.platform == 'linux' }}
@@ -152,15 +147,10 @@ jobs:
       - run: flutter config --enable-${{ matrix.platform }}-desktop
 
       - name: Install Linux platform dependencies
-        # TODO: Unpin `libudev` version once this issues is resolved:
-        #       https://github.com/actions/virtual-environments/issues/5806
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-                       libudev1=249.11-0ubuntu3.3 \
-                       libudev-dev=249.11-0ubuntu3.3
-          sudo apt-get install -y \
-                       libgtk-3-dev libpulse-dev libxcomposite-dev \
+                       libgtk-3-dev libpulse-dev libudev-dev libxcomposite-dev \
                        libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
                        ninja-build
         if: ${{ matrix.platform == 'linux' }}
@@ -203,16 +193,11 @@ jobs:
         if: ${{ matrix.platform != 'android' }}
 
       - name: Install Linux platform dependencies
-        # TODO: Unpin `libudev` version once this issues is resolved:
-        #       https://github.com/actions/virtual-environments/issues/5806
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-                       libudev1=249.11-0ubuntu3.3 \
-                       libudev-dev=249.11-0ubuntu3.3
-          sudo apt-get install -y \
                        cmake \
-                       libgtk-3-dev liblzma-dev libpulse-dev \
+                       libgtk-3-dev liblzma-dev libpulse-dev libudev-dev \
                        ninja-build \
                        xvfb
         if: ${{ matrix.platform == 'linux' }}
@@ -268,15 +253,10 @@ jobs:
           toolchain: stable
 
       - name: Install Linux platform dependencies
-        # TODO: Unpin `libudev` version once this issues is resolved:
-        #       https://github.com/actions/virtual-environments/issues/5806
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-                       libudev1=249.11-0ubuntu3.3 \
-                       libudev-dev=249.11-0ubuntu3.3
-          sudo apt-get install -y \
-                       libgtk-3-dev libpulse-dev libxcomposite-dev \
+                       libgtk-3-dev libpulse-dev libudev-dev libxcomposite-dev \
                        libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
                        ninja-build
         if: ${{ matrix.platform == 'linux' }}
