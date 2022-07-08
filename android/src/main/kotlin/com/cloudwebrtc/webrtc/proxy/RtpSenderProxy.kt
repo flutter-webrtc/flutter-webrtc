@@ -1,7 +1,6 @@
 package com.cloudwebrtc.webrtc.proxy
 
 import com.cloudwebrtc.webrtc.exception.ReplaceSenderTrackException
-import org.webrtc.RtpReceiver
 import org.webrtc.RtpSender
 
 /**
@@ -9,19 +8,14 @@ import org.webrtc.RtpSender
  *
  * @param sender Actual underlying [RtpSender].
  */
-class RtpSenderProxy(sender: RtpSender) : Proxy<RtpSender> {
-  /** Actual underlying [RtpReceiver]. */
-  override var obj: RtpSender = sender
+class RtpSenderProxy(sender: RtpSender) : Proxy<RtpSender>(sender) {
 
   /** [MediaStreamTrackProxy] of this [RtpReceiverProxy]. */
   private var track: MediaStreamTrackProxy? = null
 
   init {
-    syncWithObject()
-  }
-
-  override fun syncWithObject() {
     syncMediaStreamTrack()
+    addOnSyncListener { syncMediaStreamTrack() }
   }
 
   /**

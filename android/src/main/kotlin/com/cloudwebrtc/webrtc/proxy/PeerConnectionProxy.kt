@@ -21,10 +21,7 @@ import org.webrtc.SessionDescription as WSessionDescription
  * @property id Unique ID of this [PeerConnectionProxy].
  * @param peer Underlying [PeerConnection].
  */
-class PeerConnectionProxy(val id: Int, peer: PeerConnection) : Proxy<PeerConnection> {
-  /** Actual underlying [PeerConnection]. */
-  override var obj: PeerConnection = peer
-
+class PeerConnectionProxy(val id: Int, peer: PeerConnection) : Proxy<PeerConnection>(peer) {
   /** Candidates, added before a remote description has been set on the underlying peer. */
   private var candidatesBuffer: ArrayList<IceCandidate> = ArrayList()
 
@@ -49,6 +46,7 @@ class PeerConnectionProxy(val id: Int, peer: PeerConnection) : Proxy<PeerConnect
 
   init {
     syncWithObject()
+    addOnSyncListener { syncWithObject() }
   }
 
   companion object {
@@ -166,7 +164,7 @@ class PeerConnectionProxy(val id: Int, peer: PeerConnection) : Proxy<PeerConnect
     }
   }
 
-  override fun syncWithObject() {
+  fun syncWithObject() {
     syncSenders()
     syncReceivers()
     syncTransceivers()

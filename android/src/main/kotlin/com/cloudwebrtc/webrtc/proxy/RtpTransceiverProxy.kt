@@ -4,7 +4,7 @@ import com.cloudwebrtc.webrtc.model.RtpTransceiverDirection
 import org.webrtc.RtpTransceiver
 
 /** Wrapper around an [RtpTransceiver]. */
-class RtpTransceiverProxy(override var obj: RtpTransceiver) : Proxy<RtpTransceiver> {
+class RtpTransceiverProxy(obj: RtpTransceiver) : Proxy<RtpTransceiver>(obj) {
   /** [RtpSenderProxy] of this [RtpTransceiverProxy]. */
   private lateinit var sender: RtpSenderProxy
 
@@ -12,12 +12,12 @@ class RtpTransceiverProxy(override var obj: RtpTransceiver) : Proxy<RtpTransceiv
   private lateinit var receiver: RtpReceiverProxy
 
   init {
-    syncWithObject()
-  }
-
-  override fun syncWithObject() {
     syncSender()
     syncReceiver()
+    addOnSyncListener {
+      syncSender()
+      syncReceiver()
+    }
   }
 
   /** @return [RtpSenderProxy] of this [RtpTransceiverProxy]. */

@@ -18,10 +18,7 @@ class MediaStreamTrackProxy(
     track: MediaStreamTrack,
     private val deviceId: String = "remote",
     private val source: MediaTrackSource? = null
-) : Proxy<MediaStreamTrack> {
-  /** Actual underlying [MediaStreamTrack]. */
-  override var obj: MediaStreamTrack = track
-
+) : Proxy<MediaStreamTrack>(track) {
   /**
    * Subscribers for the [onStop] callback.
    *

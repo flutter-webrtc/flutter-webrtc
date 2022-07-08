@@ -7,19 +7,13 @@ import org.webrtc.RtpReceiver
  *
  * @param receiver Underlying [RtpReceiver].
  */
-class RtpReceiverProxy(receiver: RtpReceiver) : Proxy<RtpReceiver> {
-  /** Actual underlying [RtpReceiver]. */
-  override var obj: RtpReceiver = receiver
-
+class RtpReceiverProxy(receiver: RtpReceiver) : Proxy<RtpReceiver>(receiver) {
   /** [MediaStreamTrackProxy] of this [RtpReceiverProxy]. */
   private var track: MediaStreamTrackProxy = MediaStreamTrackProxy(obj.track()!!)
 
   init {
-    syncWithObject()
-  }
-
-  override fun syncWithObject() {
-    syncMediaStreamTrack()
+    track.replace(obj.track()!!)
+    addOnSyncListener { track.replace(obj.track()!!) }
   }
 
   /** @return Unique ID of the underlying [RtpReceiver]. */
@@ -38,13 +32,5 @@ class RtpReceiverProxy(receiver: RtpReceiver) : Proxy<RtpReceiver> {
   fun notifyRemoved() {
     track.stop()
     track.observableEventBroadcaster().onEnded()
-  }
-
-  /**
-   * Synchronizes the [MediaStreamTrackProxy] of this [RtpReceiverProxy] with the underlying
-   * [RtpReceiver].
-   */
-  private fun syncMediaStreamTrack() {
-    track.replace(obj.track()!!)
   }
 }
