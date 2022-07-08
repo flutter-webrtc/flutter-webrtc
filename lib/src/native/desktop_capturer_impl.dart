@@ -13,8 +13,10 @@ class DesktopCapturerSourceNative extends DesktopCapturerSource {
     var sourceType = (map['type'] as String) == 'window'
         ? SourceType.Window
         : SourceType.Screen;
-    return DesktopCapturerSourceNative(map['id'], map['name'],
+    var source = DesktopCapturerSourceNative(map['id'], map['name'],
         ThumbnailSize.fromMap(map['thumbnailSize']), sourceType);
+    source.thumbnail = map['thumbnail'] as Uint8List;
+    return source;
   }
   Function(String name)? onNameChanged;
   Function()? onRemoved;
@@ -68,7 +70,6 @@ class DesktopCapturerNative extends DesktopCapturer {
     switch (map['event']) {
       case 'desktopSourceAdded':
         final source = DesktopCapturerSourceNative.fromMap(map);
-        source.thumbnail = map['thumbnail'] as Uint8List;
         if (_sources[source.id] == null) {
           _sources[source.id] = source;
           onAdded.add(source);
@@ -130,6 +131,7 @@ class DesktopCapturerNative extends DesktopCapturer {
           source['name'],
           ThumbnailSize.fromMap(source['thumbnailSize']),
           sourceType);
+      desktopSource.thumbnail = source['thumbnail'] as Uint8List;
       _sources[desktopSource.id] = desktopSource;
     }
     */
