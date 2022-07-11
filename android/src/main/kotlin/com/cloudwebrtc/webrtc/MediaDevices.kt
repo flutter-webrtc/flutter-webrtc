@@ -1,5 +1,6 @@
 package com.cloudwebrtc.webrtc
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothHeadset
 import android.bluetooth.BluetoothProfile
@@ -11,12 +12,12 @@ import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
 import com.cloudwebrtc.webrtc.exception.GetUserMediaException
+import com.cloudwebrtc.webrtc.exception.PermissionException
 import com.cloudwebrtc.webrtc.model.*
 import com.cloudwebrtc.webrtc.proxy.AudioMediaTrackSource
 import com.cloudwebrtc.webrtc.proxy.MediaStreamTrackProxy
 import com.cloudwebrtc.webrtc.proxy.VideoMediaTrackSource
 import com.cloudwebrtc.webrtc.utils.EglUtils
-import java.lang.RuntimeException
 import java.util.*
 import org.webrtc.*
 
@@ -60,7 +61,7 @@ private const val BLUETOOTH_HEADSET_DEVICE_ID: String = "bluetooth-headset"
  * @property state Global state used for enumerating devices and creation new
  * [MediaStreamTrackProxy]s.
  */
-class MediaDevices(val state: State) : BroadcastReceiver() {
+class MediaDevices(val state: State, private val permissions: Permissions) : BroadcastReceiver() {
   /** [BluetoothAdapter] used for detecting whether bluetooth headset is connected or not. */
   private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
 
@@ -148,7 +149,7 @@ class MediaDevices(val state: State) : BroadcastReceiver() {
    *
    * @return List of [MediaStreamTrackProxy]s most suitable based on the provided [Constraints].
    */
-  fun getUserMedia(constraints: Constraints): List<MediaStreamTrackProxy> {
+  suspend fun getUserMedia(constraints: Constraints): List<MediaStreamTrackProxy> {
     val tracks = mutableListOf<MediaStreamTrackProxy>()
     if (constraints.audio != null) {
       try {
@@ -168,7 +169,7 @@ class MediaDevices(val state: State) : BroadcastReceiver() {
   }
 
   /** @return List of [MediaDeviceInfo]s for the currently available devices. */
-  fun enumerateDevices(): List<MediaDeviceInfo> {
+  suspend fun enumerateDevices(): List<MediaDeviceInfo> {
     return enumerateAudioDevices() + enumerateVideoDevices()
   }
 
@@ -238,7 +239,13 @@ class MediaDevices(val state: State) : BroadcastReceiver() {
   }
 
   /** @return List of [MediaDeviceInfo]s for the currently available video devices. */
-  private fun enumerateVideoDevices(): List<MediaDeviceInfo> {
+  private suspend fun enumerateVideoDevices(): List<MediaDeviceInfo> {
+    try {
+      permissions.requestPermission(Manifest.permission.CAMERA)
+    } catch (e: PermissionException) {
+      throw GetUserMediaException(
+          "Camera permission was not granted", GetUserMediaException.Kind.Video)
+    }
     return cameraEnumerator
         .deviceNames
         .map { deviceId -> MediaDeviceInfo(deviceId, deviceId, MediaDeviceKind.VIDEO_INPUT) }
@@ -272,7 +279,13 @@ class MediaDevices(val state: State) : BroadcastReceiver() {
    *
    * @return Most suitable [MediaStreamTrackProxy] for the provided [VideoConstraints].
    */
-  private fun getUserVideoTrack(constraints: VideoConstraints): MediaStreamTrackProxy {
+  private suspend fun getUserVideoTrack(constraints: VideoConstraints): MediaStreamTrackProxy {
+    try {
+      permissions.requestPermission(Manifest.permission.CAMERA)
+    } catch (e: PermissionException) {
+      throw GetUserMediaException(
+          "Camera permission was not granted", GetUserMediaException.Kind.Video)
+    }
     val deviceId =
         findDeviceMatchingConstraints(constraints) ?: throw RuntimeException("Overconstrained")
     val width = constraints.width ?: DEFAULT_WIDTH
@@ -317,7 +330,13 @@ class MediaDevices(val state: State) : BroadcastReceiver() {
    *
    * @return Most suitable [MediaStreamTrackProxy] for the provided [AudioConstraints].
    */
-  private fun getUserAudioTrack(constraints: AudioConstraints): MediaStreamTrackProxy {
+  private suspend fun getUserAudioTrack(constraints: AudioConstraints): MediaStreamTrackProxy {
+    try {
+      permissions.requestPermission(Manifest.permission.RECORD_AUDIO)
+    } catch (e: PermissionException) {
+      throw GetUserMediaException(
+          "Microphone permissions was not granted", GetUserMediaException.Kind.Audio)
+    }
     val source = state.getPeerConnectionFactory().createAudioSource(constraints.intoWebRtc())
     val audioTrackSource = AudioMediaTrackSource(source, state.getPeerConnectionFactory())
     return audioTrackSource.newTrack()

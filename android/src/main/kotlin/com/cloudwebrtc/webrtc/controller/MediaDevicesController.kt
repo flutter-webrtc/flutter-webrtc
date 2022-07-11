@@ -1,6 +1,7 @@
 package com.cloudwebrtc.webrtc.controller
 
 import com.cloudwebrtc.webrtc.MediaDevices
+import com.cloudwebrtc.webrtc.Permissions
 import com.cloudwebrtc.webrtc.State
 import com.cloudwebrtc.webrtc.exception.GetUserMediaException
 import com.cloudwebrtc.webrtc.model.Constraints
@@ -11,6 +12,9 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Controller of [MediaDevices] functional.
@@ -18,10 +22,13 @@ import io.flutter.plugin.common.MethodChannel
  * @property messenger Messenger used for creating new [MethodChannel]s.
  * @param state State used for creating new [MediaStreamTrackProxy]s.
  */
-class MediaDevicesController(private val messenger: BinaryMessenger, state: State) :
-    MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
+class MediaDevicesController(
+    private val messenger: BinaryMessenger,
+    state: State,
+    permissions: Permissions
+) : MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
   /** Underlying [MediaDevices] to perform [MethodCall]s on. */
-  private val mediaDevices = MediaDevices(state)
+  private val mediaDevices = MediaDevices(state, permissions)
 
   /** Channel listened for [MethodCall]s. */
   private val chan = MethodChannel(messenger, ChannelNameGenerator.name("MediaDevices", 0))
@@ -53,19 +60,33 @@ class MediaDevicesController(private val messenger: BinaryMessenger, state: Stat
   override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
     when (call.method) {
       "enumerateDevices" -> {
-        result.success(mediaDevices.enumerateDevices().map { it.asFlutterResult() })
+        GlobalScope.launch(Dispatchers.Main) {
+          try {
+            result.success(mediaDevices.enumerateDevices().map { it.asFlutterResult() })
+          } catch (e: GetUserMediaException) {
+            when (e.kind) {
+              GetUserMediaException.Kind.Audio ->
+                  result.error("GetUserMediaAudioException", e.message, null)
+              GetUserMediaException.Kind.Video ->
+                  result.error("GetUserMediaVideoException", e.message, null)
+            }
+          }
+        }
       }
       "getUserMedia" -> {
-        val constraintsArg: Map<String, Any> = call.argument("constraints")!!
-        try {
-          val tracks = mediaDevices.getUserMedia(Constraints.fromMap(constraintsArg))
-          result.success(tracks.map { MediaStreamTrackController(messenger, it).asFlutterResult() })
-        } catch (e: GetUserMediaException) {
-          when (e.kind) {
-            GetUserMediaException.Kind.Audio ->
-                result.error("GetUserMediaAudioException", e.message, null)
-            GetUserMediaException.Kind.Video ->
-                result.error("GetUserMediaVideoException", e.message, null)
+        GlobalScope.launch(Dispatchers.Main) {
+          val constraintsArg: Map<String, Any> = call.argument("constraints")!!
+          try {
+            val tracks = mediaDevices.getUserMedia(Constraints.fromMap(constraintsArg))
+            result.success(
+                tracks.map { MediaStreamTrackController(messenger, it).asFlutterResult() })
+          } catch (e: GetUserMediaException) {
+            when (e.kind) {
+              GetUserMediaException.Kind.Audio ->
+                  result.error("GetUserMediaAudioException", e.message, null)
+              GetUserMediaException.Kind.Video ->
+                  result.error("GetUserMediaVideoException", e.message, null)
+            }
           }
         }
       }
