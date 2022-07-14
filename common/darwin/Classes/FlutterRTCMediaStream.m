@@ -356,8 +356,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
         __weak RTCCameraVideoCapturer* capturer = self.videoCapturer;
         self.videoCapturerStopHandlers[mediaStream.streamId] = ^(CompletionHandler handler) {
             NSLog(@"Stop video capturer");
-            [capturer stopCapture];
-            handler();
+            [capturer stopCaptureWithCompletionHandler:handler];
         };
         NSString *trackUUID = [[NSUUID UUID] UUIDString];
         RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
