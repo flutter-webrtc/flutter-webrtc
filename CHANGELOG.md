@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.8.12] - 2022-07-15
+
+* [Darwin]: fix: camera release.
+
 [0.8.11] - 2022-07-11
 
 * [Windows] Fix variant exception of findLongInt. (#990)
