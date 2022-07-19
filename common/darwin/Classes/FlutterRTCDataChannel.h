@@ -22,7 +22,7 @@
 
 
 -(void)dataChannelSend:(nonnull NSString *)peerConnectionId
-         dataChannelId:(nonnull NSNumber *)dataChannelId
+         dataChannelId:(nonnull NSString *)dataChannelId
                   data:(nonnull NSString *)data
                   type:(nonnull NSString *)type;
 

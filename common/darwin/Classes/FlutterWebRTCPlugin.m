@@ -362,15 +362,14 @@
             for (RTCVideoTrack *track in stream.videoTracks) {
                 [self.localTracks removeObjectForKey:track.trackId];
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
-                RTCVideoSource *source = videoTrack.source;
-                CapturerStopHandler stopHandler = self.videoCapturerStopHandlers[streamId];
+                CapturerStopHandler stopHandler = self.videoCapturerStopHandlers[videoTrack.trackId];
                 if(stopHandler) {
                     shouldCallResult = NO;
                     stopHandler(^{
-                          NSLog(@"video capturer stopped, id = %@", streamId);
+                          NSLog(@"video capturer stopped, trackID = %@", videoTrack.trackId);
                           result(nil);
                         });
-                    [self.videoCapturerStopHandlers removeObjectForKey:source];
+                    [self.videoCapturerStopHandlers removeObjectForKey:videoTrack.trackId];
                 }
             }
             for (RTCAudioTrack *track in stream.audioTracks) {
@@ -465,8 +464,8 @@
             [peerConnection.remoteTracks removeAllObjects];
 
             // Clean up peerConnection's dataChannels.
-            NSMutableDictionary<NSNumber *, RTCDataChannel *> *dataChannels = peerConnection.dataChannels;
-            for (NSNumber *dataChannelId in dataChannels) {
+            NSMutableDictionary<NSString *, RTCDataChannel *> *dataChannels = peerConnection.dataChannels;
+            for (NSString *dataChannelId in dataChannels) {
                 dataChannels[dataChannelId].delegate = nil;
                 // There is no need to close the RTCDataChannel because it is owned by the
                 // RTCPeerConnection and the latter will close the former.
@@ -1649,10 +1648,8 @@
             return @"recvonly";
         case RTCRtpTransceiverDirectionInactive:
             return @"inactive";
-#if TARGET_OS_IPHONE
         case RTCRtpTransceiverDirectionStopped:
             return @"stopped";
-#endif
                break;
        }
     return nil;

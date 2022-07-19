@@ -21,7 +21,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler handler);
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStream *> *localStreams;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *localTracks;
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, FlutterRTCVideoRenderer *> *renders;
-@property (nonatomic, strong) NSMutableDictionary<RTCVideoSource *, CapturerStopHandler> *videoCapturerStopHandlers;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, CapturerStopHandler> *videoCapturerStopHandlers;
 
 #if TARGET_OS_IPHONE
 @property (nonatomic, retain) UIViewController *viewController;/*for broadcast or ReplayKit */
