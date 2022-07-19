@@ -23,6 +23,7 @@ NSArray<RTCDesktopSource *>* _captureSources;
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+    NSString *trackUUID = [[NSUUID UUID] UUIDString];
 
 #if TARGET_OS_IPHONE
  BOOL useBroadcastExtension = false;
@@ -43,8 +44,8 @@ NSArray<RTCDesktopSource *>* _captureSources;
     [screenCapturer startCapture];
     NSLog(@"start %@ capture", useBroadcastExtension ? @"broadcast" : @"replykit");
         
-    self.videoCapturerStopHandlers[mediaStreamId] = ^(CompletionHandler handler) {
-        NSLog(@"stop %@ capture", useBroadcastExtension ? @"broadcast" : @"replykit");
+    self.videoCapturerStopHandlers[trackUUID] = ^(CompletionHandler handler) {
+        NSLog(@"stop %@ capture, trackID %@", useBroadcastExtension ? @"broadcast" : @"replykit", trackUUID);
         [screenCapturer stopCaptureWithCompletionHandler:handler];
     };
 
@@ -118,14 +119,13 @@ NSArray<RTCDesktopSource *>* _captureSources;
     [desktopCapturer startCaptureWithFPS:fps];
     NSLog(@"start desktop capture: sourceId: %@, type: %@, fps: %lu", sourceId, source.sourceType == RTCDesktopSourceTypeScreen ? @"screen" : @"window", fps);
 
-    self.videoCapturerStopHandlers[mediaStreamId] = ^(CompletionHandler handler) {
-        NSLog(@"stop desktop capture: sourceId: %@, type: %@", sourceId, source.sourceType == RTCDesktopSourceTypeScreen ? @"screen" : @"window");
+    self.videoCapturerStopHandlers[trackUUID] = ^(CompletionHandler handler) {
+        NSLog(@"stop desktop capture: sourceId: %@, type: %@, trackID %@", sourceId, source.sourceType == RTCDesktopSourceTypeScreen ? @"screen" : @"window", trackUUID);
         [desktopCapturer stopCapture];
         handler();
     };
 #endif
 
-    NSString *trackUUID = [[NSUUID UUID] UUIDString];
     RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
     [mediaStream addVideoTrack:videoTrack];
 
