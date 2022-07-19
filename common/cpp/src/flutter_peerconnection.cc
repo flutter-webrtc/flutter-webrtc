@@ -227,7 +227,7 @@ void FlutterPeerConnection::CreateRTCPeerConnection(
       base_->factory_->Create(base_->configuration_, constraints);
   base_->peerconnections_[uuid] = pc;
 
-  std::string event_channel = "FlutterWebRTC/peerConnectoinEvent" + uuid;
+  std::string event_channel = "FlutterWebRTC/peerConnectionEvent" + uuid;
 
   std::unique_ptr<FlutterPeerConnectionObserver> observer(
       new FlutterPeerConnectionObserver(base_, pc, base_->messenger_,
