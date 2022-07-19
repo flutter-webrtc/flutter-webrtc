@@ -2,26 +2,17 @@
 #define LIB_WEBRTC_RTC_DESKTOP_DEVICE_HXX
 
 #include "rtc_types.h"
-#include "rtc_video_device.h"
-
 
 namespace libwebrtc {
 
-class RTCDesktopCapturer : public RefCountInterface {
- public:
-  virtual ~RTCDesktopCapturer() {}
-};
+class MediaSource;
+class RTCDesktopCapturer;
+class RTCDesktopMediaList;
 
 class RTCDesktopDevice : public RefCountInterface {
  public:
-  virtual scoped_refptr<RTCDesktopCapturer> CreateScreenCapturer(uint64_t screen_id) = 0;
-  virtual scoped_refptr<RTCDesktopCapturer> CreateWindowCapturer(uint64_t window_id) = 0;
-
-  virtual bool GetScreenList(SourceList& sources) = 0;
-  virtual bool GetWindowList(SourceList& sources) = 0;
-  virtual SourceList EnumerateWindows() = 0;
-  virtual SourceList EnumerateScreens() = 0;
-
+  virtual scoped_refptr<RTCDesktopCapturer> CreateDesktopCapturer(scoped_refptr<MediaSource> source) = 0;
+  virtual scoped_refptr<RTCDesktopMediaList> GetDesktopMediaList(DesktopType type) = 0;
  protected:
   virtual ~RTCDesktopDevice() {}
 };

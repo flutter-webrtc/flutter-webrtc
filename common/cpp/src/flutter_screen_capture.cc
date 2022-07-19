@@ -8,86 +8,135 @@
 
 namespace flutter_webrtc_plugin {
 
-void FlutterScreenCapture::EnumerateScreens(std::unique_ptr<MethodResult<EncodableValue>> result) {
-  SourceList sources;
+ FlutterScreenCapture::FlutterScreenCapture(FlutterWebRTCBase *base): base_(base) {
+std::string event_channel =
+      "FlutterWebRTC/desktopSourcesEvent";
+  event_channel_.reset(new EventChannel<EncodableValue>(
+    base_->messenger_, event_channel, &StandardMethodCodec::GetInstance()));
 
-  sources = base_->desktop_device_->EnumerateScreens();
-  
-  EncodableList list;
-  for (const auto& source : sources.std_vector()) {
-    // std::cout << " id: " << source.id.std_string() << " title: " << source.title.std_string() << " type: " << source.type << std::endl;
-    EncodableMap info;
-    info[EncodableValue("id")] = EncodableValue(source.id.std_string());
-    info[EncodableValue("name")] = EncodableValue(source.title.std_string());
-    info[EncodableValue("type")] = EncodableValue(source.type);
-    list.push_back(EncodableValue(info));
-  }
+  auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
+		  [&](
+			  const flutter::EncodableValue* arguments,
+			  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
+		  -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+	  event_sink_ = std::move(events);
+	  return nullptr;
+  },
+		  [&](const flutter::EncodableValue* arguments)
+	  -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+	  event_sink_ = nullptr;
+	  return nullptr;
+  });
 
-  result->Success(EncodableValue(list));
-}
+  event_channel_->SetStreamHandler(std::move(handler));
+ }
 
-void FlutterScreenCapture::EnumerateWindows(std::unique_ptr<MethodResult<EncodableValue>> result) {
-  SourceList sources;
-
-  sources = base_->desktop_device_->EnumerateWindows();
-  
-  EncodableList list;
-  for (const auto& source : sources.std_vector()) {
-    // std::cout << " id: " << source.id.std_string() << " title: " << source.title.std_string() << " type: " << source.type << std::endl;
-    EncodableMap info;
-    info[EncodableValue("id")] = EncodableValue(source.id.std_string());
-    info[EncodableValue("name")] = EncodableValue(source.title.std_string());
-    info[EncodableValue("type")] = EncodableValue(source.type);
-    list.push_back(EncodableValue(info));
-  }
-
-  result->Success(EncodableValue(list));
-}
-
-void AddSources(const SourceList& from, EncodableList& to) {
-  for (const auto& source : from.std_vector()) {
-    // std::cout << " id: " << source.id.std_string() << " title: " << source.title.std_string() << " type: " << source.type << std::endl;
-    EncodableMap info;
-    info[EncodableValue("id")] = EncodableValue(source.id.std_string());
-    info[EncodableValue("name")] = EncodableValue(source.title.std_string());
-    info[EncodableValue("type")] = EncodableValue(source.type == SourceType::kWindow ? "window" : "screen");
-    // TODO "thumbnailSize"
-    info[EncodableValue("thumbnailSize")] = EncodableMap { 
-      {EncodableValue("width"), EncodableValue(0)}, 
-      {EncodableValue("height"), EncodableValue(0)}, 
-    };
-    to.push_back(EncodableValue(info));
-  }
-}
 
 void FlutterScreenCapture::GetDesktopSources(const EncodableList &types, std::unique_ptr<MethodResult<EncodableValue>> result) {
   EncodableList sources;
-
+  sources_.clear();
   size_t size = types.size();
   for (size_t i = 0; i < size; i++) {
     std::string type = GetValue<std::string>(types[i]);
     if (type == "window") {
-      SourceList windows = base_->desktop_device_->EnumerateWindows();
-      // std::cout << " windows: " << windows.size() << std::endl;
-      AddSources(windows, sources);
+      scoped_refptr<RTCDesktopMediaList> window;
+      auto it = medialist_.find(kWindow);
+      if (it != medialist_.end()) {
+        window = (*it).second;
+        window->UpdateSourceList(false);
+      } else {
+        window = base_->desktop_device_->GetDesktopMediaList(kWindow);
+        window->RegisterMediaListObserver(this);
+        medialist_[kWindow] = window;
+        window->UpdateSourceList(true);
+      }
+      int count = window->GetSourceCount();
+      for (int j = 0; j < count; j++) {
+        auto source = window->GetSource(j);
+        sources_.push_back(source);
+      }
     } else if (type == "screen") {
-      SourceList screens = base_->desktop_device_->EnumerateScreens();
-      // std::cout << " screens: " << screens.size() << std::endl;
-      AddSources(screens, sources);
+      scoped_refptr<RTCDesktopMediaList> screen;
+      auto it = medialist_.find(kScreen);
+      if (it != medialist_.end()) {
+        screen = (*it).second;
+        screen->UpdateSourceList(false);
+      } else {
+        screen = base_->desktop_device_->GetDesktopMediaList(kScreen);
+        screen->RegisterMediaListObserver(this);
+        medialist_[kScreen] = screen;
+        screen->UpdateSourceList(true);
+      }
+      int count = screen->GetSourceCount();
+      for (int j = 0; j < count; j++) {
+        auto source = screen->GetSource(j);
+        sources_.push_back(source);
+      }
     } else {
       result->Error("Bad Arguments", "Unknown type " + type);
       return;
     }    
   }
-  // std::cout << " sources: " << sources.size() << std::endl;
+
+  for (auto source : sources_) {
+    EncodableMap info;
+    info[EncodableValue("id")] = EncodableValue(source->id().std_string());
+    info[EncodableValue("name")] = EncodableValue(source->name().std_string());
+    info[EncodableValue("type")] = EncodableValue(source->type() == kWindow ? "window" : "screen");
+    info[EncodableValue("thumbnail")] = EncodableValue(source->thumbnail().std_vector());
+    // TODO "thumbnailSize"
+    info[EncodableValue("thumbnailSize")] =
+        EncodableMap{
+            {EncodableValue("width"), EncodableValue(0)},
+            {EncodableValue("height"), EncodableValue(0)}, 
+    };
+    sources.push_back(EncodableValue(info));
+  }
+
+  std::cout << " sources: " << sources.size() << std::endl;
   result->Success(EncodableValue(EncodableMap{{EncodableValue("sources"), sources}}));
 }
+
+void FlutterScreenCapture::OnMediaSourceAdded(
+    scoped_refptr<MediaSource> source) {
+  std::cout << " OnMediaSourceAdded: " << source->id().std_string() << std::endl;
+}
+
+void FlutterScreenCapture::OnMediaSourceRemoved(
+    scoped_refptr<MediaSource> source) {
+  std::cout << " OnMediaSourceRemoved: " << source->id().std_string()
+            << std::endl;
+}
+
+void FlutterScreenCapture::OnMediaSourceNameChanged(
+    scoped_refptr<MediaSource> source) {
+  std::cout << " OnMediaSourceNameChanged: " << source->id().std_string()
+            << std::endl;
+}
+
+void FlutterScreenCapture::OnMediaSourceThumbnailChanged(
+    scoped_refptr<MediaSource> source) {
+  std::cout << " OnMediaSourceThumbnailChanged: " << source->id().std_string()
+            << std::endl;
+}
+
+
+void FlutterScreenCapture::OnStart(
+    scoped_refptr<RTCDesktopCapturer> capturer) {}
+
+void FlutterScreenCapture::OnPaused(
+    scoped_refptr<RTCDesktopCapturer> capturer) {}
+
+void FlutterScreenCapture::OnStop(scoped_refptr<RTCDesktopCapturer> capturer) {}
+
+void FlutterScreenCapture::OnError(scoped_refptr<RTCDesktopCapturer> capturer)  {}
+
 
 bool SaveHbitmapToVector(HBITMAP hbitmap, std::vector<BYTE>& buf) {
   if (hbitmap != NULL) {
     IStream* stream = NULL;
     CreateStreamOnHGlobal(0, TRUE, &stream);
-    
+
     CImage image;
     ULARGE_INTEGER liSize;
 
@@ -105,6 +154,7 @@ bool SaveHbitmapToVector(HBITMAP hbitmap, std::vector<BYTE>& buf) {
   }
   return false;
 }
+
 
 void CaptureWindow(uint64_t id, std::unique_ptr<MethodResult<EncodableValue>> result) {
   HWND hwnd = reinterpret_cast<HWND>(id);
@@ -269,27 +319,25 @@ void FlutterScreenCapture::GetDesktopSourceThumbnail(uint64_t source_id, int wid
   } else {
     CaptureWindow(source_id, std::move(result));
   }
-
 }
 
 void FlutterScreenCapture::GetDisplayMedia(const EncodableMap& constraints,
                     std::unique_ptr<MethodResult<EncodableValue>> result) {
 
-  int window_id = 0;
-  libwebrtc::SourceType source_type = libwebrtc::SourceType::kEntireScreen;
+  std::string window_id = "0";
+  DesktopType source_type = kScreen;
 
   const EncodableMap video = findMap(constraints, "video");
   if (video != EncodableMap()) {
     const EncodableMap deviceId = findMap(video, "deviceId");
     if (deviceId != EncodableMap()) {
-      std::string windowId = findString(deviceId, "exact");
-      if (windowId.empty()) {
+      window_id = findString(deviceId, "exact");
+      if (window_id.empty()) {
         result->Error("Bad Arguments", "Incorrect video->deviceId->exact");
         return;
       }
-      window_id = std::stoi(windowId);
-      if (window_id !=0 ) {
-        source_type = libwebrtc::SourceType::kWindow;
+      if (window_id != "0" ) {
+        source_type = DesktopType::kWindow;
       }
     }
   }                      
@@ -297,9 +345,11 @@ void FlutterScreenCapture::GetDisplayMedia(const EncodableMap& constraints,
   CreateCapture(source_type, window_id, constraints, std::move(result));                  
 }
 
-void FlutterScreenCapture::CreateCapture(libwebrtc::SourceType type, uint64_t id,
-                                         const EncodableMap& constraints, 
-                                         std::unique_ptr<MethodResult<EncodableValue>> result) {
+void FlutterScreenCapture::CreateCapture(
+    DesktopType type,
+    std::string id,
+    const EncodableMap& constraints,
+    std::unique_ptr<MethodResult<EncodableValue>> result) {
 
   std::string uuid = base_->GenerateUUID();
 
@@ -319,27 +369,40 @@ void FlutterScreenCapture::CreateCapture(libwebrtc::SourceType type, uint64_t id
   auto it = constraints.find(EncodableValue("video"));
   if (it != constraints.end() && TypeIs<EncodableMap>(it->second)) {
     video_constraints = GetValue<EncodableMap>(it->second);
-  } 
-
-  scoped_refptr<RTCDesktopCapturer> desktop_capturer;
-  if (type == libwebrtc::SourceType::kEntireScreen) {
-    desktop_capturer = base_->desktop_device_->CreateScreenCapturer(id);
-  } else {
-    desktop_capturer = base_->desktop_device_->CreateWindowCapturer(id);
   }
 
-  if (!desktop_capturer.get()) return; // TODO: result->Error()
+  scoped_refptr<MediaSource> source;
+  for (auto src : sources_) {
+    if (src->id().std_string() == id) {
+      source = src;
+    }
+  }
+
+  if (!source.get()) {
+    result->Error("Bad Arguments", "source not found!");
+    return;
+  }
+
+  scoped_refptr<RTCDesktopCapturer> desktop_capturer =
+      base_->desktop_device_->CreateDesktopCapturer(source);
+
+   if (!desktop_capturer.get()) {
+    result->Error("Bad Arguments", "CreateDesktopCapturer failed!");
+    return;
+  }
+
+  desktop_capturer->RegisterDesktopCapturerObserver(this);
 
   const char* video_source_label = "screen_capture_input";
 
-  scoped_refptr<RTCVideoSource> source = base_->factory_->CreateDesktopSource(
+  scoped_refptr<RTCVideoSource> video_source = base_->factory_->CreateDesktopSource(
       desktop_capturer, video_source_label,
       base_->ParseMediaConstraints(video_constraints));
 
   // TODO: RTCVideoSource -> RTCVideoTrack
   
   scoped_refptr<RTCVideoTrack> track =
-      base_->factory_->CreateVideoTrack(source, uuid.c_str());
+      base_->factory_->CreateVideoTrack(video_source, uuid.c_str());
 
   EncodableList videoTracks;
   EncodableMap info;
@@ -355,6 +418,8 @@ void FlutterScreenCapture::CreateCapture(libwebrtc::SourceType type, uint64_t id
   base_->local_tracks_[track->id().std_string()] = track;
 
   base_->local_streams_[uuid] = stream;
+
+  desktop_capturer->Start(30);
 
   result->Success(EncodableValue(params));
 }
