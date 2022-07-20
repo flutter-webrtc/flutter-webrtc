@@ -53,7 +53,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     this.messenger = messenger;
     this.id = id;
 
-    eventChannel = new EventChannel(messenger, "FlutterWebRTC/peerConnectoinEvent" + id);
+    eventChannel = new EventChannel(messenger, "FlutterWebRTC/peerConnectionEvent" + id);
     eventChannel.setStreamHandler(this);
   }
 
