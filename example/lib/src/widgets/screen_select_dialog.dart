@@ -127,7 +127,7 @@ class ScreenSelectDialog extends Dialog {
                                 tabs: [
                                   Tab(
                                       child: Text(
-                                    'Entrire Screen',
+                                    'Entire Screen',
                                     style: TextStyle(color: Colors.black54),
                                   )),
                                   Tab(
