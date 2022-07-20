@@ -12,7 +12,7 @@ void main() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
       await ServicesBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
-              'FlutterWebRTC/peerConnectoinEvent', null, (ByteData? data) {});
+              'FlutterWebRTC/peerConnectionEvent', null, (ByteData? data) {});
       await ServicesBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
               'FlutterWebRTC/dataChannelEvent', null, (ByteData? data) {});
