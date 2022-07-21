@@ -60,7 +60,7 @@ void FlutterScreenCapture::GetDesktopSources(
     const EncodableList& types,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   if(!BuildDesktopSourcesList(types, true)) {
-    result->Error("Failed to get desktop sources");
+    result->Error("Bad Arguments", "Failed to get desktop sources");
     return;
   }
 
@@ -90,7 +90,7 @@ void FlutterScreenCapture::UpdateDesktopSources(
     const EncodableList& types,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   if(!BuildDesktopSourcesList(types, false)) {
-    result->Error("Failed to update desktop sources");
+    result->Error("Bad Arguments", "Failed to update desktop sources");
     return;
   }
   result->Success(
@@ -182,7 +182,7 @@ void FlutterScreenCapture::GetDesktopSourceThumbnail(
     }
   }
   if(source.get() == nullptr) {
-    result->Error("Source Not Found", "Failed to get desktop source thumbnail");
+    result->Error("Bad Arguments", "Failed to get desktop source thumbnail");
     return;
   }
   std::cout << " GetDesktopSourceThumbnail: " << source->id().std_string()
