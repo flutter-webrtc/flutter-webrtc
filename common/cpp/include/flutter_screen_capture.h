@@ -48,6 +48,9 @@ class FlutterScreenCapture : public MediaListObserver, public DesktopCapturerObs
    void OnError(scoped_refptr<RTCDesktopCapturer> capturer) override;
 
  private:
+   bool BuildDesktopSourcesList(const EncodableList& types, bool force_reload);
+
+ private:
   FlutterWebRTCBase *base_;
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
   std::unique_ptr<EventSink<EncodableValue>> event_sink_;
