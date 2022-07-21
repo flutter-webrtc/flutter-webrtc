@@ -53,7 +53,7 @@ class RTCDesktopMediaList : public RefCountInterface {
   
   virtual scoped_refptr<MediaSource> GetSource(int index) = 0;
 
-  virtual bool GetThumbnail(scoped_refptr<MediaSource> source) = 0;
+  virtual bool GetThumbnail(scoped_refptr<MediaSource> source, bool notify = false) = 0;
 
  protected:
   ~RTCDesktopMediaList() {}

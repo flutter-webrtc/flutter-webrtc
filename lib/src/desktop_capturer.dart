@@ -23,6 +23,8 @@ class ThumbnailSize {
   }
   int width;
   int height;
+
+  Map<String, int> toMap() => {'width': width, 'height': height};
 }
 
 abstract class DesktopCapturerSource {
@@ -55,8 +57,10 @@ abstract class DesktopCapturer {
   final StreamController<DesktopCapturerSource> onThumbnailChanged =
       StreamController.broadcast();
 
+  ///Get the screen source of the specified types
   Future<List<DesktopCapturerSource>> getSources(
       {required List<SourceType> types, ThumbnailSize? thumbnailSize});
 
-  Future<void> stopRefershSources();
+  /// Updates the list of screen sources of the specified types
+  Future<bool> updateSources({required List<SourceType> types});
 }

@@ -18,6 +18,8 @@ class FlutterScreenCapture : public MediaListObserver, public DesktopCapturerObs
 
   void GetDesktopSources(const EncodableList &types, std::unique_ptr<MethodResult<EncodableValue>> result);
 
+  void UpdateDesktopSources(const EncodableList &types, std::unique_ptr<MethodResult<EncodableValue>> result);
+
   void GetDesktopSourceThumbnail(uint64_t source_id, int width, int height,
                      std::unique_ptr<MethodResult<EncodableValue>> result);
 
@@ -52,7 +54,7 @@ class FlutterScreenCapture : public MediaListObserver, public DesktopCapturerObs
   std::map<DesktopType,
            scoped_refptr<RTCDesktopMediaList>>
       medialist_;
-  std::vector <scoped_refptr<MediaSource>> sources_;
+  std::vector<scoped_refptr<MediaSource>> sources_;
 };
 
 }

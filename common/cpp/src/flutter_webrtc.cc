@@ -52,7 +52,7 @@ void FlutterWebRTC::HandleMethodCall(
   } 
 
   else if (method_call.method_name().compare("getDesktopSources") == 0) {
-      // types: ["screen", "window"]
+    // types: ["screen", "window"]
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Bad arguments received");
       return;
@@ -66,9 +66,22 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     GetDesktopSources(types, std::move(result));
-  } else if (method_call.method_name().compare("stopDesktopSourcesRefersh") ==
+  } else if (method_call.method_name().compare("updateDesktopSources") ==
              0) {
-    result->Success();
+    // types: ["screen", "window"]
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Bad arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+    const EncodableList types = findList(params, "types");
+    if (types == EncodableList()) {
+      result->Error("Bad Arguments", "Types is required");
+      return;
+    }
+    UpdateDesktopSources(types, std::move(result));
   } else if (method_call.method_name().compare("getDesktopSourceThumbnail") ==
              0) {
     if (!method_call.arguments()) {

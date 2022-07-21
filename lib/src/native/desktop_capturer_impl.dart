@@ -115,12 +115,14 @@ class DesktopCapturerNative extends DesktopCapturer {
     final response = await WebRTC.invokeMethod(
       'getDesktopSources',
       <String, dynamic>{
-        'types': types.map((type) => desktopSourceTypeToString[type]).toList()
+        'types': types.map((type) => desktopSourceTypeToString[type]).toList(),
+        if (thumbnailSize != null) 'thumbnailSize': thumbnailSize.toMap(),
       },
     );
     if (response == null) {
       throw Exception('getDesktopSources return null, something wrong');
     }
+    /*
     for (var source in response['sources']) {
       var sourceType = (source['type'] as String) == 'window'
           ? SourceType.Window
@@ -133,13 +135,22 @@ class DesktopCapturerNative extends DesktopCapturer {
       desktopSource.thumbnail = source['thumbnail'] as Uint8List;
       _sources[desktopSource.id] = desktopSource;
     }
-
+    */
     return _sources.values.toList();
   }
 
   @override
-  Future<void> stopRefershSources() async {
-    await WebRTC.invokeMethod('stopDesktopSourcesRefersh');
+  Future<bool> updateSources({required List<SourceType> types}) async {
+    final response = await WebRTC.invokeMethod(
+      'updateDesktopSources',
+      <String, dynamic>{
+        'types': types.map((type) => desktopSourceTypeToString[type]).toList(),
+      },
+    );
+    if (response == null) {
+      throw Exception('updateSources return null, something wrong');
+    }
+    return response['result'] as bool;
   }
 
   Future<Uint8List?> getThumbnail(DesktopCapturerSourceNative source) async {

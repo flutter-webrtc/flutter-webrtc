@@ -31,7 +31,6 @@ std::string event_channel =
   event_channel_->SetStreamHandler(std::move(handler));
  }
 
-
 void FlutterScreenCapture::GetDesktopSources(const EncodableList &types, std::unique_ptr<MethodResult<EncodableValue>> result) {
   EncodableList sources;
   sources_.clear();
@@ -43,13 +42,12 @@ void FlutterScreenCapture::GetDesktopSources(const EncodableList &types, std::un
       auto it = medialist_.find(kWindow);
       if (it != medialist_.end()) {
         window = (*it).second;
-        window->UpdateSourceList(false);
       } else {
         window = base_->desktop_device_->GetDesktopMediaList(kWindow);
         window->RegisterMediaListObserver(this);
         medialist_[kWindow] = window;
-        window->UpdateSourceList(true);
       }
+      window->UpdateSourceList(true);
       int count = window->GetSourceCount();
       for (int j = 0; j < count; j++) {
         auto source = window->GetSource(j);
@@ -60,13 +58,12 @@ void FlutterScreenCapture::GetDesktopSources(const EncodableList &types, std::un
       auto it = medialist_.find(kScreen);
       if (it != medialist_.end()) {
         screen = (*it).second;
-        screen->UpdateSourceList(false);
       } else {
         screen = base_->desktop_device_->GetDesktopMediaList(kScreen);
         screen->RegisterMediaListObserver(this);
         medialist_[kScreen] = screen;
-        screen->UpdateSourceList(true);
       }
+      screen->UpdateSourceList(false);
       int count = screen->GetSourceCount();
       for (int j = 0; j < count; j++) {
         auto source = screen->GetSource(j);
@@ -97,27 +94,108 @@ void FlutterScreenCapture::GetDesktopSources(const EncodableList &types, std::un
   result->Success(EncodableValue(EncodableMap{{EncodableValue("sources"), sources}}));
 }
 
+void FlutterScreenCapture::UpdateDesktopSources(const EncodableList &types, std::unique_ptr<MethodResult<EncodableValue>> result) {
+  size_t size = types.size();
+  sources_.clear();
+  for (size_t i = 0; i < size; i++) {
+    std::string type = GetValue<std::string>(types[i]);
+    if (type == "window") {
+      scoped_refptr<RTCDesktopMediaList> window;
+      auto it = medialist_.find(kWindow);
+      if (it != medialist_.end()) {
+        window = (*it).second;
+      } else {
+        window = base_->desktop_device_->GetDesktopMediaList(kWindow);
+        window->RegisterMediaListObserver(this);
+        medialist_[kWindow] = window;
+      }
+      window->UpdateSourceList(false);
+      int count = window->GetSourceCount();
+      for (int j = 0; j < count; j++) {
+        auto source = window->GetSource(j);
+        sources_.push_back(source);
+      }
+    } else if (type == "screen") {
+      scoped_refptr<RTCDesktopMediaList> screen;
+      auto it = medialist_.find(kScreen);
+      if (it != medialist_.end()) {
+        screen = (*it).second;
+      } else {
+        screen = base_->desktop_device_->GetDesktopMediaList(kScreen);
+        screen->RegisterMediaListObserver(this);
+        medialist_[kScreen] = screen;
+      }
+      screen->UpdateSourceList(false);
+      int count = screen->GetSourceCount();
+      for (int j = 0; j < count; j++) {
+        auto source = screen->GetSource(j);
+        sources_.push_back(source);
+      }
+    } else {
+      result->Error("Bad Arguments", "Unknown type " + type);
+      return;
+    }
+  }
+  result->Success(EncodableValue(EncodableMap{{EncodableValue("result"), true}}));
+}
+
 void FlutterScreenCapture::OnMediaSourceAdded(
     scoped_refptr<MediaSource> source) {
   std::cout << " OnMediaSourceAdded: " << source->id().std_string() << std::endl;
+
+  if (event_sink_) {
+    EncodableMap info;
+    info[EncodableValue("event")] = "desktopSourceAdded";
+    info[EncodableValue("id")] = EncodableValue(source->id().std_string());
+    info[EncodableValue("name")] = EncodableValue(source->name().std_string());
+    info[EncodableValue("type")] = EncodableValue(source->type() == kWindow ? "window" : "screen");
+    info[EncodableValue("thumbnail")] = EncodableValue(source->thumbnail().std_vector());
+    // TODO "thumbnailSize"
+    info[EncodableValue("thumbnailSize")] =
+        EncodableMap{
+            {EncodableValue("width"), EncodableValue(0)},
+            {EncodableValue("height"), EncodableValue(0)}, 
+    };
+    event_sink_->Success(EncodableValue(info));
+  }
 }
 
 void FlutterScreenCapture::OnMediaSourceRemoved(
     scoped_refptr<MediaSource> source) {
   std::cout << " OnMediaSourceRemoved: " << source->id().std_string()
             << std::endl;
+  if (event_sink_) {
+    EncodableMap info;
+    info[EncodableValue("event")] = "desktopSourceRemoved";
+    info[EncodableValue("id")] = EncodableValue(source->id().std_string());
+    event_sink_->Success(EncodableValue(info));
+  }
 }
 
 void FlutterScreenCapture::OnMediaSourceNameChanged(
     scoped_refptr<MediaSource> source) {
   std::cout << " OnMediaSourceNameChanged: " << source->id().std_string()
             << std::endl;
+  if (event_sink_) {
+    EncodableMap info;
+    info[EncodableValue("event")] = "desktopSourceNameChanged";
+    info[EncodableValue("id")] = EncodableValue(source->id().std_string());
+    info[EncodableValue("name")] = EncodableValue(source->name().std_string());
+    event_sink_->Success(EncodableValue(info));
+  }
 }
 
 void FlutterScreenCapture::OnMediaSourceThumbnailChanged(
     scoped_refptr<MediaSource> source) {
   std::cout << " OnMediaSourceThumbnailChanged: " << source->id().std_string()
             << std::endl;
+  if (event_sink_) {
+    EncodableMap info;
+    info[EncodableValue("event")] = "desktopSourceThumbnailChanged";
+    info[EncodableValue("id")] = EncodableValue(source->id().std_string());
+    info[EncodableValue("thumbnail")] = EncodableValue(source->thumbnail().std_vector());
+    event_sink_->Success(EncodableValue(info));
+  }
 }
 
 

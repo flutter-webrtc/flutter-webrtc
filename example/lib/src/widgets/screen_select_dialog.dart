@@ -35,9 +35,10 @@ class ScreenSelectDialog extends Dialog {
   DesktopCapturerSource? _selected_source;
   final List<StreamSubscription<DesktopCapturerSource>> _subscriptions = [];
   StateSetter? _stateSetter;
+  Timer? _timer;
 
   void _ok(context) async {
-    await desktopCapturer.stopRefershSources();
+    _timer?.cancel();
     _subscriptions.forEach((element) {
       element.cancel();
     });
@@ -45,7 +46,7 @@ class ScreenSelectDialog extends Dialog {
   }
 
   void _cancel(context) async {
-    await desktopCapturer.stopRefershSources();
+    _timer?.cancel();
     _subscriptions.forEach((element) {
       element.cancel();
     });
@@ -63,6 +64,10 @@ class ScreenSelectDialog extends Dialog {
         sources.forEach((element) {
           _sources[element.id] = element;
         });
+      });
+      _timer?.cancel();
+      _timer = Timer.periodic(Duration(seconds: 3), (timer) {
+        desktopCapturer.updateSources(types: [_sourceType]);
       });
       return;
     } catch (e) {
@@ -244,17 +249,19 @@ class ScreenSelectDialog extends Dialog {
                                                                 e.value;
                                                           });
                                                         },
-                                                        child:
-                                                            e.value.thumbnail !=
-                                                                    null
-                                                                ? Image.memory(
-                                                                    e.value
-                                                                        .thumbnail!,
-                                                                    scale: 1.0,
-                                                                    repeat: ImageRepeat
+                                                        child: e
+                                                                .value
+                                                                .thumbnail!
+                                                                .isNotEmpty
+                                                            ? Image.memory(
+                                                                e.value
+                                                                    .thumbnail!,
+                                                                scale: 1.0,
+                                                                repeat:
+                                                                    ImageRepeat
                                                                         .noRepeat,
-                                                                  )
-                                                                : Container(),
+                                                              )
+                                                            : Container(),
                                                       ),
                                                     )),
                                                     Text(
