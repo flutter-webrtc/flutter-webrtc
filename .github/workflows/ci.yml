@@ -50,9 +50,9 @@ jobs:
           - linux
           #- macos  # TODO: Add `macos-latest`.
           - windows
-    runs-on: ${{ (matrix.platform == 'linux' && 'ubuntu-22.04')
-                 || (matrix.platform == 'windows' && 'windows-2019')
-                 || 'macos-latest' }}
+    runs-on: ${{ (matrix.platform == 'linux' &&   'ubuntu-22.04')
+              || (matrix.platform == 'windows' && 'windows-2019')
+              ||                                  'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -134,9 +134,9 @@ jobs:
           - linux
           #- macos  # TODO: Add `macos-latest`.
           - windows
-    runs-on: ${{ (matrix.platform == 'linux' && 'ubuntu-22.04')
-                 || (matrix.platform == 'windows' && 'windows-2019')
-                 || 'macos-latest' }}
+    runs-on: ${{ (matrix.platform == 'linux' &&   'ubuntu-22.04')
+              || (matrix.platform == 'windows' && 'windows-2019')
+              ||                                  'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -179,9 +179,9 @@ jobs:
     # TODO: Switch to `windows-latest` once stable Flutter supports MSVC 2022:
     #       https://github.com/flutter/flutter/issues/85922
     #       https://github.com/flutter/flutter/issues/96138
-    runs-on: ${{ (matrix.platform == 'linux' && 'ubuntu-22.04')
-                 || (matrix.platform == 'windows' && 'windows-2019')
-                 || 'macos-latest' }}
+    runs-on: ${{ (matrix.platform == 'linux' &&   'ubuntu-22.04')
+              || (matrix.platform == 'windows' && 'windows-2019')
+              ||                                  'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -203,7 +203,6 @@ jobs:
         if: ${{ matrix.platform == 'linux' }}
 
       - run: make cargo.build platform=${{ matrix.platform }}
-                              args="--features fake_media"
         if: ${{ matrix.platform != 'android' }}
 
       - name: Test on Android
@@ -242,9 +241,9 @@ jobs:
     # TODO: Switch to `windows-latest` once stable Flutter supports MSVC 2022:
     #       https://github.com/flutter/flutter/issues/85922
     #       https://github.com/flutter/flutter/issues/96138
-    runs-on: ${{ (matrix.platform == 'linux' && 'ubuntu-22.04')
-                 || (matrix.platform == 'windows' && 'windows-2019')
-                 || 'macos-latest' }}
+    runs-on: ${{ (matrix.platform == 'linux' &&   'ubuntu-22.04')
+              || (matrix.platform == 'windows' && 'windows-2019')
+              ||                                  'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1

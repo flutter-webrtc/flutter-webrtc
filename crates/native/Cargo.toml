@@ -8,9 +8,6 @@ publish = false
 [lib]
 crate-type = ["cdylib"]
 
-[features]
-fake_media = ["libwebrtc-sys/fake_media"]
-
 [dependencies]
 anyhow = "1.0"
 cxx = "1.0"

@@ -15,6 +15,17 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'bridge.g.freezed.dart';
 
 abstract class FlutterWebrtcNative {
+  /// Configures media acquisition to use fake devices instead of actual camera
+  /// and microphone.
+  Future<void> enableFakeMedia({dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kEnableFakeMediaConstMeta;
+
+  /// Indicates whether application is configured to use fake media devices.
+  Future<bool> isFakeMedia({dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kIsFakeMediaConstMeta;
+
   /// Returns a list of all available media input and output devices, such as
   /// microphones, cameras, headsets, and so forth.
   Future<List<MediaDeviceInfo>> enumerateDevices({dynamic hint});
@@ -938,6 +949,36 @@ class FlutterWebrtcNativeImpl
       FlutterWebrtcNativeImpl.raw(FlutterWebrtcNativeWire(dylib));
 
   FlutterWebrtcNativeImpl.raw(FlutterWebrtcNativeWire inner) : super(inner);
+
+  Future<void> enableFakeMedia({dynamic hint}) =>
+      executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) => inner.wire_enable_fake_media(port_),
+        parseSuccessData: _wire2api_unit,
+        constMeta: kEnableFakeMediaConstMeta,
+        argValues: [],
+        hint: hint,
+      ));
+
+  FlutterRustBridgeTaskConstMeta get kEnableFakeMediaConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "enable_fake_media",
+        argNames: [],
+      );
+
+  Future<bool> isFakeMedia({dynamic hint}) =>
+      executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) => inner.wire_is_fake_media(port_),
+        parseSuccessData: _wire2api_bool,
+        constMeta: kIsFakeMediaConstMeta,
+        argValues: [],
+        hint: hint,
+      ));
+
+  FlutterRustBridgeTaskConstMeta get kIsFakeMediaConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "is_fake_media",
+        argNames: [],
+      );
 
   Future<List<MediaDeviceInfo>> enumerateDevices({dynamic hint}) =>
       executeNormal(FlutterRustBridgeTask(
@@ -1973,6 +2014,34 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
       ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
           lookup)
       : _lookup = lookup;
+
+  void wire_enable_fake_media(
+    int port_,
+  ) {
+    return _wire_enable_fake_media(
+      port_,
+    );
+  }
+
+  late final _wire_enable_fake_mediaPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_enable_fake_media');
+  late final _wire_enable_fake_media =
+      _wire_enable_fake_mediaPtr.asFunction<void Function(int)>();
+
+  void wire_is_fake_media(
+    int port_,
+  ) {
+    return _wire_is_fake_media(
+      port_,
+    );
+  }
+
+  late final _wire_is_fake_mediaPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_is_fake_media');
+  late final _wire_is_fake_media =
+      _wire_is_fake_mediaPtr.asFunction<void Function(int)>();
 
   void wire_enumerate_devices(
     int port_,

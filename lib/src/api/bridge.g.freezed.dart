@@ -218,7 +218,7 @@ abstract class Audio implements GetMediaError {
   const factory Audio(final String field0) = _$Audio;
 
   @override
-  String get field0 => throw _privateConstructorUsedError;
+  String get field0;
   @override
   @JsonKey(ignore: true)
   _$$AudioCopyWith<_$Audio> get copyWith => throw _privateConstructorUsedError;
@@ -351,7 +351,7 @@ abstract class Video implements GetMediaError {
   const factory Video(final String field0) = _$Video;
 
   @override
-  String get field0 => throw _privateConstructorUsedError;
+  String get field0;
   @override
   @JsonKey(ignore: true)
   _$$VideoCopyWith<_$Video> get copyWith => throw _privateConstructorUsedError;
@@ -545,7 +545,7 @@ class _$Ok implements Ok {
 abstract class Ok implements GetMediaResult {
   const factory Ok(final List<MediaStreamTrack> field0) = _$Ok;
 
-  List<MediaStreamTrack> get field0 => throw _privateConstructorUsedError;
+  List<MediaStreamTrack> get field0;
   @JsonKey(ignore: true)
   _$$OkCopyWith<_$Ok> get copyWith => throw _privateConstructorUsedError;
 }
@@ -684,7 +684,7 @@ class _$Err implements Err {
 abstract class Err implements GetMediaResult {
   const factory Err(final GetMediaError field0) = _$Err;
 
-  GetMediaError get field0 => throw _privateConstructorUsedError;
+  GetMediaError get field0;
   @JsonKey(ignore: true)
   _$$ErrCopyWith<_$Err> get copyWith => throw _privateConstructorUsedError;
 }
@@ -990,7 +990,7 @@ abstract class PeerCreated implements PeerConnectionEvent {
   const factory PeerCreated({required final int id}) = _$PeerCreated;
 
   /// ID of the created [`PeerConnection`].
-  int get id => throw _privateConstructorUsedError;
+  int get id;
   @JsonKey(ignore: true)
   _$$PeerCreatedCopyWith<_$PeerCreated> get copyWith =>
       throw _privateConstructorUsedError;
@@ -1232,13 +1232,13 @@ abstract class IceCandidate implements PeerConnectionEvent {
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate
   /// [RFC 5888]: https://tools.ietf.org/html/rfc5888
-  String get sdpMid => throw _privateConstructorUsedError;
+  String get sdpMid;
 
   /// Index (starting at zero) of the media description in the SDP this
   /// [RTCIceCandidate][1] is associated with.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate
-  int get sdpMlineIndex => throw _privateConstructorUsedError;
+  int get sdpMlineIndex;
 
   /// Candidate-attribute as defined in Section 15.1 of [RFC 5245].
   ///
@@ -1248,7 +1248,7 @@ abstract class IceCandidate implements PeerConnectionEvent {
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate
   /// [RFC 5245]: https://tools.ietf.org/html/rfc5245
-  String get candidate => throw _privateConstructorUsedError;
+  String get candidate;
   @JsonKey(ignore: true)
   _$$IceCandidateCopyWith<_$IceCandidate> get copyWith =>
       throw _privateConstructorUsedError;
@@ -1441,7 +1441,7 @@ abstract class IceGatheringStateChange implements PeerConnectionEvent {
   const factory IceGatheringStateChange(final IceGatheringState field0) =
       _$IceGatheringStateChange;
 
-  IceGatheringState get field0 => throw _privateConstructorUsedError;
+  IceGatheringState get field0;
   @JsonKey(ignore: true)
   _$$IceGatheringStateChangeCopyWith<_$IceGatheringStateChange> get copyWith =>
       throw _privateConstructorUsedError;
@@ -1702,14 +1702,14 @@ abstract class IceCandidateError implements PeerConnectionEvent {
       required final String errorText}) = _$IceCandidateError;
 
   /// Local IP address used to communicate with the STUN or TURN server.
-  String get address => throw _privateConstructorUsedError;
+  String get address;
 
   /// Port used to communicate with the STUN or TURN server.
-  int get port => throw _privateConstructorUsedError;
+  int get port;
 
   /// STUN or TURN URL identifying the STUN or TURN server for which the
   /// failure occurred.
-  String get url => throw _privateConstructorUsedError;
+  String get url;
 
   /// Numeric STUN error code returned by the STUN or TURN server
   /// [`STUN-PARAMETERS`][1].
@@ -1718,7 +1718,7 @@ abstract class IceCandidateError implements PeerConnectionEvent {
   /// value `701` which is outside the STUN error code range.
   ///
   /// [1]: https://tinyurl.com/stun-parameters-6
-  int get errorCode => throw _privateConstructorUsedError;
+  int get errorCode;
 
   /// STUN reason text returned by the STUN or TURN server
   /// [`STUN-PARAMETERS`][1].
@@ -1727,7 +1727,7 @@ abstract class IceCandidateError implements PeerConnectionEvent {
   /// implementation-specific value providing details about the error.
   ///
   /// [1]: https://tinyurl.com/stun-parameters-6
-  String get errorText => throw _privateConstructorUsedError;
+  String get errorText;
   @JsonKey(ignore: true)
   _$$IceCandidateErrorCopyWith<_$IceCandidateError> get copyWith =>
       throw _privateConstructorUsedError;
@@ -2079,7 +2079,7 @@ abstract class SignallingChange implements PeerConnectionEvent {
   const factory SignallingChange(final SignalingState field0) =
       _$SignallingChange;
 
-  SignalingState get field0 => throw _privateConstructorUsedError;
+  SignalingState get field0;
   @JsonKey(ignore: true)
   _$$SignallingChangeCopyWith<_$SignallingChange> get copyWith =>
       throw _privateConstructorUsedError;
@@ -2273,7 +2273,7 @@ abstract class IceConnectionStateChange implements PeerConnectionEvent {
   const factory IceConnectionStateChange(final IceConnectionState field0) =
       _$IceConnectionStateChange;
 
-  IceConnectionState get field0 => throw _privateConstructorUsedError;
+  IceConnectionState get field0;
   @JsonKey(ignore: true)
   _$$IceConnectionStateChangeCopyWith<_$IceConnectionStateChange>
       get copyWith => throw _privateConstructorUsedError;
@@ -2465,7 +2465,7 @@ abstract class ConnectionStateChange implements PeerConnectionEvent {
   const factory ConnectionStateChange(final PeerConnectionState field0) =
       _$ConnectionStateChange;
 
-  PeerConnectionState get field0 => throw _privateConstructorUsedError;
+  PeerConnectionState get field0;
   @JsonKey(ignore: true)
   _$$ConnectionStateChangeCopyWith<_$ConnectionStateChange> get copyWith =>
       throw _privateConstructorUsedError;
@@ -2653,7 +2653,7 @@ class _$Track implements Track {
 abstract class Track implements PeerConnectionEvent {
   const factory Track(final RtcTrackEvent field0) = _$Track;
 
-  RtcTrackEvent get field0 => throw _privateConstructorUsedError;
+  RtcTrackEvent get field0;
   @JsonKey(ignore: true)
   _$$TrackCopyWith<_$Track> get copyWith => throw _privateConstructorUsedError;
 }

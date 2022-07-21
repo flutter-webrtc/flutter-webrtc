@@ -1,4 +1,7 @@
-use std::{mem, sync::Mutex};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Mutex,
+};
 
 use cxx::UniquePtr;
 use flutter_rust_bridge::StreamSink;
@@ -9,6 +12,9 @@ use crate::{cpp_api::OnFrameCallbackInterface, Webrtc};
 lazy_static::lazy_static! {
     static ref WEBRTC: Mutex<Webrtc> = Mutex::new(Webrtc::new().unwrap());
 }
+
+/// Indicator whether application is configured to use fake media devices.
+static FAKE_MEDIA: AtomicBool = AtomicBool::new(false);
 
 /// Indicator of the current state of a [`MediaStreamTrack`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -780,6 +786,17 @@ pub struct RtcIceServer {
     pub credential: String,
 }
 
+/// Configures media acquisition to use fake devices instead of actual camera
+/// and microphone.
+pub fn enable_fake_media() {
+    FAKE_MEDIA.store(true, Ordering::Release);
+}
+
+/// Indicates whether application is configured to use fake media devices.
+pub fn is_fake_media() -> bool {
+    FAKE_MEDIA.load(Ordering::Acquire)
+}
+
 /// Returns a list of all available media input and output devices, such as
 /// microphones, cameras, headsets, and so forth.
 pub fn enumerate_devices() -> anyhow::Result<Vec<MediaDeviceInfo>> {
@@ -1099,7 +1116,7 @@ pub fn create_video_sink(
     callback_ptr: u64,
 ) -> anyhow::Result<()> {
     let handler = unsafe {
-        let ptr: *mut OnFrameCallbackInterface = mem::transmute(callback_ptr);
+        let ptr = callback_ptr as *mut OnFrameCallbackInterface;
         UniquePtr::from_raw(ptr)
     };
     WEBRTC

@@ -7,6 +7,10 @@ import 'package:integration_test/integration_test.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  setUpAll(() async {
+    await enableFakeMedia();
+  });
+
   testWidgets('Add transceiver', (WidgetTester tester) async {
     var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(

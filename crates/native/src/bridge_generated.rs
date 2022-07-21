@@ -18,6 +18,30 @@ use flutter_rust_bridge::*;
 // Section: wire functions
 
 #[no_mangle]
+pub extern "C" fn wire_enable_fake_media(port_: i64) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "enable_fake_media",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || move |task_callback| Ok(enable_fake_media()),
+    )
+}
+
+#[no_mangle]
+pub extern "C" fn wire_is_fake_media(port_: i64) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "is_fake_media",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || move |task_callback| Ok(is_fake_media()),
+    )
+}
+
+#[no_mangle]
 pub extern "C" fn wire_enumerate_devices(port_: i64) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap(
         WrapInfo {

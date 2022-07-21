@@ -100,6 +100,10 @@ std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     AudioLayer audio_layer,
     TaskQueueFactory& task_queue_factory);
 
+// Creates a new fake `AudioDeviceModule`.
+std::unique_ptr<AudioDeviceModule> create_fake_audio_device_module(
+    TaskQueueFactory& task_queue_factory);
+
 // Initializes the native audio parts required for each platform.
 int32_t init_audio_device_module(const AudioDeviceModule& audio_device_module);
 
@@ -184,6 +188,15 @@ std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
     size_t height,
     size_t fps,
     uint32_t device_index);
+
+// Creates a new fake `DeviceVideoCapturer` with the specified constraints and
+// calls `CreateVideoTrackSourceProxy()`.
+std::unique_ptr<VideoTrackSourceInterface> create_fake_device_video_source(
+    Thread& worker_thread,
+    Thread& signaling_thread,
+    size_t width,
+    size_t height,
+    size_t fps);
 
 // Starts screen capturing and creates a new `VideoTrackSourceInterface`
 // according to the specified constraints.

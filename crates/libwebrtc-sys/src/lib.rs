@@ -200,6 +200,14 @@ impl AudioDeviceModule {
         Ok(Self(ptr))
     }
 
+    /// Creates a new fake [`AudioDeviceModule`], that will not try to access
+    /// real media devices, but will generate pulsed noise.
+    pub fn create_fake(task_queue_factory: &mut TaskQueueFactory) -> Self {
+        Self(webrtc::create_fake_audio_device_module(
+            task_queue_factory.0.pin_mut(),
+        ))
+    }
+
     /// Initializes the current [`AudioDeviceModule`].
     pub fn init(&self) -> anyhow::Result<()> {
         let result = webrtc::init_audio_device_module(&self.0);
@@ -216,18 +224,11 @@ impl AudioDeviceModule {
         webrtc::playout_devices(&self.0).max(0) as u32
     }
 
-    #[cfg(not(feature = "fake_media"))]
     /// Returns count of available audio recording devices.
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     pub fn recording_devices(&self) -> u32 {
         webrtc::recording_devices(&self.0).max(0) as u32
-    }
-
-    #[cfg(feature = "fake_media")]
-    /// Always returns `1`.
-    pub fn recording_devices(&self) -> u32 {
-        return 1;
     }
 
     /// Returns the `(label, id)` tuple for the given audio playout device
@@ -252,7 +253,6 @@ impl AudioDeviceModule {
         Ok((name, guid))
     }
 
-    #[cfg(not(feature = "fake_media"))]
     /// Returns the `(label, id)` tuple for the given audio recording device
     /// `index`.
     pub fn recording_device_name(
@@ -273,15 +273,6 @@ impl AudioDeviceModule {
         }
 
         Ok((name, guid))
-    }
-
-    #[cfg(feature = "fake_media")]
-    /// Always returns fake names.
-    pub fn recording_device_name(
-        &self,
-        _index: i16,
-    ) -> anyhow::Result<(String, String)> {
-        Ok((String::from("fake mic"), String::from("fake mic id")))
     }
 
     /// Sets the recording audio device according to the given `index`.
@@ -427,19 +418,11 @@ impl VideoDeviceInfo {
         Ok(Self(ptr))
     }
 
-    #[cfg(not(feature = "fake_media"))]
     /// Returns count of a video recording devices.
     pub fn number_of_devices(&mut self) -> u32 {
         self.0.pin_mut().number_of_video_devices()
     }
 
-    #[cfg(feature = "fake_media")]
-    /// Always returns `1`.
-    pub fn number_of_devices(&mut self) -> u32 {
-        1
-    }
-
-    #[cfg(not(feature = "fake_media"))]
     /// Returns the `(label, id)` tuple for the given video device `index`.
     pub fn device_name(
         &mut self,
@@ -463,15 +446,6 @@ impl VideoDeviceInfo {
         }
 
         Ok((name, guid))
-    }
-
-    #[cfg(feature = "fake_media")]
-    /// Always returns fake names.
-    pub fn device_name(
-        &mut self,
-        _index: u32,
-    ) -> anyhow::Result<(String, String)> {
-        Ok((String::from("fake webcam"), String::from("fake webcam id")))
     }
 }
 
@@ -1447,6 +1421,31 @@ impl VideoTrackSourceInterface {
             bail!(
                 "`null` pointer returned from \
                  `webrtc::CreateVideoTrackSourceProxy()`",
+            );
+        }
+        Ok(VideoTrackSourceInterface(ptr))
+    }
+
+    /// Creates a new fake [`VideoTrackSourceInterface`].
+    pub fn create_fake(
+        worker_thread: &mut Thread,
+        signaling_thread: &mut Thread,
+        width: usize,
+        height: usize,
+        fps: usize,
+    ) -> anyhow::Result<Self> {
+        let ptr = webrtc::create_fake_device_video_source(
+            worker_thread.0.pin_mut(),
+            signaling_thread.0.pin_mut(),
+            width,
+            height,
+            fps,
+        );
+
+        if ptr.is_null() {
+            bail!(
+                "`null` pointer returned from \
+                 `webrtc::CreateVideoTrackSource()`",
             );
         }
         Ok(VideoTrackSourceInterface(ptr))

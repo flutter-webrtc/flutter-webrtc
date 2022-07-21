@@ -35,7 +35,8 @@ pub use crate::{
     pc::{PeerConnection, PeerConnectionId},
     user_media::{
         AudioDeviceId, AudioDeviceModule, AudioTrack, AudioTrackId,
-        MediaStreamId, VideoDeviceId, VideoSource, VideoTrack, VideoTrackId,
+        MediaStreamId, VideoDeviceId, VideoDeviceInfo, VideoSource, VideoTrack,
+        VideoTrackId,
     },
     video_sink::{Frame, VideoSink},
 };
@@ -51,7 +52,7 @@ pub(crate) fn next_id() -> u64 {
 /// Global context for an application.
 struct Webrtc {
     peer_connections: HashMap<PeerConnectionId, PeerConnection>,
-    video_device_info: sys::VideoDeviceInfo,
+    video_device_info: VideoDeviceInfo,
     video_sources: HashMap<VideoDeviceId, Arc<VideoSource>>,
     video_tracks: Arc<DashMap<VideoTrackId, VideoTrack>>,
     audio_source: Option<Arc<sys::AudioSourceInterface>>,
@@ -82,11 +83,15 @@ impl Webrtc {
         let mut signaling_thread = sys::Thread::create(false)?;
         signaling_thread.start()?;
 
-        let audio_device_module = AudioDeviceModule::new(
-            &mut worker_thread,
-            sys::AudioLayer::kPlatformDefaultAudio,
-            &mut task_queue_factory,
-        )?;
+        let audio_device_module = if api::is_fake_media() {
+            AudioDeviceModule::new_fake(&mut task_queue_factory)
+        } else {
+            AudioDeviceModule::new(
+                &mut worker_thread,
+                sys::AudioLayer::kPlatformDefaultAudio,
+                &mut task_queue_factory,
+            )?
+        };
 
         let peer_connection_factory =
             sys::PeerConnectionFactoryInterface::create(
@@ -96,14 +101,12 @@ impl Webrtc {
                 Some(audio_device_module.as_ref()),
             )?;
 
-        let video_device_info = sys::VideoDeviceInfo::create()?;
-
         Ok(Self {
             task_queue_factory,
             worker_thread,
             signaling_thread,
             audio_device_module,
-            video_device_info,
+            video_device_info: VideoDeviceInfo::new()?,
             peer_connection_factory,
             video_sources: HashMap::new(),
             video_tracks: Arc::new(DashMap::new()),
