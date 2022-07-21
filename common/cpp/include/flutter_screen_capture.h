@@ -23,11 +23,6 @@ class FlutterScreenCapture : public MediaListObserver, public DesktopCapturerObs
   void GetDesktopSourceThumbnail(std::string source_id, int width, int height,
                      std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void CreateCapture(DesktopType type,
-                     std::string id,
-                     const EncodableMap& constraints,
-                     std::unique_ptr<MethodResult<EncodableValue>> result);
-
   protected:
    void OnMediaSourceAdded(scoped_refptr<MediaSource> source) override;
 

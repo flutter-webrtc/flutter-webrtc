@@ -195,33 +195,32 @@ void FlutterScreenCapture::GetDesktopSourceThumbnail(
 void FlutterScreenCapture::GetDisplayMedia(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
-  std::string window_id = "0";
+  std::string source_id = "0";
   DesktopType source_type = kScreen;
+  double fps = 30.0;
 
   const EncodableMap video = findMap(constraints, "video");
   if (video != EncodableMap()) {
     const EncodableMap deviceId = findMap(video, "deviceId");
     if (deviceId != EncodableMap()) {
-      window_id = findString(deviceId, "exact");
-      if (window_id.empty()) {
+      source_id = findString(deviceId, "exact");
+      if (source_id.empty()) {
         result->Error("Bad Arguments", "Incorrect video->deviceId->exact");
         return;
       }
-      if (window_id != "0") {
+      if (source_id != "0") {
         source_type = DesktopType::kWindow;
       }
     }
+    const EncodableMap mandatory = findMap(video, "mandatory");
+    if (mandatory != EncodableMap()) {
+      double frameRate = findDouble(mandatory, "frameRate");
+      if(frameRate != 0.0) {
+        fps = frameRate;
+      }
+    }
   }
-  // std::cout << " window_id: " << window_id  << " source_type: " <<
-  // (source_type == SourceType::kWindow ? "window" : "screen") << std::endl;
-  CreateCapture(source_type, window_id, constraints, std::move(result));
-}
 
-void FlutterScreenCapture::CreateCapture(
-    DesktopType type,
-    std::string id,
-    const EncodableMap& constraints,
-    std::unique_ptr<MethodResult<EncodableValue>> result) {
   std::string uuid = base_->GenerateUUID();
 
   scoped_refptr<RTCMediaStream> stream =
@@ -244,7 +243,7 @@ void FlutterScreenCapture::CreateCapture(
 
   scoped_refptr<MediaSource> source;
   for (auto src : sources_) {
-    if (src->id().std_string() == id) {
+    if (src->id().std_string() == source_id) {
       source = src;
     }
   }
@@ -291,7 +290,7 @@ void FlutterScreenCapture::CreateCapture(
 
   base_->local_streams_[uuid] = stream;
 
-  desktop_capturer->Start(30);
+  desktop_capturer->Start(uint32_t(fps));
 
   result->Success(EncodableValue(params));
 }
