@@ -96,12 +96,11 @@ void FlutterWebRTC::HandleMethodCall(
       result->Error("Bad Arguments", "Incorrect sourceId");
       return;
     }
-    int source_id = std::stoi(sourceId);
     const EncodableMap thumbnailSize = findMap(params, "thumbnailSize");
     if (thumbnailSize != EncodableMap()) {
       int width = 0;
       int height = 0;
-      GetDesktopSourceThumbnail(source_id, width, height, std::move(result));
+      GetDesktopSourceThumbnail(sourceId, width, height, std::move(result));
     } else {
       result->Error("Bad Arguments", "Bad arguments received");
     }

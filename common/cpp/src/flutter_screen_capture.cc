@@ -1,11 +1,5 @@
 #include "flutter_screen_capture.h"
 
-#include <windows.h>
-
-#include <atlimage.h>
-
-#include <fstream>
-
 namespace flutter_webrtc_plugin {
 
 FlutterScreenCapture::FlutterScreenCapture(FlutterWebRTCBase* base)
@@ -176,201 +170,26 @@ void FlutterScreenCapture::OnStop(scoped_refptr<RTCDesktopCapturer> capturer) {}
 void FlutterScreenCapture::OnError(scoped_refptr<RTCDesktopCapturer> capturer) {
 }
 
-bool SaveHbitmapToVector(HBITMAP hbitmap, std::vector<BYTE>& buf) {
-  if (hbitmap != NULL) {
-    IStream* stream = NULL;
-    CreateStreamOnHGlobal(0, TRUE, &stream);
-
-    CImage image;
-    ULARGE_INTEGER liSize;
-
-    // screenshot to png and save to stream
-    image.Attach(hbitmap);
-    image.Save(stream, Gdiplus::ImageFormatJPEG);
-    IStream_Size(stream, &liSize);
-    DWORD len = liSize.LowPart;
-    IStream_Reset(stream);
-    buf.resize(len);
-    IStream_Read(stream, &buf[0], len);
-    stream->Release();
-
-    return true;
-  }
-  return false;
-}
-
-void CaptureWindow(uint64_t id,
-                   std::unique_ptr<MethodResult<EncodableValue>> result) {
-  HWND hwnd = reinterpret_cast<HWND>(id);
-
-  HDC hdcWindow;
-  HDC hdcMemDC = NULL;
-  HBITMAP hbitmap = NULL;
-
-  // Retrieve the handle to a display device context for the client
-  // area of the window.
-  // hdcWindow = GetDC(hwnd);
-  hdcWindow = GetWindowDC(hwnd);
-
-  // Create a compatible DC, which is used in a BitBlt from the window DC.
-  hdcMemDC = CreateCompatibleDC(hdcWindow);
-
-  if (!hdcMemDC) {
-    result->Error("Failed", "CreateCompatibleDC has failed");
-    return;
-  }
-
-  // Get the client area for size calculation.
-  RECT rcClient;
-  // GetClientRect(hwnd, &rcClient);
-  GetWindowRect(hwnd, &rcClient);
-  // std::cout << " left,top: " << rcClient.left << ":" << rcClient.top;
-  // std::cout << " right,bottom: " << rcClient.right << ":" << rcClient.bottom
-  // << std::endl;
-
-  // This is the best stretch mode.
-  SetStretchBltMode(hdcWindow, COLORONCOLOR);
-
-  // Create a compatible bitmap from the Window DC.
-  hbitmap = CreateCompatibleBitmap(hdcWindow, rcClient.right - rcClient.left,
-                                   rcClient.bottom - rcClient.top);
-
-  if (!hbitmap) {
-    result->Error("Failed", "CreateCompatibleBitmap Failed");
-    return;
-  }
-
-  // Select the compatible bitmap into the compatible memory DC.
-  SelectObject(hdcMemDC, hbitmap);
-
-  BOOL res = FALSE;
-  const UINT flags = PW_RENDERFULLCONTENT;
-
-  res = PrintWindow(hwnd, hdcMemDC, flags);
-
-  if (!res) {
-    res = PrintWindow(hwnd, hdcMemDC, 0);
-  }
-
-  if (!res) {
-    // Bit block transfer into our compatible memory DC.
-    if (!BitBlt(hdcMemDC, 0, 0, rcClient.right - rcClient.left,
-                rcClient.bottom - rcClient.top, hdcWindow, 0, 0,
-                SRCCOPY | CAPTUREBLT)) {
-      result->Error("Failed", "BitBlt has failed");
-      return;
-    }
-    // if (!StretchBlt(hdcMemDC, 0, 0, rcClient.right, rcClient.bottom,
-    // hdcWindow,
-    //                 rcClient.left, rcClient.top, rcClient.right -
-    //                 rcClient.left, rcClient.bottom - rcClient.top, SRCCOPY |
-    //                 CAPTUREBLT)) {
-    //   result->Error("Failed", "StretchBlt has failed");
-    //   return;
-    // }
-  }
-
-  std::vector<BYTE> thumb;
-  bool saved = SaveHbitmapToVector(hbitmap, thumb);
-
-  if (saved) {
-    result->Success(EncodableValue(thumb));
-  } else {
-    result->Error("CaptureWindow error", "Error save bitmap");
-  }
-
-  DeleteObject(hbitmap);
-  DeleteObject(hdcMemDC);
-  ReleaseDC(hwnd, hdcWindow);
-}
-
-void CaptureScreen(uint64_t id,
-                   std::unique_ptr<MethodResult<EncodableValue>> result) {
-  HWND hwnd = GetDesktopWindow();
-
-  HDC hdcScreen;
-  HDC hdcWindow;
-  HDC hdcMemDC = NULL;
-  HBITMAP hbitmap = NULL;
-
-  // Retrieve the handle to a display device context for the client
-  // area of the window.
-  hdcScreen = GetDC(NULL);
-  hdcWindow = GetDC(hwnd);
-
-  // Create a compatible DC, which is used in a BitBlt from the window DC.
-  hdcMemDC = CreateCompatibleDC(hdcWindow);
-
-  if (!hdcMemDC) {
-    result->Error("Failed", "CreateCompatibleDC has failed");
-    return;
-  }
-
-  // Get the client area for size calculation.
-  RECT rcClient;
-  GetClientRect(hwnd, &rcClient);
-
-  // This is the best stretch mode.
-  SetStretchBltMode(hdcWindow, HALFTONE);
-
-  // The source DC is the entire screen, and the destination DC is the current
-  // window (HWND).
-  if (!StretchBlt(hdcWindow, 0, 0, rcClient.right, rcClient.bottom, hdcScreen,
-                  0, 0, GetSystemMetrics(SM_CXSCREEN),
-                  GetSystemMetrics(SM_CYSCREEN), SRCCOPY)) {
-    result->Error("Failed", "StretchBlt has failed");
-    return;
-  }
-
-  // Create a compatible bitmap from the Window DC.
-  hbitmap = CreateCompatibleBitmap(hdcWindow, rcClient.right - rcClient.left,
-                                   rcClient.bottom - rcClient.top);
-
-  if (!hbitmap) {
-    result->Error("Failed", "CreateCompatibleBitmap Failed");
-    return;
-  }
-
-  // Select the compatible bitmap into the compatible memory DC.
-  HGDIOBJ old = SelectObject(hdcMemDC, hbitmap);
-
-  // Bit block transfer into our compatible memory DC.
-  if (!BitBlt(hdcMemDC, 0, 0, rcClient.right - rcClient.left,
-              rcClient.bottom - rcClient.top, hdcWindow, 0, 0, SRCCOPY)) {
-    result->Error("Failed", "BitBlt has failed");
-    return;
-  }
-
-  std::vector<BYTE> thumb;
-  bool saved = SaveHbitmapToVector(hbitmap, thumb);
-
-  if (saved) {
-    result->Success(EncodableValue(thumb));
-  } else {
-    result->Error("CaptureScreen error", "Error save bitmap");
-  }
-
-  SelectObject(hdcMemDC, old);
-
-  DeleteObject(hbitmap);
-  DeleteObject(hdcMemDC);
-  ReleaseDC(NULL, hdcScreen);
-  ReleaseDC(hwnd, hdcWindow);
-}
-
 void FlutterScreenCapture::GetDesktopSourceThumbnail(
-    uint64_t source_id,
+    std::string source_id,
     int width,
     int height,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
-  // std::cout << " source_id: " << source_id << " width: " << width << "
-  // height: " << height << std::endl;
-
-  if (source_id == 0) {
-    CaptureScreen(source_id, std::move(result));
-  } else {
-    CaptureWindow(source_id, std::move(result));
+  scoped_refptr<MediaSource> source;
+  for (auto src : sources_) {
+    if (src->id().std_string() == source_id) {
+      source = src;
+    }
   }
+  if(source.get() == nullptr) {
+    result->Error("Source Not Found", "Failed to get desktop source thumbnail");
+    return;
+  }
+  std::cout << " GetDesktopSourceThumbnail: " << source->id().std_string()
+            << std::endl;
+  source->UpdateThumbnail();
+  result->Success(
+      EncodableValue(source->thumbnail().std_vector()));
 }
 
 void FlutterScreenCapture::GetDisplayMedia(

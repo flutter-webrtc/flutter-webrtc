@@ -20,7 +20,7 @@ class FlutterScreenCapture : public MediaListObserver, public DesktopCapturerObs
 
   void UpdateDesktopSources(const EncodableList &types, std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  void GetDesktopSourceThumbnail(uint64_t source_id, int width, int height,
+  void GetDesktopSourceThumbnail(std::string source_id, int width, int height,
                      std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void CreateCapture(DesktopType type,
