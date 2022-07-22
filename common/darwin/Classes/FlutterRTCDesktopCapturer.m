@@ -9,24 +9,12 @@
 #endif
 
 #if TARGET_OS_OSX
-dispatch_source_t refresh_timer;
 RTCDesktopMediaList *_screen = nil;
 RTCDesktopMediaList *_window = nil;
-BOOL _interruptSourcesRefresh = NO;
-BOOL _captureWindow = NO;
-BOOL _captureScreen = NO;
-NSMutableArray<RTCDesktopSource *>* _captureSources;
+NSArray<RTCDesktopSource *>* _captureSources;
 FlutterEventSink _eventSink = nil;
 FlutterEventChannel* _eventChannel = nil;
 #endif
-
-@implementation NSArray (Additions)
-
-- (instancetype)arrayByRemovingObject:(id)object {
-    return [self filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF != %@", object]];
-}
-
-@end
 
 @implementation FlutterWebRTCPlugin (DesktopCapturer)
 
@@ -156,7 +144,8 @@ FlutterEventChannel* _eventChannel = nil;
 -(void)getDesktopSources:(NSDictionary *)argsMap
              result:(FlutterResult)result {
 #if TARGET_OS_OSX
-    NSLog(@"startGetDesktopSources");
+    NSLog(@"getDesktopSources");
+
     NSArray *types = [argsMap objectForKey:@"types"];
     if (types == nil) {
         result([FlutterError errorWithCode:@"ERROR"
@@ -165,34 +154,12 @@ FlutterEventChannel* _eventChannel = nil;
         return;
     }
 
-    NSEnumerator *typesEnumerator = [types objectEnumerator];
-    NSString *type;
-    _captureWindow = NO;
-    _captureScreen = NO;
-    _interruptSourcesRefresh = NO;
-    _captureSources = [NSMutableArray array];
-    while ((type = typesEnumerator.nextObject) != nil) {
-        if ([type isEqualToString:@"screen"]) {
-            _captureScreen = YES;
-        } else if ([type isEqualToString:@"window"]) {
-            _captureWindow = YES;
-        } else {
-            result([FlutterError errorWithCode:@"ERROR"
-                                       message:@"Invalid type"
-                                       details:nil]);
-            return;
-        }
-    }
-
-    if(!_captureWindow && !_captureScreen) {
-        result([FlutterError errorWithCode:@"ERROR"
-                                   message:@"At least one type is required"
-                                   details:nil]);
+    if(![self buildDesktopSourcesListWithTypes:types forceReload:YES result:result]) {
+        NSLog(@"getDesktopSources failed.");
         return;
     }
 
     NSMutableArray *sources = [NSMutableArray array];
-    [self startHandling:_captureWindow captureScreen:_captureScreen];
     NSEnumerator *enumerator = [_captureSources objectEnumerator];
     RTCDesktopSource *object;
     while ((object = enumerator.nextObject) != nil) {
@@ -214,6 +181,7 @@ FlutterEventChannel* _eventChannel = nil;
 -(void)getDesktopSourceThumbnail:(NSDictionary *)argsMap
              result:(FlutterResult)result {
 #if TARGET_OS_OSX
+    NSLog(@"getDesktopSourceThumbnail");
     NSString* sourceId = argsMap[@"sourceId"];
     RTCDesktopSource *object = [self getSourceById:sourceId];
     if(object == nil) {
@@ -236,13 +204,22 @@ FlutterEventChannel* _eventChannel = nil;
 #endif
 }
 
--(void)stopDesktopSourcesRefersh:(NSDictionary *)argsMap
+-(void)updateDesktopSources:(NSDictionary *)argsMap
              result:(FlutterResult)result {
 #if TARGET_OS_OSX
-    NSLog(@"stopDesktopSourcesRefersh");
-    _interruptSourcesRefresh = YES;
-    [self stopHandling];
-    result(nil);
+    NSLog(@"updateDesktopSources");
+    NSArray *types = [argsMap objectForKey:@"types"];
+    if (types == nil) {
+        result([FlutterError errorWithCode:@"ERROR"
+                                   message:@"types is required"
+                                   details:nil]);
+        return;
+    }
+    if(![self buildDesktopSourcesListWithTypes:types forceReload:NO result:result]) {
+        NSLog(@"updateDesktopSources failed.");
+        return;
+    }
+    result(@{@"result": @YES});
 #else
     result([FlutterError errorWithCode:@"ERROR"
                                message:@"Not supported on iOS"
@@ -301,47 +278,47 @@ FlutterEventChannel* _eventChannel = nil;
     return nil;
 }
 
-- (void)startHandling:(BOOL)captureWindow captureScreen:(BOOL) captureScreen {
-    [self stopHandling];
-     if(_captureWindow) {
+- (BOOL)buildDesktopSourcesListWithTypes:(NSArray *)types forceReload:(BOOL)forceReload result:(FlutterResult)result {
+    BOOL captureWindow = NO;
+    BOOL captureScreen = NO;
+    _captureSources = [NSMutableArray array];
+
+    NSEnumerator *typesEnumerator = [types objectEnumerator];
+    NSString *type;
+    while ((type = typesEnumerator.nextObject) != nil) {
+        if ([type isEqualToString:@"screen"]) {
+            captureScreen = YES;
+        } else if ([type isEqualToString:@"window"]) {
+            captureWindow = YES;
+        } else {
+            result([FlutterError errorWithCode:@"ERROR"
+                                       message:@"Invalid type"
+                                       details:nil]);
+            return NO;
+        }
+    }
+
+    if(!captureWindow && !captureScreen) {
+        result([FlutterError errorWithCode:@"ERROR"
+                                   message:@"At least one type is required"
+                                   details:nil]);
+        return NO;
+    }
+
+     if(captureWindow) {
         if(!_window) _window = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeWindow delegate:self];
-         [_window UpdateSourceList:YES updateAllThumbnails:NO];
+         [_window UpdateSourceList:forceReload updateAllThumbnails:YES];
         NSArray<RTCDesktopSource *>* sources = [_window getSources];
         _captureSources = [_captureSources arrayByAddingObjectsFromArray:sources];
     }
-
-    if(_captureScreen) {
+    if(captureScreen) {
         if(!_screen) _screen = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeScreen  delegate:self];
-        [_screen UpdateSourceList:YES updateAllThumbnails:NO];
+        [_screen UpdateSourceList:forceReload updateAllThumbnails:YES];
         NSArray<RTCDesktopSource *>* sources = [_screen getSources];
         _captureSources = [_captureSources arrayByAddingObjectsFromArray:sources];
     }
     NSLog(@"captureSources: %lu", [_captureSources count]);
-    refresh_timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
-    dispatch_source_set_timer(refresh_timer, DISPATCH_TIME_NOW, 2.0 * NSEC_PER_SEC, 0 * NSEC_PER_SEC);
-    __weak typeof (self) weak_self = self;
-    dispatch_source_set_event_handler(refresh_timer, ^{
-        if(!_interruptSourcesRefresh) {
-            [weak_self refreshSources];
-        }
-    });
-    dispatch_resume(refresh_timer);
-}
-
-- (void) refreshSources {
-        if(_captureWindow && _window != nil) {
-            [_window UpdateSourceList:NO updateAllThumbnails:YES];
-        }
-        if(_captureScreen && _screen != nil) {
-            [_screen UpdateSourceList:NO updateAllThumbnails:YES];
-        }
-}
-
-- (void)stopHandling {
-    if (refresh_timer) {
-        dispatch_source_cancel(refresh_timer);
-        refresh_timer = nil;
-    }
+    return YES;
 }
 
 -(void) enableDesktopCapturerEventChannel:(nonnull NSObject<FlutterBinaryMessenger> *)messenger {
@@ -355,23 +332,24 @@ FlutterEventChannel* _eventChannel = nil;
 
 #pragma mark - FlutterStreamHandler methods
 
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
     _eventSink = nil;
     return nil;
 }
 
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
                                        eventSink:(nonnull FlutterEventSink)sink {
     _eventSink = sink;
     return nil;
 }
 
-
 #pragma mark - RTCDesktopMediaListDelegate delegate
 
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (void)didDesktopSourceAdded:(RTC_OBJC_TYPE(RTCDesktopSource) *)source {
     //NSLog(@"didDesktopSourceAdded: %@, id %@", source.name, source.sourceId);
-    _captureSources = [_captureSources arrayByAddingObject:source];
     if(_eventSink) {
         NSImage *image = [source UpdateThumbnail];
         NSData *data = [[NSData alloc] init];
@@ -390,9 +368,9 @@ FlutterEventChannel* _eventChannel = nil;
     }
 }
 
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (void)didDesktopSourceRemoved:(RTC_OBJC_TYPE(RTCDesktopSource) *) source {
    //NSLog(@"didDesktopSourceRemoved: %@, id %@", source.name, source.sourceId);
-    _captureSources = [_captureSources arrayByRemovingObject:source];
     if(_eventSink) {
         _eventSink(@{
             @"event": @"desktopSourceRemoved",
@@ -401,6 +379,7 @@ FlutterEventChannel* _eventChannel = nil;
     }
 }
 
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (void)didDesktopSourceNameChanged:(RTC_OBJC_TYPE(RTCDesktopSource) *) source {
     //NSLog(@"didDesktopSourceNameChanged: %@, id %@", source.name, source.sourceId);
     if(_eventSink) {
@@ -412,6 +391,7 @@ FlutterEventChannel* _eventChannel = nil;
     }
 }
 
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (void)didDesktopSourceThumbnailChanged:(RTC_OBJC_TYPE(RTCDesktopSource) *) source {
     //NSLog(@"didDesktopSourceThumbnailChanged: %@, id %@", source.name, source.sourceId);
     if(_eventSink) {
@@ -429,7 +409,6 @@ FlutterEventChannel* _eventChannel = nil;
 
 -(void)didSourceCaptureStart:(RTCDesktopCapturer *) capturer {
     NSLog(@"didSourceCaptureStart");
-    _interruptSourcesRefresh = YES;
 }
 
 -(void)didSourceCapturePaused:(RTCDesktopCapturer *) capturer {

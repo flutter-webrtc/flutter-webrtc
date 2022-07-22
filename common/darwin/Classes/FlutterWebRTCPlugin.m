@@ -972,9 +972,9 @@
     } else  if ([@"getDesktopSources" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         [self getDesktopSources:argsMap result:result];
-    } else  if ([@"stopDesktopSourcesRefersh" isEqualToString:call.method]) {
+    } else  if ([@"updateDesktopSources" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
-        [self stopDesktopSourcesRefersh:argsMap result:result];
+        [self updateDesktopSources:argsMap result:result];
     } else  if ([@"getDesktopSourceThumbnail" isEqualToString:call.method]){
          NSDictionary* argsMap = call.arguments;
         [self getDesktopSourceThumbnail:argsMap result:result];
