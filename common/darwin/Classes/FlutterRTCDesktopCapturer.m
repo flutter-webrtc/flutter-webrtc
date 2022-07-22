@@ -22,7 +22,7 @@ FlutterEventChannel* _eventChannel = nil;
                 result:(FlutterResult)result {
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
-    RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+    RTCVideoSource *videoSource = [self.peerConnectionFactory videoSourceForScreenCast:YES];
     NSString *trackUUID = [[NSUUID UUID] UUIDString];
 
 #if TARGET_OS_IPHONE
