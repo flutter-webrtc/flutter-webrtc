@@ -353,9 +353,15 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                 NSLog(@"Start capture error: %@", [error localizedDescription]);
             }
         }];
-
         NSString *trackUUID = [[NSUUID UUID] UUIDString];
         RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
+        
+        __weak RTCCameraVideoCapturer* capturer = self.videoCapturer;
+        self.videoCapturerStopHandlers[videoTrack.trackId] = ^(CompletionHandler handler) {
+            NSLog(@"Stop video capturer, trackID %@", videoTrack.trackId);
+            [capturer stopCaptureWithCompletionHandler:handler];
+        };
+        
         [mediaStream addVideoTrack:videoTrack];
 
         successCallback(mediaStream);

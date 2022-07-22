@@ -1,6 +1,16 @@
 # Changelog
 
 --------------------------------------------
+[0.8.12] - 2022-07-15
+
+* [Darwin]: fix: camera release.
+
+[0.8.11] - 2022-07-11
+
+* [Windows] Fix variant exception of findLongInt. (#990)
+* [Windows] fix unable to get username/credential when parsing iceServers containing urls
+* [iOS] Fix RTCAudioSession properties set with libwebrtc m97, Fixes #987.
+
 [0.8.10] - 2022-06-28
 
 * [iOS] IPC Broadcast Upload Extension support for Screenshare
