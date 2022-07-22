@@ -122,7 +122,6 @@ class DesktopCapturerNative extends DesktopCapturer {
     if (response == null) {
       throw Exception('getDesktopSources return null, something wrong');
     }
-    /*
     for (var source in response['sources']) {
       var sourceType = (source['type'] as String) == 'window'
           ? SourceType.Window
@@ -132,10 +131,11 @@ class DesktopCapturerNative extends DesktopCapturer {
           source['name'],
           ThumbnailSize.fromMap(source['thumbnailSize']),
           sourceType);
-      desktopSource.thumbnail = source['thumbnail'] as Uint8List;
+      if (source['thumbnail'] != null) {
+        desktopSource.thumbnail = source['thumbnail'] as Uint8List;
+      }
       _sources[desktopSource.id] = desktopSource;
     }
-    */
     return _sources.values.toList();
   }
 

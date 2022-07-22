@@ -163,11 +163,18 @@ FlutterEventChannel* _eventChannel = nil;
     NSEnumerator *enumerator = [_captureSources objectEnumerator];
     RTCDesktopSource *object;
     while ((object = enumerator.nextObject) != nil) {
+        NSData *data = nil;
+        if([object thumbnail]) {
+            data = [[NSData alloc] init];
+            NSImage *resizedImg = [self resizeImage:[object thumbnail] forSize:NSMakeSize(140, 140)];
+            data = [resizedImg TIFFRepresentation];
+        }
         [sources addObject:@{
                              @"id": object.sourceId,
                              @"name": object.name,
                              @"thumbnailSize": @{@"width": @0, @"height": @0},
                              @"type": object.sourceType == RTCDesktopSourceTypeScreen? @"screen" : @"window",
+                             @"thumbnail": data,
                              }];
     }
     result(@{@"sources": sources});
