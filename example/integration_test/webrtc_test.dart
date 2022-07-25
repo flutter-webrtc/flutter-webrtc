@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {

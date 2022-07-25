@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.flutter_webrtc_example">
+    package="com.instrumentisto.medea_flutter_webrtc_example">
    <application
-        android:label="flutter_webrtc_example"
+        android:label="medea_flutter_webrtc_example"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

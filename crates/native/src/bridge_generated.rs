@@ -775,7 +775,7 @@ pub struct wire_VideoConstraints {
 // Section: allocate functions
 
 #[no_mangle]
-pub extern "C" fn new_StringList(len: i32) -> *mut wire_StringList {
+pub extern "C" fn new_StringList_0(len: i32) -> *mut wire_StringList {
     let wrap = wire_StringList {
         ptr: support::new_leak_vec_ptr(
             <*mut wire_uint_8_list>::new_with_null_ptr(),
@@ -787,31 +787,31 @@ pub extern "C" fn new_StringList(len: i32) -> *mut wire_StringList {
 }
 
 #[no_mangle]
-pub extern "C" fn new_box_autoadd_audio_constraints(
+pub extern "C" fn new_box_autoadd_audio_constraints_0(
 ) -> *mut wire_AudioConstraints {
     support::new_leak_box_ptr(wire_AudioConstraints::new_with_null_ptr())
 }
 
 #[no_mangle]
-pub extern "C" fn new_box_autoadd_media_stream_constraints(
+pub extern "C" fn new_box_autoadd_media_stream_constraints_0(
 ) -> *mut wire_MediaStreamConstraints {
     support::new_leak_box_ptr(wire_MediaStreamConstraints::new_with_null_ptr())
 }
 
 #[no_mangle]
-pub extern "C" fn new_box_autoadd_rtc_configuration(
+pub extern "C" fn new_box_autoadd_rtc_configuration_0(
 ) -> *mut wire_RtcConfiguration {
     support::new_leak_box_ptr(wire_RtcConfiguration::new_with_null_ptr())
 }
 
 #[no_mangle]
-pub extern "C" fn new_box_autoadd_video_constraints(
+pub extern "C" fn new_box_autoadd_video_constraints_0(
 ) -> *mut wire_VideoConstraints {
     support::new_leak_box_ptr(wire_VideoConstraints::new_with_null_ptr())
 }
 
 #[no_mangle]
-pub extern "C" fn new_list_rtc_ice_server(
+pub extern "C" fn new_list_rtc_ice_server_0(
     len: i32,
 ) -> *mut wire_list_rtc_ice_server {
     let wrap = wire_list_rtc_ice_server {
@@ -825,7 +825,7 @@ pub extern "C" fn new_list_rtc_ice_server(
 }
 
 #[no_mangle]
-pub extern "C" fn new_uint_8_list(len: i32) -> *mut wire_uint_8_list {
+pub extern "C" fn new_uint_8_list_0(len: i32) -> *mut wire_uint_8_list {
     let ans = wire_uint_8_list {
         ptr: support::new_leak_vec_ptr(Default::default(), len),
         len,
@@ -886,28 +886,28 @@ impl Wire2Api<bool> for bool {
 impl Wire2Api<AudioConstraints> for *mut wire_AudioConstraints {
     fn wire2api(self) -> AudioConstraints {
         let wrap = unsafe { support::box_from_leak_ptr(self) };
-        (*wrap).wire2api().into()
+        Wire2Api::<AudioConstraints>::wire2api(*wrap).into()
     }
 }
 
 impl Wire2Api<MediaStreamConstraints> for *mut wire_MediaStreamConstraints {
     fn wire2api(self) -> MediaStreamConstraints {
         let wrap = unsafe { support::box_from_leak_ptr(self) };
-        (*wrap).wire2api().into()
+        Wire2Api::<MediaStreamConstraints>::wire2api(*wrap).into()
     }
 }
 
 impl Wire2Api<RtcConfiguration> for *mut wire_RtcConfiguration {
     fn wire2api(self) -> RtcConfiguration {
         let wrap = unsafe { support::box_from_leak_ptr(self) };
-        (*wrap).wire2api().into()
+        Wire2Api::<RtcConfiguration>::wire2api(*wrap).into()
     }
 }
 
 impl Wire2Api<VideoConstraints> for *mut wire_VideoConstraints {
     fn wire2api(self) -> VideoConstraints {
         let wrap = unsafe { support::box_from_leak_ptr(self) };
-        (*wrap).wire2api().into()
+        Wire2Api::<VideoConstraints>::wire2api(*wrap).into()
     }
 }
 
@@ -1137,7 +1137,6 @@ impl support::IntoDart for GetMediaError {
     }
 }
 impl support::IntoDartExceptPrimitive for GetMediaError {}
-
 impl support::IntoDart for GetMediaResult {
     fn into_dart(self) -> support::DartCObject {
         match self {
@@ -1163,7 +1162,6 @@ impl support::IntoDart for IceConnectionState {
         .into_dart()
     }
 }
-
 impl support::IntoDart for IceGatheringState {
     fn into_dart(self) -> support::DartCObject {
         match self {
@@ -1197,7 +1195,6 @@ impl support::IntoDart for MediaDeviceKind {
         .into_dart()
     }
 }
-
 impl support::IntoDart for MediaStreamTrack {
     fn into_dart(self) -> support::DartCObject {
         vec![
@@ -1268,7 +1265,6 @@ impl support::IntoDart for PeerConnectionEvent {
     }
 }
 impl support::IntoDartExceptPrimitive for PeerConnectionEvent {}
-
 impl support::IntoDart for PeerConnectionState {
     fn into_dart(self) -> support::DartCObject {
         match self {
@@ -1282,7 +1278,6 @@ impl support::IntoDart for PeerConnectionState {
         .into_dart()
     }
 }
-
 impl support::IntoDart for RtcRtpTransceiver {
     fn into_dart(self) -> support::DartCObject {
         vec![
@@ -1322,7 +1317,6 @@ impl support::IntoDart for RtpTransceiverDirection {
         .into_dart()
     }
 }
-
 impl support::IntoDart for SdpType {
     fn into_dart(self) -> support::DartCObject {
         match self {
@@ -1334,7 +1328,6 @@ impl support::IntoDart for SdpType {
         .into_dart()
     }
 }
-
 impl support::IntoDart for SignalingState {
     fn into_dart(self) -> support::DartCObject {
         match self {
@@ -1348,7 +1341,6 @@ impl support::IntoDart for SignalingState {
         .into_dart()
     }
 }
-
 impl support::IntoDart for TrackEvent {
     fn into_dart(self) -> support::DartCObject {
         match self {
@@ -1357,7 +1349,6 @@ impl support::IntoDart for TrackEvent {
         .into_dart()
     }
 }
-
 impl support::IntoDart for TrackState {
     fn into_dart(self) -> support::DartCObject {
         match self {

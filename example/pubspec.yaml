@@ -1,4 +1,4 @@
-name: flutter_webrtc_example
+name: medea_flutter_webrtc_example
 description: Demonstrates how to use the webrtc plugin.
 version: 1.0.0
 publish_to: none
@@ -11,7 +11,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter:
     sdk: flutter
-  flutter_webrtc:
+  medea_flutter_webrtc:
     path: ../
 
 dev_dependencies:

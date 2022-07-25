@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.8.0-dev] - 2022-06-10
+
+* [iOS/macOS] Update .podspec for Darwin.
+
 [0.7.0+hotfix.2] - 2021-10-21
 
 * [iOS/macOS] Update .podspec for Darwin.

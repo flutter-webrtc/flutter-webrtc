@@ -1580,7 +1580,7 @@ class FlutterWebrtcNativeImpl
   }
 
   ffi.Pointer<wire_StringList> _api2wire_StringList(List<String> raw) {
-    final ans = inner.new_StringList(raw.length);
+    final ans = inner.new_StringList_0(raw.length);
     for (var i = 0; i < raw.length; i++) {
       ans.ref.ptr[i] = _api2wire_String(raw[i]);
     }
@@ -1593,7 +1593,7 @@ class FlutterWebrtcNativeImpl
 
   ffi.Pointer<wire_AudioConstraints> _api2wire_box_autoadd_audio_constraints(
       AudioConstraints raw) {
-    final ptr = inner.new_box_autoadd_audio_constraints();
+    final ptr = inner.new_box_autoadd_audio_constraints_0();
     _api_fill_to_wire_audio_constraints(raw, ptr.ref);
     return ptr;
   }
@@ -1601,27 +1601,27 @@ class FlutterWebrtcNativeImpl
   ffi.Pointer<wire_MediaStreamConstraints>
       _api2wire_box_autoadd_media_stream_constraints(
           MediaStreamConstraints raw) {
-    final ptr = inner.new_box_autoadd_media_stream_constraints();
+    final ptr = inner.new_box_autoadd_media_stream_constraints_0();
     _api_fill_to_wire_media_stream_constraints(raw, ptr.ref);
     return ptr;
   }
 
   ffi.Pointer<wire_RtcConfiguration> _api2wire_box_autoadd_rtc_configuration(
       RtcConfiguration raw) {
-    final ptr = inner.new_box_autoadd_rtc_configuration();
+    final ptr = inner.new_box_autoadd_rtc_configuration_0();
     _api_fill_to_wire_rtc_configuration(raw, ptr.ref);
     return ptr;
   }
 
   ffi.Pointer<wire_VideoConstraints> _api2wire_box_autoadd_video_constraints(
       VideoConstraints raw) {
-    final ptr = inner.new_box_autoadd_video_constraints();
+    final ptr = inner.new_box_autoadd_video_constraints_0();
     _api_fill_to_wire_video_constraints(raw, ptr.ref);
     return ptr;
   }
 
   int _api2wire_bundle_policy(BundlePolicy raw) {
-    return raw.index;
+    return _api2wire_i32(raw.index);
   }
 
   int _api2wire_i32(int raw) {
@@ -1633,12 +1633,12 @@ class FlutterWebrtcNativeImpl
   }
 
   int _api2wire_ice_transports_type(IceTransportsType raw) {
-    return raw.index;
+    return _api2wire_i32(raw.index);
   }
 
   ffi.Pointer<wire_list_rtc_ice_server> _api2wire_list_rtc_ice_server(
       List<RtcIceServer> raw) {
-    final ans = inner.new_list_rtc_ice_server(raw.length);
+    final ans = inner.new_list_rtc_ice_server_0(raw.length);
     for (var i = 0; i < raw.length; ++i) {
       _api_fill_to_wire_rtc_ice_server(raw[i], ans.ref.ptr[i]);
     }
@@ -1646,7 +1646,7 @@ class FlutterWebrtcNativeImpl
   }
 
   int _api2wire_media_type(MediaType raw) {
-    return raw.index;
+    return _api2wire_i32(raw.index);
   }
 
   ffi.Pointer<wire_uint_8_list> _api2wire_opt_String(String? raw) {
@@ -1668,11 +1668,11 @@ class FlutterWebrtcNativeImpl
   }
 
   int _api2wire_rtp_transceiver_direction(RtpTransceiverDirection raw) {
-    return raw.index;
+    return _api2wire_i32(raw.index);
   }
 
   int _api2wire_sdp_type(SdpType raw) {
-    return raw.index;
+    return _api2wire_i32(raw.index);
   }
 
   int _api2wire_u32(int raw) {
@@ -1688,7 +1688,7 @@ class FlutterWebrtcNativeImpl
   }
 
   ffi.Pointer<wire_uint_8_list> _api2wire_uint_8_list(Uint8List raw) {
-    final ans = inner.new_uint_8_list(raw.length);
+    final ans = inner.new_uint_8_list_0(raw.length);
     ans.ref.ptr.asTypedList(raw.length).setAll(0, raw);
     return ans;
   }
@@ -2632,94 +2632,94 @@ class FlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
   late final _wire_dispose_video_sink =
       _wire_dispose_video_sinkPtr.asFunction<void Function(int, int)>();
 
-  ffi.Pointer<wire_StringList> new_StringList(
+  ffi.Pointer<wire_StringList> new_StringList_0(
     int len,
   ) {
-    return _new_StringList(
+    return _new_StringList_0(
       len,
     );
   }
 
-  late final _new_StringListPtr = _lookup<
+  late final _new_StringList_0Ptr = _lookup<
           ffi.NativeFunction<ffi.Pointer<wire_StringList> Function(ffi.Int32)>>(
-      'new_StringList');
-  late final _new_StringList = _new_StringListPtr
+      'new_StringList_0');
+  late final _new_StringList_0 = _new_StringList_0Ptr
       .asFunction<ffi.Pointer<wire_StringList> Function(int)>();
 
-  ffi.Pointer<wire_AudioConstraints> new_box_autoadd_audio_constraints() {
-    return _new_box_autoadd_audio_constraints();
+  ffi.Pointer<wire_AudioConstraints> new_box_autoadd_audio_constraints_0() {
+    return _new_box_autoadd_audio_constraints_0();
   }
 
-  late final _new_box_autoadd_audio_constraintsPtr = _lookup<
+  late final _new_box_autoadd_audio_constraints_0Ptr = _lookup<
           ffi.NativeFunction<ffi.Pointer<wire_AudioConstraints> Function()>>(
-      'new_box_autoadd_audio_constraints');
-  late final _new_box_autoadd_audio_constraints =
-      _new_box_autoadd_audio_constraintsPtr
+      'new_box_autoadd_audio_constraints_0');
+  late final _new_box_autoadd_audio_constraints_0 =
+      _new_box_autoadd_audio_constraints_0Ptr
           .asFunction<ffi.Pointer<wire_AudioConstraints> Function()>();
 
   ffi.Pointer<wire_MediaStreamConstraints>
-      new_box_autoadd_media_stream_constraints() {
-    return _new_box_autoadd_media_stream_constraints();
+      new_box_autoadd_media_stream_constraints_0() {
+    return _new_box_autoadd_media_stream_constraints_0();
   }
 
-  late final _new_box_autoadd_media_stream_constraintsPtr = _lookup<
+  late final _new_box_autoadd_media_stream_constraints_0Ptr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<wire_MediaStreamConstraints>
-              Function()>>('new_box_autoadd_media_stream_constraints');
-  late final _new_box_autoadd_media_stream_constraints =
-      _new_box_autoadd_media_stream_constraintsPtr
+              Function()>>('new_box_autoadd_media_stream_constraints_0');
+  late final _new_box_autoadd_media_stream_constraints_0 =
+      _new_box_autoadd_media_stream_constraints_0Ptr
           .asFunction<ffi.Pointer<wire_MediaStreamConstraints> Function()>();
 
-  ffi.Pointer<wire_RtcConfiguration> new_box_autoadd_rtc_configuration() {
-    return _new_box_autoadd_rtc_configuration();
+  ffi.Pointer<wire_RtcConfiguration> new_box_autoadd_rtc_configuration_0() {
+    return _new_box_autoadd_rtc_configuration_0();
   }
 
-  late final _new_box_autoadd_rtc_configurationPtr = _lookup<
+  late final _new_box_autoadd_rtc_configuration_0Ptr = _lookup<
           ffi.NativeFunction<ffi.Pointer<wire_RtcConfiguration> Function()>>(
-      'new_box_autoadd_rtc_configuration');
-  late final _new_box_autoadd_rtc_configuration =
-      _new_box_autoadd_rtc_configurationPtr
+      'new_box_autoadd_rtc_configuration_0');
+  late final _new_box_autoadd_rtc_configuration_0 =
+      _new_box_autoadd_rtc_configuration_0Ptr
           .asFunction<ffi.Pointer<wire_RtcConfiguration> Function()>();
 
-  ffi.Pointer<wire_VideoConstraints> new_box_autoadd_video_constraints() {
-    return _new_box_autoadd_video_constraints();
+  ffi.Pointer<wire_VideoConstraints> new_box_autoadd_video_constraints_0() {
+    return _new_box_autoadd_video_constraints_0();
   }
 
-  late final _new_box_autoadd_video_constraintsPtr = _lookup<
+  late final _new_box_autoadd_video_constraints_0Ptr = _lookup<
           ffi.NativeFunction<ffi.Pointer<wire_VideoConstraints> Function()>>(
-      'new_box_autoadd_video_constraints');
-  late final _new_box_autoadd_video_constraints =
-      _new_box_autoadd_video_constraintsPtr
+      'new_box_autoadd_video_constraints_0');
+  late final _new_box_autoadd_video_constraints_0 =
+      _new_box_autoadd_video_constraints_0Ptr
           .asFunction<ffi.Pointer<wire_VideoConstraints> Function()>();
 
-  ffi.Pointer<wire_list_rtc_ice_server> new_list_rtc_ice_server(
+  ffi.Pointer<wire_list_rtc_ice_server> new_list_rtc_ice_server_0(
     int len,
   ) {
-    return _new_list_rtc_ice_server(
+    return _new_list_rtc_ice_server_0(
       len,
     );
   }
 
-  late final _new_list_rtc_ice_serverPtr = _lookup<
+  late final _new_list_rtc_ice_server_0Ptr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<wire_list_rtc_ice_server> Function(
-              ffi.Int32)>>('new_list_rtc_ice_server');
-  late final _new_list_rtc_ice_server = _new_list_rtc_ice_serverPtr
+              ffi.Int32)>>('new_list_rtc_ice_server_0');
+  late final _new_list_rtc_ice_server_0 = _new_list_rtc_ice_server_0Ptr
       .asFunction<ffi.Pointer<wire_list_rtc_ice_server> Function(int)>();
 
-  ffi.Pointer<wire_uint_8_list> new_uint_8_list(
+  ffi.Pointer<wire_uint_8_list> new_uint_8_list_0(
     int len,
   ) {
-    return _new_uint_8_list(
+    return _new_uint_8_list_0(
       len,
     );
   }
 
-  late final _new_uint_8_listPtr = _lookup<
+  late final _new_uint_8_list_0Ptr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<wire_uint_8_list> Function(
-              ffi.Int32)>>('new_uint_8_list');
-  late final _new_uint_8_list = _new_uint_8_listPtr
+              ffi.Int32)>>('new_uint_8_list_0');
+  late final _new_uint_8_list_0 = _new_uint_8_list_0Ptr
       .asFunction<ffi.Pointer<wire_uint_8_list> Function(int)>();
 
   void free_WireSyncReturnStruct(

@@ -7,8 +7,11 @@
 *.swp
 profile
 
+.generated/
 DerivedData/
 build/
+GeneratedPluginRegistrant.h
+GeneratedPluginRegistrant.m
 
 *.pbxuser
 *.mode1v3
@@ -29,3 +32,6 @@ xcuserdata
 Icon?
 .tags*
 
+/Flutter/Generated.xcconfig
+/Flutter/ephemeral/
+/Flutter/flutter_export_environment.sh

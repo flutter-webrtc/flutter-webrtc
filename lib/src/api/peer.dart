@@ -70,6 +70,9 @@ abstract class PeerConnection {
     }
   }
 
+  /// Indicates whether the [close] was called.
+  bool _closed = false;
+
   /// `on_ice_connection_state_change` event subscriber.
   OnIceConnectionStateChangeCallback? _onIceConnectionStateChange;
 
@@ -206,7 +209,12 @@ abstract class PeerConnection {
 
   /// Closes this [PeerConnection] and all it's owned entities (for example,
   /// [RtpTransceiver]s).
-  Future<void> close();
+  Future<void> close() async {
+    _onIceCandidate = null;
+    for (var e in _transceivers) {
+      e.stoppedByPeer();
+    }
+  }
 }
 
 /// [MethodChannel] used for the messaging with a native side.
@@ -348,8 +356,10 @@ class _PeerConnectionChannel extends PeerConnection {
 
   @override
   Future<void> addIceCandidate(IceCandidate candidate) async {
-    await _chan
-        .invokeMethod('addIceCandidate', {'candidate': candidate.toMap()});
+    if (!_closed) {
+      await _chan
+          .invokeMethod('addIceCandidate', {'candidate': candidate.toMap()});
+    }
   }
 
   @override
@@ -369,10 +379,11 @@ class _PeerConnectionChannel extends PeerConnection {
 
   @override
   Future<void> close() async {
-    for (var e in _transceivers) {
-      e.stoppedByPeer();
+    if (!_closed) {
+      _closed = true;
+      await super.close();
+      await _chan.invokeMethod('dispose');
     }
-    await _chan.invokeMethod('dispose');
   }
 }
 
@@ -460,11 +471,13 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<void> addIceCandidate(IceCandidate candidate) async {
-    await api!.addIceCandidate(
-        peerId: _id!,
-        candidate: candidate.candidate,
-        sdpMid: candidate.sdpMid,
-        sdpMlineIndex: candidate.sdpMLineIndex);
+    if (!_closed) {
+      await api!.addIceCandidate(
+          peerId: _id!,
+          candidate: candidate.candidate,
+          sdpMid: candidate.sdpMid,
+          sdpMlineIndex: candidate.sdpMLineIndex);
+    }
   }
 
   @override
@@ -481,10 +494,11 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<void> close() async {
-    for (var e in _transceivers) {
-      e.stoppedByPeer();
+    if (!_closed) {
+      _closed = true;
+      await super.close();
+      await api!.disposePeerConnection(peerId: _id!);
     }
-    await api!.disposePeerConnection(peerId: _id!);
   }
 
   @override

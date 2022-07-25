@@ -1,14 +1,11 @@
-/.gradle/
 /.idea/
-/captures/
-/gradle-wrapper.jar
-/gradlew
-/gradlew.bat
+*.iml
+.DS_Store
 
-GeneratedPluginRegistrant.java
-
+.gradle
 /local.properties
-/key.properties
 
-**/*.keystore
-**/*.jks
+/build/
+/captures/
+
+.cxx

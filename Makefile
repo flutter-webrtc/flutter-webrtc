@@ -18,10 +18,12 @@ eq = $(if $(or $(1),$(2)),$(and $(findstring $(1),$(2)),\
 RUST_VER ?= 1.55
 RUST_NIGHTLY_VER ?= nightly-2021-09-08
 
+FFIGEN_VERSION ?= $(strip \
+	$(shell grep -m1 'ffigen: ' pubspec.yaml | cut -d':' -f2))
 FLUTTER_RUST_BRIDGE_VER ?= $(strip \
 	$(shell grep -A1 'name = "flutter_rust_bridge"' Cargo.lock \
 	        | grep -v 'flutter_rust_bridge' \
-	        | cut -d '"' -f2))
+	        | cut -d'"' -f2))
 
 CURRENT_OS ?= $(strip $(or $(os),\
 	$(if $(call eq,$(OS),Windows_NT),windows,\
@@ -242,8 +244,8 @@ endif
 ifeq ($(shell which cbindgen),)
 	cargo install cbindgen
 endif
-ifeq ($(shell dart pub global list | grep 'ffigen '),)
-	dart pub global activate ffigen
+ifeq ($(shell dart pub global list | grep 'ffigen $(FFIGEN_VERSION)'),)
+	dart pub global activate ffigen $(FFIGEN_VERSION)
 endif
 ifeq ($(CURRENT_OS),macos)
 ifeq ($(shell brew list | grep -Fx llvm),)

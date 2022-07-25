@@ -5,7 +5,7 @@
 #include <memory>
 #include <mutex>
 
-#include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
+#include "medea_flutter_webrtc/medea_flutter_webrtc_plugin.h"
 #include "iostream"
 
 #define VIDEO_TEXTURE_TYPE                  (video_texture_get_type ())

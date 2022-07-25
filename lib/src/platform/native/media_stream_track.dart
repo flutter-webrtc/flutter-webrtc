@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-import '/flutter_webrtc.dart';
+import '/medea_flutter_webrtc.dart';
 import '/src/api/bridge.g.dart' as ffi;
 import '/src/api/channel.dart';
 

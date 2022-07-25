@@ -1,7 +1,7 @@
-name: flutter_webrtc
-description: Flutter WebRTC plugin for iOS/Android/Destkop/Web, based on GoogleWebRTC.
+name: medea_flutter_webrtc
+description: Flutter WebRTC plugin for iOS/Android/Desktop/Web, based on GoogleWebRTC.
 version: 0.8.0-dev
-homepage: https://github.com/cloudwebrtc/flutter-webrtc
+homepage: https://github.com/instrumentisto/flutter-webrtc
 environment:
   sdk: '>=2.16.0 <3.0.0'
   flutter: '>=1.22.0'
@@ -9,27 +9,28 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_rust_bridge: 1.36.0  # should be the same as in `Cargo.lock`
+  flutter_rust_bridge: 1.37.2  # should be the same as in `Cargo.lock`
   freezed_annotation: ^2.0.3
 dev_dependencies:
-  build_runner: ^2.1.11
+  build_runner: ^2.2.0
+  ffigen: 6.0.1
   flutter_lints: ^2.0.1
   flutter_test:
     sdk: flutter
-  freezed: ^2.0.3
+  freezed: ^2.0.5
   import_sorter: ^4.6.0
 
 flutter:
   plugin:
     platforms:
       android:
-        package: com.cloudwebrtc.webrtc
-        pluginClass: FlutterWebRTCPlugin
+        package: com.instrumentisto.medea_flutter_webrtc
+        pluginClass: MedeaFlutterWebrtcPlugin
       ios:
-        pluginClass: FlutterWebRTCPlugin
+        pluginClass: MedeaFlutterWebrtcPlugin
       linux:
-        pluginClass: FlutterWebRTCPlugin
+        pluginClass: MedeaFlutterWebrtcPlugin
       macos:
-        pluginClass: FlutterWebRTCPlugin
+        pluginClass: MedeaFlutterWebrtcPlugin
       windows:
-        pluginClass: FlutterWebRTCPlugin
+        pluginClass: MedeaFlutterWebrtcPluginCApi

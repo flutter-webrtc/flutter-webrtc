@@ -13,7 +13,7 @@ anyhow = "1.0"
 cxx = "1.0"
 dashmap = "5.3"
 derive_more = "0.99"
-flutter_rust_bridge = "1.36"
+flutter_rust_bridge = "=1.37.2"
 lazy_static = "1.4"
 libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"
