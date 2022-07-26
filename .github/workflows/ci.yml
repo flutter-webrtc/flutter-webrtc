@@ -278,7 +278,8 @@ jobs:
     name: Release Dart package
     if: ${{ startsWith(github.ref, 'refs/tags/')
          || github.ref_name == 'master'
-         || contains(github.event.head_commit.message, '[publish]') }}
+         || (github.event_name == 'pull_request'
+             && github.event.pull_request.head.repo.owner.login == 'instrumentisto') }}
     needs:
       - build
       - clippy
@@ -291,22 +292,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2  # for PRs only
+
+      - name: Retrieve commit message and hash
+        id: commit
+        run: |
+          echo ::set-output name=message::$(git log --grep='\[publish\]' --format=%s)
+          echo ::set-output name=sha::${{ (github.event_name == 'pull_request'
+                                           && github.event.pull_request.head.sha)
+                                       ||  github.sha }}
+      - name: Check whether should be skipped
+        id: skip
+        run: echo ::set-output name=no::${{ !(
+               github.event_name == 'pull_request'
+               && !contains(steps.commit.outputs.message, '[publish]')
+             ) }}
+
       - uses: dart-lang/setup-dart@v1.3
+        if: ${{ steps.skip.outputs.no == 'true' }}
 
       - uses: actions/download-artifact@v3
         with:
           name: build-linux
           path: linux/rust/
+        if: ${{ steps.skip.outputs.no == 'true' }}
       - uses: actions/download-artifact@v3
         with:
           name: build-windows
           path: windows/rust/
+        if: ${{ steps.skip.outputs.no == 'true' }}
 
       - name: Append package version with commit SHA
         run: |
-          sed -i "s/^version: \(.*\)$/version: \1+rev.$(git rev-parse HEAD)/g" \
+          sed -i "s/^version: \(.*\)$/version: \1+rev.${{ steps.commit.outputs.sha }}/g" \
               pubspec.yaml
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ steps.skip.outputs.no == 'true'
+             && !startsWith(github.ref, 'refs/tags/') }}
 
       - name: Login to pub.dev
         run: |
@@ -316,11 +338,14 @@ jobs:
                 ${XDG_CONFIG_HOME:-${HOME:-default}}/dart/pub-credentials.json
         env:
           PUB_CREDENTIALS: ${{ secrets.PUBDEV_CREDS }}
+        if: ${{ steps.skip.outputs.no == 'true' }}
 
       - run: dart pub publish --force
+        if: ${{ steps.skip.outputs.no == 'true' }}
 
       - name: Logout from pub.dev
         run: |
           rm -rf ~/pub-credentials.json \
                  ${XDG_CONFIG_HOME:-${HOME:-default}}/dart/pub-credentials.json
-        if: ${{ always() }}
+        if: ${{ always()
+             && steps.skip.outputs.no == 'true' }}
