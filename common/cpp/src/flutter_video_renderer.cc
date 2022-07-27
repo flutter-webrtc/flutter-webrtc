@@ -43,7 +43,7 @@ const FlutterDesktopPixelBuffer* FlutterVideoRenderer::CopyPixelBuffer(
   if (pixel_buffer_.get() && frame_.get()) {
     if (pixel_buffer_->width != frame_->width() ||
         pixel_buffer_->height != frame_->height()) {
-      size_t buffer_size = (frame_->width() * frame_->height()) * (32 >> 3);
+      size_t buffer_size = (size_t(frame_->width()) * size_t(frame_->height())) * (32 >> 3);
       rgb_buffer_.reset(new uint8_t[buffer_size]);
       pixel_buffer_->width = frame_->width();
       pixel_buffer_->height = frame_->height();

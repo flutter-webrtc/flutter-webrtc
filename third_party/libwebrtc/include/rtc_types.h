@@ -99,20 +99,7 @@ struct SdpParseError {
   string description;
 };
 
-enum SourceType {
-     kWindow,
-     kEntireScreen,
-};
-
-struct Source {
-  public:
-    string id;
-    string title;
-    SourceType type;
-};
-
-// typedef portable::vector<Source> SourceList;
-using SourceList = portable::vector<Source>;
+enum DesktopType { kScreen, kWindow };
 
 }  // namespace libwebrtc
 

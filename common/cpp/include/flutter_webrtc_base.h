@@ -84,6 +84,13 @@ inline int findInt(const EncodableMap& map, const std::string& key) {
   return -1;
 }
 
+inline double findDouble(const EncodableMap& map, const std::string& key) {
+  auto it = map.find(EncodableValue(key));
+  if (it != map.end() && TypeIs<double>(it->second))
+    return GetValue<double>(it->second);
+  return 0.0;
+}
+
 inline int64_t findLongInt(const EncodableMap& map, const std::string& key) {
   for (auto it : map) {
     if (key == GetValue<std::string>(it.first)) {
