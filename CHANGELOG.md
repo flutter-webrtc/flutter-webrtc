@@ -1,6 +1,13 @@
 # Changelog
 
 --------------------------------------------
+[0.9.0] - 2022-07-27
+
+* [macOS] Added screen-sharing support for macOS
+* [Windows] Added screen-sharing support for Windows
+* [iOS/macOS] fix: Fix compile warning for Darwin
+* [Darwin/Android/Windows] fix: Fix typo peerConnectoinEvent -> peerConnectionEvent for EventChannel name (#1019)
+
 [0.8.12] - 2022-07-15
 
 * [Darwin]: fix: camera release.
