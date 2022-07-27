@@ -3,6 +3,8 @@ class WebRTC {
 
   static bool get platformIsWindows => false;
 
+  static bool get platformIsMacOS => false;
+
   static bool get platformIsLinux => false;
 
   static bool get platformIsMobile => false;

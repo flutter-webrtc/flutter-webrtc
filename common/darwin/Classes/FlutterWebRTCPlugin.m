@@ -84,6 +84,9 @@
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
+#if TARGET_OS_OSX
+    [self enableDesktopCapturerEventChannel:_messenger];
+#endif
     return self;
 }
 
@@ -968,7 +971,10 @@
     } else  if ([@"getDesktopSources" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         [self getDesktopSources:argsMap result:result];
-    }  else  if ([@"getDesktopSourceThumbnail" isEqualToString:call.method]){
+    } else  if ([@"updateDesktopSources" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        [self updateDesktopSources:argsMap result:result];
+    } else  if ([@"getDesktopSourceThumbnail" isEqualToString:call.method]){
          NSDictionary* argsMap = call.arguments;
         [self getDesktopSourceThumbnail:argsMap result:result];
     } else {

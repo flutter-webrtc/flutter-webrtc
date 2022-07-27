@@ -11,9 +11,9 @@
 #if TARGET_OS_OSX
 RTCDesktopMediaList *_screen = nil;
 RTCDesktopMediaList *_window = nil;
-BOOL _captureWindow = NO;
-BOOL _captureScreen = NO;
 NSArray<RTCDesktopSource *>* _captureSources;
+FlutterEventSink _eventSink = nil;
+FlutterEventChannel* _eventChannel = nil;
 #endif
 
 @implementation FlutterWebRTCPlugin (DesktopCapturer)
@@ -22,7 +22,7 @@ NSArray<RTCDesktopSource *>* _captureSources;
                 result:(FlutterResult)result {
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
-    RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+    RTCVideoSource *videoSource = [self.peerConnectionFactory videoSourceForScreenCast:YES];
     NSString *trackUUID = [[NSUUID UUID] UUIDString];
 
 #if TARGET_OS_IPHONE
@@ -107,14 +107,14 @@ NSArray<RTCDesktopSource *>* _captureSources;
     RTCDesktopCapturer *desktopCapturer;
     RTCDesktopSource *source = nil;
     if(useDefaultScreen){
-        desktopCapturer  = [[RTCDesktopCapturer alloc] initWithDefaultScreen:videoSource];
+        desktopCapturer  = [[RTCDesktopCapturer alloc] initWithDefaultScreen:self captureDelegate:videoSource];
     } else {
          source = [self getSourceById:sourceId];
         if(source == nil) {
             result(@{@"error":  [NSString stringWithFormat:@"No source found for id: %@",sourceId]});
             return;
         }
-        desktopCapturer  = [[RTCDesktopCapturer alloc] initWithSource:source delegate:videoSource];
+        desktopCapturer  = [[RTCDesktopCapturer alloc] initWithSource:source delegate:self captureDelegate:videoSource];
     }
     [desktopCapturer startCaptureWithFPS:fps];
     NSLog(@"start desktop capture: sourceId: %@, type: %@, fps: %lu", sourceId, source.sourceType == RTCDesktopSourceTypeScreen ? @"screen" : @"window", fps);
@@ -144,6 +144,8 @@ NSArray<RTCDesktopSource *>* _captureSources;
 -(void)getDesktopSources:(NSDictionary *)argsMap
              result:(FlutterResult)result {
 #if TARGET_OS_OSX
+    NSLog(@"getDesktopSources");
+
     NSArray *types = [argsMap objectForKey:@"types"];
     if (types == nil) {
         result([FlutterError errorWithCode:@"ERROR"
@@ -152,45 +154,27 @@ NSArray<RTCDesktopSource *>* _captureSources;
         return;
     }
 
-    NSEnumerator *typesEnumerator = [types objectEnumerator];
-    NSString *type;
-    _captureWindow = NO;
-    _captureScreen = NO;
-    while ((type = typesEnumerator.nextObject) != nil) {
-        if ([type isEqualToString:@"screen"]) {
-            _captureScreen = YES;
-        } else if ([type isEqualToString:@"window"]) {
-            _captureWindow = YES;
-        } else {
-            result([FlutterError errorWithCode:@"ERROR"
-                                       message:@"Invalid type"
-                                       details:nil]);
-            return;
-        }
-    }
-
-    if(!_captureWindow && !_captureScreen) {
-        result([FlutterError errorWithCode:@"ERROR"
-                                   message:@"At least one type is required"
-                                   details:nil]);
+    if(![self buildDesktopSourcesListWithTypes:types forceReload:YES result:result]) {
+        NSLog(@"getDesktopSources failed.");
         return;
     }
 
     NSMutableArray *sources = [NSMutableArray array];
-    [self StartHandling:_captureWindow captureScreen:_captureScreen];
     NSEnumerator *enumerator = [_captureSources objectEnumerator];
     RTCDesktopSource *object;
-    int screenIndex = 0;
     while ((object = enumerator.nextObject) != nil) {
-        NSString *name = object.name;
-        if([name isEqualToString:@""] && object.sourceType == RTCDesktopSourceTypeScreen) {
-            name = [NSString stringWithFormat:@"Screen %d", ++screenIndex];
+        NSData *data = nil;
+        if([object thumbnail]) {
+            data = [[NSData alloc] init];
+            NSImage *resizedImg = [self resizeImage:[object thumbnail] forSize:NSMakeSize(140, 140)];
+            data = [resizedImg TIFFRepresentation];
         }
         [sources addObject:@{
                              @"id": object.sourceId,
-                             @"name": name,
+                             @"name": object.name,
                              @"thumbnailSize": @{@"width": @0, @"height": @0},
                              @"type": object.sourceType == RTCDesktopSourceTypeScreen? @"screen" : @"window",
+                             @"thumbnail": data,
                              }];
     }
     result(@{@"sources": sources});
@@ -204,13 +188,14 @@ NSArray<RTCDesktopSource *>* _captureSources;
 -(void)getDesktopSourceThumbnail:(NSDictionary *)argsMap
              result:(FlutterResult)result {
 #if TARGET_OS_OSX
+    NSLog(@"getDesktopSourceThumbnail");
     NSString* sourceId = argsMap[@"sourceId"];
     RTCDesktopSource *object = [self getSourceById:sourceId];
     if(object == nil) {
         result(@{@"error": @"No source found"});
         return;
     }
-    NSImage *image = [object thumbnail];
+    NSImage *image = [object UpdateThumbnail];
     if(image != nil) {
         NSImage *resizedImg = [self resizeImage:image forSize:NSMakeSize(140, 140)];
         NSData *data = [resizedImg TIFFRepresentation];
@@ -219,6 +204,29 @@ NSArray<RTCDesktopSource *>* _captureSources;
         result(@{@"error": @"No thumbnail found"});
     }
     
+#else
+    result([FlutterError errorWithCode:@"ERROR"
+                               message:@"Not supported on iOS"
+                               details:nil]);
+#endif
+}
+
+-(void)updateDesktopSources:(NSDictionary *)argsMap
+             result:(FlutterResult)result {
+#if TARGET_OS_OSX
+    NSLog(@"updateDesktopSources");
+    NSArray *types = [argsMap objectForKey:@"types"];
+    if (types == nil) {
+        result([FlutterError errorWithCode:@"ERROR"
+                                   message:@"types is required"
+                                   details:nil]);
+        return;
+    }
+    if(![self buildDesktopSourcesListWithTypes:types forceReload:NO result:result]) {
+        NSLog(@"updateDesktopSources failed.");
+        return;
+    }
+    result(@{@"result": @YES});
 #else
     result([FlutterError errorWithCode:@"ERROR"
                                message:@"Not supported on iOS"
@@ -277,25 +285,151 @@ NSArray<RTCDesktopSource *>* _captureSources;
     return nil;
 }
 
--(void)StartHandling:(BOOL)captureWindow captureScreen:(BOOL) captureScreen {
+- (BOOL)buildDesktopSourcesListWithTypes:(NSArray *)types forceReload:(BOOL)forceReload result:(FlutterResult)result {
+    BOOL captureWindow = NO;
+    BOOL captureScreen = NO;
     _captureSources = [NSMutableArray array];
 
-    if(_captureWindow) {
-        if(!_window) _window = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeWindow];
-        [_window UpdateSourceList];
+    NSEnumerator *typesEnumerator = [types objectEnumerator];
+    NSString *type;
+    while ((type = typesEnumerator.nextObject) != nil) {
+        if ([type isEqualToString:@"screen"]) {
+            captureScreen = YES;
+        } else if ([type isEqualToString:@"window"]) {
+            captureWindow = YES;
+        } else {
+            result([FlutterError errorWithCode:@"ERROR"
+                                       message:@"Invalid type"
+                                       details:nil]);
+            return NO;
+        }
+    }
+
+    if(!captureWindow && !captureScreen) {
+        result([FlutterError errorWithCode:@"ERROR"
+                                   message:@"At least one type is required"
+                                   details:nil]);
+        return NO;
+    }
+
+     if(captureWindow) {
+        if(!_window) _window = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeWindow delegate:self];
+         [_window UpdateSourceList:forceReload updateAllThumbnails:YES];
         NSArray<RTCDesktopSource *>* sources = [_window getSources];
         _captureSources = [_captureSources arrayByAddingObjectsFromArray:sources];
     }
-
-    if(_captureScreen) {
-        if(!_screen) _screen = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeScreen];
-        [_screen UpdateSourceList];
+    if(captureScreen) {
+        if(!_screen) _screen = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeScreen  delegate:self];
+        [_screen UpdateSourceList:forceReload updateAllThumbnails:YES];
         NSArray<RTCDesktopSource *>* sources = [_screen getSources];
         _captureSources = [_captureSources arrayByAddingObjectsFromArray:sources];
     }
-    
     NSLog(@"captureSources: %lu", [_captureSources count]);
+    return YES;
 }
+
+-(void) enableDesktopCapturerEventChannel:(nonnull NSObject<FlutterBinaryMessenger> *)messenger {
+    if(_eventChannel == nil) {
+        _eventChannel = [FlutterEventChannel
+                                            eventChannelWithName:@"FlutterWebRTC/desktopSourcesEvent"
+                                            binaryMessenger:messenger];
+        [_eventChannel setStreamHandler:self];
+    }
+}
+
+#pragma mark - FlutterStreamHandler methods
+
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
+    _eventSink = nil;
+    return nil;
+}
+
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
+                                       eventSink:(nonnull FlutterEventSink)sink {
+    _eventSink = sink;
+    return nil;
+}
+
+#pragma mark - RTCDesktopMediaListDelegate delegate
+
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+- (void)didDesktopSourceAdded:(RTC_OBJC_TYPE(RTCDesktopSource) *)source {
+    //NSLog(@"didDesktopSourceAdded: %@, id %@", source.name, source.sourceId);
+    if(_eventSink) {
+        NSImage *image = [source UpdateThumbnail];
+        NSData *data = [[NSData alloc] init];
+        if(image != nil) {
+            NSImage *resizedImg = [self resizeImage:image forSize:NSMakeSize(140, 140)];
+            data = [resizedImg TIFFRepresentation];
+        }
+        _eventSink(@{
+            @"event": @"desktopSourceAdded",
+            @"id": source.sourceId,
+            @"name": source.name,
+            @"thumbnailSize": @{@"width": @0, @"height": @0},
+            @"type": source.sourceType == RTCDesktopSourceTypeScreen? @"screen" : @"window",
+            @"thumbnail": data
+        });
+    }
+}
+
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+- (void)didDesktopSourceRemoved:(RTC_OBJC_TYPE(RTCDesktopSource) *) source {
+   //NSLog(@"didDesktopSourceRemoved: %@, id %@", source.name, source.sourceId);
+    if(_eventSink) {
+        _eventSink(@{
+            @"event": @"desktopSourceRemoved",
+            @"id": source.sourceId,
+        });
+    }
+}
+
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+- (void)didDesktopSourceNameChanged:(RTC_OBJC_TYPE(RTCDesktopSource) *) source {
+    //NSLog(@"didDesktopSourceNameChanged: %@, id %@", source.name, source.sourceId);
+    if(_eventSink) {
+        _eventSink(@{
+            @"event": @"desktopSourceNameChanged",
+            @"id": source.sourceId,
+            @"name": source.name,
+        });
+    }
+}
+
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+- (void)didDesktopSourceThumbnailChanged:(RTC_OBJC_TYPE(RTCDesktopSource) *) source {
+    //NSLog(@"didDesktopSourceThumbnailChanged: %@, id %@", source.name, source.sourceId);
+    if(_eventSink) {
+        NSImage *resizedImg = [self resizeImage:[source thumbnail] forSize:NSMakeSize(140, 140)];
+        NSData *data = [resizedImg TIFFRepresentation];
+        _eventSink(@{
+            @"event": @"desktopSourceThumbnailChanged",
+            @"id": source.sourceId,
+            @"thumbnail": data 
+        });
+    }
+}
+
+#pragma mark - RTCDesktopCapturerDelegate delegate
+
+-(void)didSourceCaptureStart:(RTCDesktopCapturer *) capturer {
+    NSLog(@"didSourceCaptureStart");
+}
+
+-(void)didSourceCapturePaused:(RTCDesktopCapturer *) capturer {
+    NSLog(@"didSourceCapturePaused");
+}
+
+-(void)didSourceCaptureStop:(RTCDesktopCapturer *) capturer {
+    NSLog(@"didSourceCaptureStop");
+}
+
+-(void)didSourceCaptureError:(RTCDesktopCapturer *) capturer{
+    NSLog(@"didSourceCaptureError");
+}
+
 #endif
 
 @end
