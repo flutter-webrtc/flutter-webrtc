@@ -323,6 +323,26 @@ void FlutterMediaStream::GetSources(
   result->Success(EncodableValue(params));
 }
 
+void FlutterMediaStream::SelectAudioOutput(const std::string& device_id,
+  std::unique_ptr<MethodResult<EncodableValue>> result) {
+  char strPlayoutName[256];
+  char strPlayoutGuid[256];
+  bool found = false;
+  for (uint16_t i = 0; i < playout_devices; i++) {
+    base_->audio_device_->PlayoutDeviceName(i, strPlayoutName, strPlayoutGuid);
+    if (device_id != "" && device_id == strPlayoutGuid) {
+      base_->audio_device_->SetPlayoutDevice(i);
+      found = true;
+      break;
+    }
+  }
+  if(!found) {
+    result->Error("Bad Arguments", "Not found device id: " + device_id);
+    return;
+  }
+  result->Success();
+}
+
 void FlutterMediaStream::MediaStreamGetTracks(
     const std::string& stream_id,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
