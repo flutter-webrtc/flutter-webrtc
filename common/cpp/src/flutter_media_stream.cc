@@ -327,6 +327,7 @@ void FlutterMediaStream::SelectAudioOutput(const std::string& device_id,
   std::unique_ptr<MethodResult<EncodableValue>> result) {
   char strPlayoutName[256];
   char strPlayoutGuid[256];
+  int playout_devices = base_->audio_device_->PlayoutDevices();
   bool found = false;
   for (uint16_t i = 0; i < playout_devices; i++) {
     base_->audio_device_->PlayoutDeviceName(i, strPlayoutName, strPlayoutGuid);

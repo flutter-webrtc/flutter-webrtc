@@ -29,9 +29,9 @@ class Helper {
   ///
   /// Note: This method is only used for flutter native,
   /// flutter web can use RTCVideoRenderer.audioOutput instead
-  static Future<void> selectAudioOutput(MediaDeviceInfo device) {
+  static Future<void> selectAudioOutput(String deviceId) {
     return WebRTC.invokeMethod('selectAudioOutput', {
-      'deviceId': device.deviceId,
+      'deviceId': deviceId,
     });
   }
 
