@@ -303,7 +303,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     if(mandatory && [mandatory isKindOfClass:[NSDictionary class]])
     {
         id widthConstraint = mandatory[@"minWidth"];
-        if ([widthConstraint isKindOfClass:[NSString class]] || widthConstraint isKindOfClass:[NSNumber class]]) {
+        if ([widthConstraint isKindOfClass:[NSString class]] || [widthConstraint isKindOfClass:[NSNumber class]]) {
             int possibleWidth = [widthConstraint intValue];
             if (possibleWidth != 0) {
                 self._targetWidth = possibleWidth;
