@@ -6,11 +6,14 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
+import com.cloudwebrtc.webrtc.audio.AudioDeviceKind;
+import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
 import com.cloudwebrtc.webrtc.MethodCallHandlerImpl.AudioManager;
-import com.cloudwebrtc.webrtc.utils.RTCAudioManager;
+import com.twilio.audioswitch.AudioDevice;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
@@ -21,7 +24,9 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.view.TextureRegistry;
 
+import java.util.Collections;
 import java.util.Set;
+import java.util.List;
 
 /**
  * FlutterWebRTCPlugin
@@ -31,7 +36,7 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
     static public final String TAG = "FlutterWebRTCPlugin";
     private static Application application;
 
-    private RTCAudioManager rtcAudioManager;
+    private AudioSwitchManager audioSwitchManager;
     private MethodChannel channel;
     private MethodCallHandlerImpl methodCallHandler;
     private LifeCycleObserver observer;
@@ -108,29 +113,38 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
                     @Override
                     public void onAudioManagerRequested(boolean requested) {
                         if (requested) {
-                            if (rtcAudioManager == null) {
-                                rtcAudioManager = RTCAudioManager.create(context);
+                            if (audioSwitchManager == null) {
+                                audioSwitchManager = new AudioSwitchManager(context);
                             }
-                            rtcAudioManager.start(FlutterWebRTCPlugin.this::onAudioManagerDevicesChanged);
+                            audioSwitchManager.start();
                         } else {
-                            if (rtcAudioManager != null) {
-                                rtcAudioManager.stop();
-                                rtcAudioManager = null;
+                            if (audioSwitchManager != null) {
+                                audioSwitchManager.stop();
+                                audioSwitchManager = null;
                             }
                         }
                     }
 
                     @Override
                     public void setMicrophoneMute(boolean mute) {
-                        if (rtcAudioManager != null) {
-                            rtcAudioManager.setMicrophoneMute(mute);
+                        if (audioSwitchManager != null) {
+                            //TODO: audioSwitchManager.setMicrophoneMute(mute);
                         }
                     }
 
                     @Override
-                    public void setSpeakerphoneOn(boolean on) {
-                        if (rtcAudioManager != null) {
-                            rtcAudioManager.setSpeakerphoneOn(on);
+                    public void selectAudioOutput(@Nullable AudioDeviceKind kind) {
+                        if (audioSwitchManager != null) {
+                            audioSwitchManager.selectAudioOutput(kind);
+                        }
+                    }
+
+                    @Override
+                    public List<AudioDevice> getAvailableAudioOutputDevices() {
+                        if (audioSwitchManager != null) {
+                            return audioSwitchManager.availableAudioDevices();
+                        } else {
+                            return Collections.emptyList();
                         }
                     }
                 });
@@ -144,21 +158,16 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
         methodCallHandler = null;
         channel.setMethodCallHandler(null);
 
-        if (rtcAudioManager != null) {
+        if (audioSwitchManager != null) {
             Log.d(TAG, "Stopping the audio manager...");
-            rtcAudioManager.stop();
-            rtcAudioManager = null;
+            audioSwitchManager.stop();
+            audioSwitchManager = null;
         }
     }
 
     // This method is called when the audio manager reports audio device change,
     // e.g. from wired headset to speakerphone.
-    private void onAudioManagerDevicesChanged(
-            final RTCAudioManager.AudioDevice device,
-            final Set<RTCAudioManager.AudioDevice> availableDevices) {
-        Log.d(TAG, "onAudioManagerDevicesChanged: " + availableDevices + ", "
-                + "selected: " + device);
-        // TODO(henrika): add callback handler.
+    private void onAudioManagerDevicesChanged() {
     }
 
     private class LifeCycleObserver implements Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {

@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.cloudwebrtc.webrtc.audio.AudioDeviceKind;
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
@@ -26,6 +27,8 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
+
+import com.twilio.audioswitch.AudioDevice;
 
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
@@ -86,9 +89,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     void setMicrophoneMute(boolean mute);
 
-    void setSpeakerphoneOn(boolean on);
+    void selectAudioOutput(@Nullable AudioDeviceKind kind);
 
-
+    List<AudioDevice> getAvailableAudioOutputDevices();
   }
 
   static public final String TAG = "FlutterWebRTCPlugin";
@@ -471,6 +474,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         result.success(null);
         break;
       }
+      case "selectAudioOutput": {
+        String deviceId = call.argument("deviceId");
+        audioManager.selectAudioOutput(AudioDeviceKind.fromTypeName(deviceId));
+        result.success(null);
+        break;
+      }
       case "setMicrophoneMute":
         boolean mute = call.argument("mute");
         audioManager.setMicrophoneMute(mute);
@@ -478,7 +487,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       case "enableSpeakerphone":
         boolean enable = call.argument("enable");
-        audioManager.setSpeakerphoneOn(enable);
+        audioManager.selectAudioOutput(AudioDeviceKind.SPEAKER);
         result.success(null);
         break;
       case "getDisplayMedia": {
@@ -1130,6 +1139,17 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     audio.putString("facing", "");
     audio.putString("kind", "audioinput");
     array.pushMap(audio);
+
+    List<? extends AudioDevice> audioOutputs = audioManager.getAvailableAudioOutputDevices();
+
+    for(AudioDevice audioOutput : audioOutputs) {
+      ConstraintsMap audioOutputMap = new ConstraintsMap();
+      audioOutputMap.putString("label", audioOutput.getName());
+      audioOutputMap.putString("deviceId", AudioDeviceKind.fromAudioDevice(audioOutput).typeName);
+      audioOutputMap.putString("facing", "");
+      audioOutputMap.putString("kind", "audiooutput");
+      array.pushMap(audioOutputMap);
+    }
 
     ConstraintsMap map = new ConstraintsMap();
     map.putArray("sources", array.toArrayList());
