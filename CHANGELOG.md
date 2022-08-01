@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.1] - 2022-08-01
+
+* [iOS] fix : iOS app could not change camera resolutions cause by wrong datatype in the video Contraints.
+* [Darwin] bump version for .podspec.
+
 [0.9.0] - 2022-07-27
 
 * [macOS] Added screen-sharing support for macOS
