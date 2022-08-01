@@ -152,7 +152,11 @@
         [self createLocalMediaStream:result];
     } else if ([@"getSources" isEqualToString:call.method]) {
         [self getSources:result];
-    } else if ([@"mediaStreamGetTracks" isEqualToString:call.method]) {
+    } else if([@"selectAudioOutput" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSString* deviceId = argsMap[@"deviceId"];
+        [self selectAudioOutput:deviceId result:result];
+    }else if ([@"mediaStreamGetTracks" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* streamId = argsMap[@"streamId"];
         [self mediaStreamGetTracks:streamId result:result];

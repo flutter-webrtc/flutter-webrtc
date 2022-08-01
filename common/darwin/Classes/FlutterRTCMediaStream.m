@@ -494,26 +494,55 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 }
 
 -(void)getSources:(FlutterResult)result{
-  NSMutableArray *sources = [NSMutableArray array];
-  NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
-  for (AVCaptureDevice *device in videoDevices) {
-    [sources addObject:@{
-                         @"facing": device.positionString,
-                         @"deviceId": device.uniqueID,
-                         @"label": device.localizedName,
-                         @"kind": @"videoinput",
-                         }];
-  }
-  NSArray *audioDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeAudio];
-  for (AVCaptureDevice *device in audioDevices) {
-    [sources addObject:@{
-                         @"facing": @"",
-                         @"deviceId": device.uniqueID,
-                         @"label": device.localizedName,
-                         @"kind": @"audioinput",
-                         }];
-  }
+    NSMutableArray *sources = [NSMutableArray array];
+    NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    for (AVCaptureDevice *device in videoDevices) {
+      [sources addObject:@{
+                           @"facing": device.positionString,
+                           @"deviceId": device.uniqueID,
+                           @"label": device.localizedName,
+                           @"kind": @"videoinput",
+                           }];
+    }
+    
+    RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
+    
+    NSArray *inputDevices = [audioDeviceModule inputDevices];
+    for (RTCAudioDevice *device in inputDevices) {
+        [sources addObject:@{
+                             @"facing": @"",
+                             @"deviceId": device.deviceId,
+                             @"label": device.name,
+                             @"kind": @"audioinput",
+                             }];
+    }
+
+    NSArray *outputDevices = [audioDeviceModule outputDevices];
+    for (RTCAudioDevice *device in outputDevices) {
+        [sources addObject:@{
+                             @"facing": @"",
+                             @"deviceId": device.deviceId,
+                             @"label": device.name,
+                             @"kind": @"audiooutput",
+                             }];
+    }
     result(@{@"sources": sources});
+}
+
+-(void)selectAudioOutput:(NSString *)deviceId
+                  result:(FlutterResult) result {
+    RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
+    NSArray *outputDevices = [audioDeviceModule outputDevices];
+    for (RTCAudioDevice *device in outputDevices) {
+        if([deviceId isEqualToString:device.deviceId]){
+            [audioDeviceModule setOutputDevice:device];
+            result(nil);
+            return;
+        }
+    }
+    result([FlutterError errorWithCode:@"selectAudioOutputFailed"
+                               message:[NSString stringWithFormat:@"Error: deviceId not found!"]
+                               details:nil]);
 }
 
 -(void)mediaStreamTrackRelease:(RTCMediaStream *)mediaStream  track:(RTCMediaStreamTrack *)track
