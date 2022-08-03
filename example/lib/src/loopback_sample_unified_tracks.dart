@@ -21,10 +21,10 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   bool _inCalling = false;
   bool _micOn = false;
   bool _cameraOn = false;
-
+  List<MediaDeviceInfo>? _mediaDevicesList;
   final _configuration = <String, dynamic>{
     'iceServers': [
-      {'url': 'stun:stun.l.google.com:19302'},
+      //{'url': 'stun:stun.l.google.com:19302'},
     ],
     'sdpSemantics': 'unified-plan'
   };
@@ -48,6 +48,10 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void deactivate() {
     super.deactivate();
     _cleanUp();
+  }
+
+  void _selectAudioOutput(String deviceId) {
+    _localRenderer.audioOutput(deviceId);
   }
 
   void _cleanUp() async {
@@ -221,10 +225,14 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     } catch (e) {
       print(e.toString());
     }
+
+    var devices = await navigator.mediaDevices.enumerateDevices();
+
     if (!mounted) return;
 
     setState(() {
       _inCalling = true;
+      _mediaDevicesList = devices;
     });
   }
 
@@ -270,8 +278,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       'video': video
           ? {
               'mandatory': {
-                'minWidth':
-                    '640', // Provide your own width, height and frame rate here
+                'minWidth': '640',
                 'minHeight': '480',
                 'minFrameRate': '30',
               },
@@ -318,6 +325,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void _startAudio() async {
     var newStream = await navigator.mediaDevices
         .getUserMedia(_getMediaConstraints(audio: true, video: false));
+
     if (_localStream != null) {
       await _removeExistingAudioTrack();
       for (var newTrack in newStream.getAudioTracks()) {
@@ -437,6 +445,25 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     return Scaffold(
       appBar: AppBar(
         title: Text('LoopBack Unified Tracks example'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: _selectAudioOutput,
+            icon: Icon(Icons.volume_down_alt),
+            itemBuilder: (BuildContext context) {
+              if (_mediaDevicesList != null) {
+                return _mediaDevicesList!
+                    .where((device) => device.kind == 'audiooutput')
+                    .map((device) {
+                  return PopupMenuItem<String>(
+                    value: device.deviceId,
+                    child: Text(device.label),
+                  );
+                }).toList();
+              }
+              return [];
+            },
+          ),
+        ],
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {
