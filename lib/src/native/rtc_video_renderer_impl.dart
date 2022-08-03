@@ -120,6 +120,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     try {
       await Helper.selectAudioOutput(deviceId);
     } catch (e) {
+      print('Helper.selectAudioOutput ${e.toString()}');
       return false;
     }
     return true;

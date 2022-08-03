@@ -123,7 +123,7 @@ public class AudioSwitchManager {
     }
     
     public void selectAudioOutput(@Nullable AudioDeviceKind kind) {
-        if(kind != null){
+        if (kind != null) {
             selectAudioOutput(kind.audioDeviceClass);
         }
     }

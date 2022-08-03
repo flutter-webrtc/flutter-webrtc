@@ -25,5 +25,5 @@
                              result:(FlutterResult) result;
 
 -(void)selectAudioOutput:(NSString *)deviceId
-                        result:(FlutterResult) result;
+                  result:(FlutterResult) result;
 @end

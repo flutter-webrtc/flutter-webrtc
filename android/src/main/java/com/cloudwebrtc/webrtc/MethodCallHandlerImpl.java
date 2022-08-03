@@ -1142,7 +1142,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     List<? extends AudioDevice> audioOutputs = audioManager.getAvailableAudioOutputDevices();
 
-    for(AudioDevice audioOutput : audioOutputs) {
+    for (AudioDevice audioOutput : audioOutputs) {
       ConstraintsMap audioOutputMap = new ConstraintsMap();
       audioOutputMap.putString("label", audioOutput.getName());
       audioOutputMap.putString("deviceId", AudioDeviceKind.fromAudioDevice(audioOutput).typeName);
