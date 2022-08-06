@@ -796,10 +796,10 @@ struct CreateSdpCallback(
 
 impl sys::CreateSdpCallback for CreateSdpCallback {
     fn success(&mut self, sdp: &CxxString, kind: sys::SdpType) {
-        if let Err(e) = self
-            .0
-            .send(Ok(api::RtcSessionDescription::new(sdp.to_string(), kind)))
-        {
+        if let Err(e) = self.0.send(Ok(api::RtcSessionDescription {
+            sdp: sdp.to_string(),
+            kind: kind.into(),
+        })) {
             log::warn!("Failed to send SDP in `CreateSdpCallback`: {e}");
         }
     }

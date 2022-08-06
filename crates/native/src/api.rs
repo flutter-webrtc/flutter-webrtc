@@ -500,16 +500,6 @@ pub struct RtcSessionDescription {
     pub kind: SdpType,
 }
 
-impl RtcSessionDescription {
-    /// Creates a new [`RtcSessionDescription`].
-    pub fn new(sdp: String, kind: sys::SdpType) -> Self {
-        Self {
-            sdp,
-            kind: kind.into(),
-        }
-    }
-}
-
 /// Information describing a single media input or output device.
 #[derive(Debug)]
 pub struct MediaDeviceInfo {
