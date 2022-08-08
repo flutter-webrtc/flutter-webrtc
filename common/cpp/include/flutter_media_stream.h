@@ -41,6 +41,8 @@ class FlutterMediaStream {
       const std::string &track_id,
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
+  void CreateLocalMediaStream(std::unique_ptr<MethodResult<EncodableValue>> result);
+
  private:
   FlutterWebRTCBase *base_;
 };
