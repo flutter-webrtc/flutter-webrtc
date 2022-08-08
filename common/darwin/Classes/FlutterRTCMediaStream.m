@@ -504,7 +504,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                            @"kind": @"videoinput",
                            }];
     }
-    
+#if TARGET_OS_OSX
     RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
     
     NSArray *inputDevices = [audioDeviceModule inputDevices];
@@ -526,11 +526,13 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                              @"kind": @"audiooutput",
                              }];
     }
+#endif
     result(@{@"sources": sources});
 }
 
 -(void)selectAudioOutput:(NSString *)deviceId
                   result:(FlutterResult) result {
+#if TARGET_OS_OSX
     RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
     NSArray *outputDevices = [audioDeviceModule outputDevices];
     for (RTCAudioDevice *device in outputDevices) {
@@ -540,6 +542,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             return;
         }
     }
+#endif
     result([FlutterError errorWithCode:@"selectAudioOutputFailed"
                                message:[NSString stringWithFormat:@"Error: deviceId not found!"]
                                details:nil]);
