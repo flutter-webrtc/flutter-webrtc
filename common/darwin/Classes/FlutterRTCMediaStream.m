@@ -504,6 +504,30 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                            @"kind": @"videoinput",
                            }];
     }
+#if TARGET_OS_IPHONE
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSError *setCategoryError = nil;
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeVideoChat options:AVAudioSessionCategoryOptionAllowBluetooth error:&setCategoryError];
+    [session setActive:YES error:&setCategoryError];
+    for (AVAudioSessionPortDescription *port in session.availableInputs) {
+        //NSLog(@"input portName: %@, type %@", port.portName,port.portType);
+        [sources addObject:@{
+                             @"facing": @"",
+                             @"deviceId": port.UID,
+                             @"label": port.portName,
+                             @"kind": @"audioinput",
+                             }];
+    }
+    for (AVAudioSessionPortDescription *port in session.currentRoute.outputs) {
+        //NSLog(@"output portName: %@, type %@", port.portName,port.portType);
+        [sources addObject:@{
+                             @"facing": @"",
+                             @"deviceId": port.UID,
+                             @"label": port.portName,
+                             @"kind": @"audiooutput",
+                             }];
+    }
+#endif
 #if TARGET_OS_OSX
     RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
     
