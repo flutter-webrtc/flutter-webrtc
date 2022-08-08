@@ -303,21 +303,21 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     if(mandatory && [mandatory isKindOfClass:[NSDictionary class]])
     {
         id widthConstraint = mandatory[@"minWidth"];
-        if ([widthConstraint isKindOfClass:[NSString class]]) {
+        if ([widthConstraint isKindOfClass:[NSString class]] || [widthConstraint isKindOfClass:[NSNumber class]]) {
             int possibleWidth = [widthConstraint intValue];
             if (possibleWidth != 0) {
                 self._targetWidth = possibleWidth;
             }
         }
         id heightConstraint = mandatory[@"minHeight"];
-        if ([heightConstraint isKindOfClass:[NSString class]]) {
+        if ([heightConstraint isKindOfClass:[NSString class]] || [heightConstraint isKindOfClass:[NSNumber class]]) {
             int possibleHeight = [heightConstraint intValue];
             if (possibleHeight != 0) {
                 self._targetHeight = possibleHeight;
             }
         }
         id fpsConstraint = mandatory[@"minFrameRate"];
-        if ([fpsConstraint isKindOfClass:[NSString class]]) {
+        if ([fpsConstraint isKindOfClass:[NSString class]] || [fpsConstraint isKindOfClass:[NSNumber class]]) {
             int possibleFps = [fpsConstraint intValue];
             if (possibleFps != 0) {
                 self._targetFps = possibleFps;

@@ -445,6 +445,26 @@
     } else if ([@"trackDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
+        for(NSString *streamId in self.localStreams) {
+            RTCMediaStream *stream = [self.localStreams objectForKey:streamId];
+            for (RTCAudioTrack *track in stream.audioTracks) {
+                if([trackId isEqualToString:track.trackId]) {
+                    [stream removeAudioTrack:track];
+                }
+            }
+            for (RTCVideoTrack *track in stream.videoTracks) {
+                if([trackId isEqualToString:track.trackId]) {
+                    [stream removeVideoTrack:track];
+                    CapturerStopHandler stopHandler = self.videoCapturerStopHandlers[track.trackId];
+                    if(stopHandler) {
+                        stopHandler(^{
+                              NSLog(@"video capturer stopped, trackID = %@", track.trackId);
+                            });
+                        [self.videoCapturerStopHandlers removeObjectForKey:track.trackId];
+                    }
+                }
+            }
+        }
         [self.localTracks removeObjectForKey:trackId];
         result(nil);
     } else if ([@"restartIce" isEqualToString:call.method]){
@@ -1001,7 +1021,6 @@
     [_peerConnections removeAllObjects];
     _peerConnectionFactory = nil;
 }
-
 
 -(void)mediaStreamGetTracks:(NSString*)streamId
                      result:(FlutterResult)result {
