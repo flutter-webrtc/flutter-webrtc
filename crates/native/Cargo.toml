@@ -30,4 +30,10 @@ pulse = { version = "2.26", package = "libpulse-binding" }
 winapi = { version = "0.3", features = ["dbt", "winuser"] }
 
 [build-dependencies]
+anyhow = "1.0"
+
+[target.'cfg(target_os = "macos")'.build-dependencies]
+cc = "1.0"
+
+[target.'cfg(not(target_os = "macos"))'.build-dependencies]
 cxx-build = "1.0"

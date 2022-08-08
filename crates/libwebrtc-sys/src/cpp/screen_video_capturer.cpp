@@ -35,6 +35,9 @@ webrtc::DesktopCaptureOptions CreateDesktopCaptureOptions() {
   webrtc::DesktopCaptureOptions options =
       webrtc::DesktopCaptureOptions::CreateDefault();
 
+  #ifdef WEBRTC_MAC
+    options.set_allow_iosurface(true);
+  #endif
   #ifdef WEBRTC_WIN
     options.set_allow_directx_capturer(true);
   #endif
@@ -65,18 +68,20 @@ ScreenVideoCapturer::ScreenVideoCapturer(
       max_height_(max_height),
       requested_frame_duration_((int) (1000.0f / target_fps)),
       quit_(false) {
-  auto options = CreateDesktopCaptureOptions();
-  std::unique_ptr<webrtc::DesktopCapturer> screen_capturer(
-      webrtc::DesktopCapturer::CreateScreenCapturer(options));
-  if (screen_capturer && screen_capturer->SelectSource(source_id)) {
-    capturer_.reset(new webrtc::DesktopAndCursorComposer(
-        std::move(screen_capturer), options));
-  }
-
-  capturer_->Start(this);
   if (capture_thread_.empty()) {
     capture_thread_ = rtc::PlatformThread::SpawnJoinable(
-        [this] { while (CaptureProcess()) {}},
+        [this, source_id] {
+          auto options = CreateDesktopCaptureOptions();
+          std::unique_ptr<webrtc::DesktopCapturer> screen_capturer(
+              webrtc::DesktopCapturer::CreateScreenCapturer(options));
+          if (screen_capturer && screen_capturer->SelectSource(source_id)) {
+            capturer_.reset(new webrtc::DesktopAndCursorComposer(
+                std::move(screen_capturer), options));
+          }
+
+          capturer_->Start(this);
+          while (CaptureProcess()) {}
+        },
         "ScreenCaptureThread",
         rtc::ThreadAttributes().SetPriority(rtc::ThreadPriority::kHigh));
   }
@@ -97,6 +102,10 @@ bool ScreenVideoCapturer::CaptureProcess() {
   if (quit_) {
     return false;
   }
+
+  #ifdef WEBRTC_MAC
+    CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+  #endif
 
   int64_t started_time = rtc::TimeMillis();
   capturer_->CaptureFrame();

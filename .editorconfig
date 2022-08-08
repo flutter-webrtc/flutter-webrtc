@@ -17,7 +17,7 @@ max_line_length = off
 indent_style = space
 indent_size = 4
 
-[*.{c,cc,cpp,h}]
+[*.{c,cc,cpp,h,m,mm}]
 indent_style = space
 indent_size = 2
 
@@ -26,6 +26,10 @@ indent_style = space
 indent_size = 4
 
 [*.{json,yaml,yml}]
+indent_style = space
+indent_size = 2
+
+[*.podspec]
 indent_style = space
 indent_size = 2
 

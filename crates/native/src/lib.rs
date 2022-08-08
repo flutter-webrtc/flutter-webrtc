@@ -9,9 +9,9 @@ mod api;
 )]
 #[rustfmt::skip]
 mod bridge_generated;
-mod cpp_api;
 mod devices;
 mod pc;
+mod renderer;
 mod stream_sink;
 mod user_media;
 mod video_sink;
@@ -38,7 +38,7 @@ pub use crate::{
         MediaStreamId, VideoDeviceId, VideoDeviceInfo, VideoSource, VideoTrack,
         VideoTrackId,
     },
-    video_sink::{Frame, VideoSink},
+    video_sink::VideoSink,
 };
 
 /// Counter used to generate unique IDs.

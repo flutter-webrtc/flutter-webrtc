@@ -2,6 +2,8 @@
 
 #[cfg(not(target_os = "windows"))]
 use std::ffi::OsString;
+#[cfg(target_os = "macos")]
+use std::process;
 use std::{
     env, fs,
     fs::File,
@@ -54,7 +56,8 @@ fn main() -> anyhow::Result<()> {
         .include(path.join("include"))
         .include(path.join("lib/include"))
         .include(path.join("lib/include/third_party/abseil-cpp"))
-        .include(path.join("lib/include/third_party/libyuv/include"));
+        .include(path.join("lib/include/third_party/libyuv/include"))
+        .flag("-DNOMINMAX");
 
     #[cfg(target_os = "windows")]
     build.flag("-DNDEBUG");
@@ -63,21 +66,36 @@ fn main() -> anyhow::Result<()> {
         build.flag("-DNDEBUG");
     }
 
-    #[cfg(target_os = "windows")]
-    {
-        build
-            .flag("-DWEBRTC_WIN")
-            .flag("-DNOMINMAX")
-            .flag("/std:c++17");
-    }
     #[cfg(target_os = "linux")]
     {
         build
             .flag("-DWEBRTC_LINUX")
             .flag("-DWEBRTC_POSIX")
-            .flag("-DNOMINMAX")
             .flag("-DWEBRTC_USE_X11")
             .flag("-std=c++17");
+    }
+    #[cfg(target_os = "macos")]
+    {
+        build
+            .include(path.join("lib/include/sdk/objc/base"))
+            .include(path.join("lib/include/sdk/objc"));
+        build
+            .flag("-DWEBRTC_POSIX")
+            .flag("-DWEBRTC_MAC")
+            .flag("-DWEBRTC_ENABLE_OBJC_SYMBOL_EXPORT")
+            .flag("-DWEBRTC_LIBRARY_IMPL")
+            .flag("-std=c++17")
+            .flag("-objC")
+            .flag("-fobjc-arc");
+    }
+    #[cfg(target_os = "windows")]
+    {
+        build.flag("-DWEBRTC_WIN").flag("/std:c++17");
+    }
+
+    #[cfg(feature = "fake_media")]
+    {
+        build.flag("-DFAKE_MEDIA");
     }
 
     build.compile("libwebrtc-sys");
@@ -187,7 +205,13 @@ fn get_cpp_files() -> anyhow::Result<Vec<PathBuf>> {
         .join("src")
         .join("cpp");
 
-    Ok(get_files_from_dir(dir))
+    #[allow(unused_mut)]
+    let mut files = get_files_from_dir(dir);
+
+    #[cfg(not(target_os = "macos"))]
+    files.retain(|e| !e.to_str().unwrap().contains(".mm"));
+
+    Ok(files)
 }
 
 /// Returns a list of all header files that should be included.
@@ -209,28 +233,6 @@ fn get_files_from_dir<P: AsRef<Path>>(dir: P) -> Vec<PathBuf> {
 
 /// Emits all the required `rustc-link-lib` instructions.
 fn link_libs() {
-    #[cfg(target_os = "windows")]
-    {
-        for dep in [
-            "Gdi32",
-            "Secur32",
-            "amstrmid",
-            "d3d11",
-            "dmoguids",
-            "dxgi",
-            "msdmo",
-            "winmm",
-            "wmcodecdspuuid",
-        ] {
-            println!("cargo:rustc-link-lib=dylib={dep}");
-        }
-        // TODO: `rustc` always links against non-debug Windows runtime, so we
-        //       always use a release build of `libwebrtc`:
-        //       https://github.com/rust-lang/rust/issues/39016
-        println!(
-            "cargo:rustc-link-search=native=crates/libwebrtc-sys/lib/release/",
-        );
-    }
     #[cfg(target_os = "linux")]
     {
         for dep in [
@@ -257,7 +259,88 @@ fn link_libs() {
                      native=crates/libwebrtc-sys/lib/release/",
                 );
             }
-            _ => (),
+            _ => unreachable!(),
         }
     }
+    #[cfg(target_os = "macos")]
+    {
+        for framework in [
+            "AudioUnit",
+            "CoreServices",
+            "CoreFoundation",
+            "AudioToolbox",
+            "CoreGraphics",
+            "CoreAudio",
+            "IOSurface",
+            "ApplicationServices",
+            "Foundation",
+            "AVFoundation",
+            "AppKit",
+            "System",
+        ] {
+            println!("cargo:rustc-link-lib=framework={framework}");
+        }
+        if let Some(path) = macos_link_search_path() {
+            println!("cargo:rustc-link-lib=clang_rt.osx");
+            println!("cargo:rustc-link-search={path}");
+        }
+        match env::var("PROFILE").unwrap().as_str() {
+            "debug" => {
+                println!(
+                    "cargo:rustc-link-search=\
+                     native=crates/libwebrtc-sys/lib/debug/",
+                );
+            }
+            "release" => {
+                println!(
+                    "cargo:rustc-link-search=\
+                     native=crates/libwebrtc-sys/lib/release/",
+                );
+            }
+            _ => unreachable!(),
+        }
+    }
+    #[cfg(target_os = "windows")]
+    {
+        for dep in [
+            "Gdi32",
+            "Secur32",
+            "amstrmid",
+            "d3d11",
+            "dmoguids",
+            "dxgi",
+            "msdmo",
+            "winmm",
+            "wmcodecdspuuid",
+        ] {
+            println!("cargo:rustc-link-lib=dylib={dep}");
+        }
+        // TODO: `rustc` always links against non-debug Windows runtime, so we
+        //       always use a release build of `libwebrtc`:
+        //       https://github.com/rust-lang/rust/issues/39016
+        println!(
+            "cargo:rustc-link-search=native=crates/libwebrtc-sys/lib/release/",
+        );
+    }
+}
+
+#[cfg(target_os = "macos")]
+/// Links macOS libraries needed for building.
+fn macos_link_search_path() -> Option<String> {
+    let output = process::Command::new("clang")
+        .arg("--print-search-dirs")
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    stdout
+        .lines()
+        .filter(|l| l.contains("libraries: ="))
+        .find_map(|l| {
+            let path = l.split('=').nth(1)?;
+            (!path.is_empty()).then(|| format!("{path}/lib/darwin"))
+        })
 }

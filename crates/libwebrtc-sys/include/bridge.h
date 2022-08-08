@@ -9,7 +9,13 @@
 #include "api/video_codecs/builtin_video_decoder_factory.h"
 #include "api/video_codecs/builtin_video_encoder_factory.h"
 #include "api/video_track_source_proxy_factory.h"
-#include "device_video_capturer.h"
+#if __APPLE__
+  #include "libwebrtc-sys/include/device_info_mac.h"
+  #include "mac_capturer.h"
+  #include "device_info_mac.h"
+#else
+  #include "device_video_capturer.h"
+#endif
 #include "modules/audio_device/include/audio_device.h"
 #include "modules/video_capture/video_capture_factory.h"
 #include "pc/audio_track.h"
@@ -277,6 +283,10 @@ std::unique_ptr<VideoSinkInterface> create_forwarding_video_sink(
 // Converts the provided `webrtc::VideoFrame` pixels to the ABGR scheme and
 // writes the result to the provided `dst_abgr`.
 void video_frame_to_abgr(const webrtc::VideoFrame& frame, uint8_t* dst_abgr);
+
+// Converts the provided `webrtc::VideoFrame` pixels to the ARGB scheme and
+// writes the result to the provided `dst_argb`.
+void video_frame_to_argb(const webrtc::VideoFrame& frame, uint8_t* dst_argb);
 
 // Creates a new `PeerConnectionFactoryInterface`.
 std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(

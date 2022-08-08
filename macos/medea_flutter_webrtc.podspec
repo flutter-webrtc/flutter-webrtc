@@ -17,7 +17,9 @@ Flutter WebRTC plugin based on Google WebRTC.
   s.source_files     = 'Classes/**/*'
   s.dependency 'FlutterMacOS'
 
+  s.osx.deployment_target = '10.11'
   s.platform = :osx, '10.11'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
-  s.swift_version = '5.0'
+  s.static_framework = true
+  s.vendored_libraries = 'rust/lib/*.dylib'
 end

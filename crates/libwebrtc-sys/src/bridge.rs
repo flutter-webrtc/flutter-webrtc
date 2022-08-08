@@ -1281,6 +1281,10 @@ pub(crate) mod webrtc {
         /// scheme and writes the result to the provided `buffer`.
         pub unsafe fn video_frame_to_abgr(frame: &VideoFrame, buffer: *mut u8);
 
+        /// Converts the provided [`webrtc::VideoFrame`] pixels to the `ARGB`
+        /// scheme and writes the result to the provided `buffer`.
+        pub unsafe fn video_frame_to_argb(frame: &VideoFrame, buffer: *mut u8);
+
         /// Returns the timestamp of when the last data was received from the
         /// provided [`CandidatePairChangeEvent`].
         #[must_use]

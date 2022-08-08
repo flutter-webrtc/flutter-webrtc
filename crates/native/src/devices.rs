@@ -513,6 +513,25 @@ pub mod linux_device_change {
     }
 }
 
+#[cfg(target_os = "macos")]
+/// Sets native side callback for devices monitoring.
+pub unsafe fn init() {
+    extern "C" {
+        /// Passes the callback to the native side.
+        pub fn set_on_device_change_mac(cb: unsafe extern "C" fn());
+    }
+
+    extern "C" fn on_device_change() {
+        let state = ON_DEVICE_CHANGE.load(Ordering::SeqCst);
+        if !state.is_null() {
+            let device_state = unsafe { &mut *state };
+            device_state.on_device_change();
+        }
+    }
+
+    set_on_device_change_mac(on_device_change);
+}
+
 #[cfg(target_os = "windows")]
 /// Creates a detached [`Thread`] creating and registering a system message
 /// window - [`HWND`].

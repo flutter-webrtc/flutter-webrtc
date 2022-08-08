@@ -88,7 +88,11 @@ std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
     size_t height,
     size_t fps,
     uint32_t device) {
+#if __APPLE__
+  auto dvc = MacCapturer::Create(width, height, fps, device);
+#else
   auto dvc = DeviceVideoCapturer::Create(width, height, fps, device);
+#endif
   if (dvc == nullptr) {
     return nullptr;
   }
@@ -226,10 +230,14 @@ int32_t set_audio_playout_device(const AudioDeviceModule& audio_device_module,
 
 // Calls `VideoCaptureFactory->CreateDeviceInfo()`.
 std::unique_ptr<VideoDeviceInfo> create_video_device_info() {
+#if __APPLE__
+  return create_device_info_mac();
+#else
   std::unique_ptr<VideoDeviceInfo> ptr(
       webrtc::VideoCaptureFactory::CreateDeviceInfo());
 
   return ptr;
+#endif
 }
 
 // Calls `VideoDeviceInfo->GetDeviceName()` with the provided arguments.
@@ -422,6 +430,18 @@ void video_frame_to_abgr(const webrtc::VideoFrame& frame, uint8_t* dst_abgr) {
                      buffer->height());
 }
 
+// Converts the provided `webrtc::VideoFrame` pixels to the ARGB scheme and
+// writes the result to the provided `dst_argb`.
+void video_frame_to_argb(const webrtc::VideoFrame& frame, uint8_t* dst_argb) {
+  rtc::scoped_refptr<webrtc::I420BufferInterface> buffer(
+      frame.video_frame_buffer()->ToI420());
+
+  libyuv::I420ToARGB(buffer->DataY(), buffer->StrideY(), buffer->DataU(),
+                     buffer->StrideU(), buffer->DataV(), buffer->StrideV(),
+                     dst_argb, buffer->width() * 4, buffer->width(),
+                     buffer->height());
+}
+
 // Creates a new `PeerConnectionFactoryInterface`.
 std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
     const std::unique_ptr<Thread>& network_thread,
@@ -461,9 +481,9 @@ std::unique_ptr<PeerConnectionInterface> create_peer_connection_or_error(
 
 // Creates a new default `RTCConfiguration`.
 std::unique_ptr<RTCConfiguration> create_default_rtc_configuration() {
-  RTCConfiguration config;
-  config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
-  return std::make_unique<RTCConfiguration>(config);
+  auto config = std::make_unique<RTCConfiguration>();
+  config->sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
+  return config;
 }
 
 // Sets the `type` field of the provided `RTCConfiguration`.

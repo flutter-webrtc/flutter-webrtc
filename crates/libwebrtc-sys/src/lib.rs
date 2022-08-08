@@ -13,8 +13,8 @@ use self::bridge::webrtc;
 pub use crate::webrtc::{
     candidate_to_string, get_candidate_pair,
     get_estimated_disconnected_time_ms, get_last_data_received_ms, get_reason,
-    video_frame_to_abgr, AudioLayer, BundlePolicy, Candidate,
-    CandidatePairChangeEvent, IceConnectionState, IceGatheringState,
+    video_frame_to_abgr, video_frame_to_argb, AudioLayer, BundlePolicy,
+    Candidate, CandidatePairChangeEvent, IceConnectionState, IceGatheringState,
     IceTransportsType, MediaType, PeerConnectionState, RtpTransceiverDirection,
     SdpType, SignalingState, TrackState, VideoFrame, VideoRotation,
 };

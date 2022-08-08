@@ -48,7 +48,7 @@ jobs:
       matrix:
         platform:
           - linux
-          #- macos  # TODO: Add `macos-latest`.
+          - macos
           - windows
     runs-on: ${{ (matrix.platform == 'linux' &&   'ubuntu-22.04')
               || (matrix.platform == 'windows' && 'windows-2019')
@@ -61,7 +61,7 @@ jobs:
           toolchain: stable
           components: clippy
 
-      - name: Install Linux platform dependencies
+      - name: Install `${{ matrix.platform }}` platform dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -132,7 +132,7 @@ jobs:
       matrix:
         platform:
           - linux
-          #- macos  # TODO: Add `macos-latest`.
+          - macos
           - windows
     runs-on: ${{ (matrix.platform == 'linux' &&   'ubuntu-22.04')
               || (matrix.platform == 'windows' && 'windows-2019')
@@ -146,7 +146,7 @@ jobs:
       - uses: subosito/flutter-action@v2
       - run: flutter config --enable-${{ matrix.platform }}-desktop
 
-      - name: Install Linux platform dependencies
+      - name: Install `${{ matrix.platform }}` platform dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -179,7 +179,7 @@ jobs:
         platform:
           - android
           - linux
-          #- macos  # TODO: Add `macos-latest`.
+          - macos
           - windows
     # TODO: Switch to `windows-latest` once stable Flutter supports MSVC 2022:
     #       https://github.com/flutter/flutter/issues/85922
@@ -197,7 +197,7 @@ jobs:
       - run: flutter config --enable-${{ matrix.platform }}-desktop
         if: ${{ matrix.platform != 'android' }}
 
-      - name: Install Linux platform dependencies
+      - name: Install `${{ matrix.platform }}` platform dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -210,7 +210,7 @@ jobs:
       - run: make cargo.build platform=${{ matrix.platform }}
         if: ${{ matrix.platform != 'android' }}
 
-      - name: Test on Android
+      - name: Test on `${{ matrix.platform }}` platform with emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 24
@@ -220,13 +220,14 @@ jobs:
           script: make flutter.test
         if: ${{ matrix.platform == 'android' }}
 
-      - name: Test on Linux
-        run: xvfb-run -a make flutter.test device=linux
+      - name: Test on `${{ matrix.platform }}` platform with Xvfb
+        run: xvfb-run -a make flutter.test device=${{ matrix.platform }}
         if: ${{ matrix.platform == 'linux' }}
 
-      - name: Test on Windows
-        run: make flutter.test device=windows
-        if: ${{ matrix.platform == 'windows' }}
+      - name: Test on `${{ matrix.platform }}` platform
+        run: make flutter.test device=${{ matrix.platform }}
+        if: ${{ matrix.platform == 'macos'
+             || matrix.platform == 'windows' }}
 
 
 
@@ -241,7 +242,7 @@ jobs:
       matrix:
         platform:
           - linux
-          #- macos  # TODO: Add `macos-latest`.
+          - macos
           - windows
     # TODO: Switch to `windows-latest` once stable Flutter supports MSVC 2022:
     #       https://github.com/flutter/flutter/issues/85922
@@ -256,7 +257,7 @@ jobs:
           profile: minimal
           toolchain: stable
 
-      - name: Install Linux platform dependencies
+      - name: Install `${{ matrix.platform }}` platform dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -316,6 +317,11 @@ jobs:
         with:
           name: build-linux
           path: linux/rust/
+        if: ${{ steps.skip.outputs.no == 'true' }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-macos
+          path: macos/rust/
         if: ${{ steps.skip.outputs.no == 'true' }}
       - uses: actions/download-artifact@v3
         with:
