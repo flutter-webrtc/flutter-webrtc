@@ -79,4 +79,10 @@ class MediaDeviceNative extends MediaDevices {
         )
         .toList();
   }
+
+  @override
+  Future<MediaDeviceInfo> selectAudioOutput([AudioOutputOptions? options]) {
+    // TODO: implement selectAudioOutput
+    throw UnimplementedError();
+  }
 }
