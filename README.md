@@ -51,6 +51,22 @@ Add the following entry to your _Info.plist_ file, located in `<project root>/io
 
 This entry allows your app to access camera and microphone.
 
+### The WebRTC.xframework compiled after the m104 release no longer supports iOS arm devices, so I need to add the `config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'` to your ios/Podfile in your project
+
+ios/Podfile
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+     target.build_configurations.each do |config|
+      # Workaround for https://github.com/flutter/flutter/issues/64502
+      config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES' # <= this line
+     end
+  end
+end
+```
+
 ### Android
 
 Ensure the following permission is present in your Android Manifest file, located in `<project root>/android/app/src/main/AndroidManifest.xml`:
