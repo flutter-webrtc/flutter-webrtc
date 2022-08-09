@@ -285,6 +285,14 @@ scoped_refptr<RTCMediaTrack> FlutterWebRTCBase::MediaTracksForId(
     return (*it).second;
   }
 
+  for(auto it2 : peerconnection_observers_) {
+      auto pco = it2.second;
+      auto t = pco->MediaTrackForId(id);
+      if(t != nullptr) {
+        return t;
+      }
+  }
+
   return nullptr;
 }
 

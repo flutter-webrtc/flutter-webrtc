@@ -174,6 +174,8 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual int RemoveStream(scoped_refptr<RTCMediaStream> stream) = 0;
 
+  virtual scoped_refptr<RTCMediaStream> CreateLocalMediaStream(const string stream_id) = 0;
+
   virtual scoped_refptr<RTCDataChannel> CreateDataChannel(
       const string label,
       RTCDataChannelInit* dataChannelDict) = 0;

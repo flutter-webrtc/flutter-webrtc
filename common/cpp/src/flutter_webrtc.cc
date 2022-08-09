@@ -37,9 +37,7 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap constraints = findMap(params, "constraints");
     GetUserMedia(constraints, std::move(result));
-  } 
-
-  else if (method_call.method_name().compare("getDisplayMedia") == 0) {
+  } else if (method_call.method_name().compare("getDisplayMedia") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
       return;
@@ -49,9 +47,7 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableMap constraints = findMap(params, "constraints");
 
     GetDisplayMedia(constraints, std::move(result));
-  } 
-
-  else if (method_call.method_name().compare("getDesktopSources") == 0) {
+  } else if (method_call.method_name().compare("getDesktopSources") == 0) {
     // types: ["screen", "window"]
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Bad arguments received");
@@ -714,10 +710,6 @@ void FlutterWebRTC::HandleMethodCall(
 
     const std::string trackId = findString(params, "trackId");
     RTCMediaTrack* track = MediaTrackForId(trackId);
-    if (nullptr == track) {
-      result->Error("rtpSenderSetTrack", "rtpSenderSetTrack() track is null");
-      return;
-    }
 
     const std::string rtpSenderId = findString(params, "rtpSenderId");
     if (0 < rtpSenderId.size()) {
@@ -746,11 +738,6 @@ void FlutterWebRTC::HandleMethodCall(
 
     const std::string trackId = findString(params, "trackId");
     RTCMediaTrack* track = MediaTrackForId(trackId);
-    if (nullptr == track) {
-      result->Error("rtpSenderReplaceTrack",
-                    "rtpSenderReplaceTrack() track is null");
-      return;
-    }
 
     const std::string rtpSenderId = findString(params, "rtpSenderId");
     if (0 < rtpSenderId.size()) {
@@ -866,11 +853,11 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    const std::string rtpTransceiverId = findString(params, "rtpTransceiverId");
+    const std::string rtpTransceiverId = findString(params, "transceiverId");
     if (0 < rtpTransceiverId.size()) {
       if (pc == nullptr) {
         result->Error("rtpTransceiverGetCurrentDirection",
-                      "rtpTransceiverGetCurrentDirection() rtpTransceiverId is "
+                      "rtpTransceiverGetCurrentDirection() transceiverId is "
                       "null or empty");
         return;
       }
@@ -940,6 +927,8 @@ void FlutterWebRTC::HandleMethodCall(
     }
     CaptureFrame((RTCVideoTrack*)track, path, std::move(result));
 
+  } else if (method_call.method_name().compare("createLocalMediaStream") == 0) {
+    CreateLocalMediaStream(std::move(result));
   } else {
     result->NotImplemented();
   }
