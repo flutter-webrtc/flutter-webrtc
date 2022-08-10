@@ -18,14 +18,15 @@ class DesktopCapturerSourceNative extends DesktopCapturerSource {
     source.thumbnail = map['thumbnail'] as Uint8List;
     return source;
   }
-  StreamController<String> _onNameChanged = StreamController.broadcast();
+  final StreamController<String> _onNameChanged = StreamController.broadcast();
 
   @override
   StreamController<String> get onNameChanged => _onNameChanged;
 
-  StreamController<Uint8List> _onThumbnailChanged =
+  final StreamController<Uint8List> _onThumbnailChanged =
       StreamController.broadcast();
 
+  @override
   StreamController<Uint8List> get onThumbnailChanged => _onThumbnailChanged;
 
   Uint8List? _thumbnail;
