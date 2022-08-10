@@ -15,7 +15,9 @@ class DesktopCapturerSourceNative extends DesktopCapturerSource {
         : SourceType.Screen;
     var source = DesktopCapturerSourceNative(map['id'], map['name'],
         ThumbnailSize.fromMap(map['thumbnailSize']), sourceType);
-    source.thumbnail = map['thumbnail'] as Uint8List;
+    if (map['thumbnail'] != null) {
+      source.thumbnail = map['thumbnail'] as Uint8List;
+    }
     return source;
   }
   final StreamController<String> _onNameChanged = StreamController.broadcast();
@@ -131,17 +133,7 @@ class DesktopCapturerNative extends DesktopCapturer {
       throw Exception('getDesktopSources return null, something wrong');
     }
     for (var source in response['sources']) {
-      var sourceType = (source['type'] as String) == 'window'
-          ? SourceType.Window
-          : SourceType.Screen;
-      var desktopSource = DesktopCapturerSourceNative(
-          source['id'],
-          source['name'],
-          ThumbnailSize.fromMap(source['thumbnailSize']),
-          sourceType);
-      if (source['thumbnail'] != null) {
-        desktopSource.thumbnail = source['thumbnail'] as Uint8List;
-      }
+      var desktopSource = DesktopCapturerSourceNative.fromMap(source);
       _sources[desktopSource.id] = desktopSource;
     }
     return _sources.values.toList();
