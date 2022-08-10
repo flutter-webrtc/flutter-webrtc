@@ -18,9 +18,15 @@ class DesktopCapturerSourceNative extends DesktopCapturerSource {
     source.thumbnail = map['thumbnail'] as Uint8List;
     return source;
   }
-  Function(String name)? onNameChanged;
-  Function()? onRemoved;
-  Function()? onThumbnailChanged;
+  StreamController<String> _onNameChanged = StreamController.broadcast();
+
+  @override
+  StreamController<String> get onNameChanged => _onNameChanged;
+
+  StreamController<Uint8List> _onThumbnailChanged =
+      StreamController.broadcast();
+
+  StreamController<Uint8List> get onThumbnailChanged => _onThumbnailChanged;
 
   Uint8List? _thumbnail;
   String _name;
@@ -30,7 +36,6 @@ class DesktopCapturerSourceNative extends DesktopCapturerSource {
 
   set thumbnail(Uint8List? value) {
     _thumbnail = value;
-    onThumbnailChanged?.call();
   }
 
   set name(String name) {
@@ -88,6 +93,7 @@ class DesktopCapturerNative extends DesktopCapturer {
           try {
             source.thumbnail = map['thumbnail'] as Uint8List;
             onThumbnailChanged.add(source);
+            source.onThumbnailChanged.add(source.thumbnail!);
           } catch (e) {
             print('desktopSourceThumbnailChanged: $e');
           }
@@ -98,6 +104,7 @@ class DesktopCapturerNative extends DesktopCapturer {
         if (source != null) {
           source.name = map['name'];
           onNameChanged.add(source);
+          source.onNameChanged.add(source.name);
         }
         break;
     }
