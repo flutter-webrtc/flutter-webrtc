@@ -163,18 +163,18 @@ FlutterEventChannel* _eventChannel = nil;
     NSEnumerator *enumerator = [_captureSources objectEnumerator];
     RTCDesktopSource *object;
     while ((object = enumerator.nextObject) != nil) {
-        NSData *data = nil;
+        /*NSData *data = nil;
         if([object thumbnail]) {
             data = [[NSData alloc] init];
-            NSImage *resizedImg = [self resizeImage:[object thumbnail] forSize:NSMakeSize(140, 140)];
+            NSImage *resizedImg = [self resizeImage:[object thumbnail] forSize:NSMakeSize(320, 180)];
             data = [resizedImg TIFFRepresentation];
-        }
+        }*/
         [sources addObject:@{
                              @"id": object.sourceId,
                              @"name": object.name,
                              @"thumbnailSize": @{@"width": @0, @"height": @0},
                              @"type": object.sourceType == RTCDesktopSourceTypeScreen? @"screen" : @"window",
-                             @"thumbnail": data,
+                             //@"thumbnail": data,
                              }];
     }
     result(@{@"sources": sources});
@@ -197,7 +197,7 @@ FlutterEventChannel* _eventChannel = nil;
     }
     NSImage *image = [object UpdateThumbnail];
     if(image != nil) {
-        NSImage *resizedImg = [self resizeImage:image forSize:NSMakeSize(140, 140)];
+        NSImage *resizedImg = [self resizeImage:image forSize:NSMakeSize(320, 180)];
         NSData *data = [resizedImg TIFFRepresentation];
         result(data);
     } else {
@@ -361,7 +361,7 @@ FlutterEventChannel* _eventChannel = nil;
         NSImage *image = [source UpdateThumbnail];
         NSData *data = [[NSData alloc] init];
         if(image != nil) {
-            NSImage *resizedImg = [self resizeImage:image forSize:NSMakeSize(140, 140)];
+            NSImage *resizedImg = [self resizeImage:image forSize:NSMakeSize(320, 180)];
             data = [resizedImg TIFFRepresentation];
         }
         _eventSink(@{
@@ -402,7 +402,7 @@ FlutterEventChannel* _eventChannel = nil;
 - (void)didDesktopSourceThumbnailChanged:(RTC_OBJC_TYPE(RTCDesktopSource) *) source {
     //NSLog(@"didDesktopSourceThumbnailChanged: %@, id %@", source.name, source.sourceId);
     if(_eventSink) {
-        NSImage *resizedImg = [self resizeImage:[source thumbnail] forSize:NSMakeSize(140, 140)];
+        NSImage *resizedImg = [self resizeImage:[source thumbnail] forSize:NSMakeSize(320, 180)];
         NSData *data = [resizedImg TIFFRepresentation];
         _eventSink(@{
             @"event": @"desktopSourceThumbnailChanged",

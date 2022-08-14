@@ -3,6 +3,80 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
+class ThumbnailWidget extends StatefulWidget {
+  const ThumbnailWidget(
+      {Key? key,
+      required this.source,
+      required this.selected,
+      required this.onTap})
+      : super(key: key);
+  final DesktopCapturerSource source;
+  final bool selected;
+  final Function(DesktopCapturerSource) onTap;
+
+  @override
+  _ThumbnailWidgetState createState() => _ThumbnailWidgetState();
+}
+
+class _ThumbnailWidgetState extends State<ThumbnailWidget> {
+  final List<StreamSubscription> _subscriptions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _subscriptions.add(widget.source.onThumbnailChanged.stream.listen((event) {
+      setState(() {});
+    }));
+    _subscriptions.add(widget.source.onNameChanged.stream.listen((event) {
+      setState(() {});
+    }));
+  }
+
+  @override
+  void deactivate() {
+    _subscriptions.forEach((element) {
+      element.cancel();
+    });
+    super.deactivate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+            child: Container(
+          decoration: widget.selected
+              ? BoxDecoration(
+                  border: Border.all(width: 2, color: Colors.blueAccent))
+              : null,
+          child: InkWell(
+            onTap: () {
+              print('Selected source id => ${widget.source.id}');
+              widget.onTap(widget.source);
+            },
+            child: widget.source.thumbnail != null
+                ? Image.memory(
+                    widget.source.thumbnail!,
+                    gaplessPlayback: true,
+                    alignment: Alignment.center,
+                  )
+                : Container(),
+          ),
+        )),
+        Text(
+          widget.source.name,
+          style: TextStyle(
+              fontSize: 12,
+              color: Colors.black87,
+              fontWeight:
+                  widget.selected ? FontWeight.bold : FontWeight.normal),
+        ),
+      ],
+    );
+  }
+}
+
 // ignore: must_be_immutable
 class ScreenSelectDialog extends Dialog {
   ScreenSelectDialog() {
@@ -19,14 +93,8 @@ class ScreenSelectDialog extends Dialog {
       _stateSetter?.call(() {});
     }));
 
-    _subscriptions.add(desktopCapturer.onNameChanged.stream.listen((source) {
-      _sources[source.id] = source;
-      _stateSetter?.call(() {});
-    }));
-
     _subscriptions
         .add(desktopCapturer.onThumbnailChanged.stream.listen((source) {
-      _sources[source.id] = source;
       _stateSetter?.call(() {});
     }));
   }
@@ -60,15 +128,15 @@ class ScreenSelectDialog extends Dialog {
         print(
             'name: ${element.name}, id: ${element.id}, type: ${element.type}');
       });
-      _stateSetter?.call(() {
-        sources.forEach((element) {
-          _sources[element.id] = element;
-        });
-      });
       _timer?.cancel();
       _timer = Timer.periodic(Duration(seconds: 3), (timer) {
         desktopCapturer.updateSources(types: [_sourceType]);
       });
+      _sources.clear();
+      sources.forEach((element) {
+        _sources[element.id] = element;
+      });
+      _stateSetter?.call(() {});
       return;
     } catch (e) {
       print(e.toString());
@@ -158,59 +226,16 @@ class ScreenSelectDialog extends Dialog {
                                             .where((element) =>
                                                 element.value.type ==
                                                 SourceType.Screen)
-                                            .map((e) => Column(
-                                                  children: [
-                                                    Expanded(
-                                                        child: Container(
-                                                      decoration: (_selected_source !=
-                                                                  null &&
-                                                              _selected_source!
-                                                                      .id ==
-                                                                  e.value.id)
-                                                          ? BoxDecoration(
-                                                              border: Border.all(
-                                                                  width: 2,
-                                                                  color: Colors
-                                                                      .blueAccent))
-                                                          : null,
-                                                      child: InkWell(
-                                                        onTap: () {
-                                                          print(
-                                                              'Selected screen id => ${e.value.id}');
-                                                          setState(() {
-                                                            _selected_source =
-                                                                e.value;
-                                                          });
-                                                        },
-                                                        child:
-                                                            e.value.thumbnail !=
-                                                                    null
-                                                                ? Image.memory(
-                                                                    e.value
-                                                                        .thumbnail!,
-                                                                    scale: 1.0,
-                                                                    repeat: ImageRepeat
-                                                                        .noRepeat,
-                                                                  )
-                                                                : Container(),
-                                                      ),
-                                                    )),
-                                                    Text(
-                                                      e.value.name,
-                                                      style: TextStyle(
-                                                          fontSize: 12,
-                                                          color: Colors.black87,
-                                                          fontWeight: (_selected_source !=
-                                                                      null &&
-                                                                  _selected_source!
-                                                                          .id ==
-                                                                      e.value
-                                                                          .id)
-                                                              ? FontWeight.bold
-                                                              : FontWeight
-                                                                  .normal),
-                                                    ),
-                                                  ],
+                                            .map((e) => ThumbnailWidget(
+                                                  onTap: (source) {
+                                                    setState(() {
+                                                      _selected_source = source;
+                                                    });
+                                                  },
+                                                  source: e.value,
+                                                  selected:
+                                                      _selected_source?.id ==
+                                                          e.value.id,
                                                 ))
                                             .toList(),
                                       ),
@@ -225,61 +250,16 @@ class ScreenSelectDialog extends Dialog {
                                             .where((element) =>
                                                 element.value.type ==
                                                 SourceType.Window)
-                                            .map((e) => Column(
-                                                  children: [
-                                                    Expanded(
-                                                        child: Container(
-                                                      decoration: (_selected_source !=
-                                                                  null &&
-                                                              _selected_source!
-                                                                      .id ==
-                                                                  e.value.id)
-                                                          ? BoxDecoration(
-                                                              border: Border.all(
-                                                                  width: 2,
-                                                                  color: Colors
-                                                                      .blueAccent))
-                                                          : null,
-                                                      child: InkWell(
-                                                        onTap: () {
-                                                          print(
-                                                              'Selected window id => ${e.value.id}');
-                                                          setState(() {
-                                                            _selected_source =
-                                                                e.value;
-                                                          });
-                                                        },
-                                                        child: e
-                                                                .value
-                                                                .thumbnail!
-                                                                .isNotEmpty
-                                                            ? Image.memory(
-                                                                e.value
-                                                                    .thumbnail!,
-                                                                scale: 1.0,
-                                                                repeat:
-                                                                    ImageRepeat
-                                                                        .noRepeat,
-                                                              )
-                                                            : Container(),
-                                                      ),
-                                                    )),
-                                                    Text(
-                                                      e.value.name,
-                                                      style: TextStyle(
-                                                          fontSize: 12,
-                                                          color: Colors.black87,
-                                                          fontWeight: (_selected_source !=
-                                                                      null &&
-                                                                  _selected_source!
-                                                                          .id ==
-                                                                      e.value
-                                                                          .id)
-                                                              ? FontWeight.bold
-                                                              : FontWeight
-                                                                  .normal),
-                                                    ),
-                                                  ],
+                                            .map((e) => ThumbnailWidget(
+                                                  onTap: (source) {
+                                                    setState(() {
+                                                      _selected_source = source;
+                                                    });
+                                                  },
+                                                  source: e.value,
+                                                  selected:
+                                                      _selected_source?.id ==
+                                                          e.value.id,
                                                 ))
                                             .toList(),
                                       ),

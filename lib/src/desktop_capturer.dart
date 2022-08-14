@@ -45,6 +45,11 @@ abstract class DesktopCapturerSource {
 
   /// The type of the source.
   SourceType get type;
+
+  StreamController<String> get onNameChanged => throw UnimplementedError();
+
+  StreamController<Uint8List> get onThumbnailChanged =>
+      throw UnimplementedError();
 }
 
 abstract class DesktopCapturer {
