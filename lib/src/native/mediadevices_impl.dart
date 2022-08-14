@@ -8,6 +8,27 @@ import 'media_stream_impl.dart';
 import 'utils.dart';
 
 class MediaDeviceNative extends MediaDevices {
+  MediaDeviceNative() {
+    EventChannel('FlutterWebRTC/mediaDeviceEvent')
+        .receiveBroadcastStream()
+        .listen(eventListener, onError: errorListener);
+  }
+
+  void eventListener(dynamic event) async {
+    final Map<dynamic, dynamic> map = event;
+    switch (map['event']) {
+      case 'onDeviceChange':
+        ondevicechange?.call(null);
+        break;
+    }
+  }
+
+  void errorListener(Object obj) {
+    if (obj is Exception) {
+      throw obj;
+    }
+  }
+
   @override
   Future<MediaStream> getUserMedia(
       Map<String, dynamic> mediaConstraints) async {
