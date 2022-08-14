@@ -8,11 +8,13 @@ import 'media_stream_impl.dart';
 import 'utils.dart';
 
 class MediaDeviceNative extends MediaDevices {
-  MediaDeviceNative() {
+  MediaDeviceNative._internal() {
     EventChannel('FlutterWebRTC/mediaDeviceEvent')
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
   }
+
+  static final MediaDeviceNative instance = MediaDeviceNative._internal();
 
   void eventListener(dynamic event) async {
     final Map<dynamic, dynamic> map = event;

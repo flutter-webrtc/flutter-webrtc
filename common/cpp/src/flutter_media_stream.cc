@@ -6,6 +6,40 @@
 
 namespace flutter_webrtc_plugin {
 
+FlutterMediaStream::FlutterMediaStream(FlutterWebRTCBase* base)
+    : base_(base) {
+  std::string event_channel = "FlutterWebRTC/mediaDeviceEvent";
+  event_channel_.reset(new EventChannel<EncodableValue>(
+      base_->messenger_, event_channel, &StandardMethodCodec::GetInstance()));
+
+  auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
+      [&](const flutter::EncodableValue* arguments,
+          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = std::move(events);
+        return nullptr;
+      },
+      [&](const flutter::EncodableValue* arguments)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = nullptr;
+        return nullptr;
+      });
+
+  event_channel_->SetStreamHandler(std::move(handler));
+
+  base_->audio_device_->OnDeviceChange([&]{
+     this->OnDeviceChange();
+  });
+}
+
+void FlutterMediaStream::OnDeviceChange() {
+  if (event_sink_) {
+    EncodableMap info;
+    info[EncodableValue("event")] = "onDeviceChange";
+    event_sink_->Success(EncodableValue(info));
+  }
+}
+
 void FlutterMediaStream::GetUserMedia(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResult<EncodableValue>> result) {

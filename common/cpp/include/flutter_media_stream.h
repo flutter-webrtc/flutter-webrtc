@@ -9,7 +9,7 @@ using namespace flutter;
 
 class FlutterMediaStream {
  public:
-  FlutterMediaStream(FlutterWebRTCBase *base) : base_(base) {}
+  FlutterMediaStream(FlutterWebRTCBase *base);
 
   void GetUserMedia(const EncodableMap &constraints,
                     std::unique_ptr<MethodResult<EncodableValue>> result);
@@ -46,8 +46,12 @@ class FlutterMediaStream {
 
   void CreateLocalMediaStream(std::unique_ptr<MethodResult<EncodableValue>> result);
 
+  void OnDeviceChange();
+
  private:
   FlutterWebRTCBase *base_;
+  std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
+  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
 };
 
 }  // namespace flutter_webrtc_plugin
