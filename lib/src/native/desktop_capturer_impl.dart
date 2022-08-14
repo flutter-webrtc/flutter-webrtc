@@ -15,12 +15,21 @@ class DesktopCapturerSourceNative extends DesktopCapturerSource {
         : SourceType.Screen;
     var source = DesktopCapturerSourceNative(map['id'], map['name'],
         ThumbnailSize.fromMap(map['thumbnailSize']), sourceType);
-    source.thumbnail = map['thumbnail'] as Uint8List;
+    if (map['thumbnail'] != null) {
+      source.thumbnail = map['thumbnail'] as Uint8List;
+    }
     return source;
   }
-  Function(String name)? onNameChanged;
-  Function()? onRemoved;
-  Function()? onThumbnailChanged;
+  final StreamController<String> _onNameChanged = StreamController.broadcast();
+
+  @override
+  StreamController<String> get onNameChanged => _onNameChanged;
+
+  final StreamController<Uint8List> _onThumbnailChanged =
+      StreamController.broadcast();
+
+  @override
+  StreamController<Uint8List> get onThumbnailChanged => _onThumbnailChanged;
 
   Uint8List? _thumbnail;
   String _name;
@@ -30,7 +39,6 @@ class DesktopCapturerSourceNative extends DesktopCapturerSource {
 
   set thumbnail(Uint8List? value) {
     _thumbnail = value;
-    onThumbnailChanged?.call();
   }
 
   set name(String name) {
@@ -88,6 +96,7 @@ class DesktopCapturerNative extends DesktopCapturer {
           try {
             source.thumbnail = map['thumbnail'] as Uint8List;
             onThumbnailChanged.add(source);
+            source.onThumbnailChanged.add(source.thumbnail!);
           } catch (e) {
             print('desktopSourceThumbnailChanged: $e');
           }
@@ -98,6 +107,7 @@ class DesktopCapturerNative extends DesktopCapturer {
         if (source != null) {
           source.name = map['name'];
           onNameChanged.add(source);
+          source.onNameChanged.add(source.name);
         }
         break;
     }
@@ -123,17 +133,7 @@ class DesktopCapturerNative extends DesktopCapturer {
       throw Exception('getDesktopSources return null, something wrong');
     }
     for (var source in response['sources']) {
-      var sourceType = (source['type'] as String) == 'window'
-          ? SourceType.Window
-          : SourceType.Screen;
-      var desktopSource = DesktopCapturerSourceNative(
-          source['id'],
-          source['name'],
-          ThumbnailSize.fromMap(source['thumbnailSize']),
-          sourceType);
-      if (source['thumbnail'] != null) {
-        desktopSource.thumbnail = source['thumbnail'] as Uint8List;
-      }
+      var desktopSource = DesktopCapturerSourceNative.fromMap(source);
       _sources[desktopSource.id] = desktopSource;
     }
     return _sources.values.toList();
