@@ -505,11 +505,11 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                            }];
     }
 #if TARGET_OS_IPHONE
-    AVAudioSession *session = [AVAudioSession sharedInstance];
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
     NSError *setCategoryError = nil;
-    [session setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeVideoChat options:AVAudioSessionCategoryOptionAllowBluetooth error:&setCategoryError];
+    [session.session setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeVideoChat options:AVAudioSessionCategoryOptionAllowBluetooth error:&setCategoryError];
     [session setActive:YES error:&setCategoryError];
-    for (AVAudioSessionPortDescription *port in session.availableInputs) {
+    for (AVAudioSessionPortDescription *port in session.session.availableInputs) {
         //NSLog(@"input portName: %@, type %@", port.portName,port.portType);
         [sources addObject:@{
                              @"facing": @"",
