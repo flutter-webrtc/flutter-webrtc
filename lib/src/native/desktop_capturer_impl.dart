@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/src/native/event_channel.dart';
 
 import '../desktop_capturer.dart';
