@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.3] - 2022-08-15
+
+* [Windows/macOS] Fix UI freeze when getting thumbnails.
+
 [0.9.2] - 2022-08-09
 
 * [Android] update libwebrtc to com.github.webrtc-sdk:android:104.5112.01.
