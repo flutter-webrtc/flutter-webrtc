@@ -135,6 +135,10 @@
     default:
       break;
   }
+
+  if(self.eventSink) {
+    self.eventSink(@{@"event" : @"onDeviceChange"});
+  }
 #endif
 }
 
