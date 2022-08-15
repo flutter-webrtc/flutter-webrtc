@@ -50,8 +50,6 @@ class FlutterMediaStream {
 
  private:
   FlutterWebRTCBase *base_;
-  std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
-  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
 };
 
 }  // namespace flutter_webrtc_plugin

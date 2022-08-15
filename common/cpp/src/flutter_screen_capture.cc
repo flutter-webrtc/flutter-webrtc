@@ -4,24 +4,6 @@ namespace flutter_webrtc_plugin {
 
 FlutterScreenCapture::FlutterScreenCapture(FlutterWebRTCBase* base)
     : base_(base) {
-  std::string event_channel = "FlutterWebRTC/desktopSourcesEvent";
-  event_channel_.reset(new EventChannel<EncodableValue>(
-      base_->messenger_, event_channel, &StandardMethodCodec::GetInstance()));
-
-  auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
-      [&](const flutter::EncodableValue* arguments,
-          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
-          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-        event_sink_ = std::move(events);
-        return nullptr;
-      },
-      [&](const flutter::EncodableValue* arguments)
-          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-        event_sink_ = nullptr;
-        return nullptr;
-      });
-
-  event_channel_->SetStreamHandler(std::move(handler));
 }
 
 bool FlutterScreenCapture::BuildDesktopSourcesList(const EncodableList& types, bool force_reload) {
@@ -102,7 +84,7 @@ void FlutterScreenCapture::OnMediaSourceAdded(
   std::cout << " OnMediaSourceAdded: " << source->id().std_string()
             << std::endl;
 
-  if (event_sink_) {
+  if (base_->event_sink()) {
     EncodableMap info;
     info[EncodableValue("event")] = "desktopSourceAdded";
     info[EncodableValue("id")] = EncodableValue(source->id().std_string());
@@ -116,7 +98,7 @@ void FlutterScreenCapture::OnMediaSourceAdded(
         {EncodableValue("width"), EncodableValue(0)},
         {EncodableValue("height"), EncodableValue(0)},
     };
-    event_sink_->Success(EncodableValue(info));
+    base_->event_sink()->Success(EncodableValue(info));
   }
 }
 
@@ -124,11 +106,11 @@ void FlutterScreenCapture::OnMediaSourceRemoved(
     scoped_refptr<MediaSource> source) {
   std::cout << " OnMediaSourceRemoved: " << source->id().std_string()
             << std::endl;
-  if (event_sink_) {
+  if (base_->event_sink()) {
     EncodableMap info;
     info[EncodableValue("event")] = "desktopSourceRemoved";
     info[EncodableValue("id")] = EncodableValue(source->id().std_string());
-    event_sink_->Success(EncodableValue(info));
+    base_->event_sink()->Success(EncodableValue(info));
   }
 }
 
@@ -136,12 +118,12 @@ void FlutterScreenCapture::OnMediaSourceNameChanged(
     scoped_refptr<MediaSource> source) {
   std::cout << " OnMediaSourceNameChanged: " << source->id().std_string()
             << std::endl;
-  if (event_sink_) {
+  if (base_->event_sink()) {
     EncodableMap info;
     info[EncodableValue("event")] = "desktopSourceNameChanged";
     info[EncodableValue("id")] = EncodableValue(source->id().std_string());
     info[EncodableValue("name")] = EncodableValue(source->name().std_string());
-    event_sink_->Success(EncodableValue(info));
+    base_->event_sink()->Success(EncodableValue(info));
   }
 }
 
@@ -149,13 +131,13 @@ void FlutterScreenCapture::OnMediaSourceThumbnailChanged(
     scoped_refptr<MediaSource> source) {
   std::cout << " OnMediaSourceThumbnailChanged: " << source->id().std_string()
             << std::endl;
-  if (event_sink_) {
+  if (base_->event_sink()) {
     EncodableMap info;
     info[EncodableValue("event")] = "desktopSourceThumbnailChanged";
     info[EncodableValue("id")] = EncodableValue(source->id().std_string());
     info[EncodableValue("thumbnail")] =
         EncodableValue(source->thumbnail().std_vector());
-    event_sink_->Success(EncodableValue(info));
+    base_->event_sink()->Success(EncodableValue(info));
   }
 }
 
