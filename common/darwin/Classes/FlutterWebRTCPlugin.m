@@ -13,10 +13,10 @@
 #pragma clang diagnostic ignored "-Wprotocol"
 
 @implementation FlutterWebRTCPlugin {
-
 #pragma clang diagnostic pop
-
     FlutterMethodChannel *_methodChannel;
+    FlutterEventSink _eventSink;
+    FlutterEventChannel* _eventChannel;
     id _registry;
     id _messenger;
     id _textures;
@@ -24,6 +24,7 @@
 }
 
 @synthesize messenger = _messenger;
+@synthesize eventSink = _eventSink;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
 
@@ -53,12 +54,17 @@
 
     self = [super init];
 
+    FlutterEventChannel *eventChannel = [FlutterEventChannel eventChannelWithName:@"FlutterWebRTC.Event" 
+                                              binaryMessenger:messenger];
+    [eventChannel setStreamHandler:self];
+
     if (self) {
         _methodChannel = channel;
         _registry = registrar;
         _textures = textures;
         _messenger = messenger;
         _speakerOn = NO;
+        _eventChannel = eventChannel;
 #if TARGET_OS_IPHONE
         self.viewController = viewController;
 #endif
@@ -85,11 +91,30 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
 #if TARGET_OS_OSX
-    [self enableDesktopCapturerEventChannel:_messenger];
+    [_peerConnectionFactory.audioDeviceModule setDevicesUpdatedHandler:^(void) {
+        NSLog(@"Handle Devices Updated!");
+        if(self.eventSink) {
+            self.eventSink(@{@"event" : @"onDeviceChange"});
+        }
+    }];
 #endif
     return self;
 }
 
+#pragma mark - FlutterStreamHandler methods
+
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
+    _eventSink = nil;
+    return nil;
+}
+
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
+                                       eventSink:(nonnull FlutterEventSink)sink {
+    _eventSink = sink;
+    return nil;
+}
 
 - (void)didSessionRouteChange:(NSNotification *)notification {
 #if TARGET_OS_IPHONE

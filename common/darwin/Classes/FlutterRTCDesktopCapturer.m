@@ -12,8 +12,6 @@
 RTCDesktopMediaList *_screen = nil;
 RTCDesktopMediaList *_window = nil;
 NSArray<RTCDesktopSource *>* _captureSources;
-FlutterEventSink _eventSink = nil;
-FlutterEventChannel* _eventChannel = nil;
 #endif
 
 @implementation FlutterWebRTCPlugin (DesktopCapturer)
@@ -328,43 +326,19 @@ FlutterEventChannel* _eventChannel = nil;
     return YES;
 }
 
--(void) enableDesktopCapturerEventChannel:(nonnull NSObject<FlutterBinaryMessenger> *)messenger {
-    if(_eventChannel == nil) {
-        _eventChannel = [FlutterEventChannel
-                                            eventChannelWithName:@"FlutterWebRTC/desktopSourcesEvent"
-                                            binaryMessenger:messenger];
-        [_eventChannel setStreamHandler:self];
-    }
-}
-
-#pragma mark - FlutterStreamHandler methods
-
-#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
-- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
-    _eventSink = nil;
-    return nil;
-}
-
-#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
-- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
-                                       eventSink:(nonnull FlutterEventSink)sink {
-    _eventSink = sink;
-    return nil;
-}
-
 #pragma mark - RTCDesktopMediaListDelegate delegate
 
 #pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (void)didDesktopSourceAdded:(RTC_OBJC_TYPE(RTCDesktopSource) *)source {
     //NSLog(@"didDesktopSourceAdded: %@, id %@", source.name, source.sourceId);
-    if(_eventSink) {
+    if(self.eventSink) {
         NSImage *image = [source UpdateThumbnail];
         NSData *data = [[NSData alloc] init];
         if(image != nil) {
             NSImage *resizedImg = [self resizeImage:image forSize:NSMakeSize(140, 140)];
             data = [resizedImg TIFFRepresentation];
         }
-        _eventSink(@{
+        self.eventSink(@{
             @"event": @"desktopSourceAdded",
             @"id": source.sourceId,
             @"name": source.name,
@@ -378,8 +352,8 @@ FlutterEventChannel* _eventChannel = nil;
 #pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (void)didDesktopSourceRemoved:(RTC_OBJC_TYPE(RTCDesktopSource) *) source {
    //NSLog(@"didDesktopSourceRemoved: %@, id %@", source.name, source.sourceId);
-    if(_eventSink) {
-        _eventSink(@{
+    if(self.eventSink) {
+        self.eventSink(@{
             @"event": @"desktopSourceRemoved",
             @"id": source.sourceId,
         });
@@ -389,8 +363,8 @@ FlutterEventChannel* _eventChannel = nil;
 #pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (void)didDesktopSourceNameChanged:(RTC_OBJC_TYPE(RTCDesktopSource) *) source {
     //NSLog(@"didDesktopSourceNameChanged: %@, id %@", source.name, source.sourceId);
-    if(_eventSink) {
-        _eventSink(@{
+    if(self.eventSink) {
+        self.eventSink(@{
             @"event": @"desktopSourceNameChanged",
             @"id": source.sourceId,
             @"name": source.name,
@@ -401,10 +375,10 @@ FlutterEventChannel* _eventChannel = nil;
 #pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 - (void)didDesktopSourceThumbnailChanged:(RTC_OBJC_TYPE(RTCDesktopSource) *) source {
     //NSLog(@"didDesktopSourceThumbnailChanged: %@, id %@", source.name, source.sourceId);
-    if(_eventSink) {
+    if(self.eventSink) {
         NSImage *resizedImg = [self resizeImage:[source thumbnail] forSize:NSMakeSize(140, 140)];
         NSData *data = [resizedImg TIFFRepresentation];
-        _eventSink(@{
+        self.eventSink(@{
             @"event": @"desktopSourceThumbnailChanged",
             @"id": source.sourceId,
             @"thumbnail": data 

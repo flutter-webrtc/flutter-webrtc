@@ -4,30 +4,26 @@ import 'package:flutter/services.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
+import 'event_channel.dart';
 import 'media_stream_impl.dart';
 import 'utils.dart';
 
 class MediaDeviceNative extends MediaDevices {
   MediaDeviceNative._internal() {
-    EventChannel('FlutterWebRTC/mediaDeviceEvent')
-        .receiveBroadcastStream()
-        .listen(eventListener, onError: errorListener);
+    FlutterWebRTCEventChannel.instance.handleEvents.stream.listen((data) {
+      var event = data.keys.first;
+      Map<dynamic, dynamic> map = data.values.first;
+      handleEvent(event, map);
+    });
   }
 
   static final MediaDeviceNative instance = MediaDeviceNative._internal();
 
-  void eventListener(dynamic event) async {
-    final Map<dynamic, dynamic> map = event;
+  void handleEvent(String event, final Map<dynamic, dynamic> map) async {
     switch (map['event']) {
       case 'onDeviceChange':
         ondevicechange?.call(null);
         break;
-    }
-  }
-
-  void errorListener(Object obj) {
-    if (obj is Exception) {
-      throw obj;
     }
   }
 
