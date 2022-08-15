@@ -104,8 +104,12 @@ class MediaDeviceNative extends MediaDevices {
   }
 
   @override
-  Future<MediaDeviceInfo> selectAudioOutput([AudioOutputOptions? options]) {
-    // TODO: implement selectAudioOutput
-    throw UnimplementedError();
+  Future<MediaDeviceInfo> selectAudioOutput(
+      [AudioOutputOptions? options]) async {
+    await WebRTC.invokeMethod('selectAudioOutput', {
+      'deviceId': options?.deviceId,
+    });
+    // TODO: return the selected device
+    return MediaDeviceInfo(label: 'label', deviceId: options!.deviceId);
   }
 }

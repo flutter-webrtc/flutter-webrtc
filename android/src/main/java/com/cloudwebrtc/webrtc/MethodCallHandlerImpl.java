@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.cloudwebrtc.webrtc.audio.AudioDeviceKind;
+import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
@@ -83,17 +84,6 @@ import io.flutter.view.TextureRegistry;
 import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
 
 public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
-  interface AudioManager {
-
-    void onAudioManagerRequested(boolean requested);
-
-    void setMicrophoneMute(boolean mute);
-
-    void selectAudioOutput(@Nullable AudioDeviceKind kind);
-
-    List<AudioDevice> getAvailableAudioOutputDevices();
-  }
-
   static public final String TAG = "FlutterWebRTCPlugin";
 
   private final Map<String, PeerConnectionObserver> mPeerConnectionObservers = new HashMap<>();
@@ -114,18 +104,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
    */
   private GetUserMediaImpl getUserMediaImpl;
 
-  private final AudioManager audioManager;
+  private final AudioSwitchManager audioSwitchManager;
 
   private AudioDeviceModule audioDeviceModule;
 
   private Activity activity;
 
   MethodCallHandlerImpl(Context context, BinaryMessenger messenger, TextureRegistry textureRegistry,
-                        @NonNull AudioManager audioManager) {
+                        @NonNull AudioSwitchManager audioManager) {
     this.context = context;
     this.textures = textureRegistry;
     this.messenger = messenger;
-    this.audioManager = audioManager;
+    this.audioSwitchManager = audioManager;
   }
 
   static private void resultError(String method, String error, Result result) {
@@ -369,7 +359,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         String trackId = call.argument("trackId");
         mediaStreamRemoveTrack(streamId, trackId, result);
         for (int i = 0; i < renders.size(); i++) {
-          FlutterRTCVideoRenderer renderer = renders.get(i);
+          FlutterRTCVideoRenderer renderer = renders.valueAt(i);
           if (renderer.checkVideoTrack(trackId)) {
             renderer.setVideoTrack(null);
           }
@@ -476,18 +466,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       case "selectAudioOutput": {
         String deviceId = call.argument("deviceId");
-        audioManager.selectAudioOutput(AudioDeviceKind.fromTypeName(deviceId));
+        audioSwitchManager.selectAudioOutput(AudioDeviceKind.fromTypeName(deviceId));
         result.success(null);
         break;
       }
       case "setMicrophoneMute":
         boolean mute = call.argument("mute");
-        audioManager.setMicrophoneMute(mute);
+        audioSwitchManager.setMicrophoneMute(mute);
         result.success(null);
         break;
       case "enableSpeakerphone":
         boolean enable = call.argument("enable");
-        audioManager.selectAudioOutput(AudioDeviceKind.SPEAKER);
+        audioSwitchManager.selectAudioOutput(AudioDeviceKind.SPEAKER);
         result.success(null);
         break;
       case "getDisplayMedia": {
@@ -978,14 +968,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     if (mPeerConnectionObservers.size() == 0) {
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S
               || context.getApplicationInfo().targetSdkVersion < Build.VERSION_CODES.S) {
-        audioManager.onAudioManagerRequested(true);
+        //audioSwitchManager.start();
       } else {
         ArrayList<String> permissions = new ArrayList<>();
         permissions.add(Manifest.permission.BLUETOOTH_CONNECT);
         requestPermissions(
                 permissions,
                 (args) -> {
-                  audioManager.onAudioManagerRequested(true);
+                  //audioSwitchManager.start();
                 },
                 (args) -> {
                 });
@@ -1140,7 +1130,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     audio.putString("kind", "audioinput");
     array.pushMap(audio);
 
-    List<? extends AudioDevice> audioOutputs = audioManager.getAvailableAudioOutputDevices();
+    List<? extends AudioDevice> audioOutputs = audioSwitchManager.availableAudioDevices();
 
     for (AudioDevice audioOutput : audioOutputs) {
       ConstraintsMap audioOutputMap = new ConstraintsMap();
@@ -1536,7 +1526,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       mPeerConnectionObservers.remove(id);
     }
     if (mPeerConnectionObservers.size() == 0) {
-      audioManager.onAudioManagerRequested(false);
+      //audioSwitchManager.stop();
     }
   }
 

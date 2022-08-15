@@ -29,10 +29,9 @@ class Helper {
   ///
   /// Note: This method is only used for flutter native,
   /// flutter web can use RTCVideoRenderer.audioOutput instead
-  static Future<void> selectAudioOutput(String deviceId) {
-    return WebRTC.invokeMethod('selectAudioOutput', {
-      'deviceId': deviceId,
-    });
+  static Future<void> selectAudioOutput(String deviceId) async {
+    await mediaDevices
+        .selectAudioOutput(AudioOutputOptions(deviceId: deviceId));
   }
 
   /// To select a a specific camera, you need to set constraints

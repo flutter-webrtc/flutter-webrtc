@@ -5,28 +5,25 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
-import com.cloudwebrtc.webrtc.audio.AudioDeviceKind;
+
 import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
-import com.cloudwebrtc.webrtc.MethodCallHandlerImpl.AudioManager;
-import com.twilio.audioswitch.AudioDevice;
-import io.flutter.embedding.android.FlutterActivity;
+import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
+import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.embedding.engine.plugins.lifecycle.HiddenLifecycleReference;
 import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.view.TextureRegistry;
-
-import java.util.Collections;
-import java.util.Set;
-import java.util.List;
 
 /**
  * FlutterWebRTCPlugin
@@ -106,51 +103,48 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
         this.lifecycle = null;
     }
 
+    class MyAudioDeviceListener implements EventChannel.StreamHandler {
+        MyAudioDeviceListener(BinaryMessenger messenger) {
+            EventChannel eventChannel =
+                    new EventChannel(
+                            messenger,
+                            "FlutterWebRTC/mediaDeviceEvent");
+            eventChannel.setStreamHandler(this);
+        }
+        @Override
+        public void onListen(Object arguments, EventChannel.EventSink events) {
+            eventSink = new AnyThreadSink(events);
+        }
+        @Override
+        public void onCancel(Object arguments) {
+            eventSink = null;
+        }
+
+        public void onAudioDeviceChange() {
+            if(eventSink != null) {
+                ConstraintsMap params = new ConstraintsMap();
+                params.putString("event", "onDeviceChange");
+                eventSink.success(params.toMap());
+            }
+        }
+        EventChannel.EventSink eventSink;
+    }
+
     private void startListening(final Context context, BinaryMessenger messenger,
                                 TextureRegistry textureRegistry) {
+        audioSwitchManager = new AudioSwitchManager(context);
         methodCallHandler = new MethodCallHandlerImpl(context, messenger, textureRegistry,
-                new AudioManager() {
-                    @Override
-                    public void onAudioManagerRequested(boolean requested) {
-                        if (requested) {
-                            if (audioSwitchManager == null) {
-                                audioSwitchManager = new AudioSwitchManager(context);
-                            }
-                            audioSwitchManager.start();
-                        } else {
-                            if (audioSwitchManager != null) {
-                                audioSwitchManager.stop();
-                                audioSwitchManager = null;
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void setMicrophoneMute(boolean mute) {
-                        if (audioSwitchManager != null) {
-                            //TODO: audioSwitchManager.setMicrophoneMute(mute);
-                        }
-                    }
-
-                    @Override
-                    public void selectAudioOutput(@Nullable AudioDeviceKind kind) {
-                        if (audioSwitchManager != null) {
-                            audioSwitchManager.selectAudioOutput(kind);
-                        }
-                    }
-
-                    @Override
-                    public List<AudioDevice> getAvailableAudioOutputDevices() {
-                        if (audioSwitchManager != null) {
-                            return audioSwitchManager.availableAudioDevices();
-                        } else {
-                            return Collections.emptyList();
-                        }
-                    }
-                });
-
+                audioSwitchManager);
         channel = new MethodChannel(messenger, "FlutterWebRTC.Method");
         channel.setMethodCallHandler(methodCallHandler);
+
+        MyAudioDeviceListener audioDeviceListener = new MyAudioDeviceListener(messenger);
+        audioSwitchManager.audioDeviceChangeListener = (devices, currentDevice) -> {
+            Log.w(TAG, "audioFocusChangeListener " + devices+ " " + currentDevice);
+            audioDeviceListener.onAudioDeviceChange();
+            return null;
+        };
+        audioSwitchManager.start();
     }
 
     private void stopListening() {

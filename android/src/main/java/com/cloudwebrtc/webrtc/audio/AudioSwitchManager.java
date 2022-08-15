@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,9 +31,10 @@ public class AudioSwitchManager {
             ? super List<? extends AudioDevice>,
             ? super AudioDevice,
             Unit> audioDeviceChangeListener = (devices, currentDevice) -> null;
+
     @NonNull
-    public AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = (i -> {
-    });
+    public AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = (i -> {});
+
     @NonNull
     public List<Class<? extends AudioDevice>> preferredDeviceList;
 
@@ -82,6 +84,7 @@ public class AudioSwitchManager {
     public void setMicrophoneMute(boolean mute){
         audioManager.setMicrophoneMute(mute);
     }
+
     @Nullable
     public AudioDevice selectedAudioDevice() {
         AudioSwitch audioSwitchTemp = audioSwitch;
@@ -127,5 +130,4 @@ public class AudioSwitchManager {
             selectAudioOutput(kind.audioDeviceClass);
         }
     }
-
 }
