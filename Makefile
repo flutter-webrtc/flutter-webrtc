@@ -23,6 +23,8 @@ FLUTTER_RUST_BRIDGE_VER ?= $(strip \
 	        | grep -v 'flutter_rust_bridge' \
 	        | cut -d'"' -f2))
 
+KTFMT_VER ?= 0.33
+
 CURRENT_OS ?= $(strip $(or $(os),\
 	$(if $(call eq,$(OS),Windows_NT),windows,\
 	$(if $(call eq,$(shell uname -s),Darwin),macos,linux))))
@@ -44,7 +46,7 @@ deps: flutter.pub
 
 docs: cargo.doc
 
-fmt: cargo.fmt flutter.fmt
+fmt: cargo.fmt flutter.fmt kt.fmt
 
 lint: cargo.lint flutter.analyze
 
@@ -288,6 +290,30 @@ cargo.test:
 
 
 
+##################
+# Kotin commands #
+##################
+
+# Format Kotlin sources with ktfmt.
+#
+# Usage:
+#	make kt.fmt [check=(no|yes)]
+
+kt-fmt-bin = .cache/ktfmt-$(KTFMT_VER).jar
+
+kt.fmt:
+ifeq ($(wildcard $(kt-fmt-bin)),)
+	@mkdir -p $(dir $(kt-fmt-bin))
+	curl -fL -o $(kt-fmt-bin) \
+	     https://search.maven.org/remotecontent?filepath=com/facebook/ktfmt/$(KTFMT_VER)/ktfmt-$(KTFMT_VER)-jar-with-dependencies.jar
+endif
+	java -jar $(kt-fmt-bin) \
+	     $(if $(call eq,$(check),yes),--set-exit-if-changed,) \
+		android/src/main/kotlin/
+
+
+
+
 ##########################
 # Documentation commands #
 ##########################
@@ -318,4 +344,5 @@ test.flutter: flutter.test
         docs.rust \
         flutter.analyze flutter.clean flutter.build flutter.fmt flutter.pub \
         	flutter.run flutter.test \
+        kt.fmt \
         test.cargo test.flutter

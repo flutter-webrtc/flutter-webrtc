@@ -30,3 +30,6 @@ build/
 
 # Rust
 /target/
+
+# Project related
+/.cache/
