@@ -45,10 +45,10 @@ class RtpTransceiverController(
         result.success(null)
       }
       "getMid" -> {
-        result.success(transceiver.getMid())
+        result.success(transceiver.mid)
       }
       "getDirection" -> {
-        result.success(transceiver.getDirection().value)
+        result.success(transceiver.direction.value)
       }
       "stop" -> {
         transceiver.stop()
@@ -69,7 +69,7 @@ class RtpTransceiverController(
   fun asFlutterResult(): Map<String, Any?> {
     return mapOf(
         "channelId" to channelId,
-        "sender" to RtpSenderController(messenger, transceiver.getSender()).asFlutterResult(),
-        "mid" to transceiver.getMid() as Any?)
+        "sender" to RtpSenderController(messenger, transceiver.sender).asFlutterResult(),
+        "mid" to transceiver.mid as Any?)
   }
 }

@@ -53,8 +53,7 @@ class MediaStreamTrackController(
         result.success(null)
       }
       "state" -> {
-        val trackState = track.state()
-        result.success(trackState.value)
+        result.success(track.state.value)
       }
       "stop" -> {
         track.stop()
@@ -88,7 +87,7 @@ class MediaStreamTrackController(
   fun asFlutterResult(): Map<String, Any> =
       mapOf(
           "channelId" to channelId,
-          "id" to track.id(),
-          "kind" to track.kind().value,
-          "deviceId" to track.deviceId())
+          "id" to track.id,
+          "kind" to track.kind.value,
+          "deviceId" to track.deviceId)
 }

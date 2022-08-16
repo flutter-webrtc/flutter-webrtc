@@ -19,8 +19,8 @@ data class AudioConstraints(val mandatory: Map<String, String>, val optional: Ma
       val mandatoryArg = map["mandatory"] as Map<*, *>?
       val optionalArg = map["optional"] as Map<*, *>?
 
-      if (mandatoryArg == null && optionalArg == null) {
-        return null
+      return if (mandatoryArg == null && optionalArg == null) {
+        null
       } else {
         val mandatory = mapOf<String, String>()
         val optional = mapOf<String, String>()
@@ -28,7 +28,7 @@ data class AudioConstraints(val mandatory: Map<String, String>, val optional: Ma
         optionalArg?.entries?.associate { it.key as String to it.value as String }
         mandatoryArg?.entries?.associate { it.key as String to it.value as String }
 
-        return AudioConstraints(mandatory, optional)
+        AudioConstraints(mandatory, optional)
       }
     }
   }
@@ -47,5 +47,23 @@ data class AudioConstraints(val mandatory: Map<String, String>, val optional: Ma
       mediaConstraints.optional.add(MediaConstraints.KeyValuePair(entry.key, entry.value))
     }
     return mediaConstraints
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as AudioConstraints
+
+    if (mandatory != other.mandatory) return false
+    if (optional != other.optional) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = mandatory.hashCode()
+    result = 31 * result + optional.hashCode()
+    return result
   }
 }

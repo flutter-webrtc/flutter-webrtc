@@ -47,10 +47,10 @@ class Permissions(private val activity: Activity) :
     if (activity.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
       return
     }
-    return suspendCoroutine { continuation ->
+    return suspendCoroutine {
       hasOngoingRequest = true
       ActivityCompat.requestPermissions(activity, arrayOf(permission), PERMISSIONS_REQUEST_ID)
-      permissionRequest = continuation
+      permissionRequest = it
     }
   }
 
@@ -61,7 +61,7 @@ class Permissions(private val activity: Activity) :
    */
   private suspend fun waitForRequestEnd() {
     if (hasOngoingRequest) {
-      return suspendCoroutine { continuation -> requestsQueue.add(continuation) }
+      return suspendCoroutine { requestsQueue.add(it) }
     }
   }
 
@@ -85,7 +85,7 @@ class Permissions(private val activity: Activity) :
       permissions: Array<out String>,
       grantResults: IntArray
   ): Boolean {
-    if (requestCode == PERMISSIONS_REQUEST_ID) {
+    return if (requestCode == PERMISSIONS_REQUEST_ID) {
       for (entry in permissions.withIndex()) {
         if (grantResults[entry.index] == PackageManager.PERMISSION_GRANTED) {
           permissionRequest?.resume(Unit)
@@ -96,9 +96,9 @@ class Permissions(private val activity: Activity) :
         permissionRequest = null
       }
       requestResolved()
-      return true
+      true
     } else {
-      return false
+      false
     }
   }
 }

@@ -16,7 +16,7 @@ import org.webrtc.MediaStreamTrack
  */
 class MediaStreamTrackProxy(
     track: MediaStreamTrack,
-    private val deviceId: String = "remote",
+    val deviceId: String = "remote",
     private val source: MediaTrackSource? = null
 ) : Proxy<MediaStreamTrack>(track) {
   /**
@@ -32,8 +32,40 @@ class MediaStreamTrackProxy(
   /** List of [EventObserver]s belonging to this [MediaStreamTrackProxy]. */
   private var eventObservers: HashSet<EventObserver> = HashSet()
 
+  /** Indicator whether the underlying [MediaStreamTrack] had been disposed. */
+  private var disposed: Boolean = false
+
+  /** [MediaType] of the underlying [MediaStreamTrack]. */
+  val kind: MediaType =
+      when (obj.kind()) {
+        MediaStreamTrack.VIDEO_TRACK_KIND -> MediaType.VIDEO
+        MediaStreamTrack.AUDIO_TRACK_KIND -> MediaType.AUDIO
+        else -> throw Exception("LibWebRTC provided unknown MediaType value")
+      }
+
+  /** ID of the underlying [MediaStreamTrack] */
+  val id: String = obj.id()
+
+  /** [MediaStreamTrackState] of the underlying [MediaStreamTrack]. */
+  var state: MediaStreamTrackState = MediaStreamTrackState.LIVE
+    get() {
+      field =
+          if (disposed) {
+            MediaStreamTrackState.ENDED
+          } else {
+            MediaStreamTrackState.fromWebRtcState(obj.state())
+          }
+
+      return field
+    }
+
   init {
     TrackRepository.addTrack(this)
+  }
+
+  /** Sets the [disposed] property to `true`. */
+  fun setDisposed() {
+    disposed = true
   }
 
   companion object {
@@ -41,29 +73,6 @@ class MediaStreamTrackProxy(
     interface EventObserver {
       fun onEnded()
     }
-  }
-
-  /**
-   * Returns ID of the underlying [MediaStreamTrack].
-   *
-   * @return ID of the underlying [MediaStreamTrack].
-   */
-  fun id(): String {
-    return obj.id()
-  }
-
-  /** @return [MediaType] of the underlying [MediaStreamTrack]. */
-  fun kind(): MediaType {
-    return when (obj.kind()) {
-      MediaStreamTrack.VIDEO_TRACK_KIND -> MediaType.VIDEO
-      MediaStreamTrack.AUDIO_TRACK_KIND -> MediaType.AUDIO
-      else -> throw Exception("LibWebRTC provided unknown MediaType value")
-    }
-  }
-
-  /** @return Unique device ID of the underlying [MediaStreamTrack]. */
-  fun deviceId(): String {
-    return deviceId
   }
 
   /**
@@ -121,17 +130,17 @@ class MediaStreamTrackProxy(
     }
   }
 
-  /** @return [MediaStreamTrackState] of the underlying [MediaStreamTrack]. */
-  fun state(): MediaStreamTrackState {
-    return MediaStreamTrackState.fromWebRtcState(obj.state())
-  }
-
   /**
-   * Sets enabled state of the underlying [MediaStreamTrack].
+   * Sets enabled state of the underlying [MediaStreamTrack]. Does nothing if the underlying
+   * [MediaStreamTrack] has been [disposed].
    *
    * @param enabled State which will be set to the underlying [MediaStreamTrack].
    */
   fun setEnabled(enabled: Boolean) {
+    if (disposed) {
+      return
+    }
+
     obj.setEnabled(enabled)
   }
 
@@ -142,5 +151,20 @@ class MediaStreamTrackProxy(
    */
   fun onStop(f: () -> Unit) {
     onStopSubscribers.add(f)
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as MediaStreamTrackProxy
+
+    if (id != other.id) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    return id.hashCode()
   }
 }

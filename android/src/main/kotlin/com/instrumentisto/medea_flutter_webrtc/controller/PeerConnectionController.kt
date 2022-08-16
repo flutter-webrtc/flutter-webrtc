@@ -146,16 +146,24 @@ class PeerConnectionController(
         }
       }
       "addTransceiver" -> {
-        val mediaType = MediaType.fromInt(call.argument("mediaType")!!)
-        val transceiverInitArg: Map<String, Any>? = call.argument("init")
-        val transceiver =
-            if (transceiverInitArg == null) {
-              peer.addTransceiver(mediaType, null)
-            } else {
-              peer.addTransceiver(mediaType, RtpTransceiverInit.fromMap(transceiverInitArg))
-            }
-        val transceiverController = RtpTransceiverController(messenger, transceiver)
-        result.success(transceiverController.asFlutterResult())
+        try {
+          val mediaType = MediaType.fromInt(call.argument("mediaType")!!)
+          val transceiverInitArg: Map<String, Any>? = call.argument("init")
+          val transceiver =
+              if (transceiverInitArg == null) {
+                peer.addTransceiver(mediaType, null)
+              } else {
+                peer.addTransceiver(mediaType, RtpTransceiverInit.fromMap(transceiverInitArg))
+              }
+          if (transceiver != null) {
+            val transceiverController = RtpTransceiverController(messenger, transceiver)
+            result.success(transceiverController.asFlutterResult())
+          } else {
+            result.success(null)
+          }
+        } catch (e: Exception) {
+          resultUnhandledException(result, e)
+        }
       }
       "getTransceivers" -> {
         result.success(

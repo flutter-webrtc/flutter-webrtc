@@ -242,4 +242,24 @@ data class VideoConstraints(
 
     return ConstraintScore.totalScore(scores)
   }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as VideoConstraints
+
+    if (width != other.width) return false
+    if (height != other.height) return false
+    if (fps != other.fps) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = width ?: 0
+    result = 31 * result + (height ?: 0)
+    result = 31 * result + (fps ?: 0)
+    return result
+  }
 }

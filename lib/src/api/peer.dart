@@ -70,8 +70,11 @@ abstract class PeerConnection {
     }
   }
 
-  /// Indicates whether the [close] was called.
+  /// Indicator whether the [close] was called.
   bool _closed = false;
+
+  /// Indicates whether the [close] was called.
+  bool get closed => _closed;
 
   /// `on_ice_connection_state_change` event subscriber.
   OnIceConnectionStateChangeCallback? _onIceConnectionStateChange;
@@ -210,7 +213,6 @@ abstract class PeerConnection {
   /// Closes this [PeerConnection] and all it's owned entities (for example,
   /// [RtpTransceiver]s).
   Future<void> close() async {
-    _onIceCandidate = null;
     for (var e in _transceivers) {
       e.stoppedByPeer();
     }
@@ -308,9 +310,18 @@ class _PeerConnectionChannel extends PeerConnection {
     }
   }
 
+  /// Throws [StateError] if [_closed] is `true`.
+  void _checkNotClosed() {
+    if (_closed) {
+      throw StateError('Use PeerConnection after close');
+    }
+  }
+
   @override
   Future<RtpTransceiver> addTransceiver(
       MediaKind mediaType, RtpTransceiverInit init) async {
+    _checkNotClosed();
+
     dynamic res = await _chan.invokeMethod(
         'addTransceiver', {'mediaType': mediaType.index, 'init': init.toMap()});
     var transceiver = RtpTransceiver.fromMap(res);
@@ -321,6 +332,8 @@ class _PeerConnectionChannel extends PeerConnection {
 
   @override
   Future<List<RtpTransceiver>> getTransceivers() async {
+    _checkNotClosed();
+
     List<dynamic>? res = await _chan.invokeMethod('getTransceivers');
     var transceivers = res!.map((t) => RtpTransceiver.fromMap(t)).toList();
     _transceivers.addAll(transceivers);
@@ -330,6 +343,8 @@ class _PeerConnectionChannel extends PeerConnection {
 
   @override
   Future<void> setRemoteDescription(SessionDescription description) async {
+    _checkNotClosed();
+
     await _chan.invokeMethod(
         'setRemoteDescription', {'description': description.toMap()});
     await _syncTransceiversMids();
@@ -337,6 +352,8 @@ class _PeerConnectionChannel extends PeerConnection {
 
   @override
   Future<void> setLocalDescription(SessionDescription description) async {
+    _checkNotClosed();
+
     await _chan.invokeMethod(
         'setLocalDescription', {'description': description.toMap()});
     await _syncTransceiversMids();
@@ -344,26 +361,32 @@ class _PeerConnectionChannel extends PeerConnection {
 
   @override
   Future<SessionDescription> createOffer() async {
+    _checkNotClosed();
+
     dynamic res = await _chan.invokeMethod('createOffer');
     return SessionDescription.fromMap(res);
   }
 
   @override
   Future<SessionDescription> createAnswer() async {
+    _checkNotClosed();
+
     dynamic res = await _chan.invokeMethod('createAnswer');
     return SessionDescription.fromMap(res);
   }
 
   @override
   Future<void> addIceCandidate(IceCandidate candidate) async {
-    if (!_closed) {
-      await _chan
-          .invokeMethod('addIceCandidate', {'candidate': candidate.toMap()});
-    }
+    _checkNotClosed();
+
+    await _chan
+        .invokeMethod('addIceCandidate', {'candidate': candidate.toMap()});
   }
 
   @override
   Future<void> restartIce() async {
+    _checkNotClosed();
+
     await _chan.invokeMethod('restartIce');
   }
 
@@ -379,11 +402,12 @@ class _PeerConnectionChannel extends PeerConnection {
 
   @override
   Future<void> close() async {
-    if (!_closed) {
-      _closed = true;
-      await super.close();
-      await _chan.invokeMethod('dispose');
-    }
+    _checkNotClosed();
+
+    _onIceCandidate = null;
+    _closed = true;
+    await super.close();
+    await _chan.invokeMethod('dispose');
   }
 }
 
@@ -423,6 +447,13 @@ class _PeerConnectionFFI extends PeerConnection {
   Stream<ffi.PeerConnectionEvent>? _stream;
 
   _PeerConnectionFFI();
+
+  /// Throws [StateError] if [_closed] is `true`.
+  void _checkNotClosed() {
+    if (_closed) {
+      throw StateError('Use PeerConnection after close');
+    }
+  }
 
   /// Listener for the all [PeerConnection] events received from the native
   /// side.
@@ -471,18 +502,20 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<void> addIceCandidate(IceCandidate candidate) async {
-    if (!_closed) {
-      await api!.addIceCandidate(
-          peerId: _id!,
-          candidate: candidate.candidate,
-          sdpMid: candidate.sdpMid,
-          sdpMlineIndex: candidate.sdpMLineIndex);
-    }
+    _checkNotClosed();
+
+    await api!.addIceCandidate(
+        peerId: _id!,
+        candidate: candidate.candidate,
+        sdpMid: candidate.sdpMid,
+        sdpMlineIndex: candidate.sdpMLineIndex);
   }
 
   @override
   Future<RtpTransceiver> addTransceiver(
       MediaKind mediaType, RtpTransceiverInit init) async {
+    _checkNotClosed();
+
     var transceiver = RtpTransceiver.fromFFI(await api!.addTransceiver(
         peerId: _id!,
         mediaType: ffi.MediaType.values[mediaType.index],
@@ -494,15 +527,18 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<void> close() async {
-    if (!_closed) {
-      _closed = true;
-      await super.close();
-      await api!.disposePeerConnection(peerId: _id!);
-    }
+    _checkNotClosed();
+
+    _onIceCandidate = null;
+    _closed = true;
+    await super.close();
+    await api!.disposePeerConnection(peerId: _id!);
   }
 
   @override
   Future<SessionDescription> createAnswer() async {
+    _checkNotClosed();
+
     var res = await api!.createAnswer(
         peerId: _id!,
         voiceActivityDetection: true,
@@ -514,6 +550,8 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<SessionDescription> createOffer() async {
+    _checkNotClosed();
+
     var res = await api!.createOffer(
         peerId: _id!,
         voiceActivityDetection: true,
@@ -525,6 +563,8 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<List<RtpTransceiver>> getTransceivers() async {
+    _checkNotClosed();
+
     var transceivers = (await api!.getTransceivers(peerId: _id!))
         .map((transceiver) => RtpTransceiver.fromFFI(transceiver))
         .toList();
@@ -535,11 +575,15 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<void> restartIce() async {
+    _checkNotClosed();
+
     return await api!.restartIce(peerId: _id!);
   }
 
   @override
   Future<void> setLocalDescription(SessionDescription description) async {
+    _checkNotClosed();
+
     await api!.setLocalDescription(
         peerId: _id!,
         kind: ffi.SdpType.values[description.type.index],
@@ -549,6 +593,8 @@ class _PeerConnectionFFI extends PeerConnection {
 
   @override
   Future<void> setRemoteDescription(SessionDescription description) async {
+    _checkNotClosed();
+
     await api!.setRemoteDescription(
         peerId: _id!,
         kind: ffi.SdpType.values[description.type.index],

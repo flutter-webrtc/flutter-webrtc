@@ -19,7 +19,7 @@ object TrackRepository {
    * @param track Actual [MediaStreamTrackProxy] which will be stored here.
    */
   fun addTrack(track: MediaStreamTrackProxy) {
-    tracks[track.id()] = WeakReference(track)
+    tracks[track.id] = WeakReference(track)
   }
 
   /**

@@ -9,21 +9,20 @@ import org.webrtc.RtpReceiver
  */
 class RtpReceiverProxy(receiver: RtpReceiver) : Proxy<RtpReceiver>(receiver) {
   /** [MediaStreamTrackProxy] of this [RtpReceiverProxy]. */
-  private var track: MediaStreamTrackProxy = MediaStreamTrackProxy(obj.track()!!)
+  val track: MediaStreamTrackProxy = MediaStreamTrackProxy(obj.track()!!)
+
+  /** Unique ID of the underlying [RtpReceiver]. */
+  val id: String = obj.id()
 
   init {
     track.replace(obj.track()!!)
     addOnSyncListener { track.replace(obj.track()!!) }
   }
 
-  /** @return Unique ID of the underlying [RtpReceiver]. */
-  fun id(): String {
-    return obj.id()
-  }
-
-  /** @return [MediaStreamTrackProxy] of this [RtpReceiverProxy]. */
-  fun getTrack(): MediaStreamTrackProxy {
-    return track
+  /** Calls [notifyRemoved] and sets the [track] disposed. */
+  fun setDisposed() {
+    notifyRemoved()
+    track.setDisposed()
   }
 
   /**

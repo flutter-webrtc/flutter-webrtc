@@ -9,10 +9,11 @@ import org.webrtc.ThreadUtils
  * `RtpSender` will be outdated. To keep this from happening `PeerConnection` should update its
  * `RtpSender`s with a newly obtained `RtpSender`s via [Proxy.replace] method.
  */
-abstract class Proxy<T> constructor(obj: T) {
-
-  /** Underlying `libwebrtc` object of this proxy. */
-  var obj: T = obj
+abstract class Proxy<T>
+constructor(
+    /** Underlying `libwebrtc` object of this proxy. */
+    var obj: T
+) {
 
   /** List of subscribers to be notified when underlying [obj] is replaced. */
   private var onSyncListeners: MutableList<() -> Unit> = mutableListOf()

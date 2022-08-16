@@ -63,13 +63,15 @@ class PeerObserver : PeerConnection.Observer {
   }
 
   override fun onTrack(transceiver: RtpTransceiver?) {
-    if (transceiver != null) {
-      Handler(Looper.getMainLooper()).post {
-        val receiver = transceiver.receiver
-        val transceivers = peer?.getTransceivers()!!
-        for (trans in transceivers) {
-          if (trans.getReceiver().id() == receiver.id()) {
-            peer?.observableEventBroadcaster()?.onTrack(trans.getReceiver().getTrack(), trans)
+    if (transceiver != null && peer != null) {
+      if (!peer!!.disposed) {
+        Handler(Looper.getMainLooper()).post {
+          val receiver = transceiver.receiver
+          val transceivers = peer?.getTransceivers()!!
+          for (trans in transceivers) {
+            if (trans.receiver.id == receiver.id()) {
+              peer?.observableEventBroadcaster()?.onTrack(trans.receiver.track, trans)
+            }
           }
         }
       }
