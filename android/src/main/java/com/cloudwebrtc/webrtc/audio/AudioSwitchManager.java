@@ -123,6 +123,14 @@ public class AudioSwitchManager {
             }
         });
     }
+
+    public void enableSpeakerphone(boolean enable) {
+        if(enable) {
+            audioManager.setSpeakerphoneOn(true);
+        } else {
+            audioManager.setSpeakerphoneOn(false);
+        }
+    }
     
     public void selectAudioOutput(@Nullable AudioDeviceKind kind) {
         if (kind != null) {

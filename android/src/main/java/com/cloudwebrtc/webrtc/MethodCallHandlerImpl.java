@@ -476,9 +476,21 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         audioSwitchManager.setMicrophoneMute(mute);
         result.success(null);
         break;
+      case "setPreferredInput":
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+          String deviceId = call.argument("deviceId");
+          getUserMediaImpl.setPreferredInputDevice(Integer.parseInt(deviceId));
+          result.success(null);
+        } else {
+          result.notImplemented();
+        }
+        break;
+      case "setPreferredOutput":
+        result.notImplemented();
+        break;
       case "enableSpeakerphone":
         boolean enable = call.argument("enable");
-        audioSwitchManager.selectAudioOutput(AudioDeviceKind.SPEAKER);
+        audioSwitchManager.enableSpeakerphone(enable);
         result.success(null);
         break;
       case "getDisplayMedia": {
@@ -671,16 +683,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       case "getTransceivers": {
         String peerConnectionId = call.argument("peerConnectionId");
         getTransceivers(peerConnectionId, result);
-        break;
-      }
-      case "setPreferredInputDevice": {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
-          String deviceId = call.argument("deviceId");
-          getUserMediaImpl.setPreferredInputDevice(Integer.parseInt(deviceId));
-          result.success(null);
-        } else {
-          result.notImplemented();
-        }
         break;
       }
       default:
@@ -1142,22 +1144,25 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       audio.putString("kind", "audioinput");
       array.pushMap(audio);
     } else {
-      android.media.AudioManager audioManager = ((android.media.AudioManager) context.getSystemService(Context.AUDIO_SERVICE));
+      android.media.AudioManager audioManager = ((android.media.AudioManager) context
+          .getSystemService(Context.AUDIO_SERVICE));
       final AudioDeviceInfo[] devices = audioManager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS);
-      for (int i=0;i<devices.length;i++) {
-        AudioDeviceInfo device=devices[i];
-        int type = (device.getType() & 0xFF);
-        String label=Build.VERSION.SDK_INT < Build.VERSION_CODES.P ? String.valueOf(i) : device.getAddress();
-        ConstraintsMap audio = new ConstraintsMap();
-        audio.putString("label", label);
-        audio.putString("deviceId", String.valueOf(i));
-        audio.putString("groupId", ""+type);
-        audio.putString("facing", "");
-        audio.putString("kind", "audioinput");
-        array.pushMap(audio);
+      for (int i = 0; i < devices.length; i++) {
+        AudioDeviceInfo device = devices[i];
+        if (device.getType() == AudioDeviceInfo.TYPE_BUILTIN_MIC || device.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+                device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET) {
+          int type = (device.getType() & 0xFF);
+          String label = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ? String.valueOf(i) : device.getAddress();
+          ConstraintsMap audio = new ConstraintsMap();
+          audio.putString("label", label);
+          audio.putString("deviceId", String.valueOf(i));
+          audio.putString("groupId", "" + type);
+          audio.putString("facing", "");
+          audio.putString("kind", "audioinput");
+          array.pushMap(audio);
+        }
       }
     }
-
 
     List<? extends AudioDevice> audioOutputs = audioSwitchManager.availableAudioDevices();
 
