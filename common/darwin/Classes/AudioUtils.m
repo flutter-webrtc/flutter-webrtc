@@ -66,6 +66,7 @@
 }
 
 + (void)setSpeakerphoneOn:(BOOL)enable {
+#if TARGET_OS_IPHONE
     RTCAudioSession *session = [RTCAudioSession sharedInstance];
     [session lockForConfiguration];
     [session setCategory:AVAudioSessionCategoryPlayAndRecord
@@ -75,5 +76,6 @@
                     error:nil];
     [session setActive:YES error:nil];
     [session unlockForConfiguration];
+#endif
 }
 @end
