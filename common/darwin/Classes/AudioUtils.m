@@ -41,7 +41,7 @@
 #endif
 }
 
-+ (BOOL)setPreferredInput:(AVAudioSessionPort)type {
++ (BOOL)selectAudioInput:(AVAudioSessionPort)type {
 #if TARGET_OS_IPHONE
   RTCAudioSession *rtcSession = [RTCAudioSession sharedInstance];
   AVAudioSessionPortDescription *inputPort = nil;

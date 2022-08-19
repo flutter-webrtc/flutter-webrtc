@@ -64,10 +64,10 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   @override
   Future<bool> switchCamera() => Helper.switchCamera(this);
 
-  @Deprecated('Use Helper.setSpeakerOn instead')
+  @Deprecated('Use Helper.setSpeakerphoneOn instead')
   @override
   void enableSpeakerphone(bool enable) async {
-    return Helper.setSpeakerOn(enable);
+    return Helper.setSpeakerphoneOn(enable);
   }
 
   @override

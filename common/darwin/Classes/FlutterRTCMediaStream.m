@@ -562,6 +562,37 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     result(@{@"sources": sources});
 }
 
+-(void)selectAudioInput:(NSString *)deviceId
+                 result:(FlutterResult) result {
+#if TARGET_OS_OSX
+    RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
+    NSArray *inputDevices = [audioDeviceModule inputDevices];
+    for (RTCAudioDevice *device in inputDevices) {
+        if([deviceId isEqualToString:device.deviceId]){
+            [audioDeviceModule setInputDevice:device];
+            result(nil);
+            return;
+        }
+    }
+#endif
+#if TARGET_OS_IPHONE
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    for (AVAudioSessionPortDescription *port in session.session.availableInputs) {
+        if([port.UID isEqualToString:deviceId]) {
+            if(self.preferredInput != port.portType) {
+                self.preferredInput = port.portType;
+                [AudioUtils selectAudioInput:self.preferredInput];
+            }
+            break;
+        }
+    }
+    result(nil);
+#endif
+    result([FlutterError errorWithCode:@"selectAudioInputFailed"
+                               message:[NSString stringWithFormat:@"Error: deviceId not found!"]
+                               details:nil]);
+}
+
 -(void)selectAudioOutput:(NSString *)deviceId
                   result:(FlutterResult) result {
 #if TARGET_OS_OSX

@@ -4,6 +4,6 @@
 
 + (void)ensureAudioSessionWithRecording:(BOOL)recording;
 // needed for wired headphones to use headphone mic
-+ (BOOL)setPreferredInput:(AVAudioSessionPort)type;
++ (BOOL)selectAudioInput:(AVAudioSessionPort)type;
 
 @end

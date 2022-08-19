@@ -476,7 +476,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         audioSwitchManager.setMicrophoneMute(mute);
         result.success(null);
         break;
-      case "setPreferredInput":
+      case "selectAudioInput":
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
           String deviceId = call.argument("deviceId");
           getUserMediaImpl.setPreferredInputDevice(Integer.parseInt(deviceId));
@@ -484,9 +484,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         } else {
           result.notImplemented();
         }
-        break;
-      case "setPreferredOutput":
-        result.notImplemented();
         break;
       case "enableSpeakerphone":
         boolean enable = call.argument("enable");

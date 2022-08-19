@@ -71,8 +71,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     await _localRenderer.audioOutput(deviceId);
   }
 
-  void _setPreferredInput(String deviceId) async {
-    await Helper.setPreferredInput(deviceId);
+  void _selectAudioInput(String deviceId) async {
+    await Helper.selectAudioInput(deviceId);
   }
 
   void _cleanUp() async {
@@ -371,7 +371,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void _switchSpeaker() async {
     setState(() {
       _speakerOn = !_speakerOn;
-      Helper.setSpeakerOn(_speakerOn);
+      Helper.setSpeakerphoneOn(_speakerOn);
     });
   }
 
@@ -471,7 +471,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
         title: Text('LoopBack Unified Tracks example'),
         actions: [
           PopupMenuButton<String>(
-            onSelected: _setPreferredInput,
+            onSelected: _selectAudioInput,
             icon: Icon(Icons.settings_voice),
             itemBuilder: (BuildContext context) {
               if (_mediaDevicesList != null) {

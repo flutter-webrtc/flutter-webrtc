@@ -26,6 +26,7 @@
 
 @synthesize messenger = _messenger;
 @synthesize eventSink = _eventSink;
+@synthesize preferredInput = _preferredInput;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
 
@@ -89,7 +90,7 @@
     self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
     _preferredInput = AVAudioSessionPortHeadphones;
-    [AudioUtils setPreferredInput:_preferredInput];
+    [AudioUtils selectAudioInput:_preferredInput];
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
@@ -131,7 +132,7 @@
           break;
       }
       case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
-          [AudioUtils setPreferredInput:_preferredInput];
+          [AudioUtils selectAudioInput:_preferredInput];
           break;
       }
     default:
@@ -182,6 +183,10 @@
         [self createLocalMediaStream:result];
     } else if ([@"getSources" isEqualToString:call.method]) {
         [self getSources:result];
+    } else if([@"selectAudioInput" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* deviceId = argsMap[@"deviceId"];
+        [self selectAudioInput:deviceId result:result];
     } else if([@"selectAudioOutput" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* deviceId = argsMap[@"deviceId"];
@@ -636,28 +641,14 @@
         result(nil);
     } 
 #if TARGET_OS_IPHONE
-    else if ([@"setPreferredInput" isEqualToString:call.method]) {
-        NSDictionary* argsMap = call.arguments;
-        NSString* deviceId = argsMap[@"deviceId"];
-        RTCAudioSession *session = [RTCAudioSession sharedInstance];
-        for (AVAudioSessionPortDescription *port in session.session.availableInputs) {
-            if([port.UID isEqualToString:deviceId]) {
-                if(_preferredInput != port.portType) {
-                    _preferredInput = port.portType;
-                    [AudioUtils setPreferredInput:_preferredInput];
-                }
-                break;
-            }
-        }
-        result(nil);
-    } else if ([@"setPreferredOutput" isEqualToString:call.method]) {
-        result(FlutterMethodNotImplemented);
-    } else if ([@"enableSpeakerphone" isEqualToString:call.method]) {
+    else if ([@"enableSpeakerphone" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSNumber* enable = argsMap[@"enable"];
         _speakerOn = enable.boolValue;
         RTCAudioSession *audioSession = [RTCAudioSession sharedInstance];
-        [audioSession.session overrideOutputAudioPort:_speakerOn ? kAudioSessionOverrideAudioRoute_Speaker : kAudioSessionOverrideAudioRoute_None error:nil];
+        [audioSession lockForConfiguration];
+        [audioSession overrideOutputAudioPort:_speakerOn ? kAudioSessionOverrideAudioRoute_Speaker : kAudioSessionOverrideAudioRoute_None error:nil];
+        [audioSession unlockForConfiguration];
         result(nil);
     } 
 #endif
