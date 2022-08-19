@@ -64,13 +64,10 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   @override
   Future<bool> switchCamera() => Helper.switchCamera(this);
 
+  @Deprecated('Use Helper.setSpeakerOn instead')
   @override
   void enableSpeakerphone(bool enable) async {
-    print('MediaStreamTrack:enableSpeakerphone $enable');
-    await WebRTC.invokeMethod(
-      'enableSpeakerphone',
-      <String, dynamic>{'trackId': _trackId, 'enable': enable},
-    );
+    return Helper.setSpeakerOn(enable);
   }
 
   @override

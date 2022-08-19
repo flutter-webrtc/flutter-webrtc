@@ -21,6 +21,7 @@
     id _messenger;
     id _textures;
     BOOL _speakerOn;
+    AVAudioSessionPort _preferredInput;
 }
 
 @synthesize messenger = _messenger;
@@ -87,6 +88,8 @@
     self.renders = [NSMutableDictionary new];
     self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
+    _preferredInput = AVAudioSessionPortHeadphones;
+    [AudioUtils setPreferredInput:_preferredInput];
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
@@ -120,23 +123,21 @@
 #if TARGET_OS_IPHONE
   NSDictionary *interuptionDict = notification.userInfo;
   NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
-
+  RTCAudioSession* rtcAudioSession = [RTCAudioSession sharedInstance];
   switch (routeChangeReason) {
       case AVAudioSessionRouteChangeReasonCategoryChange: {
           NSError* error;
-          [[AVAudioSession sharedInstance] overrideOutputAudioPort:_speakerOn? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:&error];
+          [rtcAudioSession.session overrideOutputAudioPort:_speakerOn? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:&error];
           break;
       }
       case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
-          [AudioUtils setPreferHeadphoneInput];
+          [AudioUtils setPreferredInput:_preferredInput];
           break;
       }
-
     default:
       break;
   }
-
-  if(self.eventSink) {
+  if(self.eventSink && AVAudioSessionRouteChangeReasonOverride != routeChangeReason) {
     self.eventSink(@{@"event" : @"onDeviceChange"});
   }
 #endif
@@ -633,23 +634,34 @@
             audioTrack.isEnabled = !mute.boolValue;
         }
         result(nil);
-    } else if ([@"enableSpeakerphone" isEqualToString:call.method]) {
+    } 
 #if TARGET_OS_IPHONE
+    else if ([@"setPreferredInput" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* deviceId = argsMap[@"deviceId"];
+        RTCAudioSession *session = [RTCAudioSession sharedInstance];
+        for (AVAudioSessionPortDescription *port in session.session.availableInputs) {
+            if([port.UID isEqualToString:deviceId]) {
+                if(_preferredInput != port.portType) {
+                    _preferredInput = port.portType;
+                    [AudioUtils setPreferredInput:_preferredInput];
+                }
+                break;
+            }
+        }
+        result(nil);
+    } else if ([@"setPreferredOutput" isEqualToString:call.method]) {
+        result(FlutterMethodNotImplemented);
+    } else if ([@"enableSpeakerphone" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSNumber* enable = argsMap[@"enable"];
         _speakerOn = enable.boolValue;
-        AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-        [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
-                      withOptions:_speakerOn ? AVAudioSessionCategoryOptionDefaultToSpeaker
-                      :
-                      AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowBluetoothA2DP
-                        error:nil];
-        [audioSession setActive:YES error:nil];
+        RTCAudioSession *audioSession = [RTCAudioSession sharedInstance];
+        [audioSession.session overrideOutputAudioPort:_speakerOn ? kAudioSessionOverrideAudioRoute_Speaker : kAudioSessionOverrideAudioRoute_None error:nil];
         result(nil);
-#else
-        result(FlutterMethodNotImplemented);
+    } 
 #endif
-    } else if ([@"getLocalDescription" isEqualToString:call.method]) {
+    else if ([@"getLocalDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
@@ -1085,7 +1097,7 @@
         }
 
         result(@{@"audioTracks": audioTracks, @"videoTracks" : videoTracks });
-    }else{
+    } else {
         result(nil);
     }
 }

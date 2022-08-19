@@ -21,6 +21,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   bool _inCalling = false;
   bool _micOn = false;
   bool _cameraOn = false;
+  bool _speakerOn = false;
   List<MediaDeviceInfo>? _mediaDevicesList;
   final _configuration = <String, dynamic>{
     'iceServers': [
@@ -42,16 +43,36 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     super.initState();
     initRenderers();
     initLocalConnection();
+    _refreshMediaDevices();
+    navigator.mediaDevices.ondevicechange = (event) async {
+      print('++++++ ondevicechange ++++++');
+      var devices = await navigator.mediaDevices.enumerateDevices();
+      setState(() {
+        _mediaDevicesList = devices;
+      });
+    };
   }
 
   @override
   void deactivate() {
     super.deactivate();
+    navigator.mediaDevices.ondevicechange = null;
     _cleanUp();
   }
 
-  void _selectAudioOutput(String deviceId) {
-    _localRenderer.audioOutput(deviceId);
+  Future<void> _refreshMediaDevices() async {
+    var devices = await navigator.mediaDevices.enumerateDevices();
+    setState(() {
+      _mediaDevicesList = devices;
+    });
+  }
+
+  void _selectAudioOutput(String deviceId) async {
+    await _localRenderer.audioOutput(deviceId);
+  }
+
+  void _setPreferredInput(String deviceId) async {
+    await Helper.setPreferredInput(deviceId);
   }
 
   void _cleanUp() async {
@@ -226,13 +247,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       print(e.toString());
     }
 
-    var devices = await navigator.mediaDevices.enumerateDevices();
-
     if (!mounted) return;
-
     setState(() {
       _inCalling = true;
-      _mediaDevicesList = devices;
     });
   }
 
@@ -351,6 +368,13 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     });
   }
 
+  void _switchSpeaker() async {
+    setState(() {
+      _speakerOn = !_speakerOn;
+      Helper.setSpeakerOn(_speakerOn);
+    });
+  }
+
   Future<void> _removeExistingVideoTrack({bool fromConnection = false}) async {
     var tracks = _localStream!.getVideoTracks();
     for (var i = tracks.length - 1; i >= 0; i--) {
@@ -447,6 +471,23 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
         title: Text('LoopBack Unified Tracks example'),
         actions: [
           PopupMenuButton<String>(
+            onSelected: _setPreferredInput,
+            icon: Icon(Icons.settings_voice),
+            itemBuilder: (BuildContext context) {
+              if (_mediaDevicesList != null) {
+                return _mediaDevicesList!
+                    .where((device) => device.kind == 'audioinput')
+                    .map((device) {
+                  return PopupMenuItem<String>(
+                    value: device.deviceId,
+                    child: Text(device.label),
+                  );
+                }).toList();
+              }
+              return [];
+            },
+          ),
+          PopupMenuButton<String>(
             onSelected: _selectAudioOutput,
             icon: Icon(Icons.volume_down_alt),
             itemBuilder: (BuildContext context) {
@@ -490,6 +531,15 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                         tooltip: _micOn ? 'Stop mic' : 'Start mic',
                         onPressed: _micOn ? _stopAudio : _startAudio,
                         child: Icon(_micOn ? Icons.mic : Icons.mic_off)),
+                    FloatingActionButton(
+                        heroTag: null,
+                        backgroundColor:
+                            _speakerOn ? null : Theme.of(context).disabledColor,
+                        tooltip: _speakerOn ? 'Stop speaker' : 'Start speaker',
+                        onPressed: _switchSpeaker,
+                        child: Icon(_speakerOn
+                            ? Icons.speaker_phone
+                            : Icons.phone_in_talk)),
                     FloatingActionButton(
                       heroTag: null,
                       backgroundColor:

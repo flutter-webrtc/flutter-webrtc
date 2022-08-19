@@ -34,6 +34,27 @@ class Helper {
         .selectAudioOutput(AudioOutputOptions(deviceId: deviceId));
   }
 
+  static Future<void> setPreferredInput(String deviceId) async {
+    await WebRTC.invokeMethod(
+      'setPreferredInput',
+      <String, dynamic>{'deviceId': deviceId},
+    );
+  }
+
+  static Future<void> setPreferredOutput(String deviceId) async {
+    await WebRTC.invokeMethod(
+      'setPreferredOutput',
+      <String, dynamic>{'deviceId': deviceId},
+    );
+  }
+
+  static Future<void> setSpeakerOn(bool enable) async {
+    await WebRTC.invokeMethod(
+      'enableSpeakerphone',
+      <String, dynamic>{'enable': enable},
+    );
+  }
+
   /// To select a a specific camera, you need to set constraints
   /// eg.
   /// constraints = {

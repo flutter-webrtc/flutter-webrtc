@@ -520,6 +520,14 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     }
     for (AVAudioSessionPortDescription *port in session.currentRoute.outputs) {
         //NSLog(@"output portName: %@, type %@", port.portName,port.portType);
+        if(session.currentRoute.outputs.count == 1 && ![port.UID isEqualToString:@"Speaker"]) {
+            [sources addObject:@{
+                                 @"facing": @"",
+                                 @"deviceId": @"Speaker",
+                                 @"label": @"Speaker",
+                                 @"kind": @"audiooutput",
+                                 }];
+        }
         [sources addObject:@{
                              @"facing": @"",
                              @"deviceId": port.UID,
@@ -566,6 +574,26 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             return;
         }
     }
+#endif
+#if TARGET_OS_IPHONE
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    NSError *setCategoryError = nil;
+
+    if([deviceId isEqualToString:@"Speaker"]) {
+        [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_Speaker error:&setCategoryError];
+    } else {
+        [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None error:&setCategoryError];
+    }
+    
+    if(setCategoryError == nil) {
+        result(nil);
+        return;
+    }
+    
+    result([FlutterError errorWithCode:@"selectAudioOutputFailed"
+                               message:[NSString stringWithFormat:@"Error: %@", [setCategoryError localizedFailureReason]]
+                               details:nil]);
+
 #endif
     result([FlutterError errorWithCode:@"selectAudioOutputFailed"
                                message:[NSString stringWithFormat:@"Error: deviceId not found!"]
