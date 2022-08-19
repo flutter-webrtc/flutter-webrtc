@@ -25,6 +25,12 @@ class FlutterMediaStream {
   void SelectAudioOutput(const std::string& device_id,
                     std::unique_ptr<MethodResult<EncodableValue>> result);
 
+  void SetPreferredInput(const std::string& device_id,
+                    std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void SetPreferredOutput(const std::string& device_id,
+                    std::unique_ptr<MethodResult<EncodableValue>> result);
+
   void MediaStreamGetTracks(
       const std::string &stream_id,
       std::unique_ptr<MethodResult<EncodableValue>> result);
