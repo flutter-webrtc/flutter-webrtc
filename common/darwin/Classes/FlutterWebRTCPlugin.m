@@ -90,7 +90,8 @@
     self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
     _preferredInput = AVAudioSessionPortHeadphones;
-    [AudioUtils selectAudioInput:_preferredInput];
+    _speakerOn = NO;
+    [AudioUtils setSpeakerphoneOn:_speakerOn];
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
@@ -124,11 +125,11 @@
 #if TARGET_OS_IPHONE
   NSDictionary *interuptionDict = notification.userInfo;
   NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
-  RTCAudioSession* rtcAudioSession = [RTCAudioSession sharedInstance];
+  AVAudioSession* session = [AVAudioSession sharedInstance];
   switch (routeChangeReason) {
       case AVAudioSessionRouteChangeReasonCategoryChange: {
           NSError* error;
-          [rtcAudioSession.session overrideOutputAudioPort:_speakerOn? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:&error];
+          [session overrideOutputAudioPort:_speakerOn? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:&error];
           break;
       }
       case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
@@ -645,10 +646,7 @@
         NSDictionary* argsMap = call.arguments;
         NSNumber* enable = argsMap[@"enable"];
         _speakerOn = enable.boolValue;
-        RTCAudioSession *audioSession = [RTCAudioSession sharedInstance];
-        [audioSession lockForConfiguration];
-        [audioSession overrideOutputAudioPort:_speakerOn ? kAudioSessionOverrideAudioRoute_Speaker : kAudioSessionOverrideAudioRoute_None error:nil];
-        [audioSession unlockForConfiguration];
+        [AudioUtils setSpeakerphoneOn:_speakerOn];
         result(nil);
     } 
 #endif

@@ -65,4 +65,15 @@
   return NO;
 }
 
++ (void)setSpeakerphoneOn:(BOOL)enable {
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    [session lockForConfiguration];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord
+                  withOptions:enable ? AVAudioSessionCategoryOptionDefaultToSpeaker
+                  :
+                  AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP
+                    error:nil];
+    [session setActive:YES error:nil];
+    [session unlockForConfiguration];
+}
 @end
