@@ -348,7 +348,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         String trackId = call.argument("trackId");
         mediaStreamAddTrack(streamId, trackId, result);
         for (int i = 0; i < renders.size(); i++) {
-          FlutterRTCVideoRenderer renderer = renders.get(i);
+          FlutterRTCVideoRenderer renderer = renders.valueAt(i);
           if (renderer.checkMediaStream(streamId)) {
             renderer.setVideoTrack((VideoTrack) localTracks.get(trackId));
           }
@@ -683,6 +683,16 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       case "getTransceivers": {
         String peerConnectionId = call.argument("peerConnectionId");
         getTransceivers(peerConnectionId, result);
+        break;
+      }
+      case "setPreferredInputDevice": {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+          String deviceId = call.argument("deviceId");
+          getUserMediaImpl.setPreferredInputDevice(Integer.parseInt(deviceId));
+          result.success(null);
+        } else {
+          result.notImplemented();
+        }
         break;
       }
       default:

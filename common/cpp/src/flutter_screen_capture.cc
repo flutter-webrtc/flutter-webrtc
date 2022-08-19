@@ -7,7 +7,7 @@ FlutterScreenCapture::FlutterScreenCapture(FlutterWebRTCBase* base)
 }
 
 bool FlutterScreenCapture::BuildDesktopSourcesList(const EncodableList& types, bool force_reload) {
-      size_t size = types.size();
+  size_t size = types.size();
   sources_.clear();
   for (size_t i = 0; i < size; i++) {
     std::string type_str = GetValue<std::string>(types[i]);
@@ -53,8 +53,6 @@ void FlutterScreenCapture::GetDesktopSources(
     info[EncodableValue("name")] = EncodableValue(source->name().std_string());
     info[EncodableValue("type")] =
         EncodableValue(source->type() == kWindow ? "window" : "screen");
-    info[EncodableValue("thumbnail")] =
-        EncodableValue(source->thumbnail().std_vector());
     // TODO "thumbnailSize"
     info[EncodableValue("thumbnailSize")] = EncodableMap{
         {EncodableValue("width"), EncodableValue(0)},
@@ -91,8 +89,6 @@ void FlutterScreenCapture::OnMediaSourceAdded(
     info[EncodableValue("name")] = EncodableValue(source->name().std_string());
     info[EncodableValue("type")] =
         EncodableValue(source->type() == kWindow ? "window" : "screen");
-    info[EncodableValue("thumbnail")] =
-        EncodableValue(source->thumbnail().std_vector());
     // TODO "thumbnailSize"
     info[EncodableValue("thumbnailSize")] = EncodableMap{
         {EncodableValue("width"), EncodableValue(0)},
