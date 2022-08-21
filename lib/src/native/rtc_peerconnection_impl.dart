@@ -159,6 +159,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         _dataChannel = RTCDataChannelNative(
             _peerConnectionId, label, dataChannelId, flutterId);
         onDataChannel?.call(_dataChannel!);
+        _dataChannel!.onDataChannelState
+            ?.call(RTCDataChannelState.RTCDataChannelOpen);
         break;
       case 'onRenegotiationNeeded':
         onRenegotiationNeeded?.call();

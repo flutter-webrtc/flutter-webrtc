@@ -95,10 +95,11 @@
     NSMutableDictionary *dataChannels = peerConnection.dataChannels;
     RTCDataChannel *dataChannel = dataChannels[dataChannelId];
     FlutterEventChannel *eventChannel  = dataChannel.eventChannel;
-    [eventChannel setStreamHandler:nil];
-    dataChannel.eventChannel = nil;
     [dataChannel close];
     [dataChannels removeObjectForKey:dataChannelId];
+    
+    [eventChannel setStreamHandler:nil];
+    dataChannel.eventChannel = nil;
 }
 
 -(void)dataChannelSend:(nonnull NSString *)peerConnectionId

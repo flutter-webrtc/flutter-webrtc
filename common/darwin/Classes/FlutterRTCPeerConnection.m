@@ -497,7 +497,7 @@
     NSNumber *dataChannelId = [NSNumber numberWithInteger:dataChannel.channelId];
     dataChannel.peerConnectionId = peerConnection.flutterId;
     dataChannel.delegate = self;
-    peerConnection.dataChannels[dataChannelId] = dataChannel;
+    peerConnection.dataChannels[flutterChannelId] = dataChannel;
 
     FlutterEventChannel *eventChannel = [FlutterEventChannel
                                          eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$@", peerConnection.flutterId, flutterChannelId]
