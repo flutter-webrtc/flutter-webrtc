@@ -16,16 +16,12 @@ class DataChannelLoopBackSample extends StatefulWidget {
 class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
   RTCPeerConnection? _pc1;
   RTCPeerConnection? _pc2;
-
-  bool _inCalling = false;
-
-  RTCDataChannelInit? _initDict;
   RTCDataChannel? _dc1;
   RTCDataChannel? _dc2;
-
   String _dc1Status = '';
   String _dc2Status = '';
 
+  bool _inCalling = false;
   @override
   void initState() {
     super.initState();
@@ -48,15 +44,8 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
         _pc1!.addCandidate(candidate);
       };
 
-      _initDict = RTCDataChannelInit();
-      _initDict!.id = 1;
-      _initDict!.ordered = true;
-      _initDict!.maxRetransmitTime = -1;
-      _initDict!.maxRetransmits = -1;
-      _initDict!.protocol = 'sctp';
-      _initDict!.negotiated = false;
-
-      _dc1 = await _pc1!.createDataChannel('pc1-dc', _initDict!);
+      _dc1 =
+          await _pc1!.createDataChannel('pc1-dc', RTCDataChannelInit()..id = 1);
 
       _pc2!.onDataChannel = (channel) {
         _dc2 = channel;
@@ -69,16 +58,18 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
           setState(() {
             _dc2Status += '\ndc2: Received message: ${data.text}';
           });
-          _dc2!.send(RTCDataChannelMessage('(2) Hello from dc2 echo !!!'));
+          _dc2!.send(
+              RTCDataChannelMessage('(dc2 ==> dc1) Hello from dc2 echo !!!'));
         };
-
-        _dc1!.send(RTCDataChannelMessage('(1) Hello from dc1!!!'));
       };
 
       _dc1!.onDataChannelState = (state) {
         setState(() {
           _dc1Status += '\ndc1: state: ${state.toString()}';
         });
+        if (state == RTCDataChannelState.RTCDataChannelOpen) {
+          _dc1!.send(RTCDataChannelMessage('(dc1 ==> dc2) Hello from dc1 !!!'));
+        }
       };
 
       _dc1!.onMessage = (data) => setState(() {
@@ -109,11 +100,10 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
   void _hangUp() async {
     try {
       await _dc1?.close();
-
       setState(() {
         _dc1Status += '\n _dc1.close()';
       });
-
+      await _dc2?.close();
       await _pc1?.close();
       await _pc2?.close();
       _pc1 = null;
