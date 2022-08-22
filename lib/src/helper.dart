@@ -27,13 +27,22 @@ class Helper {
 
   /// Used to select a specific audio output device.
   ///
-  /// Note: This method is only used for flutter native,
-  /// flutter web can use RTCVideoRenderer.audioOutput instead
+  /// Note: This method is only used for Flutter native,
+  /// supported on iOS/Android/macOS/Windows.
+  ///
+  /// Android/macOS/Windows: Can be used to switch all output devices.
+  /// iOS: you can only switch directly between the
+  /// speaker and the preferred device
+  /// web: flutter web can use RTCVideoRenderer.audioOutput instead
   static Future<void> selectAudioOutput(String deviceId) async {
     await mediaDevices
         .selectAudioOutput(AudioOutputOptions(deviceId: deviceId));
   }
 
+  /// Set audio input device for Flutter native
+  /// Note: The usual practice in flutter web is to use deviceId as the
+  /// `getUserMedia` parameter to get a new audio track and replace it with the
+  ///  audio track in the original rtpsender.
   static Future<void> selectAudioInput(String deviceId) async {
     await WebRTC.invokeMethod(
       'selectAudioInput',
@@ -41,6 +50,8 @@ class Helper {
     );
   }
 
+  /// Set microphone mute/unmute for Flutter native.
+  /// for iOS/Android only
   static Future<void> setSpeakerphoneOn(bool enable) async {
     await WebRTC.invokeMethod(
       'enableSpeakerphone',
@@ -50,14 +61,14 @@ class Helper {
 
   /// To select a a specific camera, you need to set constraints
   /// eg.
-  /// constraints = {
+  /// var constraints = {
   ///      'audio': true,
   ///      'video': {
   ///          'deviceId': Helper.cameras[0].deviceId,
   ///          }
   ///      };
   ///
-  /// Helper.openCamera(constraints);
+  /// var stream = await Helper.openCamera(constraints);
   ///
   static Future<MediaStream> openCamera(Map<String, dynamic> mediaConstraints) {
     return navigator.mediaDevices.getUserMedia(mediaConstraints);
