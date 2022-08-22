@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_webrtc/src/native/mediadevices_impl.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../desktop_capturer.dart';
@@ -59,7 +60,7 @@ class RTCFactoryNative extends RTCFactory {
   }
 
   @override
-  Navigator get navigator => NavigatorNative();
+  Navigator get navigator => NavigatorNative.instance;
 }
 
 Future<RTCPeerConnection> createPeerConnection(
@@ -80,3 +81,5 @@ MediaRecorder mediaRecorder() {
 Navigator get navigator => RTCFactoryNative.instance.navigator;
 
 DesktopCapturer get desktopCapturer => DesktopCapturerNative.instance;
+
+MediaDevices get mediaDevices => MediaDeviceNative.instance;

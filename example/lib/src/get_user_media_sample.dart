@@ -30,6 +30,10 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   void initState() {
     super.initState();
     initRenderers();
+    navigator.mediaDevices.ondevicechange = (event) async {
+      print('++++++ ondevicechange ++++++');
+      _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
+    };
   }
 
   @override
@@ -39,6 +43,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       _hangUp();
     }
     _localRenderer.dispose();
+    navigator.mediaDevices.ondevicechange = null;
   }
 
   void initRenderers() async {

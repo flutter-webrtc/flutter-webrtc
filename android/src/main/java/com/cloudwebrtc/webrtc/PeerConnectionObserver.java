@@ -1,7 +1,6 @@
 package com.cloudwebrtc.webrtc;
 
 import android.util.Log;
-import android.util.SparseArray;
 import androidx.annotation.Nullable;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;

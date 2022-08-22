@@ -102,6 +102,16 @@ void FlutterWebRTC::HandleMethodCall(
     }
   } else if (method_call.method_name().compare("getSources") == 0) {
     GetSources(std::move(result));
+  } else if (method_call.method_name().compare("selectAudioInput") == 0) {
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string deviceId = findString(params, "deviceId");
+    SelectAudioInput(deviceId, std::move(result));
+  }  else if (method_call.method_name().compare("selectAudioOutput") == 0) {
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string deviceId = findString(params, "deviceId");
+    SelectAudioOutput(deviceId, std::move(result));
   } else if (method_call.method_name().compare("mediaStreamGetTracks") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");

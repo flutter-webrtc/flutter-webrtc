@@ -23,4 +23,10 @@
 -(void)mediaStreamTrackCaptureFrame:(RTCMediaStreamTrack *)track
                              toPath:(NSString *) path
                              result:(FlutterResult) result;
+
+-(void)selectAudioInput:(NSString *)deviceId
+                  result:(FlutterResult) result;
+
+-(void)selectAudioOutput:(NSString *)deviceId
+                  result:(FlutterResult) result;
 @end
