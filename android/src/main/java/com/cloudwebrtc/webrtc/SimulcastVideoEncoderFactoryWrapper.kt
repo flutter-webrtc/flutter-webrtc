@@ -1,6 +1,5 @@
 package com.cloudwebrtc.webrtc
 
-import android.util.Log
 import org.webrtc.*
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService

@@ -5,6 +5,8 @@
 
 namespace flutter_webrtc_plugin {
 
+const char *kEventChannelName = "FlutterWebRTC.Event";
+
 FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger *messenger,
                                      TextureRegistrar *textures)
     : messenger_(messenger), textures_(textures) {
@@ -13,10 +15,32 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger *messenger,
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
   desktop_device_ = factory_->GetDesktopDevice();
+
+  event_channel_.reset(new EventChannel<EncodableValue>(
+      messenger_, kEventChannelName, &StandardMethodCodec::GetInstance()));
+
+  auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
+      [&](const flutter::EncodableValue* arguments,
+          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = std::move(events);
+        return nullptr;
+      },
+      [&](const flutter::EncodableValue* arguments)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = nullptr;
+        return nullptr;
+      });
+
+  event_channel_->SetStreamHandler(std::move(handler));
 }
 
 FlutterWebRTCBase::~FlutterWebRTCBase() {
   LibWebRTC::Terminate();
+}
+
+EventSink<EncodableValue> *FlutterWebRTCBase::event_sink() {
+  return event_sink_? event_sink_.get() : nullptr;
 }
 
 std::string FlutterWebRTCBase::GenerateUUID() {

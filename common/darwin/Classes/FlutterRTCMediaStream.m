@@ -494,26 +494,141 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 }
 
 -(void)getSources:(FlutterResult)result{
-  NSMutableArray *sources = [NSMutableArray array];
-  NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
-  for (AVCaptureDevice *device in videoDevices) {
-    [sources addObject:@{
-                         @"facing": device.positionString,
-                         @"deviceId": device.uniqueID,
-                         @"label": device.localizedName,
-                         @"kind": @"videoinput",
-                         }];
-  }
-  NSArray *audioDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeAudio];
-  for (AVCaptureDevice *device in audioDevices) {
-    [sources addObject:@{
-                         @"facing": @"",
-                         @"deviceId": device.uniqueID,
-                         @"label": device.localizedName,
-                         @"kind": @"audioinput",
-                         }];
-  }
+    NSMutableArray *sources = [NSMutableArray array];
+    NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    for (AVCaptureDevice *device in videoDevices) {
+      [sources addObject:@{
+                           @"facing": device.positionString,
+                           @"deviceId": device.uniqueID,
+                           @"label": device.localizedName,
+                           @"kind": @"videoinput",
+                           }];
+    }
+#if TARGET_OS_IPHONE
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    NSError *setCategoryError = nil;
+    [session.session setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeVideoChat options:AVAudioSessionCategoryOptionAllowBluetooth error:&setCategoryError];
+    [session setActive:YES error:&setCategoryError];
+    for (AVAudioSessionPortDescription *port in session.session.availableInputs) {
+        //NSLog(@"input portName: %@, type %@", port.portName,port.portType);
+        [sources addObject:@{
+                             @"facing": @"",
+                             @"deviceId": port.UID,
+                             @"label": port.portName,
+                             @"kind": @"audioinput",
+                             }];
+    }
+    for (AVAudioSessionPortDescription *port in session.currentRoute.outputs) {
+        //NSLog(@"output portName: %@, type %@", port.portName,port.portType);
+        if(session.currentRoute.outputs.count == 1 && ![port.UID isEqualToString:@"Speaker"]) {
+            [sources addObject:@{
+                                 @"facing": @"",
+                                 @"deviceId": @"Speaker",
+                                 @"label": @"Speaker",
+                                 @"kind": @"audiooutput",
+                                 }];
+        }
+        [sources addObject:@{
+                             @"facing": @"",
+                             @"deviceId": port.UID,
+                             @"label": port.portName,
+                             @"kind": @"audiooutput",
+                             }];
+    }
+#endif
+#if TARGET_OS_OSX
+    RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
+    
+    NSArray *inputDevices = [audioDeviceModule inputDevices];
+    for (RTCAudioDevice *device in inputDevices) {
+        [sources addObject:@{
+                             @"facing": @"",
+                             @"deviceId": device.deviceId,
+                             @"label": device.name,
+                             @"kind": @"audioinput",
+                             }];
+    }
+
+    NSArray *outputDevices = [audioDeviceModule outputDevices];
+    for (RTCAudioDevice *device in outputDevices) {
+        [sources addObject:@{
+                             @"facing": @"",
+                             @"deviceId": device.deviceId,
+                             @"label": device.name,
+                             @"kind": @"audiooutput",
+                             }];
+    }
+#endif
     result(@{@"sources": sources});
+}
+
+-(void)selectAudioInput:(NSString *)deviceId
+                 result:(FlutterResult) result {
+#if TARGET_OS_OSX
+    RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
+    NSArray *inputDevices = [audioDeviceModule inputDevices];
+    for (RTCAudioDevice *device in inputDevices) {
+        if([deviceId isEqualToString:device.deviceId]){
+            [audioDeviceModule setInputDevice:device];
+            result(nil);
+            return;
+        }
+    }
+#endif
+#if TARGET_OS_IPHONE
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    for (AVAudioSessionPortDescription *port in session.session.availableInputs) {
+        if([port.UID isEqualToString:deviceId]) {
+            if(self.preferredInput != port.portType) {
+                self.preferredInput = port.portType;
+                [AudioUtils selectAudioInput:self.preferredInput];
+            }
+            break;
+        }
+    }
+    result(nil);
+#endif
+    result([FlutterError errorWithCode:@"selectAudioInputFailed"
+                               message:[NSString stringWithFormat:@"Error: deviceId not found!"]
+                               details:nil]);
+}
+
+-(void)selectAudioOutput:(NSString *)deviceId
+                  result:(FlutterResult) result {
+#if TARGET_OS_OSX
+    RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
+    NSArray *outputDevices = [audioDeviceModule outputDevices];
+    for (RTCAudioDevice *device in outputDevices) {
+        if([deviceId isEqualToString:device.deviceId]){
+            [audioDeviceModule setOutputDevice:device];
+            result(nil);
+            return;
+        }
+    }
+#endif
+#if TARGET_OS_IPHONE
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    NSError *setCategoryError = nil;
+
+    if([deviceId isEqualToString:@"Speaker"]) {
+        [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_Speaker error:&setCategoryError];
+    } else {
+        [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None error:&setCategoryError];
+    }
+    
+    if(setCategoryError == nil) {
+        result(nil);
+        return;
+    }
+    
+    result([FlutterError errorWithCode:@"selectAudioOutputFailed"
+                               message:[NSString stringWithFormat:@"Error: %@", [setCategoryError localizedFailureReason]]
+                               details:nil]);
+
+#endif
+    result([FlutterError errorWithCode:@"selectAudioOutputFailed"
+                               message:[NSString stringWithFormat:@"Error: deviceId not found!"]
+                               details:nil]);
 }
 
 -(void)mediaStreamTrackRelease:(RTCMediaStream *)mediaStream  track:(RTCMediaStreamTrack *)track

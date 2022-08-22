@@ -1,6 +1,7 @@
 # Changelog
 
 --------------------------------------------
+
 [0.9.3] - 2022-08-15
 
 * [Windows/macOS] Fix UI freeze when getting thumbnails.
@@ -10,6 +11,11 @@
 * [Android] update libwebrtc to com.github.webrtc-sdk:android:104.5112.01.
 * [iOS/macOS] update WebRTC-SDK to 104.5112.02.
 * [Windows] update libwebrtc.dll to 104.5112.02.
+
+[0.9.1] - 2022-08-01
+
+* [iOS] fix : iOS app could not change camera resolutions cause by wrong datatype in the video Contraints.
+* [Darwin] bump version for .podspec.
 
 [0.9.0] - 2022-07-27
 

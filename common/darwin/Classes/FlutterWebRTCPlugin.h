@@ -14,10 +14,9 @@ typedef void (^CompletionHandler)(void);
 
 typedef void (^CapturerStopHandler)(CompletionHandler handler);
 
-@interface FlutterWebRTCPlugin : NSObject<FlutterPlugin,
-RTCPeerConnectionDelegate
+@interface FlutterWebRTCPlugin : NSObject<FlutterPlugin, RTCPeerConnectionDelegate, FlutterStreamHandler
 #if TARGET_OS_OSX
-, RTCDesktopMediaListDelegate, RTCDesktopCapturerDelegate,  FlutterStreamHandler
+, RTCDesktopMediaListDelegate, RTCDesktopCapturerDelegate
 #endif
 >
 
@@ -32,9 +31,11 @@ RTCPeerConnectionDelegate
 @property (nonatomic, retain) UIViewController *viewController;/*for broadcast or ReplayKit */
 #endif
 
+@property (nonatomic, strong) FlutterEventSink eventSink;
 @property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
 @property (nonatomic, strong) RTCCameraVideoCapturer *videoCapturer;
 @property (nonatomic, strong) FlutterRTCFrameCapturer *frameCapturer;
+@property (nonatomic, strong) AVAudioSessionPort preferredInput;
 @property (nonatomic) BOOL _usingFrontCamera;
 @property (nonatomic) int _targetWidth;
 @property (nonatomic) int _targetHeight;

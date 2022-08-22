@@ -25,6 +25,29 @@ class Helper {
   static Future<List<MediaDeviceInfo>> get audiooutputs =>
       enumerateDevices('audiooutput');
 
+  /// Used to select a specific audio output device.
+  ///
+  /// Note: This method is only used for flutter native,
+  /// flutter web can use RTCVideoRenderer.audioOutput instead
+  static Future<void> selectAudioOutput(String deviceId) async {
+    await mediaDevices
+        .selectAudioOutput(AudioOutputOptions(deviceId: deviceId));
+  }
+
+  static Future<void> selectAudioInput(String deviceId) async {
+    await WebRTC.invokeMethod(
+      'selectAudioInput',
+      <String, dynamic>{'deviceId': deviceId},
+    );
+  }
+
+  static Future<void> setSpeakerphoneOn(bool enable) async {
+    await WebRTC.invokeMethod(
+      'enableSpeakerphone',
+      <String, dynamic>{'enable': enable},
+    );
+  }
+
   /// To select a a specific camera, you need to set constraints
   /// eg.
   /// constraints = {

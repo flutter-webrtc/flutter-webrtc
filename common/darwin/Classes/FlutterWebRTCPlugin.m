@@ -13,17 +13,20 @@
 #pragma clang diagnostic ignored "-Wprotocol"
 
 @implementation FlutterWebRTCPlugin {
-
 #pragma clang diagnostic pop
-
     FlutterMethodChannel *_methodChannel;
+    FlutterEventSink _eventSink;
+    FlutterEventChannel* _eventChannel;
     id _registry;
     id _messenger;
     id _textures;
     BOOL _speakerOn;
+    AVAudioSessionPort _preferredInput;
 }
 
 @synthesize messenger = _messenger;
+@synthesize eventSink = _eventSink;
+@synthesize preferredInput = _preferredInput;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
 
@@ -53,12 +56,17 @@
 
     self = [super init];
 
+    FlutterEventChannel *eventChannel = [FlutterEventChannel eventChannelWithName:@"FlutterWebRTC.Event" 
+                                              binaryMessenger:messenger];
+    [eventChannel setStreamHandler:self];
+
     if (self) {
         _methodChannel = channel;
         _registry = registrar;
         _textures = textures;
         _messenger = messenger;
         _speakerOn = NO;
+        _eventChannel = eventChannel;
 #if TARGET_OS_IPHONE
         self.viewController = viewController;
 #endif
@@ -81,34 +89,58 @@
     self.renders = [NSMutableDictionary new];
     self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
+    _preferredInput = AVAudioSessionPortHeadphones;
+    _speakerOn = NO;
+    [AudioUtils setSpeakerphoneOn:_speakerOn];
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
 #if TARGET_OS_OSX
-    [self enableDesktopCapturerEventChannel:_messenger];
+    [_peerConnectionFactory.audioDeviceModule setDevicesUpdatedHandler:^(void) {
+        NSLog(@"Handle Devices Updated!");
+        if(self.eventSink) {
+            self.eventSink(@{@"event" : @"onDeviceChange"});
+        }
+    }];
 #endif
     return self;
 }
 
+#pragma mark - FlutterStreamHandler methods
+
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
+    _eventSink = nil;
+    return nil;
+}
+
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
+                                       eventSink:(nonnull FlutterEventSink)sink {
+    _eventSink = sink;
+    return nil;
+}
 
 - (void)didSessionRouteChange:(NSNotification *)notification {
 #if TARGET_OS_IPHONE
   NSDictionary *interuptionDict = notification.userInfo;
   NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
-
+  AVAudioSession* session = [AVAudioSession sharedInstance];
   switch (routeChangeReason) {
       case AVAudioSessionRouteChangeReasonCategoryChange: {
           NSError* error;
-          [[AVAudioSession sharedInstance] overrideOutputAudioPort:_speakerOn? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:&error];
+          [session overrideOutputAudioPort:_speakerOn? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:&error];
           break;
       }
       case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
-          [AudioUtils setPreferHeadphoneInput];
+          [AudioUtils selectAudioInput:_preferredInput];
           break;
       }
-
     default:
       break;
+  }
+  if(self.eventSink && AVAudioSessionRouteChangeReasonOverride != routeChangeReason) {
+    self.eventSink(@{@"event" : @"onDeviceChange"});
   }
 #endif
 }
@@ -152,6 +184,14 @@
         [self createLocalMediaStream:result];
     } else if ([@"getSources" isEqualToString:call.method]) {
         [self getSources:result];
+    } else if([@"selectAudioInput" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* deviceId = argsMap[@"deviceId"];
+        [self selectAudioInput:deviceId result:result];
+    } else if([@"selectAudioOutput" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSString* deviceId = argsMap[@"deviceId"];
+        [self selectAudioOutput:deviceId result:result];
     } else if ([@"mediaStreamGetTracks" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* streamId = argsMap[@"streamId"];
@@ -600,23 +640,17 @@
             audioTrack.isEnabled = !mute.boolValue;
         }
         result(nil);
-    } else if ([@"enableSpeakerphone" isEqualToString:call.method]) {
+    } 
 #if TARGET_OS_IPHONE
+    else if ([@"enableSpeakerphone" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSNumber* enable = argsMap[@"enable"];
         _speakerOn = enable.boolValue;
-        AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-        [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
-                      withOptions:_speakerOn ? AVAudioSessionCategoryOptionDefaultToSpeaker
-                      :
-                      AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowBluetoothA2DP
-                        error:nil];
-        [audioSession setActive:YES error:nil];
+        [AudioUtils setSpeakerphoneOn:_speakerOn];
         result(nil);
-#else
-        result(FlutterMethodNotImplemented);
+    } 
 #endif
-    } else if ([@"getLocalDescription" isEqualToString:call.method]) {
+    else if ([@"getLocalDescription" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
@@ -1052,7 +1086,7 @@
         }
 
         result(@{@"audioTracks": audioTracks, @"videoTracks" : videoTracks });
-    }else{
+    } else {
         result(nil);
     }
 }

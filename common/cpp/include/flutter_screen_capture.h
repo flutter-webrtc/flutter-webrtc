@@ -47,8 +47,6 @@ class FlutterScreenCapture : public MediaListObserver, public DesktopCapturerObs
 
  private:
   FlutterWebRTCBase *base_;
-  std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
-  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
   std::map<DesktopType,
            scoped_refptr<RTCDesktopMediaList>>
       medialist_;

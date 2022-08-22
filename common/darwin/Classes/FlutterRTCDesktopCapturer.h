@@ -22,7 +22,4 @@
 -(void)getDesktopSourceThumbnail:(nonnull NSDictionary *)argsMap
              result:(nonnull FlutterResult)result;
 
-#if TARGET_OS_OSX
--(void)enableDesktopCapturerEventChannel:(nonnull NSObject<FlutterBinaryMessenger> *)messenger;
-#endif
 @end

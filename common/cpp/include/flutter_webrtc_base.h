@@ -163,6 +163,8 @@ class FlutterWebRTCBase {
 
   void RemoveTracksForId(const std::string& id);
 
+  EventSink<EncodableValue> *event_sink();
+
  private:
   void ParseConstraints(const EncodableMap& src,
                         scoped_refptr<RTCMediaConstraints> mediaConstraints,
@@ -194,6 +196,8 @@ class FlutterWebRTCBase {
  protected:
   BinaryMessenger* messenger_;
   TextureRegistrar* textures_;
+  std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
+  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
 };
 
 }  // namespace flutter_webrtc_plugin

@@ -1,5 +1,4 @@
 #import "AudioUtils.h"
-#import <WebRTC/WebRTC.h>
 
 #if TARGET_OS_IPHONE
 #import <AVFoundation/AVFoundation.h>
@@ -17,8 +16,7 @@
   if (recording && session.category != AVAudioSessionCategoryPlayAndRecord &&
       session.category != AVAudioSessionCategoryMultiRoute) {
     config.category = AVAudioSessionCategoryPlayAndRecord;
-    config.categoryOptions = AVAudioSessionCategoryOptionDefaultToSpeaker |
-        AVAudioSessionCategoryOptionAllowBluetooth |
+    config.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth |
         AVAudioSessionCategoryOptionAllowBluetoothA2DP;
 
     [session lockForConfiguration];
@@ -43,20 +41,41 @@
 #endif
 }
 
-+ (void)setPreferHeadphoneInput {
++ (BOOL)selectAudioInput:(AVAudioSessionPort)type {
 #if TARGET_OS_IPHONE
-  AVAudioSession *session = [AVAudioSession sharedInstance];
+  RTCAudioSession *rtcSession = [RTCAudioSession sharedInstance];
   AVAudioSessionPortDescription *inputPort = nil;
-  for (AVAudioSessionPortDescription *port in session.availableInputs) {
-    if ([port.portType isEqualToString:AVAudioSessionPortHeadphones]) {
+  for (AVAudioSessionPortDescription *port in rtcSession.session.availableInputs) {
+    if ([port.portType isEqualToString:type]) {
       inputPort = port;
       break;
     }
   }
   if (inputPort != nil) {
-    [session setPreferredInput:inputPort error:nil];
+    NSError *errOut = nil;
+    [rtcSession lockForConfiguration];
+    [rtcSession setPreferredInput:inputPort error:&errOut];
+    [rtcSession unlockForConfiguration];
+    if(errOut != nil) {
+      return NO;
+    }
+    return YES;
   }
 #endif
+  return NO;
 }
 
++ (void)setSpeakerphoneOn:(BOOL)enable {
+#if TARGET_OS_IPHONE
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    [session lockForConfiguration];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord
+                  withOptions:enable ? AVAudioSessionCategoryOptionDefaultToSpeaker
+                  :
+                  AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP
+                    error:nil];
+    [session setActive:YES error:nil];
+    [session unlockForConfiguration];
+#endif
+}
 @end

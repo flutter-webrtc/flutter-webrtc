@@ -9,7 +9,7 @@ using namespace flutter;
 
 class FlutterMediaStream {
  public:
-  FlutterMediaStream(FlutterWebRTCBase *base) : base_(base) {}
+  FlutterMediaStream(FlutterWebRTCBase *base);
 
   void GetUserMedia(const EncodableMap &constraints,
                     std::unique_ptr<MethodResult<EncodableValue>> result);
@@ -21,6 +21,12 @@ class FlutterMediaStream {
                     scoped_refptr<RTCMediaStream> stream, EncodableMap &params);
 
   void GetSources(std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void SelectAudioOutput(const std::string& device_id,
+                    std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void SelectAudioInput(const std::string& device_id,
+                    std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void MediaStreamGetTracks(
       const std::string &stream_id,
@@ -42,6 +48,8 @@ class FlutterMediaStream {
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void CreateLocalMediaStream(std::unique_ptr<MethodResult<EncodableValue>> result);
+
+  void OnDeviceChange();
 
  private:
   FlutterWebRTCBase *base_;

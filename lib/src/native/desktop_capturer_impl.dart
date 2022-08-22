@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
+import 'package:flutter_webrtc/src/native/event_channel.dart';
 
 import '../desktop_capturer.dart';
 import 'utils.dart';
@@ -63,19 +63,19 @@ class DesktopCapturerSourceNative extends DesktopCapturerSource {
 
 class DesktopCapturerNative extends DesktopCapturer {
   DesktopCapturerNative._internal() {
-    EventChannel('FlutterWebRTC/desktopSourcesEvent')
-        .receiveBroadcastStream()
-        .listen(eventListener, onError: errorListener);
+    FlutterWebRTCEventChannel.instance.handleEvents.stream.listen((data) {
+      var event = data.keys.first;
+      Map<dynamic, dynamic> map = data[event];
+      handleEvent(event, map);
+    });
   }
-
   static final DesktopCapturerNative instance =
       DesktopCapturerNative._internal();
 
   final Map<String, DesktopCapturerSourceNative> _sources = {};
 
-  void eventListener(dynamic event) async {
-    final Map<dynamic, dynamic> map = event;
-    switch (map['event']) {
+  void handleEvent(String event, Map<dynamic, dynamic> map) async {
+    switch (event) {
       case 'desktopSourceAdded':
         final source = DesktopCapturerSourceNative.fromMap(map);
         if (_sources[source.id] == null) {
