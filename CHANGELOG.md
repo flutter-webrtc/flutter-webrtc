@@ -2,6 +2,10 @@
 
 --------------------------------------------
 
+[0.9.4] - 2022-08-22
+
+* [Andorid/iOS/macOS/Windows] New audio input/output selection API, ondevicechange event is used to monitor audio device changes.
+
 [0.9.3] - 2022-08-15
 
 * [Windows/macOS] Fix UI freeze when getting thumbnails.
