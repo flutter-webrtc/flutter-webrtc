@@ -70,7 +70,7 @@
     while ((event = enumerator.nextObject) != nil) {
         self.eventSink(event);
     };
-    self.eventQueue = [NSMutableArray array];
+    self.eventQueue = nil;
     return nil;
 }
 @end
@@ -92,7 +92,7 @@
         peerConnection.dataChannels[flutterId] = dataChannel;
         dataChannel.flutterChannelId = flutterId;
         dataChannel.delegate = self;
-        dataChannel.eventQueue = [NSMutableArray array];
+        dataChannel.eventQueue = nil;
         
         FlutterEventChannel *eventChannel = [FlutterEventChannel
                                              eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$@", peerConnectionId, flutterId]
@@ -151,6 +151,9 @@
     if(channel.eventSink) {
         channel.eventSink(event);
     } else {
+        if(!channel.eventQueue) {
+            channel.eventQueue = [NSMutableArray array];
+        }
         channel.eventQueue = [channel.eventQueue arrayByAddingObject:event];
     }
 }
