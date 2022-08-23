@@ -51,7 +51,8 @@ Add the following entry to your _Info.plist_ file, located in `<project root>/io
 
 This entry allows your app to access camera and microphone.
 
-### The WebRTC.xframework compiled after the m104 release no longer supports iOS arm devices, so need to add the `config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'` to your ios/Podfile in your project
+### Note for iOS.
+The WebRTC.xframework compiled after the m104 release no longer supports iOS arm devices, so need to add the `config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'` to your ios/Podfile in your project
 
 ios/Podfile
 
