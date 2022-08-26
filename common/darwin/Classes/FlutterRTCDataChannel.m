@@ -25,6 +25,16 @@
     objc_setAssociatedObject(self, @selector(eventSink), eventSink, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
+- (NSArray<id> *)eventQueue
+{
+    return objc_getAssociatedObject(self, _cmd);
+}
+
+- (void)setEventQueue:(NSArray<id> *)eventQueue
+{
+    objc_setAssociatedObject(self, @selector(eventQueue), eventQueue, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
 - (NSNumber *)flutterChannelId
 {
     return objc_getAssociatedObject(self, _cmd);
@@ -55,6 +65,12 @@
 - (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
                                        eventSink:(nonnull FlutterEventSink)sink {
     self.eventSink = sink;
+    NSEnumerator *enumerator = [self.eventQueue objectEnumerator];
+    id event;
+    while ((event = enumerator.nextObject) != nil) {
+        self.eventSink(event);
+    };
+    self.eventQueue = nil;
     return nil;
 }
 @end
@@ -76,6 +92,7 @@
         peerConnection.dataChannels[flutterId] = dataChannel;
         dataChannel.flutterChannelId = flutterId;
         dataChannel.delegate = self;
+        dataChannel.eventQueue = nil;
         
         FlutterEventChannel *eventChannel = [FlutterEventChannel
                                              eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$@", peerConnectionId, flutterId]
@@ -94,11 +111,13 @@
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     NSMutableDictionary *dataChannels = peerConnection.dataChannels;
     RTCDataChannel *dataChannel = dataChannels[dataChannelId];
-    FlutterEventChannel *eventChannel  = dataChannel.eventChannel;
-    [eventChannel setStreamHandler:nil];
-    dataChannel.eventChannel = nil;
-    [dataChannel close];
-    [dataChannels removeObjectForKey:dataChannelId];
+    if(dataChannel) {
+        FlutterEventChannel *eventChannel  = dataChannel.eventChannel;
+        [dataChannel close];
+        [dataChannels removeObjectForKey:dataChannelId];
+        [eventChannel setStreamHandler:nil];
+        dataChannel.eventChannel = nil;
+    }
 }
 
 -(void)dataChannelSend:(nonnull NSString *)peerConnectionId
@@ -128,17 +147,25 @@
   return nil;
 }
 
+- (void) sendEvent:(id)event withChannel:(RTCDataChannel *)channel {
+    if(channel.eventSink) {
+        channel.eventSink(event);
+    } else {
+        if(!channel.eventQueue) {
+            channel.eventQueue = [NSMutableArray array];
+        }
+        channel.eventQueue = [channel.eventQueue arrayByAddingObject:event];
+    }
+}
+
 #pragma mark - RTCDataChannelDelegate methods
 
 // Called when the data channel state has changed.
 - (void)dataChannelDidChangeState:(RTCDataChannel*)channel
 {
-    FlutterEventSink eventSink = channel.eventSink;
-    if(eventSink) {
-        eventSink(@{ @"event" : @"dataChannelStateChanged",
-                     @"id": [NSNumber numberWithInt:channel.channelId],
-                     @"state": [self stringForDataChannelState:channel.readyState]});
-    }
+    [self sendEvent:@{ @"event" : @"dataChannelStateChanged",
+                       @"id": [NSNumber numberWithInt:channel.channelId],
+                       @"state": [self stringForDataChannelState:channel.readyState]} withChannel:channel];
 }
 
 // Called when a data buffer was successfully received.
@@ -155,13 +182,10 @@
                                      encoding:NSUTF8StringEncoding];
     }
 
-    FlutterEventSink eventSink = channel.eventSink;
-    if(eventSink) {
-        eventSink(@{ @"event" : @"dataChannelReceiveMessage",
-                     @"id": [NSNumber numberWithInt:channel.channelId],
-                     @"type": type,
-                     @"data": (data ? data : [NSNull null])});
-    }
+    [self sendEvent:@{ @"event" : @"dataChannelReceiveMessage",
+                       @"id": [NSNumber numberWithInt:channel.channelId],
+                       @"type": type,
+                       @"data": (data ? data : [NSNull null])} withChannel:channel];
 }
 
 @end

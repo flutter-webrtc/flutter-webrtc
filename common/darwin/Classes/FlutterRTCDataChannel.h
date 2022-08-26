@@ -6,6 +6,7 @@
 @property (nonatomic, strong, nonnull) NSString *flutterChannelId;
 @property (nonatomic, strong, nullable) FlutterEventSink eventSink;
 @property (nonatomic, strong, nullable) FlutterEventChannel *eventChannel;
+@property (nonatomic, strong, nullable) NSArray<id> *eventQueue;
 @end
 
 @interface FlutterWebRTCPlugin (RTCDataChannel) <RTCDataChannelDelegate>
