@@ -6,6 +6,7 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import org.webrtc.DataChannel;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
@@ -17,6 +18,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
 
     private EventChannel eventChannel;
     private EventChannel.EventSink eventSink;
+    private ArrayList eventQueue = new ArrayList();
 
     DataChannelObserver(BinaryMessenger messenger, String peerConnectionId, String flutterId,
                         DataChannel dataChannel) {
@@ -44,6 +46,10 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     @Override
     public void onListen(Object o, EventChannel.EventSink sink) {
         eventSink = new AnyThreadSink(sink);
+        for(Object event : eventQueue) {
+            eventSink.success(event);
+        }
+        eventQueue.clear();
     }
 
     @Override
@@ -98,6 +104,8 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     private void sendEvent(ConstraintsMap params) {
         if (eventSink != null) {
             eventSink.success(params.toMap());
+        } else {
+            eventQueue.add(params.toMap());
         }
     }
 }
