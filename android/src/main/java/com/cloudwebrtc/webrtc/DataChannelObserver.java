@@ -6,24 +6,26 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import org.webrtc.DataChannel;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 
 class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHandler {
 
-    private final int mId;
-    private final DataChannel mDataChannel;
+    private final String flutterId;
+    private final DataChannel dataChannel;
 
     private EventChannel eventChannel;
     private EventChannel.EventSink eventSink;
+    private ArrayList eventQueue = new ArrayList();
 
-    DataChannelObserver(BinaryMessenger messenger, String peerConnectionId, int id,
+    DataChannelObserver(BinaryMessenger messenger, String peerConnectionId, String flutterId,
                         DataChannel dataChannel) {
-        mId = id;
-        mDataChannel = dataChannel;
+        this.flutterId = flutterId;
+        this.dataChannel = dataChannel;
         eventChannel =
-                new EventChannel(messenger, "FlutterWebRTC/dataChannelEvent" + peerConnectionId + id);
+                new EventChannel(messenger, "FlutterWebRTC/dataChannelEvent" + peerConnectionId + flutterId);
         eventChannel.setStreamHandler(this);
     }
 
@@ -44,23 +46,33 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     @Override
     public void onListen(Object o, EventChannel.EventSink sink) {
         eventSink = new AnyThreadSink(sink);
+        for(Object event : eventQueue) {
+            eventSink.success(event);
+        }
+        eventQueue.clear();
     }
 
     @Override
     public void onCancel(Object o) {
         eventSink = null;
     }
-
+    
     @Override
     public void onBufferedAmountChange(long amount) {
+        ConstraintsMap params = new ConstraintsMap();
+        params.putString("event", "dataChannelBufferedAmountChange");
+        params.putInt("id", dataChannel.id());
+        params.putLong("bufferedAmount", dataChannel.bufferedAmount());
+        params.putLong("changedAmount", amount);
+        sendEvent(params);
     }
 
     @Override
     public void onStateChange() {
         ConstraintsMap params = new ConstraintsMap();
         params.putString("event", "dataChannelStateChanged");
-        params.putInt("id", mDataChannel.id());
-        params.putString("state", dataChannelStateString(mDataChannel.state()));
+        params.putInt("id", dataChannel.id());
+        params.putString("state", dataChannelStateString(dataChannel.state()));
         sendEvent(params);
     }
 
@@ -68,7 +80,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     public void onMessage(DataChannel.Buffer buffer) {
         ConstraintsMap params = new ConstraintsMap();
         params.putString("event", "dataChannelReceiveMessage");
-        params.putInt("id", mDataChannel.id());
+        params.putInt("id", dataChannel.id());
 
         byte[] bytes;
         if (buffer.data.hasArray()) {
@@ -92,6 +104,8 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     private void sendEvent(ConstraintsMap params) {
         if (eventSink != null) {
             eventSink.success(params.toMap());
+        } else {
+            eventQueue.add(params.toMap());
         }
     }
 }

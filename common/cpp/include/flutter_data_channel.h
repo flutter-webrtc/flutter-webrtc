@@ -22,6 +22,7 @@ class FlutterRTCDataChannelObserver : public RTCDataChannelObserver {
   std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
   std::unique_ptr<EventSink<EncodableValue>> event_sink_;
   scoped_refptr<RTCDataChannel> data_channel_;
+  std::list<EncodableValue> event_queue_;
 };
 
 class FlutterDataChannel {
@@ -39,9 +40,10 @@ class FlutterDataChannel {
                        std::unique_ptr<MethodResult<EncodableValue>>);
 
   void DataChannelClose(RTCDataChannel *data_channel,
+                        const std::string &data_channel_uuid,
                         std::unique_ptr<MethodResult<EncodableValue>>);
 
-  RTCDataChannel *DataChannelFormId(int id);
+  RTCDataChannel *DataChannelForId(const std::string &id);
 
  private:
   FlutterWebRTCBase *base_;

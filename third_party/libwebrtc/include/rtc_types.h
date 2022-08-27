@@ -99,6 +99,8 @@ struct SdpParseError {
   string description;
 };
 
+enum DesktopType { kScreen, kWindow };
+
 }  // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_TYPES_HXX

@@ -5,6 +5,8 @@
 
 namespace flutter_webrtc_plugin {
 
+const char *kEventChannelName = "FlutterWebRTC.Event";
+
 FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger *messenger,
                                      TextureRegistrar *textures)
     : messenger_(messenger), textures_(textures) {
@@ -12,10 +14,33 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger *messenger,
   factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
+  desktop_device_ = factory_->GetDesktopDevice();
+
+  event_channel_.reset(new EventChannel<EncodableValue>(
+      messenger_, kEventChannelName, &StandardMethodCodec::GetInstance()));
+
+  auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
+      [&](const flutter::EncodableValue* arguments,
+          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = std::move(events);
+        return nullptr;
+      },
+      [&](const flutter::EncodableValue* arguments)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = nullptr;
+        return nullptr;
+      });
+
+  event_channel_->SetStreamHandler(std::move(handler));
 }
 
 FlutterWebRTCBase::~FlutterWebRTCBase() {
   LibWebRTC::Terminate();
+}
+
+EventSink<EncodableValue> *FlutterWebRTCBase::event_sink() {
+  return event_sink_? event_sink_.get() : nullptr;
 }
 
 std::string FlutterWebRTCBase::GenerateUUID() {
@@ -41,6 +66,12 @@ RTCMediaTrack* FlutterWebRTCBase ::MediaTrackForId(const std::string& id) {
 
   if (it != local_tracks_.end())
     return (*it).second.get();
+
+  for (auto kv : peerconnection_observers_) {
+      auto pco = kv.second.get();
+      auto track = pco->MediaTrackForId(id);
+      if (track != nullptr) return track;
+  }
 
   return nullptr;
 }
@@ -168,65 +199,37 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList &iceServersArray,
   for (size_t i = 0; i < size; i++) {
     IceServer &ice_server = ice_servers[i];
     EncodableMap iceServerMap = GetValue<EncodableMap>(iceServersArray[i]);
-    bool hasUsernameAndCredential =
-        iceServerMap.find(EncodableValue("username")) != iceServerMap.end() &&
-        iceServerMap.find(EncodableValue("credential")) != iceServerMap.end();
+    
+    if (iceServerMap.find(EncodableValue("username")) != iceServerMap.end()) {;
+          ice_server.username = GetValue<std::string>(
+              iceServerMap.find(EncodableValue("username"))->second);
+    }
+    if (iceServerMap.find(EncodableValue("credential")) != iceServerMap.end()) {
+          ice_server.password = GetValue<std::string>(
+              iceServerMap.find(EncodableValue("credential"))->second);
+    }
+
     auto it = iceServerMap.find(EncodableValue("url"));
     if (it != iceServerMap.end() && TypeIs<std::string>(it->second)) {
-      if (hasUsernameAndCredential) {
-        std::string username =
-             GetValue<std::string>(iceServerMap.find(EncodableValue("username"))->second);
-        std::string credential =
-             GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
-                ->second);
-        std::string uri =  GetValue<std::string>(it->second);
-        ice_server.username = username;
-        ice_server.password = credential;
-        ice_server.uri = uri;
-      } else {
-        std::string uri = GetValue<std::string>(it->second);
-        ice_server.uri = uri;
-      }
+      ice_server.uri = GetValue<std::string>(it->second);
     }
     it = iceServerMap.find(EncodableValue("urls"));
     if (it != iceServerMap.end()) {
       if (TypeIs<std::string>(it->second)) {
-        if (hasUsernameAndCredential) {
-          std::string username =  GetValue<std::string>(iceServerMap.find(EncodableValue("username"))
-                                     ->second);
-          std::string credential =
-               GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
-                  ->second);
-          std::string uri =  GetValue<std::string>(it->second);
-          ice_server.username = username;
-          ice_server.password = credential;
-          ice_server.uri = uri;
-        } else {
-          std::string uri =  GetValue<std::string>(it->second);
-          ice_server.uri = uri;
-        }
+        ice_server.uri = GetValue<std::string>(it->second);
       }
       if (TypeIs<EncodableList>(it->second)) {
         const EncodableList urls = GetValue<EncodableList>(it->second);
         for (auto url : urls) {
-          const EncodableMap map = GetValue<EncodableMap>(url);
-          std::string value;
-          auto it2 = map.find(EncodableValue("url"));
-          if (it2 != map.end()) {
-            value =  GetValue<std::string>(it2->second);
-            if (hasUsernameAndCredential) {
-              std::string username =
-                   GetValue<std::string>(iceServerMap.find(EncodableValue("username"))
-                      ->second);
-              std::string credential =
-                  GetValue<std::string>(iceServerMap.find(EncodableValue("credential"))
-                      ->second);
-              ice_server.username = username;
-              ice_server.password = credential;
-              ice_server.uri = value;
-            } else {
-              ice_server.uri = value;
+          if (TypeIs<EncodableMap>(url)) {
+            const EncodableMap map = GetValue<EncodableMap>(url);
+            std::string value;
+            auto it2 = map.find(EncodableValue("url"));
+            if (it2 != map.end()) {
+              ice_server.uri = GetValue<std::string>(it2->second);
             }
+          } else if (TypeIs<std::string>(url)) {
+            ice_server.uri = GetValue<std::string>(url);
           }
         }
       }
@@ -304,6 +307,14 @@ scoped_refptr<RTCMediaTrack> FlutterWebRTCBase::MediaTracksForId(
   auto it = local_tracks_.find(id);
   if (it != local_tracks_.end()) {
     return (*it).second;
+  }
+
+  for(auto it2 : peerconnection_observers_) {
+      auto pco = it2.second;
+      auto t = pco->MediaTrackForId(id);
+      if(t != nullptr) {
+        return t;
+      }
   }
 
   return nullptr;

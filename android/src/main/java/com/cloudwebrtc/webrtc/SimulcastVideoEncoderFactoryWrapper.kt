@@ -1,8 +1,9 @@
 package com.cloudwebrtc.webrtc
 
-import android.util.Log
 import org.webrtc.*
-import java.util.concurrent.*
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /*
 Copyright 2017, Lyo Kato <lyo.kato at gmail.com> (Original Author)
@@ -49,7 +50,7 @@ internal class SimulcastVideoEncoderFactoryWrapper(
      * This results in HardwareVideoEncoderFactory being both the primary and fallback,
      * but there aren't any specific problems in doing so.
      */
-    private class Fallback(private val hardwareVideoEncoderFactory: VideoEncoderFactory) :
+    private class FallbackFactory(private val hardwareVideoEncoderFactory: VideoEncoderFactory) :
         VideoEncoderFactory {
 
         private val softwareVideoEncoderFactory: VideoEncoderFactory = SoftwareVideoEncoderFactory()
@@ -93,6 +94,7 @@ internal class SimulcastVideoEncoderFactoryWrapper(
             val future = executor.submit(Callable {
             //     LKLog.i {
             //         """initEncode() thread=${Thread.currentThread().name} [${Thread.currentThread().id}]
+            //     |  encoder=${encoder.implementationName}
             //     |  streamSettings:
             //     |    numberOfCores=${settings.numberOfCores}
             //     |    width=${settings.width}
@@ -165,6 +167,31 @@ internal class SimulcastVideoEncoderFactoryWrapper(
             val future = executor.submit(Callable { return@Callable encoder.implementationName })
             return future.get()
         }
+
+        override fun createNativeVideoEncoder(): Long {
+            val future = executor.submit(Callable { return@Callable encoder.createNativeVideoEncoder() })
+            return future.get()
+        }
+
+        override fun isHardwareEncoder(): Boolean {
+            val future = executor.submit(Callable { return@Callable encoder.isHardwareEncoder })
+            return future.get()
+        }
+
+        override fun setRates(rcParameters: VideoEncoder.RateControlParameters?): VideoCodecStatus {
+            val future = executor.submit(Callable { return@Callable encoder.setRates(rcParameters) })
+            return future.get()
+        }
+
+        override fun getResolutionBitrateLimits(): Array<VideoEncoder.ResolutionBitrateLimits> {
+            val future = executor.submit(Callable { return@Callable encoder.resolutionBitrateLimits })
+            return future.get()
+        }
+
+        override fun getEncoderInfo(): VideoEncoder.EncoderInfo {
+            val future = executor.submit(Callable { return@Callable encoder.encoderInfo })
+            return future.get()
+        }
     }
 
     private class StreamEncoderWrapperFactory(private val factory: VideoEncoderFactory) :
@@ -173,6 +200,9 @@ internal class SimulcastVideoEncoderFactoryWrapper(
             val encoder = factory.createEncoder(videoCodecInfo)
             if (encoder == null) {
                 return null
+            }
+            if (encoder is WrappedNativeVideoEncoder) {
+              return encoder
             }
             return StreamEncoderWrapper(encoder)
         }
@@ -192,7 +222,7 @@ internal class SimulcastVideoEncoderFactoryWrapper(
             sharedContext, enableIntelVp8Encoder, enableH264HighProfile
         )
         primary = StreamEncoderWrapperFactory(hardwareVideoEncoderFactory)
-        fallback = StreamEncoderWrapperFactory(Fallback(primary))
+        fallback = StreamEncoderWrapperFactory(FallbackFactory(primary))
         native = SimulcastVideoEncoderFactory(primary, fallback)
     }
 

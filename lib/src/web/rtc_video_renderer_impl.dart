@@ -3,11 +3,10 @@ import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../interface/media_stream.dart';
-import '../interface/rtc_video_renderer.dart';
-import 'media_stream_impl.dart';
+import 'package:dart_webrtc/dart_webrtc.dart';
 
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
@@ -32,8 +31,11 @@ const Map<int, String> _kErrorValueToErrorDescription = {
 const String _kDefaultErrorMessage =
     'No further diagnostic information can be determined or provided.';
 
-class RTCVideoRendererWeb extends VideoRenderer {
-  RTCVideoRendererWeb() : _textureId = _textureCounter++;
+class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
+    implements VideoRenderer {
+  RTCVideoRenderer()
+      : _textureId = _textureCounter++,
+        super(RTCVideoValue.empty);
 
   static const _elementIdForAudioManager = 'html_webrtc_audio_manager_list';
 
@@ -156,11 +158,11 @@ class RTCVideoRendererWeb extends VideoRenderer {
   html.VideoElement? findHtmlView() {
     final element = html.document.getElementById(_elementIdForVideo);
     if (null != element) return element as html.VideoElement;
+    return null;
   }
 
   @override
   Future<void> dispose() async {
-    await _srcObject?.dispose();
     _srcObject = null;
     _subscriptions.forEach((s) => s.cancel());
     final element = findHtmlView();
@@ -252,4 +254,7 @@ class RTCVideoRendererWeb extends VideoRenderer {
       return element;
     });
   }
+
+  @override
+  Function? onResize;
 }

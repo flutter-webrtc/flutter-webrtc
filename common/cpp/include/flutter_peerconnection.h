@@ -16,6 +16,7 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
                                 std::string& peerConnectionId);
 
   virtual void OnSignalingState(RTCSignalingState state) override;
+  virtual void OnPeerConnectionState(RTCPeerConnectionState state) override;
   virtual void OnIceGatheringState(RTCIceGatheringState state) override;
   virtual void OnIceConnectionState(RTCIceConnectionState state) override;
   virtual void OnIceCandidate(
@@ -32,6 +33,8 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
   virtual void OnRenegotiationNeeded() override;
 
   scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id);
+
+  scoped_refptr<RTCMediaTrack> MediaTrackForId(const std::string& id);
 
   void RemoveStreamForId(const std::string& id);
 

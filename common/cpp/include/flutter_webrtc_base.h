@@ -84,11 +84,22 @@ inline int findInt(const EncodableMap& map, const std::string& key) {
   return -1;
 }
 
+inline double findDouble(const EncodableMap& map, const std::string& key) {
+  auto it = map.find(EncodableValue(key));
+  if (it != map.end() && TypeIs<double>(it->second))
+    return GetValue<double>(it->second);
+  return 0.0;
+}
+
 inline int64_t findLongInt(const EncodableMap& map, const std::string& key) {
   for (auto it : map) {
-    if (key == GetValue<std::string>(it.first) &&
-        (TypeIs<int64_t>(it.second) || TypeIs<int32_t>(it.second)))
-      return GetValue<int64_t>(it.second);
+    if (key == GetValue<std::string>(it.first)) {
+      if (TypeIs<int64_t>(it.second)) {
+        return GetValue<int64_t>(it.second);
+      } else if (TypeIs<int32_t>(it.second)) {
+        return GetValue<int32_t>(it.second);
+      }
+    }
   }
 
   return -1;
@@ -113,6 +124,7 @@ class FlutterWebRTCBase {
   friend class FlutterVideoRendererManager;
   friend class FlutterDataChannel;
   friend class FlutterPeerConnectionObserver;
+  friend class FlutterScreenCapture;
   enum ParseConstraintType { kMandatory, kOptional };
 
  public:
@@ -151,6 +163,8 @@ class FlutterWebRTCBase {
 
   void RemoveTracksForId(const std::string& id);
 
+  EventSink<EncodableValue> *event_sink();
+
  private:
   void ParseConstraints(const EncodableMap& src,
                         scoped_refptr<RTCMediaConstraints> mediaConstraints,
@@ -163,14 +177,14 @@ class FlutterWebRTCBase {
   scoped_refptr<RTCPeerConnectionFactory> factory_;
   scoped_refptr<RTCAudioDevice> audio_device_;
   scoped_refptr<RTCVideoDevice> video_device_;
+  scoped_refptr<RTCDesktopDevice> desktop_device_;
   RTCConfiguration configuration_;
 
   std::map<std::string, scoped_refptr<RTCPeerConnection>> peerconnections_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
   std::map<std::string, scoped_refptr<RTCMediaTrack>> local_tracks_;
-  std::map<std::string, scoped_refptr<RTCDataChannel>> data_channels_;
   std::map<int64_t, std::shared_ptr<FlutterVideoRenderer>> renders_;
-  std::map<int, std::shared_ptr<FlutterRTCDataChannelObserver>>
+  std::map<std::string, std::shared_ptr<FlutterRTCDataChannelObserver>>
       data_channel_observers_;
   std::map<std::string, std::shared_ptr<FlutterPeerConnectionObserver>>
       peerconnection_observers_;
@@ -182,6 +196,8 @@ class FlutterWebRTCBase {
  protected:
   BinaryMessenger* messenger_;
   TextureRegistrar* textures_;
+  std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
+  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
 };
 
 }  // namespace flutter_webrtc_plugin

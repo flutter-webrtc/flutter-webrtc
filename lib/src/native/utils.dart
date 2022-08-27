@@ -6,12 +6,11 @@ class WebRTC {
   static const MethodChannel _channel = MethodChannel('FlutterWebRTC.Method');
 
   static bool get platformIsDesktop =>
-      Platform.isWindows ||
-      Platform.isLinux ||
-      Platform.isMacOS ||
-      Platform.isLinux;
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
   static bool get platformIsWindows => Platform.isWindows;
+
+  static bool get platformIsMacOS => Platform.isMacOS;
 
   static bool get platformIsLinux => Platform.isLinux;
 

@@ -20,6 +20,15 @@ enum SessionDescriptionErrorType {
   kSDPParseFailed,
 };
 
+enum RTCPeerConnectionState {
+  RTCPeerConnectionStateNew,
+  RTCPeerConnectionStateConnecting,
+  RTCPeerConnectionStateConnected,
+  RTCPeerConnectionStateDisconnected,
+  RTCPeerConnectionStateFailed,
+  RTCPeerConnectionStateClosed,
+};
+
 enum RTCSignalingState {
   RTCSignalingStateStable,
   RTCSignalingStateHaveLocalOffer,
@@ -97,6 +106,23 @@ class TrackStatsObserver : public RefCountInterface {
   ~TrackStatsObserver() {}
 };
 
+class MediaRTCStats : public RefCountInterface {
+ public:
+  virtual const string id() = 0;
+
+  virtual const string type() = 0;
+
+  virtual int64_t timestamp_us() = 0;
+
+  virtual const string ToJson() = 0;
+};
+
+typedef fixed_size_function<void(
+    const vector<scoped_refptr<MediaRTCStats>> reports)>
+    OnStatsCollectorSuccess;
+
+typedef fixed_size_function<void(const char* error)> OnStatsCollectorFailure;
+
 typedef fixed_size_function<void(const string sdp, const string type)>
     OnSdpCreateSuccess;
 
@@ -114,6 +140,8 @@ typedef fixed_size_function<void(const char* error)> OnGetSdpFailure;
 class RTCPeerConnectionObserver {
  public:
   virtual void OnSignalingState(RTCSignalingState state) = 0;
+
+  virtual void OnPeerConnectionState(RTCPeerConnectionState state) = 0;
 
   virtual void OnIceGatheringState(RTCIceGatheringState state) = 0;
 
@@ -146,6 +174,8 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual int RemoveStream(scoped_refptr<RTCMediaStream> stream) = 0;
 
+  virtual scoped_refptr<RTCMediaStream> CreateLocalMediaStream(const string stream_id) = 0;
+
   virtual scoped_refptr<RTCDataChannel> CreateDataChannel(
       const string label,
       RTCDataChannelInit* dataChannelDict) = 0;
@@ -157,6 +187,8 @@ class RTCPeerConnection : public RefCountInterface {
   virtual void CreateAnswer(OnSdpCreateSuccess success,
                             OnSdpCreateFailure failure,
                             scoped_refptr<RTCMediaConstraints> constraints) = 0;
+
+  virtual void RestartIce() = 0;
 
   virtual void Close() = 0;
 
@@ -195,6 +227,9 @@ class RTCPeerConnection : public RefCountInterface {
   virtual bool GetStats(const RTCVideoTrack* track,
                         scoped_refptr<TrackStatsObserver> observer) = 0;
 
+  virtual void GetStats(OnStatsCollectorSuccess success,
+                        OnStatsCollectorFailure failure) = 0;
+
   virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver(
       scoped_refptr<RTCMediaTrack> track,
       scoped_refptr<RTCRtpTransceiverInit> init) = 0;
@@ -206,9 +241,12 @@ class RTCPeerConnection : public RefCountInterface {
       scoped_refptr<RTCMediaTrack> track,
       const vector<string> streamIds) = 0;
 
-  virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver(RTCMediaType media_type) = 0;
+  virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver(
+      RTCMediaType media_type) = 0;
 
-  virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver( RTCMediaType media_type, scoped_refptr<RTCRtpTransceiverInit> init) = 0;
+  virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver(
+      RTCMediaType media_type,
+      scoped_refptr<RTCRtpTransceiverInit> init) = 0;
 
   virtual bool RemoveTrack(scoped_refptr<RTCRtpSender> render) = 0;
 
@@ -217,6 +255,16 @@ class RTCPeerConnection : public RefCountInterface {
   virtual vector<scoped_refptr<RTCRtpTransceiver>> transceivers() = 0;
 
   virtual vector<scoped_refptr<RTCRtpReceiver>> receivers() = 0;
+
+  virtual RTCSignalingState signaling_state() = 0;
+
+  virtual RTCIceConnectionState ice_connection_state() = 0;
+
+  virtual RTCIceConnectionState standardized_ice_connection_state() = 0;
+
+  virtual RTCPeerConnectionState peer_connection_state() = 0;
+
+  virtual RTCIceGatheringState ice_gathering_state() = 0;
 
  protected:
   virtual ~RTCPeerConnection() {}

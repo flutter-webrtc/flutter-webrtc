@@ -1,14 +1,16 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import '../helper.dart';
-import '../interface/media_stream.dart';
-import '../interface/rtc_video_renderer.dart';
 import 'utils.dart';
 
-class RTCVideoRendererNative extends VideoRenderer {
-  RTCVideoRendererNative();
+class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
+    implements VideoRenderer {
+  RTCVideoRenderer() : super(RTCVideoValue.empty);
   int? _textureId;
   MediaStream? _srcObject;
   StreamSubscription<dynamic>? _eventSubscription;
@@ -33,6 +35,9 @@ class RTCVideoRendererNative extends VideoRenderer {
 
   @override
   MediaStream? get srcObject => _srcObject;
+
+  @override
+  Function? onResize;
 
   @override
   set srcObject(MediaStream? stream) {
@@ -111,8 +116,13 @@ class RTCVideoRendererNative extends VideoRenderer {
   }
 
   @override
-  Future<bool> audioOutput(String deviceId) {
-    // TODO(cloudwebrtc): related to https://github.com/flutter-webrtc/flutter-webrtc/issues/395
-    throw UnimplementedError('This is not implement yet');
+  Future<bool> audioOutput(String deviceId) async {
+    try {
+      await Helper.selectAudioOutput(deviceId);
+    } catch (e) {
+      print('Helper.selectAudioOutput ${e.toString()}');
+      return false;
+    }
+    return true;
   }
 }

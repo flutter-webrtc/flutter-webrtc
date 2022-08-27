@@ -3,9 +3,10 @@
 
 @interface RTCDataChannel (Flutter) <FlutterStreamHandler>
 @property (nonatomic, strong, nonnull) NSString *peerConnectionId;
-@property (nonatomic, strong, nonnull) NSNumber *flutterChannelId;
+@property (nonatomic, strong, nonnull) NSString *flutterChannelId;
 @property (nonatomic, strong, nullable) FlutterEventSink eventSink;
 @property (nonatomic, strong, nullable) FlutterEventChannel *eventChannel;
+@property (nonatomic, strong, nullable) NSArray<id> *eventQueue;
 @end
 
 @interface FlutterWebRTCPlugin (RTCDataChannel) <RTCDataChannelDelegate>
@@ -22,7 +23,7 @@
 
 
 -(void)dataChannelSend:(nonnull NSString *)peerConnectionId
-         dataChannelId:(nonnull NSNumber *)dataChannelId
+         dataChannelId:(nonnull NSString *)dataChannelId
                   data:(nonnull NSString *)data
                   type:(nonnull NSString *)type;
 

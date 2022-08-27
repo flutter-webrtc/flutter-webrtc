@@ -52,6 +52,7 @@ public class FrameCapturer implements VideoSink {
             i420Buffer.getStrideU(),
             i420Buffer.getStrideV()
         };
+        i420Buffer.release();
         final int chromaWidth = (width + 1) / 2;
         final int chromaHeight = (height + 1) / 2;
         final int minSize = width * height + chromaWidth * chromaHeight * 2;

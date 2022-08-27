@@ -1,6 +1,124 @@
 # Changelog
 
 --------------------------------------------
+
+[0.9.4] - 2022-08-22
+
+* [Andorid/iOS/macOS/Windows] New audio input/output selection API, ondevicechange event is used to monitor audio device changes.
+
+[0.9.3] - 2022-08-15
+
+* [Windows/macOS] Fix UI freeze when getting thumbnails.
+
+[0.9.2] - 2022-08-09
+
+* [Android] update libwebrtc to com.github.webrtc-sdk:android:104.5112.01.
+* [iOS/macOS] update WebRTC-SDK to 104.5112.02.
+* [Windows] update libwebrtc.dll to 104.5112.02.
+
+[0.9.1] - 2022-08-01
+
+* [iOS] fix : iOS app could not change camera resolutions cause by wrong datatype in the video Contraints.
+* [Darwin] bump version for .podspec.
+
+[0.9.0] - 2022-07-27
+
+* [macOS] Added screen-sharing support for macOS
+* [Windows] Added screen-sharing support for Windows
+* [iOS/macOS] fix: Fix compile warning for Darwin
+* [Darwin/Android/Windows] fix: Fix typo peerConnectoinEvent -> peerConnectionEvent for EventChannel name (#1019)
+
+[0.8.12] - 2022-07-15
+
+* [Darwin]: fix: camera release.
+
+[0.8.11] - 2022-07-11
+
+* [Windows] Fix variant exception of findLongInt. (#990)
+* [Windows] fix unable to get username/credential when parsing iceServers containing urls
+* [iOS] Fix RTCAudioSession properties set with libwebrtc m97, Fixes #987.
+
+[0.8.10] - 2022-06-28
+
+* [iOS] IPC Broadcast Upload Extension support for Screenshare
+
+[0.8.9] - 2022-06-08
+
+* [Android] Fixes DataChannel issue described in #974
+* [iOS] Fixes DataChannel issue described in #974
+* [Dawrin/Android/Windows] Split data channel's webrtc id from our internal id (#961)
+* [Windows] Update to m97.
+* [Windows] Add PeerConnectionState
+* [Windows] Fix can't open mic alone when built-in AEC is enabled.
+
+[0.8.8] - 2022-05-31
+
+* [Android] Added onBufferedAmountChange callback which will return currentBuffer and changedBuffer and implemented bufferedAmount.
+* [Android] Added onBufferedAmountLow callback which will return currentBuffer ans will be called if bufferedAmountLowThreshold is set a value.
+
+[0.8.7] - 2022-05-18
+
+* [iOS/macOS] fix: Use RTCYUVHelper instead of external libyuv library (#954).
+* [iOS/macOS] Flutter 3.0 crash fixes, setStreamHandler on main thread (#953)
+* [Android] Use mavenCentral() instead of jcenter() (#952)
+* [Windows] Use uint8_t* instead of string in DataChannel::Send method, fix binary send bug.
+* [Android] fix: "Reply already submitted" error and setVolume() not working on remote streams.
+
+[0.8.6] - 2022-05-08
+
+* [Web/Android/iOS/macOS] Support null tracks in replaceTrack/setTrack.
+* [macOS] Remove absolute path from resolved spec to make checksum stable.
+* [Android] Android 12 bluetooth permissions.
+* [Dart] fix wrong id type for data-channel.
+* [Android] Release i420 Buffer in FrameCapturer.
+
+[0.8.5] - 2022-04-01
+
+* [Dart] Expose RTCDataChannel.id (#898)
+* [Android] Enable H264 high profile for SimulcastVideoEncoderFactoryWrapper (#890)
+
+[0.8.4] - 2022-03-28
+
+* [Android] Fix simulcast factory not sending back EncoderInfo (#891)
+* [Android] fix: correct misspell in method screenRequestPermissions (#876)
+
+
+[0.8.3] - 2022-03-01
+
+* [Android/iOS] Update android/ios webrtc native sdk versions.
+* [Windows] Feature of selecting i/o audio devices by passing sourceId and/or deviceId constraints (#851).
+
+[0.8.2] - 2022-02-08
+
+* [Android/iOS/macOS/Web] Add restartIce.
+
+[0.8.1] - 2021-12-29
+
+* [Android/iOS] Bump webrtc-sdk version to 93.4577.01.
+
+[0.8.0] - 2021-12-05
+
+* [Dart] Refactor: Use webrtc interface. (#777)
+* [iOS] Fix crashes for FlutterRPScreenRecorder stop.
+* [Web] Don't stop tracks when disposing MediaStream (#760)
+* [Windows] Add the necessary parameters for onRemoveTrack (#763)
+* [Example] Properly start foreground service in example (#764)
+* [Android] Fix crash for Android, close #757 and #734.
+* [Dart] Fix typo in deprecated annotations.
+* [iOS] Fix IOS captureFrame and add support for remote stream captureFrame (#778)
+* [Windows] Fix parsing stun configuration (#789)
+* [Windows] Fix mute (#792)
+* [iOS/Android/Windows] New video constraints syntax (#790)
+
+[0.7.1] - 2021-11-04
+
+* [iOS/macOS] Update framework.
+* [Android] Update framework.
+* [Windows] Implement mediaStreamTrackSetEnable (#756).
+* [iOS/macOS] Enable audio capture when acquiring track.
+* [Android] Call stopCaptureWithCompletionHandler instead (#748)
+* [Windows] Fix bug for windows.
+
 [0.7.0+hotfix.2] - 2021-10-21
 
 * [iOS/macOS] Update .podspec for Darwin.

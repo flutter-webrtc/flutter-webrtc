@@ -2,6 +2,7 @@
 import 'dart:core';
 import 'dart:html' as html;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
@@ -82,6 +83,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
 
   Future<void> _stop() async {
     try {
+      if (kIsWeb) {
+        _localStream?.getTracks().forEach((track) => track.stop());
+      }
       await _localStream?.dispose();
       _localStream = null;
       _localRenderer.srcObject = null;
