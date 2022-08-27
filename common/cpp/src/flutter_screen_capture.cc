@@ -62,8 +62,9 @@ void FlutterScreenCapture::GetDesktopSources(
   }
 
   std::cout << " sources: " << sources.size() << std::endl;
-  result->Success(
-      EncodableValue(EncodableMap{{EncodableValue("sources"), sources}}));
+  EncodableMap params;
+  params[EncodableValue("sources")] = sources;
+  result->Success(EncodableValue(params));
 }
 
 void FlutterScreenCapture::UpdateDesktopSources(
@@ -73,8 +74,10 @@ void FlutterScreenCapture::UpdateDesktopSources(
     result->Error("Bad Arguments", "Failed to update desktop sources");
     return;
   }
-  result->Success(
-      EncodableValue(EncodableMap{{EncodableValue("result"), true}}));
+
+  EncodableMap params;
+  params[EncodableValue("result")] = true;
+  result->Success(EncodableValue(params));
 }
 
 void FlutterScreenCapture::OnMediaSourceAdded(
@@ -184,7 +187,7 @@ void FlutterScreenCapture::GetDisplayMedia(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
   std::string source_id = "0";
-  DesktopType source_type = kScreen;
+  //DesktopType source_type = kScreen;
   double fps = 30.0;
 
   const EncodableMap video = findMap(constraints, "video");
@@ -197,7 +200,7 @@ void FlutterScreenCapture::GetDisplayMedia(
         return;
       }
       if (source_id != "0") {
-        source_type = DesktopType::kWindow;
+        //source_type = DesktopType::kWindow;
       }
     }
     const EncodableMap mandatory = findMap(video, "mandatory");

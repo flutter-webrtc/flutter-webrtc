@@ -7,10 +7,13 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 set(PLUGIN_NAME "flutter_webrtc_plugin")
 
 #add_definitions(-DLIB_WEBRTC_API_DLL)
+add_definitions(-DRTC_DESKTOP_DEVICE)
+
 
 add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/flutter_webrtc_plugin.cc"
   "../common/cpp/src/flutter_data_channel.cc"
+  "../common/cpp/src/flutter_screen_capture.cc"
   "../common/cpp/src/flutter_media_stream.cc"
   "../common/cpp/src/flutter_peerconnection.cc"
   "../common/cpp/src/flutter_video_renderer.cc"
@@ -35,11 +38,11 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
 target_link_libraries(${PLUGIN_NAME} PRIVATE 
   flutter
   flutter_wrapper_plugin
-  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/elinux/x64/libwebrtc.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/linux/x64/libwebrtc.so"
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin
 set(flutter_webrtc_bundled_libraries
-  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/elinux/x64/libwebrtc.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/linux/x64/libwebrtc.so"
   PARENT_SCOPE
 )
