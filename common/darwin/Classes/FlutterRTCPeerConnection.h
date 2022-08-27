@@ -1,7 +1,7 @@
 #import "FlutterWebRTCPlugin.h"
 
 @interface RTCPeerConnection (Flutter) <FlutterStreamHandler>
-@property (nonatomic, strong, nonnull) NSMutableDictionary<NSNumber *, RTCDataChannel *> *dataChannels;
+@property (nonatomic, strong, nonnull) NSMutableDictionary<NSString *, RTCDataChannel *> *dataChannels;
 @property (nonatomic, strong, nonnull) NSMutableDictionary<NSString *, RTCMediaStream *> *remoteStreams;
 @property (nonatomic, strong, nonnull) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *remoteTracks;
 @property (nonatomic, strong, nonnull) NSString *flutterId;

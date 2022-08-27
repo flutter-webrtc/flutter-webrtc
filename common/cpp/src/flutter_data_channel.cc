@@ -10,21 +10,24 @@ FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
     : event_channel_(new EventChannel<EncodableValue>(
           messenger, name, &StandardMethodCodec::GetInstance())),
       data_channel_(data_channel) {
-	auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
-		[&](
-			const flutter::EncodableValue* arguments,
-			std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
-		-> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-		event_sink_ = std::move(events);
-		return nullptr;
-	},
-		[&](const flutter::EncodableValue* arguments)
-		-> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-		event_sink_ = nullptr;
-		return nullptr;
-	});
+  auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
+      [&](const flutter::EncodableValue* arguments,
+          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = std::move(events);
+        for (auto& event : event_queue_) {
+          event_sink_->Success(event);
+        }
+        event_queue_.clear();
+        return nullptr;
+      },
+      [&](const flutter::EncodableValue* arguments)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = nullptr;
+        return nullptr;
+      });
 
-	event_channel_->SetStreamHandler(std::move(handler));
+  event_channel_->SetStreamHandler(std::move(handler));
   data_channel_->RegisterObserver(this);
 }
 
@@ -39,20 +42,6 @@ void FlutterDataChannel::CreateDataChannel(
 
   RTCDataChannelInit init;
   init.id = GetValue<int>(dataChannelDict.find(EncodableValue("id"))->second);
-
-  base_->lock();
-  if (base_->data_channel_observers_.find( init.id) !=
-      base_->data_channel_observers_.end()) {
-    for(int i = 1024; i < 65535; i++){
-      if(base_->data_channel_observers_.find(i) ==
-      base_->data_channel_observers_.end()){
-         init.id = i;
-        break;
-      }
-    }
-  }
-  base_->unlock();
-
   init.ordered =
       GetValue<bool>(dataChannelDict.find(EncodableValue("ordered"))->second);
 
@@ -77,21 +66,22 @@ void FlutterDataChannel::CreateDataChannel(
   scoped_refptr<RTCDataChannel> data_channel =
       pc->CreateDataChannel(label.c_str(), &init);
 
-
+  std::string uuid = base_->GenerateUUID();
   std::string event_channel = "FlutterWebRTC/dataChannelEvent" +
-                              peerConnectionId + std::to_string(init.id);
+                              peerConnectionId + uuid;
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
                                         event_channel));
 
   base_->lock();
-  base_->data_channel_observers_[init.id] = std::move(observer);
+  base_->data_channel_observers_[uuid] = std::move(observer);
   base_->unlock();
 
   EncodableMap params;
   params[EncodableValue("id")] = EncodableValue(init.id);
   params[EncodableValue("label")] = EncodableValue(data_channel->label().std_string());
+  params[EncodableValue("flutterId")] = EncodableValue(uuid);
   result->Success(EncodableValue(params));
 }
 
@@ -102,28 +92,27 @@ void FlutterDataChannel::DataChannelSend(
   bool is_binary = type == "binary";
   if (is_binary && TypeIs<std::vector<uint8_t>>(data)) { 
     std::vector<uint8_t> buffer = GetValue<std::vector<uint8_t>>(data);
-    string binary = std::string((const char *)buffer.data(), (unsigned)buffer.size());
-    data_channel->Send(binary, true);
+    data_channel->Send(buffer.data(), static_cast<uint32_t>(buffer.size()), true);
   } else {
     std::string str = GetValue<std::string>(data);
-    data_channel->Send(str, false);
+    data_channel->Send(reinterpret_cast<const uint8_t*>(str.c_str()), static_cast<uint32_t>(str.length()), false);
   }
   result->Success();
 }
 
 void FlutterDataChannel::DataChannelClose(
     RTCDataChannel *data_channel,
+    const std::string &data_channel_uuid,
     std::unique_ptr<MethodResult<EncodableValue>> result) {
-  int id = data_channel->id();
   data_channel->Close();
-  auto it = base_->data_channel_observers_.find(id);
+  auto it = base_->data_channel_observers_.find(data_channel_uuid);
   if (it != base_->data_channel_observers_.end())
     base_->data_channel_observers_.erase(it);
   result->Success();
 }
 
-RTCDataChannel *FlutterDataChannel::DataChannelFormId(int id) {
-  auto it = base_->data_channel_observers_.find(id);
+RTCDataChannel *FlutterDataChannel::DataChannelForId(const std::string &uuid) {
+  auto it = base_->data_channel_observers_.find(uuid);
 
   if (it != base_->data_channel_observers_.end()) {
     FlutterRTCDataChannelObserver *observer = it->second.get();
@@ -148,27 +137,34 @@ static const char *DataStateString(RTCDataChannelState state) {
 }
 
 void FlutterRTCDataChannelObserver::OnStateChange(RTCDataChannelState state) {
+  EncodableMap params;
+  params[EncodableValue("event")] = EncodableValue("dataChannelStateChanged");
+  params[EncodableValue("id")] = EncodableValue(data_channel_->id());
+  params[EncodableValue("state")] = EncodableValue(DataStateString(state));
+  auto data = EncodableValue(params);
   if (event_sink_ != nullptr) {
-    EncodableMap params;
-    params[EncodableValue("event")] = EncodableValue("dataChannelStateChanged");
-    params[EncodableValue("id")] = EncodableValue(data_channel_->id());
-    params[EncodableValue("state")] = EncodableValue(DataStateString(state));
-    event_sink_->Success(EncodableValue(params));
+    event_sink_->Success(data);
+  } else {
+    event_queue_.push_back(data);
   }
 }
 
 void FlutterRTCDataChannelObserver::OnMessage(const char *buffer, int length,
                                               bool binary) {
+  EncodableMap params;
+  params[EncodableValue("event")] =
+  EncodableValue ("dataChannelReceiveMessage");
+  
+  params[EncodableValue("id")] = EncodableValue(data_channel_->id());
+  params[EncodableValue("type")] = EncodableValue(binary ? "binary" : "text");
+  std::string str(buffer, length);
+  params[EncodableValue("data")] = binary ? EncodableValue(std::vector<uint8_t>(str.begin(), str.end())) : EncodableValue(str);
 
+  auto data = EncodableValue(params);
   if (event_sink_ != nullptr) {
-    EncodableMap params;
-    params[EncodableValue("event")] =
-        EncodableValue ("dataChannelReceiveMessage");
-    params[EncodableValue("id")] = EncodableValue(data_channel_->id());
-    params[EncodableValue("type")] = EncodableValue(binary ? "binary" : "text");
-    std::string str(buffer, length);
-    params[EncodableValue("data")] = binary ? EncodableValue(std::vector<uint8_t>(str.begin(), str.end())) : EncodableValue(str);
-    event_sink_->Success(EncodableValue(params));
+    event_sink_->Success(data);
+  } else {
+    event_queue_.push_back(data);
   }
 }
 }  // namespace flutter_webrtc_plugin

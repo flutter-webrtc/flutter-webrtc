@@ -133,8 +133,8 @@ class _MyAppState extends State<LoopBackSample> {
       'video': {
         'mandatory': {
           'minWidth':
-              '1280', // Provide your own width, height and frame rate here
-          'minHeight': '720',
+              '640', // Provide your own width, height and frame rate here
+          'minHeight': '480',
           'minFrameRate': '30',
         },
         'facingMode': 'user',
@@ -256,8 +256,9 @@ class _MyAppState extends State<LoopBackSample> {
       print('sdp = $sdp');
       await _peerConnection!.setLocalDescription(description);
       //change for loopback.
-      description.type = 'answer';
-      await _peerConnection!.setRemoteDescription(description);
+      var sdp_answer = sdp?.replaceAll('setup:actpass','setup:active');
+      var description_answer = RTCSessionDescription(sdp_answer!, 'answer');
+      await _peerConnection!.setRemoteDescription(description_answer);
 
       // _peerConnection!.getStats();
       /* Unfied-Plan replaceTrack

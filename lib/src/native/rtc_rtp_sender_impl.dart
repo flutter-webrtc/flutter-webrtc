@@ -3,11 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../interface/media_stream_track.dart';
-import '../interface/rtc_dtmf_sender.dart';
-import '../interface/rtc_rtp_parameters.dart';
-import '../interface/rtc_rtp_sender.dart';
-import '../interface/rtc_stats_report.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
+
 import 'media_stream_track_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
 import 'utils.dart';
@@ -83,31 +80,41 @@ class RTCRtpSenderNative extends RTCRtpSender {
   }
 
   @override
-  Future<void> replaceTrack(MediaStreamTrack track) async {
+  Future<void> replaceTrack(MediaStreamTrack? track) async {
     try {
       await WebRTC.invokeMethod('rtpSenderReplaceTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
-        'trackId': track.id
+        'trackId': track != null ? track.id : ''
       });
+
+      // change reference of associated MediaTrack
+      _track = track;
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::replaceTrack: ${e.message}';
     }
   }
 
   @override
-  Future<void> setTrack(MediaStreamTrack track,
+  Future<void> setTrack(MediaStreamTrack? track,
       {bool takeOwnership = true}) async {
     try {
       await WebRTC.invokeMethod('rtpSenderSetTrack', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'rtpSenderId': _id,
-        'trackId': track.id,
+        'trackId': track != null ? track.id : '',
         'takeOwnership': takeOwnership,
       });
+
+      // change reference of associated MediaTrack
+      _track = track;
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
     }
+  }
+
+  void removeTrackReference() {
+    _track = null;
   }
 
   @override
@@ -134,7 +141,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
         'rtpSenderId': _id,
       });
     } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
+      throw 'Unable to RTCRtpSender::dispose: ${e.message}';
     }
   }
 }

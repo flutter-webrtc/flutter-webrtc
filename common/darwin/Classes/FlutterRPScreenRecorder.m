@@ -54,6 +54,14 @@
     }
 }
 
+- (void)stopCaptureWithCompletionHandler:(nullable void (^)(void))completionHandler
+{
+    [self stopCapture];
+    if(completionHandler != nil) {
+        completionHandler();
+    }
+}
+
 -(void)handleSourceBuffer:(CMSampleBufferRef)sampleBuffer sampleType:(RPSampleBufferType)sampleType
 {
     if (CMSampleBufferGetNumSamples(sampleBuffer) != 1 || !CMSampleBufferIsValid(sampleBuffer) ||

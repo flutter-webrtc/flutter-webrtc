@@ -1,7 +1,6 @@
 package com.cloudwebrtc.webrtc;
 
 import android.util.Log;
-import android.util.SparseArray;
 import androidx.annotation.Nullable;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
@@ -16,6 +15,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.List;
+import java.util.UUID;
 import org.webrtc.AudioTrack;
 import org.webrtc.CandidatePairChangeEvent;
 import org.webrtc.DataChannel;
@@ -34,7 +34,7 @@ import org.webrtc.VideoTrack;
 
 class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.StreamHandler {
   private final static String TAG = FlutterWebRTCPlugin.TAG;
-  private final SparseArray<DataChannel> dataChannels = new SparseArray<>();
+  private final Map<String, DataChannel> dataChannels = new HashMap<>();
   private BinaryMessenger messenger;
   private final String id;
   private PeerConnection peerConnection;
@@ -52,7 +52,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     this.messenger = messenger;
     this.id = id;
 
-    eventChannel = new EventChannel(messenger, "FlutterWebRTC/peerConnectoinEvent" + id);
+    eventChannel = new EventChannel(messenger, "FlutterWebRTC/peerConnectionEvent" + id);
     eventChannel.setStreamHandler(this);
   }
 
@@ -78,6 +78,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
   void setPeerConnection(PeerConnection peerConnection) {
     this.peerConnection = peerConnection;
+  }
+
+  void restartIce() {
+    peerConnection.restartIce();
   }
 
   void close() {
@@ -117,21 +121,22 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     // been deprecated in Chromium, and Google have decided (in 2015) to no
     // longer support them (in the face of multiple reported issues of
     // breakages).
-    int dataChannelId = init.id;
-    if (dataChannel != null && -1 != dataChannelId) {
-        dataChannels.put(dataChannelId, dataChannel);
-        registerDataChannelObserver(dataChannelId, dataChannel);
+    String flutterId = getNextDataChannelUUID();
+    if (dataChannel != null) {
+        dataChannels.put(flutterId, dataChannel);
+        registerDataChannelObserver(flutterId, dataChannel);
 
         ConstraintsMap params = new ConstraintsMap();
-        params.putInt("id", dataChannelId);
+        params.putInt("id", dataChannel.id());
         params.putString("label", dataChannel.label());
+        params.putString("flutterId", flutterId);
         result.success(params.toMap());
     } else {
-        resultError("createDataChannel", "Can't create data-channel for id: " + dataChannelId, result);
+        resultError("createDataChannel", "Can't create data-channel for id: " + init.id, result);
     }
   }
 
-    void dataChannelClose(int dataChannelId) {
+    void dataChannelClose(String dataChannelId) {
         DataChannel dataChannel = dataChannels.get(dataChannelId);
         if (dataChannel != null) {
             dataChannel.close();
@@ -141,7 +146,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         }
     }
 
-    void dataChannelSend(int dataChannelId, ByteBuffer byteBuffer, Boolean isBinary) {
+    void dataChannelSend(String dataChannelId, ByteBuffer byteBuffer, Boolean isBinary) {
         DataChannel dataChannel = dataChannels.get(dataChannelId);
         if (dataChannel != null) {
             DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, isBinary);
@@ -474,41 +479,20 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
     @Override
   public void onDataChannel(DataChannel dataChannel) {
-    // XXX Unfortunately, the Java WebRTC API doesn't expose the id
-    // of the underlying C++/native DataChannel (even though the
-    // WebRTC standard defines the DataChannel.id property). As a
-    // workaround, generated an id which will surely not clash with
-    // the ids of the remotely-opened (and standard-compliant
-    // locally-opened) DataChannels.
-    int dataChannelId = -1;
-    // The RTCDataChannel.id space is limited to unsigned short by
-    // the standard:
-    // https://www.w3.org/TR/webrtc/#dom-datachannel-id.
-    // Additionally, 65535 is reserved due to SCTP INIT and
-    // INIT-ACK chunks only allowing a maximum of 65535 streams to
-    // be negotiated (as defined by the WebRTC Data Channel
-    // Establishment Protocol).
-    for (int i = 65536; i <= Integer.MAX_VALUE; ++i) {
-      if (null == dataChannels.get(i, null)) {
-        dataChannelId = i;
-        break;
-      }
-    }
-    if (-1 == dataChannelId) {
-      return;
-    }
+    String flutterId = getNextDataChannelUUID();
     ConstraintsMap params = new ConstraintsMap();
     params.putString("event", "didOpenDataChannel");
-    params.putInt("id", dataChannelId);
+    params.putInt("id", dataChannel.id());
     params.putString("label", dataChannel.label());
+    params.putString("flutterId", flutterId);
 
-    dataChannels.put(dataChannelId, dataChannel);
-    registerDataChannelObserver(dataChannelId, dataChannel);
+    dataChannels.put(flutterId, dataChannel);
+    registerDataChannelObserver(flutterId, dataChannel);
 
     sendEvent(params);
   }
 
-  private void registerDataChannelObserver(int dcId, DataChannel dataChannel) {
+  private void registerDataChannelObserver(String dcId, DataChannel dataChannel) {
     // DataChannel.registerObserver implementation does not allow to
     // unregister, so the observer is registered here and is never
     // unregistered
@@ -711,34 +695,52 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       return  init;
   }
 
-  private RtpParameters updateRtpParameters(Map<String, Object> newParameters, RtpParameters parameters){
-    List<Map<String, Object>> encodings = (List<Map<String, Object>>) newParameters.get("encodings");
-    final Iterator encodingsIterator = encodings.iterator();
-    final Iterator nativeEncodingsIterator = parameters.encodings.iterator();
-    while(encodingsIterator.hasNext() && nativeEncodingsIterator.hasNext()){
-      final RtpParameters.Encoding nativeEncoding = (RtpParameters.Encoding) nativeEncodingsIterator.next();
-      final Map<String, Object> encoding = (Map<String, Object>) encodingsIterator.next();
-      if(encoding.containsKey("active")){
-        nativeEncoding.active =  (Boolean) encoding.get("active");
-      }
-      if (encoding.containsKey("maxBitrate")) {
-        nativeEncoding.maxBitrateBps = (Integer) encoding.get("maxBitrate");
-      }
-      if (encoding.containsKey("minBitrate")) {
-        nativeEncoding.minBitrateBps = (Integer) encoding.get("minBitrate");
-      }
-      if (encoding.containsKey("maxFramerate")) {
-        nativeEncoding.maxFramerate = (Integer) encoding.get("maxFramerate");
-      }
-      if (encoding.containsKey("numTemporalLayers")) {
-        nativeEncoding.numTemporalLayers = (Integer) encoding.get("numTemporalLayers");
-      }
-      if (encoding.containsKey("scaleResolutionDownBy") ) {
-        nativeEncoding.scaleResolutionDownBy = (Double) encoding.get("scaleResolutionDownBy");
-      }
+private RtpParameters updateRtpParameters(RtpParameters parameters, Map<String, Object> newParameters) {
+    // new
+    final List<Map<String, Object>> encodings = (List<Map<String, Object>>)newParameters.get("encodings");
+    // current
+    final List<RtpParameters.Encoding> nativeEncodings = parameters.encodings;
+
+    for (Map<String, Object> encoding: encodings) {
+        RtpParameters.Encoding currentParams = null;
+        String rid = (String)encoding.get("rid");
+
+        // find by rid
+        if (rid != null) {
+            for (RtpParameters.Encoding x : nativeEncodings) {
+                if (rid.equals(x.rid)) {
+                    currentParams = x;
+                    break;
+                }
+            }
+        }
+
+        // fall back to index
+        if (currentParams == null) {
+            int idx = encodings.indexOf(encoding);
+            if (idx < nativeEncodings.size()) {
+                currentParams = nativeEncodings.get(idx);
+            }
+        }
+
+        if (currentParams != null) {
+          Boolean active = (Boolean)encoding.get("active");
+          if (active != null) currentParams.active = active;
+          Integer maxBitrate = (Integer)encoding.get("maxBitrate");
+          if (maxBitrate != null) currentParams.maxBitrateBps = maxBitrate;
+          Integer minBitrate = (Integer)encoding.get("minBitrate");
+          if (minBitrate != null) currentParams.minBitrateBps = minBitrate;
+          Integer maxFramerate = (Integer)encoding.get("maxFramerate");
+          if (maxFramerate != null) currentParams.maxFramerate = maxFramerate; 
+          Integer numTemporalLayers = (Integer)encoding.get("numTemporalLayers");
+          if (numTemporalLayers != null) currentParams.numTemporalLayers = numTemporalLayers;
+          Double scaleResolutionDownBy = (Double)encoding.get("scaleResolutionDownBy");
+          if (scaleResolutionDownBy != null) currentParams.scaleResolutionDownBy = scaleResolutionDownBy;  
+        }
     }
+
     return parameters;
-  }
+}
 
   private Map<String, Object> rtpParametersToMap(RtpParameters rtpParameters){
       ConstraintsMap info = new ConstraintsMap();
@@ -763,6 +765,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       for(RtpParameters.Encoding encoding : rtpParameters.encodings){
           ConstraintsMap map = new ConstraintsMap();
           map.putBoolean("active",encoding.active);
+          if (encoding.rid != null) {
+              map.putString("rid", encoding.rid);
+          }
           if (encoding.maxBitrateBps != null) {
               map.putInt("maxBitrate", encoding.maxBitrateBps);
           }
@@ -1001,7 +1006,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             resultError("rtpSenderSetParameters", "sender is null", result);
             return;
         }
-        final RtpParameters updatedParameters = updateRtpParameters(parameters, sender.getParameters());
+        final RtpParameters updatedParameters = updateRtpParameters(sender.getParameters(), parameters);
         final Boolean success = sender.setParameters(updatedParameters);
         ConstraintsMap params = new ConstraintsMap();
         params.putBoolean("result", success);
@@ -1083,4 +1088,14 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         return track;
     }
 
+    public String getNextDataChannelUUID() {
+      String uuid;
+  
+      do {
+        uuid = UUID.randomUUID().toString();
+      } while (dataChannels.get(uuid) != null);
+  
+      return uuid;
+    }
+  
 }

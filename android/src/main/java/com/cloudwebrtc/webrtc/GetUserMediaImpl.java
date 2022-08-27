@@ -16,6 +16,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.media.AudioDeviceInfo;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
@@ -88,7 +89,7 @@ class GetUserMediaImpl {
     private static final String PERMISSION_AUDIO = Manifest.permission.RECORD_AUDIO;
     private static final String PERMISSION_VIDEO = Manifest.permission.CAMERA;
     private static final String PERMISSION_SCREEN = "android.permission.MediaProjection";
-    private static int CAPTURE_PERMISSION_REQUEST_CODE = 1;
+    private static final int CAPTURE_PERMISSION_REQUEST_CODE = 1;
     private static final String GRANT_RESULTS = "GRANT_RESULT";
     private static final String PERMISSIONS = "PERMISSION";
     private static final String PROJECTION_DATA = "PROJECTION_DATA";
@@ -103,15 +104,13 @@ class GetUserMediaImpl {
     private final Context applicationContext;
 
     static final int minAPILevel = Build.VERSION_CODES.LOLLIPOP;
-    private MediaProjectionManager mProjectionManager = null;
-    private static MediaProjection sMediaProjection = null;
 
     final AudioSamplesInterceptor inputSamplesInterceptor = new AudioSamplesInterceptor();
     private OutputAudioSamplesInterceptor outputSamplesInterceptor = null;
     JavaAudioDeviceModule audioDeviceModule;
     private final SparseArray<MediaRecorderImpl> mediaRecorders = new SparseArray<>();
 
-    public void screenRequestPremissions(ResultReceiver resultReceiver) {
+    public void screenRequestPermissions(ResultReceiver resultReceiver) {
         final Activity activity = stateProvider.getActivity();
         if (activity == null) {
             // Activity went away, nothing we can do.
@@ -351,23 +350,6 @@ class GetUserMediaImpl {
     void getUserMedia(
             final ConstraintsMap constraints, final Result result, final MediaStream mediaStream) {
 
-        // TODO: change getUserMedia constraints format to support new syntax
-        //   constraint format seems changed, and there is no mandatory any more.
-        //   and has a new syntax/attrs to specify resolution
-        //   should change `parseConstraints()` according
-        //   see: https://www.w3.org/TR/mediacapture-streams/#idl-def-MediaTrackConstraints
-
-        ConstraintsMap videoConstraintsMap = null;
-        ConstraintsMap videoConstraintsMandatory = null;
-
-        if (constraints.getType("video") == ObjectType.Map) {
-            videoConstraintsMap = constraints.getMap("video");
-            if (videoConstraintsMap.hasKey("mandatory")
-                    && videoConstraintsMap.getType("mandatory") == ObjectType.Map) {
-                videoConstraintsMandatory = videoConstraintsMap.getMap("mandatory");
-            }
-        }
-
         final ArrayList<String> requestPermissions = new ArrayList<>();
 
         if (constraints.hasKey("audio")) {
@@ -441,20 +423,8 @@ class GetUserMediaImpl {
 
     void getDisplayMedia(
             final ConstraintsMap constraints, final Result result, final MediaStream mediaStream) {
-        ConstraintsMap videoConstraintsMap = null;
-        ConstraintsMap videoConstraintsMandatory = null;
 
-        if (constraints.getType("video") == ObjectType.Map) {
-            videoConstraintsMap = constraints.getMap("video");
-            if (videoConstraintsMap.hasKey("mandatory")
-                    && videoConstraintsMap.getType("mandatory") == ObjectType.Map) {
-                videoConstraintsMandatory = videoConstraintsMap.getMap("mandatory");
-            }
-        }
-
-        final ConstraintsMap videoConstraintsMandatory2 = videoConstraintsMandatory;
-
-        screenRequestPremissions(
+        screenRequestPermissions(
                 new ResultReceiver(new Handler(Looper.getMainLooper())) {
                     @Override
                     protected void onReceiveResult(int requestCode, Bundle resultData) {
@@ -464,7 +434,7 @@ class GetUserMediaImpl {
                         Intent mediaProjectionData = resultData.getParcelable(PROJECTION_DATA);
 
                         if (resultCode != Activity.RESULT_OK) {
-                            resultError("screenRequestPremissions", "User didn't give permission to capture the screen.", result);
+                            resultError("screenRequestPermissions", "User didn't give permission to capture the screen.", result);
                             return;
                         }
 
@@ -483,7 +453,7 @@ class GetUserMediaImpl {
                                             }
                                         });
                         if (videoCapturer == null) {
-                            resultError("screenRequestPremissions", "GetDisplayMediaFailed, User revoked permission to capture the screen.", result);
+                            resultError("screenRequestPermissions", "GetDisplayMediaFailed, User revoked permission to capture the screen.", result);
                             return;
                         }
 
@@ -640,6 +610,34 @@ class GetUserMediaImpl {
 
     private boolean isFacing = true;
 
+    /**
+     * @return Returns the integer at the key, or the `ideal` property if it is a map.
+     */
+    @Nullable
+    private Integer getConstrainInt(@Nullable ConstraintsMap constraintsMap, String key) {
+        if(constraintsMap == null){
+            return null;
+        }
+
+        if (constraintsMap.getType(key) == ObjectType.Number) {
+            try {
+                return constraintsMap.getInt(key);
+            } catch (Exception e) {
+                // Could be a double instead
+                return (int) Math.round(constraintsMap.getDouble(key));
+            }
+        }
+
+        if (constraintsMap.getType(key) == ObjectType.Map) {
+            ConstraintsMap innerMap = constraintsMap.getMap(key);
+            if (constraintsMap.getType("ideal") == ObjectType.Number) {
+                return innerMap.getInt("ideal");
+            }
+        }
+
+        return null;
+    }
+
     private VideoTrack getUserVideo(ConstraintsMap constraints) {
         ConstraintsMap videoConstraintsMap = null;
         ConstraintsMap videoConstraintsMandatory = null;
@@ -650,6 +648,7 @@ class GetUserMediaImpl {
                 videoConstraintsMandatory = videoConstraintsMap.getMap("mandatory");
             }
         }
+
 
         Log.i(TAG, "getUserMedia(video): " + videoConstraintsMap);
 
@@ -688,16 +687,25 @@ class GetUserMediaImpl {
                 surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
 
         VideoCapturerInfo info = new VideoCapturerInfo();
-        info.width =
-                videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minWidth")
+
+        Integer videoWidth = getConstrainInt(videoConstraintsMap, "width");
+        info.width = videoWidth != null
+                ? videoWidth
+                : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minWidth")
                         ? videoConstraintsMandatory.getInt("minWidth")
                         : DEFAULT_WIDTH;
-        info.height =
-                videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minHeight")
+
+        Integer videoHeight = getConstrainInt(videoConstraintsMap, "height");
+        info.height = videoHeight != null
+                ? videoHeight
+                : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minHeight")
                         ? videoConstraintsMandatory.getInt("minHeight")
                         : DEFAULT_HEIGHT;
-        info.fps =
-                videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minFrameRate")
+
+        Integer videoFrameRate = getConstrainInt(videoConstraintsMap, "frameRate");
+        info.fps = videoFrameRate != null
+                ? videoFrameRate
+                : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minFrameRate")
                         ? videoConstraintsMandatory.getInt("minFrameRate")
                         : DEFAULT_FPS;
         info.capturer = videoCapturer;
@@ -1054,5 +1062,14 @@ class GetUserMediaImpl {
         int height;
         int fps;
         boolean isScreenCapture = false;
+    }
+
+    @RequiresApi(api = VERSION_CODES.M)
+    void setPreferredInputDevice(int i) {
+        android.media.AudioManager audioManager = ((android.media.AudioManager) applicationContext.getSystemService(Context.AUDIO_SERVICE));
+        final AudioDeviceInfo[] devices = audioManager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS);
+        if (devices.length > i) {
+            audioDeviceModule.setPreferredInputDevice(devices[i]);
+        }
     }
 }

@@ -24,6 +24,11 @@ public class MediaConstraintsUtils {
   public static MediaConstraints parseMediaConstraints(ConstraintsMap constraints) {
     MediaConstraints mediaConstraints = new MediaConstraints();
 
+    // TODO: change getUserMedia constraints format to support new syntax
+    //   constraint format seems changed, and there is no mandatory any more.
+    //   and has a new syntax/attrs to specify resolution
+    //   should change `parseConstraints()` according
+    //   see: https://www.w3.org/TR/mediacapture-streams/#idl-def-MediaTrackConstraints
     if (constraints.hasKey("mandatory")
         && constraints.getType("mandatory") == ObjectType.Map) {
       parseConstraints(constraints.getMap("mandatory"),

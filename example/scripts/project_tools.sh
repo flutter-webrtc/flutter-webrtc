@@ -8,7 +8,7 @@ CMD=$1
 function cleanup() {
     echo "Cleanup project [$FLUTTER_APP_PROJECT_NAME] files ..."
     cd $FLUTTER_APP_FOLDER
-    rm -rf android build *.iml ios pubspec.lock test .flutter-plugins .metadata .packages .idea macos web linux
+    rm -rf android build *.iml ios pubspec.lock test .flutter-plugins .metadata .packages .idea macos web windows linux
 }
 
 function create() {

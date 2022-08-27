@@ -34,7 +34,7 @@ class RTCDataChannelObserver {
 
 class RTCDataChannel : public RefCountInterface {
  public:
-  virtual void Send(const string data, bool binary = false) = 0;
+  virtual void Send(const uint8_t* data, uint32_t size, bool binary = false) = 0;
 
   virtual void Close() = 0;
 
