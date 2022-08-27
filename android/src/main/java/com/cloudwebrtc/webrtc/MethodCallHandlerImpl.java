@@ -369,7 +369,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       case "trackDispose": {
         String trackId = call.argument("trackId");
-        localTracks.remove(trackId);
+        mediaStreamTrackStop(trackId);
         result.success(null);
         break;
       }
