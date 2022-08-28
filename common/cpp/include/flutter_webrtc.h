@@ -12,9 +12,14 @@
 #include "libwebrtc.h"
 
 namespace flutter_webrtc_plugin {
+
 using namespace libwebrtc;
 
-class FlutterWebRTCPlugin : public flutter::Plugin {
+class FlutterWebRTCPlugin 
+#if defined(_WINDOWS)
+: public flutter::Plugin 
+#endif
+{
  public:
   virtual BinaryMessenger* messenger() = 0;
 

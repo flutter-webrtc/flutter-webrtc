@@ -1,6 +1,10 @@
 #ifndef FLUTTER_WEBRTC_COMMON_HXX
 #define FLUTTER_WEBRTC_COMMON_HXX
 
+#include <string>
+#include <memory>
+
+#if defined(_WINDOWS)
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler_functions.h>
@@ -21,76 +25,6 @@ typedef flutter::EventChannel<EncodableValue> EventChannel;
 typedef flutter::EventSink<EncodableValue> EventSink;
 typedef flutter::MethodCall<EncodableValue> MethodCall;
 typedef flutter::MethodResult<EncodableValue> MethodResult;
-
-#if defined(__linux__)
-typedef FlTextureRegistrar TextureRegistrar;
-typedef FlPluginRegistrar PluginRegistrar;
-typedef FlBinaryMessenger BinaryMessenger;
-typedef FlMethodChannel MethodChannel;
-typedef FlEventChannel EventChannel;
-typedef FlMethodCall MethodCall;
-typedef FlValue * EncodableValue;
-typedef FlValue * EncodableMap;
-typedef FlValue * EncodableList;
-typedef FlMethodResult MethodResult;
-
-// nullptr if none
-inline FlValue *findEncodableValue(const FlValue *map, const std::string& key) {
-  FlValue *mapV = const_cast<FlValue *>(map);
-  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
-  return keyV;
-}
-
-inline FlValue *findMap(const FlValue *map, const std::string& key) {
-  FlValue *mapV = const_cast<FlValue *>(map);
-  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
-  if (fl_value_get_type(keyV) == FL_VALUE_TYPE_MAP) return keyV;
-  return nullptr;
-}
-
-inline FlValue *findList(const FlValue *map, const std::string& key) {
-  FlValue *mapV = const_cast<FlValue *>(map);
-  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
-  if (fl_value_get_type(keyV) == FL_VALUE_TYPE_LIST) return keyV;
-  return nullptr;
-}
-
-inline std::string findString(const FlValue *map, const std::string& key) {
-  FlValue *mapV = const_cast<FlValue *>(map);
-  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
-  if (fl_value_get_type(keyV) == FL_VALUE_TYPE_STRING)
-    return fl_value_get_string(keyV);
-  return std::string();
-}
-
-// fl_value is int64_t
-inline int findInt(const FlValue *map, const std::string& key) {
-  FlValue *mapV = const_cast<FlValue *>(map);
-  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
-  if (fl_value_get_type(keyV) == FL_VALUE_TYPE_INT)
-    return fl_value_get_int(keyV);
-  return -1;
-}
-
-inline int64_t findLongInt(const FlValue *map, const std::string& key) {
-FlValue *mapV = const_cast<FlValue *>(map);
-  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
-  if (fl_value_get_type(keyV) == FL_VALUE_TYPE_INT)
-    return fl_value_get_int(keyV);
-  return -1;
-}
-
-inline int toInt(FlValue *inputVal, int defaultVal) {
-  int intValue = defaultVal;
-  FlValueType vtype = fl_value_get_type(inputVal);
-  if (vtype == FL_VALUE_TYPE_INT) {
-    intValue = fl_value_get_int(inputVal);
-  } else if (vtype == FL_VALUE_TYPE_STRING) {
-    intValue = atoi(fl_value_get_string(inputVal));
-  }
-  return intValue;
-}
-#endif
 
 // foo.StringValue() becomes std::get<std::string>(foo)
 // foo.IsString() becomes std::holds_alternative<std::string>(foo)
@@ -174,6 +108,104 @@ inline int toInt(flutter::EncodableValue inputVal, int defaultVal) {
   return intValue;
 }
 
+#endif
+
+#if defined(__linux__)
+
+typedef FlTextureRegistrar TextureRegistrar;
+typedef FlPluginRegistrar PluginRegistrar;
+typedef FlBinaryMessenger BinaryMessenger;
+typedef FlMethodChannel MethodChannel;
+typedef FlEventChannel EventChannel;
+typedef FlMethodCall MethodCall;
+typedef g_autoptr(FlValue) EncodableValue;
+typedef g_autoptr(FlValue) EncodableMap;
+typedef g_autoptr(FlValue) EncodableList;
+
+
+EncodableValue fromString(std::string val) {
+  return fl_value_new_string(val.c_str());
+}
+
+EncodableValue fromInt(int val) {
+  return fl_value_new_int(val);
+}
+
+EncodableValue fromDouble(double val) {
+  return fl_value_new_float(val);
+}
+
+EncodableValue fromBool(bool val) {
+  return fl_value_new_bool(val);
+}
+
+void appendValue(EncodableList list, EncodableValue val) {
+  fl_value_append(list, val);
+}
+
+void setKeyValue(EncodableMap map, std::string key, EncodableValue val) {
+  fl_value_set_string_take(map, key.c_str(), val);
+}
+
+// nullptr if none
+inline FlValue *findEncodableValue(const FlValue *map, const std::string& key) {
+  FlValue *mapV = const_cast<FlValue *>(map);
+  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
+  return keyV;
+}
+
+inline FlValue *findMap(const FlValue *map, const std::string& key) {
+  FlValue *mapV = const_cast<FlValue *>(map);
+  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
+  if (fl_value_get_type(keyV) == FL_VALUE_TYPE_MAP) return keyV;
+  return nullptr;
+}
+
+inline FlValue *findList(const FlValue *map, const std::string& key) {
+  FlValue *mapV = const_cast<FlValue *>(map);
+  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
+  if (fl_value_get_type(keyV) == FL_VALUE_TYPE_LIST) return keyV;
+  return nullptr;
+}
+
+inline std::string findString(const FlValue *map, const std::string& key) {
+  FlValue *mapV = const_cast<FlValue *>(map);
+  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
+  if (fl_value_get_type(keyV) == FL_VALUE_TYPE_STRING)
+    return fl_value_get_string(keyV);
+  return std::string();
+}
+
+// fl_value is int64_t
+inline int findInt(const FlValue *map, const std::string& key) {
+  FlValue *mapV = const_cast<FlValue *>(map);
+  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
+  if (fl_value_get_type(keyV) == FL_VALUE_TYPE_INT)
+    return fl_value_get_int(keyV);
+  return -1;
+}
+
+inline int64_t findLongInt(const FlValue *map, const std::string& key) {
+FlValue *mapV = const_cast<FlValue *>(map);
+  FlValue *keyV = fl_value_lookup_string(mapV, key.c_str());
+  if (fl_value_get_type(keyV) == FL_VALUE_TYPE_INT)
+    return fl_value_get_int(keyV);
+  return -1;
+}
+
+inline int toInt(FlValue *inputVal, int defaultVal) {
+  int intValue = defaultVal;
+  FlValueType vtype = fl_value_get_type(inputVal);
+  if (vtype == FL_VALUE_TYPE_INT) {
+    intValue = fl_value_get_int(inputVal);
+  } else if (vtype == FL_VALUE_TYPE_STRING) {
+    intValue = atoi(fl_value_get_string(inputVal));
+  }
+  return intValue;
+}
+#endif
+
+
 class MethodCallProxy {
  public:
   static std::unique_ptr<MethodCallProxy> Create(const MethodCall& call);
@@ -187,8 +219,12 @@ class MethodCallProxy {
 
 class MethodResultProxy {
  public:
+ #if defined(_WINDOWS)
   static std::unique_ptr<MethodResultProxy> Create(
       std::unique_ptr<MethodResult> method_result);
+#else
+    static std::unique_ptr<MethodResultProxy> Create(MethodCall *method_call);
+#endif
 
   virtual ~MethodResultProxy() = default;
 
