@@ -844,7 +844,7 @@ FlutterPeerConnectionObserver::FlutterPeerConnectionObserver(
     BinaryMessenger* messenger,
     const std::string& channel_name,
     std::string& peerConnectionId)
-    : event_channel_(new EventChannelProxy(messenger, channel_name)),
+    : event_channel_(EventChannelProxy::Create(messenger, channel_name)),
       peerconnection_(peerconnection),
       base_(base),
       id_(peerConnectionId) {

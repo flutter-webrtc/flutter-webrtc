@@ -16,7 +16,7 @@ FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar* registrar,
 
   std::string channel_name =
       "FlutterWebRTC/Texture" + std::to_string(texture_id_);
-  event_channel_.reset(new EventChannelProxy(messenger, channel_name));
+  event_channel_ = EventChannelProxy::Create(messenger, channel_name);
 }
 
 const FlutterDesktopPixelBuffer* FlutterVideoRenderer::CopyPixelBuffer(

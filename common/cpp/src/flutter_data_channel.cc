@@ -8,7 +8,7 @@ FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
     scoped_refptr<RTCDataChannel> data_channel,
     BinaryMessenger* messenger,
     const std::string& channelName)
-    : event_channel_(new EventChannelProxy(messenger, channelName)),
+    : event_channel_(EventChannelProxy::Create(messenger, channelName)),
       data_channel_(data_channel) {
   data_channel_->RegisterObserver(this);
 }

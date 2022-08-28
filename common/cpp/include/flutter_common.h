@@ -113,90 +113,45 @@ typedef flutter::MethodResult<EncodableValue> MethodResult;
 
 class MethodCallProxy {
  public:
-  MethodCallProxy(const MethodCall& method_call) : method_call_(method_call) {}
-  ~MethodCallProxy(){}
+  static std::unique_ptr<MethodCallProxy> Create(const MethodCall& call);
+  virtual ~MethodCallProxy() = default;
   // The name of the method being called.
-  const std::string& method_name() const { return method_call_.method_name(); }
+  virtual const std::string& method_name() const = 0;
 
   // The arguments to the method call, or NULL if there are none.
-  const EncodableValue* arguments() const { return method_call_.arguments(); }
-
- private:
-  const MethodCall& method_call_;
+  virtual const EncodableValue* arguments() const = 0;
 };
 
 class MethodResultProxy {
  public:
-  MethodResultProxy(std::unique_ptr<MethodResult> method_result)
-      : method_result_(std::move(method_result)) {}
-  ~MethodResultProxy(){}
+  static std::unique_ptr<MethodResultProxy> Create(std::unique_ptr<MethodResult> method_result);
+
+  virtual ~MethodResultProxy() = default;
+
   // Reports success with no result.
-  void Success() { method_result_->Success(); }
+  virtual void Success() = 0;
 
   // Reports success with a result.
-  void Success(const EncodableValue& result) { method_result_->Success(result); }
+  virtual void Success(const EncodableValue& result) = 0;
 
   // Reports an error.
-  void Error(const std::string& error_code,
+  virtual void Error(const std::string& error_code,
              const std::string& error_message,
-             const EncodableValue* error_details) {
-    method_result_->Error(error_code, error_message, error_details);
-  }
+             const EncodableValue* error_details) = 0;
 
   // Reports an error with a default error code and no details.
-  void Error(const std::string& error_code, const std::string& error_message = "") {
-    method_result_->Error(error_code, error_message);
-  }
+  virtual void Error(const std::string& error_code, const std::string& error_message = "") = 0;
 
-  void NotImplemented() { method_result_->NotImplemented(); }
-
- private:
-  std::unique_ptr<MethodResult> method_result_;
+  virtual void NotImplemented() = 0;
 };
 
 class EventChannelProxy {
  public:
-  EventChannelProxy(BinaryMessenger* messenger, const std::string& channelName)
-      : channel_(std::make_unique<EventChannel>(
-            messenger,
-            channelName,
-            &flutter::StandardMethodCodec::GetInstance())) {
-    auto handler = std::make_unique<
-        flutter::StreamHandlerFunctions<EncodableValue>>(
-        [&](const EncodableValue* arguments,
-            std::unique_ptr<flutter::EventSink<EncodableValue>>&& events)
-            -> std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> {
-          sink_ = std::move(events);
-          for (auto& event : event_queue_) {
-            sink_->Success(event);
-          }
-          event_queue_.clear();
-          return nullptr;
-        },
-        [&](const EncodableValue* arguments)
-            -> std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> {
-          sink_.reset();
-          return nullptr;
-        });
+  static std::unique_ptr<EventChannelProxy> Create(BinaryMessenger* messenger, const std::string& channelName);
 
-    channel_->SetStreamHandler(std::move(handler));
-  }
-  virtual ~EventChannelProxy() {}
+  virtual ~EventChannelProxy() = default;
 
-  void Success(const EncodableValue& event, bool cache_event = true) {
-    if (sink_) {
-      sink_->Success(event);
-    } else {
-      if (cache_event) {
-        event_queue_.push_back(event);
-      }
-    }
-  }
-
- private:
-  std::unique_ptr<EventChannel> channel_;
-  std::unique_ptr<EventSink> sink_;
-  std::list<EncodableValue> event_queue_;
+  virtual void Success(const EncodableValue& event, bool cache_event = true) = 0;
 };
 
 #endif  // FLUTTER_WEBRTC_COMMON_HXX
