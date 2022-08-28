@@ -1,58 +1,60 @@
 #ifndef FLUTTER_SCRREN_CAPTURE_HXX
 #define FLUTTER_SCRREN_CAPTURE_HXX
 
+#include "flutter_common.h"
 #include "flutter_webrtc_base.h"
+
 #include "rtc_desktop_capturer.h"
 #include "rtc_desktop_media_list.h"
 
 namespace flutter_webrtc_plugin {
 
-using namespace flutter;
-
-class FlutterScreenCapture : public MediaListObserver, public DesktopCapturerObserver {
+class FlutterScreenCapture : public MediaListObserver,
+                             public DesktopCapturerObserver {
  public:
-  FlutterScreenCapture(FlutterWebRTCBase *base);
-  
+  FlutterScreenCapture(FlutterWebRTCBase* base);
+
   void GetDisplayMedia(const EncodableMap& constraints,
-                    std::unique_ptr<MethodResult<EncodableValue>> result);
+                       std::unique_ptr<MethodResult> result);
 
-  void GetDesktopSources(const EncodableList &types, std::unique_ptr<MethodResult<EncodableValue>> result);
+  void GetDesktopSources(const EncodableList& types,
+                         std::unique_ptr<MethodResult> result);
 
-  void UpdateDesktopSources(const EncodableList &types, std::unique_ptr<MethodResult<EncodableValue>> result);
+  void UpdateDesktopSources(const EncodableList& types,
+                            std::unique_ptr<MethodResult> result);
 
-  void GetDesktopSourceThumbnail(std::string source_id, int width, int height,
-                     std::unique_ptr<MethodResult<EncodableValue>> result);
+  void GetDesktopSourceThumbnail(std::string source_id,
+                                 int width,
+                                 int height,
+                                 std::unique_ptr<MethodResult> result);
 
-  protected:
-   void OnMediaSourceAdded(scoped_refptr<MediaSource> source) override;
+ protected:
+  void OnMediaSourceAdded(scoped_refptr<MediaSource> source) override;
 
-   void OnMediaSourceRemoved(scoped_refptr<MediaSource> source) override;
+  void OnMediaSourceRemoved(scoped_refptr<MediaSource> source) override;
 
-   void OnMediaSourceNameChanged(
+  void OnMediaSourceNameChanged(scoped_refptr<MediaSource> source) override;
+
+  void OnMediaSourceThumbnailChanged(
       scoped_refptr<MediaSource> source) override;
 
-   void OnMediaSourceThumbnailChanged(
-      scoped_refptr<MediaSource> source) override;
+  void OnStart(scoped_refptr<RTCDesktopCapturer> capturer) override;
 
-   void OnStart(scoped_refptr<RTCDesktopCapturer> capturer) override;
-   
-   void OnPaused(scoped_refptr<RTCDesktopCapturer> capturer) override;
-   
-   void OnStop(scoped_refptr<RTCDesktopCapturer> capturer) override;
-   
-   void OnError(scoped_refptr<RTCDesktopCapturer> capturer) override;
+  void OnPaused(scoped_refptr<RTCDesktopCapturer> capturer) override;
+
+  void OnStop(scoped_refptr<RTCDesktopCapturer> capturer) override;
+
+  void OnError(scoped_refptr<RTCDesktopCapturer> capturer) override;
 
  private:
-   bool BuildDesktopSourcesList(const EncodableList& types, bool force_reload);
+  bool BuildDesktopSourcesList(const EncodableList& types, bool force_reload);
 
  private:
-  FlutterWebRTCBase *base_;
-  std::map<DesktopType,
-           scoped_refptr<RTCDesktopMediaList>>
-      medialist_;
+  FlutterWebRTCBase* base_;
+  std::map<DesktopType, scoped_refptr<RTCDesktopMediaList>> medialist_;
   std::vector<scoped_refptr<MediaSource>> sources_;
 };
 
-}
+}  // namespace flutter_webrtc_plugin
 
 #endif  // FLUTTER_SCRREN_CAPTURE_HXX

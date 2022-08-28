@@ -1,15 +1,6 @@
 #ifndef FLUTTER_WEBRTC_BASE_HXX
 #define FLUTTER_WEBRTC_BASE_HXX
 
-#include <flutter/encodable_value.h>
-#include <flutter/event_channel.h>
-#include <flutter/event_stream_handler_functions.h>
-#include <flutter/method_channel.h>
-#include <flutter/plugin_registrar.h>
-#include <flutter/standard_message_codec.h>
-#include <flutter/standard_method_codec.h>
-#include <flutter/texture_registrar.h>
-
 #include "flutter_common.h"
 
 #include <string.h>
@@ -19,19 +10,21 @@
 #include <mutex>
 
 #include "libwebrtc.h"
+
 #include "rtc_audio_device.h"
+#include "rtc_desktop_device.h"
 #include "rtc_media_stream.h"
 #include "rtc_media_track.h"
 #include "rtc_mediaconstraints.h"
 #include "rtc_peerconnection.h"
 #include "rtc_peerconnection_factory.h"
 #include "rtc_video_device.h"
+
 #include "uuidxx.h"
 
 namespace flutter_webrtc_plugin {
 
 using namespace libwebrtc;
-using namespace flutter;
 
 class FlutterVideoRenderer;
 class FlutterRTCDataChannelObserver;
@@ -83,7 +76,7 @@ class FlutterWebRTCBase {
 
   void RemoveTracksForId(const std::string& id);
 
-  EventSink<EncodableValue> *event_sink();
+  EventChannelProxy* event_channel();
 
  private:
   void ParseConstraints(const EncodableMap& src,
@@ -116,8 +109,7 @@ class FlutterWebRTCBase {
  protected:
   BinaryMessenger* messenger_;
   TextureRegistrar* textures_;
-  std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
-  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
+  std::unique_ptr<EventChannelProxy> event_channel_;
 };
 
 }  // namespace flutter_webrtc_plugin
