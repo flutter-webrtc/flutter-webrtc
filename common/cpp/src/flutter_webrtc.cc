@@ -15,8 +15,8 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
 
 FlutterWebRTC::~FlutterWebRTC() {}
 
-void FlutterWebRTC::HandleMethodCall(const MethodCall& method_call,
-                                     std::unique_ptr<MethodResult> result) {
+void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
+                                     std::unique_ptr<MethodResultProxy> result) {
   if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");

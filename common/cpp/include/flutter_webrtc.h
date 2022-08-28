@@ -31,8 +31,8 @@ class FlutterWebRTC : public FlutterWebRTCBase,
   FlutterWebRTC(FlutterWebRTCPlugin* plugin);
   virtual ~FlutterWebRTC();
 
-  void HandleMethodCall(const flutter::MethodCall<EncodableValue>& method_call,
-                        std::unique_ptr<MethodResult> result);
+  void HandleMethodCall(const MethodCallProxy& method_call,
+                        std::unique_ptr<MethodResultProxy> result);
 };
 
 }  // namespace flutter_webrtc_plugin

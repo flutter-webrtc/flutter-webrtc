@@ -111,6 +111,49 @@ typedef flutter::EventSink<EncodableValue> EventSink;
 typedef flutter::MethodCall<EncodableValue> MethodCall;
 typedef flutter::MethodResult<EncodableValue> MethodResult;
 
+class MethodCallProxy {
+ public:
+  MethodCallProxy(const MethodCall& method_call) : method_call_(method_call) {}
+  ~MethodCallProxy(){}
+  // The name of the method being called.
+  const std::string& method_name() const { return method_call_.method_name(); }
+
+  // The arguments to the method call, or NULL if there are none.
+  const EncodableValue* arguments() const { return method_call_.arguments(); }
+
+ private:
+  const MethodCall& method_call_;
+};
+
+class MethodResultProxy {
+ public:
+  MethodResultProxy(std::unique_ptr<MethodResult> method_result)
+      : method_result_(std::move(method_result)) {}
+  ~MethodResultProxy(){}
+  // Reports success with no result.
+  void Success() { method_result_->Success(); }
+
+  // Reports success with a result.
+  void Success(const EncodableValue& result) { method_result_->Success(result); }
+
+  // Reports an error.
+  void Error(const std::string& error_code,
+             const std::string& error_message,
+             const EncodableValue* error_details) {
+    method_result_->Error(error_code, error_message, error_details);
+  }
+
+  // Reports an error with a default error code and no details.
+  void Error(const std::string& error_code, const std::string& error_message = "") {
+    method_result_->Error(error_code, error_message);
+  }
+
+  void NotImplemented() { method_result_->NotImplemented(); }
+
+ private:
+  std::unique_ptr<MethodResult> method_result_;
+};
+
 class EventChannelProxy {
  public:
   EventChannelProxy(BinaryMessenger* messenger, const std::string& channelName)
@@ -138,6 +181,7 @@ class EventChannelProxy {
 
     channel_->SetStreamHandler(std::move(handler));
   }
+  virtual ~EventChannelProxy() {}
 
   void Success(const EncodableValue& event, bool cache_event = true) {
     if (sink_) {

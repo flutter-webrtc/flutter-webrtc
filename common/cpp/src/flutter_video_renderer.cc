@@ -113,7 +113,7 @@ FlutterVideoRendererManager::FlutterVideoRendererManager(
     : base_(base) {}
 
 void FlutterVideoRendererManager::CreateVideoRendererTexture(
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   std::unique_ptr<FlutterVideoRenderer> texture(
       new FlutterVideoRenderer(base_->textures_, base_->messenger_));
   int64_t texture_id = texture->texture_id();
@@ -143,7 +143,7 @@ void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
 
 void FlutterVideoRendererManager::VideoRendererDispose(
     int64_t texture_id,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
     base_->textures_->UnregisterTexture(texture_id);

@@ -15,7 +15,7 @@ FlutterMediaStream::FlutterMediaStream(FlutterWebRTCBase* base) : base_(base) {
 }
 
 void FlutterMediaStream::GetUserMedia(const EncodableMap& constraints,
-                                      std::unique_ptr<MethodResult> result) {
+                                      std::unique_ptr<MethodResultProxy> result) {
   std::string uuid = base_->GenerateUUID();
   scoped_refptr<RTCMediaStream> stream =
       base_->factory_->CreateStream(uuid.c_str());
@@ -293,7 +293,7 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   base_->local_tracks_[track->id().std_string()] = track;
 }
 
-void FlutterMediaStream::GetSources(std::unique_ptr<MethodResult> result) {
+void FlutterMediaStream::GetSources(std::unique_ptr<MethodResultProxy> result) {
   EncodableList sources;
 
   int nb_audio_devices = base_->audio_device_->RecordingDevices();
@@ -341,7 +341,7 @@ void FlutterMediaStream::GetSources(std::unique_ptr<MethodResult> result) {
 
 void FlutterMediaStream::SelectAudioOutput(
     const std::string& device_id,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   char strPlayoutName[256];
   char strPlayoutGuid[256];
   int playout_devices = base_->audio_device_->PlayoutDevices();
@@ -363,7 +363,7 @@ void FlutterMediaStream::SelectAudioOutput(
 
 void FlutterMediaStream::SelectAudioInput(
     const std::string& device_id,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   char strPlayoutName[256];
   char strPlayoutGuid[256];
   int playout_devices = base_->audio_device_->RecordingDevices();
@@ -386,7 +386,7 @@ void FlutterMediaStream::SelectAudioInput(
 
 void FlutterMediaStream::MediaStreamGetTracks(
     const std::string& stream_id,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   scoped_refptr<RTCMediaStream> stream = base_->MediaStreamForId(stream_id);
 
   if (stream) {
@@ -432,7 +432,7 @@ void FlutterMediaStream::MediaStreamGetTracks(
 
 void FlutterMediaStream::MediaStreamDispose(
     const std::string& stream_id,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   scoped_refptr<RTCMediaStream> stream = base_->MediaStreamForId(stream_id);
 
   if (!stream) {
@@ -459,7 +459,7 @@ void FlutterMediaStream::MediaStreamDispose(
 }
 
 void FlutterMediaStream::CreateLocalMediaStream(
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   std::string uuid = base_->GenerateUUID();
   scoped_refptr<RTCMediaStream> stream =
       base_->factory_->CreateStream(uuid.c_str());
@@ -473,19 +473,19 @@ void FlutterMediaStream::CreateLocalMediaStream(
 
 void FlutterMediaStream::MediaStreamTrackSetEnable(
     const std::string& track_id,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   result->Success();
 }
 
 void FlutterMediaStream::MediaStreamTrackSwitchCamera(
     const std::string& track_id,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   result->Success();
 }
 
 void FlutterMediaStream::MediaStreamTrackDispose(
     const std::string& track_id,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   for (auto it : base_->local_streams_) {
     auto stream = it.second;
     auto audio_tracks = stream->audio_tracks();

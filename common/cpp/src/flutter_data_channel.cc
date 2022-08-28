@@ -20,7 +20,7 @@ void FlutterDataChannel::CreateDataChannel(
     const std::string& label,
     const EncodableMap& dataChannelDict,
     RTCPeerConnection* pc,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   RTCDataChannelInit init;
   init.id = GetValue<int>(dataChannelDict.find(EncodableValue("id"))->second);
   init.ordered =
@@ -71,7 +71,7 @@ void FlutterDataChannel::CreateDataChannel(
 void FlutterDataChannel::DataChannelSend(RTCDataChannel* data_channel,
                                          const std::string& type,
                                          const EncodableValue& data,
-                                         std::unique_ptr<MethodResult> result) {
+                                         std::unique_ptr<MethodResultProxy> result) {
   bool is_binary = type == "binary";
   if (is_binary && TypeIs<std::vector<uint8_t>>(data)) {
     std::vector<uint8_t> buffer = GetValue<std::vector<uint8_t>>(data);
@@ -88,7 +88,7 @@ void FlutterDataChannel::DataChannelSend(RTCDataChannel* data_channel,
 void FlutterDataChannel::DataChannelClose(
     RTCDataChannel* data_channel,
     const std::string& data_channel_uuid,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   data_channel->Close();
   auto it = base_->data_channel_observers_.find(data_channel_uuid);
   if (it != base_->data_channel_observers_.end())

@@ -32,16 +32,16 @@ class FlutterDataChannel {
                          const std::string& label,
                          const EncodableMap& dataChannelDict,
                          RTCPeerConnection* pc,
-                         std::unique_ptr<MethodResult>);
+                         std::unique_ptr<MethodResultProxy>);
 
   void DataChannelSend(RTCDataChannel* data_channel,
                        const std::string& type,
                        const EncodableValue& data,
-                       std::unique_ptr<MethodResult>);
+                       std::unique_ptr<MethodResultProxy>);
 
   void DataChannelClose(RTCDataChannel* data_channel,
                         const std::string& data_channel_uuid,
-                        std::unique_ptr<MethodResult>);
+                        std::unique_ptr<MethodResultProxy>);
 
   RTCDataChannel* DataChannelForId(const std::string& id);
 

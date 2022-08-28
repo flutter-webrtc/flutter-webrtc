@@ -49,7 +49,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
   void HandleMethodCall(const MethodCall& method_call,
                         std::unique_ptr<MethodResult> result) {
     // handle method call and forward to webrtc native sdk.
-    webrtc_->HandleMethodCall(method_call, std::move(result));
+    webrtc_->HandleMethodCall(MethodCallProxy(method_call), std::make_unique<MethodResultProxy>(std::move(result)));
   }
 
  private:

@@ -40,7 +40,7 @@ bool FlutterScreenCapture::BuildDesktopSourcesList(const EncodableList& types,
 
 void FlutterScreenCapture::GetDesktopSources(
     const EncodableList& types,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   if (!BuildDesktopSourcesList(types, true)) {
     result->Error("Bad Arguments", "Failed to get desktop sources");
     return;
@@ -68,7 +68,7 @@ void FlutterScreenCapture::GetDesktopSources(
 
 void FlutterScreenCapture::UpdateDesktopSources(
     const EncodableList& types,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   if (!BuildDesktopSourcesList(types, false)) {
     result->Error("Bad Arguments", "Failed to update desktop sources");
     return;
@@ -157,7 +157,7 @@ void FlutterScreenCapture::GetDesktopSourceThumbnail(
     std::string source_id,
     int width,
     int height,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   scoped_refptr<MediaSource> source;
   for (auto src : sources_) {
     if (src->id().std_string() == source_id) {
@@ -176,7 +176,7 @@ void FlutterScreenCapture::GetDesktopSourceThumbnail(
 
 void FlutterScreenCapture::GetDisplayMedia(
     const EncodableMap& constraints,
-    std::unique_ptr<MethodResult> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   std::string source_id = "0";
   DesktopType source_type = kScreen;
   double fps = 30.0;

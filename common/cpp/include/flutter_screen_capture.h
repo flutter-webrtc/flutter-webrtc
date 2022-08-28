@@ -15,18 +15,18 @@ class FlutterScreenCapture : public MediaListObserver,
   FlutterScreenCapture(FlutterWebRTCBase* base);
 
   void GetDisplayMedia(const EncodableMap& constraints,
-                       std::unique_ptr<MethodResult> result);
+                       std::unique_ptr<MethodResultProxy> result);
 
   void GetDesktopSources(const EncodableList& types,
-                         std::unique_ptr<MethodResult> result);
+                         std::unique_ptr<MethodResultProxy> result);
 
   void UpdateDesktopSources(const EncodableList& types,
-                            std::unique_ptr<MethodResult> result);
+                            std::unique_ptr<MethodResultProxy> result);
 
   void GetDesktopSourceThumbnail(std::string source_id,
                                  int width,
                                  int height,
-                                 std::unique_ptr<MethodResult> result);
+                                 std::unique_ptr<MethodResultProxy> result);
 
  protected:
   void OnMediaSourceAdded(scoped_refptr<MediaSource> source) override;
