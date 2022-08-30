@@ -2,6 +2,12 @@
 
 --------------------------------------------
 
+[0.9.5] - 2022-08-30
+
+* [Android] fix: Fix crash when using multiple renderers.
+* [Android] fix bug with track dispose cannot close video
+* [Andorid/iOS/macOS/Windows] Fix bug of missing events in data-channel.
+
 [0.9.4] - 2022-08-22
 
 * [Andorid/iOS/macOS/Windows] New audio input/output selection API, ondevicechange event is used to monitor audio device changes.
