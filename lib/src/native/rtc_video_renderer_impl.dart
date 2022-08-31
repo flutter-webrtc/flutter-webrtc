@@ -40,6 +40,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   Function? onResize;
 
   @override
+  Function? onFirstFrameRendered;
+
+  @override
   set srcObject(MediaStream? stream) {
     if (textureId == null) throw 'Call initialize before setting the stream';
 
