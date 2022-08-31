@@ -17,6 +17,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
   @override
   Future<void> initialize() async {
+    if (_textureId != null) {
+      return;
+    }
     final response = await WebRTC.invokeMethod('createVideoRenderer', {});
     _textureId = response['textureId'];
     _eventSubscription = EventChannel('FlutterWebRTC/Texture$textureId')
@@ -58,11 +61,13 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   @override
   Future<void> dispose() async {
     await _eventSubscription?.cancel();
-    await WebRTC.invokeMethod(
-      'videoRendererDispose',
-      <String, dynamic>{'textureId': _textureId},
-    );
-
+    _eventSubscription = null;
+    if (_textureId != null) {
+      await WebRTC.invokeMethod('videoRendererDispose', <String, dynamic>{
+        'textureId': _textureId,
+      });
+      _textureId = null;
+    }
     return super.dispose();
   }
 
