@@ -83,6 +83,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
         break;
       case 'didFirstFrameRendered':
         value = value.copyWith(renderVideo: renderVideo);
+        onFirstFrameRendered?.call();
         break;
     }
   }
