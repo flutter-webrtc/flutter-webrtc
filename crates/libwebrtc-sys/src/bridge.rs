@@ -439,6 +439,7 @@ pub(crate) mod webrtc {
             worker_thread: &UniquePtr<Thread>,
             signaling_thread: &UniquePtr<Thread>,
             default_adm: &UniquePtr<AudioDeviceModule>,
+            ap: &UniquePtr<AudioProcessing>
         ) -> UniquePtr<PeerConnectionFactoryInterface>;
     }
 
@@ -544,6 +545,21 @@ pub(crate) mod webrtc {
             audio_device_module: &AudioDeviceModule,
             index: u16,
         ) -> i32;
+    }
+
+    unsafe extern "C++" {
+        pub type AudioProcessing;
+
+        /// Creates a new [`AudioProcessing`].
+        pub fn create_audio_processing() -> UniquePtr<AudioProcessing>;
+
+        /// Indicates intent to mute the output of the provided
+        /// [`AudioProcessing`].
+        ///
+        /// Set it to `true` when the output of the provided [`AudioProcessing`]
+        /// will be muted or in some other way not used. This hints the
+        /// underlying AGC, AEC, NS processors to halt.
+        pub fn set_output_will_be_muted(ap: &AudioProcessing, muted: bool);
     }
 
     unsafe extern "C++" {

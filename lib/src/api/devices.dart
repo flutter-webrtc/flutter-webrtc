@@ -209,16 +209,22 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
       ? ffi.AudioConstraints(deviceId: constraints.audio.mandatory?.deviceId)
       : null;
 
-  var videoConstraints = constraints.video.mandatory != null ||
-          constraints.video.optional != null
-      ? ffi.VideoConstraints(
-          deviceId: constraints.video.mandatory?.deviceId ??
-              constraints.video.optional?.deviceId,
-          height: constraints.video.mandatory?.height ?? defaultUserMediaHeight,
-          width: constraints.video.mandatory?.width ?? defaultUserMediaWidth,
-          frameRate: constraints.video.mandatory?.fps ?? defaultFrameRate,
-          isDisplay: false)
-      : null;
+  var videoConstraints =
+      constraints.video.mandatory != null || constraints.video.optional != null
+          ? ffi.VideoConstraints(
+              deviceId: constraints.video.mandatory?.deviceId ??
+                  constraints.video.optional?.deviceId,
+              height: constraints.video.mandatory?.height ??
+                  constraints.video.optional?.height ??
+                  defaultUserMediaHeight,
+              width: constraints.video.mandatory?.width ??
+                  constraints.video.optional?.width ??
+                  defaultUserMediaWidth,
+              frameRate: constraints.video.mandatory?.fps ??
+                  constraints.video.optional?.fps ??
+                  defaultFrameRate,
+              isDisplay: false)
+          : null;
 
   var result = await api!.getMedia(
       constraints: ffi.MediaStreamConstraints(
@@ -253,16 +259,21 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaFFI(
       ? ffi.AudioConstraints(deviceId: constraints.audio.mandatory?.deviceId)
       : null;
 
-  var videoConstraints = constraints.video.mandatory != null ||
-          constraints.video.optional != null
-      ? ffi.VideoConstraints(
-          deviceId: constraints.video.mandatory?.deviceId,
-          height:
-              constraints.video.mandatory?.height ?? defaultDisplayMediaHeight,
-          width: constraints.video.mandatory?.width ?? defaultDisplayMediaWidth,
-          frameRate: constraints.video.mandatory?.fps ?? defaultFrameRate,
-          isDisplay: true)
-      : null;
+  var videoConstraints =
+      constraints.video.mandatory != null || constraints.video.optional != null
+          ? ffi.VideoConstraints(
+              deviceId: constraints.video.mandatory?.deviceId,
+              height: constraints.video.mandatory?.height ??
+                  constraints.video.optional?.height ??
+                  defaultDisplayMediaHeight,
+              width: constraints.video.mandatory?.width ??
+                  constraints.video.optional?.width ??
+                  defaultDisplayMediaWidth,
+              frameRate: constraints.video.mandatory?.fps ??
+                  constraints.video.optional?.fps ??
+                  defaultFrameRate,
+              isDisplay: true)
+          : null;
 
   var result = await api!.getMedia(
       constraints: ffi.MediaStreamConstraints(

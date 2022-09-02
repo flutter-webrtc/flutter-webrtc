@@ -486,17 +486,25 @@ impl Webrtc {
         match transceiver.media_type() {
             sys::MediaType::MEDIA_TYPE_VIDEO => {
                 for mut track in self.video_tracks.iter_mut() {
-                    let senders = track.senders();
-                    if let Some(trnscvrs) = senders.get_mut(&peer_id) {
+                    let mut delete = false;
+                    if let Some(trnscvrs) = track.senders.get_mut(&peer_id) {
                         trnscvrs.retain(|index| index != &transceiver_index);
+                        delete = trnscvrs.is_empty();
+                    }
+                    if delete {
+                        track.senders.remove(&peer_id);
                     }
                 }
             }
             sys::MediaType::MEDIA_TYPE_AUDIO => {
                 for mut track in self.audio_tracks.iter_mut() {
-                    let senders = track.senders();
-                    if let Some(trnscvrs) = senders.get_mut(&peer_id) {
+                    let mut delete = false;
+                    if let Some(trnscvrs) = track.senders.get_mut(&peer_id) {
                         trnscvrs.retain(|index| index != &transceiver_index);
+                        delete = trnscvrs.is_empty();
+                    }
+                    if delete {
+                        track.senders.remove(&peer_id);
                     }
                 }
             }
@@ -517,7 +525,7 @@ impl Webrtc {
 
                     track
                         .value_mut()
-                        .senders()
+                        .senders
                         .entry(peer_id)
                         .or_default()
                         .insert(transceiver_index);
@@ -535,7 +543,7 @@ impl Webrtc {
 
                     track
                         .value_mut()
-                        .senders()
+                        .senders
                         .entry(peer_id)
                         .or_default()
                         .insert(transceiver_index);
@@ -550,7 +558,17 @@ impl Webrtc {
                     sender.replace_video_track(None)
                 }
                 sys::MediaType::MEDIA_TYPE_AUDIO => {
-                    sender.replace_audio_track(None)
+                    let result = sender.replace_audio_track(None);
+
+                    if result.is_ok() {
+                        let is_sending = self
+                            .audio_tracks
+                            .iter()
+                            .any(|t| !t.senders.is_empty());
+                        self.ap.set_output_will_be_muted(!is_sending);
+                    }
+
+                    result
                 }
                 _ => unreachable!(),
             }
@@ -621,11 +639,11 @@ impl Webrtc {
         if let Some(peer) = self.peer_connections.get(&peer_id) {
             // Remove all tracks from this `Peer`'s senders.
             for mut track in self.video_tracks.iter_mut() {
-                track.senders().remove(&peer_id);
+                track.senders.remove(&peer_id);
             }
 
             for mut track in self.audio_tracks.iter_mut() {
-                track.senders().remove(&peer_id);
+                track.senders.remove(&peer_id);
             }
 
             let peer = peer.inner.lock().unwrap();
@@ -645,6 +663,12 @@ impl Webrtc {
                             log::error!(
                                 "Failed to remove audio track from sender: {e}",
                             );
+                        } else {
+                            let is_sending = self
+                                .audio_tracks
+                                .iter()
+                                .any(|t| !t.senders.is_empty());
+                            self.ap.set_output_will_be_muted(!is_sending);
                         }
                     }
                     _ => unreachable!(),
@@ -951,14 +975,14 @@ impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
             sys::MediaType::MEDIA_TYPE_AUDIO => {
                 let track = AudioTrack::wrap_remote(&transceiver, self.peer_id);
                 let result = api::MediaStreamTrack::from(&track);
-                self.audio_tracks.insert(track.id(), track);
+                self.audio_tracks.insert(track.id.clone(), track);
 
                 result
             }
             sys::MediaType::MEDIA_TYPE_VIDEO => {
                 let track = VideoTrack::wrap_remote(&transceiver, self.peer_id);
                 let result = api::MediaStreamTrack::from(&track);
-                self.video_tracks.insert(track.id(), track);
+                self.video_tracks.insert(track.id.clone(), track);
 
                 result
             }

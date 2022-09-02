@@ -58,6 +58,7 @@ struct Webrtc {
     audio_source: Option<Arc<sys::AudioSourceInterface>>,
     audio_tracks: Arc<DashMap<AudioTrackId, AudioTrack>>,
     video_sinks: HashMap<VideoSinkId, VideoSink>,
+    ap: sys::AudioProcessing,
 
     /// `peer_connection_factory` must be dropped before [`Thread`]s.
     peer_connection_factory: sys::PeerConnectionFactoryInterface,
@@ -93,18 +94,21 @@ impl Webrtc {
             )?
         };
 
+        let ap = sys::AudioProcessing::new()?;
         let peer_connection_factory =
             sys::PeerConnectionFactoryInterface::create(
                 None,
                 Some(&worker_thread),
                 Some(&signaling_thread),
                 Some(audio_device_module.as_ref()),
+                Some(&ap),
             )?;
 
         Ok(Self {
             task_queue_factory,
             worker_thread,
             signaling_thread,
+            ap,
             audio_device_module,
             video_device_info: VideoDeviceInfo::new()?,
             peer_connection_factory,

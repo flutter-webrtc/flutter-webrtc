@@ -87,6 +87,7 @@ using RtpTransceiverDirection = webrtc::RtpTransceiverDirection;
 using TrackState = webrtc::MediaStreamTrackInterface::TrackState;
 
 using AudioDeviceModule = rtc::scoped_refptr<webrtc::AudioDeviceModule>;
+using AudioProcessing = rtc::scoped_refptr<webrtc::AudioProcessing>;
 using AudioSourceInterface = rtc::scoped_refptr<webrtc::AudioSourceInterface>;
 using AudioTrackInterface = rtc::scoped_refptr<webrtc::AudioTrackInterface>;
 using MediaStreamInterface = rtc::scoped_refptr<webrtc::MediaStreamInterface>;
@@ -169,6 +170,17 @@ int32_t set_audio_recording_device(const AudioDeviceModule& audio_device_module,
 // `AudiDeviceModule::PlayoutDeviceName`.
 int32_t set_audio_playout_device(const AudioDeviceModule& audio_device_module,
                                  uint16_t index);
+
+// Creates a new `AudioProcessing`.
+std::unique_ptr<AudioProcessing> create_audio_processing();
+
+// Indicates intent to mute the output of the provided `AudioProcessing`.
+//
+// Set it to `true` when the output of the provided `AudioProcessing` will be
+// muted or in some other way not used. Ideally, the captured audio would still
+// be processed, but some components may change behavior based on this
+// information.
+void set_output_will_be_muted(const AudioProcessing& ap, bool muted);
 
 // Creates a new `VideoDeviceInfo`.
 std::unique_ptr<VideoDeviceInfo> create_video_device_info();
@@ -293,7 +305,8 @@ std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
     const std::unique_ptr<Thread>& network_thread,
     const std::unique_ptr<Thread>& worker_thread,
     const std::unique_ptr<Thread>& signaling_thread,
-    const std::unique_ptr<AudioDeviceModule>& default_adm);
+    const std::unique_ptr<AudioDeviceModule>& default_adm,
+    const std::unique_ptr<AudioProcessing>& ap);
 
 // Creates a new `PeerConnectionInterface`.
 std::unique_ptr<PeerConnectionInterface> create_peer_connection_or_error(

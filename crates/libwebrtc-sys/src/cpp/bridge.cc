@@ -228,6 +228,18 @@ int32_t set_audio_playout_device(const AudioDeviceModule& audio_device_module,
   return audio_device_module->SetPlayoutDevice(index);
 }
 
+// Calls `AudioProcessingBuilder().Create()`.
+std::unique_ptr<AudioProcessing> create_audio_processing() {
+  auto ap = webrtc::AudioProcessingBuilder().Create();
+
+  return std::make_unique<AudioProcessing>(ap);
+}
+
+// Calls `AudioProcessing->set_output_will_be_muted()`.
+void set_output_will_be_muted(const AudioProcessing& ap, bool muted) {
+  ap->set_output_will_be_muted(muted);
+}
+
 // Calls `VideoCaptureFactory->CreateDeviceInfo()`.
 std::unique_ptr<VideoDeviceInfo> create_video_device_info() {
 #if __APPLE__
@@ -447,14 +459,15 @@ std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
     const std::unique_ptr<Thread>& network_thread,
     const std::unique_ptr<Thread>& worker_thread,
     const std::unique_ptr<Thread>& signaling_thread,
-    const std::unique_ptr<AudioDeviceModule>& default_adm) {
+    const std::unique_ptr<AudioDeviceModule>& default_adm,
+    const std::unique_ptr<AudioProcessing>& ap) {
   auto factory = webrtc::CreatePeerConnectionFactory(
       network_thread.get(), worker_thread.get(), signaling_thread.get(),
       default_adm ? *default_adm : nullptr,
       webrtc::CreateBuiltinAudioEncoderFactory(),
       webrtc::CreateBuiltinAudioDecoderFactory(),
       webrtc::CreateBuiltinVideoEncoderFactory(),
-      webrtc::CreateBuiltinVideoDecoderFactory(), nullptr, nullptr);
+      webrtc::CreateBuiltinVideoDecoderFactory(), nullptr, ap ? *ap : nullptr);
 
   if (factory == nullptr) {
     return nullptr;
