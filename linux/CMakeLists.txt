@@ -20,6 +20,7 @@ add_library(${PLUGIN_NAME} SHARED
 )
 
 include_directories(
+  "${CMAKE_CURRENT_SOURCE_DIR}"
   "${CMAKE_CURRENT_SOURCE_DIR}/../common/cpp/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/uuidxx"
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/include"

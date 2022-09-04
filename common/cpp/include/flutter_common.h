@@ -4,7 +4,6 @@
 #include <string>
 #include <memory>
 
-#if defined(_WINDOWS)
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler_functions.h>
@@ -108,9 +107,8 @@ inline int toInt(flutter::EncodableValue inputVal, int defaultVal) {
   return intValue;
 }
 
-#endif
 
-#if defined(__linux__)
+#if 0
 
 typedef FlTextureRegistrar TextureRegistrar;
 typedef FlPluginRegistrar PluginRegistrar;
