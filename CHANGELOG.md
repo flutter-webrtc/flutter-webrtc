@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.6] - 2022-09-06
+
+* [Dart] The dc created by didOpenDataChannel needs to set state to open.
+* [Dart] Added callback onFirstFrameRendered.
 
 [0.9.5] - 2022-08-30
 
