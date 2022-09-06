@@ -38,20 +38,20 @@ mixin _$GetMediaError {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(Audio value) audio,
-    required TResult Function(Video value) video,
+    required TResult Function(GetMediaError_Audio value) audio,
+    required TResult Function(GetMediaError_Video value) video,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(Audio value)? audio,
-    TResult Function(Video value)? video,
+    TResult Function(GetMediaError_Audio value)? audio,
+    TResult Function(GetMediaError_Video value)? video,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(Audio value)? audio,
-    TResult Function(Video value)? video,
+    TResult Function(GetMediaError_Audio value)? audio,
+    TResult Function(GetMediaError_Video value)? video,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -92,27 +92,31 @@ class _$GetMediaErrorCopyWithImpl<$Res>
 }
 
 /// @nodoc
-abstract class _$$AudioCopyWith<$Res> implements $GetMediaErrorCopyWith<$Res> {
-  factory _$$AudioCopyWith(_$Audio value, $Res Function(_$Audio) then) =
-      __$$AudioCopyWithImpl<$Res>;
+abstract class _$$GetMediaError_AudioCopyWith<$Res>
+    implements $GetMediaErrorCopyWith<$Res> {
+  factory _$$GetMediaError_AudioCopyWith(_$GetMediaError_Audio value,
+          $Res Function(_$GetMediaError_Audio) then) =
+      __$$GetMediaError_AudioCopyWithImpl<$Res>;
   @override
   $Res call({String field0});
 }
 
 /// @nodoc
-class __$$AudioCopyWithImpl<$Res> extends _$GetMediaErrorCopyWithImpl<$Res>
-    implements _$$AudioCopyWith<$Res> {
-  __$$AudioCopyWithImpl(_$Audio _value, $Res Function(_$Audio) _then)
-      : super(_value, (v) => _then(v as _$Audio));
+class __$$GetMediaError_AudioCopyWithImpl<$Res>
+    extends _$GetMediaErrorCopyWithImpl<$Res>
+    implements _$$GetMediaError_AudioCopyWith<$Res> {
+  __$$GetMediaError_AudioCopyWithImpl(
+      _$GetMediaError_Audio _value, $Res Function(_$GetMediaError_Audio) _then)
+      : super(_value, (v) => _then(v as _$GetMediaError_Audio));
 
   @override
-  _$Audio get _value => super._value as _$Audio;
+  _$GetMediaError_Audio get _value => super._value as _$GetMediaError_Audio;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(_$Audio(
+    return _then(_$GetMediaError_Audio(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -123,8 +127,8 @@ class __$$AudioCopyWithImpl<$Res> extends _$GetMediaErrorCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$Audio implements Audio {
-  const _$Audio(this.field0);
+class _$GetMediaError_Audio implements GetMediaError_Audio {
+  const _$GetMediaError_Audio(this.field0);
 
   @override
   final String field0;
@@ -138,7 +142,7 @@ class _$Audio implements Audio {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Audio &&
+            other is _$GetMediaError_Audio &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -148,8 +152,9 @@ class _$Audio implements Audio {
 
   @JsonKey(ignore: true)
   @override
-  _$$AudioCopyWith<_$Audio> get copyWith =>
-      __$$AudioCopyWithImpl<_$Audio>(this, _$identity);
+  _$$GetMediaError_AudioCopyWith<_$GetMediaError_Audio> get copyWith =>
+      __$$GetMediaError_AudioCopyWithImpl<_$GetMediaError_Audio>(
+          this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -185,8 +190,8 @@ class _$Audio implements Audio {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(Audio value) audio,
-    required TResult Function(Video value) video,
+    required TResult Function(GetMediaError_Audio value) audio,
+    required TResult Function(GetMediaError_Video value) video,
   }) {
     return audio(this);
   }
@@ -194,8 +199,8 @@ class _$Audio implements Audio {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(Audio value)? audio,
-    TResult Function(Video value)? video,
+    TResult Function(GetMediaError_Audio value)? audio,
+    TResult Function(GetMediaError_Video value)? video,
   }) {
     return audio?.call(this);
   }
@@ -203,8 +208,8 @@ class _$Audio implements Audio {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(Audio value)? audio,
-    TResult Function(Video value)? video,
+    TResult Function(GetMediaError_Audio value)? audio,
+    TResult Function(GetMediaError_Video value)? video,
     required TResult orElse(),
   }) {
     if (audio != null) {
@@ -214,38 +219,44 @@ class _$Audio implements Audio {
   }
 }
 
-abstract class Audio implements GetMediaError {
-  const factory Audio(final String field0) = _$Audio;
+abstract class GetMediaError_Audio implements GetMediaError {
+  const factory GetMediaError_Audio(final String field0) =
+      _$GetMediaError_Audio;
 
   @override
   String get field0;
   @override
   @JsonKey(ignore: true)
-  _$$AudioCopyWith<_$Audio> get copyWith => throw _privateConstructorUsedError;
+  _$$GetMediaError_AudioCopyWith<_$GetMediaError_Audio> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$VideoCopyWith<$Res> implements $GetMediaErrorCopyWith<$Res> {
-  factory _$$VideoCopyWith(_$Video value, $Res Function(_$Video) then) =
-      __$$VideoCopyWithImpl<$Res>;
+abstract class _$$GetMediaError_VideoCopyWith<$Res>
+    implements $GetMediaErrorCopyWith<$Res> {
+  factory _$$GetMediaError_VideoCopyWith(_$GetMediaError_Video value,
+          $Res Function(_$GetMediaError_Video) then) =
+      __$$GetMediaError_VideoCopyWithImpl<$Res>;
   @override
   $Res call({String field0});
 }
 
 /// @nodoc
-class __$$VideoCopyWithImpl<$Res> extends _$GetMediaErrorCopyWithImpl<$Res>
-    implements _$$VideoCopyWith<$Res> {
-  __$$VideoCopyWithImpl(_$Video _value, $Res Function(_$Video) _then)
-      : super(_value, (v) => _then(v as _$Video));
+class __$$GetMediaError_VideoCopyWithImpl<$Res>
+    extends _$GetMediaErrorCopyWithImpl<$Res>
+    implements _$$GetMediaError_VideoCopyWith<$Res> {
+  __$$GetMediaError_VideoCopyWithImpl(
+      _$GetMediaError_Video _value, $Res Function(_$GetMediaError_Video) _then)
+      : super(_value, (v) => _then(v as _$GetMediaError_Video));
 
   @override
-  _$Video get _value => super._value as _$Video;
+  _$GetMediaError_Video get _value => super._value as _$GetMediaError_Video;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(_$Video(
+    return _then(_$GetMediaError_Video(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -256,8 +267,8 @@ class __$$VideoCopyWithImpl<$Res> extends _$GetMediaErrorCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$Video implements Video {
-  const _$Video(this.field0);
+class _$GetMediaError_Video implements GetMediaError_Video {
+  const _$GetMediaError_Video(this.field0);
 
   @override
   final String field0;
@@ -271,7 +282,7 @@ class _$Video implements Video {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Video &&
+            other is _$GetMediaError_Video &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -281,8 +292,9 @@ class _$Video implements Video {
 
   @JsonKey(ignore: true)
   @override
-  _$$VideoCopyWith<_$Video> get copyWith =>
-      __$$VideoCopyWithImpl<_$Video>(this, _$identity);
+  _$$GetMediaError_VideoCopyWith<_$GetMediaError_Video> get copyWith =>
+      __$$GetMediaError_VideoCopyWithImpl<_$GetMediaError_Video>(
+          this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -318,8 +330,8 @@ class _$Video implements Video {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(Audio value) audio,
-    required TResult Function(Video value) video,
+    required TResult Function(GetMediaError_Audio value) audio,
+    required TResult Function(GetMediaError_Video value) video,
   }) {
     return video(this);
   }
@@ -327,8 +339,8 @@ class _$Video implements Video {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(Audio value)? audio,
-    TResult Function(Video value)? video,
+    TResult Function(GetMediaError_Audio value)? audio,
+    TResult Function(GetMediaError_Video value)? video,
   }) {
     return video?.call(this);
   }
@@ -336,8 +348,8 @@ class _$Video implements Video {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(Audio value)? audio,
-    TResult Function(Video value)? video,
+    TResult Function(GetMediaError_Audio value)? audio,
+    TResult Function(GetMediaError_Video value)? video,
     required TResult orElse(),
   }) {
     if (video != null) {
@@ -347,14 +359,16 @@ class _$Video implements Video {
   }
 }
 
-abstract class Video implements GetMediaError {
-  const factory Video(final String field0) = _$Video;
+abstract class GetMediaError_Video implements GetMediaError {
+  const factory GetMediaError_Video(final String field0) =
+      _$GetMediaError_Video;
 
   @override
   String get field0;
   @override
   @JsonKey(ignore: true)
-  _$$VideoCopyWith<_$Video> get copyWith => throw _privateConstructorUsedError;
+  _$$GetMediaError_VideoCopyWith<_$GetMediaError_Video> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -380,20 +394,20 @@ mixin _$GetMediaResult {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(Ok value) ok,
-    required TResult Function(Err value) err,
+    required TResult Function(GetMediaResult_Ok value) ok,
+    required TResult Function(GetMediaResult_Err value) err,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(Ok value)? ok,
-    TResult Function(Err value)? err,
+    TResult Function(GetMediaResult_Ok value)? ok,
+    TResult Function(GetMediaResult_Err value)? err,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(Ok value)? ok,
-    TResult Function(Err value)? err,
+    TResult Function(GetMediaResult_Ok value)? ok,
+    TResult Function(GetMediaResult_Err value)? err,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -417,26 +431,29 @@ class _$GetMediaResultCopyWithImpl<$Res>
 }
 
 /// @nodoc
-abstract class _$$OkCopyWith<$Res> {
-  factory _$$OkCopyWith(_$Ok value, $Res Function(_$Ok) then) =
-      __$$OkCopyWithImpl<$Res>;
+abstract class _$$GetMediaResult_OkCopyWith<$Res> {
+  factory _$$GetMediaResult_OkCopyWith(
+          _$GetMediaResult_Ok value, $Res Function(_$GetMediaResult_Ok) then) =
+      __$$GetMediaResult_OkCopyWithImpl<$Res>;
   $Res call({List<MediaStreamTrack> field0});
 }
 
 /// @nodoc
-class __$$OkCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
-    implements _$$OkCopyWith<$Res> {
-  __$$OkCopyWithImpl(_$Ok _value, $Res Function(_$Ok) _then)
-      : super(_value, (v) => _then(v as _$Ok));
+class __$$GetMediaResult_OkCopyWithImpl<$Res>
+    extends _$GetMediaResultCopyWithImpl<$Res>
+    implements _$$GetMediaResult_OkCopyWith<$Res> {
+  __$$GetMediaResult_OkCopyWithImpl(
+      _$GetMediaResult_Ok _value, $Res Function(_$GetMediaResult_Ok) _then)
+      : super(_value, (v) => _then(v as _$GetMediaResult_Ok));
 
   @override
-  _$Ok get _value => super._value as _$Ok;
+  _$GetMediaResult_Ok get _value => super._value as _$GetMediaResult_Ok;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(_$Ok(
+    return _then(_$GetMediaResult_Ok(
       field0 == freezed
           ? _value._field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -447,8 +464,9 @@ class __$$OkCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$Ok implements Ok {
-  const _$Ok(final List<MediaStreamTrack> field0) : _field0 = field0;
+class _$GetMediaResult_Ok implements GetMediaResult_Ok {
+  const _$GetMediaResult_Ok(final List<MediaStreamTrack> field0)
+      : _field0 = field0;
 
   final List<MediaStreamTrack> _field0;
   @override
@@ -466,7 +484,7 @@ class _$Ok implements Ok {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Ok &&
+            other is _$GetMediaResult_Ok &&
             const DeepCollectionEquality().equals(other._field0, _field0));
   }
 
@@ -476,8 +494,8 @@ class _$Ok implements Ok {
 
   @JsonKey(ignore: true)
   @override
-  _$$OkCopyWith<_$Ok> get copyWith =>
-      __$$OkCopyWithImpl<_$Ok>(this, _$identity);
+  _$$GetMediaResult_OkCopyWith<_$GetMediaResult_Ok> get copyWith =>
+      __$$GetMediaResult_OkCopyWithImpl<_$GetMediaResult_Ok>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -513,8 +531,8 @@ class _$Ok implements Ok {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(Ok value) ok,
-    required TResult Function(Err value) err,
+    required TResult Function(GetMediaResult_Ok value) ok,
+    required TResult Function(GetMediaResult_Err value) err,
   }) {
     return ok(this);
   }
@@ -522,8 +540,8 @@ class _$Ok implements Ok {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(Ok value)? ok,
-    TResult Function(Err value)? err,
+    TResult Function(GetMediaResult_Ok value)? ok,
+    TResult Function(GetMediaResult_Err value)? err,
   }) {
     return ok?.call(this);
   }
@@ -531,8 +549,8 @@ class _$Ok implements Ok {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(Ok value)? ok,
-    TResult Function(Err value)? err,
+    TResult Function(GetMediaResult_Ok value)? ok,
+    TResult Function(GetMediaResult_Err value)? err,
     required TResult orElse(),
   }) {
     if (ok != null) {
@@ -542,37 +560,42 @@ class _$Ok implements Ok {
   }
 }
 
-abstract class Ok implements GetMediaResult {
-  const factory Ok(final List<MediaStreamTrack> field0) = _$Ok;
+abstract class GetMediaResult_Ok implements GetMediaResult {
+  const factory GetMediaResult_Ok(final List<MediaStreamTrack> field0) =
+      _$GetMediaResult_Ok;
 
   List<MediaStreamTrack> get field0;
   @JsonKey(ignore: true)
-  _$$OkCopyWith<_$Ok> get copyWith => throw _privateConstructorUsedError;
+  _$$GetMediaResult_OkCopyWith<_$GetMediaResult_Ok> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ErrCopyWith<$Res> {
-  factory _$$ErrCopyWith(_$Err value, $Res Function(_$Err) then) =
-      __$$ErrCopyWithImpl<$Res>;
+abstract class _$$GetMediaResult_ErrCopyWith<$Res> {
+  factory _$$GetMediaResult_ErrCopyWith(_$GetMediaResult_Err value,
+          $Res Function(_$GetMediaResult_Err) then) =
+      __$$GetMediaResult_ErrCopyWithImpl<$Res>;
   $Res call({GetMediaError field0});
 
   $GetMediaErrorCopyWith<$Res> get field0;
 }
 
 /// @nodoc
-class __$$ErrCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
-    implements _$$ErrCopyWith<$Res> {
-  __$$ErrCopyWithImpl(_$Err _value, $Res Function(_$Err) _then)
-      : super(_value, (v) => _then(v as _$Err));
+class __$$GetMediaResult_ErrCopyWithImpl<$Res>
+    extends _$GetMediaResultCopyWithImpl<$Res>
+    implements _$$GetMediaResult_ErrCopyWith<$Res> {
+  __$$GetMediaResult_ErrCopyWithImpl(
+      _$GetMediaResult_Err _value, $Res Function(_$GetMediaResult_Err) _then)
+      : super(_value, (v) => _then(v as _$GetMediaResult_Err));
 
   @override
-  _$Err get _value => super._value as _$Err;
+  _$GetMediaResult_Err get _value => super._value as _$GetMediaResult_Err;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(_$Err(
+    return _then(_$GetMediaResult_Err(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -590,8 +613,8 @@ class __$$ErrCopyWithImpl<$Res> extends _$GetMediaResultCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$Err implements Err {
-  const _$Err(this.field0);
+class _$GetMediaResult_Err implements GetMediaResult_Err {
+  const _$GetMediaResult_Err(this.field0);
 
   @override
   final GetMediaError field0;
@@ -605,7 +628,7 @@ class _$Err implements Err {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Err &&
+            other is _$GetMediaResult_Err &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -615,8 +638,9 @@ class _$Err implements Err {
 
   @JsonKey(ignore: true)
   @override
-  _$$ErrCopyWith<_$Err> get copyWith =>
-      __$$ErrCopyWithImpl<_$Err>(this, _$identity);
+  _$$GetMediaResult_ErrCopyWith<_$GetMediaResult_Err> get copyWith =>
+      __$$GetMediaResult_ErrCopyWithImpl<_$GetMediaResult_Err>(
+          this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -652,8 +676,8 @@ class _$Err implements Err {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(Ok value) ok,
-    required TResult Function(Err value) err,
+    required TResult Function(GetMediaResult_Ok value) ok,
+    required TResult Function(GetMediaResult_Err value) err,
   }) {
     return err(this);
   }
@@ -661,8 +685,8 @@ class _$Err implements Err {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(Ok value)? ok,
-    TResult Function(Err value)? err,
+    TResult Function(GetMediaResult_Ok value)? ok,
+    TResult Function(GetMediaResult_Err value)? err,
   }) {
     return err?.call(this);
   }
@@ -670,8 +694,8 @@ class _$Err implements Err {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(Ok value)? ok,
-    TResult Function(Err value)? err,
+    TResult Function(GetMediaResult_Ok value)? ok,
+    TResult Function(GetMediaResult_Err value)? err,
     required TResult orElse(),
   }) {
     if (err != null) {
@@ -681,12 +705,14 @@ class _$Err implements Err {
   }
 }
 
-abstract class Err implements GetMediaResult {
-  const factory Err(final GetMediaError field0) = _$Err;
+abstract class GetMediaResult_Err implements GetMediaResult {
+  const factory GetMediaResult_Err(final GetMediaError field0) =
+      _$GetMediaResult_Err;
 
   GetMediaError get field0;
   @JsonKey(ignore: true)
-  _$$ErrCopyWith<_$Err> get copyWith => throw _privateConstructorUsedError;
+  _$$GetMediaResult_ErrCopyWith<_$GetMediaResult_Err> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -744,44 +770,62 @@ mixin _$PeerConnectionEvent {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(PeerCreated value) peerCreated,
-    required TResult Function(IceCandidate value) iceCandidate,
-    required TResult Function(IceGatheringStateChange value)
+    required TResult Function(PeerConnectionEvent_PeerCreated value)
+        peerCreated,
+    required TResult Function(PeerConnectionEvent_IceCandidate value)
+        iceCandidate,
+    required TResult Function(PeerConnectionEvent_IceGatheringStateChange value)
         iceGatheringStateChange,
-    required TResult Function(IceCandidateError value) iceCandidateError,
-    required TResult Function(NegotiationNeeded value) negotiationNeeded,
-    required TResult Function(SignallingChange value) signallingChange,
-    required TResult Function(IceConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_IceCandidateError value)
+        iceCandidateError,
+    required TResult Function(PeerConnectionEvent_NegotiationNeeded value)
+        negotiationNeeded,
+    required TResult Function(PeerConnectionEvent_SignallingChange value)
+        signallingChange,
+    required TResult Function(
+            PeerConnectionEvent_IceConnectionStateChange value)
         iceConnectionStateChange,
-    required TResult Function(ConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_ConnectionStateChange value)
         connectionStateChange,
-    required TResult Function(Track value) track,
+    required TResult Function(PeerConnectionEvent_Track value) track,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -805,29 +849,32 @@ class _$PeerConnectionEventCopyWithImpl<$Res>
 }
 
 /// @nodoc
-abstract class _$$PeerCreatedCopyWith<$Res> {
-  factory _$$PeerCreatedCopyWith(
-          _$PeerCreated value, $Res Function(_$PeerCreated) then) =
-      __$$PeerCreatedCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_PeerCreatedCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_PeerCreatedCopyWith(
+          _$PeerConnectionEvent_PeerCreated value,
+          $Res Function(_$PeerConnectionEvent_PeerCreated) then) =
+      __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<$Res>;
   $Res call({int id});
 }
 
 /// @nodoc
-class __$$PeerCreatedCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements _$$PeerCreatedCopyWith<$Res> {
-  __$$PeerCreatedCopyWithImpl(
-      _$PeerCreated _value, $Res Function(_$PeerCreated) _then)
-      : super(_value, (v) => _then(v as _$PeerCreated));
+    implements _$$PeerConnectionEvent_PeerCreatedCopyWith<$Res> {
+  __$$PeerConnectionEvent_PeerCreatedCopyWithImpl(
+      _$PeerConnectionEvent_PeerCreated _value,
+      $Res Function(_$PeerConnectionEvent_PeerCreated) _then)
+      : super(_value, (v) => _then(v as _$PeerConnectionEvent_PeerCreated));
 
   @override
-  _$PeerCreated get _value => super._value as _$PeerCreated;
+  _$PeerConnectionEvent_PeerCreated get _value =>
+      super._value as _$PeerConnectionEvent_PeerCreated;
 
   @override
   $Res call({
     Object? id = freezed,
   }) {
-    return _then(_$PeerCreated(
+    return _then(_$PeerConnectionEvent_PeerCreated(
       id: id == freezed
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -838,8 +885,9 @@ class __$$PeerCreatedCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PeerCreated implements PeerCreated {
-  const _$PeerCreated({required this.id});
+class _$PeerConnectionEvent_PeerCreated
+    implements PeerConnectionEvent_PeerCreated {
+  const _$PeerConnectionEvent_PeerCreated({required this.id});
 
   /// ID of the created [`PeerConnection`].
   @override
@@ -854,7 +902,7 @@ class _$PeerCreated implements PeerCreated {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PeerCreated &&
+            other is _$PeerConnectionEvent_PeerCreated &&
             const DeepCollectionEquality().equals(other.id, id));
   }
 
@@ -864,8 +912,9 @@ class _$PeerCreated implements PeerCreated {
 
   @JsonKey(ignore: true)
   @override
-  _$$PeerCreatedCopyWith<_$PeerCreated> get copyWith =>
-      __$$PeerCreatedCopyWithImpl<_$PeerCreated>(this, _$identity);
+  _$$PeerConnectionEvent_PeerCreatedCopyWith<_$PeerConnectionEvent_PeerCreated>
+      get copyWith => __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<
+          _$PeerConnectionEvent_PeerCreated>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -933,18 +982,24 @@ class _$PeerCreated implements PeerCreated {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(PeerCreated value) peerCreated,
-    required TResult Function(IceCandidate value) iceCandidate,
-    required TResult Function(IceGatheringStateChange value)
+    required TResult Function(PeerConnectionEvent_PeerCreated value)
+        peerCreated,
+    required TResult Function(PeerConnectionEvent_IceCandidate value)
+        iceCandidate,
+    required TResult Function(PeerConnectionEvent_IceGatheringStateChange value)
         iceGatheringStateChange,
-    required TResult Function(IceCandidateError value) iceCandidateError,
-    required TResult Function(NegotiationNeeded value) negotiationNeeded,
-    required TResult Function(SignallingChange value) signallingChange,
-    required TResult Function(IceConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_IceCandidateError value)
+        iceCandidateError,
+    required TResult Function(PeerConnectionEvent_NegotiationNeeded value)
+        negotiationNeeded,
+    required TResult Function(PeerConnectionEvent_SignallingChange value)
+        signallingChange,
+    required TResult Function(
+            PeerConnectionEvent_IceConnectionStateChange value)
         iceConnectionStateChange,
-    required TResult Function(ConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_ConnectionStateChange value)
         connectionStateChange,
-    required TResult Function(Track value) track,
+    required TResult Function(PeerConnectionEvent_Track value) track,
   }) {
     return peerCreated(this);
   }
@@ -952,15 +1007,21 @@ class _$PeerCreated implements PeerCreated {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
   }) {
     return peerCreated?.call(this);
   }
@@ -968,15 +1029,21 @@ class _$PeerCreated implements PeerCreated {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
     required TResult orElse(),
   }) {
     if (peerCreated != null) {
@@ -986,34 +1053,38 @@ class _$PeerCreated implements PeerCreated {
   }
 }
 
-abstract class PeerCreated implements PeerConnectionEvent {
-  const factory PeerCreated({required final int id}) = _$PeerCreated;
+abstract class PeerConnectionEvent_PeerCreated implements PeerConnectionEvent {
+  const factory PeerConnectionEvent_PeerCreated({required final int id}) =
+      _$PeerConnectionEvent_PeerCreated;
 
   /// ID of the created [`PeerConnection`].
   int get id;
   @JsonKey(ignore: true)
-  _$$PeerCreatedCopyWith<_$PeerCreated> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$PeerConnectionEvent_PeerCreatedCopyWith<_$PeerConnectionEvent_PeerCreated>
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$IceCandidateCopyWith<$Res> {
-  factory _$$IceCandidateCopyWith(
-          _$IceCandidate value, $Res Function(_$IceCandidate) then) =
-      __$$IceCandidateCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_IceCandidateCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_IceCandidateCopyWith(
+          _$PeerConnectionEvent_IceCandidate value,
+          $Res Function(_$PeerConnectionEvent_IceCandidate) then) =
+      __$$PeerConnectionEvent_IceCandidateCopyWithImpl<$Res>;
   $Res call({String sdpMid, int sdpMlineIndex, String candidate});
 }
 
 /// @nodoc
-class __$$IceCandidateCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_IceCandidateCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements _$$IceCandidateCopyWith<$Res> {
-  __$$IceCandidateCopyWithImpl(
-      _$IceCandidate _value, $Res Function(_$IceCandidate) _then)
-      : super(_value, (v) => _then(v as _$IceCandidate));
+    implements _$$PeerConnectionEvent_IceCandidateCopyWith<$Res> {
+  __$$PeerConnectionEvent_IceCandidateCopyWithImpl(
+      _$PeerConnectionEvent_IceCandidate _value,
+      $Res Function(_$PeerConnectionEvent_IceCandidate) _then)
+      : super(_value, (v) => _then(v as _$PeerConnectionEvent_IceCandidate));
 
   @override
-  _$IceCandidate get _value => super._value as _$IceCandidate;
+  _$PeerConnectionEvent_IceCandidate get _value =>
+      super._value as _$PeerConnectionEvent_IceCandidate;
 
   @override
   $Res call({
@@ -1021,7 +1092,7 @@ class __$$IceCandidateCopyWithImpl<$Res>
     Object? sdpMlineIndex = freezed,
     Object? candidate = freezed,
   }) {
-    return _then(_$IceCandidate(
+    return _then(_$PeerConnectionEvent_IceCandidate(
       sdpMid: sdpMid == freezed
           ? _value.sdpMid
           : sdpMid // ignore: cast_nullable_to_non_nullable
@@ -1040,8 +1111,9 @@ class __$$IceCandidateCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$IceCandidate implements IceCandidate {
-  const _$IceCandidate(
+class _$PeerConnectionEvent_IceCandidate
+    implements PeerConnectionEvent_IceCandidate {
+  const _$PeerConnectionEvent_IceCandidate(
       {required this.sdpMid,
       required this.sdpMlineIndex,
       required this.candidate});
@@ -1082,7 +1154,7 @@ class _$IceCandidate implements IceCandidate {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$IceCandidate &&
+            other is _$PeerConnectionEvent_IceCandidate &&
             const DeepCollectionEquality().equals(other.sdpMid, sdpMid) &&
             const DeepCollectionEquality()
                 .equals(other.sdpMlineIndex, sdpMlineIndex) &&
@@ -1098,8 +1170,10 @@ class _$IceCandidate implements IceCandidate {
 
   @JsonKey(ignore: true)
   @override
-  _$$IceCandidateCopyWith<_$IceCandidate> get copyWith =>
-      __$$IceCandidateCopyWithImpl<_$IceCandidate>(this, _$identity);
+  _$$PeerConnectionEvent_IceCandidateCopyWith<
+          _$PeerConnectionEvent_IceCandidate>
+      get copyWith => __$$PeerConnectionEvent_IceCandidateCopyWithImpl<
+          _$PeerConnectionEvent_IceCandidate>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1167,18 +1241,24 @@ class _$IceCandidate implements IceCandidate {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(PeerCreated value) peerCreated,
-    required TResult Function(IceCandidate value) iceCandidate,
-    required TResult Function(IceGatheringStateChange value)
+    required TResult Function(PeerConnectionEvent_PeerCreated value)
+        peerCreated,
+    required TResult Function(PeerConnectionEvent_IceCandidate value)
+        iceCandidate,
+    required TResult Function(PeerConnectionEvent_IceGatheringStateChange value)
         iceGatheringStateChange,
-    required TResult Function(IceCandidateError value) iceCandidateError,
-    required TResult Function(NegotiationNeeded value) negotiationNeeded,
-    required TResult Function(SignallingChange value) signallingChange,
-    required TResult Function(IceConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_IceCandidateError value)
+        iceCandidateError,
+    required TResult Function(PeerConnectionEvent_NegotiationNeeded value)
+        negotiationNeeded,
+    required TResult Function(PeerConnectionEvent_SignallingChange value)
+        signallingChange,
+    required TResult Function(
+            PeerConnectionEvent_IceConnectionStateChange value)
         iceConnectionStateChange,
-    required TResult Function(ConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_ConnectionStateChange value)
         connectionStateChange,
-    required TResult Function(Track value) track,
+    required TResult Function(PeerConnectionEvent_Track value) track,
   }) {
     return iceCandidate(this);
   }
@@ -1186,15 +1266,21 @@ class _$IceCandidate implements IceCandidate {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
   }) {
     return iceCandidate?.call(this);
   }
@@ -1202,15 +1288,21 @@ class _$IceCandidate implements IceCandidate {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
     required TResult orElse(),
   }) {
     if (iceCandidate != null) {
@@ -1220,11 +1312,11 @@ class _$IceCandidate implements IceCandidate {
   }
 }
 
-abstract class IceCandidate implements PeerConnectionEvent {
-  const factory IceCandidate(
+abstract class PeerConnectionEvent_IceCandidate implements PeerConnectionEvent {
+  const factory PeerConnectionEvent_IceCandidate(
       {required final String sdpMid,
       required final int sdpMlineIndex,
-      required final String candidate}) = _$IceCandidate;
+      required final String candidate}) = _$PeerConnectionEvent_IceCandidate;
 
   /// Media stream "identification-tag" defined in [RFC 5888] for the
   /// media component the discovered [RTCIceCandidate][1] is associated
@@ -1250,35 +1342,39 @@ abstract class IceCandidate implements PeerConnectionEvent {
   /// [RFC 5245]: https://tools.ietf.org/html/rfc5245
   String get candidate;
   @JsonKey(ignore: true)
-  _$$IceCandidateCopyWith<_$IceCandidate> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$PeerConnectionEvent_IceCandidateCopyWith<
+          _$PeerConnectionEvent_IceCandidate>
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$IceGatheringStateChangeCopyWith<$Res> {
-  factory _$$IceGatheringStateChangeCopyWith(_$IceGatheringStateChange value,
-          $Res Function(_$IceGatheringStateChange) then) =
-      __$$IceGatheringStateChangeCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_IceGatheringStateChangeCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_IceGatheringStateChangeCopyWith(
+          _$PeerConnectionEvent_IceGatheringStateChange value,
+          $Res Function(_$PeerConnectionEvent_IceGatheringStateChange) then) =
+      __$$PeerConnectionEvent_IceGatheringStateChangeCopyWithImpl<$Res>;
   $Res call({IceGatheringState field0});
 }
 
 /// @nodoc
-class __$$IceGatheringStateChangeCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_IceGatheringStateChangeCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements _$$IceGatheringStateChangeCopyWith<$Res> {
-  __$$IceGatheringStateChangeCopyWithImpl(_$IceGatheringStateChange _value,
-      $Res Function(_$IceGatheringStateChange) _then)
-      : super(_value, (v) => _then(v as _$IceGatheringStateChange));
+    implements _$$PeerConnectionEvent_IceGatheringStateChangeCopyWith<$Res> {
+  __$$PeerConnectionEvent_IceGatheringStateChangeCopyWithImpl(
+      _$PeerConnectionEvent_IceGatheringStateChange _value,
+      $Res Function(_$PeerConnectionEvent_IceGatheringStateChange) _then)
+      : super(_value,
+            (v) => _then(v as _$PeerConnectionEvent_IceGatheringStateChange));
 
   @override
-  _$IceGatheringStateChange get _value =>
-      super._value as _$IceGatheringStateChange;
+  _$PeerConnectionEvent_IceGatheringStateChange get _value =>
+      super._value as _$PeerConnectionEvent_IceGatheringStateChange;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(_$IceGatheringStateChange(
+    return _then(_$PeerConnectionEvent_IceGatheringStateChange(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -1289,8 +1385,9 @@ class __$$IceGatheringStateChangeCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$IceGatheringStateChange implements IceGatheringStateChange {
-  const _$IceGatheringStateChange(this.field0);
+class _$PeerConnectionEvent_IceGatheringStateChange
+    implements PeerConnectionEvent_IceGatheringStateChange {
+  const _$PeerConnectionEvent_IceGatheringStateChange(this.field0);
 
   @override
   final IceGatheringState field0;
@@ -1304,7 +1401,7 @@ class _$IceGatheringStateChange implements IceGatheringStateChange {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$IceGatheringStateChange &&
+            other is _$PeerConnectionEvent_IceGatheringStateChange &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -1314,9 +1411,11 @@ class _$IceGatheringStateChange implements IceGatheringStateChange {
 
   @JsonKey(ignore: true)
   @override
-  _$$IceGatheringStateChangeCopyWith<_$IceGatheringStateChange> get copyWith =>
-      __$$IceGatheringStateChangeCopyWithImpl<_$IceGatheringStateChange>(
-          this, _$identity);
+  _$$PeerConnectionEvent_IceGatheringStateChangeCopyWith<
+          _$PeerConnectionEvent_IceGatheringStateChange>
+      get copyWith =>
+          __$$PeerConnectionEvent_IceGatheringStateChangeCopyWithImpl<
+              _$PeerConnectionEvent_IceGatheringStateChange>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1384,18 +1483,24 @@ class _$IceGatheringStateChange implements IceGatheringStateChange {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(PeerCreated value) peerCreated,
-    required TResult Function(IceCandidate value) iceCandidate,
-    required TResult Function(IceGatheringStateChange value)
+    required TResult Function(PeerConnectionEvent_PeerCreated value)
+        peerCreated,
+    required TResult Function(PeerConnectionEvent_IceCandidate value)
+        iceCandidate,
+    required TResult Function(PeerConnectionEvent_IceGatheringStateChange value)
         iceGatheringStateChange,
-    required TResult Function(IceCandidateError value) iceCandidateError,
-    required TResult Function(NegotiationNeeded value) negotiationNeeded,
-    required TResult Function(SignallingChange value) signallingChange,
-    required TResult Function(IceConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_IceCandidateError value)
+        iceCandidateError,
+    required TResult Function(PeerConnectionEvent_NegotiationNeeded value)
+        negotiationNeeded,
+    required TResult Function(PeerConnectionEvent_SignallingChange value)
+        signallingChange,
+    required TResult Function(
+            PeerConnectionEvent_IceConnectionStateChange value)
         iceConnectionStateChange,
-    required TResult Function(ConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_ConnectionStateChange value)
         connectionStateChange,
-    required TResult Function(Track value) track,
+    required TResult Function(PeerConnectionEvent_Track value) track,
   }) {
     return iceGatheringStateChange(this);
   }
@@ -1403,15 +1508,21 @@ class _$IceGatheringStateChange implements IceGatheringStateChange {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
   }) {
     return iceGatheringStateChange?.call(this);
   }
@@ -1419,15 +1530,21 @@ class _$IceGatheringStateChange implements IceGatheringStateChange {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
     required TResult orElse(),
   }) {
     if (iceGatheringStateChange != null) {
@@ -1437,35 +1554,42 @@ class _$IceGatheringStateChange implements IceGatheringStateChange {
   }
 }
 
-abstract class IceGatheringStateChange implements PeerConnectionEvent {
-  const factory IceGatheringStateChange(final IceGatheringState field0) =
-      _$IceGatheringStateChange;
+abstract class PeerConnectionEvent_IceGatheringStateChange
+    implements PeerConnectionEvent {
+  const factory PeerConnectionEvent_IceGatheringStateChange(
+          final IceGatheringState field0) =
+      _$PeerConnectionEvent_IceGatheringStateChange;
 
   IceGatheringState get field0;
   @JsonKey(ignore: true)
-  _$$IceGatheringStateChangeCopyWith<_$IceGatheringStateChange> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$PeerConnectionEvent_IceGatheringStateChangeCopyWith<
+          _$PeerConnectionEvent_IceGatheringStateChange>
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$IceCandidateErrorCopyWith<$Res> {
-  factory _$$IceCandidateErrorCopyWith(
-          _$IceCandidateError value, $Res Function(_$IceCandidateError) then) =
-      __$$IceCandidateErrorCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_IceCandidateErrorCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_IceCandidateErrorCopyWith(
+          _$PeerConnectionEvent_IceCandidateError value,
+          $Res Function(_$PeerConnectionEvent_IceCandidateError) then) =
+      __$$PeerConnectionEvent_IceCandidateErrorCopyWithImpl<$Res>;
   $Res call(
       {String address, int port, String url, int errorCode, String errorText});
 }
 
 /// @nodoc
-class __$$IceCandidateErrorCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_IceCandidateErrorCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements _$$IceCandidateErrorCopyWith<$Res> {
-  __$$IceCandidateErrorCopyWithImpl(
-      _$IceCandidateError _value, $Res Function(_$IceCandidateError) _then)
-      : super(_value, (v) => _then(v as _$IceCandidateError));
+    implements _$$PeerConnectionEvent_IceCandidateErrorCopyWith<$Res> {
+  __$$PeerConnectionEvent_IceCandidateErrorCopyWithImpl(
+      _$PeerConnectionEvent_IceCandidateError _value,
+      $Res Function(_$PeerConnectionEvent_IceCandidateError) _then)
+      : super(
+            _value, (v) => _then(v as _$PeerConnectionEvent_IceCandidateError));
 
   @override
-  _$IceCandidateError get _value => super._value as _$IceCandidateError;
+  _$PeerConnectionEvent_IceCandidateError get _value =>
+      super._value as _$PeerConnectionEvent_IceCandidateError;
 
   @override
   $Res call({
@@ -1475,7 +1599,7 @@ class __$$IceCandidateErrorCopyWithImpl<$Res>
     Object? errorCode = freezed,
     Object? errorText = freezed,
   }) {
-    return _then(_$IceCandidateError(
+    return _then(_$PeerConnectionEvent_IceCandidateError(
       address: address == freezed
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
@@ -1502,8 +1626,9 @@ class __$$IceCandidateErrorCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$IceCandidateError implements IceCandidateError {
-  const _$IceCandidateError(
+class _$PeerConnectionEvent_IceCandidateError
+    implements PeerConnectionEvent_IceCandidateError {
+  const _$PeerConnectionEvent_IceCandidateError(
       {required this.address,
       required this.port,
       required this.url,
@@ -1552,7 +1677,7 @@ class _$IceCandidateError implements IceCandidateError {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$IceCandidateError &&
+            other is _$PeerConnectionEvent_IceCandidateError &&
             const DeepCollectionEquality().equals(other.address, address) &&
             const DeepCollectionEquality().equals(other.port, port) &&
             const DeepCollectionEquality().equals(other.url, url) &&
@@ -1571,8 +1696,10 @@ class _$IceCandidateError implements IceCandidateError {
 
   @JsonKey(ignore: true)
   @override
-  _$$IceCandidateErrorCopyWith<_$IceCandidateError> get copyWith =>
-      __$$IceCandidateErrorCopyWithImpl<_$IceCandidateError>(this, _$identity);
+  _$$PeerConnectionEvent_IceCandidateErrorCopyWith<
+          _$PeerConnectionEvent_IceCandidateError>
+      get copyWith => __$$PeerConnectionEvent_IceCandidateErrorCopyWithImpl<
+          _$PeerConnectionEvent_IceCandidateError>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1640,18 +1767,24 @@ class _$IceCandidateError implements IceCandidateError {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(PeerCreated value) peerCreated,
-    required TResult Function(IceCandidate value) iceCandidate,
-    required TResult Function(IceGatheringStateChange value)
+    required TResult Function(PeerConnectionEvent_PeerCreated value)
+        peerCreated,
+    required TResult Function(PeerConnectionEvent_IceCandidate value)
+        iceCandidate,
+    required TResult Function(PeerConnectionEvent_IceGatheringStateChange value)
         iceGatheringStateChange,
-    required TResult Function(IceCandidateError value) iceCandidateError,
-    required TResult Function(NegotiationNeeded value) negotiationNeeded,
-    required TResult Function(SignallingChange value) signallingChange,
-    required TResult Function(IceConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_IceCandidateError value)
+        iceCandidateError,
+    required TResult Function(PeerConnectionEvent_NegotiationNeeded value)
+        negotiationNeeded,
+    required TResult Function(PeerConnectionEvent_SignallingChange value)
+        signallingChange,
+    required TResult Function(
+            PeerConnectionEvent_IceConnectionStateChange value)
         iceConnectionStateChange,
-    required TResult Function(ConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_ConnectionStateChange value)
         connectionStateChange,
-    required TResult Function(Track value) track,
+    required TResult Function(PeerConnectionEvent_Track value) track,
   }) {
     return iceCandidateError(this);
   }
@@ -1659,15 +1792,21 @@ class _$IceCandidateError implements IceCandidateError {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
   }) {
     return iceCandidateError?.call(this);
   }
@@ -1675,15 +1814,21 @@ class _$IceCandidateError implements IceCandidateError {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
     required TResult orElse(),
   }) {
     if (iceCandidateError != null) {
@@ -1693,13 +1838,15 @@ class _$IceCandidateError implements IceCandidateError {
   }
 }
 
-abstract class IceCandidateError implements PeerConnectionEvent {
-  const factory IceCandidateError(
-      {required final String address,
-      required final int port,
-      required final String url,
-      required final int errorCode,
-      required final String errorText}) = _$IceCandidateError;
+abstract class PeerConnectionEvent_IceCandidateError
+    implements PeerConnectionEvent {
+  const factory PeerConnectionEvent_IceCandidateError(
+          {required final String address,
+          required final int port,
+          required final String url,
+          required final int errorCode,
+          required final String errorText}) =
+      _$PeerConnectionEvent_IceCandidateError;
 
   /// Local IP address used to communicate with the STUN or TURN server.
   String get address;
@@ -1729,33 +1876,39 @@ abstract class IceCandidateError implements PeerConnectionEvent {
   /// [1]: https://tinyurl.com/stun-parameters-6
   String get errorText;
   @JsonKey(ignore: true)
-  _$$IceCandidateErrorCopyWith<_$IceCandidateError> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$PeerConnectionEvent_IceCandidateErrorCopyWith<
+          _$PeerConnectionEvent_IceCandidateError>
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$NegotiationNeededCopyWith<$Res> {
-  factory _$$NegotiationNeededCopyWith(
-          _$NegotiationNeeded value, $Res Function(_$NegotiationNeeded) then) =
-      __$$NegotiationNeededCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_NegotiationNeededCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_NegotiationNeededCopyWith(
+          _$PeerConnectionEvent_NegotiationNeeded value,
+          $Res Function(_$PeerConnectionEvent_NegotiationNeeded) then) =
+      __$$PeerConnectionEvent_NegotiationNeededCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class __$$NegotiationNeededCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_NegotiationNeededCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements _$$NegotiationNeededCopyWith<$Res> {
-  __$$NegotiationNeededCopyWithImpl(
-      _$NegotiationNeeded _value, $Res Function(_$NegotiationNeeded) _then)
-      : super(_value, (v) => _then(v as _$NegotiationNeeded));
+    implements _$$PeerConnectionEvent_NegotiationNeededCopyWith<$Res> {
+  __$$PeerConnectionEvent_NegotiationNeededCopyWithImpl(
+      _$PeerConnectionEvent_NegotiationNeeded _value,
+      $Res Function(_$PeerConnectionEvent_NegotiationNeeded) _then)
+      : super(
+            _value, (v) => _then(v as _$PeerConnectionEvent_NegotiationNeeded));
 
   @override
-  _$NegotiationNeeded get _value => super._value as _$NegotiationNeeded;
+  _$PeerConnectionEvent_NegotiationNeeded get _value =>
+      super._value as _$PeerConnectionEvent_NegotiationNeeded;
 }
 
 /// @nodoc
 
-class _$NegotiationNeeded implements NegotiationNeeded {
-  const _$NegotiationNeeded();
+class _$PeerConnectionEvent_NegotiationNeeded
+    implements PeerConnectionEvent_NegotiationNeeded {
+  const _$PeerConnectionEvent_NegotiationNeeded();
 
   @override
   String toString() {
@@ -1765,7 +1918,8 @@ class _$NegotiationNeeded implements NegotiationNeeded {
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$NegotiationNeeded);
+        (other.runtimeType == runtimeType &&
+            other is _$PeerConnectionEvent_NegotiationNeeded);
   }
 
   @override
@@ -1837,18 +1991,24 @@ class _$NegotiationNeeded implements NegotiationNeeded {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(PeerCreated value) peerCreated,
-    required TResult Function(IceCandidate value) iceCandidate,
-    required TResult Function(IceGatheringStateChange value)
+    required TResult Function(PeerConnectionEvent_PeerCreated value)
+        peerCreated,
+    required TResult Function(PeerConnectionEvent_IceCandidate value)
+        iceCandidate,
+    required TResult Function(PeerConnectionEvent_IceGatheringStateChange value)
         iceGatheringStateChange,
-    required TResult Function(IceCandidateError value) iceCandidateError,
-    required TResult Function(NegotiationNeeded value) negotiationNeeded,
-    required TResult Function(SignallingChange value) signallingChange,
-    required TResult Function(IceConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_IceCandidateError value)
+        iceCandidateError,
+    required TResult Function(PeerConnectionEvent_NegotiationNeeded value)
+        negotiationNeeded,
+    required TResult Function(PeerConnectionEvent_SignallingChange value)
+        signallingChange,
+    required TResult Function(
+            PeerConnectionEvent_IceConnectionStateChange value)
         iceConnectionStateChange,
-    required TResult Function(ConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_ConnectionStateChange value)
         connectionStateChange,
-    required TResult Function(Track value) track,
+    required TResult Function(PeerConnectionEvent_Track value) track,
   }) {
     return negotiationNeeded(this);
   }
@@ -1856,15 +2016,21 @@ class _$NegotiationNeeded implements NegotiationNeeded {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
   }) {
     return negotiationNeeded?.call(this);
   }
@@ -1872,15 +2038,21 @@ class _$NegotiationNeeded implements NegotiationNeeded {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
     required TResult orElse(),
   }) {
     if (negotiationNeeded != null) {
@@ -1890,34 +2062,40 @@ class _$NegotiationNeeded implements NegotiationNeeded {
   }
 }
 
-abstract class NegotiationNeeded implements PeerConnectionEvent {
-  const factory NegotiationNeeded() = _$NegotiationNeeded;
+abstract class PeerConnectionEvent_NegotiationNeeded
+    implements PeerConnectionEvent {
+  const factory PeerConnectionEvent_NegotiationNeeded() =
+      _$PeerConnectionEvent_NegotiationNeeded;
 }
 
 /// @nodoc
-abstract class _$$SignallingChangeCopyWith<$Res> {
-  factory _$$SignallingChangeCopyWith(
-          _$SignallingChange value, $Res Function(_$SignallingChange) then) =
-      __$$SignallingChangeCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_SignallingChangeCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_SignallingChangeCopyWith(
+          _$PeerConnectionEvent_SignallingChange value,
+          $Res Function(_$PeerConnectionEvent_SignallingChange) then) =
+      __$$PeerConnectionEvent_SignallingChangeCopyWithImpl<$Res>;
   $Res call({SignalingState field0});
 }
 
 /// @nodoc
-class __$$SignallingChangeCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_SignallingChangeCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements _$$SignallingChangeCopyWith<$Res> {
-  __$$SignallingChangeCopyWithImpl(
-      _$SignallingChange _value, $Res Function(_$SignallingChange) _then)
-      : super(_value, (v) => _then(v as _$SignallingChange));
+    implements _$$PeerConnectionEvent_SignallingChangeCopyWith<$Res> {
+  __$$PeerConnectionEvent_SignallingChangeCopyWithImpl(
+      _$PeerConnectionEvent_SignallingChange _value,
+      $Res Function(_$PeerConnectionEvent_SignallingChange) _then)
+      : super(
+            _value, (v) => _then(v as _$PeerConnectionEvent_SignallingChange));
 
   @override
-  _$SignallingChange get _value => super._value as _$SignallingChange;
+  _$PeerConnectionEvent_SignallingChange get _value =>
+      super._value as _$PeerConnectionEvent_SignallingChange;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(_$SignallingChange(
+    return _then(_$PeerConnectionEvent_SignallingChange(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -1928,8 +2106,9 @@ class __$$SignallingChangeCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$SignallingChange implements SignallingChange {
-  const _$SignallingChange(this.field0);
+class _$PeerConnectionEvent_SignallingChange
+    implements PeerConnectionEvent_SignallingChange {
+  const _$PeerConnectionEvent_SignallingChange(this.field0);
 
   @override
   final SignalingState field0;
@@ -1943,7 +2122,7 @@ class _$SignallingChange implements SignallingChange {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SignallingChange &&
+            other is _$PeerConnectionEvent_SignallingChange &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -1953,8 +2132,10 @@ class _$SignallingChange implements SignallingChange {
 
   @JsonKey(ignore: true)
   @override
-  _$$SignallingChangeCopyWith<_$SignallingChange> get copyWith =>
-      __$$SignallingChangeCopyWithImpl<_$SignallingChange>(this, _$identity);
+  _$$PeerConnectionEvent_SignallingChangeCopyWith<
+          _$PeerConnectionEvent_SignallingChange>
+      get copyWith => __$$PeerConnectionEvent_SignallingChangeCopyWithImpl<
+          _$PeerConnectionEvent_SignallingChange>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2022,18 +2203,24 @@ class _$SignallingChange implements SignallingChange {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(PeerCreated value) peerCreated,
-    required TResult Function(IceCandidate value) iceCandidate,
-    required TResult Function(IceGatheringStateChange value)
+    required TResult Function(PeerConnectionEvent_PeerCreated value)
+        peerCreated,
+    required TResult Function(PeerConnectionEvent_IceCandidate value)
+        iceCandidate,
+    required TResult Function(PeerConnectionEvent_IceGatheringStateChange value)
         iceGatheringStateChange,
-    required TResult Function(IceCandidateError value) iceCandidateError,
-    required TResult Function(NegotiationNeeded value) negotiationNeeded,
-    required TResult Function(SignallingChange value) signallingChange,
-    required TResult Function(IceConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_IceCandidateError value)
+        iceCandidateError,
+    required TResult Function(PeerConnectionEvent_NegotiationNeeded value)
+        negotiationNeeded,
+    required TResult Function(PeerConnectionEvent_SignallingChange value)
+        signallingChange,
+    required TResult Function(
+            PeerConnectionEvent_IceConnectionStateChange value)
         iceConnectionStateChange,
-    required TResult Function(ConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_ConnectionStateChange value)
         connectionStateChange,
-    required TResult Function(Track value) track,
+    required TResult Function(PeerConnectionEvent_Track value) track,
   }) {
     return signallingChange(this);
   }
@@ -2041,15 +2228,21 @@ class _$SignallingChange implements SignallingChange {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
   }) {
     return signallingChange?.call(this);
   }
@@ -2057,15 +2250,21 @@ class _$SignallingChange implements SignallingChange {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
     required TResult orElse(),
   }) {
     if (signallingChange != null) {
@@ -2075,41 +2274,46 @@ class _$SignallingChange implements SignallingChange {
   }
 }
 
-abstract class SignallingChange implements PeerConnectionEvent {
-  const factory SignallingChange(final SignalingState field0) =
-      _$SignallingChange;
+abstract class PeerConnectionEvent_SignallingChange
+    implements PeerConnectionEvent {
+  const factory PeerConnectionEvent_SignallingChange(
+      final SignalingState field0) = _$PeerConnectionEvent_SignallingChange;
 
   SignalingState get field0;
   @JsonKey(ignore: true)
-  _$$SignallingChangeCopyWith<_$SignallingChange> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$PeerConnectionEvent_SignallingChangeCopyWith<
+          _$PeerConnectionEvent_SignallingChange>
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$IceConnectionStateChangeCopyWith<$Res> {
-  factory _$$IceConnectionStateChangeCopyWith(_$IceConnectionStateChange value,
-          $Res Function(_$IceConnectionStateChange) then) =
-      __$$IceConnectionStateChangeCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_IceConnectionStateChangeCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_IceConnectionStateChangeCopyWith(
+          _$PeerConnectionEvent_IceConnectionStateChange value,
+          $Res Function(_$PeerConnectionEvent_IceConnectionStateChange) then) =
+      __$$PeerConnectionEvent_IceConnectionStateChangeCopyWithImpl<$Res>;
   $Res call({IceConnectionState field0});
 }
 
 /// @nodoc
-class __$$IceConnectionStateChangeCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_IceConnectionStateChangeCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements _$$IceConnectionStateChangeCopyWith<$Res> {
-  __$$IceConnectionStateChangeCopyWithImpl(_$IceConnectionStateChange _value,
-      $Res Function(_$IceConnectionStateChange) _then)
-      : super(_value, (v) => _then(v as _$IceConnectionStateChange));
+    implements _$$PeerConnectionEvent_IceConnectionStateChangeCopyWith<$Res> {
+  __$$PeerConnectionEvent_IceConnectionStateChangeCopyWithImpl(
+      _$PeerConnectionEvent_IceConnectionStateChange _value,
+      $Res Function(_$PeerConnectionEvent_IceConnectionStateChange) _then)
+      : super(_value,
+            (v) => _then(v as _$PeerConnectionEvent_IceConnectionStateChange));
 
   @override
-  _$IceConnectionStateChange get _value =>
-      super._value as _$IceConnectionStateChange;
+  _$PeerConnectionEvent_IceConnectionStateChange get _value =>
+      super._value as _$PeerConnectionEvent_IceConnectionStateChange;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(_$IceConnectionStateChange(
+    return _then(_$PeerConnectionEvent_IceConnectionStateChange(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2120,8 +2324,9 @@ class __$$IceConnectionStateChangeCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$IceConnectionStateChange implements IceConnectionStateChange {
-  const _$IceConnectionStateChange(this.field0);
+class _$PeerConnectionEvent_IceConnectionStateChange
+    implements PeerConnectionEvent_IceConnectionStateChange {
+  const _$PeerConnectionEvent_IceConnectionStateChange(this.field0);
 
   @override
   final IceConnectionState field0;
@@ -2135,7 +2340,7 @@ class _$IceConnectionStateChange implements IceConnectionStateChange {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$IceConnectionStateChange &&
+            other is _$PeerConnectionEvent_IceConnectionStateChange &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -2145,10 +2350,11 @@ class _$IceConnectionStateChange implements IceConnectionStateChange {
 
   @JsonKey(ignore: true)
   @override
-  _$$IceConnectionStateChangeCopyWith<_$IceConnectionStateChange>
+  _$$PeerConnectionEvent_IceConnectionStateChangeCopyWith<
+          _$PeerConnectionEvent_IceConnectionStateChange>
       get copyWith =>
-          __$$IceConnectionStateChangeCopyWithImpl<_$IceConnectionStateChange>(
-              this, _$identity);
+          __$$PeerConnectionEvent_IceConnectionStateChangeCopyWithImpl<
+              _$PeerConnectionEvent_IceConnectionStateChange>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2216,18 +2422,24 @@ class _$IceConnectionStateChange implements IceConnectionStateChange {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(PeerCreated value) peerCreated,
-    required TResult Function(IceCandidate value) iceCandidate,
-    required TResult Function(IceGatheringStateChange value)
+    required TResult Function(PeerConnectionEvent_PeerCreated value)
+        peerCreated,
+    required TResult Function(PeerConnectionEvent_IceCandidate value)
+        iceCandidate,
+    required TResult Function(PeerConnectionEvent_IceGatheringStateChange value)
         iceGatheringStateChange,
-    required TResult Function(IceCandidateError value) iceCandidateError,
-    required TResult Function(NegotiationNeeded value) negotiationNeeded,
-    required TResult Function(SignallingChange value) signallingChange,
-    required TResult Function(IceConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_IceCandidateError value)
+        iceCandidateError,
+    required TResult Function(PeerConnectionEvent_NegotiationNeeded value)
+        negotiationNeeded,
+    required TResult Function(PeerConnectionEvent_SignallingChange value)
+        signallingChange,
+    required TResult Function(
+            PeerConnectionEvent_IceConnectionStateChange value)
         iceConnectionStateChange,
-    required TResult Function(ConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_ConnectionStateChange value)
         connectionStateChange,
-    required TResult Function(Track value) track,
+    required TResult Function(PeerConnectionEvent_Track value) track,
   }) {
     return iceConnectionStateChange(this);
   }
@@ -2235,15 +2447,21 @@ class _$IceConnectionStateChange implements IceConnectionStateChange {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
   }) {
     return iceConnectionStateChange?.call(this);
   }
@@ -2251,15 +2469,21 @@ class _$IceConnectionStateChange implements IceConnectionStateChange {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
     required TResult orElse(),
   }) {
     if (iceConnectionStateChange != null) {
@@ -2269,40 +2493,47 @@ class _$IceConnectionStateChange implements IceConnectionStateChange {
   }
 }
 
-abstract class IceConnectionStateChange implements PeerConnectionEvent {
-  const factory IceConnectionStateChange(final IceConnectionState field0) =
-      _$IceConnectionStateChange;
+abstract class PeerConnectionEvent_IceConnectionStateChange
+    implements PeerConnectionEvent {
+  const factory PeerConnectionEvent_IceConnectionStateChange(
+          final IceConnectionState field0) =
+      _$PeerConnectionEvent_IceConnectionStateChange;
 
   IceConnectionState get field0;
   @JsonKey(ignore: true)
-  _$$IceConnectionStateChangeCopyWith<_$IceConnectionStateChange>
+  _$$PeerConnectionEvent_IceConnectionStateChangeCopyWith<
+          _$PeerConnectionEvent_IceConnectionStateChange>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ConnectionStateChangeCopyWith<$Res> {
-  factory _$$ConnectionStateChangeCopyWith(_$ConnectionStateChange value,
-          $Res Function(_$ConnectionStateChange) then) =
-      __$$ConnectionStateChangeCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_ConnectionStateChangeCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_ConnectionStateChangeCopyWith(
+          _$PeerConnectionEvent_ConnectionStateChange value,
+          $Res Function(_$PeerConnectionEvent_ConnectionStateChange) then) =
+      __$$PeerConnectionEvent_ConnectionStateChangeCopyWithImpl<$Res>;
   $Res call({PeerConnectionState field0});
 }
 
 /// @nodoc
-class __$$ConnectionStateChangeCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_ConnectionStateChangeCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements _$$ConnectionStateChangeCopyWith<$Res> {
-  __$$ConnectionStateChangeCopyWithImpl(_$ConnectionStateChange _value,
-      $Res Function(_$ConnectionStateChange) _then)
-      : super(_value, (v) => _then(v as _$ConnectionStateChange));
+    implements _$$PeerConnectionEvent_ConnectionStateChangeCopyWith<$Res> {
+  __$$PeerConnectionEvent_ConnectionStateChangeCopyWithImpl(
+      _$PeerConnectionEvent_ConnectionStateChange _value,
+      $Res Function(_$PeerConnectionEvent_ConnectionStateChange) _then)
+      : super(_value,
+            (v) => _then(v as _$PeerConnectionEvent_ConnectionStateChange));
 
   @override
-  _$ConnectionStateChange get _value => super._value as _$ConnectionStateChange;
+  _$PeerConnectionEvent_ConnectionStateChange get _value =>
+      super._value as _$PeerConnectionEvent_ConnectionStateChange;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(_$ConnectionStateChange(
+    return _then(_$PeerConnectionEvent_ConnectionStateChange(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2313,8 +2544,9 @@ class __$$ConnectionStateChangeCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$ConnectionStateChange implements ConnectionStateChange {
-  const _$ConnectionStateChange(this.field0);
+class _$PeerConnectionEvent_ConnectionStateChange
+    implements PeerConnectionEvent_ConnectionStateChange {
+  const _$PeerConnectionEvent_ConnectionStateChange(this.field0);
 
   @override
   final PeerConnectionState field0;
@@ -2328,7 +2560,7 @@ class _$ConnectionStateChange implements ConnectionStateChange {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ConnectionStateChange &&
+            other is _$PeerConnectionEvent_ConnectionStateChange &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -2338,9 +2570,10 @@ class _$ConnectionStateChange implements ConnectionStateChange {
 
   @JsonKey(ignore: true)
   @override
-  _$$ConnectionStateChangeCopyWith<_$ConnectionStateChange> get copyWith =>
-      __$$ConnectionStateChangeCopyWithImpl<_$ConnectionStateChange>(
-          this, _$identity);
+  _$$PeerConnectionEvent_ConnectionStateChangeCopyWith<
+          _$PeerConnectionEvent_ConnectionStateChange>
+      get copyWith => __$$PeerConnectionEvent_ConnectionStateChangeCopyWithImpl<
+          _$PeerConnectionEvent_ConnectionStateChange>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2408,18 +2641,24 @@ class _$ConnectionStateChange implements ConnectionStateChange {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(PeerCreated value) peerCreated,
-    required TResult Function(IceCandidate value) iceCandidate,
-    required TResult Function(IceGatheringStateChange value)
+    required TResult Function(PeerConnectionEvent_PeerCreated value)
+        peerCreated,
+    required TResult Function(PeerConnectionEvent_IceCandidate value)
+        iceCandidate,
+    required TResult Function(PeerConnectionEvent_IceGatheringStateChange value)
         iceGatheringStateChange,
-    required TResult Function(IceCandidateError value) iceCandidateError,
-    required TResult Function(NegotiationNeeded value) negotiationNeeded,
-    required TResult Function(SignallingChange value) signallingChange,
-    required TResult Function(IceConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_IceCandidateError value)
+        iceCandidateError,
+    required TResult Function(PeerConnectionEvent_NegotiationNeeded value)
+        negotiationNeeded,
+    required TResult Function(PeerConnectionEvent_SignallingChange value)
+        signallingChange,
+    required TResult Function(
+            PeerConnectionEvent_IceConnectionStateChange value)
         iceConnectionStateChange,
-    required TResult Function(ConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_ConnectionStateChange value)
         connectionStateChange,
-    required TResult Function(Track value) track,
+    required TResult Function(PeerConnectionEvent_Track value) track,
   }) {
     return connectionStateChange(this);
   }
@@ -2427,15 +2666,21 @@ class _$ConnectionStateChange implements ConnectionStateChange {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
   }) {
     return connectionStateChange?.call(this);
   }
@@ -2443,15 +2688,21 @@ class _$ConnectionStateChange implements ConnectionStateChange {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
     required TResult orElse(),
   }) {
     if (connectionStateChange != null) {
@@ -2461,38 +2712,45 @@ class _$ConnectionStateChange implements ConnectionStateChange {
   }
 }
 
-abstract class ConnectionStateChange implements PeerConnectionEvent {
-  const factory ConnectionStateChange(final PeerConnectionState field0) =
-      _$ConnectionStateChange;
+abstract class PeerConnectionEvent_ConnectionStateChange
+    implements PeerConnectionEvent {
+  const factory PeerConnectionEvent_ConnectionStateChange(
+          final PeerConnectionState field0) =
+      _$PeerConnectionEvent_ConnectionStateChange;
 
   PeerConnectionState get field0;
   @JsonKey(ignore: true)
-  _$$ConnectionStateChangeCopyWith<_$ConnectionStateChange> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$PeerConnectionEvent_ConnectionStateChangeCopyWith<
+          _$PeerConnectionEvent_ConnectionStateChange>
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$TrackCopyWith<$Res> {
-  factory _$$TrackCopyWith(_$Track value, $Res Function(_$Track) then) =
-      __$$TrackCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_TrackCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_TrackCopyWith(
+          _$PeerConnectionEvent_Track value,
+          $Res Function(_$PeerConnectionEvent_Track) then) =
+      __$$PeerConnectionEvent_TrackCopyWithImpl<$Res>;
   $Res call({RtcTrackEvent field0});
 }
 
 /// @nodoc
-class __$$TrackCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_TrackCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res>
-    implements _$$TrackCopyWith<$Res> {
-  __$$TrackCopyWithImpl(_$Track _value, $Res Function(_$Track) _then)
-      : super(_value, (v) => _then(v as _$Track));
+    implements _$$PeerConnectionEvent_TrackCopyWith<$Res> {
+  __$$PeerConnectionEvent_TrackCopyWithImpl(_$PeerConnectionEvent_Track _value,
+      $Res Function(_$PeerConnectionEvent_Track) _then)
+      : super(_value, (v) => _then(v as _$PeerConnectionEvent_Track));
 
   @override
-  _$Track get _value => super._value as _$Track;
+  _$PeerConnectionEvent_Track get _value =>
+      super._value as _$PeerConnectionEvent_Track;
 
   @override
   $Res call({
     Object? field0 = freezed,
   }) {
-    return _then(_$Track(
+    return _then(_$PeerConnectionEvent_Track(
       field0 == freezed
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2503,8 +2761,8 @@ class __$$TrackCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$Track implements Track {
-  const _$Track(this.field0);
+class _$PeerConnectionEvent_Track implements PeerConnectionEvent_Track {
+  const _$PeerConnectionEvent_Track(this.field0);
 
   @override
   final RtcTrackEvent field0;
@@ -2518,7 +2776,7 @@ class _$Track implements Track {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Track &&
+            other is _$PeerConnectionEvent_Track &&
             const DeepCollectionEquality().equals(other.field0, field0));
   }
 
@@ -2528,8 +2786,9 @@ class _$Track implements Track {
 
   @JsonKey(ignore: true)
   @override
-  _$$TrackCopyWith<_$Track> get copyWith =>
-      __$$TrackCopyWithImpl<_$Track>(this, _$identity);
+  _$$PeerConnectionEvent_TrackCopyWith<_$PeerConnectionEvent_Track>
+      get copyWith => __$$PeerConnectionEvent_TrackCopyWithImpl<
+          _$PeerConnectionEvent_Track>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2597,18 +2856,24 @@ class _$Track implements Track {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(PeerCreated value) peerCreated,
-    required TResult Function(IceCandidate value) iceCandidate,
-    required TResult Function(IceGatheringStateChange value)
+    required TResult Function(PeerConnectionEvent_PeerCreated value)
+        peerCreated,
+    required TResult Function(PeerConnectionEvent_IceCandidate value)
+        iceCandidate,
+    required TResult Function(PeerConnectionEvent_IceGatheringStateChange value)
         iceGatheringStateChange,
-    required TResult Function(IceCandidateError value) iceCandidateError,
-    required TResult Function(NegotiationNeeded value) negotiationNeeded,
-    required TResult Function(SignallingChange value) signallingChange,
-    required TResult Function(IceConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_IceCandidateError value)
+        iceCandidateError,
+    required TResult Function(PeerConnectionEvent_NegotiationNeeded value)
+        negotiationNeeded,
+    required TResult Function(PeerConnectionEvent_SignallingChange value)
+        signallingChange,
+    required TResult Function(
+            PeerConnectionEvent_IceConnectionStateChange value)
         iceConnectionStateChange,
-    required TResult Function(ConnectionStateChange value)
+    required TResult Function(PeerConnectionEvent_ConnectionStateChange value)
         connectionStateChange,
-    required TResult Function(Track value) track,
+    required TResult Function(PeerConnectionEvent_Track value) track,
   }) {
     return track(this);
   }
@@ -2616,15 +2881,21 @@ class _$Track implements Track {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
   }) {
     return track?.call(this);
   }
@@ -2632,15 +2903,21 @@ class _$Track implements Track {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(PeerCreated value)? peerCreated,
-    TResult Function(IceCandidate value)? iceCandidate,
-    TResult Function(IceGatheringStateChange value)? iceGatheringStateChange,
-    TResult Function(IceCandidateError value)? iceCandidateError,
-    TResult Function(NegotiationNeeded value)? negotiationNeeded,
-    TResult Function(SignallingChange value)? signallingChange,
-    TResult Function(IceConnectionStateChange value)? iceConnectionStateChange,
-    TResult Function(ConnectionStateChange value)? connectionStateChange,
-    TResult Function(Track value)? track,
+    TResult Function(PeerConnectionEvent_PeerCreated value)? peerCreated,
+    TResult Function(PeerConnectionEvent_IceCandidate value)? iceCandidate,
+    TResult Function(PeerConnectionEvent_IceGatheringStateChange value)?
+        iceGatheringStateChange,
+    TResult Function(PeerConnectionEvent_IceCandidateError value)?
+        iceCandidateError,
+    TResult Function(PeerConnectionEvent_NegotiationNeeded value)?
+        negotiationNeeded,
+    TResult Function(PeerConnectionEvent_SignallingChange value)?
+        signallingChange,
+    TResult Function(PeerConnectionEvent_IceConnectionStateChange value)?
+        iceConnectionStateChange,
+    TResult Function(PeerConnectionEvent_ConnectionStateChange value)?
+        connectionStateChange,
+    TResult Function(PeerConnectionEvent_Track value)? track,
     required TResult orElse(),
   }) {
     if (track != null) {
@@ -2650,10 +2927,12 @@ class _$Track implements Track {
   }
 }
 
-abstract class Track implements PeerConnectionEvent {
-  const factory Track(final RtcTrackEvent field0) = _$Track;
+abstract class PeerConnectionEvent_Track implements PeerConnectionEvent {
+  const factory PeerConnectionEvent_Track(final RtcTrackEvent field0) =
+      _$PeerConnectionEvent_Track;
 
   RtcTrackEvent get field0;
   @JsonKey(ignore: true)
-  _$$TrackCopyWith<_$Track> get copyWith => throw _privateConstructorUsedError;
+  _$$PeerConnectionEvent_TrackCopyWith<_$PeerConnectionEvent_Track>
+      get copyWith => throw _privateConstructorUsedError;
 }

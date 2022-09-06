@@ -2,12 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-import '/src/model/constraints.dart';
-import '/src/model/device.dart';
+import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
 import '/src/platform/native/media_stream_track.dart';
 import 'bridge.g.dart' as ffi;
 import 'channel.dart';
-import 'peer.dart';
 
 /// Default video width when capturing user's camera.
 const defaultUserMediaWidth = 480;
@@ -230,10 +228,10 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
       constraints: ffi.MediaStreamConstraints(
           audio: audioConstraints, video: videoConstraints));
 
-  if (result is ffi.Ok) {
+  if (result is ffi.GetMediaResult_Ok) {
     return result.field0.map((e) => NativeMediaStreamTrack.from(e)).toList();
   } else {
-    if ((result as ffi.Err).field0 is ffi.Video) {
+    if ((result as ffi.GetMediaResult_Err).field0 is ffi.GetMediaError_Video) {
       throw GetMediaException(
           GetMediaExceptionKind.video, result.field0.field0);
     } else {
@@ -279,10 +277,10 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaFFI(
       constraints: ffi.MediaStreamConstraints(
           audio: audioConstraints, video: videoConstraints));
 
-  if (result is ffi.Ok) {
+  if (result is ffi.GetMediaResult_Ok) {
     return result.field0.map((e) => NativeMediaStreamTrack.from(e)).toList();
   } else {
-    if ((result as ffi.Err) is ffi.Video) {
+    if ((result as ffi.GetMediaResult_Err) is ffi.GetMediaError_Video) {
       throw GetMediaException(
           GetMediaExceptionKind.video, result.field0.field0);
     } else {

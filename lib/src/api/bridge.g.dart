@@ -322,12 +322,12 @@ class GetMediaError with _$GetMediaError {
   /// Could not acquire audio track.
   const factory GetMediaError.audio(
     String field0,
-  ) = Audio;
+  ) = GetMediaError_Audio;
 
   /// Could not acquire video track.
   const factory GetMediaError.video(
     String field0,
-  ) = Video;
+  ) = GetMediaError_Video;
 }
 
 @freezed
@@ -335,12 +335,12 @@ class GetMediaResult with _$GetMediaResult {
   /// Requested media tracks.
   const factory GetMediaResult.ok(
     List<MediaStreamTrack> field0,
-  ) = Ok;
+  ) = GetMediaResult_Ok;
 
   /// Failed to get requested media.
   const factory GetMediaResult.err(
     GetMediaError field0,
-  ) = Err;
+  ) = GetMediaResult_Err;
 }
 
 /// [RTCIceConnectionState][1] representation.
@@ -522,7 +522,7 @@ class PeerConnectionEvent with _$PeerConnectionEvent {
   const factory PeerConnectionEvent.peerCreated({
     /// ID of the created [`PeerConnection`].
     required int id,
-  }) = PeerCreated;
+  }) = PeerConnectionEvent_PeerCreated;
 
   /// [RTCIceCandidate][1] has been discovered.
   ///
@@ -551,12 +551,12 @@ class PeerConnectionEvent with _$PeerConnectionEvent {
     /// [1]: https://w3.org/TR/webrtc#dom-rtcicecandidate
     /// [RFC 5245]: https://tools.ietf.org/html/rfc5245
     required String candidate,
-  }) = IceCandidate;
+  }) = PeerConnectionEvent_IceCandidate;
 
   /// [`PeerConnection`]'s ICE gathering state has changed.
   const factory PeerConnectionEvent.iceGatheringStateChange(
     IceGatheringState field0,
-  ) = IceGatheringStateChange;
+  ) = PeerConnectionEvent_IceGatheringStateChange;
 
   /// Failure occurred when gathering [RTCIceCandidate][1].
   ///
@@ -589,31 +589,32 @@ class PeerConnectionEvent with _$PeerConnectionEvent {
     ///
     /// [1]: https://tinyurl.com/stun-parameters-6
     required String errorText,
-  }) = IceCandidateError;
+  }) = PeerConnectionEvent_IceCandidateError;
 
   /// Negotiation or renegotiation of the [`PeerConnection`] needs to be
   /// performed.
-  const factory PeerConnectionEvent.negotiationNeeded() = NegotiationNeeded;
+  const factory PeerConnectionEvent.negotiationNeeded() =
+      PeerConnectionEvent_NegotiationNeeded;
 
   /// [`PeerConnection`]'s [`SignalingState`] has been changed.
   const factory PeerConnectionEvent.signallingChange(
     SignalingState field0,
-  ) = SignallingChange;
+  ) = PeerConnectionEvent_SignallingChange;
 
   /// [`PeerConnection`]'s [`IceConnectionState`] has been changed.
   const factory PeerConnectionEvent.iceConnectionStateChange(
     IceConnectionState field0,
-  ) = IceConnectionStateChange;
+  ) = PeerConnectionEvent_IceConnectionStateChange;
 
   /// [`PeerConnection`]'s [`PeerConnectionState`] has been changed.
   const factory PeerConnectionEvent.connectionStateChange(
     PeerConnectionState field0,
-  ) = ConnectionStateChange;
+  ) = PeerConnectionEvent_ConnectionStateChange;
 
   /// New incoming media has been negotiated.
   const factory PeerConnectionEvent.track(
     RtcTrackEvent field0,
-  ) = Track;
+  ) = PeerConnectionEvent_Track;
 }
 
 /// Indicator of the current state of a [`PeerConnection`].
@@ -1784,11 +1785,11 @@ RtcTrackEvent _wire2api_box_autoadd_rtc_track_event(dynamic raw) {
 GetMediaError _wire2api_get_media_error(dynamic raw) {
   switch (raw[0]) {
     case 0:
-      return Audio(
+      return GetMediaError_Audio(
         _wire2api_String(raw[1]),
       );
     case 1:
-      return Video(
+      return GetMediaError_Video(
         _wire2api_String(raw[1]),
       );
     default:
@@ -1799,11 +1800,11 @@ GetMediaError _wire2api_get_media_error(dynamic raw) {
 GetMediaResult _wire2api_get_media_result(dynamic raw) {
   switch (raw[0]) {
     case 0:
-      return Ok(
+      return GetMediaResult_Ok(
         _wire2api_list_media_stream_track(raw[1]),
       );
     case 1:
-      return Err(
+      return GetMediaResult_Err(
         _wire2api_box_autoadd_get_media_error(raw[1]),
       );
     default:
@@ -1873,21 +1874,21 @@ String? _wire2api_opt_String(dynamic raw) {
 PeerConnectionEvent _wire2api_peer_connection_event(dynamic raw) {
   switch (raw[0]) {
     case 0:
-      return PeerCreated(
+      return PeerConnectionEvent_PeerCreated(
         id: _wire2api_u64(raw[1]),
       );
     case 1:
-      return IceCandidate(
+      return PeerConnectionEvent_IceCandidate(
         sdpMid: _wire2api_String(raw[1]),
         sdpMlineIndex: _wire2api_i32(raw[2]),
         candidate: _wire2api_String(raw[3]),
       );
     case 2:
-      return IceGatheringStateChange(
+      return PeerConnectionEvent_IceGatheringStateChange(
         _wire2api_ice_gathering_state(raw[1]),
       );
     case 3:
-      return IceCandidateError(
+      return PeerConnectionEvent_IceCandidateError(
         address: _wire2api_String(raw[1]),
         port: _wire2api_i32(raw[2]),
         url: _wire2api_String(raw[3]),
@@ -1895,21 +1896,21 @@ PeerConnectionEvent _wire2api_peer_connection_event(dynamic raw) {
         errorText: _wire2api_String(raw[5]),
       );
     case 4:
-      return NegotiationNeeded();
+      return PeerConnectionEvent_NegotiationNeeded();
     case 5:
-      return SignallingChange(
+      return PeerConnectionEvent_SignallingChange(
         _wire2api_signaling_state(raw[1]),
       );
     case 6:
-      return IceConnectionStateChange(
+      return PeerConnectionEvent_IceConnectionStateChange(
         _wire2api_ice_connection_state(raw[1]),
       );
     case 7:
-      return ConnectionStateChange(
+      return PeerConnectionEvent_ConnectionStateChange(
         _wire2api_peer_connection_state(raw[1]),
       );
     case 8:
-      return Track(
+      return PeerConnectionEvent_Track(
         _wire2api_box_autoadd_rtc_track_event(raw[1]),
       );
     default:

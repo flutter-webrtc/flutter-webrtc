@@ -368,10 +368,7 @@ pub mod linux_device_change {
         use std::{io, os::unix::prelude::AsRawFd, sync::atomic::Ordering};
 
         use libudev::EventType;
-        use nix::{
-            poll::{ppoll, PollFd, PollFlags},
-            sys::signal::SigSet,
-        };
+        use nix::poll::{ppoll, PollFd, PollFlags};
 
         use crate::devices::ON_DEVICE_CHANGE;
 
@@ -385,7 +382,7 @@ pub mod linux_device_change {
 
             let fds = PollFd::new(socket.as_raw_fd(), PollFlags::POLLIN);
             loop {
-                ppoll(&mut [fds], None, SigSet::empty())?;
+                ppoll(&mut [fds], None, None)?;
 
                 let event = match socket.receive_event() {
                     Some(evt) => evt,

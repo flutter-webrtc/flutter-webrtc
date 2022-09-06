@@ -25,6 +25,9 @@ abstract class RtpTransceiver {
   /// [RtpSender] owned by this [RtpTransceiver].
   late RtpSender _sender;
 
+  /// Indicates whether the [dispose] was called.
+  bool _disposed = false;
+
   /// Current mID of this [RtpTransceiver].
   ///
   /// mID will be automatically updated on all actions changing it.
@@ -36,6 +39,9 @@ abstract class RtpTransceiver {
 
   /// Getter for the [RtpSender] of this [RtpTransceiver].
   RtpSender get sender => _sender;
+
+  /// Indicates whether the [dispose] was called.
+  bool get disposed => _disposed;
 
   /// Returns current mID of this [RtpTransceiver].
   String? get mid => _mid;
@@ -133,7 +139,9 @@ class _RtpTransceiverChannel extends RtpTransceiver {
 
   @override
   Future<void> dispose() async {
+    _disposed = true;
     await _chan.invokeMethod('dispose');
+    await sender.dispose();
   }
 }
 
@@ -194,6 +202,6 @@ class _RtpTransceiverFFI extends RtpTransceiver {
 
   @override
   Future<void> dispose() async {
-    // no-op for FFI implementation
+    _disposed = true;
   }
 }
