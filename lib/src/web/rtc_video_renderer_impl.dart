@@ -257,4 +257,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
   @override
   Function? onResize;
+
+  @override
+  Function? onFirstFrameRendered;
 }
