@@ -17,14 +17,14 @@ class GetDisplayMediaSample extends StatefulWidget {
 }
 
 class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
-  MediaStreamTrack? _track;
-  final _localRenderer = createVideoRenderer();
+  final List<MediaStreamTrack> _tracks = List.empty(growable: true);
+  final List<VideoRenderer> _renderers = List.empty(growable: true);
+
   bool _inCalling = false;
 
   @override
   void initState() {
     super.initState();
-    initRenderers();
   }
 
   @override
@@ -33,30 +33,32 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     if (_inCalling) {
       _stop();
     }
-    _localRenderer.dispose();
-  }
-
-  Future<void> initRenderers() async {
-    await _localRenderer.initialize();
+    for (var r in _renderers) {
+      r.dispose();
+    }
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> _makeCall() async {
-    var caps = DisplayConstraints();
-    caps.audio.mandatory = AudioConstraints();
-    caps.video.mandatory = DeviceVideoConstraints();
-    caps.video.mandatory!.width = 1920;
-    caps.video.mandatory!.height = 1080;
-    caps.video.mandatory!.fps = 30;
+    var displays = await enumerateDisplays();
 
-    try {
+    for (var display in displays) {
+      var caps = DisplayConstraints();
+      caps.audio.mandatory = AudioConstraints();
+      caps.video.mandatory = DeviceVideoConstraints();
+      caps.video.mandatory!.width = 1920;
+      caps.video.mandatory!.height = 1080;
+      caps.video.mandatory!.fps = 30;
+      caps.video.mandatory!.deviceId = display.deviceId;
       var track = (await getDisplayMedia(caps))[0];
+      _tracks.add(track);
 
-      _track = track;
-      await _localRenderer.setSrcObject(track);
-    } catch (e) {
-      print(e.toString());
+      var renderer = createVideoRenderer();
+      await renderer.initialize();
+      await renderer.setSrcObject(track);
+      _renderers.add(renderer);
     }
+
     if (!mounted) return;
 
     setState(() {
@@ -66,10 +68,15 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
 
   Future<void> _stop() async {
     try {
-      await _track?.stop();
-      await _track?.dispose();
-      _track = null;
-      await _localRenderer.setSrcObject(_track);
+      for (var t in _tracks) {
+        await t.stop();
+        await t.dispose();
+      }
+      _tracks.clear();
+      for (var r in _renderers) {
+        r.setSrcObject(null);
+      }
+      _renderers.clear();
     } catch (e) {
       print(e.toString());
     }
@@ -80,6 +87,18 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     setState(() {
       _inCalling = false;
     });
+  }
+
+  Row renderers() {
+    final List<Widget> children = [];
+
+    for (var r in _renderers) {
+      children.add(Expanded(child: VideoView(r)));
+    }
+
+    return Row(
+      children: children,
+    );
   }
 
   @override
@@ -98,7 +117,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
                 decoration: const BoxDecoration(color: Colors.black54),
-                child: VideoView(_localRenderer),
+                child: renderers(),
               )
             ]),
           );

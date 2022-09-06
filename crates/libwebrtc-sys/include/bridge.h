@@ -57,6 +57,7 @@ class TrackEventObserver : public webrtc::ObserverInterface {
 };
 
 struct TransceiverContainer;
+struct DisplaySourceContainer;
 struct StringPair;
 struct RtpCodecParametersContainer;
 struct RtpExtensionContainer;
@@ -82,6 +83,7 @@ using SdpType = webrtc::SdpType;
 using SignalingState = webrtc::PeerConnectionInterface::SignalingState;
 using TaskQueueFactory = webrtc::TaskQueueFactory;
 using VideoDeviceInfo = webrtc::VideoCaptureModule::DeviceInfo;
+using DisplaySource = webrtc::DesktopCapturer::Source;
 using VideoRotation = webrtc::VideoRotation;
 using RtpTransceiverDirection = webrtc::RtpTransceiverDirection;
 using TrackState = webrtc::MediaStreamTrackInterface::TrackState;
@@ -221,6 +223,7 @@ std::unique_ptr<VideoTrackSourceInterface> create_fake_device_video_source(
 std::unique_ptr<VideoTrackSourceInterface> create_display_video_source(
     Thread& worker_thread,
     Thread& signaling_thread,
+    int64_t id,
     size_t width,
     size_t height,
     size_t fps);
@@ -516,6 +519,15 @@ std::unique_ptr<std::string> sdp_mid_of_ice_candidate(
 
 // Returns the `sdp_mline_index` of the provided `IceCandidateInterface`.
 int sdp_mline_index_of_ice_candidate(const IceCandidateInterface& candidate);
+
+// Returns a list of all available `DesktopCapturer::Source`s.
+rust::Vec<DisplaySourceContainer> screen_capture_sources();
+
+// Returns an `id` of the provided `DesktopCapturer::Source`.
+int64_t display_source_id(const DisplaySource& source);
+
+// Returns a `title` of the provided `DesktopCapturer::Source`.
+std::unique_ptr<std::string> display_source_title(const DisplaySource& source);
 
 // Creates a new `IceCandidateInterface`.
 std::unique_ptr<webrtc::IceCandidateInterface> create_ice_candidate(

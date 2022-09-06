@@ -66,7 +66,7 @@ class VideoMediaTrackSource(
   }
 
   /**
-   * Disposes this [AudioMediaTrackSource].
+   * Disposes this [VideoMediaTrackSource].
    *
    * Disposes [VideoSource], [VideoCapturer] and [SurfaceTextureHelper].
    */

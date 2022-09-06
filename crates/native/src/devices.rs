@@ -39,6 +39,18 @@ use crate::{
 static ON_DEVICE_CHANGE: AtomicPtr<DeviceState> =
     AtomicPtr::new(ptr::null_mut());
 
+/// Returns a list of all available displays that can be used for screen
+/// capturing.
+pub fn enumerate_displays() -> Vec<api::MediaDisplayInfo> {
+    sys::screen_capture_sources()
+        .into_iter()
+        .map(|s| api::MediaDisplayInfo {
+            device_id: s.id().to_string(),
+            title: s.title(),
+        })
+        .collect()
+}
+
 /// Struct containing the current number of media devices and some tools to
 /// enumerate them (such as [`AudioDeviceModule`] and [`VideoDeviceInfo`]), and
 /// generate event with [`OnDeviceChangeCallback`], if the last is needed.

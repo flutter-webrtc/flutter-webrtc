@@ -54,6 +54,18 @@ pub extern "C" fn wire_enumerate_devices(port_: i64) {
 }
 
 #[no_mangle]
+pub extern "C" fn wire_enumerate_displays(port_: i64) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "enumerate_displays",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || move |task_callback| Ok(enumerate_displays()),
+    )
+}
+
+#[no_mangle]
 pub extern "C" fn wire_create_peer_connection(
     port_: i64,
     configuration: *mut wire_RtcConfiguration,
@@ -1195,6 +1207,13 @@ impl support::IntoDart for MediaDeviceKind {
         .into_dart()
     }
 }
+impl support::IntoDart for MediaDisplayInfo {
+    fn into_dart(self) -> support::DartCObject {
+        vec![self.device_id.into_dart(), self.title.into_dart()].into_dart()
+    }
+}
+impl support::IntoDartExceptPrimitive for MediaDisplayInfo {}
+
 impl support::IntoDart for MediaStreamTrack {
     fn into_dart(self) -> support::DartCObject {
         vec![

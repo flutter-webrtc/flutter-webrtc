@@ -481,6 +481,33 @@ impl VideoDeviceInfo {
 unsafe impl Send for webrtc::VideoDeviceInfo {}
 unsafe impl Sync for webrtc::VideoDeviceInfo {}
 
+/// Returns a list of all available [`VideoDisplaySource`]s.
+#[must_use]
+pub fn screen_capture_sources() -> Vec<VideoDisplaySource> {
+    webrtc::screen_capture_sources()
+        .into_iter()
+        .map(|el| VideoDisplaySource(el.ptr))
+        .collect()
+}
+
+/// Interface for receiving information about available display.
+pub struct VideoDisplaySource(UniquePtr<webrtc::DisplaySource>);
+
+impl VideoDisplaySource {
+    /// Returns an `id` of this [`VideoDisplaySource`].
+    #[must_use]
+    pub fn id(&self) -> i64 {
+        webrtc::display_source_id(&self.0)
+    }
+
+    /// Returns a `title` of this [`VideoDisplaySource`].
+    #[must_use]
+    pub fn title(&self) -> Option<String> {
+        let title = webrtc::display_source_title(&self.0).to_string();
+        (!title.is_empty()).then_some(title)
+    }
+}
+
 /// [RTCConfiguration][1] wrapper.
 ///
 /// Defines a set of parameters to configure how the peer-to-peer communication
@@ -1493,6 +1520,7 @@ impl VideoTrackSourceInterface {
     pub fn create_proxy_from_display(
         worker_thread: &mut Thread,
         signaling_thread: &mut Thread,
+        id: i64,
         width: usize,
         height: usize,
         fps: usize,
@@ -1500,6 +1528,7 @@ impl VideoTrackSourceInterface {
         let ptr = webrtc::create_display_video_source(
             worker_thread.0.pin_mut(),
             signaling_thread.0.pin_mut(),
+            id,
             width,
             height,
             fps,
