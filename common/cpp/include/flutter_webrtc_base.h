@@ -23,6 +23,7 @@
 #include "rtc_mediaconstraints.h"
 #include "rtc_peerconnection.h"
 #include "rtc_peerconnection_factory.h"
+#include "rtc_dtmf_sender.h"
 #include "rtc_video_device.h"
 #include "uuidxx.h"
 

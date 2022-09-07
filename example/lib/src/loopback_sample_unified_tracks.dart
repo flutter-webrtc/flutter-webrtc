@@ -306,6 +306,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     };
   }
 
+  void _sendDtmf() async {
+    var dtmfSender = _audioSender?.dtmfSender;
+    await dtmfSender?.insertDTMF('123#');
+  }
+
   void _startVideo() async {
     var newStream = await navigator.mediaDevices
         .getUserMedia(_getMediaConstraints(audio: false, video: true));
@@ -470,6 +475,10 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       appBar: AppBar(
         title: Text('LoopBack Unified Tracks example'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.keyboard),
+            onPressed: _sendDtmf,
+          ),
           PopupMenuButton<String>(
             onSelected: _selectAudioInput,
             icon: Icon(Icons.settings_voice),
