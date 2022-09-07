@@ -180,7 +180,7 @@ void FlutterScreenCapture::GetDisplayMedia(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
   std::string source_id = "0";
-  DesktopType source_type = kScreen;
+  //DesktopType source_type = kScreen;
   double fps = 30.0;
 
   const EncodableMap video = findMap(constraints, "video");
@@ -193,7 +193,7 @@ void FlutterScreenCapture::GetDisplayMedia(
         return;
       }
       if (source_id != "0") {
-        source_type = DesktopType::kWindow;
+        //source_type = DesktopType::kWindow;
       }
     }
     const EncodableMap mandatory = findMap(video, "mandatory");
