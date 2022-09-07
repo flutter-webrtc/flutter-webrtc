@@ -13,8 +13,7 @@ namespace flutter {
 // TextureRegistrar API.
 class TextureRegistrarImpl : public TextureRegistrar {
  public:
-  explicit TextureRegistrarImpl(
-      FlTextureRegistrar * texture_registrar_ref);
+  explicit TextureRegistrarImpl(FlTextureRegistrar* texture_registrar_ref);
   virtual ~TextureRegistrarImpl();
 
   // Prevent copying.
@@ -32,7 +31,7 @@ class TextureRegistrarImpl : public TextureRegistrar {
 
  private:
   // Handle for interacting with the C API.
-  FlTextureRegistrar *texture_registrar_ref_;
+  FlTextureRegistrar* texture_registrar_ref_;
 };
 
 }  // namespace flutter

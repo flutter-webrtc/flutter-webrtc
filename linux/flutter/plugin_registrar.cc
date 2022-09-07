@@ -16,7 +16,7 @@ namespace flutter {
 
 // ===== PluginRegistrar =====
 
-PluginRegistrar::PluginRegistrar(FlPluginRegistrar *registrar)
+PluginRegistrar::PluginRegistrar(FlPluginRegistrar* registrar)
     : registrar_(registrar) {
   auto core_messenger = fl_plugin_registrar_get_messenger(registrar);
   messenger_ = std::make_unique<BinaryMessengerImpl>(core_messenger);
@@ -53,7 +53,7 @@ PluginRegistrarManager::PluginRegistrarManager() = default;
 
 // static
 void PluginRegistrarManager::OnRegistrarDestroyed(
-    FlPluginRegistrar *registrar) {
+    FlPluginRegistrar* registrar) {
   GetInstance()->registrars()->erase(registrar);
 }
 
