@@ -9,12 +9,12 @@
 
 namespace flutter {
 
-// Wrapper around a FlutterDesktopTextureRegistrarRef that implements the
+// Wrapper around a FlTextureRegistrar that implements the
 // TextureRegistrar API.
 class TextureRegistrarImpl : public TextureRegistrar {
  public:
   explicit TextureRegistrarImpl(
-      FlutterDesktopTextureRegistrarRef texture_registrar_ref);
+      FlTextureRegistrar * texture_registrar_ref);
   virtual ~TextureRegistrarImpl();
 
   // Prevent copying.
@@ -32,7 +32,7 @@ class TextureRegistrarImpl : public TextureRegistrar {
 
  private:
   // Handle for interacting with the C API.
-  FlutterDesktopTextureRegistrarRef texture_registrar_ref_;
+  FlTextureRegistrar *texture_registrar_ref_;
 };
 
 }  // namespace flutter

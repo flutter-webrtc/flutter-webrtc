@@ -44,7 +44,7 @@ class MethodResultProxyImpl : public MethodResultProxy {
   // Reports an error.
   void Error(const std::string& error_code,
              const std::string& error_message,
-             const EncodableValue* error_details) override {
+             const EncodableValue& error_details) override {
     method_result_->Error(error_code, error_message, error_details);
   }
 
@@ -93,6 +93,7 @@ class EventChannelProxyImpl : public EventChannelProxy {
 
     channel_->SetStreamHandler(std::move(handler));
   }
+
   virtual ~EventChannelProxyImpl() {}
 
   void Success(const EncodableValue& event, bool cache_event = true) override {

@@ -5,7 +5,7 @@
 
 const char* kChannelName = "FlutterWebRTC.Method";
 
-#if defined(_WINDOWS)
+//#if defined(_WINDOWS)
 
 namespace flutter_webrtc_plugin {
 
@@ -64,13 +64,12 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
 
 }  // namespace flutter_webrtc_plugin
 
-void FlutterWebRTCPluginRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrarRef registrar) {
-  static auto* plugin_registrar = new PluginRegistrar(registrar);
-  flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
-      plugin_registrar);
+void flutter_web_r_t_c_plugin_register_with_registrar(FlPluginRegistrar* registrar) {
+  static auto *plugin_registrar = new flutter::PluginRegistrar(registrar);
+  flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(plugin_registrar);
 }
 
+/*
 #else
 
 #include <flutter_linux/flutter_linux.h>
@@ -150,3 +149,4 @@ void flutter_web_r_t_c_plugin_register_with_registrar(FlPluginRegistrar* registr
 }
 
 #endif
+*/

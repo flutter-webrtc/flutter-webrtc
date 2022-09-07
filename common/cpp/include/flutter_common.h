@@ -1,9 +1,6 @@
 #ifndef FLUTTER_WEBRTC_COMMON_HXX
 #define FLUTTER_WEBRTC_COMMON_HXX
 
-#include <string>
-#include <memory>
-
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler_functions.h>
@@ -12,6 +9,10 @@
 #include <flutter/standard_message_codec.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter/texture_registrar.h>
+
+#include <string>
+#include <memory>
+#include <list>
 
 typedef flutter::EncodableValue EncodableValue;
 typedef flutter::EncodableMap EncodableMap;
@@ -217,12 +218,8 @@ class MethodCallProxy {
 
 class MethodResultProxy {
  public:
- #if defined(_WINDOWS)
   static std::unique_ptr<MethodResultProxy> Create(
       std::unique_ptr<MethodResult> method_result);
-#else
-    static std::unique_ptr<MethodResultProxy> Create(MethodCall *method_call);
-#endif
 
   virtual ~MethodResultProxy() = default;
 
@@ -235,7 +232,7 @@ class MethodResultProxy {
   // Reports an error.
   virtual void Error(const std::string& error_code,
                      const std::string& error_message,
-                     const EncodableValue* error_details) = 0;
+                     const EncodableValue& error_details) = 0;
 
   // Reports an error with a default error code and no details.
   virtual void Error(const std::string& error_code,

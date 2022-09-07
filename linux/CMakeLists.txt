@@ -3,24 +3,29 @@ set(PROJECT_NAME "flutter_webrtc")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
 set(PLUGIN_NAME "${PROJECT_NAME}_plugin")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-DRTC_DESKTOP_DEVICE)
 
 add_library(${PLUGIN_NAME} SHARED
+  "../third_party/uuidxx/uuidxx.cc"
+  "../common/cpp/src/flutter_data_channel.cc"
+  "../common/cpp/src/flutter_media_stream.cc"
+  "../common/cpp/src/flutter_peerconnection.cc"
+  "../common/cpp/src/flutter_video_renderer.cc"
+  "../common/cpp/src/flutter_screen_capture.cc"
+  "../common/cpp/src/flutter_webrtc.cc"
+  "../common/cpp/src/flutter_webrtc_base.cc"
+  "../common/cpp/src/flutter_common.cc"
   "../common/cpp/flutter_webrtc_plugin.cc"
-  #"../common/cpp/src/flutter_common.cc"
-  #"../common/cpp/src/flutter_data_channel.cc"
-  #"../common/cpp/src/flutter_media_stream.cc"
-  #"../common/cpp/src/flutter_peerconnection.cc"
-  #"../common/cpp/src/flutter_video_renderer.cc"
-  #"../common/cpp/src/flutter_screen_capture.cc"
-  #"../common/cpp/src/flutter_webrtc.cc"
-  #"../common/cpp/src/flutter_webrtc_base.cc"
-  #"../third_party/uuidxx/uuidxx.cc"
+  "flutter/core_implementations.cc"
+  "flutter/standard_codec.cc"
 )
 
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/flutter/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../common/cpp/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/uuidxx"
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/include"

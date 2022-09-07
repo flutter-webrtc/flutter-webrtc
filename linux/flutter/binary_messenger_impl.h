@@ -5,7 +5,7 @@
 #ifndef FLUTTER_SHELL_PLATFORM_COMMON_CLIENT_WRAPPER_BINARY_MESSENGER_IMPL_H_
 #define FLUTTER_SHELL_PLATFORM_COMMON_CLIENT_WRAPPER_BINARY_MESSENGER_IMPL_H_
 
-#include <flutter_messenger.h>
+#include <flutter_linux/flutter_linux.h>
 
 #include <map>
 #include <string>
@@ -18,7 +18,7 @@ namespace flutter {
 // BinaryMessenger API.
 class BinaryMessengerImpl : public BinaryMessenger {
  public:
-  explicit BinaryMessengerImpl(FlutterDesktopMessengerRef core_messenger);
+  explicit BinaryMessengerImpl(FlBinaryMessenger *core_messenger);
 
   virtual ~BinaryMessengerImpl();
 
@@ -38,7 +38,7 @@ class BinaryMessengerImpl : public BinaryMessenger {
 
  private:
   // Handle for interacting with the C API.
-  FlutterDesktopMessengerRef messenger_;
+  FlBinaryMessenger *messenger_;
 
   // A map from channel names to the BinaryMessageHandler that should be called
   // for incoming messages on that channel.
