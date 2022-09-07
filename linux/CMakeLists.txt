@@ -3,8 +3,8 @@ set(PROJECT_NAME "flutter_webrtc")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
 set(PLUGIN_NAME "${PROJECT_NAME}_plugin")
+set (CMAKE_EXPORT_COMPILE_COMMANDS ON )
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-DRTC_DESKTOP_DEVICE)
 
@@ -21,6 +21,7 @@ add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/flutter_webrtc_plugin.cc"
   "flutter/core_implementations.cc"
   "flutter/standard_codec.cc"
+  "flutter/plugin_registrar.cc"
 )
 
 include_directories(

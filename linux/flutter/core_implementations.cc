@@ -32,10 +32,35 @@ namespace {
 // This serves as an adaptor between the function-pointer-based message callback
 // interface provided by the C API and the std::function-based message handler
 // interface of BinaryMessenger.
-void ForwardToHandler(FlutterDesktopMessengerRef messenger,
-                      const FlutterDesktopMessage* message,
-                      void* user_data) {
-  auto* response_handle = message->response_handle;
+/*
+// A message received from Flutter.
+typedef struct {
+  // Size of this struct as created by Flutter.
+  size_t struct_size;
+  // The name of the channel used for this message.
+  const char* channel;
+  // The raw message data.
+  const uint8_t* message;
+  // The length of |message|.
+  size_t message_size;
+  // The response handle. If non-null, the receiver of this message must call
+  // FlutterDesktopSendMessageResponse exactly once with this handle.
+  const FlutterDesktopMessageResponseHandle* response_handle;
+} FlutterDesktopMessage;
+
+typedef void (*FlBinaryMessengerMessageHandler)(
+    FlBinaryMessenger* messenger,
+    const gchar* channel,
+    GBytes* message,
+    FlBinaryMessengerResponseHandle* response_handle,
+    gpointer user_data);
+*/
+void ForwardToHandler(FlBinaryMessenger* messenger,
+    const gchar* channel,
+    GBytes* message,
+    FlBinaryMessengerResponseHandle* response_handle,
+    gpointer user_data) {
+    
   BinaryReply reply_handler = [messenger, response_handle](
                                   const uint8_t* reply,
                                   size_t reply_size) mutable {
@@ -45,70 +70,86 @@ void ForwardToHandler(FlutterDesktopMessengerRef messenger,
                 << std::endl;
       return;
     }
-    FlutterDesktopMessengerSendResponse(messenger, response_handle, reply,
-                                        reply_size);
-    // The engine frees the response handle once
-    // FlutterDesktopSendMessageResponse is called.
+
+    g_autoptr(GBytes) response = g_bytes_new(reply, reply_size);
+    GError* error = nullptr;
+    if (!fl_binary_messenger_send_response(messenger, response_handle, response,
+                                         &error)) {
+      g_warning("Failed to send event channel response: %s", error->message);
+    }
     response_handle = nullptr;
   };
 
   const BinaryMessageHandler& message_handler =
       *static_cast<BinaryMessageHandler*>(user_data);
 
-  message_handler(message->message, message->message_size,
+  message_handler(static_cast<const uint8_t*>(g_bytes_get_data(message, nullptr)), g_bytes_get_size(message),
                   std::move(reply_handler));
 }
 }  // namespace
 
 BinaryMessengerImpl::BinaryMessengerImpl(
-    FlutterDesktopMessengerRef core_messenger)
+    FlBinaryMessenger *core_messenger)
     : messenger_(core_messenger) {}
 
 BinaryMessengerImpl::~BinaryMessengerImpl() = default;
+
+struct Captures {
+    BinaryReply reply;
+    FlBinaryMessenger* messenger;
+ };
+
+void message_reply_cb(GObject* object,
+                              GAsyncResult* result,
+                              gpointer user_data) {
+    g_autoptr(GError) error = nullptr;
+    auto captures = reinterpret_cast<Captures*>(user_data);
+    g_autoptr(GBytes) message = fl_binary_messenger_send_on_channel_finish(
+        captures->messenger, result, &error);
+    captures->reply(static_cast<const uint8_t*>(g_bytes_get_data(message, nullptr)), g_bytes_get_size(message));
+    delete captures;
+};
 
 void BinaryMessengerImpl::Send(const std::string& channel,
                                const uint8_t* message,
                                size_t message_size,
                                BinaryReply reply) const {
   if (reply == nullptr) {
-    FlutterDesktopMessengerSend(messenger_, channel.c_str(), message,
-                                message_size);
+    g_autoptr(GBytes) data = g_bytes_new(message, message_size);
+    fl_binary_messenger_send_on_channel(messenger_, channel.c_str(), data, nullptr, nullptr, nullptr);
     return;
   }
-  struct Captures {
-    BinaryReply reply;
-  };
+
   auto captures = new Captures();
   captures->reply = reply;
+  captures->messenger = messenger_;
 
-  auto message_reply = [](const uint8_t* data, size_t data_size,
-                          void* user_data) {
-    auto captures = reinterpret_cast<Captures*>(user_data);
-    captures->reply(data, data_size);
-    delete captures;
-  };
-  bool result = FlutterDesktopMessengerSendWithReply(
-      messenger_, channel.c_str(), message, message_size, message_reply,
-      captures);
-  if (!result) {
-    delete captures;
-  }
+  g_autoptr(GBytes) data = g_bytes_new(message, message_size);
+  fl_binary_messenger_send_on_channel(messenger_, channel.c_str(), data, nullptr, message_reply_cb, captures);
 }
 
+/*
+void fl_binary_messenger_set_message_handler_on_channel(
+    FlBinaryMessenger* messenger,
+    const gchar* channel,
+    FlBinaryMessengerMessageHandler handler,
+    gpointer user_data,
+    GDestroyNotify destroy_notify);
+*/
 void BinaryMessengerImpl::SetMessageHandler(const std::string& channel,
                                             BinaryMessageHandler handler) {
   if (!handler) {
     handlers_.erase(channel);
-    FlutterDesktopMessengerSetCallback(messenger_, channel.c_str(), nullptr,
-                                       nullptr);
+    fl_binary_messenger_set_message_handler_on_channel(
+        messenger_, channel.c_str(), nullptr, nullptr, nullptr);
     return;
   }
   // Save the handler, to keep it alive.
   handlers_[channel] = std::move(handler);
   BinaryMessageHandler* message_handler = &handlers_[channel];
   // Set an adaptor callback that will invoke the handler.
-  FlutterDesktopMessengerSetCallback(messenger_, channel.c_str(),
-                                     ForwardToHandler, message_handler);
+  fl_binary_messenger_set_message_handler_on_channel(
+      messenger_, channel.c_str(), ForwardToHandler, message_handler, nullptr);
 }
 
 // ========== engine_method_result.h ==========
@@ -151,12 +192,13 @@ void ReplyManager::SendResponseData(const std::vector<uint8_t>* data) {
 // ========== texture_registrar_impl.h ==========
 
 TextureRegistrarImpl::TextureRegistrarImpl(
-    FlutterDesktopTextureRegistrarRef texture_registrar_ref)
+    FlTextureRegistrar *texture_registrar_ref)
     : texture_registrar_ref_(texture_registrar_ref) {}
 
 TextureRegistrarImpl::~TextureRegistrarImpl() = default;
 
 int64_t TextureRegistrarImpl::RegisterTexture(TextureVariant* texture) {
+  /*
   if (auto pixel_buffer_texture = std::get_if<PixelBufferTexture>(texture)) {
     FlutterDesktopTextureInfo info = {};
     info.type = kFlutterDesktopPixelBufferTexture;
@@ -168,24 +210,32 @@ int64_t TextureRegistrarImpl::RegisterTexture(TextureVariant* texture) {
       auto buffer = texture->CopyPixelBuffer(width, height);
       return buffer;
     };
-
+    
+  texture_ = fl_webrtc_video_texture_new();
+  texture_id_ = fl_webrtc_video_texture_id(texture_);
+  fl_webrtc_video_texture_set_handler(texture_, CopyPixelCB, this, nullptr);
+  fl_texture_registrar_register_texture(registrar_, FL_TEXTURE(texture_));
     int64_t texture_id = FlutterDesktopTextureRegistrarRegisterExternalTexture(
         texture_registrar_ref_, &info);
     return texture_id;
   }
 
   std::cerr << "Attempting to register unknown texture variant." << std::endl;
+  */
   return -1;
 }  // namespace flutter
 
 bool TextureRegistrarImpl::MarkTextureFrameAvailable(int64_t texture_id) {
-  return FlutterDesktopTextureRegistrarMarkExternalTextureFrameAvailable(
-      texture_registrar_ref_, texture_id);
+  return fl_texture_registrar_mark_texture_frame_available(texture_registrar_ref_, FL_TEXTURE(nullptr));
+  //return FlutterDesktopTextureRegistrarMarkExternalTextureFrameAvailable(
+  //    texture_registrar_ref_, texture_id);
 }
 
 bool TextureRegistrarImpl::UnregisterTexture(int64_t texture_id) {
-  return FlutterDesktopTextureRegistrarUnregisterExternalTexture(
-      texture_registrar_ref_, texture_id);
+  return false;
+  //fl_texture_registrar_unregister_texture(registrar_, FL_TEXTURE(texture_));
+  //return FlutterDesktopTextureRegistrarUnregisterExternalTexture(
+  //    texture_registrar_ref_, texture_id);
 }
 
 }  // namespace flutter
