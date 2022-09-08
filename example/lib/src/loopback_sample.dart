@@ -18,7 +18,7 @@ class _MyAppState extends State<LoopBackSample> {
   final _remoteRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   Timer? _timer;
-
+  List<RTCRtpSender> _senders = [];
   String get sdpSemantics => 'unified-plan';
 
   @override
@@ -191,8 +191,8 @@ class _MyAppState extends State<LoopBackSample> {
           _peerConnection!.onTrack = _onTrack;
           _peerConnection!.onAddTrack = _onAddTrack;
           _peerConnection!.onRemoveTrack = _onRemoveTrack;
-          _localStream!.getTracks().forEach((track) {
-            _peerConnection!.addTrack(track, _localStream!);
+          _localStream!.getTracks().forEach((track) async {
+            _senders.add(await _peerConnection!.addTrack(track, _localStream!));
           });
           break;
       }
@@ -256,7 +256,7 @@ class _MyAppState extends State<LoopBackSample> {
       print('sdp = $sdp');
       await _peerConnection!.setLocalDescription(description);
       //change for loopback.
-      var sdp_answer = sdp?.replaceAll('setup:actpass','setup:active');
+      var sdp_answer = sdp?.replaceAll('setup:actpass', 'setup:active');
       var description_answer = RTCSessionDescription(sdp_answer!, 'answer');
       await _peerConnection!.setRemoteDescription(description_answer);
 
@@ -296,9 +296,10 @@ class _MyAppState extends State<LoopBackSample> {
   }
 
   void _sendDtmf() async {
-    var dtmfSender =
-        _peerConnection?.createDtmfSender(_localStream!.getAudioTracks()[0]);
-    await dtmfSender?.insertDTMF('123#');
+    var rtpSender =
+        _senders.firstWhere((element) => element.track?.kind == 'audio');
+    var dtmfSender = rtpSender.dtmfSender;
+    await dtmfSender.insertDTMF('123#');
   }
 
   @override
