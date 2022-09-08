@@ -1004,7 +1004,7 @@ impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
                     .get_transceivers()
                     .iter()
                     .enumerate()
-                    .find(|(_, t)| t.mid().as_ref().unwrap() == &mid)
+                    .find(|(_, t)| t.mid().as_ref() == Some(&mid))
                     .map(|(id, _)| id)
                     .unwrap();
 

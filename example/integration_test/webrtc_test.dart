@@ -826,4 +826,24 @@ void main() {
       expect(await transceiver.getDirection(), TransceiverDirection.stopped);
     }
   });
+
+  testWidgets('on_track when peer has transceiver.',
+      (WidgetTester tester) async {
+    var pc1 = await PeerConnection.create(IceTransportType.all, []);
+    var pc2 = await PeerConnection.create(IceTransportType.all, []);
+
+    var t1 = await pc1.addTransceiver(
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+    var t2 = await pc2.addTransceiver(
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+
+    var offer = await pc1.createOffer();
+    await pc1.setLocalDescription(offer);
+    await pc2.setRemoteDescription(offer);
+
+    await pc1.close();
+    await pc2.close();
+    await t1.dispose();
+    await t2.dispose();
+  });
 }
