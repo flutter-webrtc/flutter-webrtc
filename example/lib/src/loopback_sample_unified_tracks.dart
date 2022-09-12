@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:core';
 
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   bool _cameraOn = false;
   bool _speakerOn = false;
   List<MediaDeviceInfo>? _mediaDevicesList;
+  Timer? _timer;
   final _configuration = <String, dynamic>{
     'iceServers': [
       //{'url': 'stun:stun.l.google.com:19302'},
@@ -331,6 +333,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       _localRenderer.srcObject = _localStream;
       _cameraOn = true;
     });
+
+    _timer?.cancel();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
+      handleStatsReport(timer);
+    });
   }
 
   void _stopVideo() async {
@@ -342,6 +349,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       _remoteRenderer.srcObject = null;
       _cameraOn = false;
     });
+    _timer?.cancel();
+    _timer = null;
   }
 
   void _startAudio() async {
@@ -378,6 +387,39 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       _speakerOn = !_speakerOn;
       Helper.setSpeakerphoneOn(_speakerOn);
     });
+  }
+
+  void handleStatsReport(Timer timer) async {
+    if (_remotePeerConnection != null) {
+      var reports = await _remotePeerConnection?.getStats();
+      reports?.forEach((report) {
+        if (report.type != 'inbound-rtp') {
+          return;
+        }
+        print('report => { ');
+        print('    id: ' + report.id + ',');
+        print('    type: ' + report.type + ',');
+        print('    timestamp: ${report.timestamp},');
+        print('    values => {');
+        report.values.forEach((key, value) {
+          print('        ' + key + ' : ' + value.toString() + ', ');
+        });
+        print('    }');
+        print('}');
+      });
+
+      /*
+      var senders = await _peerConnection.getSenders();
+      var canInsertDTMF = await senders[0].dtmfSender.canInsertDtmf();
+      print(canInsertDTMF);
+      await senders[0].dtmfSender.insertDTMF('1');
+      var receivers = await _peerConnection.getReceivers();
+      print(receivers[0].track.id);
+      var transceivers = await _peerConnection.getTransceivers();
+      print(transceivers[0].sender.parameters);
+      print(transceivers[0].receiver.parameters);
+      */
+    }
   }
 
   Future<void> _removeExistingVideoTrack({bool fromConnection = false}) async {

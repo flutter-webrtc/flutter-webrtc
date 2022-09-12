@@ -18,7 +18,7 @@ class _MyAppState extends State<LoopBackSample> {
   final _remoteRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   Timer? _timer;
-  List<RTCRtpSender> _senders = [];
+  final List<RTCRtpSender> _senders = [];
   String get sdpSemantics => 'unified-plan';
 
   @override
@@ -44,9 +44,8 @@ class _MyAppState extends State<LoopBackSample> {
 
   void handleStatsReport(Timer timer) async {
     if (_peerConnection != null) {
-/*
-      var reports = await _peerConnection.getStats();
-      reports.forEach((report) {
+      var reports = await _peerConnection?.getStats();
+      reports?.forEach((report) {
         print('report => { ');
         print('    id: ' + report.id + ',');
         print('    type: ' + report.type + ',');
@@ -58,7 +57,7 @@ class _MyAppState extends State<LoopBackSample> {
         print('    }');
         print('}');
       });
-*/
+
       /*
       var senders = await _peerConnection.getSenders();
       var canInsertDTMF = await senders[0].dtmfSender.canInsertDtmf();
