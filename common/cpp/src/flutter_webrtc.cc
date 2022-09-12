@@ -268,6 +268,21 @@ void FlutterWebRTC::HandleMethodCall(
 
     AddIceCandidate(rtc_candidate.get(), pc, std::move(result));
   } else if (method_call.method_name().compare("getStats") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+     const std::string track_id = findString(params, "track");
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("getStatsFailed",
+                    "getStats() peerConnection is null");
+      return;
+    }
+    GetStats(track_id, pc, std::move(result));
   } else if (method_call.method_name().compare("createDataChannel") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
