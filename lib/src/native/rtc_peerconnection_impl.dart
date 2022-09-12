@@ -379,7 +379,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         List<dynamic> reports = response['stats'];
         reports.forEach((report) {
           stats.add(StatsReport(report['id'], report['type'],
-              report['timestamp'], report['values']));
+              (report['timestamp'] as num).toDouble(), report['values']));
         });
       }
       return stats;
