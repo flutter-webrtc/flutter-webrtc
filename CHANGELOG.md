@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.7] - 2022-09-13
+
+* [Windows] Support sendDtmf.
+* [Windows] Fixed getStats.
+
 [0.9.6] - 2022-09-06
 
 * [Dart] The dc created by didOpenDataChannel needs to set state to open.
