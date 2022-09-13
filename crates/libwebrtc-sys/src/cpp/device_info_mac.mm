@@ -14,13 +14,9 @@ int32_t DeviceInfoMac::Init() {
 DeviceInfoMac::~DeviceInfoMac() {}
 
 uint32_t DeviceInfoMac::NumberOfDevices() {
-  AVCaptureDeviceDiscoverySession* devices = [AVCaptureDeviceDiscoverySession
-      discoverySessionWithDeviceTypes:@[
-        AVCaptureDeviceTypeBuiltInWideAngleCamera, AVCaptureDeviceTypeExternalUnknown
-      ]
-                            mediaType:AVMediaTypeVideo
-                             position:AVCaptureDevicePositionUnspecified];
-  return [devices.devices count];
+  NSArray<AVCaptureDevice*>* devices =
+      [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+  return [devices count];
 }
 
 // Returns the unique ID and the user-friendly name of the specified endpoint
@@ -35,13 +31,9 @@ int32_t DeviceInfoMac::GetDeviceName(uint32_t deviceNumber,
                                      uint32_t deviceUniqueIdUTF8Length,
                                      char* /*productUniqueIdUTF8*/,
                                      uint32_t /*productUniqueIdUTF8Length*/) {
-  AVCaptureDeviceDiscoverySession* devices = [AVCaptureDeviceDiscoverySession
-      discoverySessionWithDeviceTypes:@[
-        AVCaptureDeviceTypeBuiltInWideAngleCamera, AVCaptureDeviceTypeExternalUnknown
-      ]
-                            mediaType:AVMediaTypeVideo
-                             position:AVCaptureDevicePositionUnspecified];
-  AVCaptureDevice* device = devices.devices[deviceNumber];
+  NSArray<AVCaptureDevice*>* devices =
+      [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+  AVCaptureDevice* device = devices[deviceNumber];
   deviceNameLength = [device.localizedName length];
   memset(deviceNameUTF8, 0, deviceNameLength);
   strcpy(deviceNameUTF8, [device.localizedName UTF8String]);
