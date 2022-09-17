@@ -120,4 +120,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     // TODO(cloudwebrtc): related to https://github.com/flutter-webrtc/flutter-webrtc/issues/395
     throw UnimplementedError('This is not implement yet');
   }
+
+  @override
+  Function? onFirstFrameRendered;
 }
