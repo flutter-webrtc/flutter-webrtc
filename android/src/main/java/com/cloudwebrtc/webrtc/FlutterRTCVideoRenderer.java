@@ -172,8 +172,8 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             this.videoTrack = videoTrack;
 
             if (videoTrack != null) {
-                Log.w(TAG, "FlutterRTCVideoRenderer.setVideoTrack, set video track to " + videoTrack.id());
                 try {
+                    Log.w(TAG, "FlutterRTCVideoRenderer.setVideoTrack, set video track to " + videoTrack.id());
                     tryAddRendererToVideoTrack();
                 } catch (Exception e) {
                     Log.e(TAG, "tryAddRendererToVideoTrack " + e.toString());

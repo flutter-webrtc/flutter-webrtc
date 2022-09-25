@@ -16,9 +16,11 @@ import org.webrtc.PeerConnectionFactory;
  */
 public interface StateProvider {
 
-  Map<String, MediaStream> getLocalStreams();
+  boolean putLocalStream(String streamId, MediaStream stream);
 
-  Map<String, MediaStreamTrack> getLocalTracks();
+  boolean putLocalTrack(String trackId, MediaStreamTrack track);
+
+  MediaStreamTrack getLocalTrack(String trackId);
 
   String getNextStreamUUID();
 
