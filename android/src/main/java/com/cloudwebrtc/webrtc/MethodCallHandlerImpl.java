@@ -1203,20 +1203,37 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   public void mediaStreamTrackStop(final String id) {
-    // Is this functionality equivalent to `mediaStreamTrackRelease()` ?
-    // if so, we should merge this two and remove track from stream as well.
+    String streamId = null;
+    for(MediaStream s : localStreams.values()) {
+        for(AudioTrack t : s.audioTracks) {
+          if(id.equals(t.id())) {
+            streamId = s.getId();
+             break;
+          }
+        }
+      for(VideoTrack t : s.videoTracks) {
+        if(id.equals(t.id())) {
+          streamId = s.getId();
+          break;
+        }
+      }
+    }
     MediaStreamTrack track = localTracks.get(id);
     if (track == null) {
       Log.d(TAG, "mediaStreamTrackStop() track is null");
       return;
     }
-    track.setEnabled(false);
-    if (track.kind().equals("video")) {
-      getUserMediaImpl.removeVideoCapturer(id);
+
+    if(streamId != null) {
+      mediaStreamTrackRelease(streamId, id);
+      return;
+    } else {
+      track.setEnabled(false);
+      if (track.kind().equals("video")) {
+        getUserMediaImpl.removeVideoCapturer(id);
+      }
+      localTracks.remove(id);
     }
-    localTracks.remove(id);
-    // What exactly does `detached` mean in doc?
-    // see: https://www.w3.org/TR/mediacapture-streams/#track-detached
   }
 
   public void mediaStreamTrackSetEnabled(final String id, final boolean enabled) {
@@ -1574,12 +1591,16 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void mediaStreamRelease(final String id) {
     MediaStream mediaStream = localStreams.get(id);
     if (mediaStream != null) {
-      for (VideoTrack track : mediaStream.videoTracks) {
+      List<VideoTrack> videoTracks = mediaStream.videoTracks;
+      for (VideoTrack track : videoTracks) {
         localTracks.remove(track.id());
         getUserMediaImpl.removeVideoCapturer(track.id());
+        mediaStream.removeTrack(track);
       }
-      for (AudioTrack track : mediaStream.audioTracks) {
+      List<AudioTrack> audioTracks = mediaStream.audioTracks;
+      for (AudioTrack track : audioTracks) {
         localTracks.remove(track.id());
+        mediaStream.removeTrack(track);
       }
       localStreams.remove(id);
     } else {
