@@ -8,7 +8,10 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
+
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +27,9 @@ import org.webrtc.IceCandidate;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
+import org.webrtc.RTCStats;
+import org.webrtc.RTCStatsCollectorCallback;
+import org.webrtc.RTCStatsReport;
 import org.webrtc.RtpParameters;
 import org.webrtc.RtpReceiver;
 import org.webrtc.RtpSender;
@@ -195,40 +201,55 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         || trackId.isEmpty()
         || (track = stateProvider.getLocalTracks().get(trackId)) != null
         || (track = remoteTracks.get(trackId)) != null) {
+        if(track != null) {
+            //TODO: rtpsender.getStats/rtpreceiver.getStats
+        }
       peerConnection.getStats(
-          new StatsObserver() {
-            @Override
-            public void onComplete(StatsReport[] reports) {
+              new RTCStatsCollectorCallback() {
+                  @Override
+                  public void onStatsDelivered(RTCStatsReport rtcStatsReport) {
+                      ConstraintsMap params = new ConstraintsMap();
+                      ConstraintsArray stats = new ConstraintsArray();
+                      Map<String, RTCStats> reports = rtcStatsReport.getStatsMap();
+                      for (String key : rtcStatsReport.getStatsMap().keySet()) {
+                          RTCStats report = reports.get(key);
+                          ConstraintsMap report_map = new ConstraintsMap();
 
-              final int reportCount = reports.length;
-              ConstraintsMap params = new ConstraintsMap();
-              ConstraintsArray stats = new ConstraintsArray();
+                          report_map.putString("id", report.getId());
+                          report_map.putString("type", report.getType());
+                          report_map.putDouble("timestamp", rtcStatsReport.getTimestampUs());
 
-              for (int i = 0; i < reportCount; ++i) {
-                StatsReport report = reports[i];
-                ConstraintsMap report_map = new ConstraintsMap();
-
-                report_map.putString("id", report.id);
-                report_map.putString("type", report.type);
-                report_map.putDouble("timestamp", report.timestamp);
-
-                StatsReport.Value[] values = report.values;
-                ConstraintsMap v_map = new ConstraintsMap();
-                final int valueCount = values.length;
-                for (int j = 0; j < valueCount; ++j) {
-                  StatsReport.Value v = values[j];
-                  v_map.putString(v.name, v.value);
-                }
-
-                report_map.putMap("values", v_map.toMap());
-                stats.pushMap(report_map);
+                          Map<String, Object> values = report.getMembers();
+                          ConstraintsMap v_map = new ConstraintsMap();
+                          for (String k : values.keySet()) {
+                              Object v = values.get(k);
+                              Class<?> aClass = v.getClass();
+                              if (String.class.equals(aClass)) {
+                                  v_map.putString(k, (String) v);
+                              }else if (String[].class.equals(aClass)) {
+                                  v_map.putArray(k, (ArrayList<Object>) v);
+                              } else if (Integer.class.equals(aClass)) {
+                                  v_map.putInt(k, (Integer) v);
+                              } else if (BigInteger.class.equals(aClass)) {
+                                  v_map.putLong(k, ((BigInteger) v).longValue());
+                              } else if (Long.class.equals(aClass)) {
+                                  v_map.putLong(k, (Long) v);
+                              }else if (Double.class.equals(aClass)) {
+                                  v_map.putDouble(k, (Double) v);
+                              } else if (Boolean.class.equals(aClass)) {
+                                  v_map.putBoolean(k, (Boolean) v);
+                              } else {
+                                  Log.d(TAG, "getStats() unknown type: " + v.getClass());
+                              }
+                          }
+                          report_map.putMap("values", v_map.toMap());
+                          stats.pushMap(report_map);
+                      }
+                      params.putArray("stats", stats.toArrayList());
+                      result.success(params.toMap());
+                  }
               }
-
-              params.putArray("stats", stats.toArrayList());
-              result.success(params.toMap());
-            }
-          },
-          track);
+      );
     } else {
         resultError("peerConnectionGetStats","MediaStreamTrack not found for id: " + trackId, result);
     }
