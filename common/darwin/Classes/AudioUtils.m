@@ -74,7 +74,6 @@
                   :
                   AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP
                     error:nil];
-    [session setActive:YES error:nil];
     [session unlockForConfiguration];
 #endif
 }
