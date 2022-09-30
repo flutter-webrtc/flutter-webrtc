@@ -359,7 +359,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         String streamId = call.argument("streamId");
         String trackId = call.argument("trackId");
         mediaStreamRemoveTrack(streamId, trackId, result);
-        removeRendererForStreamId(streamId);
+        removeStreamForRendererById(streamId);
         break;
       }
       case "trackDispose": {
@@ -1211,7 +1211,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       Log.d(TAG, "trackDispose() track is null");
       return;
     }
-    removeRendererForTrackId(trackId);
+    removeTrackForRendererById(trackId);
     track.setEnabled(false);
     if (track.kind().equals("video")) {
       getUserMediaImpl.removeVideoCapturer(trackId);
@@ -1586,13 +1586,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         stream.removeTrack(track);
       }
       localStreams.remove(streamId);
-      removeRendererForStreamId(streamId);
+      removeStreamForRendererById(streamId);
     } else {
       Log.d(TAG, "streamDispose() mediaStream is null");
     }
   }
 
-  private void removeRendererForStreamId(String streamId) {
+  private void removeStreamForRendererById(String streamId) {
     for (int i = 0; i < renders.size(); i++) {
       FlutterRTCVideoRenderer renderer = renders.valueAt(i);
       if (renderer.checkMediaStream(streamId)) {
@@ -1601,7 +1601,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  private void removeRendererForTrackId(String trackId) {
+  private void removeTrackForRendererById(String trackId) {
     for (int i = 0; i < renders.size(); i++) {
       FlutterRTCVideoRenderer renderer = renders.valueAt(i);
       if (renderer.checkVideoTrack(trackId)) {
