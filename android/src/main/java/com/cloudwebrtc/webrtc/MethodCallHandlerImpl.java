@@ -982,20 +982,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             observer);
     observer.setPeerConnection(peerConnection);
     if (mPeerConnectionObservers.size() == 0) {
-      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S
-              || context.getApplicationInfo().targetSdkVersion < Build.VERSION_CODES.S) {
-        audioSwitchManager.start();
-      } else {
-        ArrayList<String> permissions = new ArrayList<>();
-        permissions.add(Manifest.permission.BLUETOOTH_CONNECT);
-        requestPermissions(
-                permissions,
-                (args) -> {
-                  audioSwitchManager.start();
-                },
-                (args) -> {
-                });
-      }
+      audioSwitchManager.start();
     }
     mPeerConnectionObservers.put(peerConnectionId, observer);
     return peerConnectionId;
