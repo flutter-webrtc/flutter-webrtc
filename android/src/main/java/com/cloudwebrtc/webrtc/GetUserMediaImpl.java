@@ -500,7 +500,7 @@ class GetUserMediaImpl {
                             } else {
                                 mediaStream.addTrack((VideoTrack) track);
                             }
-                            stateProvider.getLocalTracks().put(id, track);
+                            stateProvider.putLocalTrack(id, track);
 
                             ConstraintsMap track_ = new ConstraintsMap();
                             String kind = track.kind();
@@ -522,7 +522,7 @@ class GetUserMediaImpl {
                         String streamId = mediaStream.getId();
 
                         Log.d(TAG, "MediaStream id: " + streamId);
-                        stateProvider.getLocalStreams().put(streamId, mediaStream);
+                        stateProvider.putLocalStream(streamId, mediaStream);
                         successResult.putString("streamId", streamId);
                         successResult.putArray("audioTracks", audioTracks.toArrayList());
                         successResult.putArray("videoTracks", videoTracks.toArrayList());
@@ -578,7 +578,7 @@ class GetUserMediaImpl {
             } else {
                 mediaStream.addTrack((VideoTrack) track);
             }
-            stateProvider.getLocalTracks().put(id, track);
+            stateProvider.putLocalTrack(id, track);
 
             ConstraintsMap track_ = new ConstraintsMap();
             String kind = track.kind();
@@ -600,7 +600,7 @@ class GetUserMediaImpl {
         String streamId = mediaStream.getId();
 
         Log.d(TAG, "MediaStream id: " + streamId);
-        stateProvider.getLocalStreams().put(streamId, mediaStream);
+        stateProvider.putLocalStream(streamId, mediaStream);
 
         successResult.putString("streamId", streamId);
         successResult.putArray("audioTracks", audioTracks.toArrayList());

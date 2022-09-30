@@ -332,7 +332,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       case "streamDispose": {
         String streamId = call.argument("streamId");
-        mediaStreamRelease(streamId);
+        streamDispose(streamId);
         result.success(null);
         break;
       }
@@ -359,17 +359,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         String streamId = call.argument("streamId");
         String trackId = call.argument("trackId");
         mediaStreamRemoveTrack(streamId, trackId, result);
-        for (int i = 0; i < renders.size(); i++) {
-          FlutterRTCVideoRenderer renderer = renders.valueAt(i);
-          if (renderer.checkVideoTrack(trackId)) {
-            renderer.setVideoTrack(null);
-          }
-        }
+        removeStreamForRendererById(streamId);
         break;
       }
       case "trackDispose": {
         String trackId = call.argument("trackId");
-        mediaStreamTrackStop(trackId);
+        trackDispose(trackId);
         result.success(null);
         break;
       }
@@ -598,6 +593,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       case "removeTrack": {
         String peerConnectionId = call.argument("peerConnectionId");
         String senderId = call.argument("senderId");
+
         removeTrack(peerConnectionId, senderId, result);
         break;
       }
@@ -1006,13 +1002,20 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   @Override
-  public Map<String, MediaStream> getLocalStreams() {
-    return localStreams;
+  public boolean putLocalStream(String streamId, MediaStream stream) {
+    localStreams.put(streamId, stream);
+    return true;
   }
 
   @Override
-  public Map<String, MediaStreamTrack> getLocalTracks() {
-    return localTracks;
+  public boolean putLocalTrack(String trackId, MediaStreamTrack track) {
+    localTracks.put(trackId, track);
+    return true;
+  }
+
+  @Override
+  public MediaStreamTrack getLocalTrack(String trackId) {
+    return localTracks.get(trackId);
   }
 
   @Override
@@ -1202,21 +1205,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     result.success(resultMap);
   }
 
-  public void mediaStreamTrackStop(final String id) {
-    // Is this functionality equivalent to `mediaStreamTrackRelease()` ?
-    // if so, we should merge this two and remove track from stream as well.
-    MediaStreamTrack track = localTracks.get(id);
+  public void trackDispose(final String trackId) {
+    MediaStreamTrack track = localTracks.get(trackId);
     if (track == null) {
-      Log.d(TAG, "mediaStreamTrackStop() track is null");
+      Log.d(TAG, "trackDispose() track is null");
       return;
     }
+    removeTrackForRendererById(trackId);
     track.setEnabled(false);
     if (track.kind().equals("video")) {
-      getUserMediaImpl.removeVideoCapturer(id);
+      getUserMediaImpl.removeVideoCapturer(trackId);
     }
-    localTracks.remove(id);
-    // What exactly does `detached` mean in doc?
-    // see: https://www.w3.org/TR/mediacapture-streams/#track-detached
+    localTracks.remove(trackId);
   }
 
   public void mediaStreamTrackSetEnabled(final String id, final boolean enabled) {
@@ -1571,19 +1571,42 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  public void mediaStreamRelease(final String id) {
-    MediaStream mediaStream = localStreams.get(id);
-    if (mediaStream != null) {
-      for (VideoTrack track : mediaStream.videoTracks) {
+  public void streamDispose(final String streamId) {
+    MediaStream stream = localStreams.get(streamId);
+    if (stream != null) {
+      List<VideoTrack> videoTracks = stream.videoTracks;
+      for (VideoTrack track : videoTracks) {
         localTracks.remove(track.id());
         getUserMediaImpl.removeVideoCapturer(track.id());
+        stream.removeTrack(track);
       }
-      for (AudioTrack track : mediaStream.audioTracks) {
+      List<AudioTrack> audioTracks = stream.audioTracks;
+      for (AudioTrack track : audioTracks) {
         localTracks.remove(track.id());
+        stream.removeTrack(track);
       }
-      localStreams.remove(id);
+      localStreams.remove(streamId);
+      removeStreamForRendererById(streamId);
     } else {
-      Log.d(TAG, "mediaStreamRelease() mediaStream is null");
+      Log.d(TAG, "streamDispose() mediaStream is null");
+    }
+  }
+
+  private void removeStreamForRendererById(String streamId) {
+    for (int i = 0; i < renders.size(); i++) {
+      FlutterRTCVideoRenderer renderer = renders.valueAt(i);
+      if (renderer.checkMediaStream(streamId)) {
+        renderer.setStream(null);
+      }
+    }
+  }
+
+  private void removeTrackForRendererById(String trackId) {
+    for (int i = 0; i < renders.size(); i++) {
+      FlutterRTCVideoRenderer renderer = renders.valueAt(i);
+      if (renderer.checkVideoTrack(trackId)) {
+        renderer.setStream(null);
+      }
     }
   }
 
