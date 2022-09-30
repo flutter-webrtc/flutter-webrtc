@@ -1019,7 +1019,7 @@ private RtpParameters updateRtpParameters(RtpParameters parameters, Map<String, 
             resultError("rtpSenderSetTrack", "sender is null", result);
             return;
         }
-        sender.setTrack(track, replace );
+        sender.setTrack(track, false);
         result.success(null);
     }
 
