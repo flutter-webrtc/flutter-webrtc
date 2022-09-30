@@ -193,7 +193,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     MediaStreamTrack track = null;
     if (trackId == null
         || trackId.isEmpty()
-        || (track = stateProvider.getLocalTracks().get(trackId)) != null
+        || (track = stateProvider.getLocalTrack(trackId)) != null
         || (track = remoteTracks.get(trackId)) != null) {
       peerConnection.getStats(
           new StatsObserver() {
@@ -1019,7 +1019,7 @@ private RtpParameters updateRtpParameters(RtpParameters parameters, Map<String, 
             resultError("rtpSenderSetTrack", "sender is null", result);
             return;
         }
-        sender.setTrack(track, replace );
+        sender.setTrack(track, false);
         result.success(null);
     }
 
