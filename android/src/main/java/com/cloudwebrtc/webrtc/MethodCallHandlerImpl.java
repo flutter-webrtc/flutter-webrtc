@@ -984,14 +984,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     if (mPeerConnectionObservers.size() == 0) {
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S
               || context.getApplicationInfo().targetSdkVersion < Build.VERSION_CODES.S) {
-        //audioSwitchManager.start();
+        audioSwitchManager.start();
       } else {
         ArrayList<String> permissions = new ArrayList<>();
         permissions.add(Manifest.permission.BLUETOOTH_CONNECT);
         requestPermissions(
                 permissions,
                 (args) -> {
-                  //audioSwitchManager.start();
+                  audioSwitchManager.start();
                 },
                 (args) -> {
                 });
@@ -1567,7 +1567,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       mPeerConnectionObservers.remove(id);
     }
     if (mPeerConnectionObservers.size() == 0) {
-      //audioSwitchManager.stop();
+      audioSwitchManager.stop();
     }
   }
 
