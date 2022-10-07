@@ -11,6 +11,7 @@ export 'src/model/ice.dart' if (dart.library.html) 'none.dart';
 export 'src/model/peer.dart' if (dart.library.html) 'none.dart';
 export 'src/model/sdp.dart' if (dart.library.html) 'none.dart';
 export 'src/model/track.dart' if (dart.library.html) 'none.dart';
+export 'src/model/stats.dart' if (dart.library.html) 'none.dart';
 export 'src/model/transceiver.dart' if (dart.library.html) 'none.dart';
 export 'src/platform/audio_renderer.dart';
 export 'src/platform/native/video_view.dart'

@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
+import '../model/stats.dart';
 import '/src/model/ice.dart';
 import '/src/model/peer.dart';
 import '/src/model/sdp.dart';
@@ -182,6 +183,9 @@ abstract class PeerConnection {
 
   /// Returns all the [RtpTransceiver]s owned by this [PeerConnection].
   Future<List<RtpTransceiver>> getTransceivers();
+
+  /// Returns all the [RtcStats] of this [PeerConnection].
+  Future<List<RtcStats>> getStats();
 
   /// Sets the provided remote [SessionDescription] to the [PeerConnection].
   Future<void> setRemoteDescription(SessionDescription description);
@@ -411,6 +415,12 @@ class _PeerConnectionChannel extends PeerConnection {
     await super.close();
     await _chan.invokeMethod('dispose');
   }
+
+  @override
+  Future<List<RtcStats>> getStats() async {
+    // TODO: Not implemented.
+    return List.empty();
+  }
 }
 
 /// FFI-based implementation of a [PeerConnection].
@@ -602,5 +612,20 @@ class _PeerConnectionFFI extends PeerConnection {
         kind: ffi.SdpType.values[description.type.index],
         sdp: description.description);
     await _syncTransceiversMids();
+  }
+
+  @override
+  Future<List<RtcStats>> getStats() async {
+    var stats = await api!.getPeerStats(peerId: _id!);
+    List<RtcStats> result = List.empty(growable: true);
+
+    for (var s in stats) {
+      var stat = RtcStats.fromFFI(s);
+      if (stat != null) {
+        result.add(stat);
+      }
+    }
+
+    return result;
   }
 }

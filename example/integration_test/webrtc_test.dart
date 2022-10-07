@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
@@ -845,5 +846,55 @@ void main() {
     await pc2.close();
     await t1.dispose();
     await t2.dispose();
+  });
+
+  testWidgets('Peer connection get stats.', (WidgetTester tester) async {
+    var pc1 = await PeerConnection.create(IceTransportType.all, []);
+    var pc2 = await PeerConnection.create(IceTransportType.all, []);
+
+    pc1.onIceCandidate((candidate) async {
+      if (!pc2.closed) {
+        await pc2.addIceCandidate(candidate);
+      }
+    });
+
+    pc2.onIceCandidate((candidate) async {
+      if (!pc1.closed) {
+        await pc1.addIceCandidate(candidate);
+      }
+    });
+    var tVideo = await pc1.addTransceiver(
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+    var tAudio = await pc1.addTransceiver(
+        MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendRecv));
+
+    var offer = await pc1.createOffer();
+    await pc1.setLocalDescription(offer);
+    await pc2.setRemoteDescription(offer);
+
+    var answer = await pc2.createAnswer();
+    await pc2.setLocalDescription(answer);
+    await pc1.setRemoteDescription(answer);
+
+    var senderStats = await pc1.getStats();
+    var receiverStats = await pc2.getStats();
+
+    // TODO: Support on mobile platforms.
+    if (!Platform.isAndroid) {
+      expect(
+          senderStats.where((e) => e.type is RtcOutboundRtpStreamStats).length,
+          2);
+      expect(senderStats.where((e) => e.type is RtcTransportStats).length, 1);
+
+      expect(
+          receiverStats.where((e) => e.type is RtcInboundRtpStreamStats).length,
+          2);
+      expect(receiverStats.where((e) => e.type is RtcTransportStats).length, 1);
+    }
+
+    await pc1.close();
+    await pc2.close();
+    await tVideo.dispose();
+    await tAudio.dispose();
   });
 }

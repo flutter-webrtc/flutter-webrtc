@@ -169,6 +169,21 @@ void SetRemoteDescriptionObserver::OnSetRemoteDescriptionComplete(
   }
 }
 
+// `RTCStatsCollectorCallback` propagating completion result to the Rust side.
+RTCStatsCollectorCallback::RTCStatsCollectorCallback(
+    rust::Box<bridge::DynRTCStatsCollectorCallback> cb)
+    : cb_(std::move(cb)) {};
+
+// Propagates the completion result to the Rust side.
+void RTCStatsCollectorCallback::OnStatsDelivered(const RTCStatsReport& report) {
+  if (cb_) {
+    auto cb = std::move(*cb_);
+
+    bridge::on_stats_delivered(std::move(cb),
+                               std::make_unique<RTCStatsReport>(report));
+  }
+}
+
 // Calls `PeerConnectionInterface->CreateOffer`.
 void create_offer(PeerConnectionInterface& peer_connection_interface,
                   const RTCOfferAnswerOptions& options,
@@ -249,6 +264,13 @@ void restart_ice(const PeerConnectionInterface& peer) {
 // Calls `PeerConnectionInterface->Close`.
 void close_peer_connection(const PeerConnectionInterface& peer) {
   peer->Close();
+}
+
+// Calls `PeerConnectionInterface->GetStats`.
+void peer_connection_get_stats(const PeerConnectionInterface& peer,
+                               rust::Box<DynRTCStatsCollectorCallback> cb) {
+  auto callback = new RTCStatsCollectorCallback(std::move(cb));
+  peer->GetStats(callback);
 }
 
 }  // namespace bridge
