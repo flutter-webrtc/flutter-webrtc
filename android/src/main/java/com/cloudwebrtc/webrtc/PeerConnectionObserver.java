@@ -247,13 +247,13 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       RtpSender sender = null;
       RtpReceiver receiver = null;
       for (RtpSender s : peerConnection.getSenders()) {
-          if (s.track().id().equals(trackId)) {
+          if (s.track() != null && trackId.equals(s.track().id())) {
               sender = s;
               break;
           }
       }
       for (RtpReceiver r : peerConnection.getReceivers()) {
-          if (r.track().id().equals(trackId)) {
+          if (r.track() != null && trackId.equals(r.track().id())) {
               receiver = r;
               break;
           }

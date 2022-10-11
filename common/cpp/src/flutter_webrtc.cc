@@ -275,7 +275,7 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableMap params =
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string peerConnectionId = findString(params, "peerConnectionId");
-     const std::string track_id = findString(params, "track");
+     const std::string track_id = findString(params, "trackId");
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
       result->Error("getStatsFailed",
