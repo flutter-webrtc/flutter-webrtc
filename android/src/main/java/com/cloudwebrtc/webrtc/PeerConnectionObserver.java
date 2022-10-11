@@ -607,6 +607,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
               return "recvonly";
           case INACTIVE:
               return "inactive";
+          case STOPPED:
+              return "stopped";
       }
       return null;
   }
@@ -621,6 +623,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
               return RtpTransceiver.RtpTransceiverDirection.RECV_ONLY;
           case "inactive":
               return RtpTransceiver.RtpTransceiverDirection.INACTIVE;
+          case "stopped":
+              return RtpTransceiver.RtpTransceiverDirection.STOPPED;
       }
       return RtpTransceiver.RtpTransceiverDirection.INACTIVE;
   }
