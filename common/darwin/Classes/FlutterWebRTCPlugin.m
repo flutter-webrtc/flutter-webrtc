@@ -364,8 +364,13 @@
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSString* trackId = argsMap[@"trackId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
-        if(peerConnection)
-            return [self peerConnectionGetStats:trackId peerConnection:peerConnection result:result];
+        if(peerConnection) {
+            if(trackId != nil) {
+                return [self peerConnectionGetStatsForTrackId:trackId peerConnection:peerConnection result:result];
+            } else {
+                return [self peerConnectionGetStats:peerConnection result:result];
+            }
+        }
         result(nil);
     } else if ([@"createDataChannel" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
