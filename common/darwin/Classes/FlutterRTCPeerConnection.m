@@ -646,5 +646,7 @@ didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
     }
 }
 
+-(void)peerConnection:(RTCPeerConnection*)peerConnection didRemoveIceCandidates:(NSArray<RTCIceCandidate*>*)candidates {}
+
 @end
 
