@@ -390,12 +390,10 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void handleStatsReport(Timer timer) async {
-    if (_remotePeerConnection != null) {
-      var reports = await _remotePeerConnection?.getStats();
+    if (_remotePeerConnection != null && _remoteRenderer.srcObject != null) {
+      var reports = await _remotePeerConnection
+          ?.getStats(_remoteRenderer.srcObject!.getVideoTracks().first);
       reports?.forEach((report) {
-        if (report.type != 'inbound-rtp') {
-          return;
-        }
         print('report => { ');
         print('    id: ' + report.id + ',');
         print('    type: ' + report.type + ',');

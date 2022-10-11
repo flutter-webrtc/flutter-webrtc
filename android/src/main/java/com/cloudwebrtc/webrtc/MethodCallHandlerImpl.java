@@ -1535,7 +1535,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("peerConnectionGetStats", "peerConnection is null", result);
     } else {
-      pco.getStats(trackId, result);
+      if(trackId == null || trackId.isEmpty()) {
+        pco.getStats(result);
+      } else {
+        pco.getStatsForTrack(trackId, result);
+      }
     }
   }
 

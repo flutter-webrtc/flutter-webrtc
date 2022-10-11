@@ -31,9 +31,12 @@
                        peerConnection:(nonnull RTCPeerConnection *)peerConnection
                                result:(nonnull FlutterResult)result;
 
--(void) peerConnectionGetStats:(nonnull NSString *)trackID
-                peerConnection:(nonnull RTCPeerConnection *)peerConnection
+-(void) peerConnectionGetStats:(nonnull RTCPeerConnection *)peerConnection
                         result:(nonnull FlutterResult)result;
+
+-(void) peerConnectionGetStatsForTrackId:(nonnull NSString *)trackID
+            peerConnection:(nonnull RTCPeerConnection *)peerConnection
+                    result:(nonnull FlutterResult)result;
 
 -(nonnull RTCMediaConstraints *) parseMediaConstraints:(nonnull NSDictionary *)constraints;
 

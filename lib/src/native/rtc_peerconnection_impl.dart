@@ -371,7 +371,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
     try {
       final response = await WebRTC.invokeMethod('getStats', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
-        'track': track != null ? track.id : null
+        'trackId': track != null ? track.id : null
       });
 
       var stats = <StatsReport>[];
