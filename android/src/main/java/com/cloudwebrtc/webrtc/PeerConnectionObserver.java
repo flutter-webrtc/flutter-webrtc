@@ -24,6 +24,9 @@ import org.webrtc.IceCandidate;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
+import org.webrtc.RTCStats;
+import org.webrtc.RTCStatsCollectorCallback;
+import org.webrtc.RTCStatsReport;
 import org.webrtc.RtpParameters;
 import org.webrtc.RtpReceiver;
 import org.webrtc.RtpSender;
@@ -190,36 +193,29 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     }
 
   void getStats(String trackId, final Result result) {
-    MediaStreamTrack track = null;
-    if (trackId == null
-        || trackId.isEmpty()
-        || (track = stateProvider.getLocalTrack(trackId)) != null
-        || (track = remoteTracks.get(trackId)) != null) {
+      MediaStreamTrack track = null;
+    if (trackId == null || trackId.isEmpty()) {
       peerConnection.getStats(
-          new StatsObserver() {
-            @Override
-            public void onComplete(StatsReport[] reports) {
-
-              final int reportCount = reports.length;
+          new RTCStatsCollectorCallback() {
+              @Override
+              public void onStatsDelivered(RTCStatsReport rtcStatsReport)  {
+              Map<String, RTCStats>    reports = rtcStatsReport.getStatsMap();
               ConstraintsMap params = new ConstraintsMap();
               ConstraintsArray stats = new ConstraintsArray();
 
-              for (int i = 0; i < reportCount; ++i) {
-                StatsReport report = reports[i];
+              for (RTCStats report : reports.values()) {
                 ConstraintsMap report_map = new ConstraintsMap();
 
-                report_map.putString("id", report.id);
-                report_map.putString("type", report.type);
-                report_map.putDouble("timestamp", report.timestamp);
+                report_map.putString("id", report.getId());
+                report_map.putString("type", report.getType());
+                report_map.putDouble("timestamp", report.getTimestampUs());
 
-                StatsReport.Value[] values = report.values;
+                Map<String, Object> values = report.getMembers();
                 ConstraintsMap v_map = new ConstraintsMap();
-                final int valueCount = values.length;
-                for (int j = 0; j < valueCount; ++j) {
-                  StatsReport.Value v = values[j];
-                  v_map.putString(v.name, v.value);
+                for (String key : values.keySet()) {
+                  Object v = values.get(key);
+                  v_map.putObject(key, v);
                 }
-
                 report_map.putMap("values", v_map.toMap());
                 stats.pushMap(report_map);
               }
@@ -227,8 +223,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
               params.putArray("stats", stats.toArrayList());
               result.success(params.toMap());
             }
-          },
-          track);
+          });
     } else {
         resultError("peerConnectionGetStats","MediaStreamTrack not found for id: " + trackId, result);
     }
