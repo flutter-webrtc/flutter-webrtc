@@ -97,10 +97,6 @@ public class ConstraintsMap {
         mMap.put(key, value);
     }
 
-    public void putObject(String key, Object value) {
-        mMap.put(key, value);
-    }
-
     public void putByte(String key, byte[] value) {
         mMap.put(key, value);
     }
