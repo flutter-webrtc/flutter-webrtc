@@ -1,6 +1,13 @@
 # Changelog
 
 --------------------------------------------
+[0.9.9] - 2022-10-12
+
+* [Darwin/Android/Windows] Support getStats for RtpSender/RtpReceiver (Migrate from Legacy to Standard Stats for getStats).
+* [Android] Dispose streams and connections.
+* [Android] Support rtp transceiver direction type 4.
+* [Web] Update dart_webrtc dependendency.
+
 [0.9.8] - 2022-09-30
 
 * [Android] fix: Make sure local stream/track dispose correctly.
