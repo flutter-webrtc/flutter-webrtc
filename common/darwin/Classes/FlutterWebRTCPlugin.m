@@ -351,10 +351,9 @@
         RTCIceCandidate* candidate = [[RTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:sdpMLineIndex sdpMid:sdpMid];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
 
-        if(peerConnection)
-        {
+        if(peerConnection) {
             [self peerConnectionAddICECandidate:candidate peerConnection:peerConnection result:result];
-        }else{
+        } else {
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
@@ -362,16 +361,19 @@
     } else if ([@"getStats" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-        NSString* trackId = argsMap[@"trackId"];
+        id trackId = argsMap[@"trackId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
         if(peerConnection) {
-            if(trackId != nil) {
+            if(trackId != nil && trackId != [NSNull null]) {
                 return [self peerConnectionGetStatsForTrackId:trackId peerConnection:peerConnection result:result];
             } else {
                 return [self peerConnectionGetStats:peerConnection result:result];
             }
+        } else {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+                                                message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                                                details:nil]);
         }
-        result(nil);
     } else if ([@"createDataChannel" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
