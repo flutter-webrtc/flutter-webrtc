@@ -21,11 +21,24 @@ indent_size = 4
 indent_style = space
 indent_size = 2
 
+[*.kt]
+indent_style = space
+indent_size = 2
+max_line_length = 100
+
+[*.swift]
+indent_style = space
+indent_size = 2
+
 [*.toml]
 indent_style = space
 indent_size = 4
 
-[*.{json,yaml,yml}]
+[*.json]
+indent_style = space
+indent_size = 2
+
+[*.{yaml,yml}]
 indent_style = space
 indent_size = 2
 

@@ -46,7 +46,7 @@ deps: flutter.pub
 
 docs: cargo.doc
 
-fmt: cargo.fmt flutter.fmt kt.fmt
+fmt: cargo.fmt flutter.fmt kt.fmt swift.fmt
 
 lint: cargo.lint flutter.analyze
 
@@ -314,6 +314,32 @@ endif
 
 
 
+##################
+# Swift commands #
+##################
+
+# Format Swift sources with SwiftFormat.
+#
+# Usage:
+#	make swift.fmt [check=(no|yes)] [dockerized=(no|yes)]
+
+swift.fmt:
+ifeq ($(dockerized),yes)
+	docker run --rm -v "$(PWD)":/app -w /app \
+		ghcr.io/nicklockwood/swiftformat:latest \
+			$(if $(call eq,$(check),yes),--lint,) ios/Classes/
+else
+ifeq ($(shell which swiftformat),)
+ifeq ($(CURRENT_OS),macos)
+	brew install swiftformat
+endif
+endif
+	swiftformat $(if $(call eq,$(check),yes),--lint,) ios/Classes/
+endif
+
+
+
+
 ##########################
 # Documentation commands #
 ##########################
@@ -345,4 +371,5 @@ test.flutter: flutter.test
         flutter.analyze flutter.clean flutter.build flutter.fmt flutter.pub \
         	flutter.run flutter.test \
         kt.fmt \
+        swift.fmt \
         test.cargo test.flutter

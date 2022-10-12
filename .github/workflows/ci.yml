@@ -30,6 +30,7 @@ jobs:
       - ktfmt
       - rustdoc
       - rustfmt
+      - swiftformat
       - test-flutter
     runs-on: ubuntu-latest
     steps:
@@ -115,6 +116,14 @@ jobs:
 
       - run: make cargo.fmt check=yes
 
+  swiftformat:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: brew install swiftformat
+
+      - run: make swift.fmt check=yes dockerized=no
+
 
 
 
@@ -197,6 +206,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # TODO: Run tests on iOS
         platform:
           - android
           - linux
@@ -312,6 +322,7 @@ jobs:
       - ktfmt
       - rustdoc
       - rustfmt
+      - swiftformat
       - test-flutter
     runs-on: ubuntu-latest
     steps:

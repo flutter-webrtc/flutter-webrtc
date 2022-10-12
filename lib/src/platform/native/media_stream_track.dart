@@ -21,6 +21,9 @@ abstract class NativeMediaStreamTrack extends MediaStreamTrack {
   /// Indicates whether this [NativeMediaStreamTrack] has been stopped.
   bool _stopped = false;
 
+  /// Indicates whether this [NativeMediaStreamTrack] has been disposed.
+  bool _disposed = false;
+
   /// Indicates whether this [NativeMediaStreamTrack] transmits media.
   ///
   /// If it's `false` then blank (black screen for video and `0dB` for audio)
@@ -119,7 +122,7 @@ class _NativeMediaStreamTrackChannel extends NativeMediaStreamTrack {
 
   @override
   Future<void> stop() async {
-    if (!_stopped) {
+    if (!_stopped && !_disposed) {
       _onEnded = null;
       await _chan.invokeMethod('stop');
       _stopped = true;
@@ -129,6 +132,7 @@ class _NativeMediaStreamTrackChannel extends NativeMediaStreamTrack {
   @override
   Future<void> dispose() async {
     _onEnded = null;
+    _disposed = true;
     await _chan.invokeMethod('dispose');
     await _eventSub?.cancel();
   }

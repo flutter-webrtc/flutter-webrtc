@@ -1,0 +1,4 @@
+# See all options: swiftformat --options
+--indent 2
+--maxwidth 80
+--self insert
