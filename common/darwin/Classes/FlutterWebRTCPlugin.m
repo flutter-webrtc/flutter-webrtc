@@ -89,9 +89,6 @@
     self.renders = [NSMutableDictionary new];
     self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
-    _preferredInput = AVAudioSessionPortHeadphones;
-    _speakerOn = NO;
-    [AudioUtils setSpeakerphoneOn:_speakerOn];
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
@@ -148,6 +145,11 @@
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult) result {
 
     if ([@"createPeerConnection" isEqualToString:call.method]) {
+        #if TARGET_OS_IPHONE
+            _preferredInput = AVAudioSessionPortHeadphones;
+            _speakerOn = NO;
+            [AudioUtils setSpeakerphoneOn:_speakerOn];
+        #endif
         NSDictionary* argsMap = call.arguments;
         NSDictionary* configuration = argsMap[@"configuration"];
         NSDictionary* constraints = argsMap[@"constraints"];
@@ -542,6 +544,11 @@
             }
             [dataChannels removeAllObjects];
         }
+
+        #if TARGET_OS_IPHONE
+            [[NSNotificationCenter defaultCenter] removeObserver:self];
+        #endif
+
         result(nil);
     } else if ([@"createVideoRenderer" isEqualToString:call.method]){
         FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures
