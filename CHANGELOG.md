@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.9+hotfix.1] - 2022-10-12
+
+* [Darwin] Fix getStats for darwin when trackId is NSNull.
+
 [0.9.9] - 2022-10-12
 
 * [Darwin/Android/Windows] Support getStats for RtpSender/RtpReceiver (Migrate from Legacy to Standard Stats for getStats).
