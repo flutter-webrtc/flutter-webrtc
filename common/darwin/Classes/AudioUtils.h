@@ -7,5 +7,5 @@
 + (BOOL)selectAudioInput:(AVAudioSessionPort)type;
 + (void)setSpeakerphoneOn:(BOOL)enable;
 + (void)updateAudioRoute:(BOOL)speakerOn;
-+ (void)diactiveRtcAudioSession;
++ (void)deactiveRtcAudioSession;
 @end
