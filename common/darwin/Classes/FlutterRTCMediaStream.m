@@ -71,9 +71,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
     [mediaStream addAudioTrack:audioTrack];
 
-    // allow audio capture
-    [AudioUtils ensureAudioSessionWithRecording:YES];
-
     successCallback(mediaStream);
 }
 
@@ -99,6 +96,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
          for (RTCAudioTrack *track in mediaStream.audioTracks) {
              [self.localTracks setObject:track forKey:track.trackId];
+             [self ensureAudioSession];
              [audioTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
          }
 
@@ -506,9 +504,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     }
 #if TARGET_OS_IPHONE
     RTCAudioSession *session = [RTCAudioSession sharedInstance];
-    NSError *setCategoryError = nil;
-    [session.session setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeVideoChat options:AVAudioSessionCategoryOptionAllowBluetooth error:&setCategoryError];
-    [session setActive:YES error:&setCategoryError];
     for (AVAudioSessionPortDescription *port in session.session.availableInputs) {
         //NSLog(@"input portName: %@, type %@", port.portName,port.portType);
         [sources addObject:@{

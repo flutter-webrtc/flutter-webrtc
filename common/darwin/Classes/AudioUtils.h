@@ -6,5 +6,6 @@
 // needed for wired headphones to use headphone mic
 + (BOOL)selectAudioInput:(AVAudioSessionPort)type;
 + (void)setSpeakerphoneOn:(BOOL)enable;
++ (void)updateAudioRoute:(BOOL)speakerOn;
 
 @end

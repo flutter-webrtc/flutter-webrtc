@@ -91,9 +91,9 @@
 #if TARGET_OS_IPHONE
     _preferredInput = AVAudioSessionPortHeadphones;
     _speakerOn = NO;
-    [AudioUtils setSpeakerphoneOn:_speakerOn];
-    AVAudioSession *session = [AVAudioSession sharedInstance];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
+   [AudioUtils setSpeakerphoneOn:_speakerOn];
+   AVAudioSession *session = [AVAudioSession sharedInstance];
+   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
 #if TARGET_OS_OSX
     [_peerConnectionFactory.audioDeviceModule setDevicesUpdatedHandler:^(void) {
@@ -125,11 +125,10 @@
 #if TARGET_OS_IPHONE
   NSDictionary *interuptionDict = notification.userInfo;
   NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
-  AVAudioSession* session = [AVAudioSession sharedInstance];
+
   switch (routeChangeReason) {
       case AVAudioSessionRouteChangeReasonCategoryChange: {
-          NSError* error;
-          [session overrideOutputAudioPort:_speakerOn? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:&error];
+          [AudioUtils updateAudioRoute:_speakerOn];
           break;
       }
       case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
@@ -139,7 +138,8 @@
     default:
       break;
   }
-  if(self.eventSink && AVAudioSessionRouteChangeReasonOverride != routeChangeReason) {
+    
+  if(self.eventSink && (routeChangeReason == AVAudioSessionRouteChangeReasonNewDeviceAvailable || routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable)) {
     self.eventSink(@{@"event" : @"onDeviceChange"});
   }
 #endif
@@ -1055,6 +1055,21 @@
     }
     [_peerConnections removeAllObjects];
     _peerConnectionFactory = nil;
+}
+
+- (BOOL) hasLocalAudioTrack {
+  for (id key in _localTracks.allKeys) {
+    RTCMediaStreamTrack* track = [_localTracks objectForKey:key];
+    if ([track.kind isEqualToString:@"audio"]) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
+- (void) ensureAudioSession{
+  [AudioUtils ensureAudioSessionWithRecording:[self hasLocalAudioTrack]];
+  [AudioUtils setSpeakerphoneOn:_speakerOn];
 }
 
 -(void)mediaStreamGetTracks:(NSString*)streamId
