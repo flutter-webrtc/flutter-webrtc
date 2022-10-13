@@ -562,6 +562,7 @@
         FlutterRTCVideoRenderer *render = self.renders[textureId];
         NSString *streamId = argsMap[@"streamId"];
         NSString *ownerTag = argsMap[@"ownerTag"];
+        NSString *trackId = argsMap[@"trackId"];
         if(!render) {
             result([FlutterError errorWithCode:@"videoRendererSetSrcObject: render is nil" message:nil details:nil]);
             return;
@@ -577,6 +578,11 @@
         if(stream){
             NSArray *videoTracks = stream ? stream.videoTracks : nil;
             videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
+            for ( RTCVideoTrack * track in videoTracks) {
+                if([track.trackId isEqualToString:trackId]){
+                    videoTrack = track;
+                }
+            }
             if (!videoTrack) {
                 NSLog(@"Not found video track for RTCMediaStream: %@", streamId);
             }
