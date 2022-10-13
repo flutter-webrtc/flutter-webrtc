@@ -425,7 +425,7 @@
                 [self.localTracks removeObjectForKey:track.trackId];
             }
             [self.localStreams removeObjectForKey:streamId];
-            [self diactiveRtcAudioSession];
+            [self deactiveRtcAudioSession];
         }
         if (shouldCallResult) {
           // do not call if will be called in stopCapturer above.
@@ -542,7 +542,7 @@
             }
             [dataChannels removeAllObjects];
         }
-        [self diactiveRtcAudioSession];
+        [self deactiveRtcAudioSession];
         result(nil);
     } else if ([@"createVideoRenderer" isEqualToString:call.method]){
         FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures
@@ -1075,9 +1075,9 @@
   [AudioUtils setSpeakerphoneOn:_speakerOn];
 }
 
-- (void) diactiveRtcAudioSession{
+- (void) deactiveRtcAudioSession{
   if (![self hasLocalAudioTrack] && self.peerConnections.count == 0) {
-    [AudioUtils diactiveRtcAudioSession];
+    [AudioUtils deactiveRtcAudioSession];
   }
 }
 
