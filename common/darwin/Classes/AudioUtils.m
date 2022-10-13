@@ -110,4 +110,9 @@
     [session unlockForConfiguration];
 }
 
++ (void)diactiveRtcAudioSession {
+    NSError *error = nil;
+    [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:&error];
+}
+
 @end

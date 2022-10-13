@@ -91,7 +91,6 @@
 #if TARGET_OS_IPHONE
     _preferredInput = AVAudioSessionPortHeadphones;
     _speakerOn = NO;
-   [AudioUtils setSpeakerphoneOn:_speakerOn];
    AVAudioSession *session = [AVAudioSession sharedInstance];
    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
@@ -128,11 +127,13 @@
 
   switch (routeChangeReason) {
       case AVAudioSessionRouteChangeReasonCategoryChange: {
-          [AudioUtils updateAudioRoute:_speakerOn];
+          if(_peerConnections.count > 0 || [self hasLocalAudioTrack]) {
+              [AudioUtils updateAudioRoute:_speakerOn];
+          }
           break;
       }
       case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
-          [AudioUtils selectAudioInput:_preferredInput];
+         [AudioUtils selectAudioInput:_preferredInput];
           break;
       }
     default:
@@ -424,6 +425,7 @@
                 [self.localTracks removeObjectForKey:track.trackId];
             }
             [self.localStreams removeObjectForKey:streamId];
+            [self diactiveRtcAudioSession];
         }
         if (shouldCallResult) {
           // do not call if will be called in stopCapturer above.
@@ -540,6 +542,7 @@
             }
             [dataChannels removeAllObjects];
         }
+        [self diactiveRtcAudioSession];
         result(nil);
     } else if ([@"createVideoRenderer" isEqualToString:call.method]){
         FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures
@@ -1070,6 +1073,12 @@
 - (void) ensureAudioSession{
   [AudioUtils ensureAudioSessionWithRecording:[self hasLocalAudioTrack]];
   [AudioUtils setSpeakerphoneOn:_speakerOn];
+}
+
+- (void) diactiveRtcAudioSession{
+  if (![self hasLocalAudioTrack] && self.peerConnections.count == 0) {
+    [AudioUtils diactiveRtcAudioSession];
+  }
 }
 
 -(void)mediaStreamGetTracks:(NSString*)streamId
