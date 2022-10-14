@@ -70,6 +70,10 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     = [self.peerConnectionFactory audioTrackWithTrackId:trackId];
 
     [mediaStream addAudioTrack:audioTrack];
+    
+    [self.localTracks setObject:audioTrack forKey:trackId];
+
+    [self ensureAudioSession];
 
     successCallback(mediaStream);
 }
@@ -95,13 +99,10 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
          NSMutableArray *videoTracks = [NSMutableArray array];
 
          for (RTCAudioTrack *track in mediaStream.audioTracks) {
-             [self.localTracks setObject:track forKey:track.trackId];
-             [self ensureAudioSession];
              [audioTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
          }
 
          for (RTCVideoTrack *track in mediaStream.videoTracks) {
-             [self.localTracks setObject:track forKey:track.trackId];
              [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
          }
 
@@ -361,7 +362,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
         };
         
         [mediaStream addVideoTrack:videoTrack];
-
+        
+        [self.localTracks setObject:videoTrack forKey:trackUUID];
+        
         successCallback(mediaStream);
     } else {
         // According to step 6.2.3 of the getUserMedia() algorithm, if there is no
