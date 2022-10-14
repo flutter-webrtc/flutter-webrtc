@@ -60,7 +60,8 @@ class FlutterVideoRendererManager {
       std::unique_ptr<MethodResult<EncodableValue>> result);
 
   void SetMediaStream(int64_t texture_id,
-                      const std::string& stream_id);
+                      const std::string& stream_id,
+                      const std::string& peerConnectionId);
 
   void VideoRendererDispose(
       int64_t texture_id,

@@ -147,7 +147,8 @@ class FlutterWebRTCBase {
 
   void RemovePeerConnectionObserversForId(const std::string& id);
 
-  scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id);
+  scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id,
+                                                 std::string peerConnectionId = "");
 
   void RemoveStreamForId(const std::string& id);
 

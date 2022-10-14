@@ -454,8 +454,9 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string stream_id = findString(params, "streamId");
     int64_t texture_id = findLongInt(params, "textureId");
+    const std::string peerConnectionId = findString(params, "ownerTag");
 
-    SetMediaStream(texture_id, stream_id);
+    SetMediaStream(texture_id, stream_id, peerConnectionId);
     result->Success();
   } else if (method_call.method_name().compare(
                  "mediaStreamTrackSwitchCamera") == 0) {
