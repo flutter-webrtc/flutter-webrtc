@@ -66,9 +66,9 @@
         _textures = textures;
         _messenger = messenger;
         _speakerOn = NO;
-        _preferredInput = AVAudioSessionPortHeadphones;
         _eventChannel = eventChannel;
 #if TARGET_OS_IPHONE
+        _preferredInput = AVAudioSessionPortHeadphones;
         self.viewController = viewController;
 #endif
     }
@@ -1076,15 +1076,19 @@
   return NO;
 }
 
-- (void) ensureAudioSession{
+- (void) ensureAudioSession {
+#if TARGET_OS_IPHONE
   [AudioUtils ensureAudioSessionWithRecording:[self hasLocalAudioTrack]];
   [AudioUtils setSpeakerphoneOn:_speakerOn];
+#endif
 }
 
-- (void) deactiveRtcAudioSession{
+- (void) deactiveRtcAudioSession {
+#if TARGET_OS_IPHONE
   if (![self hasLocalAudioTrack] && self.peerConnections.count == 0) {
     [AudioUtils deactiveRtcAudioSession];
   }
+#endif
 }
 
 -(void)mediaStreamGetTracks:(NSString*)streamId
