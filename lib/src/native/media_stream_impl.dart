@@ -20,16 +20,16 @@ class MediaStreamNative extends MediaStream {
   void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
     _audioTracks.clear();
 
-    audioTracks.forEach((track) {
+    for (var track in audioTracks) {
       _audioTracks.add(MediaStreamTrackNative(
           track['id'], track['label'], track['kind'], track['enabled']));
-    });
+    }
 
     _videoTracks.clear();
-    videoTracks.forEach((track) {
+    for (var track in videoTracks) {
       _videoTracks.add(MediaStreamTrackNative(
           track['id'], track['label'], track['kind'], track['enabled']));
-    });
+    }
   }
 
   @override
@@ -88,7 +88,7 @@ class MediaStreamNative extends MediaStream {
   }
 
   @override
-  Future<Null> dispose() async {
+  Future<void> dispose() async {
     await WebRTC.invokeMethod(
       'streamDispose',
       <String, dynamic>{'streamId': id},

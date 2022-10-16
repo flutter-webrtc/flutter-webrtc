@@ -50,7 +50,7 @@ void main() {
       });
     };
 
-    events.forEach((event) {
+    for (var event in events) {
       pc.eventListener(<String, dynamic>{
         'event': event,
 
@@ -79,6 +79,6 @@ void main() {
         'label': '',
         'flutterId': '',
       });
-    });
+    }
   });
 }
