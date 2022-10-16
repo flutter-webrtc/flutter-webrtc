@@ -1,10 +1,10 @@
-import 'package:webrtc_interface/webrtc_interface.dart' as _interface;
+import 'package:webrtc_interface/webrtc_interface.dart' as rtc;
 
 import '../flutter_webrtc.dart';
 
-class MediaRecorder extends _interface.MediaRecorder {
+class MediaRecorder extends rtc.MediaRecorder {
   MediaRecorder() : _delegate = mediaRecorder();
-  final _interface.MediaRecorder _delegate;
+  final rtc.MediaRecorder _delegate;
 
   @override
   Future<void> start(String path,

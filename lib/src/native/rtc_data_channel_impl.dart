@@ -30,6 +30,7 @@ class RTCDataChannelNative extends RTCDataChannel {
   final String _label;
   int _bufferedAmount = 0;
   @override
+  // ignore: overridden_fields
   int? bufferedAmountLowThreshold;
 
   /// Id for the datachannel in the Flutter <-> Native layer.

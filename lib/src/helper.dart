@@ -91,8 +91,8 @@ class Helper {
     if (deviceId == null) throw 'You need to specify the deviceId';
     if (stream == null) throw 'You need to specify the stream';
 
-    var _cameras = await cameras;
-    if (!_cameras.any((e) => e.deviceId == deviceId)) {
+    var cams = await cameras;
+    if (!cams.any((e) => e.deviceId == deviceId)) {
       throw 'The provided deviceId is not available, make sure to retreive the deviceId from Helper.cammeras()';
     }
 
@@ -108,10 +108,10 @@ class Helper {
       'video': {'deviceId': deviceId}
     };
 
-    var _stream = await openCamera(mediaConstraints);
-    var _cameraTrack = _stream.getVideoTracks()[0];
+    var newStream = await openCamera(mediaConstraints);
+    var newCamTrack = newStream.getVideoTracks()[0];
 
-    await stream.addTrack(_cameraTrack, addToNative: true);
+    await stream.addTrack(newCamTrack, addToNative: true);
 
     return Future.value(true);
   }

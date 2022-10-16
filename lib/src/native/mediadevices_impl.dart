@@ -87,8 +87,8 @@ class MediaDeviceNative extends MediaDevices {
 
   @override
   Future<List<MediaDeviceInfo>> enumerateDevices() async {
-    var _source = await getSources();
-    return _source
+    var source = await getSources();
+    return source
         .map(
           (e) => MediaDeviceInfo(
               deviceId: e['deviceId'],
