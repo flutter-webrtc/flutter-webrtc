@@ -127,11 +127,12 @@ NSArray<RTCDesktopSource *>* _captureSources;
     RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
     [mediaStream addVideoTrack:videoTrack];
 
+    [self.localTracks setObject:videoTrack forKey:trackUUID];
+
     NSMutableArray *audioTracks = [NSMutableArray array];
     NSMutableArray *videoTracks = [NSMutableArray array];
 
     for (RTCVideoTrack *track in mediaStream.videoTracks) {
-        [self.localTracks setObject:track forKey:track.trackId];
         [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
     }
 

@@ -47,4 +47,8 @@ typedef void (^CapturerStopHandler)(CompletionHandler handler);
 - (NSDictionary*)receiverToMap:(RTCRtpReceiver*)receiver;
 - (NSDictionary*)transceiverToMap:(RTCRtpTransceiver*)transceiver;
 
+- (BOOL) hasLocalAudioTrack;
+- (void) ensureAudioSession;
+- (void) deactiveRtcAudioSession;
+
 @end
