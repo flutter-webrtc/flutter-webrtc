@@ -18,6 +18,7 @@
         config.category = AVAudioSessionCategoryPlayAndRecord;
         config.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth |
         AVAudioSessionCategoryOptionAllowBluetoothA2DP;
+        config.mode = AVAudioSessionModeVoiceChat;
         
         [session lockForConfiguration];
         [session setCategory:config.category
@@ -29,6 +30,7 @@
                               || session.category == AVAudioSessionCategorySoloAmbient)) {
         config.category = AVAudioSessionCategoryPlayback;
         config.categoryOptions = 0;
+        config.mode = AVAudioSessionModeDefault;
         
         // upgrade from ambient if needed
         [session lockForConfiguration];
@@ -75,7 +77,7 @@
         [session setCategory:config.category
                  withOptions:config.categoryOptions
                        error:&error];
-        [session setPreferredOutputNumberOfChannels:0 error:nil];
+        [session setMode:config.mode error:&error];
         BOOL success = [session setActive:YES error:&error];
         if (!success) NSLog(@"Audio session override failed: %@", error);
         else NSLog(@"AudioSession override via Earpiece/Headset is successful ");
@@ -83,7 +85,7 @@
         BOOL success = [session setCategory:config.category
                                 withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
                                       error:&error];
-        [session setPreferredOutputNumberOfChannels:0 error:nil];
+        [session setMode:config.mode error:&error];
         if (!success)  NSLog(@"Port override failed due to: %@", error);
         success = [session setActive:YES error:&error];
         if (!success) NSLog(@"Audio session override failed: %@", error);
@@ -91,23 +93,6 @@
     }
     [session unlockForConfiguration];
 #endif
-}
-
-+ (void)updateAudioRoute:(BOOL)speakerOn {
-    RTCAudioSession *session = [RTCAudioSession sharedInstance];
-    NSError *error = nil;
-    [session lockForConfiguration];
-    if(speakerOn) {
-        [session overrideOutputAudioPort:[AVAudioSessionPortBuiltInSpeaker intValue] error: &error];
-        [session.session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
-        
-        [session setMode:AVAudioSessionModeVoiceChat error: &error];
-    } else {
-        [session overrideOutputAudioPort:[AVAudioSessionPortHeadphones intValue] error:&error];
-        [session.session overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:&error];
-        [session setMode:AVAudioSessionModeVoiceChat error: &error];
-    }
-    [session unlockForConfiguration];
 }
 
 + (void)deactiveRtcAudioSession {

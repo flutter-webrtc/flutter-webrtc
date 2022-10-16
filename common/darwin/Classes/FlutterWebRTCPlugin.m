@@ -66,6 +66,7 @@
         _textures = textures;
         _messenger = messenger;
         _speakerOn = NO;
+        _preferredInput = AVAudioSessionPortHeadphones;
         _eventChannel = eventChannel;
 #if TARGET_OS_IPHONE
         self.viewController = viewController;
@@ -89,10 +90,8 @@
     self.renders = [NSMutableDictionary new];
     self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
-    _preferredInput = AVAudioSessionPortHeadphones;
-    _speakerOn = NO;
-   AVAudioSession *session = [AVAudioSession sharedInstance];
-   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
 #if TARGET_OS_OSX
     [_peerConnectionFactory.audioDeviceModule setDevicesUpdatedHandler:^(void) {
@@ -122,25 +121,24 @@
 
 - (void)didSessionRouteChange:(NSNotification *)notification {
 #if TARGET_OS_IPHONE
-  NSDictionary *interuptionDict = notification.userInfo;
-  NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
-
+  NSDictionary* interuptionDict = notification.userInfo;
+  NSInteger routeChangeReason =
+      [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
+  RTCAudioSession *session = [RTCAudioSession sharedInstance];
   switch (routeChangeReason) {
-      case AVAudioSessionRouteChangeReasonCategoryChange: {
-          if(_peerConnections.count > 0 || [self hasLocalAudioTrack]) {
-              [AudioUtils updateAudioRoute:_speakerOn];
-          }
-          break;
+    case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
+      if (session.isActive) {
+        [AudioUtils selectAudioInput:_preferredInput];
       }
-      case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
-         [AudioUtils selectAudioInput:_preferredInput];
-          break;
-      }
+      break;
+    }
     default:
       break;
   }
-    
-  if(self.eventSink && (routeChangeReason == AVAudioSessionRouteChangeReasonNewDeviceAvailable || routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable)) {
+
+  if (self.eventSink &&
+      (routeChangeReason == AVAudioSessionRouteChangeReasonNewDeviceAvailable ||
+       routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable)) {
     self.eventSink(@{@"event" : @"onDeviceChange"});
   }
 #endif
