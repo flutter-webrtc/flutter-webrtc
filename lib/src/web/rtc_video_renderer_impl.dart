@@ -144,7 +144,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     value = value.copyWith(renderVideo: renderVideo);
   }
 
-  setSrcObject({MediaStream? stream, String? trackId}) {
+  void setSrcObject({MediaStream? stream, String? trackId}) {
     if (stream == null) {
       findHtmlView()?.srcObject = null;
       _audioElement?.srcObject = null;

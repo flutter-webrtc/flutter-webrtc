@@ -1,4 +1,4 @@
-import 'package:webrtc_interface/src/media_recorder.dart' as _interface;
+import 'package:webrtc_interface/webrtc_interface.dart' as _interface;
 
 import '../flutter_webrtc.dart';
 
