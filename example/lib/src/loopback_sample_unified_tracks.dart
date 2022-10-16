@@ -43,8 +43,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void initState() {
     print('Init State');
     super.initState();
-    initRenderers();
-    initLocalConnection();
+
     _refreshMediaDevices();
     navigator.mediaDevices.ondevicechange = (event) async {
       print('++++++ ondevicechange ++++++');
@@ -83,8 +82,10 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       await _videoSender?.dispose();
       await _audioSender?.dispose();
       await _remotePeerConnection?.close();
+      await _remotePeerConnection?.dispose();
       _remotePeerConnection = null;
       await _localPeerConnection?.close();
+      await _localPeerConnection?.dispose();
       _localPeerConnection = null;
       _localRenderer.srcObject = null;
       _remoteRenderer.srcObject = null;
@@ -229,6 +230,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   void _makeCall() async {
+    initRenderers();
+    initLocalConnection();
+
     if (_remotePeerConnection != null) return;
 
     try {
@@ -281,6 +285,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void _hangUp() async {
     try {
       await _remotePeerConnection?.close();
+      await _remotePeerConnection?.dispose();
       _remotePeerConnection = null;
       _remoteRenderer.srcObject = null;
     } catch (e) {
