@@ -3,9 +3,9 @@
 --------------------------------------------
 [0.9.11] - 2022-10-16
 
-[iOS] fix audio route/setSpeakerphoneOn issues.
-[Windows] fix: Have same remote streams id then found wrong MediaStream.
-[Dart] feat: RTCVideoRenderer supports specific trackId when setting MediaStream.
+* [iOS] fix audio route/setSpeakerphoneOn issues.
+* [Windows] fix: Have same remote streams id then found wrong MediaStream.
+* [Dart] feat: RTCVideoRenderer supports specific trackId when setting MediaStream.
 
 [0.9.9+hotfix.1] - 2022-10-12
 
