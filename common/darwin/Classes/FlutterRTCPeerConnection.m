@@ -447,7 +447,7 @@
     peerConnection.remoteStreams[streamId] = stream;
 
     if (hasAudio) {
-        [AudioUtils ensureAudioSessionWithRecording:NO];
+        [self ensureAudioSession];
     }
 
     FlutterEventSink eventSink = peerConnection.eventSink;
@@ -607,7 +607,7 @@ didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
         }
 
         if ([rtpReceiver.track.kind isEqualToString:@"audio"]) {
-            [AudioUtils ensureAudioSessionWithRecording:NO];
+            [self ensureAudioSession];
         }
         eventSink(event);
     }
