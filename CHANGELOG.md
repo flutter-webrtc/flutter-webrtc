@@ -1,7 +1,7 @@
 # Changelog
 
 --------------------------------------------
-[0.9.10] - 2022-10-16
+[0.9.11] - 2022-10-16
 
 [iOS] fix audio route/setSpeakerphoneOn issues.
 [Windows] fix: Have same remote streams id then found wrong MediaStream.
