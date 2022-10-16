@@ -52,10 +52,10 @@ class RTCRtpSenderNative extends RTCRtpSender {
       var stats = <StatsReport>[];
       if (response != null) {
         List<dynamic> reports = response['stats'];
-        reports.forEach((report) {
+        for (var report in reports) {
           stats.add(StatsReport(report['id'], report['type'],
               report['timestamp'], report['values']));
-        });
+        }
       }
       return stats;
     } on PlatformException catch (e) {
