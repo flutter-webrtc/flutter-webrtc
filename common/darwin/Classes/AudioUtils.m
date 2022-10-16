@@ -1,13 +1,10 @@
-#import "AudioUtils.h"
-
 #if TARGET_OS_IPHONE
+#import "AudioUtils.h"
 #import <AVFoundation/AVFoundation.h>
-#endif
 
 @implementation AudioUtils
 
 + (void)ensureAudioSessionWithRecording:(BOOL)recording {
-#if TARGET_OS_IPHONE
     RTCAudioSession *session = [RTCAudioSession sharedInstance];
     // we also need to set default WebRTC audio configuration, since it may be activated after
     // this method is called
@@ -40,11 +37,9 @@
         [session setMode:config.mode error:nil];
         [session unlockForConfiguration];
     }
-#endif
 }
 
 + (BOOL)selectAudioInput:(AVAudioSessionPort)type {
-#if TARGET_OS_IPHONE
     RTCAudioSession *rtcSession = [RTCAudioSession sharedInstance];
     AVAudioSessionPortDescription *inputPort = nil;
     for (AVAudioSessionPortDescription *port in rtcSession.session.availableInputs) {
@@ -63,12 +58,10 @@
         }
         return YES;
     }
-#endif
     return NO;
 }
 
 + (void)setSpeakerphoneOn:(BOOL)enable {
-#if TARGET_OS_IPHONE
     RTCAudioSession *session = [RTCAudioSession sharedInstance];
     RTCAudioSessionConfiguration *config = [RTCAudioSessionConfiguration webRTCConfiguration];
     [session lockForConfiguration];
@@ -92,7 +85,6 @@
         else NSLog(@"AudioSession override via Loudspeaker is successful ");
     }
     [session unlockForConfiguration];
-#endif
 }
 
 + (void)deactiveRtcAudioSession {
@@ -101,3 +93,4 @@
 }
 
 @end
+#endif
