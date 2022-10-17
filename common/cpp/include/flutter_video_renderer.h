@@ -58,7 +58,9 @@ class FlutterVideoRendererManager {
 
   void CreateVideoRendererTexture(std::unique_ptr<MethodResultProxy> result);
 
-  void SetMediaStream(int64_t texture_id, const std::string& stream_id);
+  void SetMediaStream(int64_t texture_id,
+                      const std::string& stream_id,
+                      const std::string& peerConnectionId);
 
   void VideoRendererDispose(int64_t texture_id,
                             std::unique_ptr<MethodResultProxy> result);

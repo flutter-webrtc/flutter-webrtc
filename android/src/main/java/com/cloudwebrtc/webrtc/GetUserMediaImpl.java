@@ -99,7 +99,7 @@ class GetUserMediaImpl {
     static final String TAG = FlutterWebRTCPlugin.TAG;
 
     private final Map<String, VideoCapturerInfo> mVideoCapturers = new HashMap<>();
-
+    private final Map<String, SurfaceTextureHelper> mSurfaceTextureHelpers = new HashMap<>();
     private final StateProvider stateProvider;
     private final Context applicationContext;
 
@@ -500,7 +500,7 @@ class GetUserMediaImpl {
                             } else {
                                 mediaStream.addTrack((VideoTrack) track);
                             }
-                            stateProvider.getLocalTracks().put(id, track);
+                            stateProvider.putLocalTrack(id, track);
 
                             ConstraintsMap track_ = new ConstraintsMap();
                             String kind = track.kind();
@@ -522,7 +522,7 @@ class GetUserMediaImpl {
                         String streamId = mediaStream.getId();
 
                         Log.d(TAG, "MediaStream id: " + streamId);
-                        stateProvider.getLocalStreams().put(streamId, mediaStream);
+                        stateProvider.putLocalStream(streamId, mediaStream);
                         successResult.putString("streamId", streamId);
                         successResult.putArray("audioTracks", audioTracks.toArrayList());
                         successResult.putArray("videoTracks", videoTracks.toArrayList());
@@ -578,7 +578,7 @@ class GetUserMediaImpl {
             } else {
                 mediaStream.addTrack((VideoTrack) track);
             }
-            stateProvider.getLocalTracks().put(id, track);
+            stateProvider.putLocalTrack(id, track);
 
             ConstraintsMap track_ = new ConstraintsMap();
             String kind = track.kind();
@@ -600,7 +600,7 @@ class GetUserMediaImpl {
         String streamId = mediaStream.getId();
 
         Log.d(TAG, "MediaStream id: " + streamId);
-        stateProvider.getLocalStreams().put(streamId, mediaStream);
+        stateProvider.putLocalStream(streamId, mediaStream);
 
         successResult.putString("streamId", streamId);
         successResult.putArray("audioTracks", audioTracks.toArrayList());
@@ -713,7 +713,7 @@ class GetUserMediaImpl {
 
         String trackId = stateProvider.getNextTrackUUID();
         mVideoCapturers.put(trackId, info);
-
+        mSurfaceTextureHelpers.put(trackId, surfaceTextureHelper);
         Log.d(TAG, "changeCaptureFormat: " + info.width + "x" + info.height + "@" + info.fps);
         videoSource.adaptOutputFormat(info.width, info.height, info.fps);
 
@@ -730,6 +730,12 @@ class GetUserMediaImpl {
             } finally {
                 info.capturer.dispose();
                 mVideoCapturers.remove(id);
+                SurfaceTextureHelper helper = mSurfaceTextureHelpers.get(id);
+                if (helper != null)  {
+                    helper.stopListening();
+                    helper.dispose();
+                    mSurfaceTextureHelpers.remove(id);
+                }
             }
         }
     }

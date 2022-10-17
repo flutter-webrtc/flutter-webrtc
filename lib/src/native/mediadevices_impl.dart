@@ -87,8 +87,8 @@ class MediaDeviceNative extends MediaDevices {
 
   @override
   Future<List<MediaDeviceInfo>> enumerateDevices() async {
-    var _source = await getSources();
-    return _source
+    var source = await getSources();
+    return source
         .map(
           (e) => MediaDeviceInfo(
               deviceId: e['deviceId'],
@@ -105,7 +105,7 @@ class MediaDeviceNative extends MediaDevices {
     await WebRTC.invokeMethod('selectAudioOutput', {
       'deviceId': options?.deviceId,
     });
-    // TODO: return the selected device
+    // TODO(cloudwebrtc): return the selected device
     return MediaDeviceInfo(label: 'label', deviceId: options!.deviceId);
   }
 }

@@ -144,6 +144,52 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     value = value.copyWith(renderVideo: renderVideo);
   }
 
+  void setSrcObject({MediaStream? stream, String? trackId}) {
+    if (stream == null) {
+      findHtmlView()?.srcObject = null;
+      _audioElement?.srcObject = null;
+      _srcObject = null;
+      return;
+    }
+
+    _srcObject = stream as MediaStreamWeb;
+
+    if (null != _srcObject) {
+      if (stream.getVideoTracks().isNotEmpty) {
+        _videoStream = html.MediaStream();
+        for (final track in _srcObject!.jsStream.getVideoTracks()) {
+          if (track.id == trackId) {
+            _videoStream!.addTrack(track);
+          }
+        }
+      }
+      if (stream.getAudioTracks().isNotEmpty) {
+        _audioStream = html.MediaStream();
+        for (final track in _srcObject!.jsStream.getAudioTracks()) {
+          _audioStream!.addTrack(track);
+        }
+      }
+    } else {
+      _videoStream = null;
+      _audioStream = null;
+    }
+
+    if (null != _audioStream) {
+      if (null == _audioElement) {
+        _audioElement = html.AudioElement()
+          ..id = _elementIdForAudio
+          ..muted = stream.ownerTag == 'local'
+          ..autoplay = true;
+        _ensureAudioManagerDiv().append(_audioElement!);
+      }
+      _audioElement?.srcObject = _audioStream;
+    }
+
+    findHtmlView()?.srcObject = _videoStream;
+
+    value = value.copyWith(renderVideo: renderVideo);
+  }
+
   html.DivElement _ensureAudioManagerDiv() {
     var div = html.document.getElementById(_elementIdForAudioManager);
     if (null != div) return div as html.DivElement;
@@ -164,7 +210,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   @override
   Future<void> dispose() async {
     _srcObject = null;
-    _subscriptions.forEach((s) => s.cancel());
+    for (var s in _subscriptions) {
+      s.cancel();
+    }
     final element = findHtmlView();
     element?.removeAttribute('src');
     element?.load();
@@ -198,7 +246,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory('RTCVideoRenderer-$textureId',
         (int viewId) {
-      _subscriptions.forEach((s) => s.cancel());
+      for (var s in _subscriptions) {
+        s.cancel();
+      }
       _subscriptions.clear();
 
       final element = html.VideoElement()
@@ -257,4 +307,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
   @override
   Function? onResize;
+
+  @override
+  Function? onFirstFrameRendered;
 }
