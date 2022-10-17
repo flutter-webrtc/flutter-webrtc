@@ -418,8 +418,17 @@ class _PeerConnectionChannel extends PeerConnection {
 
   @override
   Future<List<RtcStats>> getStats() async {
-    // TODO: Not implemented.
-    return List.empty();
+    List<dynamic> stats = await _chan.invokeMethod('getStats');
+    List<RtcStats> result = List.empty(growable: true);
+
+    for (var s in stats) {
+      var stat = RtcStats.fromMap(s);
+      if (stat != null) {
+        result.add(stat);
+      }
+    }
+
+    return result;
   }
 }
 

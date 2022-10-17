@@ -175,6 +175,20 @@ class PeerConnectionController(
         peer.restartIce()
         result.success(null)
       }
+      "getStats" -> {
+        GlobalScope.launch(Dispatchers.Main) {
+          try {
+            val stats = peer.getStats()
+            if (stats == null) {
+              result.success(listOf<Map<String, Any>>())
+            } else {
+              result.success(stats.asFlutterResult())
+            }
+          } catch (e: Exception) {
+            resultUnhandledException(result, e)
+          }
+        }
+      }
       "dispose" -> {
         dispose()
         result.success(null)

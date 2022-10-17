@@ -52,7 +52,7 @@ abstract class NativeVideoRenderer extends VideoRenderer {
 
   @override
   set mirror(bool mirror) {
-    // No-op. Mirroring is done through [RTCViewView].
+    // No-op. Mirroring is done through [VideoView].
   }
 
   /// Listener for the [NativeVideoRenderer] events received from the native

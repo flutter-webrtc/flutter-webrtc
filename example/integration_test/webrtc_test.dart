@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
@@ -879,18 +878,14 @@ void main() {
     var senderStats = await pc1.getStats();
     var receiverStats = await pc2.getStats();
 
-    // TODO: Support on mobile platforms.
-    if (!Platform.isAndroid) {
-      expect(
-          senderStats.where((e) => e.type is RtcOutboundRtpStreamStats).length,
-          2);
-      expect(senderStats.where((e) => e.type is RtcTransportStats).length, 1);
+    expect(senderStats.where((e) => e.type is RtcOutboundRtpStreamStats).length,
+        2);
+    expect(senderStats.where((e) => e.type is RtcTransportStats).length, 1);
 
-      expect(
-          receiverStats.where((e) => e.type is RtcInboundRtpStreamStats).length,
-          2);
-      expect(receiverStats.where((e) => e.type is RtcTransportStats).length, 1);
-    }
+    expect(
+        receiverStats.where((e) => e.type is RtcInboundRtpStreamStats).length,
+        2);
+    expect(receiverStats.where((e) => e.type is RtcTransportStats).length, 1);
 
     await pc1.close();
     await pc2.close();
