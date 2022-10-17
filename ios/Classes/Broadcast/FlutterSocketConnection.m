@@ -81,12 +81,16 @@
     dispatch_resume(listeningSource);
 }
 
-- (void)close {    
-    [self performSelector:@selector(unscheduleStreams) onThread:self.networkThread withObject:nil waitUntilDone:true];
+- (void)close {
+    if (![self.networkThread isExecuting]){
+        return;
+    }
     
+    [self performSelector:@selector(unscheduleStreams) onThread:self.networkThread withObject:nil waitUntilDone:true];
+
     self.inputStream.delegate = nil;
     self.outputStream.delegate = nil;
-        
+
     [self.inputStream close];
     [self.outputStream close];
         
