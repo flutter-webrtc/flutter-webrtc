@@ -43,11 +43,11 @@ class RtpTransceiverController {
         .setDirection(direction: TransceiverDirection(rawValue: direction!)!)
       result(nil)
     case "setRecv":
-      let enabled = argsMap!["enabled"] as? Bool
+      let enabled = argsMap!["recv"] as? Bool
       self.transceiver.setRecv(recv: enabled!)
       result(nil)
     case "setSend":
-      let enabled = argsMap!["enabled"] as? Bool
+      let enabled = argsMap!["send"] as? Bool
       self.transceiver.setSend(send: enabled!)
       result(nil)
     case "getMid":

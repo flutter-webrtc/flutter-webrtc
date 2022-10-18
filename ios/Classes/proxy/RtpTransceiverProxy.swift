@@ -38,74 +38,74 @@ class RtpTransceiverProxy {
   /// Sets `recv` direction of the underlying `RTCRtpTransceiver`.
   func setRecv(recv: Bool) {
     let direction = self.getDirection()
-    var newDirection = RTCRtpTransceiverDirection.stopped
+    var newDirection = TransceiverDirection.stopped
     if recv {
       switch direction {
       case .inactive:
-        newDirection = RTCRtpTransceiverDirection.recvOnly
+        newDirection = TransceiverDirection.recvOnly
       case .recvOnly:
-        newDirection = RTCRtpTransceiverDirection.recvOnly
+        newDirection = TransceiverDirection.recvOnly
       case .sendRecv:
-        newDirection = RTCRtpTransceiverDirection.sendRecv
+        newDirection = TransceiverDirection.sendRecv
       case .sendOnly:
-        newDirection = RTCRtpTransceiverDirection.sendRecv
+        newDirection = TransceiverDirection.sendRecv
       case .stopped:
-        newDirection = RTCRtpTransceiverDirection.stopped
+        newDirection = TransceiverDirection.stopped
       }
     } else {
       switch direction {
       case .inactive:
-        newDirection = RTCRtpTransceiverDirection.inactive
+        newDirection = TransceiverDirection.inactive
       case .recvOnly:
-        newDirection = RTCRtpTransceiverDirection.inactive
+        newDirection = .inactive
       case .sendRecv:
-        newDirection = RTCRtpTransceiverDirection.sendOnly
+        newDirection = .sendOnly
       case .sendOnly:
-        newDirection = RTCRtpTransceiverDirection.sendOnly
+        newDirection = .sendOnly
       case .stopped:
-        newDirection = RTCRtpTransceiverDirection.stopped
+        newDirection = .stopped
       }
     }
 
-    if newDirection != RTCRtpTransceiverDirection.stopped {
-      self.setDirection(direction: direction)
+    if newDirection != .stopped {
+      self.setDirection(direction: newDirection)
     }
   }
 
   /// Sets `send` direction of the underlying `RTCRtpTransceiver`.
   func setSend(send: Bool) {
     let direction = self.getDirection()
-    var newDirection = RTCRtpTransceiverDirection.stopped
+    var newDirection = TransceiverDirection.stopped
     if send {
       switch direction {
       case .inactive:
-        newDirection = RTCRtpTransceiverDirection.sendOnly
+        newDirection = .sendOnly
       case .sendOnly:
-        newDirection = RTCRtpTransceiverDirection.sendOnly
+        newDirection = .sendOnly
       case .sendRecv:
-        newDirection = RTCRtpTransceiverDirection.sendRecv
+        newDirection = .sendRecv
       case .recvOnly:
-        newDirection = RTCRtpTransceiverDirection.sendRecv
+        newDirection = .sendRecv
       case .stopped:
-        newDirection = RTCRtpTransceiverDirection.stopped
+        newDirection = .stopped
       }
     } else {
       switch direction {
       case .inactive:
-        newDirection = RTCRtpTransceiverDirection.inactive
+        newDirection = .inactive
       case .sendOnly:
-        newDirection = RTCRtpTransceiverDirection.inactive
+        newDirection = .inactive
       case .sendRecv:
-        newDirection = RTCRtpTransceiverDirection.recvOnly
+        newDirection = .recvOnly
       case .recvOnly:
-        newDirection = RTCRtpTransceiverDirection.recvOnly
+        newDirection = .recvOnly
       case .stopped:
-        newDirection = RTCRtpTransceiverDirection.stopped
+        newDirection = .stopped
       }
     }
 
-    if newDirection != RTCRtpTransceiverDirection.stopped {
-      self.setDirection(direction: direction)
+    if newDirection != .stopped {
+      self.setDirection(direction: newDirection)
     }
   }
 
