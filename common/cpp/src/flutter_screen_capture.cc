@@ -63,7 +63,7 @@ void FlutterScreenCapture::GetDesktopSources(
 
   std::cout << " sources: " << sources.size() << std::endl;
   result->Success(
-      EncodableValue(EncodableMap{{EncodableValue("sources"), sources}}));
+      EncodableValue(EncodableMap{{EncodableValue("sources"), EncodableValue(sources)}}));
 }
 
 void FlutterScreenCapture::UpdateDesktopSources(
@@ -74,7 +74,7 @@ void FlutterScreenCapture::UpdateDesktopSources(
     return;
   }
   result->Success(
-      EncodableValue(EncodableMap{{EncodableValue("result"), true}}));
+      EncodableValue(EncodableMap{{EncodableValue("result"), EncodableValue(true)}}));
 }
 
 void FlutterScreenCapture::OnMediaSourceAdded(
