@@ -40,6 +40,11 @@ class MediaDevicesController {
     self.channel.setMethodCallHandler { call, result in
       self.onMethodCall(call: call, result: result)
     }
+    self.mediaDevices.onDeviceChange {
+      self.eventController.sendEvent(data: [
+        "event": "onDeviceChange",
+      ])
+    }
   }
 
   /// Handles all the supported Flutter method calls for the controlled
@@ -60,6 +65,8 @@ class MediaDevicesController {
         }
       )
     case "setOutputAudioId":
+      let deviceId = argsMap!["deviceId"] as? String
+      self.mediaDevices.setOutputAudioId(id: deviceId!)
       result(nil)
     default:
       result(FlutterMethodNotImplemented)

@@ -6,20 +6,80 @@ class MediaDevices {
   /// Global state used for creation of new `MediaStreamTrackProxy`s.
   private var state: State
 
+  /// Subscribers for `onDeviceChange` callback of these `MediaDevices`.
+  private var onDeviceChange: [() -> Void] = []
+
   /// Initializes new `MediaDevices` with the provided `State`.
+  ///
+  /// Subscribes on `AVAudioSession.routeChangeNotification` notifications for
+  /// `onDeviceChange` callback firing.
   init(state: State) {
+    try! AVAudioSession.sharedInstance().setCategory(
+      AVAudioSession.Category.playAndRecord,
+      options: AVAudioSession.CategoryOptions.allowBluetooth
+    )
     self.state = state
+    NotificationCenter.default.addObserver(
+      forName: AVAudioSession.routeChangeNotification, object: nil,
+      queue: OperationQueue.main,
+      using: { (_: Notification) in
+        for cb in self.onDeviceChange {
+          cb()
+        }
+      }
+    )
+  }
+
+  /// Switches current input device to the iPhone's microphone.
+  func setBuiltInMicAsInput() {
+    if let routes = AVAudioSession.sharedInstance().availableInputs {
+      for route in routes {
+        if route.portType == .builtInMic {
+          _ = try? AVAudioSession.sharedInstance()
+            .setPreferredInput(route)
+          break
+        }
+      }
+    }
+  }
+
+  /// Switches current audio output device to a device with the provided ID.
+  func setOutputAudioId(id: String) {
+    let session = AVAudioSession.sharedInstance()
+    if id == "speaker" {
+      self.setBuiltInMicAsInput()
+      try! AVAudioSession.sharedInstance().overrideOutputAudioPort(.speaker)
+    } else if id == "ear-piece" {
+      self.setBuiltInMicAsInput()
+      try! AVAudioSession.sharedInstance().overrideOutputAudioPort(.none)
+    } else {
+      let selectedInput = AVAudioSession.sharedInstance().availableInputs?
+        .first(where: { $0.portName == id })
+      if selectedInput != nil {
+        try! session.setPreferredInput(selectedInput!)
+      }
+    }
+  }
+
+  /// Subscribes to `onDeviceChange` callback of these `MediaDevices`.
+  func onDeviceChange(cb: @escaping () -> Void) {
+    self.onDeviceChange.append(cb)
   }
 
   /// Returns a list of `MediaDeviceInfo`s for the currently available devices.
   func enumerateDevices() -> [MediaDeviceInfo] {
-    var devices = AVCaptureDevice.devices(for: AVMediaType.audio)
-      .map { device -> MediaDeviceInfo in
-        MediaDeviceInfo(
-          deviceId: device.uniqueID, label: device.localizedName,
-          kind: MediaDeviceKind.audioInput
-        )
-      }
+    var devices: [MediaDeviceInfo] = []
+    devices.append(MediaDeviceInfo(
+      deviceId: "speaker",
+      label: "Speaker",
+      kind: MediaDeviceKind.audioOutput
+    ))
+    devices.append(MediaDeviceInfo(
+      deviceId: "ear-piece",
+      label: "Ear-Piece",
+      kind: MediaDeviceKind.audioOutput
+    ))
+
     let videoDevices = AVCaptureDevice.devices(for: AVMediaType.video).map {
       device -> MediaDeviceInfo in
       MediaDeviceInfo(
@@ -28,6 +88,22 @@ class MediaDevices {
       )
     }
     devices.append(contentsOf: videoDevices)
+
+    let session = AVAudioSession.sharedInstance()
+    guard let availableInputs = session.availableInputs else {
+      return devices
+    }
+
+    let bluetoothOutput = availableInputs
+      .filter { $0.portType == AVAudioSession.Port.bluetoothHFP }.last
+    if bluetoothOutput != nil {
+      devices.append(MediaDeviceInfo(
+        deviceId: bluetoothOutput!.portName,
+        label: bluetoothOutput!.portName,
+        kind: MediaDeviceKind.audioOutput
+      ))
+    }
+
     return devices
   }
 
