@@ -513,6 +513,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                              @"facing": @"",
                              @"deviceId": port.UID,
                              @"label": port.portName,
+                             @"groupId": port.portType,
                              @"kind": @"audioinput",
                              }];
     }
@@ -523,6 +524,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                                  @"facing": @"",
                                  @"deviceId": @"Speaker",
                                  @"label": @"Speaker",
+                                 @"groupId": @"Speaker",
                                  @"kind": @"audiooutput",
                                  }];
         }
@@ -530,6 +532,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                              @"facing": @"",
                              @"deviceId": port.UID,
                              @"label": port.portName,
+                             @"groupId": port.portType,
                              @"kind": @"audiooutput",
                              }];
     }
