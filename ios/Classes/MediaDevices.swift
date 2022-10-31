@@ -159,23 +159,27 @@ class MediaDevices {
   private func getUserVideo(constraints: VideoConstraints)
     -> MediaStreamTrackProxy
   {
-    let videoDevice = self
-      .findVideoDeviceForConstraints(constraints: constraints)!
-    let selectedFormat = self.selectFormatForDevice(
-      device: videoDevice,
-      constraints: constraints
-    )
-    let fps = self.selectFpsForFormat(
-      format: selectedFormat,
-      constraints: constraints
-    )
-
     let source = self.state.getPeerFactory().videoSource()
     let capturer = RTCCameraVideoCapturer(delegate: source)
-    capturer.startCapture(with: videoDevice, format: selectedFormat, fps: fps)
+    #if targetEnvironment(simulator)
+      let deviceId = "fake-camera"
+    #else
+      let videoDevice = self
+        .findVideoDeviceForConstraints(constraints: constraints)!
+      let selectedFormat = self.selectFormatForDevice(
+        device: videoDevice,
+        constraints: constraints
+      )
+      let fps = self.selectFpsForFormat(
+        format: selectedFormat,
+        constraints: constraints
+      )
+      capturer.startCapture(with: videoDevice, format: selectedFormat, fps: fps)
+      let deviceId = videoDevice.uniqueID
+    #endif
     let videoTrackSource = VideoMediaTrackSourceProxy(
       peerConnectionFactory: self.state.getPeerFactory(), source: source,
-      deviceId: videoDevice.uniqueID,
+      deviceId: deviceId,
       capturer: capturer
     )
     return videoTrackSource.newTrack()

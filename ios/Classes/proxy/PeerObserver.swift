@@ -75,11 +75,19 @@ class PeerObserver: NSObject, RTCPeerConnectionDelegate {
     _: RTCPeerConnection, didStartReceivingOn transceiver: RTCRtpTransceiver
   ) {
     DispatchQueue.main.async {
-      let track = transceiver.receiver.track!
-      self.peer!.broadcastEventObserver().onTrack(
-        track: MediaStreamTrackProxy(track: track, deviceId: nil, source: nil),
-        transceiver: RtpTransceiverProxy(transceiver: transceiver)
-      )
+      let receiver = transceiver.receiver
+      let track = receiver.track
+      if track != nil {
+        let transceivers = self.peer!.getTransceivers()
+        for trans in transceivers {
+          if trans.getReceiver().id() == receiver.receiverId {
+            self.peer!.broadcastEventObserver().onTrack(
+              track: trans.getReceiver().getTrack(),
+              transceiver: trans
+            )
+          }
+        }
+      }
     }
   }
 
@@ -108,7 +116,11 @@ class PeerObserver: NSObject, RTCPeerConnectionDelegate {
   func peerConnection(_: RTCPeerConnection, didOpen _: RTCDataChannel) {}
 
   /// Does nothing.
-  func peerConnectionShouldNegotiate(_: RTCPeerConnection) {}
+  func peerConnectionShouldNegotiate(_: RTCPeerConnection) {
+    DispatchQueue.main.async {
+      self.peer!.broadcastEventObserver().onNegotiationNeeded()
+    }
+  }
 
   /// Does nothing.
   func peerConnection(

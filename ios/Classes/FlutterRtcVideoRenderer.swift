@@ -264,7 +264,7 @@ class FlutterRtcVideoRenderer: NSObject, FlutterTexture, RTCVideoRenderer {
       buffer.strideU,
       buffer.dataV,
       buffer.strideV,
-      dst,
+      UnsafeMutablePointer<UInt8>(OpaquePointer(dst)),
       Int32(bytesPerRow),
       buffer.width,
       buffer.height

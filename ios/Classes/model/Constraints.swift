@@ -230,11 +230,11 @@ class Constraints {
   /// Flutter side.
   init(map: [String: Any]) {
     let videoArg = map["video"] as? [String: Any]
-    if videoArg != nil {
+    if videoArg != nil, !videoArg!.isEmpty {
       self.video = VideoConstraints(map: videoArg!)
     }
     let audioArg = map["audio"] as? [String: Any]
-    if audioArg != nil {
+    if audioArg != nil, !audioArg!.isEmpty {
       self.audio = AudioConstraints()
     }
   }

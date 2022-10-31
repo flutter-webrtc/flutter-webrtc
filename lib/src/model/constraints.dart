@@ -43,10 +43,14 @@ class DeviceConstraintMap<T extends DeviceMediaConstraints> {
 
   /// Converts this model to the [Map] expected by Flutter.
   Map<String, dynamic> toMap() {
-    return {
-      'mandatory': mandatory?.toMap(),
-      'optional': optional?.toMap(),
-    };
+    var map = <String, dynamic>{};
+    if (mandatory != null) {
+      map['mandatory'] = mandatory?.toMap();
+    }
+    if (optional != null) {
+      map['optional'] = optional?.toMap();
+    }
+    return map;
   }
 }
 

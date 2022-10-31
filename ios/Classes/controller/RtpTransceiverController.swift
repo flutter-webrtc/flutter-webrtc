@@ -57,6 +57,7 @@ class RtpTransceiverController {
       let direction = self.transceiver.getDirection()
       result(direction.rawValue)
     case "stop":
+      self.transceiver.stop()
       result(nil)
     case "dispose":
       self.channel.setMethodCallHandler(nil)

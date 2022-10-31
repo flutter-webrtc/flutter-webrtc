@@ -20,6 +20,9 @@ class PeerConnectionController {
   /// Method channel for communicating with Flutter side.
   private var channel: FlutterMethodChannel
 
+  /// Indicator whether this controller is disposed.
+  private var isDisposed: Bool = false
+
   /// Initializes a new `PeerConnectionController` for the provided
   /// `PeerConnectionProxy`.
   init(messenger: FlutterBinaryMessenger, peer: PeerConnectionProxy) {
@@ -52,6 +55,16 @@ class PeerConnectionController {
     self.eventChannel.setStreamHandler(self.eventController)
   }
 
+  /// Sends the provided response to the provided result.
+  ///
+  /// Checks whether `FlutterMethodChannel` is not disposed before sending data.
+  /// If it's disposed, then does nothing.
+  func sendResultFromTask(_ result: @escaping FlutterResult, _ response: Any?) {
+    if !self.isDisposed {
+      result(response)
+    }
+  }
+
   /// Handles all the supported Flutter method calls for the controlled
   /// `PeerConnectionProxy`.
   func onMethodCall(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -61,15 +74,15 @@ class PeerConnectionController {
       Task {
         do {
           let sdp = try await self.peer.createOffer()
-          result(sdp.asFlutterResult())
+          self.sendResultFromTask(result, sdp.asFlutterResult())
         } catch {
-          result(error)
+          self.sendResultFromTask(result, error)
         }
       }
     case "createAnswer":
       Task {
         let sdp = try! await self.peer.createAnswer()
-        result(sdp.asFlutterResult())
+        self.sendResultFromTask(result, sdp.asFlutterResult())
       }
     case "setLocalDescription":
       let description = argsMap!["description"] as? [String: Any]
@@ -86,9 +99,9 @@ class PeerConnectionController {
             )
           }
           try await self.peer.setLocalDescription(description: desc)
-          result(nil)
+          self.sendResultFromTask(result, nil)
         } catch {
-          result(error)
+          self.sendResultFromTask(result, error)
         }
       }
     case "setRemoteDescription":
@@ -103,9 +116,9 @@ class PeerConnectionController {
               description: sdp!
             )
           )
-          result(nil)
+          self.sendResultFromTask(result, nil)
         } catch {
-          result(error)
+          self.sendResultFromTask(result, error)
         }
       }
     case "addIceCandidate":
@@ -121,9 +134,9 @@ class PeerConnectionController {
               candidate: candidate!
             )
           )
-          result(nil)
+          self.sendResultFromTask(result, nil)
         } catch {
-          result(error)
+          self.sendResultFromTask(result, error)
         }
       }
     case "addTransceiver":
@@ -151,6 +164,7 @@ class PeerConnectionController {
       self.peer.restartIce()
       result(nil)
     case "dispose":
+      self.isDisposed = true
       self.channel.setMethodCallHandler(nil)
       self.peer.dispose()
       result(nil)

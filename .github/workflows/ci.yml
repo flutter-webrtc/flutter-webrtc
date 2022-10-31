@@ -206,9 +206,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO: Run tests on iOS
         platform:
           - android
+          - ios
           - linux
           - macos
           - windows
@@ -224,9 +224,12 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+        if: ${{ matrix.platform != 'android'
+             && matrix.platform != 'ios' }}
       - uses: subosito/flutter-action@v2
       - run: flutter config --enable-${{ matrix.platform }}-desktop
-        if: ${{ matrix.platform != 'android' }}
+        if: ${{ matrix.platform != 'android'
+             && matrix.platform != 'ios' }}
 
       - name: Install `${{ matrix.platform }}` platform dependencies
         run: |
@@ -238,8 +241,9 @@ jobs:
                        xvfb
         if: ${{ matrix.platform == 'linux' }}
 
-      - run: make cargo.build platform=${{ matrix.platform }}
-        if: ${{ matrix.platform != 'android' }}
+      - run: make cargo.build debug=yes platform=${{ matrix.platform }}
+        if: ${{ matrix.platform != 'android'
+             && matrix.platform != 'ios' }}
 
       - name: Test on `${{ matrix.platform }}` platform with emulator
         uses: reactivecircus/android-emulator-runner@v2
@@ -251,6 +255,18 @@ jobs:
           profile: Nexus 6
           script: make flutter.test
         if: ${{ matrix.platform == 'android' }}
+
+      - name: Start iOS simulator
+        id: simulator
+        uses: futureware-tech/simulator-action@v2
+        with:
+          os_version: '>=13.0'
+          os: iOS
+        if: ${{ matrix.platform == 'ios' }}
+      - name: Test on `${{ matrix.platform }}` platform with simulator
+        run: make flutter.test device=${{ steps.simulator.outputs.udid }}
+                               debug=yes
+        if: ${{ matrix.platform == 'ios' }}
 
       - name: Test on `${{ matrix.platform }}` platform with Xvfb
         run: xvfb-run -a make flutter.test device=${{ matrix.platform }}

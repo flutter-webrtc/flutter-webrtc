@@ -128,13 +128,13 @@ flutter.run:
 # Run Flutter plugin integration tests on an attached device.
 #
 # Usage:
-#	make flutter.test [device=<device-id>]
+#	make flutter.test [device=<device-id>] [debug=(no|yes)]
 
 flutter.test:
 	cd example/ && \
 	flutter drive --driver=test_driver/integration_driver.dart \
 	              --target=integration_test/webrtc_test.dart \
-	              --profile \
+	              $(if $(call eq,$(debug),yes),--debug,--profile) \
 	              $(if $(call eq,$(device),),,-d $(device))
 
 

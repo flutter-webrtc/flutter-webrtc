@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
@@ -44,10 +45,13 @@ void main() {
 
     var after = await pc.getTransceivers();
 
-    expect(after[0].mid, equals('0'));
-    expect(after[1].mid, equals('1'));
-    expect(before[0].mid, equals('0'));
-    expect(before[1].mid, equals('1'));
+    expect(after[0].mid!.length, isNonZero);
+    expect(after[1].mid!.length, isNonZero);
+    expect(after[0].mid!, isNot(equals(after[1].mid)));
+
+    expect(before[0].mid!.length, isNonZero);
+    expect(before[1].mid!.length, isNonZero);
+    expect(before[0].mid!, isNot(equals(before[1].mid!)));
 
     await pc.close();
 
@@ -136,14 +140,21 @@ void main() {
   testWidgets('Add Ice Candidate', (WidgetTester tester) async {
     var pc1 = await PeerConnection.create(IceTransportType.all, []);
     var pc2 = await PeerConnection.create(IceTransportType.all, []);
+    final completer = Completer<void>();
 
     pc1.onIceCandidate((candidate) async {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
       if (!pc2.closed) {
         await pc2.addIceCandidate(candidate);
       }
     });
 
     pc2.onIceCandidate((candidate) async {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
       if (!pc1.closed) {
         await pc1.addIceCandidate(candidate);
       }
@@ -158,6 +169,8 @@ void main() {
     var answer = await pc2.createAnswer();
     await pc2.setLocalDescription(answer);
     await pc1.setRemoteDescription(answer);
+
+    await completer.future.timeout(const Duration(seconds: 1));
 
     await pc1.close();
     await pc2.close();
@@ -504,7 +517,7 @@ void main() {
     await pc2.setRemoteDescription(await pc1.createOffer());
 
     var transceivers = await pc2.getTransceivers();
-    await transceivers[0].stop();
+    await transceivers.firstWhere((t) => t.mid == '0').stop();
 
     await onEndedComplete.future.timeout(const Duration(seconds: 10));
     expect(videoTrack.id(), isNot(equals(cloneVideoTrack.id())));
@@ -848,6 +861,10 @@ void main() {
   });
 
   testWidgets('Peer connection get stats.', (WidgetTester tester) async {
+    // TODO: Support stats for iOS platform.
+    if (Platform.isIOS) {
+      return;
+    }
     var pc1 = await PeerConnection.create(IceTransportType.all, []);
     var pc2 = await PeerConnection.create(IceTransportType.all, []);
 

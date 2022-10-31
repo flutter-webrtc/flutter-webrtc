@@ -2,6 +2,10 @@ import WebRTC
 
 /// Wrapper around a `PeerConnection`, powering it with additional API..
 class PeerConnectionProxy {
+  /// List of `IceCandidate`s added before a remote description has been set on
+  /// the underlying peer.
+  private var iceCandidatesBuffer: [IceCandidate] = []
+
   /// List of all the `RtpSenderProxy`s owned by this `PeerConnectionProxy`.
   private var senders: [String: RtpSenderProxy] = [:]
 
@@ -87,7 +91,7 @@ class PeerConnectionProxy {
   /// Sets the provided remote `SessionDescription` to the underlying
   /// `PeerConnection`.
   func setRemoteDescription(description: SessionDescription) async throws {
-    return try await withCheckedThrowingContinuation { continuation in
+    let _: () = try await withCheckedThrowingContinuation { continuation in
       self.peer.setRemoteDescription(
         description.intoWebRtc(),
         completionHandler: { error in
@@ -98,6 +102,10 @@ class PeerConnectionProxy {
           }
         }
       )
+    }
+    while !self.iceCandidatesBuffer.isEmpty {
+      try await self
+        .addIceCandidate(candidate: self.iceCandidatesBuffer.removeFirst())
     }
   }
 
@@ -162,16 +170,21 @@ class PeerConnectionProxy {
   /// Adds the provided `IceCandidate` to the underlying `PeerConnection`.
   func addIceCandidate(candidate: IceCandidate) async throws {
     return try await withCheckedThrowingContinuation { continuation in
-      self.peer.add(
-        candidate.intoWebRtc(),
-        completionHandler: { error in
-          if error == nil {
-            continuation.resume(returning: ())
-          } else {
-            continuation.resume(throwing: error!)
+      if self.peer.remoteDescription != nil {
+        self.peer.add(
+          candidate.intoWebRtc(),
+          completionHandler: { error in
+            if error == nil {
+              continuation.resume(returning: ())
+            } else {
+              continuation.resume(throwing: error!)
+            }
           }
-        }
-      )
+        )
+      } else {
+        self.iceCandidatesBuffer.append(candidate)
+        continuation.resume(returning: ())
+      }
     }
   }
 
