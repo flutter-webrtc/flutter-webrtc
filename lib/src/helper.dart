@@ -150,4 +150,18 @@ class Helper {
     }
     track.enabled = !mute;
   }
+
+  static Future<void> setLandscapeMode({
+    int? textureId,
+    bool isLandscapeSupported = false,
+  }) async {
+    if (kIsWeb || WebRTC.platformIsAndroid) return;
+
+    if (textureId == null) throw 'Call initialize before setting the stream';
+
+    await WebRTC.invokeMethod('setLandscapeMode', <String, dynamic>{
+      'textureId': textureId,
+      'landscapeMode': isLandscapeSupported
+    });
+  }
 }

@@ -106,11 +106,15 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
         onResize?.call();
         break;
       case 'didFirstFrameRendered':
+        _onDidFirstRendered?.call();
         value = value.copyWith(renderVideo: renderVideo);
         onFirstFrameRendered?.call();
         break;
     }
   }
+
+  Function? _onDidFirstRendered;
+  set onDidFirstRendered(Function? f) => _onDidFirstRendered = f;
 
   void errorListener(Object obj) {
     if (obj is Exception) {
@@ -149,5 +153,13 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       return false;
     }
     return true;
+  }
+
+  void setLandscapeMode(bool landscape) {
+    if (_textureId == null) throw 'Call initialize before setting the stream';
+    Helper.setLandscapeMode(
+      textureId: _textureId,
+      isLandscapeSupported: landscape,
+    );
   }
 }
