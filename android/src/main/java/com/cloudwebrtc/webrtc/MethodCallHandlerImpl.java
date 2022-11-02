@@ -35,6 +35,7 @@ import com.twilio.audioswitch.AudioDevice;
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
 import org.webrtc.DefaultVideoDecoderFactory;
+import org.webrtc.DgbVideoEncoderFactory;
 import org.webrtc.DtmfSender;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
@@ -166,7 +167,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     mFactory = PeerConnectionFactory.builder()
             .setOptions(new Options())
-            .setVideoEncoderFactory(new SimulcastVideoEncoderFactoryWrapper(eglContext, true, true))
+            .setVideoEncoderFactory(new DgbVideoEncoderFactory(eglContext, true, true))
             .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
             .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory();
@@ -703,6 +704,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         } else {
           result.notImplemented();
         }
+        break;
+      }
+      case "addSubStream": {
+        String srcTrackId = call.argument("srcTrackId");
+        String targetPeerConnectionId = call.argument("targetPeerConnectionId");
+        addSubStream(srcTrackId, targetPeerConnectionId);
+        result.success(null);
         break;
       }
       default:
@@ -1878,5 +1886,16 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             context,
             activity,
             permissions.toArray(new String[permissions.size()]), callback);
+  }
+
+  public void addSubStream(String srcTrackId, String targetPeerConnectionId){
+    PeerConnection peerConnection = getPeerConnection(targetPeerConnectionId);
+    MediaStreamTrack track = getTrackForId(srcTrackId);
+    if (track instanceof VideoTrack) {
+      VideoTrack videoTrack = (VideoTrack) track;
+      String streamId = getNextStreamUUID();
+      mFactory.createLocalMediaStream(streamId);
+      new TrackFrameCapturer(videoTrack, peerConnection, mFactory, streamId);
+    }
   }
 }

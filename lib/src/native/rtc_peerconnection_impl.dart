@@ -537,4 +537,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       throw 'Unable to RTCPeerConnection::addTransceiver: ${e.message}';
     }
   }
+
+  void addSubStream(String srcTrackId) {
+    WebRTC.invokeMethod('addSubStream', {'srcTrackId': srcTrackId, 'targetPeerConnectionId': _peerConnectionId});
+  }
 }
