@@ -749,7 +749,7 @@ EncodableMap statsToMap(const scoped_refptr<MediaRTCStats>& stats) {
   report_map[EncodableValue("id")] = EncodableValue(stats->id().std_string());
   report_map[EncodableValue("type")] = EncodableValue(stats->type().std_string());
   report_map[EncodableValue("timestamp")] =
-      EncodableValue(stats->timestamp_us());
+      EncodableValue(double(stats->timestamp_us()));
   EncodableMap values;
   auto members = stats->Members();
   for (int i = 0; i < members.size(); i++) {
@@ -943,6 +943,7 @@ void FlutterPeerConnection::RemoveTrack(
   auto sender = GetRtpSenderById(pc, senderId);
   if (nullptr == sender.get()) {
     result->Error("RemoveTrack", "not find RtpSender ");
+    return;
   }
 
   EncodableMap map;
