@@ -344,7 +344,11 @@
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSDictionary* candMap = argsMap[@"candidate"];
         NSString *sdp = candMap[@"candidate"];
-        int sdpMLineIndex = ((NSNumber*)candMap[@"sdpMLineIndex"]).intValue;
+        id sdpMLineIndexValue = candMap[@"sdpMLineIndex"];
+        int sdpMLineIndex = 0;
+        if (![sdpMLineIndexValue isKindOfClass:[NSNull class]]) {
+            sdpMLineIndex = ((NSNumber*)candMap[@"sdpMLineIndex"]).intValue;
+        }
         NSString *sdpMid = candMap[@"sdpMid"];
 
         RTCIceCandidate* candidate = [[RTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:sdpMLineIndex sdpMid:sdpMid];
