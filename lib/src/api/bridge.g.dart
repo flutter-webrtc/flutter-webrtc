@@ -292,7 +292,7 @@ class AudioConstraints {
   ///
   /// First device will be chosen if an empty [`String`] is provided.
   ///
-  /// __NOTE__: There can be only one active recording device at a time, so
+  /// **NOTE**: There can be only one active recording device at a time, so
   ///           changing device will affect all previously obtained audio
   ///           tracks.
   final String? deviceId;
@@ -1307,7 +1307,7 @@ class RtcStatsType with _$RtcStatsType {
     /// number of packets actually received, where the number of packets
     /// received includes any which are late or duplicates. Thus, packets
     /// that arrive late are not counted as lost, and the loss
-    /// __may be negative__ if there are duplicates.
+    /// **may be negative** if there are duplicates.
     ///
     /// [SSRC]: https://w3.org/TR/webrtc-stats#dfn-ssrc
     int? packetsLost,

@@ -6801,7 +6801,7 @@ class _$RtcStatsType_RtcInboundRtpStreamStats
   /// number of packets actually received, where the number of packets
   /// received includes any which are late or duplicates. Thus, packets
   /// that arrive late are not counted as lost, and the loss
-  /// __may be negative__ if there are duplicates.
+  /// **may be negative** if there are duplicates.
   ///
   /// [SSRC]: https://w3.org/TR/webrtc-stats#dfn-ssrc
   @override
@@ -7177,7 +7177,7 @@ abstract class RtcStatsType_RtcInboundRtpStreamStats implements RtcStatsType {
   /// number of packets actually received, where the number of packets
   /// received includes any which are late or duplicates. Thus, packets
   /// that arrive late are not counted as lost, and the loss
-  /// __may be negative__ if there are duplicates.
+  /// **may be negative** if there are duplicates.
   ///
   /// [SSRC]: https://w3.org/TR/webrtc-stats#dfn-ssrc
   int? get packetsLost;

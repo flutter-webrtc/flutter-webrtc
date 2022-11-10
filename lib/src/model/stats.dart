@@ -1014,7 +1014,7 @@ class RtcInboundRtpStreamStats extends RtcStatsType {
   /// This number is defined to be the number of packets expected less the
   /// number of packets actually received, where the number of packets received
   /// includes any which are late or duplicates. Thus, packets that arrive late
-  /// are not counted as lost, and the loss __may be negative__ if there are
+  /// are not counted as lost, and the loss **may be negative** if there are
   /// duplicates.
   ///
   /// [SSRC]: https://w3.org/TR/webrtc-stats#dfn-ssrc
