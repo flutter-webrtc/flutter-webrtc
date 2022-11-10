@@ -9,8 +9,4 @@
 
 - (instancetype)initWithTrack:(RTCVideoTrack *) track toPath:(NSString *) path result:(FlutterResult)result;
 
-#if TARGET_OS_IPHONE
-+ (UIImage *)convertFrameToUIImage:(RTCVideoFrame *)frame;
-#endif
-
 @end
