@@ -350,20 +350,22 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 2  # for PRs only
-
       - name: Retrieve commit message and hash
         id: commit
         run: |
-          echo ::set-output name=message::$(git log --grep='\[publish\]' --format=%s)
-          echo ::set-output name=sha::${{ (github.event_name == 'pull_request'
-                                           && github.event.pull_request.head.sha)
-                                       ||  github.sha }}
+          echo "message=$(git log --grep='\[publish\]' --format=%s)" \
+          >> $GITHUB_OUTPUT
+          echo "sha=${{ (github.event_name == 'pull_request'
+                         && github.event.pull_request.head.sha)
+                     ||     github.sha }}" \
+          >> $GITHUB_OUTPUT
+
       - name: Check whether should be skipped
         id: skip
-        run: echo ::set-output name=no::${{ !(
+        run: echo "no=${{ !(
                github.event_name == 'pull_request'
                && !contains(steps.commit.outputs.message, '[publish]')
-             ) }}
+             ) }}" >> $GITHUB_OUTPUT
 
       - uses: dart-lang/setup-dart@v1.3
         if: ${{ steps.skip.outputs.no == 'true' }}
