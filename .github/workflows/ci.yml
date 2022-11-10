@@ -56,9 +56,8 @@ jobs:
               ||                                  'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@v1
         with:
-          profile: minimal
           toolchain: stable
           components: clippy
 
@@ -108,9 +107,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@v1
         with:
-          profile: minimal
           toolchain: nightly
           components: rustfmt
 
@@ -142,9 +140,8 @@ jobs:
               || 'macos-11' }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@v1
         with:
-          profile: minimal
           toolchain: stable
       - uses: subosito/flutter-action@v2
       - run: flutter config --enable-${{ matrix.platform }}-desktop
@@ -178,10 +175,11 @@ jobs:
                   libgtk-3-dev libpulse-dev libudev-dev libxcomposite-dev \
                   libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
                   ninja-build
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@v1
         with:
-          profile: minimal
           toolchain: stable
+      # Container doesn't pick `~` (tilde) in `PATH`.
+      - run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - uses: subosito/flutter-action@v2
       - run: flutter config --enable-linux-desktop
 
@@ -220,9 +218,8 @@ jobs:
               ||                                  'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@v1
         with:
-          profile: minimal
           toolchain: stable
         if: ${{ matrix.platform != 'android'
              && matrix.platform != 'ios' }}
@@ -305,9 +302,8 @@ jobs:
               ||                                  'macos-latest' }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@v1
         with:
-          profile: minimal
           toolchain: stable
 
       - name: Install `${{ matrix.platform }}` platform dependencies
