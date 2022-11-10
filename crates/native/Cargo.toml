@@ -13,11 +13,11 @@ anyhow = "1.0"
 cxx = "1.0"
 dashmap = "5.4"
 derive_more = "0.99"
-flutter_rust_bridge = "=1.48.1"
+flutter_rust_bridge = "=1.49.1"
 lazy_static = "1.4"
 libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"
-once_cell = "1.15"
+once_cell = "1.16"
 threadpool = "1.8"
 xxhash = { package = "xxhash-rust", version = "0.8", features = ["xxh3"] }
 

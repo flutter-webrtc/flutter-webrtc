@@ -832,7 +832,6 @@ class RtcInboundRtpStreamVideo extends RtcInboundRtpStreamMediaType {
     this.frameHeight,
     this.totalInterFrameDelay,
     this.framesPerSecond,
-    this.frameBitDepth,
     this.firCount,
     this.pliCount,
     this.concealmentEvents,
@@ -874,12 +873,6 @@ class RtcInboundRtpStreamVideo extends RtcInboundRtpStreamMediaType {
 
   /// Number of decoded frames in the last second.
   double? framesPerSecond;
-
-  /// Bit depth per pixel of the last decoded frame.
-  ///
-  /// Typical values are 24, 30, or 36 bits. Before the first frame is decoded
-  /// this attribute is missing.
-  int? frameBitDepth;
 
   /// Total number of Full Intra Request (FIR) packets sent by this receiver.
   int? firCount;
@@ -947,7 +940,6 @@ class RtcInboundRtpStreamStats extends RtcStatsType {
         cast.frameHeight,
         cast.totalInterFrameDelay,
         cast.framesPerSecond,
-        cast.frameBitDepth,
         cast.firCount,
         cast.pliCount,
         cast.concealmentEvents,
@@ -986,7 +978,6 @@ class RtcInboundRtpStreamStats extends RtcStatsType {
         stats['frameHeight'],
         stats['totalInterFrameDelay'],
         stats['framesPerSecond'],
-        stats['frameBitDepth'],
         stats['firCount'],
         stats['pliCount'],
         stats['concealmentEvents'],
@@ -1199,7 +1190,7 @@ class RtcTransportStats extends RtcStatsType {
         tryParse(stats['packetsReceived']),
         tryParse(stats['bytesSent']),
         tryParse(stats['bytesReceived']),
-        stats['iceRole']);
+        IceRole.values.byName(stats['iceRole']));
   }
 
   /// Total number of packets sent over this transport.

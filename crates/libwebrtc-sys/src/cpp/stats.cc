@@ -171,7 +171,6 @@ RTCInboundRTPStreamStatsWrap cast_to_rtc_inbound_rtp_stream_stats(
     auto frame_height = init_option_u32();
     auto total_inter_frame_delay = init_option_f64();
     auto frames_per_second = init_option_f64();
-    auto frame_bit_depth = init_option_u32();
     auto fir_count = init_option_u32();
     auto pli_count = init_option_u32();
     auto concealment_events = init_option_u64();
@@ -233,10 +232,6 @@ RTCInboundRTPStreamStatsWrap cast_to_rtc_inbound_rtp_stream_stats(
         frames_per_second->set_value(*cast->frames_per_second);
       }
 
-      if (cast->frame_bit_depth.is_defined()) {
-        frame_bit_depth->set_value(*cast->frame_bit_depth);
-      }
-
       if (cast->fir_count.is_defined()) {
         fir_count->set_value(*cast->fir_count);
       }
@@ -285,7 +280,6 @@ RTCInboundRTPStreamStatsWrap cast_to_rtc_inbound_rtp_stream_stats(
         std::move(frame_height),
         std::move(total_inter_frame_delay),
         std::move(frames_per_second),
-        std::move(frame_bit_depth),
         std::move(fir_count),
         std::move(pli_count),
         std::move(concealment_events),

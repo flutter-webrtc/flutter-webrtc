@@ -170,6 +170,10 @@ impl Webrtc {
 
                 VideoDeviceId(displays[0].device_id.clone())
             };
+            if let Some(src) = self.video_sources.get(&device_id) {
+                return Ok(Arc::clone(src));
+            }
+
             (
                 VideoSource::new_display_source(
                     &mut self.worker_thread,
@@ -204,6 +208,10 @@ impl Webrtc {
                         VideoDeviceId(self.video_device_info.device_name(0)?.1);
                     (0, device_id)
                 };
+            if let Some(src) = self.video_sources.get(&device_id) {
+                return Ok(Arc::clone(src));
+            }
+
             (
                 VideoSource::new_device_source(
                     &mut self.worker_thread,
@@ -216,13 +224,9 @@ impl Webrtc {
             )
         };
 
-        if let Some(src) = self.video_sources.get(&device_id) {
-            return Ok(Arc::clone(src));
-        }
-
         let source = self
             .video_sources
-            .entry(source.device_id.clone())
+            .entry(device_id)
             .or_insert_with(|| Arc::new(source));
 
         Ok(Arc::clone(source))

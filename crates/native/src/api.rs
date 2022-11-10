@@ -253,12 +253,6 @@ pub enum RtcInboundRtpStreamMediaType {
         /// Number of decoded frames in the last second.
         frames_per_second: Option<f64>,
 
-        /// Bit depth per pixel of the last decoded frame.
-        ///
-        /// Typical values are 24, 30, or 36 bits. Before the first frame is
-        /// decoded this attribute is missing.
-        frame_bit_depth: Option<u32>,
-
         /// Total number of Full Intra Request (FIR) packets sent by this
         /// receiver.
         fir_count: Option<u32>,
@@ -314,7 +308,6 @@ impl From<sys::RtcInboundRtpStreamMediaType> for RtcInboundRtpStreamMediaType {
                 frame_height,
                 total_inter_frame_delay,
                 frames_per_second,
-                frame_bit_depth,
                 fir_count,
                 pli_count,
                 concealment_events,
@@ -326,7 +319,6 @@ impl From<sys::RtcInboundRtpStreamMediaType> for RtcInboundRtpStreamMediaType {
                 frame_height,
                 total_inter_frame_delay,
                 frames_per_second,
-                frame_bit_depth,
                 fir_count,
                 pli_count,
                 concealment_events,

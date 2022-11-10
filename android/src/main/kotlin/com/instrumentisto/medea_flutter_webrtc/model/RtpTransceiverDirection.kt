@@ -1,6 +1,5 @@
 package com.instrumentisto.medea_flutter_webrtc.model
 
-import java.lang.IllegalArgumentException
 import org.webrtc.RtpTransceiver
 
 /**
@@ -42,15 +41,12 @@ enum class RtpTransceiverDirection(val value: Int) {
      * [RtpTransceiver.RtpTransceiverDirection].
      */
     fun fromWebRtc(direction: RtpTransceiver): RtpTransceiverDirection {
-      return if (direction.isStopped) {
-        STOPPED
-      } else {
-        when (direction.direction) {
-          RtpTransceiver.RtpTransceiverDirection.SEND_RECV -> SEND_RECV
-          RtpTransceiver.RtpTransceiverDirection.SEND_ONLY -> SEND_ONLY
-          RtpTransceiver.RtpTransceiverDirection.RECV_ONLY -> RECV_ONLY
-          RtpTransceiver.RtpTransceiverDirection.INACTIVE -> INACTIVE
-        }
+      return when (direction.direction) {
+        RtpTransceiver.RtpTransceiverDirection.SEND_RECV -> SEND_RECV
+        RtpTransceiver.RtpTransceiverDirection.SEND_ONLY -> SEND_ONLY
+        RtpTransceiver.RtpTransceiverDirection.RECV_ONLY -> RECV_ONLY
+        RtpTransceiver.RtpTransceiverDirection.INACTIVE -> INACTIVE
+        RtpTransceiver.RtpTransceiverDirection.STOPPED -> STOPPED
       }
     }
 
@@ -75,9 +71,7 @@ enum class RtpTransceiverDirection(val value: Int) {
       SEND_ONLY -> RtpTransceiver.RtpTransceiverDirection.SEND_ONLY
       RECV_ONLY -> RtpTransceiver.RtpTransceiverDirection.RECV_ONLY
       INACTIVE -> RtpTransceiver.RtpTransceiverDirection.INACTIVE
-      STOPPED ->
-          throw IllegalArgumentException(
-              "RtpTransceiver.RtpTransceiverDirection.STOPPED is not supported.")
+      STOPPED -> RtpTransceiver.RtpTransceiverDirection.STOPPED
     }
   }
 }

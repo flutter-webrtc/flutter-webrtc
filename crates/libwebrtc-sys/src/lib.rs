@@ -669,8 +669,8 @@ impl RTCOfferAnswerOptions {
         use_rtp_mux: bool,
     ) -> Self {
         Self(webrtc::create_rtc_offer_answer_options(
-            offer_to_receive_video.map_or(-1, |f| if f { 1 } else { 0 }),
-            offer_to_receive_audio.map_or(-1, |f| if f { 1 } else { 0 }),
+            offer_to_receive_video.map_or(-1, i32::from),
+            offer_to_receive_audio.map_or(-1, i32::from),
             voice_activity_detection,
             ice_restart,
             use_rtp_mux,
@@ -1537,7 +1537,6 @@ impl VideoTrackSourceInterface {
         Ok(VideoTrackSourceInterface(ptr))
     }
 
-    // TODO: Support screens enumeration.
     /// Starts screen capturing and creates a new [`VideoTrackSourceInterface`]
     /// with the specified constraints.
     ///
@@ -2082,12 +2081,6 @@ pub enum RtcInboundRtpStreamMediaType {
         /// Number of decoded frames in the last second.
         frames_per_second: Option<f64>,
 
-        /// Bit depth per pixel of the last decoded frame.
-        ///
-        /// Typical values are 24, 30, or 36 bits. Before the first frame is
-        /// decoded this attribute is missing.
-        frame_bit_depth: Option<u32>,
-
         /// Total number of Full Intra Request (FIR) packets sent by this
         /// receiver.
         fir_count: Option<u32>,
@@ -2620,7 +2613,6 @@ impl TryFrom<webrtc::RTCStatsWrap> for RtcStatsType {
                     mut frame_height,
                     mut total_inter_frame_delay,
                     mut frames_per_second,
-                    mut frame_bit_depth,
                     mut fir_count,
                     mut pli_count,
                     mut concealment_events,
@@ -2648,7 +2640,6 @@ impl TryFrom<webrtc::RTCStatsWrap> for RtcStatsType {
                         frame_height: frame_height.take(),
                         total_inter_frame_delay: total_inter_frame_delay.take(),
                         frames_per_second: frames_per_second.take(),
-                        frame_bit_depth: frame_bit_depth.take(),
                         fir_count: fir_count.take(),
                         pli_count: pli_count.take(),
                         concealment_events: concealment_events.take(),

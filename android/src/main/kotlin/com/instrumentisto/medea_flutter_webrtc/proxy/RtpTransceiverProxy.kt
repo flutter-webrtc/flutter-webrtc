@@ -78,9 +78,7 @@ class RtpTransceiverProxy(obj: RtpTransceiver) : Proxy<RtpTransceiver>(obj) {
             RtpTransceiverDirection.RECV_ONLY -> RtpTransceiverDirection.RECV_ONLY
             RtpTransceiverDirection.SEND_RECV -> RtpTransceiverDirection.SEND_RECV
             RtpTransceiverDirection.SEND_ONLY -> RtpTransceiverDirection.SEND_RECV
-            else -> {
-              RtpTransceiverDirection.STOPPED
-            }
+            RtpTransceiverDirection.STOPPED -> RtpTransceiverDirection.STOPPED
           }
         } else {
           when (currentDirection) {
@@ -88,9 +86,7 @@ class RtpTransceiverProxy(obj: RtpTransceiver) : Proxy<RtpTransceiver>(obj) {
             RtpTransceiverDirection.RECV_ONLY -> RtpTransceiverDirection.INACTIVE
             RtpTransceiverDirection.SEND_RECV -> RtpTransceiverDirection.SEND_ONLY
             RtpTransceiverDirection.SEND_ONLY -> RtpTransceiverDirection.SEND_ONLY
-            else -> {
-              RtpTransceiverDirection.STOPPED
-            }
+            RtpTransceiverDirection.STOPPED -> RtpTransceiverDirection.STOPPED
           }
         }
     if (newDirection != RtpTransceiverDirection.STOPPED) {
@@ -112,9 +108,7 @@ class RtpTransceiverProxy(obj: RtpTransceiver) : Proxy<RtpTransceiver>(obj) {
             RtpTransceiverDirection.SEND_ONLY -> RtpTransceiverDirection.SEND_ONLY
             RtpTransceiverDirection.SEND_RECV -> RtpTransceiverDirection.SEND_RECV
             RtpTransceiverDirection.RECV_ONLY -> RtpTransceiverDirection.SEND_RECV
-            else -> {
-              RtpTransceiverDirection.STOPPED
-            }
+            RtpTransceiverDirection.STOPPED -> RtpTransceiverDirection.STOPPED
           }
         } else {
           when (currentDirection) {
@@ -122,9 +116,7 @@ class RtpTransceiverProxy(obj: RtpTransceiver) : Proxy<RtpTransceiver>(obj) {
             RtpTransceiverDirection.SEND_ONLY -> RtpTransceiverDirection.INACTIVE
             RtpTransceiverDirection.SEND_RECV -> RtpTransceiverDirection.RECV_ONLY
             RtpTransceiverDirection.RECV_ONLY -> RtpTransceiverDirection.RECV_ONLY
-            else -> {
-              RtpTransceiverDirection.STOPPED
-            }
+            RtpTransceiverDirection.STOPPED -> RtpTransceiverDirection.STOPPED
           }
         }
     if (newDirection != RtpTransceiverDirection.STOPPED) {

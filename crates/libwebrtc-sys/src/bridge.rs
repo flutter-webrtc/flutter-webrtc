@@ -370,12 +370,6 @@ pub(crate) mod webrtc {
         /// Number of decoded frames in the last second.
         pub frames_per_second: Box<OptionF64>,
 
-        /// Bit depth per pixel of the last decoded frame.
-        ///
-        /// Typical values are 24, 30, or 36 bits. Before the first frame is
-        /// decoded this attribute is missing.
-        pub frame_bit_depth: Box<OptionU32>,
-
         /// Total number of Full Intra Request (FIR) packets sent by this
         /// receiver.
         pub fir_count: Box<OptionU32>,
