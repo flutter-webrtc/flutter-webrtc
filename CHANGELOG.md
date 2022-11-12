@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.14] - 2022-11-12
+
+* [iOS] Fix setSpeakerOn has no effect after change AVAudioSession mode to playback.
+
 [0.9.13] - 2022-11-12
 
 * [Dart] Change MediaStream.clone to async.
