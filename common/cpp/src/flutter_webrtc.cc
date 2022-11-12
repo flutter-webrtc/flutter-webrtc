@@ -261,10 +261,11 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     SdpParseError error;
+    int sdpMLineIndex = findInt(constraints, "sdpMLineIndex");
     scoped_refptr<RTCIceCandidate> rtc_candidate =
         RTCIceCandidate::Create(findString(constraints, "candidate").c_str(),
                                 findString(constraints, "sdpMid").c_str(),
-                                findInt(constraints, "sdpMLineIndex"), &error);
+                                sdpMLineIndex == -1 ? 0 : sdpMLineIndex, &error);
 
     AddIceCandidate(rtc_candidate.get(), pc, std::move(result));
   } else if (method_call.method_name().compare("getStats") == 0) {

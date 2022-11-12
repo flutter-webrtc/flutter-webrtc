@@ -1531,11 +1531,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     boolean res = false;
     PeerConnection peerConnection = getPeerConnection(id);
     if (peerConnection != null) {
+      int sdpMLineIndex = 0;
+      if (!candidateMap.isNull("sdpMLineIndex")) {
+        sdpMLineIndex = candidateMap.getInt("sdpMLineIndex");
+      }
       IceCandidate candidate = new IceCandidate(
-              candidateMap.getString("sdpMid"),
-              candidateMap.getInt("sdpMLineIndex"),
-              candidateMap.getString("candidate")
-      );
+          candidateMap.getString("sdpMid"),
+          sdpMLineIndex,
+          candidateMap.getString("candidate"));
       res = peerConnection.addIceCandidate(candidate);
     } else {
       resultError("peerConnectionAddICECandidate", "peerConnection is null", result);
