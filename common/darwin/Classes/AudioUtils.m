@@ -26,7 +26,6 @@
     } else if (!recording || (session.category == AVAudioSessionCategoryAmbient
                               || session.category == AVAudioSessionCategorySoloAmbient)) {
         config.category = AVAudioSessionCategoryPlayback;
-        config.categoryOptions = 0;
         config.mode = AVAudioSessionModeDefault;
         
         // upgrade from ambient if needed
