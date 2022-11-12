@@ -992,6 +992,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
               .setEnableAes128Sha1_32CryptoCipher(cryptoOptions.hasKey("enableAes128Sha1_32CryptoCipher") && cryptoOptions.getBoolean("enableAes128Sha1_32CryptoCipher"))
               .createCryptoOptions();
     }
+    if (map.hasKey("enableCpuOveruseDetection")
+            && map.getType("enableCpuOveruseDetection") == ObjectType.Boolean) {
+      final boolean v = map.getBoolean("enableCpuOveruseDetection");
+      conf.enableCpuOveruseDetection = v;
+    }
     return conf;
   }
 
@@ -1269,7 +1274,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           mediaStream.addTrack((VideoTrack) track);
           result.success(null);
         } else {
-          resultError("mediaStreamRemoveTrack", "mediaStreamAddTrack() track [" + trackId + "] has unsupported type: " + kind, result);
+          resultError("mediaStreamAddTrack", "mediaStreamAddTrack() track [" + trackId + "] has unsupported type: " + kind, result);
         }
       } else {
         resultError("mediaStreamAddTrack", "mediaStreamAddTrack() track [" + trackId + "] is null", result);
@@ -1292,13 +1297,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           mediaStream.removeTrack((VideoTrack) track);
           result.success(null);
         } else {
-          resultError("mediaStreamRemoveTrack", "mediaStreamAddTrack() track [" + trackId + "] has unsupported type: " + kind, result);
+          resultError("mediaStreamRemoveTrack", "mediaStreamRemoveTrack() track [" + trackId + "] has unsupported type: " + kind, result);
         }
       } else {
-        resultError("mediaStreamRemoveTrack", "mediaStreamAddTrack() track [" + trackId + "] is null", result);
+        resultError("mediaStreamRemoveTrack", "mediaStreamRemoveTrack() track [" + trackId + "] is null", result);
       }
     } else {
-      resultError("mediaStreamRemoveTrack", "mediaStreamAddTrack() stream [" + streamId + "] is null", result);
+      resultError("mediaStreamRemoveTrack", "mediaStreamRemoveTrack() stream [" + streamId + "] is null", result);
     }
   }
 
@@ -1888,16 +1893,5 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             context,
             activity,
             permissions.toArray(new String[permissions.size()]), callback);
-  }
-
-  public void addSubStream(String srcTrackId, String targetPeerConnectionId){
-    PeerConnection peerConnection = getPeerConnection(targetPeerConnectionId);
-    MediaStreamTrack track = getTrackForId(srcTrackId);
-    if (track instanceof VideoTrack) {
-      VideoTrack videoTrack = (VideoTrack) track;
-      String streamId = getNextStreamUUID();
-      mFactory.createLocalMediaStream(streamId);
-      new TrackFrameCapturer(videoTrack, peerConnection, mFactory, streamId);
-    }
   }
 }
