@@ -985,6 +985,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
               .setEnableAes128Sha1_32CryptoCipher(cryptoOptions.hasKey("enableAes128Sha1_32CryptoCipher") && cryptoOptions.getBoolean("enableAes128Sha1_32CryptoCipher"))
               .createCryptoOptions();
     }
+    if (map.hasKey("enableCpuOveruseDetection")
+            && map.getType("enableCpuOveruseDetection") == ObjectType.Boolean) {
+      final boolean v = map.getBoolean("enableCpuOveruseDetection");
+      conf.enableCpuOveruseDetection = v;
+    }
     return conf;
   }
 
