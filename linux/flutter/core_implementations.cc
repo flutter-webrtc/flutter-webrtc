@@ -32,15 +32,16 @@ namespace {
 // This serves as an adaptor between the function-pointer-based message callback
 // interface provided by the C API and the std::function-based message handler
 // interface of BinaryMessenger.
-void ForwardToHandler(FlBinaryMessenger* messenger,
+static void ForwardToHandler(FlBinaryMessenger* messenger,
                       const gchar* channel,
                       GBytes* message,
                       FlBinaryMessengerResponseHandle* response_handle,
                       gpointer user_data) {
-  BinaryReply reply_handler = [messenger, response_handle](
+  auto handler = g_object_ref(response_handle);
+  BinaryReply reply_handler = [messenger, handler](
                                   const uint8_t* reply,
                                   size_t reply_size) mutable {
-    if (!response_handle) {
+    if (!handler) {
       std::cerr << "Error: Response can be set only once. Ignoring "
                    "duplicate response."
                 << std::endl;
@@ -49,15 +50,19 @@ void ForwardToHandler(FlBinaryMessenger* messenger,
 
     g_autoptr(GBytes) response = g_bytes_new(reply, reply_size);
     GError* error = nullptr;
-    if (!fl_binary_messenger_send_response(messenger, response_handle, response,
+    if (!fl_binary_messenger_send_response(messenger, handler, response,
                                            &error)) {
-      g_warning("Failed to send event channel response: %s", error->message);
+      g_warning("Failed to send binary response: %s", error->message);
     }
-    response_handle = nullptr;
   };
 
   const BinaryMessageHandler& message_handler =
       *static_cast<BinaryMessageHandler*>(user_data);
+  
+  if(user_data == nullptr) {
+    std::cerr << "Error: user_data is null" << std::endl;
+    return;
+  }
 
   message_handler(
       static_cast<const uint8_t*>(g_bytes_get_data(message, nullptr)),
@@ -72,16 +77,15 @@ BinaryMessengerImpl::~BinaryMessengerImpl() = default;
 
 struct Captures {
   BinaryReply reply;
-  FlBinaryMessenger* messenger;
 };
 
-void message_reply_cb(GObject* object,
+static void message_reply_cb(GObject* object,
                       GAsyncResult* result,
                       gpointer user_data) {
   g_autoptr(GError) error = nullptr;
   auto captures = reinterpret_cast<Captures*>(user_data);
   g_autoptr(GBytes) message = fl_binary_messenger_send_on_channel_finish(
-      captures->messenger, result, &error);
+      FL_BINARY_MESSENGER(object), result, &error);
   captures->reply(
       static_cast<const uint8_t*>(g_bytes_get_data(message, nullptr)),
       g_bytes_get_size(message));
@@ -101,21 +105,12 @@ void BinaryMessengerImpl::Send(const std::string& channel,
 
   auto captures = new Captures();
   captures->reply = reply;
-  captures->messenger = messenger_;
 
   g_autoptr(GBytes) data = g_bytes_new(message, message_size);
   fl_binary_messenger_send_on_channel(messenger_, channel.c_str(), data,
                                       nullptr, message_reply_cb, captures);
 }
 
-/*
-void fl_binary_messenger_set_message_handler_on_channel(
-    FlBinaryMessenger* messenger,
-    const gchar* channel,
-    FlBinaryMessengerMessageHandler handler,
-    gpointer user_data,
-    GDestroyNotify destroy_notify);
-*/
 void BinaryMessengerImpl::SetMessageHandler(const std::string& channel,
                                             BinaryMessageHandler handler) {
   if (!handler) {
