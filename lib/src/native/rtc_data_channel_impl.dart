@@ -14,10 +14,14 @@ final _typeStringToMessageType = <String, MessageType>{
 /// A class that represents a WebRTC datachannel.
 /// Can send and receive text and binary messages.
 class RTCDataChannelNative extends RTCDataChannel {
-  RTCDataChannelNative(this._peerConnectionId, this._label, this._dataChannelId,
-      this._flutterId) {
+  RTCDataChannelNative(
+      this._peerConnectionId, this._label, this._dataChannelId, this._flutterId,
+      {RTCDataChannelState? state}) {
     stateChangeStream = _stateChangeController.stream;
     messageStream = _messageController.stream;
+    if (state != null) {
+      _state = state;
+    }
     _eventSubscription = _eventChannelFor(_peerConnectionId, _flutterId)
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
@@ -26,6 +30,7 @@ class RTCDataChannelNative extends RTCDataChannel {
   final String _label;
   int _bufferedAmount = 0;
   @override
+  // ignore: overridden_fields
   int? bufferedAmountLowThreshold;
 
   /// Id for the datachannel in the Flutter <-> Native layer.

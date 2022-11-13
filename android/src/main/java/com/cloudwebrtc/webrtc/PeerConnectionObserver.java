@@ -9,6 +9,7 @@ import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
 import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +25,9 @@ import org.webrtc.IceCandidate;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
+import org.webrtc.RTCStats;
+import org.webrtc.RTCStatsCollectorCallback;
+import org.webrtc.RTCStatsReport;
 import org.webrtc.RtpParameters;
 import org.webrtc.RtpReceiver;
 import org.webrtc.RtpSender;
@@ -188,50 +192,84 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         }
         return null;
     }
+  void handleStatsReport(RTCStatsReport rtcStatsReport, Result result) {
+      Map<String, RTCStats>    reports = rtcStatsReport.getStatsMap();
+      ConstraintsMap params = new ConstraintsMap();
+      ConstraintsArray stats = new ConstraintsArray();
 
-  void getStats(String trackId, final Result result) {
-    MediaStreamTrack track = null;
-    if (trackId == null
-        || trackId.isEmpty()
-        || (track = stateProvider.getLocalTracks().get(trackId)) != null
-        || (track = remoteTracks.get(trackId)) != null) {
-      peerConnection.getStats(
-          new StatsObserver() {
-            @Override
-            public void onComplete(StatsReport[] reports) {
+      for (RTCStats report : reports.values()) {
+          ConstraintsMap report_map = new ConstraintsMap();
 
-              final int reportCount = reports.length;
-              ConstraintsMap params = new ConstraintsMap();
-              ConstraintsArray stats = new ConstraintsArray();
+          report_map.putString("id", report.getId());
+          report_map.putString("type", report.getType());
+          report_map.putDouble("timestamp", report.getTimestampUs());
 
-              for (int i = 0; i < reportCount; ++i) {
-                StatsReport report = reports[i];
-                ConstraintsMap report_map = new ConstraintsMap();
-
-                report_map.putString("id", report.id);
-                report_map.putString("type", report.type);
-                report_map.putDouble("timestamp", report.timestamp);
-
-                StatsReport.Value[] values = report.values;
-                ConstraintsMap v_map = new ConstraintsMap();
-                final int valueCount = values.length;
-                for (int j = 0; j < valueCount; ++j) {
-                  StatsReport.Value v = values[j];
-                  v_map.putString(v.name, v.value);
-                }
-
-                report_map.putMap("values", v_map.toMap());
-                stats.pushMap(report_map);
+          Map<String, Object> values = report.getMembers();
+          ConstraintsMap v_map = new ConstraintsMap();
+          for (String key : values.keySet()) {
+              Object v = values.get(key);
+              if(v instanceof String) {
+                  v_map.putString(key, (String)v);
+              } else if(v instanceof String[]) {
+                  ConstraintsArray arr = new ConstraintsArray();
+                  for(String s : (String[])v) {
+                      arr.pushString(s);
+                  }
+                  v_map.putArray(key, arr.toArrayList());
+              } else if(v instanceof Integer) {
+                  v_map.putInt(key, (Integer)v);
+              } else if(v instanceof Long) {
+                  v_map.putLong(key, (Long)v);
+              } else if(v instanceof Double) {
+                  v_map.putDouble(key, (Double)v);
+              } else if(v instanceof Boolean) {
+                  v_map.putBoolean(key, (Boolean)v);
+              } else if(v instanceof BigInteger){
+                  v_map.putLong(key, ((BigInteger)v).longValue());
+              } else {
+                  Log.d(TAG, "getStats() unknown type: " + v.getClass().getName() + " for [" + key + "] value: " + v.toString());
               }
+          }
+          report_map.putMap("values", v_map.toMap());
+          stats.pushMap(report_map);
+      }
 
-              params.putArray("stats", stats.toArrayList());
-              result.success(params.toMap());
-            }
-          },
-          track);
-    } else {
-        resultError("peerConnectionGetStats","MediaStreamTrack not found for id: " + trackId, result);
-    }
+      params.putArray("stats", stats.toArrayList());
+      result.success(params.toMap());
+  }
+
+  void getStatsForTrack(String trackId, Result result) {
+      if (trackId == null || trackId.isEmpty()) {
+          resultError("peerConnectionGetStats","MediaStreamTrack not found for id: " + trackId, result);
+          return;
+      }
+
+      RtpSender sender = null;
+      RtpReceiver receiver = null;
+      for (RtpSender s : peerConnection.getSenders()) {
+          if (s.track() != null && trackId.equals(s.track().id())) {
+              sender = s;
+              break;
+          }
+      }
+      for (RtpReceiver r : peerConnection.getReceivers()) {
+          if (r.track() != null && trackId.equals(r.track().id())) {
+              receiver = r;
+              break;
+          }
+      }
+      if (sender != null) {
+          peerConnection.getStats(rtcStatsReport -> handleStatsReport(rtcStatsReport, result), sender);
+      } else if(receiver != null) {
+          peerConnection.getStats(rtcStatsReport -> handleStatsReport(rtcStatsReport, result), receiver);
+      } else {
+          resultError("peerConnectionGetStats","MediaStreamTrack not found for id: " + trackId, result);
+      }
+  }
+
+  void getStats(final Result result) {
+      peerConnection.getStats(
+              rtcStatsReport -> handleStatsReport(rtcStatsReport, result));
   }
 
   @Override
@@ -607,6 +645,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
               return "recvonly";
           case INACTIVE:
               return "inactive";
+          case STOPPED:
+              return "stopped";
       }
       return null;
   }
@@ -621,6 +661,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
               return RtpTransceiver.RtpTransceiverDirection.RECV_ONLY;
           case "inactive":
               return RtpTransceiver.RtpTransceiverDirection.INACTIVE;
+          case "stopped":
+              return RtpTransceiver.RtpTransceiverDirection.STOPPED;
       }
       return RtpTransceiver.RtpTransceiverDirection.INACTIVE;
   }
@@ -1019,7 +1061,7 @@ private RtpParameters updateRtpParameters(RtpParameters parameters, Map<String, 
             resultError("rtpSenderSetTrack", "sender is null", result);
             return;
         }
-        sender.setTrack(track, replace );
+        sender.setTrack(track, false);
         result.success(null);
     }
 

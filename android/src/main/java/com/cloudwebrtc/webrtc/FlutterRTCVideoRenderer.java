@@ -154,6 +154,35 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
 
         setVideoTrack(videoTrack);
     }
+   /**
+     * Sets the {@code MediaStream} to be rendered by this {@code FlutterRTCVideoRenderer}.
+     * The implementation renders the first {@link VideoTrack}, if any, of the
+     * specified trackId
+     *
+     * @param mediaStream The {@code MediaStream} to be rendered by this
+     *                    {@code FlutterRTCVideoRenderer} or {@code null}.
+     * @param trackId The {@code trackId} to be rendered by this
+     *                    {@code FlutterRTCVideoRenderer} or {@code null}.
+     */
+    public void setStream(MediaStream mediaStream,String trackId) {
+        VideoTrack videoTrack;
+        this.mediaStream = mediaStream;
+        if (mediaStream == null) {
+            videoTrack = null;
+        } else {
+            List<VideoTrack> videoTracks = mediaStream.videoTracks;
+
+            videoTrack = videoTracks.isEmpty() ? null : videoTracks.get(0);
+
+            for (VideoTrack track : videoTracks){
+                if (track.id().equals(trackId)){
+                    videoTrack = track;
+                }
+            }
+        }
+
+        setVideoTrack(videoTrack);
+    }
 
     /**
      * Sets the {@code VideoTrack} to be rendered by this {@code FlutterRTCVideoRenderer}.
@@ -172,8 +201,12 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             this.videoTrack = videoTrack;
 
             if (videoTrack != null) {
-                Log.w(TAG, "FlutterRTCVideoRenderer.setVideoTrack, set video track to " + videoTrack.id());
-                tryAddRendererToVideoTrack();
+                try {
+                    Log.w(TAG, "FlutterRTCVideoRenderer.setVideoTrack, set video track to " + videoTrack.id());
+                    tryAddRendererToVideoTrack();
+                } catch (Exception e) {
+                    Log.e(TAG, "tryAddRendererToVideoTrack " + e.toString());
+                }
             } else {
                 Log.w(TAG, "FlutterRTCVideoRenderer.setVideoTrack, set video track to null");
             }
@@ -184,7 +217,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * Starts rendering {@link #videoTrack} if rendering is not in progress and
      * all preconditions for the start of rendering are met.
      */
-    private void tryAddRendererToVideoTrack() {
+    private void tryAddRendererToVideoTrack() throws Exception {
         if (videoTrack != null) {
             EglBase.Context sharedContext = EglUtils.getRootEglBaseContext();
 

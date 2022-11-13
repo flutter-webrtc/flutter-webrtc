@@ -1,4 +1,4 @@
-include: package:pedantic/analysis_options.yaml
+include: package:lints/recommended.yaml
 
 linter:
   rules:
@@ -47,3 +47,4 @@ analyzer:
     sdk_version_async_exported_from_core: ignore
     # Conflict with import_sorter
     directives_ordering: ignore
+    constant_identifier_names: ignore
