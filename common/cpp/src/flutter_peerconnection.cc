@@ -814,12 +814,12 @@ void FlutterPeerConnection::GetStats(const std::string& track_id,
         pc->GetStats(
             receiver,
             [result_ptr](const vector<scoped_refptr<MediaRTCStats>> reports) {
-              EncodableList list;
+              std::vector<EncodableValue> list;
               for (int i = 0; i < reports.size(); i++) {
-                list.push_back(statsToMap(reports[i]));
+                list.push_back(EncodableValue(statsToMap(reports[i])));
               }
               EncodableMap params;
-              params[EncodableValue("stats")] = list;
+              params[EncodableValue("stats")] = EncodableValue(list);
               result_ptr->Success(EncodableValue(params));
             },
             [result_ptr](const char* error) {
@@ -832,16 +832,15 @@ void FlutterPeerConnection::GetStats(const std::string& track_id,
     for (auto sender : senders.std_vector()) {
       if (sender->track()->id().c_string() == track_id) {
         found = true;
-        EncodableList list;
         pc->GetStats(
             sender,
             [result_ptr](const vector<scoped_refptr<MediaRTCStats>> reports) {
-              EncodableList list;
+              std::vector<EncodableValue> list;
               for (int i = 0; i < reports.size(); i++) {
-                list.push_back(statsToMap(reports[i]));
+                list.push_back(EncodableValue(statsToMap(reports[i])));
               }
               EncodableMap params;
-              params[EncodableValue("stats")] = list;
+              params[EncodableValue("stats")] = EncodableValue(list);
               result_ptr->Success(EncodableValue(params));
             },
             [result_ptr](const char* error) {
@@ -856,12 +855,12 @@ void FlutterPeerConnection::GetStats(const std::string& track_id,
   } else {
     pc->GetStats(
         [result_ptr](const vector<scoped_refptr<MediaRTCStats>> reports) {
-        EncodableList list;
+        std::vector<EncodableValue> list;
         for (int i = 0; i < reports.size(); i++) {
-          list.push_back(statsToMap(reports[i]));
+          list.push_back(EncodableValue(statsToMap(reports[i])));
         }
         EncodableMap params;
-        params[EncodableValue("stats")] = list;
+        params[EncodableValue("stats")] = EncodableValue(list);
         result_ptr->Success(EncodableValue(params));
       },
         [result_ptr](const char* error) {
