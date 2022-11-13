@@ -833,7 +833,7 @@ void FlutterPeerConnection::GetStats(
             [result_ptr](const vector<scoped_refptr<MediaRTCStats>> reports) {
               std::vector<EncodableValue> list;
               for (int i = 0; i < reports.size(); i++) {
-                list.push_back(EncodablveValue(statsToMap(reports[i])));
+                list.push_back(EncodableValue(statsToMap(reports[i])));
               }
               EncodableMap params;
               params[EncodableValue("stats")] = EncodableValue(list);
