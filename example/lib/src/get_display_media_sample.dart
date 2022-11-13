@@ -41,7 +41,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   }
 
   Future<void> selectScreenSourceDialog(BuildContext context) async {
-    if (WebRTC.platformIsMacOS || WebRTC.platformIsWindows) {
+    if (WebRTC.platformIsDesktop) {
       final source = await showDialog<DesktopCapturerSource>(
         context: context,
         builder: (context) => ScreenSelectDialog(),
