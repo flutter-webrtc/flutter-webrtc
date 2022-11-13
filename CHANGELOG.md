@@ -1,6 +1,28 @@
 # Changelog
 
 --------------------------------------------
+[0.9.14] - 2022-11-12
+
+* [iOS] Fix setSpeakerOn has no effect after change AVAudioSession mode to playback.
+
+[0.9.13] - 2022-11-12
+
+* [Dart] Change MediaStream.clone to async.
+* [iOS] Fixed the bug that the mic indicator light was still on when mic recording was stopped.
+* [iOS/macOS/Android/Windows] Allow sdpMLineIndex to be null when addCandidate.
+* [macOS] Frame capture support for MacOS.
+* [Android] Add enableCpuOveruseDetection configuration (#1165).
+* [Android] Update comments (#1164).
+
+[0.9.12] - 2022-11-02
+
+* [iOS] Fixed the problem that iOS earphones and speakers do not switch.
+* [Windows] fix bug for rtpSender->RemoveTrack/pc->getStats.
+* [iOS] Return groupId.
+* [Web] MediaRecorder.startWeb() should expose the timeslice parameter.
+* [iOS] Implement RTCPeerConnectionDelegate didRemoveIceCandidates method.
+* [iOS] fix disposing Broadcast Sharing stream.
+
 [0.9.11] - 2022-10-16
 
 * [iOS] fix audio route/setSpeakerphoneOn issues.

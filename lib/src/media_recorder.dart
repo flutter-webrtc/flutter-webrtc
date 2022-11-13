@@ -18,8 +18,12 @@ class MediaRecorder extends rtc.MediaRecorder {
   void startWeb(
     MediaStream stream, {
     Function(dynamic blob, bool isLastOne)? onDataChunk,
-    String? mimeType,
+    String? mimeType,int timeSlice = 1000,
   }) =>
-      _delegate.startWeb(stream,
-          onDataChunk: onDataChunk, mimeType: mimeType ?? 'video/webm');
+      _delegate.startWeb(
+        stream,
+        onDataChunk: onDataChunk,
+        mimeType: mimeType ?? 'video/webm',
+        timeSlice: timeSlice,
+      );
 }
