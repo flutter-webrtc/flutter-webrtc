@@ -17,6 +17,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
   @override
   Future<void> initialize() async {
+    if (_textureId != null) {
+      return;
+    }
     final response = await WebRTC.invokeMethod('createVideoRenderer', {});
     _textureId = response['textureId'];
     _eventSubscription = EventChannel('FlutterWebRTC/Texture$textureId')
@@ -40,6 +43,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   Function? onResize;
 
   @override
+  Function? onFirstFrameRendered;
+
+  @override
   set srcObject(MediaStream? stream) {
     if (textureId == null) throw 'Call initialize before setting the stream';
 
@@ -55,14 +61,32 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     });
   }
 
+  void setSrcObject({MediaStream? stream, String? trackId}) {
+    if (textureId == null) throw 'Call initialize before setting the stream';
+
+    _srcObject = stream;
+    WebRTC.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
+      'textureId': textureId,
+      'streamId': stream?.id ?? '',
+      'ownerTag': stream?.ownerTag ?? '',
+      'trackId': trackId ?? '0'
+    }).then((_) {
+      value = (stream == null)
+          ? RTCVideoValue.empty
+          : value.copyWith(renderVideo: renderVideo);
+    });
+  }
+
   @override
   Future<void> dispose() async {
     await _eventSubscription?.cancel();
-    await WebRTC.invokeMethod(
-      'videoRendererDispose',
-      <String, dynamic>{'textureId': _textureId},
-    );
-
+    _eventSubscription = null;
+    if (_textureId != null) {
+      await WebRTC.invokeMethod('videoRendererDispose', <String, dynamic>{
+        'textureId': _textureId,
+      });
+      _textureId = null;
+    }
     return super.dispose();
   }
 
@@ -83,6 +107,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
         break;
       case 'didFirstFrameRendered':
         value = value.copyWith(renderVideo: renderVideo);
+        onFirstFrameRendered?.call();
         break;
     }
   }

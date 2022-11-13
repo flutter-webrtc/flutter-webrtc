@@ -1,6 +1,68 @@
 # Changelog
 
 --------------------------------------------
+[0.9.14] - 2022-11-12
+
+* [iOS] Fix setSpeakerOn has no effect after change AVAudioSession mode to playback.
+
+[0.9.13] - 2022-11-12
+
+* [Dart] Change MediaStream.clone to async.
+* [iOS] Fixed the bug that the mic indicator light was still on when mic recording was stopped.
+* [iOS/macOS/Android/Windows] Allow sdpMLineIndex to be null when addCandidate.
+* [macOS] Frame capture support for MacOS.
+* [Android] Add enableCpuOveruseDetection configuration (#1165).
+* [Android] Update comments (#1164).
+
+[0.9.12] - 2022-11-02
+
+* [iOS] Fixed the problem that iOS earphones and speakers do not switch.
+* [Windows] fix bug for rtpSender->RemoveTrack/pc->getStats.
+* [iOS] Return groupId.
+* [Web] MediaRecorder.startWeb() should expose the timeslice parameter.
+* [iOS] Implement RTCPeerConnectionDelegate didRemoveIceCandidates method.
+* [iOS] fix disposing Broadcast Sharing stream.
+
+[0.9.11] - 2022-10-16
+
+* [iOS] fix audio route/setSpeakerphoneOn issues.
+* [Windows] fix: Have same remote streams id then found wrong MediaStream.
+* [Dart] feat: RTCVideoRenderer supports specific trackId when setting MediaStream.
+
+[0.9.9+hotfix.1] - 2022-10-12
+
+* [Darwin] Fix getStats for darwin when trackId is NSNull.
+
+[0.9.9] - 2022-10-12
+
+* [Darwin/Android/Windows] Support getStats for RtpSender/RtpReceiver (Migrate from Legacy to Standard Stats for getStats).
+* [Android] Dispose streams and connections.
+* [Android] Support rtp transceiver direction type 4.
+* [Web] Update dart_webrtc dependendency.
+
+[0.9.8] - 2022-09-30
+
+* [Android] fix: Make sure local stream/track dispose correctly.
+* [Android] Remove bluetooth permission on peerConnectionInit.
+* [iOS] Fix system sound interruption on iOS (#1099).
+* [Android] Fix: call mode on app start (#1097).
+* [Dart] Avoid renderer initialization multiple times (#1067).
+
+[0.9.7] - 2022-09-13
+
+* [Windows] Support sendDtmf.
+* [Windows] Fixed getStats.
+
+[0.9.6] - 2022-09-06
+
+* [Dart] The dc created by didOpenDataChannel needs to set state to open.
+* [Dart] Added callback onFirstFrameRendered.
+
+[0.9.5] - 2022-08-30
+
+* [Android] fix: Fix crash when using multiple renderers.
+* [Android] fix bug with track dispose cannot close video
+* [Andorid/iOS/macOS/Windows] Fix bug of missing events in data-channel.
 
 [0.9.4] - 2022-08-22
 
@@ -81,7 +143,6 @@
 
 * [Android] Fix simulcast factory not sending back EncoderInfo (#891)
 * [Android] fix: correct misspell in method screenRequestPermissions (#876)
-
 
 [0.8.3] - 2022-03-01
 

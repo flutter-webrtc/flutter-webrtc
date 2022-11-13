@@ -4,10 +4,7 @@
 #import <FlutterMacOS/FlutterMacOS.h>
 #endif
 
-
 #import "FlutterRTCFrameCapturer.h"
-
-#define clamp(a) (a>255?255:(a<0?0:a))
 
 @import CoreImage;
 @import CoreVideo;
@@ -36,99 +33,148 @@
 {
 }
 
-#if TARGET_OS_IPHONE
-// Thanks Juan Giorello https://groups.google.com/g/discuss-webrtc/c/ULGIodbbLvM
-+ (UIImage *)convertFrameToUIImage:(RTCVideoFrame *)frame {
-    // https://chromium.googlesource.com/external/webrtc/+/refs/heads/main/sdk/objc/base/RTCVideoFrame.h    
-    // RTCVideoFrameBuffer *rtcFrameBuffer = (RTCVideoFrameBuffer *)frame.buffer;
-    // RTCI420Buffer *buffer = [rtcFrameBuffer toI420];
-
-    // https://chromium.googlesource.com/external/webrtc/+/refs/heads/main/sdk/objc/base/RTCVideoFrameBuffer.h
-    // This guarantees the buffer will be RTCI420Buffer
-    RTCI420Buffer *buffer = [frame.buffer toI420];
-    
-    
-    int width = buffer.width;
-    int height = buffer.height;
-    int bytesPerPixel = 4;
-    uint8_t *rgbBuffer = malloc(width * height * bytesPerPixel);
-    
-    for(int row = 0; row < height; row++) {
-        const uint8_t *yLine = &buffer.dataY[row * buffer.strideY];
-        const uint8_t *uLine = &buffer.dataU[(row >> 1) * buffer.strideU];
-        const uint8_t *vLine = &buffer.dataV[(row >> 1) * buffer.strideV];
-        
-        for(int x = 0; x < width; x++) {
-            int16_t y = yLine[x];
-            int16_t u = uLine[x >> 1] - 128;
-            int16_t v = vLine[x >> 1] - 128;
-            
-            int16_t r = roundf(y + v * 1.4);
-            int16_t g = roundf(y + u * -0.343 + v * -0.711);
-            int16_t b = roundf(y + u * 1.765);
-            
-            uint8_t *rgb = &rgbBuffer[(row * width + x) * bytesPerPixel];
-            rgb[0] = 0xff;
-            rgb[1] = clamp(b);
-            rgb[2] = clamp(g);
-            rgb[3] = clamp(r);
-        }
-    }
-    
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef context = CGBitmapContextCreate(rgbBuffer, width, height, 8, width * bytesPerPixel, colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipLast);
-    
-    CGImageRef cgImage = CGBitmapContextCreateImage(context);
-    CGContextRelease(context);
-    CGColorSpaceRelease(colorSpace);
-    free(rgbBuffer);
-
-    UIImageOrientation orientation;
-    switch (frame.rotation) {
-        case RTCVideoRotation_90:
-            orientation = UIImageOrientationRight;
-            break;
-        case RTCVideoRotation_180:
-            orientation = UIImageOrientationDown;
-            break;
-        case RTCVideoRotation_270:
-            orientation = UIImageOrientationLeft;
-        default:
-            orientation = UIImageOrientationUp;
-            break;
-    }
-
-    UIImage *image = [UIImage imageWithCGImage:cgImage scale:1 orientation:orientation];
-    CGImageRelease(cgImage);
-    
-    return image;
-}
-#endif
-
 - (void)renderFrame:(nullable RTCVideoFrame *)frame
 {
-#if TARGET_OS_IPHONE
-    if (_gotFrame || frame == nil) return;
+    if (_gotFrame || frame == nil)
+        return;
     _gotFrame = true;
-
-    UIImage *uiImage = [FlutterRTCFrameCapturer convertFrameToUIImage:frame];
-    NSData *jpgData = UIImageJPEGRepresentation(uiImage, 0.9f);
-
-    if ([jpgData writeToFile:_path atomically:NO]) {
+    id <RTCVideoFrameBuffer> buffer = frame.buffer;
+    CVPixelBufferRef pixelBufferRef;
+    bool shouldRelease;
+    if (![buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
+        pixelBufferRef = [self convertToCVPixelBuffer:frame];
+        shouldRelease = true;
+    } else {
+        pixelBufferRef = ((RTCCVPixelBuffer *) buffer).pixelBuffer;
+        shouldRelease = false;
+    }
+    CIImage *ciImage = [CIImage imageWithCVPixelBuffer:pixelBufferRef];
+    CGRect outputSize;
+    if (@available(iOS 11, macOS 10.13, *)) {
+        switch (frame.rotation) {
+            case RTCVideoRotation_90:
+                ciImage = [ciImage imageByApplyingCGOrientation:kCGImagePropertyOrientationRight];
+                outputSize = CGRectMake(0, 0, frame.height, frame.width);
+                break;
+            case RTCVideoRotation_180:
+                ciImage = [ciImage imageByApplyingCGOrientation:kCGImagePropertyOrientationDown];
+                outputSize = CGRectMake(0, 0, frame.width, frame.height);
+                break;
+            case RTCVideoRotation_270:
+                ciImage = [ciImage imageByApplyingCGOrientation:kCGImagePropertyOrientationLeft];
+                outputSize = CGRectMake(0, 0, frame.height, frame.width);
+                break;
+            default:
+                outputSize = CGRectMake(0, 0, frame.width, frame.height);
+                break;
+        }
+    } else {
+        outputSize = CGRectMake(0, 0, frame.width, frame.height);
+    }
+    CIContext *tempContext = [CIContext contextWithOptions:nil];
+    CGImageRef cgImage = [tempContext
+                          createCGImage:ciImage
+                          fromRect:outputSize];
+    NSData *imageData;
+    #if TARGET_OS_IPHONE
+    UIImage *uiImage = [UIImage imageWithCGImage:cgImage];
+    if ([[_path pathExtension] isEqualToString:@"jpg"]) {
+        imageData = UIImageJPEGRepresentation(uiImage, 1.0f);
+    } else {
+        imageData = UIImagePNGRepresentation(uiImage);
+    }
+    #else
+    NSBitmapImageRep *newRep = [[NSBitmapImageRep alloc] initWithCGImage:cgImage];
+    [newRep setSize:NSSizeToCGSize(outputSize.size)];
+    NSDictionary<NSBitmapImageRepPropertyKey, id>* quality = @{
+        NSImageCompressionFactor: @1.0f
+    };
+    if ([[_path pathExtension] isEqualToString:@"jpg"]) {
+        imageData = [newRep representationUsingType:NSJPEGFileType properties:quality];
+    } else {
+        imageData = [newRep representationUsingType:NSPNGFileType properties:quality];
+    }
+    #endif
+    CGImageRelease(cgImage);
+    if (shouldRelease)
+        CVPixelBufferRelease(pixelBufferRef);
+    if (imageData && [imageData writeToFile:_path atomically:NO]) {
         NSLog(@"File writed successfully to %@", _path);
         _result(nil);
     } else {
         NSLog(@"Failed to write to file");
         _result([FlutterError errorWithCode:@"CaptureFrameFailed"
-                                    message:@"Failed to write JPEG data to file"
+                                    message:@"Failed to write image data to file"
                                     details:nil]);
     }
-
     dispatch_async(dispatch_get_main_queue(), ^{
         [self->_track removeRenderer:self];
         self->_track = nil;
     });
-#endif
+}
+
+-(CVPixelBufferRef)convertToCVPixelBuffer:(RTCVideoFrame *) frame
+{
+    id<RTCI420Buffer> i420Buffer = [frame.buffer toI420];
+    CVPixelBufferRef outputPixelBuffer;
+    size_t w = (size_t) roundf(i420Buffer.width);
+    size_t h = (size_t) roundf(i420Buffer.height);
+    NSDictionary *pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
+    CVPixelBufferCreate(kCFAllocatorDefault, w, h, kCVPixelFormatType_32BGRA, (__bridge CFDictionaryRef)(pixelAttributes), &outputPixelBuffer);
+    CVPixelBufferLockBaseAddress(outputPixelBuffer, 0);
+    const OSType pixelFormat = CVPixelBufferGetPixelFormatType(outputPixelBuffer);
+    if (pixelFormat == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange ||
+        pixelFormat == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+        // NV12
+        uint8_t* dstY = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 0);
+        const size_t dstYStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 0);
+        uint8_t* dstUV = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 1);
+        const size_t dstUVStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 1);
+        
+        [RTCYUVHelper I420ToNV12:i420Buffer.dataY
+                      srcStrideY:i420Buffer.strideY
+                            srcU:i420Buffer.dataU
+                      srcStrideU:i420Buffer.strideU
+                            srcV:i420Buffer.dataV
+                      srcStrideV:i420Buffer.strideV
+                            dstY:dstY
+                      dstStrideY:(int)dstYStride
+                            dstUV:dstUV
+                      dstStrideUV:(int)dstUVStride
+                           width:i420Buffer.width
+                           width:i420Buffer.height];
+    } else {
+        uint8_t* dst = CVPixelBufferGetBaseAddress(outputPixelBuffer);
+        const size_t bytesPerRow = CVPixelBufferGetBytesPerRow(outputPixelBuffer);
+        
+        if (pixelFormat == kCVPixelFormatType_32BGRA) {
+            // Corresponds to libyuv::FOURCC_ARGB
+            [RTCYUVHelper I420ToARGB:i420Buffer.dataY
+                          srcStrideY:i420Buffer.strideY
+                                srcU:i420Buffer.dataU
+                          srcStrideU:i420Buffer.strideU
+                                srcV:i420Buffer.dataV
+                          srcStrideV:i420Buffer.strideV
+                             dstARGB:dst
+                       dstStrideARGB:(int)bytesPerRow
+                               width:i420Buffer.width
+                              height:i420Buffer.height];
+        } else if (pixelFormat == kCVPixelFormatType_32ARGB) {
+            // Corresponds to libyuv::FOURCC_BGRA
+            [RTCYUVHelper I420ToBGRA:i420Buffer.dataY
+                          srcStrideY:i420Buffer.strideY
+                                srcU:i420Buffer.dataU
+                          srcStrideU:i420Buffer.strideU
+                                srcV:i420Buffer.dataV
+                          srcStrideV:i420Buffer.strideV
+                             dstBGRA:dst
+                       dstStrideBGRA:(int)bytesPerRow
+                               width:i420Buffer.width
+                              height:i420Buffer.height];
+        }
+    }
+    CVPixelBufferUnlockBaseAddress(outputPixelBuffer, 0);
+    return outputPixelBuffer;
 }
 
 @end

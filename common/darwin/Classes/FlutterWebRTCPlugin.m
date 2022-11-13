@@ -68,6 +68,7 @@
         _speakerOn = NO;
         _eventChannel = eventChannel;
 #if TARGET_OS_IPHONE
+        _preferredInput = AVAudioSessionPortHeadphones;
         self.viewController = viewController;
 #endif
     }
@@ -89,9 +90,6 @@
     self.renders = [NSMutableDictionary new];
     self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
-    _preferredInput = AVAudioSessionPortHeadphones;
-    _speakerOn = NO;
-    [AudioUtils setSpeakerphoneOn:_speakerOn];
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:session];
 #endif
@@ -123,23 +121,24 @@
 
 - (void)didSessionRouteChange:(NSNotification *)notification {
 #if TARGET_OS_IPHONE
-  NSDictionary *interuptionDict = notification.userInfo;
-  NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
-  AVAudioSession* session = [AVAudioSession sharedInstance];
+  NSDictionary* interuptionDict = notification.userInfo;
+  NSInteger routeChangeReason =
+      [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
+  RTCAudioSession *session = [RTCAudioSession sharedInstance];
   switch (routeChangeReason) {
-      case AVAudioSessionRouteChangeReasonCategoryChange: {
-          NSError* error;
-          [session overrideOutputAudioPort:_speakerOn? AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone error:&error];
-          break;
+    case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
+      if (session.isActive) {
+        [AudioUtils selectAudioInput:_preferredInput];
       }
-      case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
-          [AudioUtils selectAudioInput:_preferredInput];
-          break;
-      }
+      break;
+    }
     default:
       break;
   }
-  if(self.eventSink && AVAudioSessionRouteChangeReasonOverride != routeChangeReason) {
+
+  if (self.eventSink &&
+      (routeChangeReason == AVAudioSessionRouteChangeReasonNewDeviceAvailable ||
+       routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable)) {
     self.eventSink(@{@"event" : @"onDeviceChange"});
   }
 #endif
@@ -345,16 +344,19 @@
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
         NSDictionary* candMap = argsMap[@"candidate"];
         NSString *sdp = candMap[@"candidate"];
-        int sdpMLineIndex = ((NSNumber*)candMap[@"sdpMLineIndex"]).intValue;
+        id sdpMLineIndexValue = candMap[@"sdpMLineIndex"];
+        int sdpMLineIndex = 0;
+        if (![sdpMLineIndexValue isKindOfClass:[NSNull class]]) {
+            sdpMLineIndex = ((NSNumber*)candMap[@"sdpMLineIndex"]).intValue;
+        }
         NSString *sdpMid = candMap[@"sdpMid"];
 
         RTCIceCandidate* candidate = [[RTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:sdpMLineIndex sdpMid:sdpMid];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
 
-        if(peerConnection)
-        {
+        if(peerConnection) {
             [self peerConnectionAddICECandidate:candidate peerConnection:peerConnection result:result];
-        }else{
+        } else {
             result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
                                        message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                                        details:nil]);
@@ -362,11 +364,19 @@
     } else if ([@"getStats" isEqualToString:call.method]) {
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-        NSString* trackId = argsMap[@"trackId"];
+        id trackId = argsMap[@"trackId"];
         RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
-        if(peerConnection)
-            return [self peerConnectionGetStats:trackId peerConnection:peerConnection result:result];
-        result(nil);
+        if(peerConnection) {
+            if(trackId != nil && trackId != [NSNull null]) {
+                return [self peerConnectionGetStatsForTrackId:trackId peerConnection:peerConnection result:result];
+            } else {
+                return [self peerConnectionGetStats:peerConnection result:result];
+            }
+        } else {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed",call.method]
+                                                message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                                                details:nil]);
+        }
     } else if ([@"createDataChannel" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -403,7 +413,7 @@
         BOOL shouldCallResult = YES;
         if (stream) {
             for (RTCVideoTrack *track in stream.videoTracks) {
-                [self.localTracks removeObjectForKey:track.trackId];
+                [_localTracks removeObjectForKey:track.trackId];
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
                 CapturerStopHandler stopHandler = self.videoCapturerStopHandlers[videoTrack.trackId];
                 if(stopHandler) {
@@ -416,9 +426,10 @@
                 }
             }
             for (RTCAudioTrack *track in stream.audioTracks) {
-                [self.localTracks removeObjectForKey:track.trackId];
+                [_localTracks removeObjectForKey:track.trackId];
             }
             [self.localStreams removeObjectForKey:streamId];
+            [self deactiveRtcAudioSession];
         }
         if (shouldCallResult) {
           // do not call if will be called in stopCapturer above.
@@ -481,11 +492,13 @@
     } else if ([@"trackDispose" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
         NSString* trackId = argsMap[@"trackId"];
+        BOOL audioTrack = NO;
         for(NSString *streamId in self.localStreams) {
             RTCMediaStream *stream = [self.localStreams objectForKey:streamId];
             for (RTCAudioTrack *track in stream.audioTracks) {
                 if([trackId isEqualToString:track.trackId]) {
                     [stream removeAudioTrack:track];
+                    audioTrack = YES;
                 }
             }
             for (RTCVideoTrack *track in stream.videoTracks) {
@@ -501,7 +514,10 @@
                 }
             }
         }
-        [self.localTracks removeObjectForKey:trackId];
+        [_localTracks removeObjectForKey:trackId];
+        if(audioTrack) {
+          [self ensureAudioSession];
+        }
         result(nil);
     } else if ([@"restartIce" isEqualToString:call.method]){
         NSDictionary* argsMap = call.arguments;
@@ -535,6 +551,7 @@
             }
             [dataChannels removeAllObjects];
         }
+        [self deactiveRtcAudioSession];
         result(nil);
     } else if ([@"createVideoRenderer" isEqualToString:call.method]){
         FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures
@@ -555,6 +572,7 @@
         FlutterRTCVideoRenderer *render = self.renders[textureId];
         NSString *streamId = argsMap[@"streamId"];
         NSString *ownerTag = argsMap[@"ownerTag"];
+        NSString *trackId = argsMap[@"trackId"];
         if(!render) {
             result([FlutterError errorWithCode:@"videoRendererSetSrcObject: render is nil" message:nil details:nil]);
             return;
@@ -570,6 +588,11 @@
         if(stream){
             NSArray *videoTracks = stream ? stream.videoTracks : nil;
             videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
+            for ( RTCVideoTrack * track in videoTracks) {
+                if([track.trackId isEqualToString:trackId]){
+                    videoTrack = track;
+                }
+            }
             if (!videoTrack) {
                 NSLog(@"Not found video track for RTCMediaStream: %@", streamId);
             }
@@ -1052,6 +1075,31 @@
     _peerConnectionFactory = nil;
 }
 
+- (BOOL) hasLocalAudioTrack {
+  for (id key in _localTracks.allKeys) {
+    RTCMediaStreamTrack* track = [_localTracks objectForKey:key];
+    if ([track.kind isEqualToString:@"audio"]) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
+- (void) ensureAudioSession {
+#if TARGET_OS_IPHONE
+  [AudioUtils ensureAudioSessionWithRecording:[self hasLocalAudioTrack]];
+  [AudioUtils setSpeakerphoneOn:_speakerOn];
+#endif
+}
+
+- (void) deactiveRtcAudioSession {
+#if TARGET_OS_IPHONE
+  if (![self hasLocalAudioTrack] && self.peerConnections.count == 0) {
+    [AudioUtils deactiveRtcAudioSession];
+  }
+#endif
+}
+
 -(void)mediaStreamGetTracks:(NSString*)streamId
                      result:(FlutterResult)result {
     RTCMediaStream* stream = [self streamForId:streamId peerConnectionId:@""];
@@ -1074,7 +1122,7 @@
 
         for (RTCMediaStreamTrack *track in stream.videoTracks) {
             NSString *trackId = track.trackId;
-            [self.localTracks setObject:track forKey:trackId];
+            [_localTracks setObject:track forKey:trackId];
             [videoTracks addObject:@{
                                      @"enabled": @(track.isEnabled),
                                      @"id": trackId,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:core';
 
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   bool _cameraOn = false;
   bool _speakerOn = false;
   List<MediaDeviceInfo>? _mediaDevicesList;
+  Timer? _timer;
   final _configuration = <String, dynamic>{
     'iceServers': [
       //{'url': 'stun:stun.l.google.com:19302'},
@@ -41,8 +43,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void initState() {
     print('Init State');
     super.initState();
-    initRenderers();
-    initLocalConnection();
+
     _refreshMediaDevices();
     navigator.mediaDevices.ondevicechange = (event) async {
       print('++++++ ondevicechange ++++++');
@@ -81,8 +82,10 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       await _videoSender?.dispose();
       await _audioSender?.dispose();
       await _remotePeerConnection?.close();
+      await _remotePeerConnection?.dispose();
       _remotePeerConnection = null;
       await _localPeerConnection?.close();
+      await _localPeerConnection?.dispose();
       _localPeerConnection = null;
       _localRenderer.srcObject = null;
       _remoteRenderer.srcObject = null;
@@ -227,6 +230,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   void _makeCall() async {
+    initRenderers();
+    initLocalConnection();
+
     if (_remotePeerConnection != null) return;
 
     try {
@@ -279,6 +285,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void _hangUp() async {
     try {
       await _remotePeerConnection?.close();
+      await _remotePeerConnection?.dispose();
       _remotePeerConnection = null;
       _remoteRenderer.srcObject = null;
     } catch (e) {
@@ -306,6 +313,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     };
   }
 
+  void _sendDtmf() async {
+    var dtmfSender = _audioSender?.dtmfSender;
+    await dtmfSender?.insertDTMF('123#');
+  }
+
   void _startVideo() async {
     var newStream = await navigator.mediaDevices
         .getUserMedia(_getMediaConstraints(audio: false, video: true));
@@ -326,6 +338,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       _localRenderer.srcObject = _localStream;
       _cameraOn = true;
     });
+
+    _timer?.cancel();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
+      handleStatsReport(timer);
+    });
   }
 
   void _stopVideo() async {
@@ -337,6 +354,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       _remoteRenderer.srcObject = null;
       _cameraOn = false;
     });
+    _timer?.cancel();
+    _timer = null;
   }
 
   void _startAudio() async {
@@ -373,6 +392,37 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       _speakerOn = !_speakerOn;
       Helper.setSpeakerphoneOn(_speakerOn);
     });
+  }
+
+  void handleStatsReport(Timer timer) async {
+    if (_remotePeerConnection != null && _remoteRenderer.srcObject != null) {
+      var reports = await _remotePeerConnection
+          ?.getStats(_remoteRenderer.srcObject!.getVideoTracks().first);
+      reports?.forEach((report) {
+        print('report => { ');
+        print('    id: ' + report.id + ',');
+        print('    type: ' + report.type + ',');
+        print('    timestamp: ${report.timestamp},');
+        print('    values => {');
+        report.values.forEach((key, value) {
+          print('        ' + key + ' : ' + value.toString() + ', ');
+        });
+        print('    }');
+        print('}');
+      });
+
+      /*
+      var senders = await _peerConnection.getSenders();
+      var canInsertDTMF = await senders[0].dtmfSender.canInsertDtmf();
+      print(canInsertDTMF);
+      await senders[0].dtmfSender.insertDTMF('1');
+      var receivers = await _peerConnection.getReceivers();
+      print(receivers[0].track.id);
+      var transceivers = await _peerConnection.getTransceivers();
+      print(transceivers[0].sender.parameters);
+      print(transceivers[0].receiver.parameters);
+      */
+    }
   }
 
   Future<void> _removeExistingVideoTrack({bool fromConnection = false}) async {
@@ -470,6 +520,10 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       appBar: AppBar(
         title: Text('LoopBack Unified Tracks example'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.keyboard),
+            onPressed: _sendDtmf,
+          ),
           PopupMenuButton<String>(
             onSelected: _selectAudioInput,
             icon: Icon(Icons.settings_voice),

@@ -121,7 +121,6 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
             sendEvent(params.toMap());
             return null;
         };
-        audioSwitchManager.start();
     }
 
     private void stopListening() {
@@ -131,7 +130,6 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         eventChannel.setStreamHandler(null);
         if (audioSwitchManager != null) {
             Log.d(TAG, "Stopping the audio manager...");
-            audioSwitchManager.stop();
             audioSwitchManager = null;
         }
     }

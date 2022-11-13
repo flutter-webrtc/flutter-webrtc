@@ -77,10 +77,10 @@ class MediaStreamTrackNative extends MediaStreamTrack {
       'captureFrame',
       <String, dynamic>{
         'trackId': _trackId,
-        'path': filePath.path + '/captureFrame.png'
+        'path': '${filePath.path}/captureFrame.png'
       },
     );
-    return File(filePath.path + '/captureFrame.png')
+    return File('${filePath.path}/captureFrame.png')
         .readAsBytes()
         .then((value) => value.buffer);
   }
@@ -89,9 +89,9 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   Future<void> applyConstraints([Map<String, dynamic>? constraints]) {
     if (constraints == null) return Future.value();
 
-    var _current = getConstraints();
+    var current = getConstraints();
     if (constraints.containsKey('volume') &&
-        _current['volume'] != constraints['volume']) {
+        current['volume'] != constraints['volume']) {
       Helper.setVolume(constraints['volume'], this);
     }
 

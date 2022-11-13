@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 import 'media_stream_track_impl.dart';
@@ -20,16 +21,16 @@ class MediaStreamNative extends MediaStream {
   void setMediaTracks(List<dynamic> audioTracks, List<dynamic> videoTracks) {
     _audioTracks.clear();
 
-    audioTracks.forEach((track) {
+    for (var track in audioTracks) {
       _audioTracks.add(MediaStreamTrackNative(
           track['id'], track['label'], track['kind'], track['enabled']));
-    });
+    }
 
     _videoTracks.clear();
-    videoTracks.forEach((track) {
+    for (var track in videoTracks) {
       _videoTracks.add(MediaStreamTrackNative(
           track['id'], track['label'], track['kind'], track['enabled']));
-    });
+    }
   }
 
   @override
@@ -88,7 +89,7 @@ class MediaStreamNative extends MediaStream {
   }
 
   @override
-  Future<Null> dispose() async {
+  Future<void> dispose() async {
     await WebRTC.invokeMethod(
       'streamDispose',
       <String, dynamic>{'streamId': id},
@@ -100,8 +101,11 @@ class MediaStreamNative extends MediaStream {
   bool get active => throw UnimplementedError();
 
   @override
-  MediaStream clone() {
-    // TODO(cloudwebrtc): Implement
-    throw UnimplementedError();
+  Future<MediaStream> clone() async {
+    final cloneStream = await createLocalMediaStream(id);
+    for (var track in [..._audioTracks, ..._videoTracks]) {
+      await cloneStream.addTrack(track);
+    }
+    return cloneStream;
   }
 }
