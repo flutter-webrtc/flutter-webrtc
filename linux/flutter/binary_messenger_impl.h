@@ -18,7 +18,7 @@ namespace flutter {
 // BinaryMessenger API.
 class BinaryMessengerImpl : public BinaryMessenger {
  public:
-  explicit BinaryMessengerImpl(FlBinaryMessenger *core_messenger);
+  explicit BinaryMessengerImpl(FlBinaryMessenger* core_messenger);
 
   virtual ~BinaryMessengerImpl();
 
@@ -38,7 +38,7 @@ class BinaryMessengerImpl : public BinaryMessenger {
 
  private:
   // Handle for interacting with the C API.
-  FlBinaryMessenger *messenger_;
+  FlBinaryMessenger* messenger_;
 
   // A map from channel names to the BinaryMessageHandler that should be called
   // for incoming messages on that channel.

@@ -7,7 +7,6 @@
 
 #include "include/flutter/texture_registrar.h"
 
-
 struct FlTextureProxy;
 
 namespace flutter {

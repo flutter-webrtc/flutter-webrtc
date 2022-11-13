@@ -31,17 +31,24 @@ struct FlTextureProxyClass {
   FlPixelBufferTextureClass parent_class;
 };
 
-G_DEFINE_TYPE(FlTextureProxy, fl_texture_proxy, fl_pixel_buffer_texture_get_type())
+G_DEFINE_TYPE(FlTextureProxy,
+              fl_texture_proxy,
+              fl_pixel_buffer_texture_get_type())
 
-#define FL_TEXTURE_PROXY(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), fl_texture_proxy_get_type(), FlTextureProxy))
+#define FL_TEXTURE_PROXY(obj)                                     \
+  (G_TYPE_CHECK_INSTANCE_CAST((obj), fl_texture_proxy_get_type(), \
+                              FlTextureProxy))
 
 static gboolean fl_texture_proxy_copy_pixels(FlPixelBufferTexture* texture,
-                                         const uint8_t** out_buffer,
-                                         uint32_t* width, uint32_t* height,
-                                         GError** error) {
+                                             const uint8_t** out_buffer,
+                                             uint32_t* width,
+                                             uint32_t* height,
+                                             GError** error) {
   FlTextureProxy* proxy = FL_TEXTURE_PROXY(texture);
-  flutter::PixelBufferTexture& pixel_buffer = std::get<flutter::PixelBufferTexture>(*proxy->texture);
-  const FlutterDesktopPixelBuffer* copy = pixel_buffer.CopyPixelBuffer(*width, *height);
+  flutter::PixelBufferTexture& pixel_buffer =
+      std::get<flutter::PixelBufferTexture>(*proxy->texture);
+  const FlutterDesktopPixelBuffer* copy =
+      pixel_buffer.CopyPixelBuffer(*width, *height);
   if (copy == nullptr) {
     return TRUE;
   }
@@ -52,13 +59,15 @@ static gboolean fl_texture_proxy_copy_pixels(FlPixelBufferTexture* texture,
 }
 
 static FlTextureProxy* fl_texture_proxy_new(flutter::TextureVariant* texture) {
-  FlTextureProxy* proxy = FL_TEXTURE_PROXY(g_object_new(fl_texture_proxy_get_type(), nullptr));
+  FlTextureProxy* proxy =
+      FL_TEXTURE_PROXY(g_object_new(fl_texture_proxy_get_type(), nullptr));
   proxy->texture = texture;
   return proxy;
 }
 
 static void fl_texture_proxy_class_init(FlTextureProxyClass* klass) {
-  FL_PIXEL_BUFFER_TEXTURE_CLASS(klass)->copy_pixels = fl_texture_proxy_copy_pixels;
+  FL_PIXEL_BUFFER_TEXTURE_CLASS(klass)->copy_pixels =
+      fl_texture_proxy_copy_pixels;
 }
 
 static void fl_texture_proxy_init(FlTextureProxy* self) {}
@@ -75,14 +84,13 @@ namespace {
 // interface provided by the C API and the std::function-based message handler
 // interface of BinaryMessenger.
 static void ForwardToHandler(FlBinaryMessenger* messenger,
-                      const gchar* channel,
-                      GBytes* message,
-                      FlBinaryMessengerResponseHandle* response_handle,
-                      gpointer user_data) {
+                             const gchar* channel,
+                             GBytes* message,
+                             FlBinaryMessengerResponseHandle* response_handle,
+                             gpointer user_data) {
   auto handler = g_object_ref(response_handle);
-  BinaryReply reply_handler = [messenger, handler](
-                                  const uint8_t* reply,
-                                  size_t reply_size) mutable {
+  BinaryReply reply_handler = [messenger, handler](const uint8_t* reply,
+                                                   size_t reply_size) mutable {
     if (!handler) {
       std::cerr << "Error: Response can be set only once. Ignoring "
                    "duplicate response."
@@ -100,8 +108,8 @@ static void ForwardToHandler(FlBinaryMessenger* messenger,
 
   const BinaryMessageHandler& message_handler =
       *static_cast<BinaryMessageHandler*>(user_data);
-  
-  if(user_data == nullptr) {
+
+  if (user_data == nullptr) {
     std::cerr << "Error: user_data is null" << std::endl;
     return;
   }
@@ -122,8 +130,8 @@ struct Captures {
 };
 
 static void message_reply_cb(GObject* object,
-                      GAsyncResult* result,
-                      gpointer user_data) {
+                             GAsyncResult* result,
+                             gpointer user_data) {
   g_autoptr(GError) error = nullptr;
   auto captures = reinterpret_cast<Captures*>(user_data);
   g_autoptr(GBytes) message = fl_binary_messenger_send_on_channel_finish(
@@ -216,7 +224,8 @@ TextureRegistrarImpl::~TextureRegistrarImpl() = default;
 
 int64_t TextureRegistrarImpl::RegisterTexture(TextureVariant* texture) {
   auto texture_proxy = fl_texture_proxy_new(texture);
-  fl_texture_registrar_register_texture(texture_registrar_ref_, FL_TEXTURE(texture_proxy));
+  fl_texture_registrar_register_texture(texture_registrar_ref_,
+                                        FL_TEXTURE(texture_proxy));
   int64_t texture_id = reinterpret_cast<int64_t>(texture_proxy);
   textures_[texture_id] = texture_proxy;
   return texture_id;
@@ -225,17 +234,21 @@ int64_t TextureRegistrarImpl::RegisterTexture(TextureVariant* texture) {
 bool TextureRegistrarImpl::MarkTextureFrameAvailable(int64_t texture_id) {
   auto it = textures_.find(texture_id);
   if (it != textures_.end()) {
-    return fl_texture_registrar_mark_texture_frame_available(texture_registrar_ref_, FL_TEXTURE(it->second));
+    return fl_texture_registrar_mark_texture_frame_available(
+        texture_registrar_ref_, FL_TEXTURE(it->second));
   }
   return false;
 }
 
 bool TextureRegistrarImpl::UnregisterTexture(int64_t texture_id) {
-    auto it = textures_.find(texture_id);
+  auto it = textures_.find(texture_id);
   if (it != textures_.end()) {
     auto texture = it->second;
     textures_.erase(it);
-    return fl_texture_registrar_unregister_texture(texture_registrar_ref_, FL_TEXTURE(texture));
+    bool success = fl_texture_registrar_unregister_texture(
+        texture_registrar_ref_, FL_TEXTURE(texture));
+    g_object_unref(texture);
+    return success;
   }
   return false;
 }
