@@ -62,9 +62,9 @@ void FlutterScreenCapture::GetDesktopSources(
   }
 
   std::cout << " sources: " << sources.size() << std::endl;
-  EncodableMap params;
-  params[EncodableValue("sources")] = sources;
-  result->Success(EncodableValue(params));
+  auto map = EncodableMap();
+  map[EncodableValue("sources")] = sources;
+  result->Success(EncodableValue(map));
 }
 
 void FlutterScreenCapture::UpdateDesktopSources(
@@ -74,10 +74,9 @@ void FlutterScreenCapture::UpdateDesktopSources(
     result->Error("Bad Arguments", "Failed to update desktop sources");
     return;
   }
-
-  EncodableMap params;
-  params[EncodableValue("result")] = true;
-  result->Success(EncodableValue(params));
+  auto map = EncodableMap();
+  map[EncodableValue("result")] =  true;
+  result->Success(EncodableValue(map));
 }
 
 void FlutterScreenCapture::OnMediaSourceAdded(
