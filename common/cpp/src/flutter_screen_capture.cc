@@ -135,24 +135,24 @@ void FlutterScreenCapture::OnMediaSourceThumbnailChanged(
 }
 
 void FlutterScreenCapture::OnStart(scoped_refptr<RTCDesktopCapturer> capturer) {
-  std::cout << " OnStart: " << capturer->source()->id().std_string()
-            << std::endl;
+  //std::cout << " OnStart: " << capturer->source()->id().std_string()
+  //          << std::endl;
 }
 
 void FlutterScreenCapture::OnPaused(
     scoped_refptr<RTCDesktopCapturer> capturer) {
-  std::cout << " OnPaused: " << capturer->source()->id().std_string()
-            << std::endl;
+  //std::cout << " OnPaused: " << capturer->source()->id().std_string()
+  //          << std::endl;
 }
 
 void FlutterScreenCapture::OnStop(scoped_refptr<RTCDesktopCapturer> capturer) {
-  std::cout << " OnStop: " << capturer->source()->id().std_string()
-            << std::endl;
+  //std::cout << " OnStop: " << capturer->source()->id().std_string()
+  //          << std::endl;
 }
 
 void FlutterScreenCapture::OnError(scoped_refptr<RTCDesktopCapturer> capturer) {
-  std::cout << " OnError: " << capturer->source()->id().std_string()
-            << std::endl;
+  //std::cout << " OnError: " << capturer->source()->id().std_string()
+  //          << std::endl;
 }
 
 void FlutterScreenCapture::GetDesktopSourceThumbnail(
