@@ -7,6 +7,9 @@
 
 #include "include/flutter/texture_registrar.h"
 
+
+struct FlTextureProxy;
+
 namespace flutter {
 
 // Wrapper around a FlTextureRegistrar that implements the
@@ -32,6 +35,7 @@ class TextureRegistrarImpl : public TextureRegistrar {
  private:
   // Handle for interacting with the C API.
   FlTextureRegistrar* texture_registrar_ref_;
+  std::map<int64_t, FlTextureProxy*> textures_;
 };
 
 }  // namespace flutter

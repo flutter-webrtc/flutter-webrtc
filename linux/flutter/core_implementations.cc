@@ -19,7 +19,49 @@
 
 #include "binary_messenger_impl.h"
 #include "include/flutter/engine_method_result.h"
+#include "include/flutter/texture_registrar.h"
 #include "texture_registrar_impl.h"
+
+struct FlTextureProxy {
+  FlPixelBufferTexture parent_instance;
+  flutter::TextureVariant* texture = nullptr;
+};
+
+struct FlTextureProxyClass {
+  FlPixelBufferTextureClass parent_class;
+};
+
+G_DEFINE_TYPE(FlTextureProxy, fl_texture_proxy, fl_pixel_buffer_texture_get_type())
+
+#define FL_TEXTURE_PROXY(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), fl_texture_proxy_get_type(), FlTextureProxy))
+
+static gboolean fl_texture_proxy_copy_pixels(FlPixelBufferTexture* texture,
+                                         const uint8_t** out_buffer,
+                                         uint32_t* width, uint32_t* height,
+                                         GError** error) {
+  FlTextureProxy* proxy = FL_TEXTURE_PROXY(texture);
+  flutter::PixelBufferTexture& pixel_buffer = std::get<flutter::PixelBufferTexture>(*proxy->texture);
+  const FlutterDesktopPixelBuffer* copy = pixel_buffer.CopyPixelBuffer(*width, *height);
+  if (copy == nullptr) {
+    return TRUE;
+  }
+  *out_buffer = copy->buffer;
+  *width = copy->width;
+  *height = copy->height;
+  return TRUE;
+}
+
+static FlTextureProxy* fl_texture_proxy_new(flutter::TextureVariant* texture) {
+  FlTextureProxy* proxy = FL_TEXTURE_PROXY(g_object_new(fl_texture_proxy_get_type(), nullptr));
+  proxy->texture = texture;
+  return proxy;
+}
+
+static void fl_texture_proxy_class_init(FlTextureProxyClass* klass) {
+  FL_PIXEL_BUFFER_TEXTURE_CLASS(klass)->copy_pixels = fl_texture_proxy_copy_pixels;
+}
+
+static void fl_texture_proxy_init(FlTextureProxy* self) {}
 
 namespace flutter {
 
@@ -173,45 +215,29 @@ TextureRegistrarImpl::TextureRegistrarImpl(
 TextureRegistrarImpl::~TextureRegistrarImpl() = default;
 
 int64_t TextureRegistrarImpl::RegisterTexture(TextureVariant* texture) {
-  /*
-  if (auto pixel_buffer_texture = std::get_if<PixelBufferTexture>(texture)) {
-    FlutterDesktopTextureInfo info = {};
-    info.type = kFlutterDesktopPixelBufferTexture;
-    info.pixel_buffer_config.user_data = pixel_buffer_texture;
-    info.pixel_buffer_config.callback =
-        [](size_t width, size_t height,
-           void* user_data) -> const FlutterDesktopPixelBuffer* {
-      auto texture = static_cast<PixelBufferTexture*>(user_data);
-      auto buffer = texture->CopyPixelBuffer(width, height);
-      return buffer;
-    };
-
-  texture_ = fl_webrtc_video_texture_new();
-  texture_id_ = fl_webrtc_video_texture_id(texture_);
-  fl_webrtc_video_texture_set_handler(texture_, CopyPixelCB, this, nullptr);
-  fl_texture_registrar_register_texture(registrar_, FL_TEXTURE(texture_));
-    int64_t texture_id = FlutterDesktopTextureRegistrarRegisterExternalTexture(
-        texture_registrar_ref_, &info);
-    return texture_id;
-  }
-
-  std::cerr << "Attempting to register unknown texture variant." << std::endl;
-  */
-  return -1;
-}  // namespace flutter
+  auto texture_proxy = fl_texture_proxy_new(texture);
+  fl_texture_registrar_register_texture(texture_registrar_ref_, FL_TEXTURE(texture_proxy));
+  int64_t texture_id = reinterpret_cast<int64_t>(texture_proxy);
+  textures_[texture_id] = texture_proxy;
+  return texture_id;
+}
 
 bool TextureRegistrarImpl::MarkTextureFrameAvailable(int64_t texture_id) {
-  return fl_texture_registrar_mark_texture_frame_available(
-      texture_registrar_ref_, FL_TEXTURE(nullptr));
-  // return FlutterDesktopTextureRegistrarMarkExternalTextureFrameAvailable(
-  //     texture_registrar_ref_, texture_id);
+  auto it = textures_.find(texture_id);
+  if (it != textures_.end()) {
+    return fl_texture_registrar_mark_texture_frame_available(texture_registrar_ref_, FL_TEXTURE(it->second));
+  }
+  return false;
 }
 
 bool TextureRegistrarImpl::UnregisterTexture(int64_t texture_id) {
+    auto it = textures_.find(texture_id);
+  if (it != textures_.end()) {
+    auto texture = it->second;
+    textures_.erase(it);
+    return fl_texture_registrar_unregister_texture(texture_registrar_ref_, FL_TEXTURE(texture));
+  }
   return false;
-  // fl_texture_registrar_unregister_texture(registrar_, FL_TEXTURE(texture_));
-  // return FlutterDesktopTextureRegistrarUnregisterExternalTexture(
-  //     texture_registrar_ref_, texture_id);
 }
 
 }  // namespace flutter
