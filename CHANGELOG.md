@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.15] - 2022-11-13
+
+* [Linux] Add Linux Support.
+
 [0.9.14] - 2022-11-12
 
 * [iOS] Fix setSpeakerOn has no effect after change AVAudioSession mode to playback.
