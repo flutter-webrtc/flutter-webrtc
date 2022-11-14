@@ -38,11 +38,11 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
 target_link_libraries(${PLUGIN_NAME} PRIVATE 
   flutter
   flutter_wrapper_plugin
-  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/win64/libwebrtc.dll.lib"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/win-x64/libwebrtc.dll.lib"
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin
 set(flutter_webrtc_bundled_libraries
-  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/win64/libwebrtc.dll"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/win-x64/libwebrtc.dll"
   PARENT_SCOPE
 )
