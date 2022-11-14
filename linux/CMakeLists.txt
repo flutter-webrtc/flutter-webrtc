@@ -43,11 +43,11 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
 
 
 target_link_libraries(${PLUGIN_NAME} PRIVATE 
-  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/linux/x64/libwebrtc.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/${FLUTTER_TARGET_PLATFORM}/libwebrtc.so"
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin
 set(flutter_webrtc_bundled_libraries
-  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/linux/x64/libwebrtc.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/${FLUTTER_TARGET_PLATFORM}/libwebrtc.so"
   PARENT_SCOPE
 )
