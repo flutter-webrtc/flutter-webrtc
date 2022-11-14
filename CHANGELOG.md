@@ -1,6 +1,12 @@
 # Changelog
 
 --------------------------------------------
+[0.9.16] - 2022-11-14
+
+* [Linux] Fixed compiler error for flutter 3.3.8.
+* [Linux] Remove 32-bit precompiled binaries.
+* [Linux] Supports linux-x64 and linux-arm64.
+
 [0.9.15] - 2022-11-13
 
 * [Linux] Add Linux Support.
