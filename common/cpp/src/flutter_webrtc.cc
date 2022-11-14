@@ -1,7 +1,5 @@
 #include "flutter_webrtc.h"
 
-#include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
-
 namespace flutter_webrtc_plugin {
 
 FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
