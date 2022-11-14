@@ -24,39 +24,24 @@ static LIBWEBRTC_URL: &str =
     "https://github.com/instrumentisto/libwebrtc-bin/releases/download\
                                                     /106.0.5249.91";
 
-#[cfg(all(target_os = "linux", target_arch = "aarch64"))]
-static SHA256SUM: &str =
-    "0e953fae2c854c147970b2fcca78c45c456f618df7b35a56ea88cec7bdb7400f";
-#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-static SHA256SUM: &str =
-    "38077e57322ed5f0934f8e960eae7769dfbe5619f345b559cc7bca5e32c912ed";
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-static SHA256SUM: &str =
-    "a6fc75d433b10ec2a646064cbbcc6c1f5d0783fb342dad144521bb8dc7bcd886";
-#[cfg(all(target_os = "macos", target_arch = "x86_64"))]
-static SHA256SUM: &str =
-    "433db8207ed8343bdf751505597213c3267b8ef52287a49466ce7bb7df145e0c";
-#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-static SHA256SUM: &str =
-    "51665201452ff7ec59aa73c59f2c532f8e977a8fa936f093c343a631f3986a96";
-
 fn main() -> anyhow::Result<()> {
     download_libwebrtc()?;
 
     let path = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
+    let libpath = libpath()?;
     let cpp_files = get_cpp_files()?;
 
     println!("cargo:rustc-link-lib=webrtc");
 
-    link_libs();
+    link_libs()?;
 
     let mut build = cxx_build::bridge("src/bridge.rs");
     build
         .files(&cpp_files)
         .include(path.join("include"))
-        .include(path.join("lib/include"))
-        .include(path.join("lib/include/third_party/abseil-cpp"))
-        .include(path.join("lib/include/third_party/libyuv/include"))
+        .include(libpath.join("include"))
+        .include(libpath.join("include/third_party/abseil-cpp"))
+        .include(libpath.join("include/third_party/libyuv/include"))
         .flag("-DNOMINMAX");
 
     #[cfg(target_os = "windows")]
@@ -77,8 +62,8 @@ fn main() -> anyhow::Result<()> {
     #[cfg(target_os = "macos")]
     {
         build
-            .include(path.join("lib/include/sdk/objc/base"))
-            .include(path.join("lib/include/sdk/objc"));
+            .include(libpath.join("include/sdk/objc/base"))
+            .include(libpath.join("include/sdk/objc"));
         build
             .flag("-DWEBRTC_POSIX")
             .flag("-DWEBRTC_MAC")
@@ -114,31 +99,69 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Returns target architecture to build the library for.
+fn get_target() -> anyhow::Result<String> {
+    env::var("TARGET").map_err(Into::into)
+}
+
+/// Returns expected `libwebrtc` archives SHA-256 hashes.
+fn get_expected_libwebrtc_hash() -> anyhow::Result<&'static str> {
+    Ok(match get_target()?.as_str() {
+        "aarch64-unknown-linux-gnu" => {
+            "0e953fae2c854c147970b2fcca78c45c456f618df7b35a56ea88cec7bdb7400f"
+        }
+        "x86_64-unknown-linux-gnu" => {
+            "38077e57322ed5f0934f8e960eae7769dfbe5619f345b559cc7bca5e32c912ed"
+        }
+        "aarch64-apple-darwin" => {
+            "a6fc75d433b10ec2a646064cbbcc6c1f5d0783fb342dad144521bb8dc7bcd886"
+        }
+        "x86_64-apple-darwin" => {
+            "433db8207ed8343bdf751505597213c3267b8ef52287a49466ce7bb7df145e0c"
+        }
+        "x86_64-pc-windows-msvc" => {
+            "51665201452ff7ec59aa73c59f2c532f8e977a8fa936f093c343a631f3986a96"
+        }
+        arch => return Err(anyhow::anyhow!("Unsupported target: {arch}")),
+    })
+}
+
+/// Returns [`PathBuf`] to the directory containing the library.
+fn libpath() -> anyhow::Result<PathBuf> {
+    let target = get_target()?;
+    let manifest_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
+    Ok(manifest_path.join("lib").join(&target))
+}
+
 /// Downloads and unpacks compiled `libwebrtc` library.
 fn download_libwebrtc() -> anyhow::Result<()> {
     let manifest_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
     let temp_dir = manifest_path.join("temp");
-    let lib_dir = manifest_path.join("lib");
+    let lib_dir = libpath()?;
 
     let tar_file = {
         let mut name = String::from("libwebrtc-");
 
         #[cfg(target_os = "windows")]
-        name.push_str("windows-");
+        name.push_str("windows-x64.tar.gz");
         #[cfg(target_os = "linux")]
-        name.push_str("linux-");
-        #[cfg(target_os = "macos")]
-        name.push_str("macos-");
+        name.push_str("linux-x64.tar.gz");
 
-        #[cfg(target_arch = "aarch64")]
-        name.push_str("arm64.tar.gz");
-        #[cfg(target_arch = "x86_64")]
-        name.push_str("x64.tar.gz");
+        match get_target()?.as_str() {
+            "aarch64-apple-darwin" => {
+                name.push_str("macos-arm64.tar.gz");
+            }
+            "x86_64-apple-darwin" => {
+                name.push_str("macos-x64.tar.gz");
+            }
+            _ => (),
+        }
 
         name
     };
     let archive = temp_dir.join(&tar_file);
     let checksum = lib_dir.join("CHECKSUM");
+    let expected_hash = get_expected_libwebrtc_hash()?;
 
     // Force download if `INSTALL_WEBRTC=1`.
     if env::var("INSTALL_WEBRTC").as_deref().unwrap_or("0") == "0" {
@@ -147,7 +170,7 @@ fn download_libwebrtc() -> anyhow::Result<()> {
             .map(|m| m.is_dir())
             .unwrap_or_default()
             && fs::read(&checksum).unwrap_or_default().as_slice()
-                == SHA256SUM.as_bytes()
+                == expected_hash.as_bytes()
         {
             return Ok(());
         }
@@ -177,7 +200,7 @@ fn download_libwebrtc() -> anyhow::Result<()> {
             let _ = out_file.write(&buffer[0..count])?;
         }
 
-        if format!("{:x}", hasher.finalize()) != SHA256SUM {
+        if format!("{:x}", hasher.finalize()) != expected_hash {
             bail!("SHA-256 checksum doesn't match");
         }
     }
@@ -196,7 +219,7 @@ fn download_libwebrtc() -> anyhow::Result<()> {
     fs::remove_dir_all(&temp_dir)?;
 
     // Write the downloaded checksum.
-    fs::write(&checksum, SHA256SUM).map_err(Into::into)
+    fs::write(&checksum, expected_hash).map_err(Into::into)
 }
 
 /// Returns a list of all C++ sources that should be compiled.
@@ -232,7 +255,8 @@ fn get_files_from_dir<P: AsRef<Path>>(dir: P) -> Vec<PathBuf> {
 }
 
 /// Emits all the required `rustc-link-lib` instructions.
-fn link_libs() {
+fn link_libs() -> anyhow::Result<()> {
+    let target = get_target()?;
     #[cfg(target_os = "linux")]
     {
         for dep in [
@@ -250,13 +274,13 @@ fn link_libs() {
             "debug" => {
                 println!(
                     "cargo:rustc-link-search=\
-                     native=crates/libwebrtc-sys/lib/debug/",
+                     native=crates/libwebrtc-sys/lib/{target}/debug/",
                 );
             }
             "release" => {
                 println!(
                     "cargo:rustc-link-search=\
-                     native=crates/libwebrtc-sys/lib/release/",
+                     native=crates/libwebrtc-sys/lib/{target}/release/",
                 );
             }
             _ => unreachable!(),
@@ -288,13 +312,13 @@ fn link_libs() {
             "debug" => {
                 println!(
                     "cargo:rustc-link-search=\
-                     native=crates/libwebrtc-sys/lib/debug/",
+                     native=crates/libwebrtc-sys/lib/{target}/debug/",
                 );
             }
             "release" => {
                 println!(
                     "cargo:rustc-link-search=\
-                     native=crates/libwebrtc-sys/lib/release/",
+                     native=crates/libwebrtc-sys/lib/{target}/release/",
                 );
             }
             _ => unreachable!(),
@@ -319,9 +343,11 @@ fn link_libs() {
         //       always use a release build of `libwebrtc`:
         //       https://github.com/rust-lang/rust/issues/39016
         println!(
-            "cargo:rustc-link-search=native=crates/libwebrtc-sys/lib/release/",
+            "cargo:rustc-link-search=\
+             native=crates/libwebrtc-sys/lib/{target}/release/",
         );
     }
+    Ok(())
 }
 
 #[cfg(target_os = "macos")]

@@ -29,6 +29,11 @@ CURRENT_OS ?= $(strip $(or $(os),\
 	$(if $(call eq,$(OS),Windows_NT),windows,\
 	$(if $(call eq,$(shell uname -s),Darwin),macos,linux))))
 
+LINUX_TARGETS := x86_64-unknown-linux-gnu
+MACOS_TARGETS := x86_64-apple-darwin \
+                 aarch64-apple-darwin
+WINDOWS_TARGETS := x86_64-pc-windows-msvc
+
 
 
 
@@ -118,11 +123,12 @@ flutter.pub:
 # Run Flutter example application for the current OS.
 #
 # Usage:
-#	make flutter.run
+#	make flutter.run [debug=(yes|no)] [device=<device-id>]
 
 flutter.run:
 	cd example/ && \
-	flutter run -d $(CURRENT_OS) --release
+	flutter run $(if $(call eq,$(debug),no),--release,) \
+		$(if $(call eq,$(device),),,-d $(device))
 
 
 # Run Flutter plugin integration tests on an attached device.
@@ -157,48 +163,76 @@ cargo.clean:
 # platform-specific directories.
 #
 # Usage:
-#	make cargo.build [debug=(yes|no)] [args=<cargo-build-args>]
+#	make cargo.build [debug=(yes|no)]
+#		[( [platform=all]
+#		 | platform=linux [targets=($(LINUX_TARGETS)|<t1>[,<t2>...])]
+#		 | platform=macos [targets=($(MACOS_TARGETS)|<t1>[,<t2>...])]
+#		 | platform=windows [targets=($(WINDOWS_TARGETS)|<t1>[,<t2>...])] )]
 
-lib-out-path = target/$(if $(call eq,$(debug),no),release,debug)
+cargo-build-targets-linux = $(strip \
+	$(subst $(comma), ,$(or $(targets),$(LINUX_TARGETS))))
+cargo-build-targets-macos = $(strip \
+	$(subst $(comma), ,$(or $(targets),$(MACOS_TARGETS))))
+cargo-build-targets-windows = $(strip \
+	$(subst $(comma), ,$(or $(targets),$(WINDOWS_TARGETS))))
 
 cargo.build:
-	cargo build -p flutter-webrtc-native \
-		$(if $(call eq,$(debug),no),--release,) \
-		$(args)
-ifeq ($(CURRENT_OS),linux)
+ifeq ($(platform),all)
+	@make cargo.build platform=linux
+	@make cargo.build platform=macos
+	@make cargo.build platform=windows
+endif
+ifeq ($(platform),linux)
 	@mkdir -p linux/rust/include/flutter-webrtc-native/include/
-	@mkdir -p linux/rust/lib/
 	@mkdir -p linux/rust/src/
-	cp -f $(lib-out-path)/libflutter_webrtc_native.so \
-		linux/rust/lib/libflutter_webrtc_native.so
-	cp -f target/cxxbridge/flutter-webrtc-native/src/renderer.rs.h \
+	$(foreach t,$(cargo-build-targets-linux),\
+		$(call cargo.build.target,$(t)))
+	$(foreach t,$(cargo-build-targets-linux),\
+		mkdir -p linux/rust/lib/$(t)/)
+	$(foreach t,$(cargo-build-targets-linux),\
+		cp -f target/$(t)/$(if $(call eq,$(debug),no),release,debug)/libflutter_webrtc_native.so \
+			linux/rust/lib/$(target)/libflutter_webrtc_native.so)
+	cp -f target/$(word 1,$(cargo-build-targets-linux))/cxxbridge/flutter-webrtc-native/src/renderer.rs.h \
 		linux/rust/include/flutter_webrtc_native.h
+	cp -f target/$(word 1,$(cargo-build-targets-linux))/cxxbridge/flutter-webrtc-native/src/renderer.rs.cc \
+		linux/rust/src/flutter_webrtc_native.cc
 	cp -f crates/native/include/api.h \
 		linux/rust/include/flutter-webrtc-native/include/api.h
-	cp -f target/cxxbridge/flutter-webrtc-native/src/renderer.rs.cc \
-		linux/rust/src/flutter_webrtc_native.cc
 endif
-ifeq ($(CURRENT_OS),macos)
+ifeq ($(platform),macos)
+	$(foreach t,$(cargo-build-targets-macos),\
+		$(call cargo.build.target,$(t)))
 	@mkdir -p macos/rust/lib/
-	cp -f $(lib-out-path)/libflutter_webrtc_native.dylib \
-		macos/rust/lib/libflutter_webrtc_native.dylib
+	lipo -create $(foreach t,$(cargo-build-targets-macos),\
+	             target/$(t)/$(if $(call eq,$(debug),no),release,debug)/libflutter_webrtc_native.dylib) \
+	     -output macos/rust/lib/libflutter_webrtc_native.dylib
 endif
-ifeq ($(CURRENT_OS),windows)
+ifeq ($(platform),windows)
 	@mkdir -p windows/rust/include/
-	@mkdir -p windows/rust/lib/
 	@mkdir -p windows/rust/src/
 	@mkdir -p windows/rust/include/flutter-webrtc-native/include/
-	cp -f $(lib-out-path)/flutter_webrtc_native.dll \
-		windows/rust/lib/flutter_webrtc_native.dll
-	cp -f $(lib-out-path)/flutter_webrtc_native.dll.lib \
-		windows/rust/lib/flutter_webrtc_native.dll.lib
-	cp -f target/cxxbridge/flutter-webrtc-native/src/renderer.rs.h \
+	$(foreach t,$(cargo-build-targets-windows),\
+		$(call cargo.build.target,$(t)))
+	$(foreach t,$(cargo-build-targets-windows),\
+		mkdir -p windows/rust/lib/$(t)/)
+	$(foreach t,$(cargo-build-targets-windows),\
+		cp -f target/$(t)/$(if $(call eq,$(debug),no),release,debug)/flutter_webrtc_native.dll \
+			windows/rust/lib/$(target)/flutter_webrtc_native.dll)
+	$(foreach t,$(cargo-build-targets-windows),\
+        cp -f target/$(t)/$(if $(call eq,$(debug),no),release,debug)/flutter_webrtc_native.dll.lib \
+			windows/rust/lib/$(target)/flutter_webrtc_native.dll.lib)
+	cp -f target/$(word 1,$(cargo-build-targets-windows))/cxxbridge/flutter-webrtc-native/src/renderer.rs.h \
 		windows/rust/include/flutter_webrtc_native.h
+	cp -f target/$(word 1,$(cargo-build-targets-windows))/cxxbridge/flutter-webrtc-native/src/renderer.rs.cc \
+		windows/rust/src/flutter_webrtc_native.cc
 	cp -f crates/native/include/api.h \
 		windows/rust/include/flutter-webrtc-native/include/api.h
-	cp -f target/cxxbridge/flutter-webrtc-native/src/renderer.rs.cc \
-		windows/rust/src/flutter_webrtc_native.cc
 endif
+define cargo.build.target
+	$(eval target := $(strip $(1)))
+	cargo build -p flutter-webrtc-native --target $(target) \
+		$(if $(call eq,$(debug),no),--release,)
+endef
 
 
 # Generate documentation for project crates.
@@ -288,6 +322,28 @@ cargo.test:
 	cargo test --workspace
 
 
+# Install or upgrade all the required project's targets for Rust.
+#
+# Usage:
+#	make rustup.targets [only=(linux|macos|windows)]
+
+rustup-targets = $(MACOS_TARGETS) \
+                 $(LINUX_TARGETS) \
+                 $(WINDOWS_TARGETS)
+ifeq ($(only),linux)
+rustup-targets = $(LINUX_TARGETS)
+endif
+ifeq ($(only),macos)
+rustup-targets = $(MACOS_TARGETS)
+endif
+ifeq ($(only),windows)
+rustup-targets = $(WINDOWS_TARGETS)
+endif
+
+rustup.targets:
+	rustup target add $(rustup-targets)
+
+
 
 
 ##################
@@ -371,5 +427,6 @@ test.flutter: flutter.test
         flutter.analyze flutter.clean flutter.build flutter.fmt flutter.pub \
         	flutter.run flutter.test \
         kt.fmt \
+        rustup.targets \
         swift.fmt \
         test.cargo test.flutter

@@ -47,13 +47,13 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
   PkgConfig::GTK
 )
 target_link_libraries(${PLUGIN_NAME} INTERFACE
-  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/libflutter_webrtc_native.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-unknown-linux-gnu/libflutter_webrtc_native.so"
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin.
 # This list could contain prebuilt libraries, or libraries created by an
 # external build triggered from this build file.
 set(medea_flutter_webrtc_bundled_libraries
-  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/libflutter_webrtc_native.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-unknown-linux-gnu/libflutter_webrtc_native.so"
   PARENT_SCOPE
 )
