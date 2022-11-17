@@ -23,7 +23,7 @@
                        error:nil];
         [session setMode:config.mode error:nil];
         [session unlockForConfiguration];
-    } else if (!recording || (session.category == AVAudioSessionCategoryAmbient
+    } else if (!recording && (session.category == AVAudioSessionCategoryAmbient
                               || session.category == AVAudioSessionCategorySoloAmbient)) {
         config.category = AVAudioSessionCategoryPlayback;
         config.categoryOptions = 0;
