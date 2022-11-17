@@ -67,26 +67,14 @@
     [session lockForConfiguration];
     NSError *error = nil;
     if(!enable) {
-        [session setMode:config.mode error:&error];
-        BOOL success = [session setCategory:config.category
-                                withOptions:AVAudioSessionCategoryOptionAllowAirPlay|AVAudioSessionCategoryOptionAllowBluetoothA2DP|AVAudioSessionCategoryOptionAllowBluetooth
-                                      error:&error];
-
-        success = [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None error:&error];
+        BOOL success = [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None error:&error];
         if (!success)  NSLog(@"Port override failed due to: %@", error);
 
         success = [session setActive:YES error:&error];
         if (!success) NSLog(@"Audio session override failed: %@", error);
         else NSLog(@"AudioSession override via Earpiece/Headset is successful ");
-
-        
     } else {
-        [session setMode:config.mode error:&error];
-        BOOL success = [session setCategory:config.category
-                                withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker|AVAudioSessionCategoryOptionAllowAirPlay|AVAudioSessionCategoryOptionAllowBluetoothA2DP|AVAudioSessionCategoryOptionAllowBluetooth
-                                      error:&error];
-        
-        success = [session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_Speaker error:&error];
+        BOOL success = [session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_Speaker error:&error];
         if (!success)  NSLog(@"Port override failed due to: %@", error);
 
         success = [session setActive:YES error:&error];
