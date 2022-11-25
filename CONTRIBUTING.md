@@ -157,13 +157,13 @@ const LIMIT: u8 = 100;
 
 #### Attributes
 
-**Attributes** on declarations must be **sorted in alphabetic order**. **Items inside attribute** must be **sorted in alphabetic order** too.
+**Attributes** on declarations must be **sorted in alphabetic order**. **Items inside attribute** must be **sorted in alphabetic order** too (in the same manner they're sorted by [rustfmt] inside `use` statement).
 
 ##### 👍 Correct example
 
 ```rust
 #[allow(clippy::mut_mut)]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(smart_default::SmartDefault, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct User {
     #[serde(default)]
@@ -175,7 +175,7 @@ struct User {
 
 ```rust
 #[serde(deny_unknown_fields)]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(smart_default::SmartDefault, Debug, Deserialize, Serialize)]
 #[allow(clippy::mut_mut)]
 struct User {
     id: u64,
@@ -183,7 +183,7 @@ struct User {
 ```
 
 ```rust
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, smart_default::SmartDefault, Serialize, Deserialize)]
 struct User {
     id: u64,
 }
