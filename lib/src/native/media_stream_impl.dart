@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:webrtc_interface/webrtc_interface.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'media_stream_track_impl.dart';
-import 'utils.dart';
 
 class MediaStreamNative extends MediaStream {
   MediaStreamNative(String streamId, String ownerTag)
@@ -100,8 +99,11 @@ class MediaStreamNative extends MediaStream {
   bool get active => throw UnimplementedError();
 
   @override
-  MediaStream clone() {
-    // TODO(cloudwebrtc): Implement
-    throw UnimplementedError();
+  Future<MediaStream> clone() async {
+    final cloneStream = await createLocalMediaStream(id);
+    for (var track in [..._audioTracks, ..._videoTracks]) {
+      await cloneStream.addTrack(track);
+    }
+    return cloneStream;
   }
 }

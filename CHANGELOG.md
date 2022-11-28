@@ -1,6 +1,34 @@
 # Changelog
 
 --------------------------------------------
+[0.9.17] - 2022-11-28
+
+* [Android] Update android webrtc version to 104.5112.05
+* [iOS] Update WebRTC.xframework version to 104.5112.07
+
+[0.9.16] - 2022-11-14
+
+* [Linux] Fixed compiler error for flutter 3.3.8.
+* [Linux] Remove 32-bit precompiled binaries.
+* [Linux] Supports linux-x64 and linux-arm64.
+
+[0.9.15] - 2022-11-13
+
+* [Linux] Add Linux Support.
+
+[0.9.14] - 2022-11-12
+
+* [iOS] Fix setSpeakerOn has no effect after change AVAudioSession mode to playback.
+
+[0.9.13] - 2022-11-12
+
+* [Dart] Change MediaStream.clone to async.
+* [iOS] Fixed the bug that the mic indicator light was still on when mic recording was stopped.
+* [iOS/macOS/Android/Windows] Allow sdpMLineIndex to be null when addCandidate.
+* [macOS] Frame capture support for MacOS.
+* [Android] Add enableCpuOveruseDetection configuration (#1165).
+* [Android] Update comments (#1164).
+
 [0.9.12] - 2022-11-02
 
 * [iOS] Fixed the problem that iOS earphones and speakers do not switch.
