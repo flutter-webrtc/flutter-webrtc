@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.17] - 2022-11-28
+
+* [Android] Update android webrtc version to 104.5112.05
+* [iOS] Update WebRTC.xframework version to 104.5112.07
+
 [0.9.16] - 2022-11-14
 
 * [Linux] Fixed compiler error for flutter 3.3.8.
