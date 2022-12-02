@@ -104,6 +104,16 @@
     return self;
 }
 
+- (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
+    for (RTCPeerConnection* peerConnection in _peerConnections.allValues) {
+        for (RTCDataChannel* dataChannel in peerConnection.dataChannels) {
+            dataChannel.eventSink = nil;
+        }
+        peerConnection.eventSink = nil;
+    }
+    _eventSink = nil;
+}
+
 #pragma mark - FlutterStreamHandler methods
 
 #pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
