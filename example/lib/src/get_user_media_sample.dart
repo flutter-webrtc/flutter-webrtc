@@ -98,15 +98,30 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
 
   void _startRecording() async {
     if (_localStream == null) throw Exception('Stream is not initialized');
-    if (Platform.isIOS) {
-      print('Recording is not available on iOS');
-      return;
-    }
     // TODO(rostopira): request write storage permission
-    final storagePath = await getExternalStorageDirectory();
-    if (storagePath == null) throw Exception('Can\'t find storagePath');
-
-    final filePath = storagePath.path + '/webrtc_sample/test.mp4';
+    String? filePath;
+    if (Platform.isAndroid) {
+      filePath = (await getExternalStorageDirectory())?.path;
+      if (filePath != null) {
+        filePath += '/Movies/test.mp4';
+      }
+    } else if (Platform.isIOS || Platform.isMacOS) {
+      final tempDir = await getTemporaryDirectory();
+      if (!(await tempDir.exists())) {
+        await tempDir.create(recursive: true);
+      }
+      filePath = tempDir.path + '/test.mp4';
+      print(filePath);
+    } else {
+      throw 'Unsupported platform';
+    }
+    if (filePath == null) {
+      throw Exception('Can\'t find storagePath');
+    }
+    final file = File(filePath);
+    if (await file.exists()) {
+      await file.delete();
+    }
     _mediaRecorder = MediaRecorder();
     setState(() {});
 

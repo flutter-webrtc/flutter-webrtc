@@ -42,7 +42,7 @@
     CVPixelBufferRef pixelBufferRef;
     bool shouldRelease;
     if (![buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
-        pixelBufferRef = [self convertToCVPixelBuffer:frame];
+        pixelBufferRef = [FlutterRTCFrameCapturer convertToCVPixelBuffer:frame];
         shouldRelease = true;
     } else {
         pixelBufferRef = ((RTCCVPixelBuffer *) buffer).pixelBuffer;
@@ -113,7 +113,7 @@
     });
 }
 
--(CVPixelBufferRef)convertToCVPixelBuffer:(RTCVideoFrame *) frame
++ (CVPixelBufferRef)convertToCVPixelBuffer:(RTCVideoFrame *) frame
 {
     id<RTCI420Buffer> i420Buffer = [frame.buffer toI420];
     CVPixelBufferRef outputPixelBuffer;
