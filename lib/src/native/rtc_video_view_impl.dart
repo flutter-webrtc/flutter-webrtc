@@ -38,7 +38,7 @@ class RTCVideoView extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           fit: objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
               ? BoxFit.contain
-              : BoxFit.cover,
+              : BoxFit.fill,
           child: Center(
             child: ValueListenableBuilder<RTCVideoValue>(
               valueListenable: videoRenderer,
