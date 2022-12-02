@@ -50,7 +50,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private Surface surface;
     private MediaCodec audioEncoder;
 
-    VideoFileRenderer(String outputFile, final EglBase.Context sharedContext, boolean withAudio) throws IOException {
+    VideoFileRenderer(String outputFile, final EglBase.Context sharedContext, boolean withAudio, int rotation) throws IOException {
         renderThread = new HandlerThread(TAG + "RenderThread");
         renderThread.start();
         renderThreadHandler = new Handler(renderThread.getLooper());
@@ -70,7 +70,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         // obtained from the encoder after it has started processing data.
         mediaMuxer = new MediaMuxer(outputFile,
                 MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-
+        mediaMuxer.setOrientationHint(rotation % 360);
         audioTrackIndex = withAudio ? -1 : 0;
     }
 

@@ -828,10 +828,11 @@ class GetUserMediaImpl {
      * @param path         to the file for record
      * @param videoTrack   to record or null if only audio needed
      * @param audioChannel channel for recording or null
+     * @param rotation     additional rotation of the resulting video
      * @throws Exception lot of different exceptions, pass back to dart layer to print them at least
      */
     void startRecordingToFile(
-            String path, Integer id, @Nullable VideoTrack videoTrack, @Nullable AudioChannel audioChannel)
+            String path, Integer id, @Nullable VideoTrack videoTrack, @Nullable AudioChannel audioChannel, @Nullable Integer rotation)
             throws Exception {
         AudioSamplesInterceptor interceptor = null;
         if (audioChannel == AudioChannel.INPUT) {
@@ -842,9 +843,16 @@ class GetUserMediaImpl {
             }
             interceptor = outputSamplesInterceptor;
         }
-        MediaRecorderImpl mediaRecorder = new MediaRecorderImpl(id, videoTrack, interceptor);
+        MediaRecorderImpl mediaRecorder = new MediaRecorderImpl(id, videoTrack, interceptor, rotation);
         mediaRecorder.startRecording(new File(path));
         mediaRecorders.append(id, mediaRecorder);
+    }
+
+    public void changeRecorderTrack(VideoTrack track, Integer recorderId) {
+        final MediaRecorderImpl mr = mediaRecorders.get(recorderId);
+        if (mr != null) {
+            mr.switchVideoTrack(track);
+        }
     }
 
     void stopRecording(Integer id) {
