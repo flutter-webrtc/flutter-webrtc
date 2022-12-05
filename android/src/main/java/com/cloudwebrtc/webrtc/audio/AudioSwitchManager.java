@@ -1,5 +1,6 @@
 package com.cloudwebrtc.webrtc.audio;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.media.AudioManager;
 import android.os.Handler;
@@ -19,6 +20,8 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function2;
 
 public class AudioSwitchManager {
+    @SuppressLint("StaticFieldLeak")
+    public static AudioSwitchManager instance;
     @NonNull
     private final Context context;
     @NonNull
