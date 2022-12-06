@@ -126,9 +126,9 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         methodCallHandler = null;
         methodChannel.setMethodCallHandler(null);
         eventChannel.setStreamHandler(null);
-        if (audioSwitchManager != null) {
+        if (AudioSwitchManager.instance != null) {
             Log.d(TAG, "Stopping the audio manager...");
-            audioSwitchManager = null;
+            AudioSwitchManager.instance = null;
         }
     }
 
