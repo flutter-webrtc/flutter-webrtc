@@ -157,6 +157,11 @@
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult) result {
 
     if ([@"createPeerConnection" isEqualToString:call.method]) {
+        #if TARGET_OS_IPHONE
+            _preferredInput = AVAudioSessionPortHeadphones;
+            _speakerOn = NO;
+            [AudioUtils setSpeakerphoneOn:_speakerOn];
+        #endif
         NSDictionary* argsMap = call.arguments;
         NSDictionary* configuration = argsMap[@"configuration"];
         NSDictionary* constraints = argsMap[@"constraints"];
@@ -561,7 +566,13 @@
             }
             [dataChannels removeAllObjects];
         }
+
+        #if TARGET_OS_IPHONE
+            [[NSNotificationCenter defaultCenter] removeObserver:self];
+        #endif
+
         [self deactiveRtcAudioSession];
+
         result(nil);
     } else if ([@"createVideoRenderer" isEqualToString:call.method]){
         FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures
