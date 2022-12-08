@@ -52,7 +52,8 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
                         std::unique_ptr<MethodResult> result) {
     // handle method call and forward to webrtc native sdk.
     auto method_call_proxy = MethodCallProxy::Create(method_call);
-    webrtc_->HandleMethodCall(*method_call_proxy.get(), MethodResultProxy::Create(std::move(result)));
+    webrtc_->HandleMethodCall(*method_call_proxy.get(),
+                              MethodResultProxy::Create(std::move(result)));
   }
 
  private:
@@ -65,10 +66,13 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
 }  // namespace flutter_webrtc_plugin
 
 #if defined(_WINDOWS)
-void FlutterWebRTCPluginRegisterWithRegistrar( FlutterDesktopPluginRegistrarRef registrar){
+void FlutterWebRTCPluginRegisterWithRegistrar(
+    FlutterDesktopPluginRegistrarRef registrar) {
 #else
-void flutter_web_r_t_c_plugin_register_with_registrar(FlPluginRegistrar* registrar) {
+void flutter_web_r_t_c_plugin_register_with_registrar(
+    FlPluginRegistrar* registrar) {
 #endif
-  static auto *plugin_registrar = new flutter::PluginRegistrar(registrar);
-  flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(plugin_registrar);
+  static auto* plugin_registrar = new flutter::PluginRegistrar(registrar);
+  flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
+      plugin_registrar);
 }

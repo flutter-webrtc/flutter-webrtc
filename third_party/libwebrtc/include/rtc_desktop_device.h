@@ -11,12 +11,15 @@ class RTCDesktopMediaList;
 
 class RTCDesktopDevice : public RefCountInterface {
  public:
-  virtual scoped_refptr<RTCDesktopCapturer> CreateDesktopCapturer(scoped_refptr<MediaSource> source) = 0;
-  virtual scoped_refptr<RTCDesktopMediaList> GetDesktopMediaList(DesktopType type) = 0;
+  virtual scoped_refptr<RTCDesktopCapturer> CreateDesktopCapturer(
+      scoped_refptr<MediaSource> source) = 0;
+  virtual scoped_refptr<RTCDesktopMediaList> GetDesktopMediaList(
+      DesktopType type) = 0;
+
  protected:
   virtual ~RTCDesktopDevice() {}
 };
 
-} // namespace libwebrtc
+}  // namespace libwebrtc
 
 #endif  // LIB_WEBRTC_RTC_VIDEO_DEVICE_HXX

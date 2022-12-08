@@ -13,12 +13,12 @@
 
 #include "rtc_audio_device.h"
 #include "rtc_desktop_device.h"
+#include "rtc_dtmf_sender.h"
 #include "rtc_media_stream.h"
 #include "rtc_media_track.h"
 #include "rtc_mediaconstraints.h"
 #include "rtc_peerconnection.h"
 #include "rtc_peerconnection_factory.h"
-#include "rtc_dtmf_sender.h"
 #include "rtc_video_device.h"
 
 #include "uuidxx.h"
@@ -60,8 +60,9 @@ class FlutterWebRTCBase {
 
   void RemovePeerConnectionObserversForId(const std::string& id);
 
-  scoped_refptr<RTCMediaStream> MediaStreamForId(const std::string& id,
-                                                 std::string peerConnectionId = std::string());
+  scoped_refptr<RTCMediaStream> MediaStreamForId(
+      const std::string& id,
+      std::string peerConnectionId = std::string());
 
   void RemoveStreamForId(const std::string& id);
 

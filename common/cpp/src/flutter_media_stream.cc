@@ -14,8 +14,9 @@ FlutterMediaStream::FlutterMediaStream(FlutterWebRTCBase* base) : base_(base) {
   });
 }
 
-void FlutterMediaStream::GetUserMedia(const EncodableMap& constraints,
-                                      std::unique_ptr<MethodResultProxy> result) {
+void FlutterMediaStream::GetUserMedia(
+    const EncodableMap& constraints,
+    std::unique_ptr<MethodResultProxy> result) {
   std::string uuid = base_->GenerateUUID();
   scoped_refptr<RTCMediaStream> stream =
       base_->factory_->CreateStream(uuid.c_str());

@@ -123,9 +123,10 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
   result->Success(EncodableValue(params));
 }
 
-void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
-                                                 const std::string& stream_id,
-                                                 const std::string& peerConnectionId) {
+void FlutterVideoRendererManager::SetMediaStream(
+    int64_t texture_id,
+    const std::string& stream_id,
+    const std::string& peerConnectionId) {
   scoped_refptr<RTCMediaStream> stream =
       base_->MediaStreamForId(stream_id, peerConnectionId);
 
