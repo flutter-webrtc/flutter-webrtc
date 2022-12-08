@@ -48,12 +48,10 @@ class string {
   LIB_PORTABLE_API string();
   LIB_PORTABLE_API void init(const char* str, size_t len);
   LIB_PORTABLE_API void destroy();
-  
+
   inline string(const char* str) { init(str, strlen(str)); }
 
-  inline string(const std::string& str) {
-    init(str.c_str(), str.length());
-  }
+  inline string(const std::string& str) { init(str.c_str(), str.length()); }
 
   inline string(const string& o) {
     init(o.m_dynamic == 0 ? o.m_buf : o.m_dynamic, o.m_length);
@@ -73,9 +71,7 @@ class string {
     return *this;
   }
 
-  inline size_t size() { 
-      return m_length;
-  }
+  inline size_t size() { return m_length; }
 
   inline const char* c_string() const {
     return m_dynamic == 0 ? m_buf : m_dynamic;
@@ -86,7 +82,7 @@ class string {
   }
 };
 
-  inline std::string to_std_string(const string& str) {
+inline std::string to_std_string(const string& str) {
   return str.std_string();
 }
 
@@ -106,7 +102,8 @@ class vector {
 
  public:
   class move_ref {
-   friend class vector;
+    friend class vector;
+
    private:
     vector<T>& m_ref;
     move_ref(vector<T>& ref) : m_ref(ref) {}
@@ -155,10 +152,7 @@ class vector {
     }
   }
 
-
-  ~vector() { 
-      destroy_all();
-  }
+  ~vector() { destroy_all(); }
 
   vector<T>& operator=(const vector<T>& o) {
     if (m_size < o.m_size) {
@@ -207,7 +201,7 @@ class vector {
   T& operator[](size_t i) { return m_array[i]; }
 
   const T& operator[](size_t i) const { return m_array[i]; }
-  
+
   void clear() { destroy_all(); }
 
  protected:

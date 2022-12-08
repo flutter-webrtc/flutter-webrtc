@@ -28,7 +28,7 @@ class PluginRegistrar {
  public:
   // Creates a new PluginRegistrar. |core_registrar| and the messenger it
   // provides must remain valid as long as this object exists.
-  explicit PluginRegistrar(FlPluginRegistrar *core_registrar);
+  explicit PluginRegistrar(FlPluginRegistrar* core_registrar);
 
   virtual ~PluginRegistrar();
 
@@ -54,7 +54,7 @@ class PluginRegistrar {
   void AddPlugin(std::unique_ptr<Plugin> plugin);
 
  protected:
-  FlPluginRegistrar *registrar() { return registrar_; }
+  FlPluginRegistrar* registrar() { return registrar_; }
 
   // Destroys all owned plugins. Subclasses should call this at the beginning of
   // their destructors to prevent the possibility of an owned plugin trying to
@@ -63,7 +63,7 @@ class PluginRegistrar {
 
  private:
   // Handle for interacting with the C API's registrar.
-  FlPluginRegistrar *registrar_;
+  FlPluginRegistrar* registrar_;
 
   std::unique_ptr<BinaryMessenger> messenger_;
 
@@ -99,7 +99,7 @@ class PluginRegistrarManager {
   // Calling this multiple times for the same registrar_ref with different
   // template types results in undefined behavior.
   template <class T>
-  T* GetRegistrar(FlPluginRegistrar *registrar_ref) {
+  T* GetRegistrar(FlPluginRegistrar* registrar_ref) {
     auto insert_result =
         registrars_.emplace(registrar_ref, std::make_unique<T>(registrar_ref));
     auto& registrar_pair = *(insert_result.first);
@@ -116,10 +116,10 @@ class PluginRegistrarManager {
  private:
   PluginRegistrarManager();
 
-  using WrapperMap = std::map<FlPluginRegistrar*,
-                              std::unique_ptr<PluginRegistrar>>;
+  using WrapperMap =
+      std::map<FlPluginRegistrar*, std::unique_ptr<PluginRegistrar>>;
 
-  static void OnRegistrarDestroyed(FlPluginRegistrar *registrar);
+  static void OnRegistrarDestroyed(FlPluginRegistrar* registrar);
 
   WrapperMap* registrars() { return &registrars_; }
 
