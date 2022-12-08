@@ -15,8 +15,9 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
 
 FlutterWebRTC::~FlutterWebRTC() {}
 
-void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
-                                     std::unique_ptr<MethodResultProxy> result) {
+void FlutterWebRTC::HandleMethodCall(
+    const MethodCallProxy& method_call,
+    std::unique_ptr<MethodResultProxy> result) {
   if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");
@@ -260,10 +261,10 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
 
     SdpParseError error;
     int sdpMLineIndex = findInt(constraints, "sdpMLineIndex");
-    scoped_refptr<RTCIceCandidate> rtc_candidate =
-        RTCIceCandidate::Create(findString(constraints, "candidate").c_str(),
-                                findString(constraints, "sdpMid").c_str(),
-                                sdpMLineIndex == -1 ? 0 : sdpMLineIndex, &error);
+    scoped_refptr<RTCIceCandidate> rtc_candidate = RTCIceCandidate::Create(
+        findString(constraints, "candidate").c_str(),
+        findString(constraints, "sdpMid").c_str(),
+        sdpMLineIndex == -1 ? 0 : sdpMLineIndex, &error);
 
     AddIceCandidate(rtc_candidate.get(), pc, std::move(result));
   } else if (method_call.method_name().compare("getStats") == 0) {
@@ -274,11 +275,10 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
     const EncodableMap params =
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string peerConnectionId = findString(params, "peerConnectionId");
-     const std::string track_id = findString(params, "trackId");
+    const std::string track_id = findString(params, "trackId");
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
-      result->Error("getStatsFailed",
-                    "getStats() peerConnection is null");
+      result->Error("getStatsFailed", "getStats() peerConnection is null");
       return;
     }
     GetStats(track_id, pc, std::move(result));
@@ -961,16 +961,14 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
 
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
-      result->Error("canInsertDtmf",
-                    "canInsertDtmf() peerConnection is null");
+      result->Error("canInsertDtmf", "canInsertDtmf() peerConnection is null");
       return;
     }
 
     auto rtpSender = GetRtpSenderById(pc, rtpSenderId);
 
     if (rtpSender == nullptr) {
-      result->Error("sendDtmf",
-                    "sendDtmf() rtpSender is null");
+      result->Error("sendDtmf", "sendDtmf() rtpSender is null");
       return;
     }
     auto dtmfSender = rtpSender->dtmf_sender();
@@ -989,19 +987,17 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
     const std::string tone = findString(params, "tone");
     int duration = findInt(params, "duration");
     int gap = findInt(params, "gap");
-  
+
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
-      result->Error("sendDtmf",
-                    "sendDtmf() peerConnection is null");
+      result->Error("sendDtmf", "sendDtmf() peerConnection is null");
       return;
     }
 
     auto rtpSender = GetRtpSenderById(pc, rtpSenderId);
 
     if (rtpSender == nullptr) {
-      result->Error("sendDtmf",
-                    "sendDtmf() rtpSender is null");
+      result->Error("sendDtmf", "sendDtmf() rtpSender is null");
       return;
     }
 

@@ -131,9 +131,10 @@ class FlutterPeerConnection {
                           std::string rtpTransceiverId,
                           std::unique_ptr<MethodResultProxy> resulte);
 
-  void RtpTransceiverGetCurrentDirection(RTCPeerConnection* pc,
-                                         std::string rtpTransceiverId,
-                                         std::unique_ptr<MethodResultProxy> resulte);
+  void RtpTransceiverGetCurrentDirection(
+      RTCPeerConnection* pc,
+      std::string rtpTransceiverId,
+      std::unique_ptr<MethodResultProxy> resulte);
 
   void SetConfiguration(RTCPeerConnection* pc,
                         const EncodableMap& configuration,
@@ -151,7 +152,8 @@ class FlutterPeerConnection {
                                   std::string direction,
                                   std::unique_ptr<MethodResultProxy> resulte);
 
-  void GetSenders(RTCPeerConnection* pc, std::unique_ptr<MethodResultProxy> resulte);
+  void GetSenders(RTCPeerConnection* pc,
+                  std::unique_ptr<MethodResultProxy> resulte);
 
   void AddIceCandidate(RTCIceCandidate* candidate,
                        RTCPeerConnection* pc,

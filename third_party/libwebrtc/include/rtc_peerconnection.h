@@ -56,8 +56,8 @@ enum RTCIceConnectionState {
 };
 
 class RTCStatsMember : public RefCountInterface {
-public:
-    // Member value types.
+ public:
+  // Member value types.
   enum Type {
     kBool,    // bool
     kInt32,   // int32_t
@@ -78,6 +78,7 @@ public:
     kMapStringUint64,  // std::map<std::string, uint64_t>
     kMapStringDouble,  // std::map<std::string, double>
   };
+
  public:
   virtual string GetName() const = 0;
   virtual Type GetType() const = 0;
@@ -99,7 +100,8 @@ public:
   virtual vector<string> ValueSequenceString() const = 0;
   virtual map<string, uint64_t> ValueMapStringUint64() const = 0;
   virtual map<string, double> ValueMapStringDouble() const = 0;
-protected:
+
+ protected:
   virtual ~RTCStatsMember() {}
 };
 
@@ -173,7 +175,8 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual int RemoveStream(scoped_refptr<RTCMediaStream> stream) = 0;
 
-  virtual scoped_refptr<RTCMediaStream> CreateLocalMediaStream(const string stream_id) = 0;
+  virtual scoped_refptr<RTCMediaStream> CreateLocalMediaStream(
+      const string stream_id) = 0;
 
   virtual scoped_refptr<RTCDataChannel> CreateDataChannel(
       const string label,
