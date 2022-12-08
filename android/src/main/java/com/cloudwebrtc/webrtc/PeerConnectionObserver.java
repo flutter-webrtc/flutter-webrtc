@@ -2,6 +2,8 @@ package com.cloudwebrtc.webrtc;
 
 import android.util.Log;
 import androidx.annotation.Nullable;
+
+import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
@@ -430,17 +432,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   @Override
-  public void onTrack(RtpTransceiver transceiver) {
-      /*
-      ConstraintsMap params = new ConstraintsMap();
-      params.putString("event", "onTrack");
-      params.putMap("transceiver", transceiverToMap(transceiver));
-      params.putMap("receiver", rtpReceiverToMap(transceiver.getReceiver()));
-      params.putMap("track", mediaTrackToMap(transceiver.getReceiver().track()));
-      params.putArray("streams", new ConstraintsArray().toArrayList());
-      sendEvent(params);
-      */
-  }
+  public void onTrack(RtpTransceiver transceiver) {}
 
   @Override
   public void onAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams) {
@@ -465,6 +457,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           trackInfo.putBoolean("remote", true);
           params.putMap("track", trackInfo.toMap());
           sendEvent(params);
+
+          if ("audio".equals(track.kind())) {
+              AudioSwitchManager.instance.start();
+          }
       }
 
       // For unified-plan

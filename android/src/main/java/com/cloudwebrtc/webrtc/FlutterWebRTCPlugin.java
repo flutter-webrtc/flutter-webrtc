@@ -33,7 +33,6 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     static public final String TAG = "FlutterWebRTCPlugin";
     private static Application application;
 
-    private AudioSwitchManager audioSwitchManager;
     private MethodChannel methodChannel;
     private MethodCallHandlerImpl methodCallHandler;
     private LifeCycleObserver observer;
@@ -107,14 +106,13 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
 
     private void startListening(final Context context, BinaryMessenger messenger,
                                 TextureRegistry textureRegistry) {
-        audioSwitchManager = new AudioSwitchManager(context);
-        methodCallHandler = new MethodCallHandlerImpl(context, messenger, textureRegistry,
-                audioSwitchManager);
+        AudioSwitchManager.instance = new AudioSwitchManager(context);
+        methodCallHandler = new MethodCallHandlerImpl(context, messenger, textureRegistry);
         methodChannel = new MethodChannel(messenger, "FlutterWebRTC.Method");
         methodChannel.setMethodCallHandler(methodCallHandler);
         eventChannel = new EventChannel( messenger,"FlutterWebRTC.Event");
         eventChannel.setStreamHandler(this);
-        audioSwitchManager.audioDeviceChangeListener = (devices, currentDevice) -> {
+        AudioSwitchManager.instance.audioDeviceChangeListener = (devices, currentDevice) -> {
             Log.w(TAG, "audioFocusChangeListener " + devices+ " " + currentDevice);
             ConstraintsMap params = new ConstraintsMap();
             params.putString("event", "onDeviceChange");
@@ -128,9 +126,10 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         methodCallHandler = null;
         methodChannel.setMethodCallHandler(null);
         eventChannel.setStreamHandler(null);
-        if (audioSwitchManager != null) {
+        if (AudioSwitchManager.instance != null) {
             Log.d(TAG, "Stopping the audio manager...");
-            audioSwitchManager = null;
+            AudioSwitchManager.instance.stop();
+            AudioSwitchManager.instance = null;
         }
     }
 
