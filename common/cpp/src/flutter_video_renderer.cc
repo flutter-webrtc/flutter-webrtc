@@ -125,9 +125,9 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
 
 void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
                                                  const std::string& stream_id,
-                                                 const std::string& peerConnectionId) {
+                                                 const std::string& ownerTag) {
   scoped_refptr<RTCMediaStream> stream =
-      base_->MediaStreamForId(stream_id, peerConnectionId);
+      base_->MediaStreamForId(stream_id, ownerTag);
 
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {

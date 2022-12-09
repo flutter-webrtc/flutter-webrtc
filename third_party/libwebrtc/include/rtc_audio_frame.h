@@ -3,7 +3,7 @@
 
 #include "media_manager_types.h"
 
-namespace b2bua {
+namespace libwebrtc {
 
 class AudioFrame {
  public:
@@ -44,6 +44,6 @@ class AudioFrame {
   virtual int id() = 0;
 };
 
-};  // namespace b2bua
+};  // namespace libwebrtc
 
 #endif

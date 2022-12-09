@@ -42,7 +42,7 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
       }
       return stats;
     } on PlatformException catch (e) {
-      throw 'Unable to RTCPeerConnection::getStats: ${e.message}';
+      throw 'Unable to RTCRtpReceiverNative::getStats: ${e.message}';
     }
   }
 
@@ -63,4 +63,6 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
 
   @override
   String get receiverId => _id;
+
+  String get peerConnectionId => _peerConnectionId;
 }

@@ -526,6 +526,74 @@ void FlutterPeerConnection::GetReceivers(
   result_ptr->Success(EncodableValue(map));
 }
 
+void FlutterPeerConnection::rtpSenderFrameCryptoSetup(
+    RTCPeerConnection* pc,
+    std::string rtpSenderId,
+    std::vector<uint8_t> key,
+    std::unique_ptr<MethodResultProxy> result) {
+  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
+    auto sender = GetRtpSenderById(pc, rtpSenderId);
+  if (nullptr == sender.get()) {
+    result_ptr->Error("rtpSenderFrameCryptoSetup", "sender is null");
+    return;
+  }
+  bool res = sender->EnableGcmCryptoSuites(key);
+  EncodableMap map;
+  map[EncodableValue("result")] = res;
+  result_ptr->Success(EncodableValue(map));
+}
+
+void FlutterPeerConnection::rtpSenderFrameCryptoSetEnabled(
+    RTCPeerConnection* pc,
+    std::string rtpSenderId,
+    bool enabled,
+    std::unique_ptr<MethodResultProxy> result) {
+  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
+  auto sender = GetRtpSenderById(pc, rtpSenderId);
+  if (nullptr == sender.get()) {
+    result_ptr->Error("rtpSenderFrameCryptoSetEnabled", "sender is null");
+    return;
+  }
+  bool res = sender->DisableGcmCryptoSuites();
+  EncodableMap map;
+  map[EncodableValue("result")] = res;
+  result_ptr->Success(EncodableValue(map));
+}
+
+void FlutterPeerConnection::rtpReceiverFrameCryptoSetup(
+    RTCPeerConnection* pc,
+    std::string rtpReceiverId,
+    std::vector<uint8_t> key,
+    std::unique_ptr<MethodResultProxy> result) {
+  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
+  auto receiver = GetRtpReceiverById(pc, rtpReceiverId);
+  if (nullptr == receiver.get()) {
+    result_ptr->Error("rtpReceiverFrameCryptoSetup", "receiver is null");
+    return;
+  }
+  bool res = receiver->EnableGcmCryptoSuites(key);
+  EncodableMap map;
+  map[EncodableValue("result")] = res;
+  result_ptr->Success(EncodableValue(map));
+}
+
+void FlutterPeerConnection::rtpReceiverFrameCryptoSetEnabled(
+    RTCPeerConnection* pc,
+    std::string rtpReceiverId,
+    bool enabled,
+    std::unique_ptr<MethodResultProxy> result) {
+  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
+  auto receiver = GetRtpReceiverById(pc, rtpReceiverId);
+  if (nullptr == receiver.get()) {
+    result_ptr->Error("rtpReceiverFrameCryptoSetEnabled", "receiver is null");
+    return;
+  }
+  bool res = receiver->DisableGcmCryptoSuites();
+  EncodableMap map;
+  map[EncodableValue("result")] = res;
+  result_ptr->Success(EncodableValue(map));
+}
+
 void FlutterPeerConnection::RtpSenderDispose(
     RTCPeerConnection* pc,
     std::string rtpSenderId,
@@ -930,6 +998,20 @@ FlutterPeerConnection::GetRtpSenderById(RTCPeerConnection* pc, std::string id) {
   libwebrtc::scoped_refptr<libwebrtc::RTCRtpSender> result;
   auto senders = pc->senders();
   for (scoped_refptr<RTCRtpSender> item : senders.std_vector()) {
+    std::string itemId = item->id().std_string();
+    if (nullptr == result.get() && 0 == id.compare(itemId)) {
+      result = item;
+    }
+  }
+  return result;
+}
+
+libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver>
+FlutterPeerConnection::GetRtpReceiverById(RTCPeerConnection* pc,
+                                             std::string id) {
+  libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver> result;
+  auto receivers = pc->receivers();
+  for (scoped_refptr<RTCRtpReceiver> item : receivers.std_vector()) {
     std::string itemId = item->id().std_string();
     if (nullptr == result.get() && 0 == id.compare(itemId)) {
       result = item;
