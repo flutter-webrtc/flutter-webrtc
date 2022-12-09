@@ -10,9 +10,9 @@
 #include <flutter/standard_method_codec.h>
 #include <flutter/texture_registrar.h>
 
-#include <string>
-#include <memory>
 #include <list>
+#include <memory>
+#include <string>
 
 typedef flutter::EncodableValue EncodableValue;
 typedef flutter::EncodableMap EncodableMap;

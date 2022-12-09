@@ -75,7 +75,7 @@ void FlutterScreenCapture::UpdateDesktopSources(
     return;
   }
   auto map = EncodableMap();
-  map[EncodableValue("result")] =  true;
+  map[EncodableValue("result")] = true;
   result->Success(EncodableValue(map));
 }
 
@@ -135,23 +135,23 @@ void FlutterScreenCapture::OnMediaSourceThumbnailChanged(
 }
 
 void FlutterScreenCapture::OnStart(scoped_refptr<RTCDesktopCapturer> capturer) {
-  //std::cout << " OnStart: " << capturer->source()->id().std_string()
+  // std::cout << " OnStart: " << capturer->source()->id().std_string()
   //          << std::endl;
 }
 
 void FlutterScreenCapture::OnPaused(
     scoped_refptr<RTCDesktopCapturer> capturer) {
-  //std::cout << " OnPaused: " << capturer->source()->id().std_string()
+  // std::cout << " OnPaused: " << capturer->source()->id().std_string()
   //          << std::endl;
 }
 
 void FlutterScreenCapture::OnStop(scoped_refptr<RTCDesktopCapturer> capturer) {
-  //std::cout << " OnStop: " << capturer->source()->id().std_string()
+  // std::cout << " OnStop: " << capturer->source()->id().std_string()
   //          << std::endl;
 }
 
 void FlutterScreenCapture::OnError(scoped_refptr<RTCDesktopCapturer> capturer) {
-  //std::cout << " OnError: " << capturer->source()->id().std_string()
+  // std::cout << " OnError: " << capturer->source()->id().std_string()
   //          << std::endl;
 }
 
@@ -180,7 +180,7 @@ void FlutterScreenCapture::GetDisplayMedia(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
   std::string source_id = "0";
-  //DesktopType source_type = kScreen;
+  // DesktopType source_type = kScreen;
   double fps = 30.0;
 
   const EncodableMap video = findMap(constraints, "video");
@@ -193,7 +193,7 @@ void FlutterScreenCapture::GetDisplayMedia(
         return;
       }
       if (source_id != "0") {
-        //source_type = DesktopType::kWindow;
+        // source_type = DesktopType::kWindow;
       }
     }
     const EncodableMap mandatory = findMap(video, "mandatory");

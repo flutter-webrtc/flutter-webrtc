@@ -15,8 +15,9 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
 
 FlutterWebRTC::~FlutterWebRTC() {}
 
-void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
-                                     std::unique_ptr<MethodResultProxy> result) {
+void FlutterWebRTC::HandleMethodCall(
+    const MethodCallProxy& method_call,
+    std::unique_ptr<MethodResultProxy> result) {
   if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");
@@ -260,10 +261,10 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
 
     SdpParseError error;
     int sdpMLineIndex = findInt(constraints, "sdpMLineIndex");
-    scoped_refptr<RTCIceCandidate> rtc_candidate =
-        RTCIceCandidate::Create(findString(constraints, "candidate").c_str(),
-                                findString(constraints, "sdpMid").c_str(),
-                                sdpMLineIndex == -1 ? 0 : sdpMLineIndex, &error);
+    scoped_refptr<RTCIceCandidate> rtc_candidate = RTCIceCandidate::Create(
+        findString(constraints, "candidate").c_str(),
+        findString(constraints, "sdpMid").c_str(),
+        sdpMLineIndex == -1 ? 0 : sdpMLineIndex, &error);
 
     AddIceCandidate(rtc_candidate.get(), pc, std::move(result));
   } else if (method_call.method_name().compare("getStats") == 0) {
@@ -274,11 +275,10 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
     const EncodableMap params =
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string peerConnectionId = findString(params, "peerConnectionId");
-     const std::string track_id = findString(params, "trackId");
+    const std::string track_id = findString(params, "trackId");
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
-      result->Error("getStatsFailed",
-                    "getStats() peerConnection is null");
+      result->Error("getStatsFailed", "getStats() peerConnection is null");
       return;
     }
     GetStats(track_id, pc, std::move(result));
@@ -961,16 +961,14 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
 
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
-      result->Error("canInsertDtmf",
-                    "canInsertDtmf() peerConnection is null");
+      result->Error("canInsertDtmf", "canInsertDtmf() peerConnection is null");
       return;
     }
 
     auto rtpSender = GetRtpSenderById(pc, rtpSenderId);
 
     if (rtpSender == nullptr) {
-      result->Error("sendDtmf",
-                    "sendDtmf() rtpSender is null");
+      result->Error("sendDtmf", "sendDtmf() rtpSender is null");
       return;
     }
     auto dtmfSender = rtpSender->dtmf_sender();
@@ -989,19 +987,17 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
     const std::string tone = findString(params, "tone");
     int duration = findInt(params, "duration");
     int gap = findInt(params, "gap");
-  
+
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
-      result->Error("sendDtmf",
-                    "sendDtmf() peerConnection is null");
+      result->Error("sendDtmf", "sendDtmf() peerConnection is null");
       return;
     }
 
     auto rtpSender = GetRtpSenderById(pc, rtpSenderId);
 
     if (rtpSender == nullptr) {
-      result->Error("sendDtmf",
-                    "sendDtmf() rtpSender is null");
+      result->Error("sendDtmf", "sendDtmf() rtpSender is null");
       return;
     }
 
@@ -1009,7 +1005,8 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
     dtmfSender->InsertDtmf(tone, duration, gap);
 
     result->Success();
-  } else if (method_call.method_name().compare("rtpSenderFrameCryptoSetup") == 0) {
+  } else if (method_call.method_name().compare("rtpSenderFrameCryptoSetup") ==
+             0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
       return;
@@ -1027,14 +1024,16 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
     const std::string rtpSenderId = findString(params, "rtpSenderId");
     if (0 < rtpSenderId.size()) {
       if (pc == nullptr) {
-        result->Error("rtpSenderFrameCryptoSetup",
-                      "rtpSenderFrameCryptoSetup() rtpSenderId is null or empty");
+        result->Error(
+            "rtpSenderFrameCryptoSetup",
+            "rtpSenderFrameCryptoSetup() rtpSenderId is null or empty");
         return;
       }
     }
     const std::vector<uint8_t> key = findVector(params, "key");
     rtpSenderFrameCryptoSetup(pc, rtpSenderId, key, std::move(result));
-  } else if (method_call.method_name().compare("rtpSenderFrameCryptoSetEnabled") == 0) {
+  } else if (method_call.method_name().compare(
+                 "rtpSenderFrameCryptoSetEnabled") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
       return;
@@ -1052,14 +1051,16 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
     const std::string rtpSenderId = findString(params, "rtpSenderId");
     if (0 < rtpSenderId.size()) {
       if (pc == nullptr) {
-        result->Error("rtpSenderFrameCryptoSetEnabled",
-                      "rtpSenderFrameCryptoSetEnabled() rtpSenderId is null or empty");
+        result->Error(
+            "rtpSenderFrameCryptoSetEnabled",
+            "rtpSenderFrameCryptoSetEnabled() rtpSenderId is null or empty");
         return;
       }
     }
     bool enabled = findBoolean(params, "enabled");
     rtpSenderFrameCryptoSetEnabled(pc, rtpSenderId, enabled, std::move(result));
-  } else if (method_call.method_name().compare("rtpReceiverFrameCryptoSetup") == 0) {
+  } else if (method_call.method_name().compare("rtpReceiverFrameCryptoSetup") ==
+             0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
       return;
@@ -1076,14 +1077,16 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
     const std::string rtpReceiverId = findString(params, "rtpReceiverId");
     if (0 < rtpReceiverId.size()) {
       if (pc == nullptr) {
-        result->Error("rtpReceiverFrameCryptoSetup",
-                      "rtpReceiverFrameCryptoSetup() rtpReceiverId is null or empty");
+        result->Error(
+            "rtpReceiverFrameCryptoSetup",
+            "rtpReceiverFrameCryptoSetup() rtpReceiverId is null or empty");
         return;
       }
     }
     const std::vector<uint8_t> key = findVector(params, "key");
     rtpReceiverFrameCryptoSetup(pc, rtpReceiverId, key, std::move(result));
-  } else if (method_call.method_name().compare("rtpReceiverFrameCryptoSetEnabled") == 0) {
+  } else if (method_call.method_name().compare(
+                 "rtpReceiverFrameCryptoSetEnabled") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
       return;
@@ -1093,20 +1096,23 @@ void FlutterWebRTC::HandleMethodCall(const MethodCallProxy& method_call,
     const std::string peerConnectionId = findString(params, "peerConnectionId");
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
-      result->Error("rtpReceiverFrameCryptoSetEnabled",
-                    "rtpReceiverFrameCryptoSetEnabled() peerConnection is null");
+      result->Error(
+          "rtpReceiverFrameCryptoSetEnabled",
+          "rtpReceiverFrameCryptoSetEnabled() peerConnection is null");
       return;
     }
     const std::string rtpReceiverId = findString(params, "rtpReceiverId");
     if (0 < rtpReceiverId.size()) {
       if (pc == nullptr) {
         result->Error("rtpReceiverFrameCryptoSetEnabled",
-                      "rtpReceiverFrameCryptoSetEnabled() rtpReceiverId is null or empty");
+                      "rtpReceiverFrameCryptoSetEnabled() rtpReceiverId is "
+                      "null or empty");
         return;
       }
     }
     bool enabled = findBoolean(params, "enabled");
-    rtpReceiverFrameCryptoSetEnabled(pc, rtpReceiverId, enabled, std::move(result));
+    rtpReceiverFrameCryptoSetEnabled(pc, rtpReceiverId, enabled,
+                                     std::move(result));
   } else {
     result->NotImplemented();
   }

@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:webrtc_interface/webrtc_interface.dart';
 
 import 'media_stream_track_impl.dart';
-import 'utils.dart';
 
 class MediaStreamNative extends MediaStream {
   MediaStreamNative(String streamId, String ownerTag)

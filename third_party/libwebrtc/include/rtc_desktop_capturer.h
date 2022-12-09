@@ -1,17 +1,18 @@
 #ifndef LIB_WEBRTC_RTC_DESKTOP_CAPTURER_HXX
 #define LIB_WEBRTC_RTC_DESKTOP_CAPTURER_HXX
 
+#include "rtc_desktop_media_list.h"
 #include "rtc_types.h"
 #include "rtc_video_device.h"
-#include "rtc_desktop_media_list.h"
 
 namespace libwebrtc {
 
 class DesktopCapturerObserver;
 
 class RTCDesktopCapturer : public RefCountInterface {
- public: 
-    enum CaptureState { CS_RUNNING, CS_STOPPED, CS_FAILED};
+ public:
+  enum CaptureState { CS_RUNNING, CS_STOPPED, CS_FAILED };
+
  public:
   virtual void RegisterDesktopCapturerObserver(
       DesktopCapturerObserver* observer) = 0;
@@ -30,16 +31,16 @@ class RTCDesktopCapturer : public RefCountInterface {
 };
 
 class DesktopCapturerObserver {
-public:
+ public:
   virtual void OnStart(scoped_refptr<RTCDesktopCapturer> capturer) = 0;
   virtual void OnPaused(scoped_refptr<RTCDesktopCapturer> capturer) = 0;
   virtual void OnStop(scoped_refptr<RTCDesktopCapturer> capturer) = 0;
   virtual void OnError(scoped_refptr<RTCDesktopCapturer> capturer) = 0;
 
-protected:
-   ~DesktopCapturerObserver() {}
+ protected:
+  ~DesktopCapturerObserver() {}
 };
 
-} //namespace libwebrtc
+}  // namespace libwebrtc
 
-#endif // LIB_WEBRTC_RTC_DESKTOP_CAPTURER_HXX
+#endif  // LIB_WEBRTC_RTC_DESKTOP_CAPTURER_HXX
