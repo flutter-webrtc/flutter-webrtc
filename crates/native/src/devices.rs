@@ -278,7 +278,13 @@ impl Webrtc {
         let index = self.get_index_of_audio_playout_device(&device_id)?;
 
         if let Some(index) = index {
-            self.audio_device_module.set_playout_device(index)
+            let adm = &self.audio_device_module;
+            adm.stop_playout()?;
+            adm.set_playout_device(index)?;
+            adm.stereo_playout_is_available(false)?;
+            adm.init_playout()?;
+            adm.start_playout()?;
+            Ok(())
         } else {
             Err(anyhow!("Cannot find playout device with ID `{device_id}`"))
         }
