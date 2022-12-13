@@ -212,7 +212,8 @@ class FrameCryptorImpl implements FrameCryptor {
           await WebRTC.invokeMethod('frameCryptorDispose', <String, dynamic>{
         'frameCryptorId': _frameCryptorId,
       });
-      return response['result'];
+      var res = response['result'];
+      print('res $res');
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSenderNative::dispose: ${e.message}';
     }

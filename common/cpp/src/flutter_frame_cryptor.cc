@@ -4,6 +4,17 @@
 
 namespace flutter_webrtc_plugin {
 
+libwebrtc::Algorithm AlgorithmFromInt(int algorithm) {
+  switch (algorithm) {
+    case 0:
+      return libwebrtc::Algorithm::kAesGcm;
+    case 1:
+      return libwebrtc::Algorithm::kAesCbc;
+    default:
+      return libwebrtc::Algorithm::kAesGcm;
+  }
+}
+
 void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
@@ -38,7 +49,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     return;
   }
 
-  //auto algorithm = findInt(constraints, "algorithm");
+  auto algorithm = findInt(constraints, "algorithm");
 
   auto keyManagerId = findString(constraints, "keyManagerId");
 
@@ -51,9 +62,14 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     }
     std::string uuid = base_->GenerateUUID();
     auto keyManager = key_managers_[keyManagerId];
+    if (keyManager == nullptr) {
+      result->Error("FrameCryptorFactoryCreateFrameCryptorFailed",
+                    "keyManager is null");
+      return;
+    }
     auto frameCryptor =
         libwebrtc::FrameCryptorFactory::frameCryptorFromRtpSender(
-            sender, libwebrtc::Algorithm::kAesGcm, keyManager);
+            sender, AlgorithmFromInt(algorithm), keyManager);
 
     frame_cryptors_[uuid] = frameCryptor;
     EncodableMap params;
@@ -71,7 +87,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     auto keyManager = key_managers_[keyManagerId];
     auto frameCryptor =
         libwebrtc::FrameCryptorFactory::frameCryptorFromRtpReceiver(
-            receiver, libwebrtc::Algorithm::kAesGcm, keyManager);
+            receiver, AlgorithmFromInt(algorithm), keyManager);
 
     frame_cryptors_[uuid] = frameCryptor;
     EncodableMap params;
@@ -87,61 +103,216 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
 void FlutterFrameCryptor::FrameCryptorSetKeyIndex(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  result->NotImplemented();
+  auto frameCryptorId = findString(constraints, "frameCryptorId");
+  if (frameCryptorId == std::string()) {
+    result->Error("FrameCryptorGetKeyIndexFailed", "frameCryptorId is null");
+    return;
+  }
+  auto frameCryptor = frame_cryptors_[frameCryptorId];
+  if (nullptr == frameCryptor.get()) {
+    result->Error("FrameCryptorGetKeyIndexFailed", "frameCryptor is null");
+    return;
+  }
+  auto key_index = findInt(constraints, "keyIndex");
+  frameCryptor->SetKeyIndex(key_index);
+  EncodableMap params;
+  params[EncodableValue("result")] = "success";
+  result->Success(EncodableValue(params));
 }
 
 void FlutterFrameCryptor::FrameCryptorGetKeyIndex(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  result->NotImplemented();
+  auto frameCryptorId = findString(constraints, "frameCryptorId");
+  if (frameCryptorId == std::string()) {
+    result->Error("FrameCryptorGetKeyIndexFailed", "frameCryptorId is null");
+    return;
+  }
+  auto frameCryptor = frame_cryptors_[frameCryptorId];
+  if (nullptr == frameCryptor.get()) {
+    result->Error("FrameCryptorGetKeyIndexFailed", "frameCryptor is null");
+    return;
+  }
+  EncodableMap params;
+  params[EncodableValue("keyIndex")] = frameCryptor->key_index();
+  result->Success(EncodableValue(params));
 }
 
 void FlutterFrameCryptor::FrameCryptorSetEnabled(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  result->NotImplemented();
+  auto frameCryptorId = findString(constraints, "frameCryptorId");
+  if (frameCryptorId == std::string()) {
+    result->Error("FrameCryptorSetEnabledFailed", "frameCryptorId is null");
+    return;
+  }
+  auto frameCryptor = frame_cryptors_[frameCryptorId];
+  if (nullptr == frameCryptor.get()) {
+    result->Error("FrameCryptorSetEnabledFailed", "frameCryptor is null");
+    return;
+  }
+  auto enabled = findBoolean(constraints, "enabled");
+  frameCryptor->SetEnabled(enabled);
+  EncodableMap params;
+  params[EncodableValue("result")] = "success";
+  result->Success(EncodableValue(params));
 }
 
 void FlutterFrameCryptor::FrameCryptorGetEnabled(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  result->NotImplemented();
+  auto frameCryptorId = findString(constraints, "frameCryptorId");
+  if (frameCryptorId == std::string()) {
+    result->Error("FrameCryptorGetEnabledFailed", "frameCryptorId is null");
+    return;
+  }
+  auto frameCryptor = frame_cryptors_[frameCryptorId];
+  if (nullptr == frameCryptor.get()) {
+    result->Error("FrameCryptorGetEnabledFailed", "frameCryptor is null");
+    return;
+  }
+  EncodableMap params;
+  params[EncodableValue("enabled")] = frameCryptor->enabled();
+  result->Success(EncodableValue(params));
 }
 
 void FlutterFrameCryptor::FrameCryptorDispose(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  result->NotImplemented();
+  auto frameCryptorId = findString(constraints, "frameCryptorId");
+  if (frameCryptorId == std::string()) {
+    result->Error("FrameCryptorDisposeFailed", "frameCryptorId is null");
+    return;
+  }
+  auto frameCryptor = frame_cryptors_[frameCryptorId];
+  if (nullptr == frameCryptor.get()) {
+    result->Error("FrameCryptorDisposeFailed", "frameCryptor is null");
+    return;
+  }
+  frame_cryptors_.erase(frameCryptorId);
+  EncodableMap params;
+  params[EncodableValue("result")] = "success";
+  result->Success(EncodableValue(params));
 }
 
 void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyManager(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  result->NotImplemented();
+  auto keyManager = libwebrtc::KeyManager::Create();
+  if (nullptr == keyManager.get()) {
+    result->Error("FrameCryptorFactoryCreateKeyManagerFailed",
+                  "createKeyManager failed");
+    return;
+  }
+  auto uuid = base_->GenerateUUID();
+  key_managers_[uuid] = keyManager;
+  EncodableMap params;
+  params[EncodableValue("keyManagerId")] = uuid;
+  result->Success(EncodableValue(params));
 }
 
 void FlutterFrameCryptor::KeyManagerSetKey(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  result->NotImplemented();
+  auto keyManagerId = findString(constraints, "keyManagerId");
+  if (keyManagerId == std::string()) {
+    result->Error("KeyManagerSetKeyFailed", "keyManagerId is null");
+    return;
+  }
+
+  auto keyManager = key_managers_[keyManagerId];
+  if (nullptr == keyManager.get()) {
+    result->Error("KeyManagerSetKeyFailed", "keyManager is null");
+    return;
+  }
+
+  auto key = findVector(constraints, "key");
+  if (key.size() == 0) {
+    result->Error("KeyManagerSetKeyFailed", "key is null");
+    return;
+  }
+  auto key_index = findInt(constraints, "keyIndex");
+  if (key_index == -1) {
+    result->Error("KeyManagerSetKeyFailed", "keyIndex is null");
+    return;
+  }
+
+  keyManager->SetKey(key_index, key);
+  EncodableMap params;
+  params[EncodableValue("result")] = "success";
+  result->Success(EncodableValue(params));
 }
 
 void FlutterFrameCryptor::KeyManagerSetKeys(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  result->NotImplemented();
+  auto keyManagerId = findString(constraints, "keyManagerId");
+  if (keyManagerId == std::string()) {
+    result->Error("KeyManagerSetKeysFailed", "keyManagerId is null");
+    return;
+  }
+
+  auto keyManager = key_managers_[keyManagerId];
+  if (nullptr == keyManager.get()) {
+    result->Error("KeyManagerSetKeysFailed", "keyManager is null");
+    return;
+  }
+
+  std::vector<std::vector<uint8_t>> keys_input;
+  auto keys = findList(constraints, "keys");
+  for(auto key : keys) {
+    keys_input.push_back(GetValue<std::vector<uint8_t>>(key));
+  }
+
+  keyManager->SetKeys(keys_input);
+
+  EncodableMap params;
+  params[EncodableValue("result")] = "success";
+  result->Success(EncodableValue(params));
 }
 
 void FlutterFrameCryptor::KeyManagerGetKeys(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  result->NotImplemented();
+  auto keyManagerId = findString(constraints, "keyManagerId");
+  if (keyManagerId == std::string()) {
+    result->Error("KeyManagerGetKeysFailed", "keyManagerId is null");
+    return;
+  }
+
+  auto keyManager = key_managers_[keyManagerId];
+  if (nullptr == keyManager.get()) {
+    result->Error("KeyManagerGetKeysFailed", "keyManager is null");
+    return;
+  }
+  auto keys = keyManager->GetKeys();
+  EncodableList keys_output;
+  for (auto key : keys.std_vector()) {
+    keys_output.push_back(key.std_vector());
+  }
+  EncodableMap params;
+  params[EncodableValue("keys")] = keys_output;
+  result->Success(EncodableValue(params));
 }
 
 void FlutterFrameCryptor::KeyManagerDispose(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  result->NotImplemented();
+  auto keyManagerId = findString(constraints, "keyManagerId");
+  if (keyManagerId == std::string()) {
+    result->Error("KeyManagerDisposeFailed", "keyManagerId is null");
+    return;
+  }
+
+  auto keyManager = key_managers_[keyManagerId];
+  if (nullptr == keyManager.get()) {
+    result->Error("KeyManagerDisposeFailed", "keyManager is null");
+    return;
+  }
+  key_managers_.erase(keyManagerId);
+  EncodableMap params;
+  params[EncodableValue("result")] = "success";
+  result->Success(EncodableValue(params));
 }
 
 }  // namespace flutter_webrtc_plugin
