@@ -1006,6 +1006,8 @@ void FlutterWebRTC::HandleMethodCall(
     dtmfSender->InsertDtmf(tone, duration, gap);
 
     result->Success();
+  } else if (HandleFrameCryptorMethodCall(method_call, std::move(result))) {
+    // Do nothing
   } else {
     result->NotImplemented();
   }

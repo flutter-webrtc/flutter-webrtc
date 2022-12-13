@@ -15,6 +15,51 @@ libwebrtc::Algorithm AlgorithmFromInt(int algorithm) {
   }
 }
 
+bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
+    const MethodCallProxy& method_call,
+    std::unique_ptr<MethodResultProxy> result) {
+  const std::string& method_name = method_call.method_name();
+  if (!method_call.arguments()) {
+    result->Error("Bad Arguments", "Null arguments received");
+    return true;
+  }
+  const EncodableMap params = GetValue<EncodableMap>(*method_call.arguments());
+
+  if (method_name == "frameCryptorFactoryCreateFrameCryptor") {
+    FrameCryptorFactoryCreateFrameCryptor(params, std::move(result));
+    return true;
+  } else if (method_name == "frameCryptorSetKeyIndex") {
+    FrameCryptorSetKeyIndex(params, std::move(result));
+    return true;
+  } else if (method_name == "frameCryptorGetKeyIndex") {
+    FrameCryptorGetKeyIndex(params, std::move(result));
+    return true;
+  } else if (method_name == "frameCryptorSetEnabled") {
+    FrameCryptorSetEnabled(params, std::move(result));
+    return true;
+  } else if (method_name == "frameCryptorGetEnabled") {
+    FrameCryptorGetEnabled(params, std::move(result));
+    return true;
+  } else if (method_name == "frameCryptorDispose") {
+    FrameCryptorDispose(params, std::move(result));
+    return true;
+  } else if (method_name == "frameCryptorFactoryCreateKeyManager") {
+    FrameCryptorFactoryCreateKeyManager(params, std::move(result));
+    return true;
+  } else if (method_name == "keyManagerSetKey") {
+    KeyManagerSetKey(params, std::move(result));
+    return true;
+  } else if (method_name == "keyManagerGetKeys") {
+    KeyManagerGetKeys(params, std::move(result));
+    return true;
+  } else if (method_name == "keyManagerDispose") {
+    KeyManagerDispose(params, std::move(result));
+    return true;
+  }
+
+  return false;
+}
+
 void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
@@ -114,9 +159,9 @@ void FlutterFrameCryptor::FrameCryptorSetKeyIndex(
     return;
   }
   auto key_index = findInt(constraints, "keyIndex");
-  frameCryptor->SetKeyIndex(key_index);
+  auto res = frameCryptor->SetKeyIndex(key_index);
   EncodableMap params;
-  params[EncodableValue("result")] = "success";
+  params[EncodableValue("result")] = res;
   result->Success(EncodableValue(params));
 }
 
@@ -154,7 +199,7 @@ void FlutterFrameCryptor::FrameCryptorSetEnabled(
   auto enabled = findBoolean(constraints, "enabled");
   frameCryptor->SetEnabled(enabled);
   EncodableMap params;
-  params[EncodableValue("result")] = "success";
+  params[EncodableValue("result")] = enabled;
   result->Success(EncodableValue(params));
 }
 
@@ -237,9 +282,9 @@ void FlutterFrameCryptor::KeyManagerSetKey(
     return;
   }
 
-  keyManager->SetKey(key_index, key);
+  keyManager->SetKey(key_index, vector<uint8_t>(key));
   EncodableMap params;
-  params[EncodableValue("result")] = "success";
+  params[EncodableValue("result")] = true;
   result->Success(EncodableValue(params));
 }
 
@@ -260,14 +305,14 @@ void FlutterFrameCryptor::KeyManagerSetKeys(
 
   std::vector<std::vector<uint8_t>> keys_input;
   auto keys = findList(constraints, "keys");
-  for(auto key : keys) {
+  for (auto key : keys) {
     keys_input.push_back(GetValue<std::vector<uint8_t>>(key));
   }
 
   keyManager->SetKeys(keys_input);
 
   EncodableMap params;
-  params[EncodableValue("result")] = "success";
+  params[EncodableValue("result")] = true;
   result->Success(EncodableValue(params));
 }
 

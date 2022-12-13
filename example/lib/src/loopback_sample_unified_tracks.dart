@@ -94,14 +94,6 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
         _mediaDevicesList = devices;
       });
     };
-
-    try {
-      _frameCyrptorFactory
-          .createDefaultKeyManager()
-          .then((value) => _keyManager = value);
-    } on PlatformException catch (e) {
-      print(e.toString());
-    }
   }
 
   @override
@@ -289,6 +281,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     initRenderers();
     initLocalConnection();
 
+    _keyManager ??= await _frameCyrptorFactory.createDefaultKeyManager();
+
     await _keyManager?.setKey(0, aesKey);
 
     if (_remotePeerConnection != null) return;
@@ -346,24 +340,26 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     var kind = video ? 'video' : 'audio';
 
     senders?.forEach((element) async {
-      if (kind == element.track?.kind) {
-        var trackId = element.track?.id;
-        var id = kind + '_' + trackId! + '_sender';
-        if (!_frameCyrptors.containsKey(id)) {
-          _frameCyrptors[kind] =
-              await _frameCyrptorFactory.createFrameCryptorForRtpSender(
-                  sender: element,
-                  algorithm: Algorithm.kAesGcm,
-                  keyManager: _keyManager!);
-        }
+      if (kind != element.track?.kind) return;
 
-        var _frameCyrptor = _frameCyrptors[id];
-        if (enabled) {
-          await _frameCyrptor?.setEnabled(true);
-          await _frameCyrptor?.setKeyIndex(0);
-        } else {
-          await _frameCyrptor?.setEnabled(false);
-        }
+      var trackId = element.track?.id;
+      var id = kind + '_' + trackId! + '_sender';
+      if (!_frameCyrptors.containsKey(id)) {
+        var frameCyrptor =
+            await _frameCyrptorFactory.createFrameCryptorForRtpSender(
+                sender: element,
+                algorithm: Algorithm.kAesGcm,
+                keyManager: _keyManager!);
+
+        _frameCyrptors[id] = frameCyrptor;
+        await frameCyrptor.setKeyIndex(0);
+      }
+
+      var _frameCyrptor = _frameCyrptors[id];
+      if (enabled) {
+        await _frameCyrptor?.setEnabled(true);
+      } else {
+        await _frameCyrptor?.setEnabled(false);
       }
     });
   }
@@ -372,20 +368,23 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     var receivers = await _remotePeerConnection?.receivers;
     var kind = video ? 'video' : 'audio';
     receivers?.forEach((element) async {
+      if (kind != element.track?.kind) return;
       var trackId = element.track?.id;
       var id = kind + '_' + trackId! + '_receiver';
       if (!_frameCyrptors.containsKey(id)) {
-        _frameCyrptors[kind] =
+        var frameCyrptor =
             await _frameCyrptorFactory.createFrameCryptorForRtpReceiver(
                 receiver: element,
                 algorithm: Algorithm.kAesGcm,
                 keyManager: _keyManager!);
+
+        _frameCyrptors[id] = frameCyrptor;
+        await frameCyrptor.setKeyIndex(0);
       }
 
       var _frameCyrptor = _frameCyrptors[id];
       if (enabled) {
         await _frameCyrptor?.setEnabled(true);
-        await _frameCyrptor?.setKeyIndex(0);
       } else {
         await _frameCyrptor?.setEnabled(false);
       }

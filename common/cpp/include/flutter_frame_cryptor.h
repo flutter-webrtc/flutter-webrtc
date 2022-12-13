@@ -12,6 +12,10 @@ class FlutterFrameCryptor {
  public:
   FlutterFrameCryptor(FlutterWebRTCBase* base) : base_(base) {}
 
+  bool HandleFrameCryptorMethodCall(
+    const MethodCallProxy& method_call,
+    std::unique_ptr<MethodResultProxy> result);
+
   void FrameCryptorFactoryCreateFrameCryptor(
       const EncodableMap& constraints,
       std::unique_ptr<MethodResultProxy> result);

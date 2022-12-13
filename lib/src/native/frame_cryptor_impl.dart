@@ -31,7 +31,7 @@ class KeyManagerImpl implements KeyManager {
       final response =
           await WebRTC.invokeMethod('keyManagerSetKey', <String, dynamic>{
         'keyManagerId': _id,
-        'index': index,
+        'keyIndex': index,
         'key': key,
       });
       return response['result'];
@@ -70,11 +70,9 @@ class KeyManagerImpl implements KeyManager {
   @override
   Future<void> dispose() async {
     try {
-      final response =
-          await WebRTC.invokeMethod('keyManagerDispose', <String, dynamic>{
+      await WebRTC.invokeMethod('keyManagerDispose', <String, dynamic>{
         'keyManagerId': _id,
       });
-      return response['result'];
     } on PlatformException catch (e) {
       throw 'Unable to KeyManagerImpl::dispose: ${e.message}';
     }

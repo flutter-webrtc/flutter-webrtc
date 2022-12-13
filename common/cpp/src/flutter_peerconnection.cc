@@ -74,7 +74,7 @@ EncodableMap rtpParametersToMap(
     map[EncodableValue("minBitrate")] =
         EncodableValue(encoding->min_bitrate_bps());
     map[EncodableValue("maxFramerate")] =
-        EncodableValue(encoding->max_framerate());
+        EncodableValue((int)encoding->max_framerate());
     map[EncodableValue("scaleResolutionDownBy")] =
         EncodableValue(encoding->scale_resolution_down_by());
     map[EncodableValue("ssrc")] = EncodableValue((long)encoding->ssrc());
