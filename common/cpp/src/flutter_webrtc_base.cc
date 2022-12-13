@@ -333,4 +333,31 @@ void FlutterWebRTCBase::RemoveTracksForId(const std::string& id) {
     local_tracks_.erase(it);
 }
 
+libwebrtc::scoped_refptr<libwebrtc::RTCRtpSender>
+FlutterWebRTCBase::GetRtpSenderById(RTCPeerConnection* pc, std::string id) {
+  libwebrtc::scoped_refptr<libwebrtc::RTCRtpSender> result;
+  auto senders = pc->senders();
+  for (scoped_refptr<RTCRtpSender> item : senders.std_vector()) {
+    std::string itemId = item->id().std_string();
+    if (nullptr == result.get() && 0 == id.compare(itemId)) {
+      result = item;
+    }
+  }
+  return result;
+}
+
+libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver>
+FlutterWebRTCBase::GetRtpReceiverById(RTCPeerConnection* pc,
+                                          std::string id) {
+  libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver> result;
+  auto receivers = pc->receivers();
+  for (scoped_refptr<RTCRtpReceiver> item : receivers.std_vector()) {
+    std::string itemId = item->id().std_string();
+    if (nullptr == result.get() && 0 == id.compare(itemId)) {
+      result = item;
+    }
+  }
+  return result;
+}
+
 }  // namespace flutter_webrtc_plugin

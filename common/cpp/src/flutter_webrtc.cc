@@ -11,7 +11,8 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
       FlutterMediaStream::FlutterMediaStream(this),
       FlutterPeerConnection::FlutterPeerConnection(this),
       FlutterScreenCapture::FlutterScreenCapture(this),
-      FlutterDataChannel::FlutterDataChannel(this) {}
+      FlutterDataChannel::FlutterDataChannel(this),
+      FlutterFrameCryptor::FlutterFrameCryptor(this) {}
 
 FlutterWebRTC::~FlutterWebRTC() {}
 
@@ -1005,114 +1006,6 @@ void FlutterWebRTC::HandleMethodCall(
     dtmfSender->InsertDtmf(tone, duration, gap);
 
     result->Success();
-  } else if (method_call.method_name().compare("rtpSenderFrameCryptoSetup") ==
-             0) {
-    if (!method_call.arguments()) {
-      result->Error("Bad Arguments", "Null constraints arguments received");
-      return;
-    }
-    const EncodableMap params =
-        GetValue<EncodableMap>(*method_call.arguments());
-    const std::string peerConnectionId = findString(params, "peerConnectionId");
-    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
-    if (pc == nullptr) {
-      result->Error("rtpSenderFrameCryptoSetup",
-                    "rtpSenderFrameCryptoSetup() peerConnection is null");
-      return;
-    }
-
-    const std::string rtpSenderId = findString(params, "rtpSenderId");
-    if (0 < rtpSenderId.size()) {
-      if (pc == nullptr) {
-        result->Error(
-            "rtpSenderFrameCryptoSetup",
-            "rtpSenderFrameCryptoSetup() rtpSenderId is null or empty");
-        return;
-      }
-    }
-    const std::vector<uint8_t> key = findVector(params, "key");
-    rtpSenderFrameCryptoSetup(pc, rtpSenderId, key, std::move(result));
-  } else if (method_call.method_name().compare(
-                 "rtpSenderFrameCryptoSetEnabled") == 0) {
-    if (!method_call.arguments()) {
-      result->Error("Bad Arguments", "Null constraints arguments received");
-      return;
-    }
-    const EncodableMap params =
-        GetValue<EncodableMap>(*method_call.arguments());
-    const std::string peerConnectionId = findString(params, "peerConnectionId");
-    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
-    if (pc == nullptr) {
-      result->Error("rtpSenderFrameCryptoSetEnabled",
-                    "rtpSenderFrameCryptoSetEnabled() peerConnection is null");
-      return;
-    }
-
-    const std::string rtpSenderId = findString(params, "rtpSenderId");
-    if (0 < rtpSenderId.size()) {
-      if (pc == nullptr) {
-        result->Error(
-            "rtpSenderFrameCryptoSetEnabled",
-            "rtpSenderFrameCryptoSetEnabled() rtpSenderId is null or empty");
-        return;
-      }
-    }
-    bool enabled = findBoolean(params, "enabled");
-    rtpSenderFrameCryptoSetEnabled(pc, rtpSenderId, enabled, std::move(result));
-  } else if (method_call.method_name().compare("rtpReceiverFrameCryptoSetup") ==
-             0) {
-    if (!method_call.arguments()) {
-      result->Error("Bad Arguments", "Null constraints arguments received");
-      return;
-    }
-    const EncodableMap params =
-        GetValue<EncodableMap>(*method_call.arguments());
-    const std::string peerConnectionId = findString(params, "peerConnectionId");
-    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
-    if (pc == nullptr) {
-      result->Error("rtpReceiverFrameCryptoSetup",
-                    "rtpReceiverFrameCryptoSetup() peerConnection is null");
-      return;
-    }
-    const std::string rtpReceiverId = findString(params, "rtpReceiverId");
-    if (0 < rtpReceiverId.size()) {
-      if (pc == nullptr) {
-        result->Error(
-            "rtpReceiverFrameCryptoSetup",
-            "rtpReceiverFrameCryptoSetup() rtpReceiverId is null or empty");
-        return;
-      }
-    }
-    const std::vector<uint8_t> key = findVector(params, "key");
-    rtpReceiverFrameCryptoSetup(pc, rtpReceiverId, key, std::move(result));
-  } else if (method_call.method_name().compare(
-                 "rtpReceiverFrameCryptoSetEnabled") == 0) {
-    if (!method_call.arguments()) {
-      result->Error("Bad Arguments", "Null constraints arguments received");
-      return;
-    }
-    const EncodableMap params =
-        GetValue<EncodableMap>(*method_call.arguments());
-    const std::string peerConnectionId = findString(params, "peerConnectionId");
-    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
-    if (pc == nullptr) {
-      result->Error(
-          "rtpReceiverFrameCryptoSetEnabled",
-          "rtpReceiverFrameCryptoSetEnabled() peerConnection is null");
-      return;
-    }
-    const std::string rtpReceiverId = findString(params, "rtpReceiverId");
-    if (0 < rtpReceiverId.size()) {
-      if (pc == nullptr) {
-        result->Error("rtpReceiverFrameCryptoSetEnabled",
-                      "rtpReceiverFrameCryptoSetEnabled() rtpReceiverId is "
-                      "null or empty");
-        return;
-      }
-    }
-    bool enabled = findBoolean(params, "enabled");
-    rtpReceiverFrameCryptoSetEnabled(pc, rtpReceiverId, enabled,
-                                     std::move(result));
   } else {
     result->NotImplemented();
   }

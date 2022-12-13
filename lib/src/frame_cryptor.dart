@@ -6,10 +6,8 @@ import 'native/frame_cryptor_impl.dart';
 
 /// Built-in Algorithm.
 enum Algorithm {
-  kAes128Gcm,
-  kAes256Gcm,
-  kAes128Cbc,
-  kAes256Cbc,
+  kAesGcm,
+  kAesCbc,
 }
 
 /// Shared secret key for frame encryption.
@@ -32,7 +30,7 @@ abstract class KeyManager {
 
 /// Frame encryption/decryption.
 ///
-abstract class FrameCyrptor {
+abstract class FrameCryptor {
   /// Enable/Disable frame crypto for the sender or receiver.
   Future<bool> setEnabled(bool enabled);
 
@@ -46,33 +44,30 @@ abstract class FrameCyrptor {
   /// Get the key index for the sender or receiver.
   Future<int> get keyIndex;
 
-  /// Get the sender.
-  RTCRtpSender? get sender => null;
-
-  /// Get the receiver.
-  RTCRtpReceiver? get receiver => null;
+  /// Dispose the frame cryptor.
+  Future<void> dispose();
 }
 
-/// Factory for creating frame cyrptors.
+/// Factory for creating frame Cryptors.
 /// For End 2 End Encryption, you need to create a [KeyManager] for each peer.
 /// And set your key in keyManager.
-abstract class FrameCyrptorFactory {
+abstract class FrameCryptorFactory {
   /// Shared key manager.
   Future<KeyManager> createDefaultKeyManager();
 
-  /// Create a frame cyrptor from a [RTCRtpSender].
-  Future<FrameCyrptor> frameCyrptorFromRtpSender({
+  /// Create a frame Cryptor from a [RTCRtpSender].
+  Future<FrameCryptor> createFrameCryptorForRtpSender({
     required RTCRtpSender sender,
     required Algorithm algorithm,
     required KeyManager keyManager,
   });
 
-  /// Create a frame cyrptor from a [RTCRtpReceiver].
-  Future<FrameCyrptor> frameCyrptorFromRtpReceiver({
+  /// Create a frame Cryptor from a [RTCRtpReceiver].
+  Future<FrameCryptor> createFrameCryptorForRtpReceiver({
     required RTCRtpReceiver receiver,
     required Algorithm algorithm,
     required KeyManager keyManager,
   });
 
-  static final FrameCyrptorFactory instance = FrameCyrptorFactoryImpl.instance;
+  static final FrameCryptorFactory instance = FrameCryptorFactoryImpl.instance;
 }

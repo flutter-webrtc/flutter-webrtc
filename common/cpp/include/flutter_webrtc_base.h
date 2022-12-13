@@ -39,6 +39,7 @@ class FlutterWebRTCBase {
   friend class FlutterDataChannel;
   friend class FlutterPeerConnectionObserver;
   friend class FlutterScreenCapture;
+  friend class FlutterFrameCryptor;
   enum ParseConstraintType { kMandatory, kOptional };
 
  public:
@@ -80,6 +81,15 @@ class FlutterWebRTCBase {
   void RemoveTracksForId(const std::string& id);
 
   EventChannelProxy* event_channel();
+
+
+  libwebrtc::scoped_refptr<libwebrtc::RTCRtpSender> GetRtpSenderById(
+      RTCPeerConnection* pc,
+      std::string id);
+
+  libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver> GetRtpReceiverById(
+      RTCPeerConnection* pc,
+      std::string id);
 
  private:
   void ParseConstraints(const EncodableMap& src,

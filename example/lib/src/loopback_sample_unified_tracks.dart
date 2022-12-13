@@ -32,9 +32,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   bool _audioDecrypt = false;
   bool _videoDecrypt = false;
   List<MediaDeviceInfo>? _mediaDevicesList;
-  final FrameCyrptorFactory _frameCyrptorFactory = FrameCyrptorFactory.instance;
+  final FrameCryptorFactory _frameCyrptorFactory = FrameCryptorFactory.instance;
   KeyManager? _keyManager;
-  final Map<String, FrameCyrptor> _frameCyrptors = {};
+  final Map<String, FrameCryptor> _frameCyrptors = {};
   Timer? _timer;
   final _configuration = <String, dynamic>{
     'iceServers': [
@@ -355,9 +355,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
         var id = kind + '_' + trackId! + '_sender';
         if (!_frameCyrptors.containsKey(id)) {
           _frameCyrptors[kind] =
-              await _frameCyrptorFactory.frameCyrptorFromRtpSender(
+              await _frameCyrptorFactory.createFrameCryptorForRtpSender(
                   sender: element,
-                  algorithm: Algorithm.kAes256Gcm,
+                  algorithm: Algorithm.kAesGcm,
                   keyManager: _keyManager!);
         }
 
@@ -380,9 +380,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var id = kind + '_' + trackId! + '_receiver';
       if (!_frameCyrptors.containsKey(id)) {
         _frameCyrptors[kind] =
-            await _frameCyrptorFactory.frameCyrptorFromRtpReceiver(
+            await _frameCyrptorFactory.createFrameCryptorForRtpReceiver(
                 receiver: element,
-                algorithm: Algorithm.kAes256Gcm,
+                algorithm: Algorithm.kAesGcm,
                 keyManager: _keyManager!);
       }
 

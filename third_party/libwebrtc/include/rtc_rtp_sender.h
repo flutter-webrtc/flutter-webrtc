@@ -7,8 +7,6 @@
 #include "rtc_rtp_parameters.h"
 #include "rtc_types.h"
 
-#include "rtc_frame_encryptor.h"
-
 namespace libwebrtc {
 
 class RTCMediaTrack;
@@ -42,15 +40,6 @@ class RTCRtpSender : public RefCountInterface {
       const scoped_refptr<RTCRtpParameters> parameters) = 0;
 
   virtual scoped_refptr<RTCDtmfSender> dtmf_sender() const = 0;
-
-  virtual void SetFrameEncryptor(
-      scoped_refptr<RTCFrameEncryptor> frame_encryptor) = 0;
-
-  virtual scoped_refptr<RTCFrameEncryptor> GetFrameEncryptor() const = 0;
-
-  virtual bool EnableGcmCryptoSuites(const vector<uint8_t>& key) = 0;
-
-  virtual bool DisableGcmCryptoSuites() = 0;
 };
 
 }  // namespace libwebrtc

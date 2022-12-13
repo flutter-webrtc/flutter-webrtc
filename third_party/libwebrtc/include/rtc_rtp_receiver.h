@@ -7,8 +7,6 @@
 #include "rtc_rtp_parameters.h"
 #include "rtc_types.h"
 
-#include "rtc_frame_decryptor.h"
-
 namespace libwebrtc {
 
 class RTCMediaTrack;
@@ -45,18 +43,6 @@ class RTCRtpReceiver : public RefCountInterface {
 
   virtual void SetJitterBufferMinimumDelay(double delay_seconds) = 0;
 
-  virtual void SetFrameDecryptor(
-      scoped_refptr<RTCFrameDecryptor> frame_decryptor) = 0;
-
-  virtual scoped_refptr<RTCFrameDecryptor> GetFrameDecryptor() const = 0;
-
-  virtual bool EnableGcmCryptoSuites(const vector<uint8_t>& key) = 0;
-
-  virtual bool DisableGcmCryptoSuites() = 0;
-
-  // virtual Vector<RtpSource> GetSources() const = 0;
-  // virtual void SetDepacketizerToDecoderFrameTransformer(
-  //    scoped_refptr<FrameTransformerInterface> frame_transformer) = 0;
 };
 
 }  // namespace libwebrtc

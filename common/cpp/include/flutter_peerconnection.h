@@ -122,28 +122,6 @@ class FlutterPeerConnection {
       EncodableMap newParameters,
       scoped_refptr<RTCRtpParameters> parameters);
 
-  void rtpSenderFrameCryptoSetup(RTCPeerConnection* pc,
-                                 std::string rtpSenderId,
-                                 std::vector<uint8_t> key,
-                                 std::unique_ptr<MethodResultProxy> result);
-
-  void rtpSenderFrameCryptoSetEnabled(
-      RTCPeerConnection* pc,
-      std::string rtpSenderId,
-      bool enabled,
-      std::unique_ptr<MethodResultProxy> result);
-
-  void rtpReceiverFrameCryptoSetup(RTCPeerConnection* pc,
-                                   std::string rtpReceiverId,
-                                   std::vector<uint8_t> key,
-                                   std::unique_ptr<MethodResultProxy> result);
-
-  void rtpReceiverFrameCryptoSetEnabled(
-      RTCPeerConnection* pc,
-      std::string rtpReceiverId,
-      bool enabled,
-      std::unique_ptr<MethodResultProxy> result);
-
   void RtpSenderSetParameters(RTCPeerConnection* pc,
                               std::string rtpSenderId,
                               const EncodableMap& parameters,
@@ -197,14 +175,6 @@ class FlutterPeerConnection {
                 scoped_refptr<RTCMediaTrack> track,
                 std::list<std::string> streamIds,
                 std::unique_ptr<MethodResultProxy> result);
-
-  libwebrtc::scoped_refptr<libwebrtc::RTCRtpSender> GetRtpSenderById(
-      RTCPeerConnection* pc,
-      std::string id);
-
-  libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver> GetRtpReceiverById(
-      RTCPeerConnection* pc,
-      std::string id);
 
   void RemoveTrack(RTCPeerConnection* pc,
                    std::string senderId,
