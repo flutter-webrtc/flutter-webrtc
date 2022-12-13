@@ -53,14 +53,14 @@ class RTCFrameCryptor : public RefCountInterface {
 };
 
 class FrameCryptorFactory {
-public:
-  /// Create a frame cyrptor from a [RTCRtpSender].
+  public:
+  /// Create a frame cyrptor for [RTCRtpSender].
   LIB_WEBRTC_API static scoped_refptr<RTCFrameCryptor>
   frameCryptorFromRtpSender(scoped_refptr<RTCRtpSender> sender,
                             Algorithm algorithm,
                             scoped_refptr<KeyManager> keyManager);
 
-  /// Create a frame cyrptor from a [RTCRtpReceiver].
+  /// Create a frame cyrptor for [RTCRtpReceiver].
   LIB_WEBRTC_API static scoped_refptr<RTCFrameCryptor>
   frameCryptorFromRtpReceiver(scoped_refptr<RTCRtpReceiver> receiver,
                               Algorithm algorithm,
