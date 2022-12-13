@@ -30,7 +30,7 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
     try {
       final response = await WebRTC.invokeMethod('getStats', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
-        'track': track.id
+        'trackId': track.id
       });
       var stats = <StatsReport>[];
       if (response != null) {
