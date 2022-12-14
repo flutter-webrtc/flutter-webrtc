@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'bridge.g.dart';
 
@@ -374,6 +374,7 @@ abstract class GetMediaError_Video implements GetMediaError {
 
 /// @nodoc
 mixin _$GetMediaResult {
+  Object get field0 => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(List<MediaStreamTrack> field0) ok,
@@ -472,6 +473,7 @@ class _$GetMediaResult_Ok implements GetMediaResult_Ok {
   final List<MediaStreamTrack> _field0;
   @override
   List<MediaStreamTrack> get field0 {
+    if (_field0 is EqualUnmodifiableListView) return _field0;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_field0);
   }
@@ -566,6 +568,7 @@ abstract class GetMediaResult_Ok implements GetMediaResult {
   const factory GetMediaResult_Ok(final List<MediaStreamTrack> field0) =
       _$GetMediaResult_Ok;
 
+  @override
   List<MediaStreamTrack> get field0;
   @JsonKey(ignore: true)
   _$$GetMediaResult_OkCopyWith<_$GetMediaResult_Ok> get copyWith =>
@@ -711,6 +714,7 @@ abstract class GetMediaResult_Err implements GetMediaResult {
   const factory GetMediaResult_Err(final GetMediaError field0) =
       _$GetMediaResult_Err;
 
+  @override
   GetMediaError get field0;
   @JsonKey(ignore: true)
   _$$GetMediaResult_ErrCopyWith<_$GetMediaResult_Err> get copyWith =>
