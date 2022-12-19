@@ -1,6 +1,14 @@
 # Changelog
 
 --------------------------------------------
+[0.9.18] - 2022-12-12
+
+* [Web] Bump dart_webrtc to 1.0.12, Convert iceconnectionstate to connectionstate for Firefox.
+* [Android] Start AudioSwitchManager only when audio track added (fix #1163) (#1196)
+* [iOS] Implement detachFromEngineForRegistrar (#1192)
+* [iOS] Handle Platform Exception on addCandidate (#1190)
+* [Native] Code format with clang-format.
+
 [0.9.17] - 2022-11-28
 
 * [Android] Update android webrtc version to 104.5112.05
