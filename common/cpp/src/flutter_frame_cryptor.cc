@@ -95,7 +95,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
   }
 
   auto algorithm = findInt(constraints, "algorithm");
-
+  auto participantId = findString(constraints, "participantId");
   auto keyManagerId = findString(constraints, "keyManagerId");
 
   if (type == "sender") {
@@ -114,7 +114,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     }
     auto frameCryptor =
         libwebrtc::FrameCryptorFactory::frameCryptorFromRtpSender(
-            sender, AlgorithmFromInt(algorithm), keyManager);
+            string(participantId), sender, AlgorithmFromInt(algorithm), keyManager);
 
     frame_cryptors_[uuid] = frameCryptor;
     EncodableMap params;
@@ -132,6 +132,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     auto keyManager = key_managers_[keyManagerId];
     auto frameCryptor =
         libwebrtc::FrameCryptorFactory::frameCryptorFromRtpReceiver(
+            string(participantId),
             receiver, AlgorithmFromInt(algorithm), keyManager);
 
     frame_cryptors_[uuid] = frameCryptor;
@@ -282,7 +283,13 @@ void FlutterFrameCryptor::KeyManagerSetKey(
     return;
   }
 
-  keyManager->SetKey(key_index, vector<uint8_t>(key));
+  auto participant_id = findString(constraints, "participantId");
+  if (participant_id == std::string()) {
+    result->Error("KeyManagerSetKeyFailed", "participantId is null");
+    return;
+  }
+
+  keyManager->SetKey(participant_id, key_index, vector<uint8_t>(key));
   EncodableMap params;
   params[EncodableValue("result")] = true;
   result->Success(EncodableValue(params));
@@ -309,7 +316,14 @@ void FlutterFrameCryptor::KeyManagerSetKeys(
     keys_input.push_back(GetValue<std::vector<uint8_t>>(key));
   }
 
-  keyManager->SetKeys(keys_input);
+
+  auto participant_id = findString(constraints, "participantId");
+  if (participant_id == std::string()) {
+    result->Error("KeyManagerSetKeyFailed", "participantId is null");
+    return;
+  }
+
+  keyManager->SetKeys(participant_id, keys_input);
 
   EncodableMap params;
   params[EncodableValue("result")] = true;
@@ -330,7 +344,12 @@ void FlutterFrameCryptor::KeyManagerGetKeys(
     result->Error("KeyManagerGetKeysFailed", "keyManager is null");
     return;
   }
-  auto keys = keyManager->GetKeys();
+  auto participant_id = findString(constraints, "participantId");
+  if (participant_id == std::string()) {
+    result->Error("KeyManagerSetKeyFailed", "participantId is null");
+    return;
+  }
+  auto keys = keyManager->GetKeys(participant_id);
   EncodableList keys_output;
   for (auto key : keys.std_vector()) {
     keys_output.push_back(key.std_vector());
