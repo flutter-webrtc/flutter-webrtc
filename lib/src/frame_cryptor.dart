@@ -16,13 +16,20 @@ abstract class KeyManager {
   String get id;
 
   /// Set the key at the given index.
-  Future<bool> setKey(int index, Uint8List key);
+  Future<bool> setKey({
+    required String participantId,
+    required int index,
+    required Uint8List key,
+  });
 
   /// Set the keys.
-  Future<bool> setKeys(List<Uint8List> keys);
+  Future<bool> setKeys({
+    required String participantId,
+    required List<Uint8List> keys,
+  });
 
   /// Get the keys.
-  Future<List<Uint8List>> get keys;
+  Future<List<Uint8List>> getKeys({required String participantId});
 
   /// Dispose the key manager.
   Future<void> dispose();
@@ -31,6 +38,9 @@ abstract class KeyManager {
 /// Frame encryption/decryption.
 ///
 abstract class FrameCryptor {
+  /// The unique identifier of the frame cryptor.
+  String get participantId;
+
   /// Enable/Disable frame crypto for the sender or receiver.
   Future<bool> setEnabled(bool enabled);
 
@@ -57,6 +67,7 @@ abstract class FrameCryptorFactory {
 
   /// Create a frame Cryptor from a [RTCRtpSender].
   Future<FrameCryptor> createFrameCryptorForRtpSender({
+    required String participantId,
     required RTCRtpSender sender,
     required Algorithm algorithm,
     required KeyManager keyManager,
@@ -64,6 +75,7 @@ abstract class FrameCryptorFactory {
 
   /// Create a frame Cryptor from a [RTCRtpReceiver].
   Future<FrameCryptor> createFrameCryptorForRtpReceiver({
+    required String participantId,
     required RTCRtpReceiver receiver,
     required Algorithm algorithm,
     required KeyManager keyManager,

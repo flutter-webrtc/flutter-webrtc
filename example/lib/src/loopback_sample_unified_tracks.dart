@@ -283,8 +283,6 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
     _keyManager ??= await _frameCyrptorFactory.createDefaultKeyManager();
 
-    await _keyManager?.setKey(0, aesKey);
-
     if (_remotePeerConnection != null) return;
 
     try {
@@ -347,6 +345,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       if (!_frameCyrptors.containsKey(id)) {
         var frameCyrptor =
             await _frameCyrptorFactory.createFrameCryptorForRtpSender(
+                participantId: id,
                 sender: element,
                 algorithm: Algorithm.kAesGcm,
                 keyManager: _keyManager!);
@@ -358,6 +357,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var _frameCyrptor = _frameCyrptors[id];
       if (enabled) {
         await _frameCyrptor?.setEnabled(true);
+        await _keyManager?.setKey(participantId: id, index: 0, key: aesKey);
       } else {
         await _frameCyrptor?.setEnabled(false);
       }
@@ -374,6 +374,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       if (!_frameCyrptors.containsKey(id)) {
         var frameCyrptor =
             await _frameCyrptorFactory.createFrameCryptorForRtpReceiver(
+                participantId: id,
                 receiver: element,
                 algorithm: Algorithm.kAesGcm,
                 keyManager: _keyManager!);
@@ -385,6 +386,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var _frameCyrptor = _frameCyrptors[id];
       if (enabled) {
         await _frameCyrptor?.setEnabled(true);
+        await _keyManager?.setKey(participantId: id, index: 0, key: aesKey);
       } else {
         await _frameCyrptor?.setEnabled(false);
       }

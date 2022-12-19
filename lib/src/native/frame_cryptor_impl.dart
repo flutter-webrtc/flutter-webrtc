@@ -26,13 +26,18 @@ class KeyManagerImpl implements KeyManager {
   String get id => _id;
 
   @override
-  Future<bool> setKey(int index, Uint8List key) async {
+  Future<bool> setKey({
+    required String participantId,
+    required int index,
+    required Uint8List key,
+  }) async {
     try {
       final response =
           await WebRTC.invokeMethod('keyManagerSetKey', <String, dynamic>{
         'keyManagerId': _id,
         'keyIndex': index,
         'key': key,
+        'participantId': participantId,
       });
       return response['result'];
     } on PlatformException catch (e) {
@@ -41,12 +46,16 @@ class KeyManagerImpl implements KeyManager {
   }
 
   @override
-  Future<bool> setKeys(List<Uint8List> keys) async {
+  Future<bool> setKeys({
+    required String participantId,
+    required List<Uint8List> keys,
+  }) async {
     try {
       final response =
           await WebRTC.invokeMethod('keyManagerSetKeys', <String, dynamic>{
         'keyManagerId': _id,
         'keys': keys,
+        'participantId': participantId,
       });
       return response['result'];
     } on PlatformException catch (e) {
@@ -55,11 +64,12 @@ class KeyManagerImpl implements KeyManager {
   }
 
   @override
-  Future<List<Uint8List>> get keys async {
+  Future<List<Uint8List>> getKeys({required String participantId}) async {
     try {
       final response =
           await WebRTC.invokeMethod('keyManagerGetKeys', <String, dynamic>{
         'keyManagerId': _id,
+        'participantId': participantId,
       });
       return response['keys'] as List<Uint8List>;
     } on PlatformException catch (e) {
@@ -87,6 +97,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
 
   @override
   Future<FrameCryptor> createFrameCryptorForRtpSender({
+    required String participantId,
     required RTCRtpSender sender,
     required Algorithm algorithm,
     required KeyManager keyManager,
@@ -97,12 +108,13 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
           'frameCryptorFactoryCreateFrameCryptor', <String, dynamic>{
         'peerConnectionId': nativeSender.peerConnectionId,
         'rtpSenderId': sender.senderId,
+        'participantId': participantId,
         'keyManagerId': keyManager.id,
         'algorithm': algorithm.index,
         'type': 'sender',
       });
       var frameCryptorId = response['frameCryptorId'];
-      return FrameCryptorImpl(frameCryptorId);
+      return FrameCryptorImpl(frameCryptorId, participantId);
     } on PlatformException catch (e) {
       throw 'Unable to FrameCryptorFactory::createFrameCryptorForRtpSender: ${e.message}';
     }
@@ -110,6 +122,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
 
   @override
   Future<FrameCryptor> createFrameCryptorForRtpReceiver({
+    required String participantId,
     required RTCRtpReceiver receiver,
     required Algorithm algorithm,
     required KeyManager keyManager,
@@ -121,12 +134,13 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
           'frameCryptorFactoryCreateFrameCryptor', <String, dynamic>{
         'peerConnectionId': nativeReceiver.peerConnectionId,
         'rtpReceiverId': nativeReceiver.receiverId,
+        'participantId': participantId,
         'keyManagerId': keyManager.id,
         'algorithm': algorithm.index,
         'type': 'receiver',
       });
       var frameCryptorId = response['frameCryptorId'];
-      return FrameCryptorImpl(frameCryptorId);
+      return FrameCryptorImpl(frameCryptorId, participantId);
     } on PlatformException catch (e) {
       throw 'Unable to FrameCryptorFactory::createFrameCryptorForRtpReceiver: ${e.message}';
     }
@@ -146,8 +160,11 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
 }
 
 class FrameCryptorImpl implements FrameCryptor {
-  FrameCryptorImpl(this._frameCryptorId);
+  FrameCryptorImpl(this._frameCryptorId, this._participantId);
   final String _frameCryptorId;
+  final String _participantId;
+  @override
+  String get participantId => _participantId;
 
   @override
   Future<bool> setKeyIndex(int index) async {
