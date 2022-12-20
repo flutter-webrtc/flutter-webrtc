@@ -119,7 +119,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   }
 
   @override
-  bool get renderVideo => srcObject != null;
+  bool get renderVideo => _textureId != null && _srcObject != null;
 
   @override
   bool get muted => _srcObject?.getAudioTracks()[0].muted ?? true;
