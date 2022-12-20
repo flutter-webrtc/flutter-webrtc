@@ -32,6 +32,9 @@ typedef void (^CapturerStopHandler)(CompletionHandler handler);
 @property(nonatomic, strong)
     NSMutableDictionary<NSString*, CapturerStopHandler>* videoCapturerStopHandlers;
 
+@property(nonatomic, strong) NSMutableDictionary<NSString*, RTCFrameCryptor*>* frameCryptors;
+@property(nonatomic, strong) NSMutableDictionary<NSString*, RTCFrameCryptorKeyManager*>* keyManagers;
+
 #if TARGET_OS_IPHONE
 @property(nonatomic, retain) UIViewController* viewController; /*for broadcast or ReplayKit */
 #endif
@@ -55,5 +58,8 @@ typedef void (^CapturerStopHandler)(CompletionHandler handler);
 - (BOOL)hasLocalAudioTrack;
 - (void)ensureAudioSession;
 - (void)deactiveRtcAudioSession;
+
+- (RTCRtpReceiver*)getRtpReceiverById:(RTCPeerConnection*)peerConnection Id:(NSString*)Id;
+- (RTCRtpSender*)getRtpSenderById:(RTCPeerConnection*)peerConnection Id:(NSString*)Id;
 
 @end

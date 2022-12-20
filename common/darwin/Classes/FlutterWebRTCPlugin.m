@@ -5,6 +5,7 @@
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
+#import "FlutterRTCFrameCryptor.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
@@ -87,6 +88,8 @@
   self.localStreams = [NSMutableDictionary new];
   self.localTracks = [NSMutableDictionary new];
   self.renders = [NSMutableDictionary new];
+  self.frameCryptors = [NSMutableDictionary new];
+  self.keyManagers = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
   AVAudioSession* session = [AVAudioSession sharedInstance];
@@ -1126,7 +1129,7 @@
     NSDictionary* argsMap = call.arguments;
     [self getDesktopSourceThumbnail:argsMap result:result];
   } else {
-    result(FlutterMethodNotImplemented);
+    [self handleFrameCryptorMethodCall:call result:result];
   }
 }
 

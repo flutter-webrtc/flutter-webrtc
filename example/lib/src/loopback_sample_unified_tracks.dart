@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
+import 'utils.dart';
+
 class LoopBackSampleUnifiedTracks extends StatefulWidget {
   static String tag = 'loopback_sample_unified_tracks';
 
@@ -321,6 +323,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     if (_remotePeerConnection == null) return;
 
     var offer = await _localPeerConnection!.createOffer({});
+    setPreferredCodec(offer, audio: 'opus', video: 'vp8');
+    print('offer: ${offer.sdp}');
+
     await _localPeerConnection!.setLocalDescription(offer);
     var localDescription = await _localPeerConnection!.getLocalDescription();
 
