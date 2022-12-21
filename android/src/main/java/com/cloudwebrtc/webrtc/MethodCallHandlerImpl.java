@@ -96,7 +96,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   private final Map<String, MediaStream> localStreams = new HashMap<>();
   private final Map<String, MediaStreamTrack> localTracks = new HashMap<>();
-
   private LongSparseArray<FlutterRTCVideoRenderer> renders = new LongSparseArray<>();
 
   /**
@@ -106,6 +105,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   private GetUserMediaImpl getUserMediaImpl;
 
   private AudioDeviceModule audioDeviceModule;
+
+  private FlutterRTCFrameCryptor frameCryptor;
 
   private Activity activity;
 
@@ -151,6 +152,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
 
     getUserMediaImpl = new GetUserMediaImpl(this, context);
+
+    frameCryptor = new FlutterRTCFrameCryptor(this);
 
     audioDeviceModule = JavaAudioDeviceModule.builder(context)
             .setUseHardwareAcousticEchoCanceler(true)
@@ -702,6 +705,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       default:
+        if(frameCryptor.handleMethodCall(call, result)) {
+          break;
+        }
         result.notImplemented();
         break;
     }
@@ -1045,6 +1051,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   @Override
   public PeerConnectionFactory getPeerConnectionFactory() {
     return mFactory;
+  }
+
+  @Override
+  public PeerConnectionObserver getPeerConnectionObserver(String peerConnectionId) {
+    return mPeerConnectionObservers.get(peerConnectionId);
   }
 
   @Nullable

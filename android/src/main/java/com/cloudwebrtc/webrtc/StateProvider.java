@@ -28,6 +28,8 @@ public interface StateProvider {
 
   PeerConnectionFactory getPeerConnectionFactory();
 
+  PeerConnectionObserver getPeerConnectionObserver(String peerConnectionId);
+
   @Nullable
   Activity getActivity();
 
