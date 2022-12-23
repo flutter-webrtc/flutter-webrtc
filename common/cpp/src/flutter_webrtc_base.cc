@@ -87,7 +87,7 @@ void FlutterWebRTCBase::RemovePeerConnectionObserversForId(
 
 scoped_refptr<RTCMediaStream> FlutterWebRTCBase::MediaStreamForId(
     const std::string& id,
-    std::string peerConnectionId/* = std::string()*/) {
+    std::string peerConnectionId /* = std::string()*/) {
   auto it = local_streams_.find(id);
   if (it != local_streams_.end()) {
     return (*it).second;

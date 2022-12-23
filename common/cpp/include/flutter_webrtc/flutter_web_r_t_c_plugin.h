@@ -39,7 +39,8 @@ typedef struct {
 
 FLUTTER_PLUGIN_EXPORT GType flutter_webrtc_plugin_get_type();
 
-FLUTTER_PLUGIN_EXPORT void flutter_web_r_t_c_plugin_register_with_registrar(FlPluginRegistrar* registrar);
+FLUTTER_PLUGIN_EXPORT void flutter_web_r_t_c_plugin_register_with_registrar(
+    FlPluginRegistrar* registrar);
 
 G_END_DECLS
 

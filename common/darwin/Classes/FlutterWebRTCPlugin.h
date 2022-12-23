@@ -15,21 +15,26 @@ typedef void (^CompletionHandler)(void);
 
 typedef void (^CapturerStopHandler)(CompletionHandler handler);
 
-@interface FlutterWebRTCPlugin : NSObject<FlutterPlugin, RTCPeerConnectionDelegate, FlutterStreamHandler
+@interface FlutterWebRTCPlugin : NSObject <FlutterPlugin,
+                                           RTCPeerConnectionDelegate,
+                                           FlutterStreamHandler
 #if TARGET_OS_OSX
-, RTCDesktopMediaListDelegate, RTCDesktopCapturerDelegate
+                                           ,
+                                           RTCDesktopMediaListDelegate,
+                                           RTCDesktopCapturerDelegate
 #endif
->
+                                           >
 
-@property (nonatomic, strong) RTCPeerConnectionFactory *peerConnectionFactory;
-@property (nonatomic, strong) NSMutableDictionary<NSString *, RTCPeerConnection *> *peerConnections;
-@property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStream *> *localStreams;
-@property (nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *localTracks;
-@property (nonatomic, strong) NSMutableDictionary<NSNumber *, FlutterRTCVideoRenderer *> *renders;
-@property (nonatomic, strong) NSMutableDictionary<NSString *, CapturerStopHandler> *videoCapturerStopHandlers;
+@property(nonatomic, strong) RTCPeerConnectionFactory* peerConnectionFactory;
+@property(nonatomic, strong) NSMutableDictionary<NSString*, RTCPeerConnection*>* peerConnections;
+@property(nonatomic, strong) NSMutableDictionary<NSString*, RTCMediaStream*>* localStreams;
+@property(nonatomic, strong) NSMutableDictionary<NSString*, RTCMediaStreamTrack*>* localTracks;
+@property(nonatomic, strong) NSMutableDictionary<NSNumber*, FlutterRTCVideoRenderer*>* renders;
+@property(nonatomic, strong)
+    NSMutableDictionary<NSString*, CapturerStopHandler>* videoCapturerStopHandlers;
 
 #if TARGET_OS_IPHONE
-@property (nonatomic, retain) UIViewController *viewController;/*for broadcast or ReplayKit */
+@property(nonatomic, retain) UIViewController* viewController; /*for broadcast or ReplayKit */
 #endif
 
 @property (nonatomic, strong) FlutterEventSink eventSink;
@@ -48,8 +53,8 @@ typedef void (^CapturerStopHandler)(CompletionHandler handler);
 - (NSDictionary*)receiverToMap:(RTCRtpReceiver*)receiver;
 - (NSDictionary*)transceiverToMap:(RTCRtpTransceiver*)transceiver;
 
-- (BOOL) hasLocalAudioTrack;
-- (void) ensureAudioSession;
-- (void) deactiveRtcAudioSession;
+- (BOOL)hasLocalAudioTrack;
+- (void)ensureAudioSession;
+- (void)deactiveRtcAudioSession;
 
 @end

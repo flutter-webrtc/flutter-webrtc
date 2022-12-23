@@ -12,10 +12,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @class FlutterSocketConnection;
 
-@interface FlutterSocketConnectionFrameReader: RTCVideoCapturer
+@interface FlutterSocketConnectionFrameReader : RTCVideoCapturer
 
 - (instancetype)initWithDelegate:(__weak id<RTCVideoCapturerDelegate>)delegate;
-- (void)startCaptureWithConnection:(nonnull FlutterSocketConnection *)connection;
+- (void)startCaptureWithConnection:(nonnull FlutterSocketConnection*)connection;
 - (void)stopCapture;
 
 @end

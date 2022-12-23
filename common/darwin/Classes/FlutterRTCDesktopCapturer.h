@@ -10,16 +10,13 @@
 
 @interface FlutterWebRTCPlugin (DesktopCapturer)
 
--(void)getDisplayMedia:(nonnull NSDictionary *)constraints
-             result:(nonnull FlutterResult)result;
+- (void)getDisplayMedia:(nonnull NSDictionary*)constraints result:(nonnull FlutterResult)result;
 
--(void)getDesktopSources:(nonnull NSDictionary *)argsMap
-             result:(nonnull FlutterResult)result;
+- (void)getDesktopSources:(nonnull NSDictionary*)argsMap result:(nonnull FlutterResult)result;
 
--(void)updateDesktopSources:(nonnull NSDictionary *)argsMap
-             result:(nonnull FlutterResult)result;
+- (void)updateDesktopSources:(nonnull NSDictionary*)argsMap result:(nonnull FlutterResult)result;
 
--(void)getDesktopSourceThumbnail:(nonnull NSDictionary *)argsMap
-             result:(nonnull FlutterResult)result;
+- (void)getDesktopSourceThumbnail:(nonnull NSDictionary*)argsMap
+                           result:(nonnull FlutterResult)result;
 
 @end

@@ -100,8 +100,9 @@ static void ForwardToHandler(FlBinaryMessenger* messenger,
 
     g_autoptr(GBytes) response = g_bytes_new(reply, reply_size);
     GError* error = nullptr;
-    if (!fl_binary_messenger_send_response(messenger, (FlBinaryMessengerResponseHandle *)handler, response,
-                                           &error)) {
+    if (!fl_binary_messenger_send_response(
+            messenger, (FlBinaryMessengerResponseHandle*)handler, response,
+            &error)) {
       g_warning("Failed to send binary response: %s", error->message);
     }
   };

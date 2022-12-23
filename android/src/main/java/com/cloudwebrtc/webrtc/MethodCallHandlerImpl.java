@@ -105,18 +105,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
    */
   private GetUserMediaImpl getUserMediaImpl;
 
-  private final AudioSwitchManager audioSwitchManager;
-
   private AudioDeviceModule audioDeviceModule;
 
   private Activity activity;
 
-  MethodCallHandlerImpl(Context context, BinaryMessenger messenger, TextureRegistry textureRegistry,
-                        @NonNull AudioSwitchManager audioManager) {
+  MethodCallHandlerImpl(Context context, BinaryMessenger messenger, TextureRegistry textureRegistry) {
     this.context = context;
     this.textures = textureRegistry;
     this.messenger = messenger;
-    this.audioSwitchManager = audioManager;
   }
 
   static private void resultError(String method, String error, Result result) {
@@ -479,13 +475,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       case "selectAudioOutput": {
         String deviceId = call.argument("deviceId");
-        audioSwitchManager.selectAudioOutput(AudioDeviceKind.fromTypeName(deviceId));
+        AudioSwitchManager.instance.selectAudioOutput(AudioDeviceKind.fromTypeName(deviceId));
         result.success(null);
         break;
       }
       case "setMicrophoneMute":
         boolean mute = call.argument("mute");
-        audioSwitchManager.setMicrophoneMute(mute);
+        AudioSwitchManager.instance.setMicrophoneMute(mute);
         result.success(null);
         break;
       case "selectAudioInput":
@@ -499,7 +495,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       case "enableSpeakerphone":
         boolean enable = call.argument("enable");
-        audioSwitchManager.enableSpeakerphone(enable);
+        AudioSwitchManager.instance.enableSpeakerphone(enable);
         result.success(null);
         break;
       case "getDisplayMedia": {
@@ -1003,9 +999,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             parseMediaConstraints(constraints),
             observer);
     observer.setPeerConnection(peerConnection);
-    if (mPeerConnectionObservers.size() == 0) {
-      audioSwitchManager.start();
-    }
     mPeerConnectionObservers.put(peerConnectionId, observer);
     return peerConnectionId;
   }
@@ -1183,7 +1176,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
     }
 
-    List<? extends AudioDevice> audioOutputs = audioSwitchManager.availableAudioDevices();
+    List<? extends AudioDevice> audioOutputs = AudioSwitchManager.instance.availableAudioDevices();
 
     for (AudioDevice audioOutput : audioOutputs) {
       ConstraintsMap audioOutputMap = new ConstraintsMap();
@@ -1585,7 +1578,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       Log.d(TAG, "peerConnectionDispose() peerConnectionObserver is null");
     }
     if (mPeerConnectionObservers.size() == 0) {
-      audioSwitchManager.stop();
+      AudioSwitchManager.instance.stop();
     }
   }
 

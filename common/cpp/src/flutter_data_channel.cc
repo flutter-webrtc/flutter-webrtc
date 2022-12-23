@@ -68,10 +68,11 @@ void FlutterDataChannel::CreateDataChannel(
   result->Success(EncodableValue(params));
 }
 
-void FlutterDataChannel::DataChannelSend(RTCDataChannel* data_channel,
-                                         const std::string& type,
-                                         const EncodableValue& data,
-                                         std::unique_ptr<MethodResultProxy> result) {
+void FlutterDataChannel::DataChannelSend(
+    RTCDataChannel* data_channel,
+    const std::string& type,
+    const EncodableValue& data,
+    std::unique_ptr<MethodResultProxy> result) {
   bool is_binary = type == "binary";
   if (is_binary && TypeIs<std::vector<uint8_t>>(data)) {
     std::vector<uint8_t> buffer = GetValue<std::vector<uint8_t>>(data);

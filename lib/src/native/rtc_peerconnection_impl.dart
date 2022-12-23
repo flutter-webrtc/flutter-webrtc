@@ -360,10 +360,14 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
   @override
   Future<void> addCandidate(RTCIceCandidate candidate) async {
-    await WebRTC.invokeMethod('addCandidate', <String, dynamic>{
-      'peerConnectionId': _peerConnectionId,
-      'candidate': candidate.toMap(),
-    });
+    try {
+      await WebRTC.invokeMethod('addCandidate', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'candidate': candidate.toMap(),
+      });
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::addCandidate: ${e.message}';
+    }
   }
 
   @override
