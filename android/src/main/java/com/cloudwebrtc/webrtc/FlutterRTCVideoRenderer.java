@@ -152,6 +152,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             videoTrack = videoTracks.isEmpty() ? null : videoTracks.get(0);
         }
 
+        syncVideoStream(videoTrack);
         setVideoTrack(videoTrack);
     }
    /**
@@ -181,7 +182,12 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             }
         }
 
+        syncVideoStream(videoTrack);
         setVideoTrack(videoTrack);
+    }
+
+    private void syncVideoStream(VideoTrack videoTrack) {
+        if (TextureRendererPlugIn.getInstance() != null) TextureRendererPlugIn.getInstance().setVideoTrack(videoTrack);
     }
 
     /**
