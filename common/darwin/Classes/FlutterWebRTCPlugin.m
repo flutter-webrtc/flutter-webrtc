@@ -619,7 +619,10 @@
     RTCMediaStream* stream = nil;
     RTCVideoTrack* videoTrack = nil;
     if ([ownerTag isEqualToString:@"local"]) {
-      stream = _localStreams[streamId];
+        stream = _localStreams[streamId];
+        render.isLocalStream = true;
+    } else {
+        render.isLocalStream = false;
     }
     if (!stream) {
       stream = [self streamForId:streamId peerConnectionId:ownerTag];
