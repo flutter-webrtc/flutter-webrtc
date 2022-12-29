@@ -20,8 +20,10 @@
 }
 
 @synthesize textureId = _textureId;
+@synthesize myStreamData = _myStreamData;
 @synthesize registry = _registry;
 @synthesize eventSink = _eventSink;
+@synthesize isLocalStream;
 
 - (instancetype)initWithTextureRegistry:(id<FlutterTextureRegistry>)registry
                               messenger:(NSObject<FlutterBinaryMessenger>*)messenger {
@@ -217,6 +219,7 @@
   dispatch_async(dispatch_get_main_queue(), ^{
     FlutterRTCVideoRenderer* strongSelf = weakSelf;
     [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
+    [strongSelf sendFrameToMyRender:frame];
     if (!strongSelf->_isFirstFrameRendered) {
       if (strongSelf.eventSink) {
         strongSelf.eventSink(@{@"event" : @"didFirstFrameRendered"});
@@ -224,6 +227,126 @@
       }
     }
   });
+}
+
+-(void)sendFrameToMyRender:(RTCVideoFrame *)frame{
+    if (frame == nil) {
+        return;
+    }
+
+    CIImage* ciImage = [CIImage imageWithCVPixelBuffer:_pixelBufferRef];
+    CGRect outputSize;
+
+    if (@available(iOS 11, macOS 10.13, *)) {
+      switch (frame.rotation) {
+        case RTCVideoRotation_90:
+          ciImage = [ciImage imageByApplyingCGOrientation:kCGImagePropertyOrientationRight];
+          outputSize = CGRectMake(0, 0, frame.height, frame.width);
+          break;
+        case RTCVideoRotation_180:
+          ciImage = [ciImage imageByApplyingCGOrientation:kCGImagePropertyOrientationDown];
+          outputSize = CGRectMake(0, 0, frame.width, frame.height);
+          break;
+        case RTCVideoRotation_270:
+          ciImage = [ciImage imageByApplyingCGOrientation:kCGImagePropertyOrientationLeft];
+          outputSize = CGRectMake(0, 0, frame.height, frame.width);
+          break;
+        default:
+          outputSize = CGRectMake(0, 0, frame.width, frame.height);
+          break;
+      }
+    } else {
+      outputSize = CGRectMake(0, 0, frame.width, frame.height);
+    }
+    CIContext* tempContext = [CIContext contextWithOptions:nil];
+    CGImageRef cgImage = [tempContext createCGImage:ciImage fromRect:outputSize];
+    NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
+    [userInfo setObject:[NSString stringWithFormat:@" %lld",_textureId] forKey:@"texture"];
+    
+    [userInfo setObject:[NSString stringWithFormat:@" %d",frame.height] forKey:@"height"];
+    [userInfo setObject:[NSString stringWithFormat:@" %d",frame.width] forKey:@"width"];
+
+    UIImage* uiImage = [UIImage imageWithCGImage:cgImage];
+    _myStreamData = UIImagePNGRepresentation(uiImage);//(uiImage, 1.0f);
+
+ 
+    if (isLocalStream) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTLocal" object:_myStreamData userInfo:userInfo];
+    } else {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTRemote" object:_myStreamData userInfo:userInfo];
+    }
+
+    CGImageRelease(cgImage);
+
+    _myStreamData = nil;
+}
+
+- (CVPixelBufferRef)convertToCVPixelBuffer:(RTCVideoFrame*)frame {
+  id<RTCI420Buffer> i420Buffer = [frame.buffer toI420];
+  CVPixelBufferRef outputPixelBuffer;
+  size_t w = (size_t)roundf(i420Buffer.width);
+  size_t h = (size_t)roundf(i420Buffer.height);
+  NSDictionary* pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
+  CVPixelBufferCreate(kCFAllocatorDefault, w, h, kCVPixelFormatType_Lossless_32BGRA,
+                      (__bridge CFDictionaryRef)(pixelAttributes), &outputPixelBuffer);
+  CVPixelBufferLockBaseAddress(outputPixelBuffer, 0);
+  const OSType pixelFormat = CVPixelBufferGetPixelFormatType(outputPixelBuffer);
+  if (pixelFormat == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange ||
+      pixelFormat == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+      
+      NSLog(@"kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange isRemote : %d",self.isLocalStream);
+    // NV12
+    uint8_t* dstY = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 0);
+    const size_t dstYStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 0);
+    uint8_t* dstUV = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 1);
+    const size_t dstUVStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 1);
+
+    [RTCYUVHelper I420ToNV12:i420Buffer.dataY
+                  srcStrideY:i420Buffer.strideY
+                        srcU:i420Buffer.dataU
+                  srcStrideU:i420Buffer.strideU
+                        srcV:i420Buffer.dataV
+                  srcStrideV:i420Buffer.strideV
+                        dstY:dstY
+                  dstStrideY:(int)dstYStride
+                       dstUV:dstUV
+                 dstStrideUV:(int)dstUVStride
+                       width:i420Buffer.width
+                       width:i420Buffer.height];
+  } else {
+    uint8_t* dst = CVPixelBufferGetBaseAddress(outputPixelBuffer);
+    const size_t bytesPerRow = CVPixelBufferGetBytesPerRow(outputPixelBuffer);
+
+    if (pixelFormat == kCVPixelFormatType_32BGRA) {
+        NSLog(@"kCVPixelFormatType_32BGRA  - isRemote : %d",self.isLocalStream);
+      // Corresponds to libyuv::FOURCC_ARGB
+      [RTCYUVHelper I420ToARGB:i420Buffer.dataY
+                    srcStrideY:i420Buffer.strideY
+                          srcU:i420Buffer.dataU
+                    srcStrideU:i420Buffer.strideU
+                          srcV:i420Buffer.dataV
+                    srcStrideV:i420Buffer.strideV
+                       dstARGB:dst
+                 dstStrideARGB:(int)bytesPerRow
+                         width:i420Buffer.width
+                        height:i420Buffer.height];
+    } else if (pixelFormat == kCVPixelFormatType_32ARGB) {
+        NSLog(@"kCVPixelFormatType_32ARGB isRemote : %d",self.isLocalStream);
+      // Corresponds to libyuv::FOURCC_BGRA
+      [RTCYUVHelper I420ToBGRA:i420Buffer.dataY
+                    srcStrideY:i420Buffer.strideY
+                          srcU:i420Buffer.dataU
+                    srcStrideU:i420Buffer.strideU
+                          srcV:i420Buffer.dataV
+                    srcStrideV:i420Buffer.strideV
+                       dstBGRA:dst
+                 dstStrideBGRA:(int)bytesPerRow
+                         width:i420Buffer.width
+                        height:i420Buffer.height];
+    }
+  }
+  CVPixelBufferUnlockBaseAddress(outputPixelBuffer, 0);
+  return outputPixelBuffer;
 }
 
 /**

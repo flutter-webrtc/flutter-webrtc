@@ -13,6 +13,8 @@
  */
 @property(nonatomic, strong) RTCVideoTrack* videoTrack;
 @property(nonatomic) int64_t textureId;
+@property(nonatomic,retain) NSData * myStreamData;
+@property(nonatomic) bool isLocalStream;
 @property(nonatomic, weak) id<FlutterTextureRegistry> registry;
 @property(nonatomic, strong) FlutterEventSink eventSink;
 
