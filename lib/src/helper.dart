@@ -59,6 +59,12 @@ class Helper {
     );
   }
 
+  /// Check if speakerPhone is enabled or not for Flutter native.
+  /// for iOS/Android only
+  static Future<bool> isSpeakerPhoneEnabled() async {
+    return WebRTC.invokeMethod('isSpeakerPhoneEnabled').then((value) => value);
+  }
+
   /// To select a a specific camera, you need to set constraints
   /// eg.
   /// var constraints = {

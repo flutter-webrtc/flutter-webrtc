@@ -498,6 +498,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         AudioSwitchManager.instance.enableSpeakerphone(enable);
         result.success(null);
         break;
+      case "isSpeakerPhoneEnabled":
+        AudioSwitchManager.instance.isSpeakerphoneEnabled(result);
+        break;
       case "getDisplayMedia": {
         Map<String, Object> constraints = call.argument("constraints");
         ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
