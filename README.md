@@ -87,7 +87,6 @@ If you need to use a Bluetooth device, please add:
 ```xml
 <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
 
 The Flutter project template adds it, so it may already be there.
