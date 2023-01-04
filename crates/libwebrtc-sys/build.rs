@@ -130,7 +130,7 @@ fn get_expected_libwebrtc_hash() -> anyhow::Result<&'static str> {
 fn libpath() -> anyhow::Result<PathBuf> {
     let target = get_target()?;
     let manifest_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
-    Ok(manifest_path.join("lib").join(&target))
+    Ok(manifest_path.join("lib").join(target))
 }
 
 /// Downloads and unpacks compiled `libwebrtc` library.
@@ -184,7 +184,7 @@ fn download_libwebrtc() -> anyhow::Result<()> {
 
     // Download the compiled `libwebrtc` archive.
     {
-        let mut resp = BufReader::new(reqwest::blocking::get(&format!(
+        let mut resp = BufReader::new(reqwest::blocking::get(format!(
             "{LIBWEBRTC_URL}/{tar_file}"
         ))?);
         let mut out_file = BufWriter::new(fs::File::create(&archive)?);
