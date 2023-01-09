@@ -141,7 +141,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * @param mediaStream The {@code MediaStream} to be rendered by this
      *                    {@code FlutterRTCVideoRenderer} or {@code null}.
      */
-    public void setStream(MediaStream mediaStream) {
+    public void setStream(boolean isLocal, MediaStream mediaStream) {
         VideoTrack videoTrack;
         this.mediaStream = mediaStream;
         if (mediaStream == null) {
@@ -152,7 +152,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             videoTrack = videoTracks.isEmpty() ? null : videoTracks.get(0);
         }
 
-        syncVideoStream(videoTrack);
+        if (isLocal || mediaStream == null) syncVideoStream(videoTrack);
         setVideoTrack(videoTrack);
     }
    /**
@@ -165,7 +165,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * @param trackId The {@code trackId} to be rendered by this
      *                    {@code FlutterRTCVideoRenderer} or {@code null}.
      */
-    public void setStream(MediaStream mediaStream,String trackId) {
+    public void setStream(boolean isLocal, MediaStream mediaStream,String trackId) {
         VideoTrack videoTrack;
         this.mediaStream = mediaStream;
         if (mediaStream == null) {
@@ -182,12 +182,12 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             }
         }
 
-        syncVideoStream(videoTrack);
+        if (isLocal || mediaStream == null) syncVideoStream(videoTrack);
         setVideoTrack(videoTrack);
     }
 
     private void syncVideoStream(VideoTrack videoTrack) {
-        if (TextureRendererPlugIn.getInstance() != null) TextureRendererPlugIn.getInstance().setVideoTrack(videoTrack);
+        if (TextureRendererPlugIn.getInstance() != null) TextureRendererPlugIn.getInstance().setVideoTrack(videoTrack, entry.id());
     }
 
     /**

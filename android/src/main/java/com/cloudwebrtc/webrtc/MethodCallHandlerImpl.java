@@ -443,9 +443,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           stream = getStreamForId(streamId, ownerTag);
         }
         if (trackId != null && !trackId.equals("0")){
-          render.setStream(stream, trackId);
+          render.setStream(ownerTag.equals("local"), stream, trackId);
         } else {
-          render.setStream(stream);
+          render.setStream(ownerTag.equals("local"), stream);
         }
         result.success(null);
         break;
@@ -1621,7 +1621,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     for (int i = 0; i < renders.size(); i++) {
       FlutterRTCVideoRenderer renderer = renders.valueAt(i);
       if (renderer.checkMediaStream(streamId)) {
-        renderer.setStream(null);
+        renderer.setStream(false, null);
       }
     }
   }
@@ -1630,7 +1630,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     for (int i = 0; i < renders.size(); i++) {
       FlutterRTCVideoRenderer renderer = renders.valueAt(i);
       if (renderer.checkVideoTrack(trackId)) {
-        renderer.setStream(null);
+        renderer.setStream(false, null);
       }
     }
   }
