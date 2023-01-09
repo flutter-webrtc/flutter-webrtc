@@ -288,15 +288,15 @@ public class TextureRendererPlugIn {
         createExternalTexture(unityTextureID);
         Log.d(TAG, "Loading image");
 
-        final Bitmap bitmap;
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inScaled = false;   // No pre-scaling
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888; //Unity will create texture in this format
+        final Bitmap bitmap = createTestBitmap(200, 200);
+//        final BitmapFactory.Options options = new BitmapFactory.Options();
+//        options.inScaled = false;   // No pre-scaling
+//        options.inPreferredConfig = Bitmap.Config.ARGB_8888; //Unity will create texture in this format
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         checkGlError("activeTexture");
         // Read in the resource
-        bitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_launcher, options);
+//        bitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_launcher, options);
         checkGlError("bindTexture");
         // Set filtering
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
@@ -327,6 +327,20 @@ public class TextureRendererPlugIn {
 
         return textureId;
     }
+
+    public static Bitmap createTestBitmap(int w, int h) {
+        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+
+        int colors[] = new int[] { Color.BLUE, Color.GREEN, Color.RED,
+                Color.YELLOW, Color.WHITE };
+        Random rgen = new Random();
+        int color = colors[rgen.nextInt(colors.length - 1)];
+
+        canvas.drawColor(color);
+        return bitmap;
+    }
+
 
     private void checkGlError(String op) {
         int error;
