@@ -1,6 +1,12 @@
 # Changelog
 
 --------------------------------------------
+[0.9.19] - 2023-01-10
+* [Dart] Fix getStats: change 'track' to 'trackId' (#1199)
+* [Android] keep the audio switch after stopping (#1202)
+* [Dart] Enhance RTC video view with placeholder builder property (#1206)
+* [Android] Use forked version of audio switch to avoid BLUETOOTH_CONNECT permission (#1218)
+
 [0.9.18] - 2022-12-12
 
 * [Web] Bump dart_webrtc to 1.0.12, Convert iceconnectionstate to connectionstate for Firefox.
