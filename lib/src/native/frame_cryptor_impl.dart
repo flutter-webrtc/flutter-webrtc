@@ -35,7 +35,7 @@ class KeyManagerImpl implements KeyManager {
       final response =
           await WebRTC.invokeMethod('keyManagerSetKey', <String, dynamic>{
         'keyManagerId': _id,
-        'keyIndex': index,
+        'index': index,
         'key': key,
         'participantId': participantId,
       });
@@ -145,10 +145,6 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
       throw 'Unable to FrameCryptorFactory::createFrameCryptorForRtpReceiver: ${e.message}';
     }
   }
-
-  @override
-  void e2eeWorker() =>
-      throw UnimplementedError('e2eeWorker() only need for flutter web.');
 
   @override
   Future<KeyManager> createDefaultKeyManager() async {
