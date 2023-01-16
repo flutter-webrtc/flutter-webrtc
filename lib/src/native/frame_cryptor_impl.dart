@@ -147,6 +147,10 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
   }
 
   @override
+  void e2eeWorker() =>
+      throw UnimplementedError('e2eeWorker() only need for flutter web.');
+
+  @override
   Future<KeyManager> createDefaultKeyManager() async {
     try {
       final response = await WebRTC.invokeMethod(

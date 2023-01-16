@@ -2,7 +2,8 @@ import 'dart:typed_data';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
-import 'native/frame_cryptor_impl.dart';
+import 'native/frame_cryptor_impl.dart'
+    if (dart.library.html) 'web/frame_cryptor_impl.dart';
 
 /// Built-in Algorithm.
 enum Algorithm {

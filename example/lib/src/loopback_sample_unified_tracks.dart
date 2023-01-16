@@ -39,7 +39,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     'iceServers': [
       //{'url': 'stun:stun.l.google.com:19302'},
     ],
-    'sdpSemantics': 'unified-plan'
+    'sdpSemantics': 'unified-plan',
+    'encodedInsertableStreams': true,
   };
 
   final _constraints = <String, dynamic>{
