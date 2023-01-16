@@ -35,7 +35,7 @@ class KeyManagerImpl implements KeyManager {
       final response =
           await WebRTC.invokeMethod('keyManagerSetKey', <String, dynamic>{
         'keyManagerId': _id,
-        'index': index,
+        'keyIndex': index,
         'key': key,
         'participantId': participantId,
       });
