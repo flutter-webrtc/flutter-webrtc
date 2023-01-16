@@ -223,41 +223,45 @@ class Cryptor {
       controller.enqueue(frame);
       return;
     }
+    try {
+      var headerLength =
+          kind == 'video' ? getUnencryptedBytes(frame, codec) : 1;
+      var metaData = frame.getMetadata();
+      var iv = makeIv(
+          synchronizationSource: metaData.synchronizationSource,
+          timestamp: frame.timestamp);
 
-    var headerLength = kind == 'video' ? getUnencryptedBytes(frame, codec) : 1;
-    var metaData = frame.getMetadata();
-    var iv = makeIv(
-        synchronizationSource: metaData.synchronizationSource,
-        timestamp: frame.timestamp);
+      var frameTrailer = ByteData(2);
+      frameTrailer.setInt8(0, IV_LENGTH);
+      frameTrailer.setInt8(1, keyIndex);
 
-    var frameTrailer = ByteData(2);
-    frameTrailer.setInt8(0, IV_LENGTH);
-    frameTrailer.setInt8(1, keyIndex);
+      var cipherText = await promiseToFuture<ByteBuffer>(encrypt(
+        AesGcmParams(
+          name: 'AES-GCM',
+          iv: jsArrayBufferFrom(iv),
+          additionalData: jsArrayBufferFrom(buffer.sublist(0, headerLength)),
+        ),
+        secretKey,
+        jsArrayBufferFrom(buffer.sublist(headerLength, buffer.length)),
+      ));
 
-    var cipherText = await promiseToFuture<ByteBuffer>(encrypt(
-      AesGcmParams(
-        name: 'AES-GCM',
-        iv: jsArrayBufferFrom(iv),
-        additionalData: jsArrayBufferFrom(buffer.sublist(0, headerLength)),
-      ),
-      secretKey,
-      jsArrayBufferFrom(buffer.sublist(headerLength, buffer.length)),
-    ));
+      //print(
+      //    'buffer: ${buffer.length}, cipherText: ${cipherText.asUint8List().length}');
+      var finalBuffer = BytesBuilder();
 
-    print(
-        'buffer: ${buffer.length}, cipherText: ${cipherText.asUint8List().length}');
-    var finalBuffer = BytesBuilder();
+      finalBuffer.add(Uint8List.fromList(buffer.sublist(0, headerLength)));
+      finalBuffer.add(cipherText.asUint8List());
+      finalBuffer.add(iv);
+      finalBuffer.add(frameTrailer.buffer.asUint8List());
+      frame.data = jsArrayBufferFrom(finalBuffer.toBytes());
 
-    finalBuffer.add(Uint8List.fromList(buffer.sublist(0, headerLength)));
-    finalBuffer.add(cipherText.asUint8List());
-    finalBuffer.add(iv);
-    finalBuffer.add(frameTrailer.buffer.asUint8List());
-    frame.data = jsArrayBufferFrom(finalBuffer.toBytes());
+      controller.enqueue(frame);
+    } catch (e) {
+      print('encrypt: e ${e.toString()}');
+    }
 
-    controller.enqueue(frame);
-
-    print(
-        'headerLength: $headerLength,  timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, encrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()} , iv $iv');
+    //print(
+    //    'headerLength: $headerLength,  timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, encrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()} , iv $iv');
   }
 
   Future<void> decodeFunction(
@@ -272,35 +276,39 @@ class Cryptor {
       controller.enqueue(frame);
       return;
     }
+    try {
+      var headerLength =
+          kind == 'video' ? getUnencryptedBytes(frame, codec) : 1;
+      var metaData = frame.getMetadata();
 
-    var headerLength = kind == 'video' ? getUnencryptedBytes(frame, codec) : 1;
-    var metaData = frame.getMetadata();
+      var frameTrailer = buffer.sublist(buffer.length - 2);
+      var ivLength = frameTrailer[0];
+      var keyIndex = frameTrailer[1];
+      var iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
 
-    var frameTrailer = buffer.sublist(buffer.length - 2);
-    var ivLength = frameTrailer[0];
-    var keyIndex = frameTrailer[1];
-    var iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
+      var decrypted = await promiseToFuture<ByteBuffer>(decrypt(
+        AesGcmParams(
+          name: 'AES-GCM',
+          iv: jsArrayBufferFrom(iv),
+          additionalData: jsArrayBufferFrom(buffer.sublist(0, headerLength)),
+        ),
+        secretKey,
+        jsArrayBufferFrom(
+            buffer.sublist(headerLength, buffer.length - ivLength - 2)),
+      ));
+      //print(
+      //    'buffer: ${buffer.length}, decrypted: ${decrypted.asUint8List().length}');
+      var finalBuffer = BytesBuilder();
 
-    var decrypted = await promiseToFuture<ByteBuffer>(decrypt(
-      AesGcmParams(
-        name: 'AES-GCM',
-        iv: jsArrayBufferFrom(iv),
-        additionalData: jsArrayBufferFrom(buffer.sublist(0, headerLength)),
-      ),
-      secretKey,
-      jsArrayBufferFrom(
-          buffer.sublist(headerLength, buffer.length - ivLength - 2)),
-    ));
-    print(
-        'buffer: ${buffer.length}, decrypted: ${decrypted.asUint8List().length}');
-    var finalBuffer = BytesBuilder();
+      finalBuffer.add(Uint8List.fromList(buffer.sublist(0, headerLength)));
+      finalBuffer.add(decrypted.asUint8List());
+      frame.data = jsArrayBufferFrom(finalBuffer.toBytes());
+      controller.enqueue(frame);
+    } catch (e) {
+      print('derypto: e ${e.toString()}');
+    }
 
-    finalBuffer.add(Uint8List.fromList(buffer.sublist(0, headerLength)));
-    finalBuffer.add(decrypted.asUint8List());
-    frame.data = jsArrayBufferFrom(finalBuffer.toBytes());
-    controller.enqueue(frame);
-
-    print(
-        'headerLength: $headerLength, timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()}, keyindex $keyIndex iv $iv');
+    //print(
+    //    'headerLength: $headerLength, timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()}, keyindex $keyIndex iv $iv');
   }
 }

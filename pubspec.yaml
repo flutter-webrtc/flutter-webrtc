@@ -11,7 +11,7 @@ dependencies:
   dart_webrtc: 1.0.13
   flutter:
     sdk: flutter
-  js: ^0.6.5
+  js: ^0.6.4
   path_provider: ^2.0.2
   webrtc_interface: 1.0.10
 
