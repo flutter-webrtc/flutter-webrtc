@@ -64,47 +64,11 @@ html.CryptoKey? sharedKey;
 void main() async {
   print('E2EE Worker created');
 
-  var sharedKey = Uint8List.fromList([
-    200,
-    244,
-    58,
-    72,
-    214,
-    245,
-    86,
-    82,
-    192,
-    127,
-    23,
-    153,
-    167,
-    172,
-    122,
-    234,
-    140,
-    70,
-    175,
-    74,
-    61,
-    11,
-    134,
-    58,
-    185,
-    102,
-    172,
-    17,
-    11,
-    6,
-    119,
-    253
-  ]);
-
-  print('setup transform event handler');
   if (js_util.getProperty(self, 'RTCTransformEvent') != null) {
+    print('setup transform event handler');
     self.onrtctransform = allowInterop((event) {
       print('got transform event');
       var transformer = (event as RTCTransformEvent).transformer;
-      print('transformer $transformer');
       transformer.handled = true;
       var options = transformer.options;
       var kind = options.kind;
@@ -114,7 +78,9 @@ void main() async {
       var msgType = options.msgType;
 
       var cryptor = Cryptor(
-          participantId: participantId, trackId: trackId, sharedKey: false);
+          participantId: participantId,
+          trackId: trackId,
+          sharedKey: useSharedKey);
 
       cryptor.setupTransform(
           operation: msgType,
@@ -124,9 +90,7 @@ void main() async {
           kind: kind,
           codec: codec);
 
-      cryptor.setKey(sharedKey);
-
-      participantCryptors[participantId] = cryptor;
+      participantCryptors.add(cryptor);
     });
   }
 
@@ -141,9 +105,10 @@ void main() async {
         var enabled = msg['enabled'] as bool;
         var participantId = msg['participantId'] as String;
         print('worker: set enable $enabled for participantId $participantId');
-        var cryptor = participantCryptors
-            .firstWhereOrNull((c) => c.participantId == participantId);
-        if (cryptor != null) {
+        var cryptors = participantCryptors
+            .where((c) => c.participantId == participantId)
+            .toList();
+        for (var cryptor in cryptors) {
           cryptor.enabled = enabled;
         }
         break;
@@ -158,7 +123,7 @@ void main() async {
         print(
             'worker: got $msgType, kind $kind, trackId $trackId, participantId $participantId, ${readable.runtimeType} ${writable.runtimeType}}');
         var cryptor = participantCryptors.firstWhere(
-            (c) => c.participantId == participantId,
+            (c) => c.trackId == trackId,
             orElse: () => Cryptor(
                 participantId: participantId,
                 trackId: trackId,
@@ -184,36 +149,35 @@ void main() async {
         print('worker: got setKey ${msg['key']}, key $key');
         var participantId = msg['participantId'] as String;
         print('worker: setup key for participant $participantId');
-        var cryptor = participantCryptors
-            .firstWhereOrNull((c) => c.participantId == participantId);
+        var cryptors = participantCryptors
+            .where((c) => c.participantId == participantId)
+            .toList();
         if (key.length != 32) {
           print('worker: invalid key length ${key.length}');
           break;
         }
-        if (cryptor != null) {
-          cryptor.setKey(key);
+        for (var c in cryptors) {
+          c.setKey(key);
         }
         break;
       case 'setKeyIndex':
         var keyIndex = msg['index'];
         var participantId = msg['participantId'] as String;
         print('worker: setup key index for participant $participantId');
-        var cryptor = participantCryptors
-            .firstWhereOrNull((c) => c.participantId == participantId);
-        if (cryptor != null) {
-          cryptor.setKeyIndex(keyIndex);
+        var cryptors = participantCryptors
+            .where((c) => c.participantId == participantId)
+            .toList();
+        for (var c in cryptors) {
+          c.setKeyIndex(keyIndex);
         }
         break;
       case 'updateCodec':
         var codec = msg['codec'] as String;
-        var participantId = msg['participantId'] as String;
-        print(
-            'worker: update codec for participant $participantId, codec $codec');
-        var cryptor = participantCryptors
-            .firstWhereOrNull((c) => c.participantId == participantId);
-        if (cryptor != null) {
-          cryptor.updateCodec(codec);
-        }
+        var trackId = msg['trackId'] as String;
+        print('worker: update codec for trackId $trackId, codec $codec');
+        var cryptor =
+            participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
+        cryptor?.updateCodec(codec);
         break;
       default:
         print('worker: unknown message kind ${msg.msgType}');
