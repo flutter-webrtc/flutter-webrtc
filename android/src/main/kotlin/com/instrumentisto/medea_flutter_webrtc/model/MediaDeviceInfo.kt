@@ -22,9 +22,15 @@ enum class MediaDeviceKind(val value: Int) {
  * @property deviceId Identifier of the represented media device.
  * @property label Human-readable device description (for example, "External USB Webcam").
  * @property kind Media kind of the media device.
+ * @property isFailed Flag indicating whether the last attempt to use this device failed.
  */
-data class MediaDeviceInfo(val deviceId: String, val label: String, val kind: MediaDeviceKind) {
+data class MediaDeviceInfo(
+    val deviceId: String,
+    val label: String,
+    val kind: MediaDeviceKind,
+    val isFailed: Boolean
+) {
   /** Converts this [MediaDeviceInfo] into a [Map] which can be returned to the Flutter side. */
   fun asFlutterResult(): Map<String, Any> =
-      mapOf("deviceId" to deviceId, "label" to label, "kind" to kind.value)
+      mapOf("deviceId" to deviceId, "label" to label, "kind" to kind.value, "isFailed" to isFailed)
 }

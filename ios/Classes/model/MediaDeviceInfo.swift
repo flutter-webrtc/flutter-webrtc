@@ -23,6 +23,7 @@ class MediaDeviceInfo {
       "deviceId": self.deviceId,
       "label": self.label,
       "kind": self.kind.rawValue,
+      "isFailed": false,
     ]
   }
 }

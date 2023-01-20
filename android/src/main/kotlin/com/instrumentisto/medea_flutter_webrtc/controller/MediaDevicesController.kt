@@ -92,8 +92,14 @@ class MediaDevicesController(
       }
       "setOutputAudioId" -> {
         val deviceId: String = call.argument("deviceId")!!
-        mediaDevices.setOutputAudioId(deviceId)
-        result.success(null)
+        GlobalScope.launch(Dispatchers.Main) {
+          try {
+            mediaDevices.setOutputAudioId(deviceId)
+            result.success(null)
+          } catch (e: Exception) {
+            result.error("SetOutputAudioIdException", e.message, null)
+          }
+        }
       }
     }
   }

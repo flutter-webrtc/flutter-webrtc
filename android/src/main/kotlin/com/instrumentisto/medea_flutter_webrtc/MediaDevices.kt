@@ -1,16 +1,17 @@
 package com.instrumentisto.medea_flutter_webrtc
 
 import android.Manifest
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothHeadset
-import android.bluetooth.BluetoothProfile
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import com.instrumentisto.medea_flutter_webrtc.exception.GetUserMediaException
 import com.instrumentisto.medea_flutter_webrtc.exception.PermissionException
 import com.instrumentisto.medea_flutter_webrtc.model.*
@@ -19,6 +20,7 @@ import com.instrumentisto.medea_flutter_webrtc.proxy.MediaStreamTrackProxy
 import com.instrumentisto.medea_flutter_webrtc.proxy.VideoMediaTrackSource
 import com.instrumentisto.medea_flutter_webrtc.utils.EglUtils
 import java.util.*
+import kotlinx.coroutines.CompletableDeferred
 import org.webrtc.*
 
 /**
@@ -65,9 +67,6 @@ private val videoTracks: HashMap<VideoConstraints, MediaStreamTrackProxy> = Hash
  * [MediaStreamTrackProxy]s.
  */
 class MediaDevices(val state: State, private val permissions: Permissions) : BroadcastReceiver() {
-  /** [BluetoothAdapter] used for detecting whether bluetooth headset is connected or not. */
-  private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-
   /** Indicator of bluetooth headset connection state. */
   private var isBluetoothHeadsetConnected: Boolean = false
 
@@ -79,6 +78,18 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
 
   /** List of [EventObserver]s of these [MediaDevices]. */
   private var eventObservers: HashSet<EventObserver> = HashSet()
+
+  /** [AudioManager] system service. */
+  private val audioManager: AudioManager = state.getAudioManager()
+
+  /** Currently selected audio output ID by [setOutputAudioId] call. */
+  private var selectedAudioOutputId: String = SPEAKERPHONE_DEVICE_ID
+
+  /** Indicator whether the last Bluetooth SCO connection attempt failed. */
+  private var isBluetoothScoFailed: Boolean = false
+
+  /** [CompletableDeferred] being resolved once Bluetooth SCO request is completed. */
+  private var bluetoothScoDeferred: CompletableDeferred<Unit>? = null
 
   companion object {
     /** Observer of [MediaDevices] events. */
@@ -101,34 +112,52 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
         Camera1Enumerator(false)
       }
     }
+
+    /** Indicates if the provided [AudioDeviceInfo] is related to a Bluetooth headset. */
+    private fun isBluetoothDevice(info: AudioDeviceInfo): Boolean {
+      return info.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+          (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+              info.type == AudioDeviceInfo.TYPE_BLE_HEADSET)
+    }
   }
 
   init {
     state
         .getAppContext()
-        .registerReceiver(this, IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED))
-    bluetoothAdapter?.getProfileProxy(
-        state.getAppContext(),
-        object : BluetoothProfile.ServiceListener {
-          override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
-            if (proxy!!.connectedDevices.isNotEmpty()) {
+        .registerReceiver(this, IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED))
+    synchronizeHeadsetState()
+    registerHeadsetStateReceiver()
+  }
+
+  /**
+   * Subscribes to the [AudioManager.registerAudioDeviceCallback] which fires once new audio device
+   * is connected.
+   *
+   * [isBluetoothHeadsetConnected] will be updated based on this subscription.
+   */
+  private fun registerHeadsetStateReceiver() {
+    audioManager.registerAudioDeviceCallback(
+        object : AudioDeviceCallback() {
+          override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
+            if (addedDevices.any { isBluetoothDevice(it) }) {
               setHeadsetState(true)
             }
           }
 
-          override fun onServiceDisconnected(profile: Int) {
-            setHeadsetState(false)
+          override fun onAudioDevicesRemoved(removedDevices: Array<AudioDeviceInfo>) {
+            if (removedDevices.any { isBluetoothDevice(it) }) {
+              synchronizeHeadsetState()
+            }
           }
         },
-        BluetoothProfile.HEADSET)
+        null)
   }
 
-  override fun onReceive(ctx: Context?, intent: Intent?) {
-    val bluetoothHeadsetState =
-        intent?.getIntExtra(BluetoothHeadset.EXTRA_STATE, BluetoothHeadset.STATE_DISCONNECTED)
-    if (bluetoothHeadsetState == BluetoothHeadset.STATE_CONNECTED) {
+  /** Actualizes Bluetooth headset state based on the [AudioManager.getDevices]. */
+  private fun synchronizeHeadsetState() {
+    if (audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { isBluetoothDevice(it) }) {
       setHeadsetState(true)
-    } else if (bluetoothHeadsetState == BluetoothHeadset.STATE_DISCONNECTED) {
+    } else {
       setHeadsetState(false)
     }
   }
@@ -177,27 +206,58 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
   }
 
   /**
+   * Cancels Bluetooth SCO request.
+   *
+   * Throws [GetUserMediaException] from [setOutputAudioId] for enabling Bluetooth SCO (if
+   * [MediaDevices] has ongoing request).
+   */
+  private fun cancelBluetoothSco() {
+    bluetoothScoDeferred?.completeExceptionally(
+        GetUserMediaException(
+            "Bluetooth headset connection request was cancelled", GetUserMediaException.Kind.Audio))
+    audioManager.stopBluetoothSco()
+    audioManager.isBluetoothScoOn = false
+  }
+
+  /**
    * Switches the current output audio device to the device with the provided identifier.
    *
    * @param deviceId Identifier for the output audio device to be selected.
    */
-  fun setOutputAudioId(deviceId: String) {
-    val audioManager = state.getAppContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
+  suspend fun setOutputAudioId(deviceId: String) {
+    val audioManager = state.getAudioManager()
     when (deviceId) {
       EAR_SPEAKER_DEVICE_ID -> {
-        audioManager.isBluetoothScoOn = false
-        audioManager.stopBluetoothSco()
+        cancelBluetoothSco()
         audioManager.isSpeakerphoneOn = false
       }
       SPEAKERPHONE_DEVICE_ID -> {
-        audioManager.isBluetoothScoOn = false
-        audioManager.stopBluetoothSco()
+        cancelBluetoothSco()
         audioManager.isSpeakerphoneOn = true
       }
       BLUETOOTH_HEADSET_DEVICE_ID -> {
-        audioManager.isSpeakerphoneOn = false
-        audioManager.isBluetoothScoOn = true
-        audioManager.startBluetoothSco()
+        val deviceIdBefore = selectedAudioOutputId
+        selectedAudioOutputId = deviceId
+        if (isBluetoothHeadsetConnected) {
+          if (bluetoothScoDeferred == null) {
+            isBluetoothScoFailed = false
+            Log.d(
+                "FlutterWebRtcDebug",
+                "Bluetooth headset was selected. Trying to start Bluetooth SCO...")
+            bluetoothScoDeferred = CompletableDeferred()
+            audioManager.startBluetoothSco()
+          }
+          try {
+            bluetoothScoDeferred?.await()
+          } catch (e: Exception) {
+            selectedAudioOutputId = deviceIdBefore
+            audioManager.stopBluetoothSco()
+            isBluetoothScoFailed = true
+            throw e
+          }
+        } else {
+          throw IllegalArgumentException("Unknown output device: $deviceId")
+        }
       }
       else -> {
         throw IllegalArgumentException("Unknown output device: $deviceId")
@@ -228,16 +288,29 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
 
   /** @return List of [MediaDeviceInfo]s for the currently available audio devices. */
   private fun enumerateAudioDevices(): List<MediaDeviceInfo> {
+    val bluetoothDevice =
+        audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS).firstOrNull {
+          (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+              it.type == AudioDeviceInfo.TYPE_BLE_HEADSET) ||
+              it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+              it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP
+        }
+
     val devices =
         mutableListOf(
-            MediaDeviceInfo(EAR_SPEAKER_DEVICE_ID, "Ear-speaker", MediaDeviceKind.AUDIO_OUTPUT),
-            MediaDeviceInfo(SPEAKERPHONE_DEVICE_ID, "Speakerphone", MediaDeviceKind.AUDIO_OUTPUT))
-    if (isBluetoothHeadsetConnected) {
+            MediaDeviceInfo(
+                EAR_SPEAKER_DEVICE_ID, "Ear-speaker", MediaDeviceKind.AUDIO_OUTPUT, false),
+            MediaDeviceInfo(
+                SPEAKERPHONE_DEVICE_ID, "Speakerphone", MediaDeviceKind.AUDIO_OUTPUT, false))
+    if (bluetoothDevice != null) {
       devices.add(
           MediaDeviceInfo(
-              BLUETOOTH_HEADSET_DEVICE_ID, "Bluetooth headset", MediaDeviceKind.AUDIO_OUTPUT))
+              BLUETOOTH_HEADSET_DEVICE_ID,
+              bluetoothDevice.productName.toString(),
+              MediaDeviceKind.AUDIO_OUTPUT,
+              isBluetoothScoFailed))
     }
-    devices.add(MediaDeviceInfo("default", "default", MediaDeviceKind.AUDIO_INPUT))
+    devices.add(MediaDeviceInfo("default", "default", MediaDeviceKind.AUDIO_INPUT, false))
     return devices
   }
 
@@ -251,7 +324,7 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
     }
     return cameraEnumerator
         .deviceNames
-        .map { deviceId -> MediaDeviceInfo(deviceId, deviceId, MediaDeviceKind.VIDEO_INPUT) }
+        .map { deviceId -> MediaDeviceInfo(deviceId, deviceId, MediaDeviceKind.VIDEO_INPUT, false) }
         .toList()
   }
 
@@ -355,5 +428,37 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
     val source = state.getPeerConnectionFactory().createAudioSource(constraints.intoWebRtc())
     val audioTrackSource = AudioMediaTrackSource(source, state.getPeerConnectionFactory())
     return audioTrackSource.newTrack()
+  }
+
+  override fun onReceive(ctx: Context?, intent: Intent?) {
+    if (intent?.action != null) {
+      if (AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED == intent.action) {
+        val state =
+            intent.getIntExtra(
+                AudioManager.EXTRA_SCO_AUDIO_STATE, AudioManager.SCO_AUDIO_STATE_DISCONNECTED)
+        if (selectedAudioOutputId == BLUETOOTH_HEADSET_DEVICE_ID) {
+          when (state) {
+            AudioManager.SCO_AUDIO_STATE_CONNECTED -> {
+              Log.d("FlutterWebRtcDebug", "SCO connected")
+              isBluetoothScoFailed = false
+              bluetoothScoDeferred?.complete(Unit)
+              bluetoothScoDeferred = null
+              audioManager.isBluetoothScoOn = true
+              audioManager.isSpeakerphoneOn = false
+            }
+            AudioManager.SCO_AUDIO_STATE_DISCONNECTED -> {
+              Log.d("FlutterWebRtcDebug", "SCO disconnected")
+              isBluetoothScoFailed = true
+              bluetoothScoDeferred?.completeExceptionally(
+                  GetUserMediaException(
+                      "Bluetooth headset is unavailable at this moment",
+                      GetUserMediaException.Kind.Audio))
+              bluetoothScoDeferred = null
+              Handler(Looper.getMainLooper()).post { eventBroadcaster().onDeviceChange() }
+            }
+          }
+        }
+      }
+    }
   }
 }

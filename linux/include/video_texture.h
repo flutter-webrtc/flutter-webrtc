@@ -63,6 +63,10 @@ static gboolean video_texture_copy_pixels(FlPixelBufferTexture* texture,
     *out_buffer = v_texture->buffer_;
     *width = v_texture->frame_->width;
     *height = v_texture->frame_->height;
+  } else {
+    *out_buffer = nullptr;
+    *width = 0;
+    *height = 0;
   }
 
   return TRUE;
