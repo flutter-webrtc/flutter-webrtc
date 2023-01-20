@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:html' as html;
 import 'dart:js_util' as js_util;
-import 'dart:js' as js;
 import 'dart:typed_data';
 import 'package:js/js.dart';
 
@@ -119,7 +118,6 @@ void main() async {
         var trackId = msg['trackId'];
         var readable = msg['readableStream'] as ReadableStream;
         var writable = msg['writableStream'] as WritableStream;
-        var codec = msg['codec'] as String;
         print(
             'worker: got $msgType, kind $kind, trackId $trackId, participantId $participantId, ${readable.runtimeType} ${writable.runtimeType}}');
         var cryptor = participantCryptors.firstWhere(
@@ -134,8 +132,7 @@ void main() async {
             readable: readable,
             writable: writable,
             trackId: trackId,
-            kind: kind,
-            codec: codec);
+            kind: kind);
 
         participantCryptors.add(cryptor);
         break;

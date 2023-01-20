@@ -7,7 +7,7 @@ import 'dart:typed_data';
 import 'cyrpto.dart';
 import 'package:flutter_webrtc/src/web/rtc_transform_stream.dart';
 
-final IV_LENGTH = 12;
+const IV_LENGTH = 12;
 
 const kNaluTypeMask = 0x1f;
 
@@ -256,12 +256,12 @@ class Cryptor {
       frame.data = jsArrayBufferFrom(finalBuffer.toBytes());
 
       controller.enqueue(frame);
+
+      print(
+          'encrypto kind $kind,codec $codec headerLength: $headerLength,  timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, encrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()} , iv $iv');
     } catch (e) {
       print('encrypt: e ${e.toString()}');
     }
-
-    //print(
-    //    'headerLength: $headerLength,  timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, encrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()} , iv $iv');
   }
 
   Future<void> decodeFunction(
@@ -304,11 +304,11 @@ class Cryptor {
       finalBuffer.add(decrypted.asUint8List());
       frame.data = jsArrayBufferFrom(finalBuffer.toBytes());
       controller.enqueue(frame);
+
+      print(
+          'decrypto kind $kind,codec $codec headerLength: $headerLength, timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()}, keyindex $keyIndex iv $iv');
     } catch (e) {
       print('derypto: e ${e.toString()}');
     }
-
-    //print(
-    //    'headerLength: $headerLength, timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()}, keyindex $keyIndex iv $iv');
   }
 }

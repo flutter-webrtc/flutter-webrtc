@@ -5,20 +5,6 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
 
-// List<String> methods = [
-//   'keyManagerSetKey',
-//   'keyManagerSetKeys',
-//   'keyManagerGetKeys',
-//   'keyManagerDispose',
-//   'frameCryptorFactoryCreateFrameCryptor',
-//   'frameCryptorFactoryCreateKeyManager',
-//   'frameCryptorSetKeyIndex',
-//   'frameCryptorGetKeyIndex',
-//   'frameCryptorSetEnabled',
-//   'frameCryptorGetEnabled',
-//   'frameCryptorDispose',
-// ];
-
 class KeyManagerImpl implements KeyManager {
   KeyManagerImpl(this._id);
   final String _id;
@@ -165,6 +151,10 @@ class FrameCryptorImpl implements FrameCryptor {
   final String _participantId;
   @override
   String get participantId => _participantId;
+
+  @override
+  Future<void> updateCodec(String codec) =>
+      throw UnimplementedError('only support for flutter web');
 
   @override
   Future<bool> setKeyIndex(int index) async {

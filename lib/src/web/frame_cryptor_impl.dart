@@ -14,19 +14,84 @@ import '../frame_cryptor.dart';
 import 'rtc_transform_stream.dart';
 
 extension RtcRtpReceiverExt on html.RtcRtpReceiver {
-  html.RtcRtpReceiver get jsRtpReceiver => this;
+  static Map<int, ReadableStream> readableStreams_ = {};
+  static Map<int, WritableStream> writableStreams_ = {};
+
+  ReadableStream? get readable {
+    if (readableStreams_.containsKey(hashCode)) {
+      return readableStreams_[hashCode]!;
+    }
+    return null;
+  }
+
+  WritableStream? get writable {
+    if (writableStreams_.containsKey(hashCode)) {
+      return writableStreams_[hashCode]!;
+    }
+    return null;
+  }
+
+  set readableStream(ReadableStream stream) {
+    readableStreams_[hashCode] = stream;
+  }
+
+  set writableStream(WritableStream stream) {
+    writableStreams_[hashCode] = stream;
+  }
+
+  void cleanStreams() {
+    readableStreams_.remove(hashCode);
+    writableStreams_.remove(hashCode);
+  }
+}
+
+extension RtcRtpSenderExt on html.RtcRtpSender {
+  static Map<int, ReadableStream> readableStreams_ = {};
+  static Map<int, WritableStream> writableStreams_ = {};
+
+  ReadableStream? get readable {
+    if (readableStreams_.containsKey(hashCode)) {
+      return readableStreams_[hashCode]!;
+    }
+    return null;
+  }
+
+  WritableStream? get writable {
+    if (writableStreams_.containsKey(hashCode)) {
+      return writableStreams_[hashCode]!;
+    }
+    return null;
+  }
+
+  set readableStream(ReadableStream stream) {
+    readableStreams_[hashCode] = stream;
+  }
+
+  set writableStream(WritableStream stream) {
+    writableStreams_[hashCode] = stream;
+  }
+
+  void cleanStreams() {
+    readableStreams_.remove(hashCode);
+    writableStreams_.remove(hashCode);
+  }
 }
 
 class FrameCryptorImpl implements FrameCryptor {
-  FrameCryptorImpl(this.worker, this._participantId, this._trackId);
+  FrameCryptorImpl(this.worker, this._participantId, this._trackId,
+      {this.jsSender, this.jsReceiver});
   html.Worker worker;
   bool _enabled = false;
   int _keyIndex = 0;
   final String _participantId;
   final String _trackId;
+  final html.RtcRtpSender? jsSender;
+  final html.RtcRtpReceiver? jsReceiver;
 
   @override
   Future<void> dispose() async {
+    jsSender?.cleanStreams();
+    jsReceiver?.cleanStreams();
     jsutil.callMethod(worker, 'postMessage', [
       jsutil.jsify({
         'msgType': 'dispose',
@@ -69,6 +134,17 @@ class FrameCryptorImpl implements FrameCryptor {
     ]);
     _keyIndex = index;
     return true;
+  }
+
+  @override
+  Future<void> updateCodec(String codec) async {
+    jsutil.callMethod(worker, 'postMessage', [
+      jsutil.jsify({
+        'msgType': 'updateCodec',
+        'trackId': _trackId,
+        'codec': codec,
+      })
+    ]);
   }
 }
 
@@ -140,10 +216,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
   static final FrameCryptorFactoryImpl instance =
       FrameCryptorFactoryImpl._internal();
   late html.Worker worker;
-  Map<String, FrameCryptor> _frameCryptors = {};
-
-  var videoCodec = 'vp8';
-  var audioCodec = 'opus';
+  final Map<String, FrameCryptor> _frameCryptors = {};
 
   @override
   Future<KeyManager> createDefaultKeyManager() async {
@@ -169,15 +242,20 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         'kind': kind,
         'participantId': participantId,
         'trackId': trackId,
-        'codec': videoCodec,
       };
       jsutil.setProperty(jsReceiver, 'transform',
           RTCRtpScriptTransform(worker, jsutil.jsify(options)));
     } else {
-      EncodedStreams streams =
-          jsutil.callMethod(jsReceiver, 'createEncodedStreams', []);
-      var readable = streams.readable;
-      var writable = streams.writable;
+      var writable = jsReceiver.writable;
+      var readable = jsReceiver.readable;
+      if (writable == null || readable == null) {
+        EncodedStreams streams =
+            jsutil.callMethod(jsReceiver, 'createEncodedStreams', []);
+        readable = streams.readable;
+        jsReceiver.readableStream = readable;
+        writable = streams.writable;
+        jsReceiver.writableStream = writable;
+      }
 
       jsutil.callMethod(worker, 'postMessage', [
         jsutil.jsify({
@@ -185,7 +263,6 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
           'kind': kind,
           'participantId': participantId,
           'trackId': trackId,
-          'codec': kind == 'audio' ? audioCodec : videoCodec,
           'readableStream': readable,
           'writableStream': writable
         }),
@@ -214,22 +291,26 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         'kind': kind,
         'participantId': participantId,
         'trackId': trackId,
-        'codec': videoCodec,
       };
       jsutil.setProperty(jsSender, 'transform',
           RTCRtpScriptTransform(worker, jsutil.jsify(options)));
     } else {
-      EncodedStreams streams =
-          jsutil.callMethod(jsSender, 'createEncodedStreams', []);
-      var readable = streams.readable;
-      var writable = streams.writable;
+      var writable = jsSender.writable;
+      var readable = jsSender.readable;
+      if (writable == null || readable == null) {
+        EncodedStreams streams =
+            jsutil.callMethod(jsSender, 'createEncodedStreams', []);
+        readable = streams.readable;
+        jsSender.readableStream = readable;
+        writable = streams.writable;
+        jsSender.writableStream = writable;
+      }
       jsutil.callMethod(worker, 'postMessage', [
         jsutil.jsify({
           'msgType': 'encode',
           'kind': kind,
           'participantId': participantId,
           'trackId': trackId,
-          'codec': kind == 'audio' ? audioCodec : videoCodec,
           'readableStream': readable,
           'writableStream': writable
         }),

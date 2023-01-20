@@ -55,6 +55,8 @@ abstract class FrameCryptor {
   /// Get the key index for the sender or receiver.
   Future<int> get keyIndex;
 
+  Future<void> updateCodec(String codec);
+
   /// Dispose the frame cryptor.
   Future<void> dispose();
 }
