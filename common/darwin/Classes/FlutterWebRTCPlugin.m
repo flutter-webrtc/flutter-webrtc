@@ -1454,8 +1454,8 @@
     BOOL srtpEnableEncryptedRtpHeaderExtensions = NO;
     BOOL srtpEnableAes128Sha1_32CryptoCipher = NO;
 
-    if (options[@"enableGcmCryptoSuites" != nil &&
-                [options[@"enableGcmCryptoSuites"] isKindOfClass:[NSNumber class]]]) {
+    if (options[@"enableGcmCryptoSuites"] != nil &&
+                [options[@"enableGcmCryptoSuites"] isKindOfClass:[NSNumber class]]) {
       NSNumber* value = options[@"enableGcmCryptoSuites"];
       srtpEnableGcmCryptoSuites = [value boolValue];
     }
