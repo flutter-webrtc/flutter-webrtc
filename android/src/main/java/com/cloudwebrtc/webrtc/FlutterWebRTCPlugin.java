@@ -129,7 +129,6 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         if (AudioSwitchManager.instance != null) {
             Log.d(TAG, "Stopping the audio manager...");
             AudioSwitchManager.instance.stop();
-            AudioSwitchManager.instance = null;
         }
     }
 
