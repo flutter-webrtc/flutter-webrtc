@@ -7,10 +7,7 @@ environment:
   flutter: '>=1.22.0'
 
 dependencies:
-  dart_webrtc:
-    git:
-      url: https://github.com/flutter-webrtc/dart-webrtc.git
-      ref: feat/support-set-capabilities
+  dart_webrtc: 1.0.14
   flutter:
     sdk: flutter
   path_provider: ^2.0.2
