@@ -351,7 +351,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
               'profile-level-id=640c1f;packetization-mode=1;level-asymmetry-allowed=1',
         )*/
         RTCRtpCodecCapability(
-          mimeType: 'video/VP8',
+          mimeType: 'video/AV1',
           clockRate: 90000,
         )
       ]);
