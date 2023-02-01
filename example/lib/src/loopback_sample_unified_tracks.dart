@@ -233,6 +233,12 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     initRenderers();
     initLocalConnection();
 
+    var acaps = await getRtpSenderCapabilities('audio');
+    print('sender audio capabilities: ${acaps.toMap()}');
+
+    var vcaps = await getRtpSenderCapabilities('video');
+    print('sender video capabilities: ${vcaps.toMap()}');
+
     if (_remotePeerConnection != null) return;
 
     try {
@@ -332,6 +338,25 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     }
 
     await _addOrReplaceVideoTracks();
+
+    var transceivers = await _localPeerConnection?.getTransceivers();
+    transceivers?.forEach((transceiver) {
+      if (transceiver.sender.track == null) return;
+      print('transceiver: ${transceiver.sender.track!.kind!}');
+      transceiver.setCodecPreferences([
+        /*RTCRtpCodecCapability(
+          mimeType: 'video/H264',
+          clockRate: 90000,
+          sdpFmtpLine:
+              'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f',
+        ),*/
+        RTCRtpCodecCapability(
+          mimeType: 'video/AV1',
+          clockRate: 90000,
+        )
+      ]);
+    });
+
     await _negotiate();
 
     setState(() {
@@ -372,6 +397,17 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     }
 
     await _addOrReplaceAudioTracks();
+    var transceivers = await _localPeerConnection?.getTransceivers();
+    transceivers?.forEach((transceiver) {
+      if (transceiver.sender.track == null) return;
+      transceiver.setCodecPreferences([
+        RTCRtpCodecCapability(
+          mimeType: 'audio/PCMA',
+          clockRate: 8000,
+          channels: 1,
+        )
+      ]);
+    });
     await _negotiate();
 
     setState(() {
