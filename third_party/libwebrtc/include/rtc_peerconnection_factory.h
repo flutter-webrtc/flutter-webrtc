@@ -18,6 +18,7 @@ namespace libwebrtc {
 class RTCPeerConnection;
 class RTCAudioDevice;
 class RTCVideoDevice;
+class RTCRtpCapabilities;
 
 class RTCPeerConnectionFactory : public RefCountInterface {
  public:
@@ -60,6 +61,12 @@ class RTCPeerConnectionFactory : public RefCountInterface {
 
   virtual scoped_refptr<RTCMediaStream> CreateStream(
       const string stream_id) = 0;
+
+  virtual scoped_refptr<RTCRtpCapabilities> GetRtpSenderCapabilities(
+      RTCMediaType media_type) = 0;
+
+  virtual scoped_refptr<RTCRtpCapabilities> GetRtpReceiverCapabilities(
+      RTCMediaType media_type) = 0;
 };
 
 }  // namespace libwebrtc

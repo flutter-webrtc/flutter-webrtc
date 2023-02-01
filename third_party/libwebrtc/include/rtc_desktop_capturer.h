@@ -20,7 +20,11 @@ class RTCDesktopCapturer : public RefCountInterface {
   virtual void DeRegisterDesktopCapturerObserver() = 0;
 
   virtual CaptureState Start(uint32_t fps) = 0;
-
+  virtual CaptureState Start(uint32_t fps,
+                             uint32_t x,
+                             uint32_t y,
+                             uint32_t w,
+                             uint32_t h) = 0;
   virtual void Stop() = 0;
 
   virtual bool IsRunning() = 0;
