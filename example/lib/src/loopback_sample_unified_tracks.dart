@@ -344,16 +344,16 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       if (transceiver.sender.track == null) return;
       print('transceiver: ${transceiver.sender.track!.kind!}');
       transceiver.setCodecPreferences([
-        RTCRtpCodecCapability(
+        /*RTCRtpCodecCapability(
           mimeType: 'video/H264',
           clockRate: 90000,
           sdpFmtpLine:
-              'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f',
-        ), /*s
+              'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f',
+        ),*/
         RTCRtpCodecCapability(
           mimeType: 'video/AV1',
           clockRate: 90000,
-        )*/
+        )
       ]);
     });
 

@@ -74,7 +74,7 @@ EncodableMap rtpParametersToMap(
     map[EncodableValue("minBitrate")] =
         EncodableValue(encoding->min_bitrate_bps());
     map[EncodableValue("maxFramerate")] =
-        EncodableValue(encoding->max_framerate());
+        EncodableValue((int)encoding->max_framerate());
     map[EncodableValue("scaleResolutionDownBy")] =
         EncodableValue(encoding->scale_resolution_down_by());
     map[EncodableValue("ssrc")] = EncodableValue((long)encoding->ssrc());
@@ -726,6 +726,36 @@ void FlutterPeerConnection::RtpTransceiverSetDirection(
     result_ptr->Error("RtpTransceiverSetDirection", res.std_string());
   }
 }
+
+void FlutterPeerConnection::RtpTransceiverSetCodecPreferences(
+    RTCPeerConnection* pc,
+    std::string rtpTransceiverId,
+    const EncodableList codecs,
+    std::unique_ptr<MethodResultProxy> result) {
+  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
+  auto transceiver = getRtpTransceiverById(pc, rtpTransceiverId);
+  if (nullptr == transceiver.get()) {
+    result_ptr->Error("RtpTransceiverSetCodecPreferences", " transceiver is null ");
+    return;
+  }
+  std::vector<scoped_refptr<RTCRtpCodecCapability>> codecList;
+  for(auto codec : codecs) {
+    auto codecMap = GetValue<EncodableMap>(codec);
+    auto codecMimeType = findString(codecMap, "mimeType");
+    auto codecClockRate = findInt(codecMap, "clockRate");
+    auto codecNumChannels = findInt(codecMap, "channels");
+    auto codecSdpFmtpLine = findString(codecMap, "sdpFmtpLine");
+    auto codecCapability = RTCRtpCodecCapability::Create();
+    if(codecSdpFmtpLine != std::string())
+      codecCapability->set_sdp_fmtp_line(codecSdpFmtpLine);
+    codecCapability->set_clock_rate(codecClockRate);
+    if (codecNumChannels != -1)
+      codecCapability->set_channels(codecNumChannels);
+    codecCapability->set_mime_type(codecMimeType);
+    codecList.push_back(codecCapability);
+  }
+  transceiver->SetCodecPreferences(codecList);
+ }
 
 void FlutterPeerConnection::GetSenders(
     RTCPeerConnection* pc,
