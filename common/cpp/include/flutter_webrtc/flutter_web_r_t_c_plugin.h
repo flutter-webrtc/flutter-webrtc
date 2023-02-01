@@ -1,13 +1,22 @@
 #ifndef PLUGINS_FLUTTER_WEBRTC_PLUGIN_CPP_H_
 #define PLUGINS_FLUTTER_WEBRTC_PLUGIN_CPP_H_
 
-#if defined(_WINDOWS)
+#if defined(_WINDOWS) || defined(_ELINUX)
 
 #include <flutter_plugin_registrar.h>
-#ifdef FLUTTER_PLUGIN_IMPL
-#define FLUTTER_PLUGIN_EXPORT __declspec(dllexport)
-#else
-#define FLUTTER_PLUGIN_EXPORT __declspec(dllimport)
+
+#if defined(_WINDOWS)
+  #ifdef FLUTTER_PLUGIN_IMPL
+  #define FLUTTER_PLUGIN_EXPORT __declspec(dllexport)
+  #else
+  #define FLUTTER_PLUGIN_EXPORT __declspec(dllimport)
+  #endif
+#else // _ELINUX
+  #ifdef FLUTTER_PLUGIN_IMPL
+  #define FLUTTER_PLUGIN_EXPORT __attribute__((visibility("default")))
+  #else
+  #define FLUTTER_PLUGIN_EXPORT
+  #endif
 #endif
 
 #if defined(__cplusplus)

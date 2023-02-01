@@ -35,3 +35,5 @@ flutter:
         pluginClass: FlutterWebRTCPlugin
       linux:
         pluginClass: FlutterWebRTCPlugin
+      elinux:
+        pluginClass: FlutterWebRTCPlugin

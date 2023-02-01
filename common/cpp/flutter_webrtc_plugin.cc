@@ -65,7 +65,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
 
 }  // namespace flutter_webrtc_plugin
 
-#if defined(_WINDOWS)
+#if defined(_WINDOWS) || defined(_ELINUX)
 void FlutterWebRTCPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
 #else
