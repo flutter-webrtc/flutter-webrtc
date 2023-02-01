@@ -134,7 +134,7 @@ class FlutterPeerConnection {
   void RtpTransceiverGetCurrentDirection(
       RTCPeerConnection* pc,
       std::string rtpTransceiverId,
-      std::unique_ptr<MethodResultProxy> resulte);
+      std::unique_ptr<MethodResultProxy> result);
 
   void SetConfiguration(RTCPeerConnection* pc,
                         const EncodableMap& configuration,
@@ -152,8 +152,13 @@ class FlutterPeerConnection {
                                   std::string direction,
                                   std::unique_ptr<MethodResultProxy> result);
 
+  void RtpTransceiverSetCodecPreferences(RTCPeerConnection* pc,
+                                  std::string rtpTransceiverId,
+                                  const EncodableList codecs,
+                                  std::unique_ptr<MethodResultProxy> result);
+
   void GetSenders(RTCPeerConnection* pc,
-                  std::unique_ptr<MethodResultProxy> resulte);
+                  std::unique_ptr<MethodResultProxy> result);
 
   void AddIceCandidate(RTCIceCandidate* candidate,
                        RTCPeerConnection* pc,

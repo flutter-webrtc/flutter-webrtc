@@ -59,73 +59,6 @@ class RTCRtcpFeedback : public RefCountInterface {
   virtual bool operator!=(scoped_refptr<RTCRtcpFeedback> o) = 0;
 };
 
-/* class RTCRtpCodecCapability : public RefCountInterface {
-  virtual const string mine_type() const = 0;
-
-  virtual const string name() = 0;
-
-  virtual void set_name(const string name) = 0;
-
-  virtual RTCMediaType kind() = 0;
-  virtual void set_kind(RTCMediaType value) = 0;
-
-  virtual int clock_rate() = 0;
-  virtual void set_clock_rate(int value) = 0;
-
-  virtual int preferred_payload_type() = 0;
-  virtual void set_preferred_payload_type(int value) = 0;
-
-  virtual int max_ptime() = 0;
-  virtual void set_max_ptime(int value) = 0;
-
-  virtual int ptime() = 0;
-  virtual void set_ptime(int value) = 0;
-
-  virtual int num_channels() = 0;
-  virtual void set_num_channels(int value) = 0;
-
-  virtual vector<scoped_refptr<RTCRtcpFeedback>> rtcp_feedback() = 0;
-  virtual void set_rtcp_feedback(vector<scoped_refptr<RTCRtcpFeedback>>
-rtcp_feecbacks) = 0;
-
-  virtual const map<string,string> parameters() = 0;
-  virtual void set_parameters(const map<string, string> parameters) = 0;
-
-  virtual const map<string, string> ptions() = 0;
-  virtual void set_options(map<string, string> options) = 0;
-
-  virtual int max_temporal_layer_extensions() = 0;
-  virtual void set_max_temporal_layer_extensions(int value) = 0;
-
-  virtual int max_spatial_layer_extensions() = 0;
-  virtual void set_max_spatial_layer_extensions(int value) = 0;
-
-  virtual bool svc_multi_stream_support() = 0;
-  virtual void set_svc_multi_stream_support(bool value) = 0;
-
-  virtual bool operator==(scoped_refptr<RTCRtpCodecCapability> o) const = 0;
-  virtual bool operator!=(scoped_refptr<RTCRtpCodecCapability> o) const = 0;
-};*/
-
-class RTCRtpHeaderExtensionCapability : public RefCountInterface {
-  virtual const string uri() = 0;
-  virtual void set_uri(const string uri) = 0;
-
-  virtual int preferred_id() = 0;
-  virtual void set_preferred_id(int value) = 0;
-
-  virtual bool preferred_encrypt() = 0;
-  virtual void set_preferred_encrypt(bool value) = 0;
-
-  virtual RTCRtpTransceiverDirection direction() = 0;
-  virtual void set_direction(RTCRtpTransceiverDirection value) = 0;
-
-  virtual bool operator==(
-      scoped_refptr<RTCRtpHeaderExtensionCapability> o) const = 0;
-  virtual bool operator!=(
-      scoped_refptr<RTCRtpHeaderExtensionCapability> o) const = 0;
-};
-
 class RTCRtpExtension : public RefCountInterface {
  public:
   enum RTCFilter {
@@ -201,27 +134,10 @@ class RTCRtpCodecParameters : public RefCountInterface {
 
   virtual bool operator==(scoped_refptr<RTCRtpCodecParameters> o) = 0;
   virtual bool operator!=(scoped_refptr<RTCRtpCodecParameters> o) = 0;
+
+ protected:
+  virtual ~RTCRtpCodecParameters() {}
 };
-
-/*
-class RTCRtpCapabilities : public RefCountInterface {
-  virtual const vector<scoped_refptr<RTCRtpCodecCapability>> codecs() = 0;
-  virtual void set_codecs(
-      const vector<scoped_refptr<RTCRtpCodecCapability>> codecs) = 0;
-
-  virtual const vector<scoped_refptr<RTCRtpHeaderExtensionCapability>>
-  header_extensions() = 0;
-
-  virtual void set_header_extensions(
-      const vector<scoped_refptr<RTCRtpHeaderExtensionCapability>>
-          header_extensions) = 0;
-
-  virtual const vector<scoped_refptr<RTCFecMechanism>> fec() = 0;
-  virtual void set_fec(const vector<scoped_refptr<RTCFecMechanism>> fec) = 0;
-
-  virtual bool operator==(scoped_refptr<RTCRtpCapabilities> o) = 0;
-  virtual bool operator!=(scoped_refptr<RTCRtpCapabilities> o) = 0;
-};*/
 
 class RTCRtcpParameters : public RefCountInterface {
  public:
