@@ -271,7 +271,7 @@
 
  
     if (isLocalStream) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTLocal" object:_myStreamData userInfo:userInfo];
+//        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTLocal" object:_myStreamData userInfo:userInfo];
     } else {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTRemote" object:_myStreamData userInfo:userInfo];
     }
