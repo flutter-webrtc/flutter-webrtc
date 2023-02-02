@@ -352,7 +352,7 @@ void FlutterFrameCryptor::KeyManagerGetKeys(
   auto keys = keyManager->GetKeys(participant_id);
   EncodableList keys_output;
   for (auto key : keys.std_vector()) {
-    keys_output.push_back(key.std_vector());
+    keys_output.push_back(EncodableValue(key.std_vector()));
   }
   EncodableMap params;
   params[EncodableValue("keys")] = keys_output;
