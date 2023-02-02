@@ -1669,7 +1669,8 @@
 
 - (RTCRtpTransceiver*)getRtpTransceiverById:(RTCPeerConnection*)peerConnection Id:(NSString*)Id {
   for (RTCRtpTransceiver* transceiver in peerConnection.transceivers) {
-    if ([transceiver.mid isEqualToString:Id]) {
+      NSString *mid = transceiver.mid ? transceiver.mid : @"";
+    if ([mid isEqualToString:Id]) {
       return transceiver;
     }
   }

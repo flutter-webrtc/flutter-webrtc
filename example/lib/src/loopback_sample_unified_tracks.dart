@@ -733,15 +733,6 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                     );
                   }).toList(),
                 ),
-                Text('audio encrypt:'),
-                Switch(
-                    value: _audioEncrypt,
-                    onChanged: (value) {
-                      setState(() {
-                        _audioEncrypt = value;
-                        _enableEncryption(video: false, enabled: _audioEncrypt);
-                      });
-                    }),
                 Text('video codec:'),
                 DropdownButton<String>(
                   value: videoDropdownValue,
@@ -769,6 +760,19 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                     );
                   }).toList(),
                 ),
+              ],
+            ),
+            Row(
+              children: [
+                Text('audio encrypt:'),
+                Switch(
+                    value: _audioEncrypt,
+                    onChanged: (value) {
+                      setState(() {
+                        _audioEncrypt = value;
+                        _enableEncryption(video: false, enabled: _audioEncrypt);
+                      });
+                    }),
                 Text('video encrypt:'),
                 Switch(
                     value: _videoEncrypt,

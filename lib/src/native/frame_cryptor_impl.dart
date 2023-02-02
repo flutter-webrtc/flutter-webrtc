@@ -153,8 +153,9 @@ class FrameCryptorImpl implements FrameCryptor {
   String get participantId => _participantId;
 
   @override
-  Future<void> updateCodec(String codec) =>
-      throw UnimplementedError('only support for flutter web');
+  Future<void> updateCodec(String codec) async {
+    print('only support for flutter web');
+  }
 
   @override
   Future<bool> setKeyIndex(int index) async {
