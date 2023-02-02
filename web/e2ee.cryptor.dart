@@ -146,7 +146,7 @@ class Cryptor {
 
     iv.setUint32(0, synchronizationSource);
     iv.setUint32(4, timestamp);
-    iv.setUint32(8, sendCount % 0xffff);
+    iv.setUint32(8, timestamp - (sendCount % 0xffff));
 
     sendCounts[synchronizationSource] = sendCount + 1;
 
@@ -179,7 +179,7 @@ class Cryptor {
   }
 
   int getUnencryptedBytes(RTCEncodedFrame frame, String? codec) {
-    if (codec != null && codec == 'h264') {
+    if (codec != null && codec.toLowerCase() == 'h264') {
       var data = frame.data.asUint8List();
       var naluIndices = findNALUIndices(data);
       for (var index in naluIndices) {
@@ -194,7 +194,7 @@ class Cryptor {
             // workerLogger.debug(`skipping NALU of type ${NALUType[type]}`);
             break;
           default:
-            return index + 1;
+            return index + 2;
         }
       }
       throw Exception('Could not find NALU');

@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
-import 'utils.dart';
-
 class LoopBackSampleUnifiedTracks extends StatefulWidget {
   static String tag = 'loopback_sample_unified_tracks';
 
@@ -14,7 +12,18 @@ class LoopBackSampleUnifiedTracks extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
+const List<String> audioCodecList = <String>[
+  'OPUS',
+  'ISAC',
+  'PCMA',
+  'PCMU',
+  'G729'
+];
+const List<String> videoCodecList = <String>['VP8', 'VP9', 'H264', 'AV1'];
+
 class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
+  String audioDropdownValue = audioCodecList.first;
+  String videoDropdownValue = videoCodecList.first;
   MediaStream? _localStream;
   RTCPeerConnection? _localPeerConnection;
   RTCPeerConnection? _remotePeerConnection;
@@ -235,36 +244,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void _onTrack(RTCTrackEvent event) async {
     print('onTrack ${event.track.id}');
 
-    //await event.receiver?.enableGcmCryptoSuites(
-    //    Uint8List.fromList([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]));
-
     if (event.track.kind == 'video') {
-      //event.receiver?.enableGcmCryptoSuites(
-      //    Uint8List.fromList([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]));
-      // onMute/onEnded/onUnMute are not wired up
-      // event.track.onEnded = () {
-      //   print("Ended");
-      //   setState(() {
-      //     _remoteRenderer.srcObject = null;
-      //   });
-      // };
-      // event.track.onUnMute = () async {
-      //   print("UnMute");
-      //   var stream = await createLocalMediaStream(event.track.id!);
-      //   await stream.addTrack(event.track);
-      //   setState(() {
-      //     _remoteRenderer.srcObject = stream;
-      //   });
-      // };
-      // event.track.onMute = () {
-      //   print("OnMute");
-      //   setState(() {
-      //     _remoteRenderer.srcObject = null;
-      //   });
-      // };
-
-      //var stream = await createLocalMediaStream(event.track.id!);
-      //await stream.addTrack(event.track);
       setState(() {
         _remoteRenderer.srcObject = event.streams[0];
       });
@@ -329,9 +309,6 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     if (_remotePeerConnection == null) return;
 
     var offer = await _localPeerConnection!.createOffer({});
-    setPreferredCodec(offer, audio: 'opus', video: 'vp8');
-    print('offer: ${offer.sdp}');
-
     await _localPeerConnection!.setLocalDescription(offer);
     var localDescription = await _localPeerConnection!.getLocalDescription();
 
@@ -372,6 +349,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       } else {
         await _frameCyrptor?.setEnabled(false);
       }
+      await _frameCyrptor?.updateCodec(
+          kind == 'video' ? videoDropdownValue : audioDropdownValue);
     });
   }
 
@@ -401,6 +380,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       } else {
         await _frameCyrptor?.setEnabled(false);
       }
+      await _frameCyrptor?.updateCodec(
+          kind == 'video' ? videoDropdownValue : audioDropdownValue);
     });
   }
 
@@ -459,17 +440,40 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     transceivers?.forEach((transceiver) {
       if (transceiver.sender.track == null) return;
       print('transceiver: ${transceiver.sender.track!.kind!}');
+      var codecCapability = RTCRtpCodecCapability(
+        mimeType: 'video/VP8',
+        clockRate: 90000,
+      );
+      switch (videoDropdownValue) {
+        case 'VP8':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'video/VP8',
+            clockRate: 90000,
+          );
+          break;
+        case 'VP9':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'video/VP9',
+            clockRate: 90000,
+          );
+          break;
+        case 'AV1':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'video/AV1',
+            clockRate: 90000,
+          );
+          break;
+        case 'H264':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'video/H264',
+            clockRate: 90000,
+            sdpFmtpLine:
+                'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f',
+          );
+          break;
+      }
       transceiver.setCodecPreferences([
-        /*RTCRtpCodecCapability(
-          mimeType: 'video/H264',
-          clockRate: 90000,
-          sdpFmtpLine:
-              'level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f',
-        ),*/
-        RTCRtpCodecCapability(
-          mimeType: 'video/AV1',
-          clockRate: 90000,
-        )
+        codecCapability,
       ]);
     });
 
@@ -516,12 +520,46 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     var transceivers = await _localPeerConnection?.getTransceivers();
     transceivers?.forEach((transceiver) {
       if (transceiver.sender.track == null) return;
+      var codecCapability = RTCRtpCodecCapability(
+        mimeType: 'audio/OPUS',
+        clockRate: 48000,
+        channels: 1,
+      );
+      switch (audioDropdownValue) {
+        case 'OPUS':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'audio/OPUS',
+            clockRate: 48000,
+            channels: 1,
+          );
+          break;
+        case 'ISAC':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'audio/ISAC',
+            clockRate: 16000,
+          );
+          break;
+        case 'G722':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'audio/G722',
+            clockRate: 16000,
+          );
+          break;
+        case 'PCMU':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'audio/PCMU',
+            clockRate: 8000,
+          );
+          break;
+        case 'PCMA':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'audio/PCMA',
+            clockRate: 8000,
+          );
+          break;
+      }
       transceiver.setCodecPreferences([
-        RTCRtpCodecCapability(
-          mimeType: 'audio/PCMA',
-          clockRate: 8000,
-          channels: 1,
-        )
+        codecCapability,
       ]);
     });
     await _negotiate();
@@ -668,6 +706,33 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
           children: [
             Row(
               children: [
+                Text('audio codec:'),
+                DropdownButton<String>(
+                  value: audioDropdownValue,
+                  icon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.blue,
+                  ),
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.blue),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.blueAccent,
+                  ),
+                  onChanged: (String? value) {
+                    // This is called when the user selects an item.
+                    setState(() {
+                      audioDropdownValue = value!;
+                    });
+                  },
+                  items: audioCodecList
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
                 Text('audio encrypt:'),
                 Switch(
                     value: _audioEncrypt,
@@ -677,6 +742,33 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                         _enableEncryption(video: false, enabled: _audioEncrypt);
                       });
                     }),
+                Text('video codec:'),
+                DropdownButton<String>(
+                  value: videoDropdownValue,
+                  icon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.blue,
+                  ),
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.blue),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.blueAccent,
+                  ),
+                  onChanged: (String? value) {
+                    // This is called when the user selects an item.
+                    setState(() {
+                      videoDropdownValue = value!;
+                    });
+                  },
+                  items: videoCodecList
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
                 Text('video encrypt:'),
                 Switch(
                     value: _videoEncrypt,
