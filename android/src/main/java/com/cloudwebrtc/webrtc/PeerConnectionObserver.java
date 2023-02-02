@@ -1140,6 +1140,7 @@ private RtpParameters updateRtpParameters(RtpParameters parameters, Map<String, 
           String transceiverId = transceiver.getMid();
           if(null == transceiverId) {
               transceiverId = stateProvider.getNextStreamUUID();
+              this.transceivers.put(transceiverId, transceiver);
           }
         transceiversParams.pushMap(new ConstraintsMap(transceiverToMap(transceiverId, transceiver)));
       }
