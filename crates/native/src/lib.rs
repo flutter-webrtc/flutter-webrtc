@@ -3,10 +3,10 @@
 mod api;
 #[allow(
     clippy::default_trait_access,
-    clippy::let_underscore_drop,
     clippy::semicolon_if_nothing_returned,
     clippy::too_many_lines,
-    clippy::wildcard_imports
+    clippy::wildcard_imports,
+    let_underscore_drop
 )]
 mod bridge_generated;
 mod devices;

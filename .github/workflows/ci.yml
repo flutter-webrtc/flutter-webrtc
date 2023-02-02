@@ -89,7 +89,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      # TODO: Upgrade Flutter to 3.7.0 version.
       - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.3.10'
 
       - run: flutter pub get
 
@@ -147,7 +150,10 @@ jobs:
         with:
           toolchain: stable
       - run: make rustup.targets only=${{ matrix.platform }}
+      # TODO: Upgrade Flutter to 3.7.0 version.
       - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.3.10'
       - run: flutter config --enable-${{ matrix.platform }}-desktop
 
       # Pin Xcode version for better compatibility.
@@ -184,8 +190,12 @@ jobs:
           toolchain: stable
       # Container doesn't pick `~` (tilde) in `PATH`.
       - run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - run: git config --global --add safe.directory '*'
       - run: make rustup.targets only=linux
+      # TODO: Upgrade Flutter to 3.7.0 version.
       - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.3.10'
       - run: flutter config --enable-linux-desktop
 
       - run: make cargo.build platform=linux debug=no
@@ -232,7 +242,10 @@ jobs:
         if: ${{ matrix.platform != 'android'
              && matrix.platform != 'ios' }}
 
+      # TODO: Upgrade Flutter to 3.7.0 version.
       - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.3.10'
       - run: flutter config --enable-${{ matrix.platform }}-desktop
         if: ${{ matrix.platform != 'android'
              && matrix.platform != 'ios' }}

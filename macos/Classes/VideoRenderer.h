@@ -3,7 +3,7 @@
 
 // Converts the provided `Frame` to the ARGB format and places into the provided
 // `buffer` pointer.
-extern void get_argb_bytes(void* frame, uint8_t* buffer);
+extern void get_argb_bytes(void* frame, int argb_stride, uint8_t* buffer);
 
 // Drops the provided `Frame`.
 extern void drop_frame(void* frame);

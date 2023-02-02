@@ -76,7 +76,8 @@ void on_frame_caller(void* handler, Frame frame) {
     }
     CVPixelBufferLockBaseAddress(_pixelBufferRef, 0);
     uint8_t* dst = CVPixelBufferGetBaseAddress(_pixelBufferRef);
-    get_argb_bytes(frame.frame, dst);
+    int argb_stride = CVPixelBufferGetBytesPerRow(_pixelBufferRef);
+    get_argb_bytes(frame.frame, argb_stride, dst);
     drop_frame(frame.frame);
     CVPixelBufferUnlockBaseAddress(_pixelBufferRef, 0);
 
