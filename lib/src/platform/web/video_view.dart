@@ -13,6 +13,7 @@ class VideoView extends StatefulWidget {
     this.mirror = false,
     this.enableContextMenu = true,
     this.filterQuality = FilterQuality.low,
+    this.shouldRotate = false,
   }) : super(key: key);
 
   final VideoRenderer _renderer;
@@ -20,6 +21,7 @@ class VideoView extends StatefulWidget {
   final bool mirror;
   final bool enableContextMenu;
   final FilterQuality filterQuality;
+  final bool shouldRotate;
 
   @override
   State<VideoView> createState() => _VideoViewState();

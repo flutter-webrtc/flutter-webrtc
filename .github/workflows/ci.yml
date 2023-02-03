@@ -388,7 +388,10 @@ jobs:
                && !contains(steps.commit.outputs.message, '[publish]')
              ) }}" >> $GITHUB_OUTPUT
 
+      # TODO: Upgrade Flutter to latest stable version.
       - uses: dart-lang/setup-dart@v1.3
+        with:
+          sdk: 2.18.6
         if: ${{ steps.skip.outputs.no == 'true' }}
 
       - uses: actions/download-artifact@v3

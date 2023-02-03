@@ -56,6 +56,7 @@ class _MyAppState extends State<MyApp> {
               itemBuilder: (context, i) {
                 return _buildRow(context, items[i]);
               })),
+      debugShowCheckedModeBanner: false,
     );
   }
 

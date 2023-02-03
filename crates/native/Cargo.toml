@@ -13,7 +13,7 @@ anyhow = "1.0"
 cxx = "1.0"
 dashmap = "5.4"
 derive_more = "0.99"
-flutter_rust_bridge = "=1.54.0"
+flutter_rust_bridge = { version = "=1.54.0", default-features = false }
 lazy_static = "1.4"
 libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"
@@ -23,7 +23,7 @@ xxhash = { package = "xxhash-rust", version = "0.8", features = ["xxh3"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libudev = "0.3"
-nix = { version = "0.25", features = ["poll"] }
+nix = { version = "0.26", features = ["poll"] }
 pulse = { version = "2.26", package = "libpulse-binding" }
 
 [target.'cfg(target_os = "windows")'.dependencies]

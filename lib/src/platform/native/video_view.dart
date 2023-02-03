@@ -12,6 +12,7 @@ class VideoView extends StatelessWidget {
     this.mirror = false,
     this.enableContextMenu = true,
     this.filterQuality = FilterQuality.low,
+    this.autoRotate = true,
   }) : super(key: key);
 
   final VideoRenderer _renderer;
@@ -19,6 +20,7 @@ class VideoView extends StatelessWidget {
   final bool mirror;
   final bool enableContextMenu;
   final FilterQuality filterQuality;
+  final bool autoRotate;
 
   NativeVideoRenderer get videoRenderer => _renderer as NativeVideoRenderer;
 
@@ -44,11 +46,19 @@ class VideoView extends StatelessWidget {
               valueListenable: videoRenderer,
               builder:
                   (BuildContext context, RTCVideoValue value, Widget? child) {
-                return SizedBox(
+                var sizedBox = SizedBox(
                   width: constraints.maxHeight * value.aspectRatio,
                   height: constraints.maxHeight,
                   child: child,
                 );
+                if (autoRotate) {
+                  return RotatedBox(
+                    quarterTurns: value.quarterTurnsRotation,
+                    child: sizedBox,
+                  );
+                } else {
+                  return sizedBox;
+                }
               },
               child: Transform(
                 transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),

@@ -22,6 +22,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   bool _inCalling = false;
 
   List<MediaDeviceInfo>? _mediaDevicesList;
+  String? videoInputDevice;
+  String? audioInputDevice;
 
   @override
   void initState() {
@@ -43,10 +45,13 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
-  void _makeCall() async {
+  Future<void> _init() async {
     var caps = DeviceConstraints();
     caps.audio.mandatory = AudioConstraints();
+    caps.audio.mandatory!.deviceId = audioInputDevice;
+
     caps.video.mandatory = DeviceVideoConstraints();
+    caps.video.mandatory!.deviceId = videoInputDevice;
     caps.video.mandatory!.width = 1920;
     caps.video.mandatory!.height = 1080;
     caps.video.mandatory!.fps = 30;
@@ -67,7 +72,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     });
   }
 
-  void _hangUp() async {
+  Future<void> _hangUp() async {
     try {
       for (var track in _tracks!) {
         await track.stop();
@@ -105,7 +110,44 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                     }
                     return [];
                   },
+                  icon: const Icon(Icons.volume_down),
                 ),
+                PopupMenuButton<String>(
+                  onSelected: _selectAudioInput,
+                  itemBuilder: (BuildContext context) {
+                    if (_mediaDevicesList != null) {
+                      return _mediaDevicesList!
+                          .where((device) =>
+                              device.kind == MediaDeviceKind.audioinput)
+                          .map((device) {
+                        return PopupMenuItem<String>(
+                          value: device.deviceId,
+                          child: Text(device.label),
+                        );
+                      }).toList();
+                    }
+                    return [];
+                  },
+                  icon: const Icon(Icons.mic),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: _selectVideoInput,
+                  itemBuilder: (BuildContext context) {
+                    if (_mediaDevicesList != null) {
+                      return _mediaDevicesList!
+                          .where((device) =>
+                              device.kind == MediaDeviceKind.videoinput)
+                          .map((device) {
+                        return PopupMenuItem<String>(
+                          value: device.deviceId,
+                          child: Text(device.label),
+                        );
+                      }).toList();
+                    }
+                    return [];
+                  },
+                  icon: const Icon(Icons.camera_alt),
+                )
               ]
             : null,
       ),
@@ -117,13 +159,13 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
               decoration: const BoxDecoration(color: Colors.black54),
-              child: VideoView(_localRenderer, mirror: true),
+              child: VideoView(_localRenderer, mirror: true, autoRotate: false),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _inCalling ? _hangUp : _makeCall,
+        onPressed: _inCalling ? _hangUp : _init,
         tooltip: _inCalling ? 'Hangup' : 'Call',
         child: Icon(_inCalling ? Icons.call_end : Icons.phone),
       ),
@@ -132,5 +174,15 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
 
   void _selectAudioOutput(String deviceId) {
     setOutputAudioId(deviceId);
+  }
+
+  void _selectAudioInput(String deviceId) {
+    setOutputAudioId(deviceId);
+  }
+
+  void _selectVideoInput(String deviceId) async {
+    videoInputDevice = deviceId;
+    await _hangUp();
+    await _init();
   }
 }
