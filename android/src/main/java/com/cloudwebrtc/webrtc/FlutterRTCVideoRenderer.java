@@ -100,7 +100,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         this.surfaceTextureRenderer = new SurfaceTextureRenderer("");
         listenRendererEvents();
         surfaceTextureRenderer.init(EglUtils.getRootEglBaseContext(), rendererEvents);
-        surfaceTextureRenderer.surfaceCreated(texture);
+        surfaceTextureRenderer.surfaceCreated(texture, false);
 
         this.texture = texture;
         this.eventSink = null;
@@ -153,7 +153,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         }
 
         if (isLocal || mediaStream == null) syncVideoStream(videoTrack);
-        setVideoTrack(videoTrack);
+        setVideoTrack(isLocal, videoTrack);
     }
    /**
      * Sets the {@code MediaStream} to be rendered by this {@code FlutterRTCVideoRenderer}.
@@ -182,8 +182,8 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             }
         }
 
-        if (isLocal || mediaStream == null) syncVideoStream(videoTrack);
-        setVideoTrack(videoTrack);
+        if (!isLocal || mediaStream == null) syncVideoStream(videoTrack);
+        setVideoTrack(isLocal, videoTrack);
     }
 
     private void syncVideoStream(VideoTrack videoTrack) {
@@ -196,7 +196,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * @param videoTrack The {@code VideoTrack} to be rendered by this
      *                   {@code FlutterRTCVideoRenderer} or {@code null}.
      */
-    public void setVideoTrack(VideoTrack videoTrack) {
+    public void setVideoTrack(boolean isLocal, VideoTrack videoTrack) {
         VideoTrack oldValue = this.videoTrack;
 
         if (oldValue != videoTrack) {
@@ -209,7 +209,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             if (videoTrack != null) {
                 try {
                     Log.w(TAG, "FlutterRTCVideoRenderer.setVideoTrack, set video track to " + videoTrack.id());
-                    tryAddRendererToVideoTrack();
+                    tryAddRendererToVideoTrack(isLocal);
                 } catch (Exception e) {
                     Log.e(TAG, "tryAddRendererToVideoTrack " + e.toString());
                 }
@@ -223,7 +223,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * Starts rendering {@link #videoTrack} if rendering is not in progress and
      * all preconditions for the start of rendering are met.
      */
-    private void tryAddRendererToVideoTrack() throws Exception {
+    private void tryAddRendererToVideoTrack(boolean isLocal) throws Exception {
         if (videoTrack != null) {
             EglBase.Context sharedContext = EglUtils.getRootEglBaseContext();
 
@@ -237,7 +237,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             surfaceTextureRenderer.release();
             listenRendererEvents();
             surfaceTextureRenderer.init(sharedContext, rendererEvents);
-            surfaceTextureRenderer.surfaceCreated(texture);
+            surfaceTextureRenderer.surfaceCreated(texture, isLocal);
 
             videoTrack.addSink(surfaceTextureRenderer);
         }

@@ -100,10 +100,12 @@ public class SurfaceTextureRenderer extends EglRenderer {
   }
 
   private SurfaceTexture texture;
+  private boolean isLocal = false;
 
-  public void surfaceCreated(final SurfaceTexture texture) {
+  public void surfaceCreated(final SurfaceTexture texture, boolean isLocal) {
     ThreadUtils.checkIsOnMainThread();
     this.texture = texture;
+    this.isLocal = isLocal;
     createEglSurface(texture);
   }
 
@@ -137,6 +139,9 @@ public class SurfaceTextureRenderer extends EglRenderer {
         rotatedFrameHeight = frame.getRotatedHeight();
         texture.setDefaultBufferSize(rotatedFrameWidth, rotatedFrameHeight);
         frameRotation = frame.getRotation();
+      } else {
+        if (!isLocal && TextureRendererPlugIn.getInstance() != null)
+          TextureRendererPlugIn.getInstance().onRender(this, frame);
       }
     }
   }
