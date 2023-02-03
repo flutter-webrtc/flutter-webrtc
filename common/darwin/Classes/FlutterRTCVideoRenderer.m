@@ -219,7 +219,10 @@
   dispatch_async(dispatch_get_main_queue(), ^{
     FlutterRTCVideoRenderer* strongSelf = weakSelf;
     [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
-    [strongSelf sendFrameToMyRender:frame];
+      if(strongSelf.isLocalStream == false){
+          [strongSelf sendFrameToMyRender:frame];
+      }
+   
     if (!strongSelf->_isFirstFrameRendered) {
       if (strongSelf.eventSink) {
         strongSelf.eventSink(@{@"event" : @"didFirstFrameRendered"});
@@ -271,7 +274,7 @@
 
  
     if (isLocalStream) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTLocal" object:_myStreamData userInfo:userInfo];
+//        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTLocal" object:_myStreamData userInfo:userInfo];
     } else {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTRemote" object:_myStreamData userInfo:userInfo];
     }
