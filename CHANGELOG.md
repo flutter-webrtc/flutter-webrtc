@@ -1,7 +1,16 @@
 # Changelog
 
 --------------------------------------------
+[0.9.20] - 2023-02-03
+
+* [Dawrin/Android/Windows] Add getCapabilities/setCodecPreferences methods
+* [Darwin] buffered amount
+* [Linux] Fixed audio device name buffer size
+* [Android] Start audioswitch and only activate it when needed
+* [Darwin] Fix typo which broke GcmCryptoSuites
+
 [0.9.19] - 2023-01-10
+
 * [Dart] Fix getStats: change 'track' to 'trackId' (#1199)
 * [Android] keep the audio switch after stopping (#1202)
 * [Dart] Enhance RTC video view with placeholder builder property (#1206)
