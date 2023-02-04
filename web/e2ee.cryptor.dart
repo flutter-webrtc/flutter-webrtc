@@ -4,7 +4,7 @@ import 'dart:js_util';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'cyrpto.dart';
+import 'crypto.dart';
 import 'package:flutter_webrtc/src/web/rtc_transform_stream.dart';
 
 const IV_LENGTH = 12;

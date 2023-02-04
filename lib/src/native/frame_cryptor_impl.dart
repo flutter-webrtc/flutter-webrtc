@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:core';
 
 import 'package:flutter/services.dart';
@@ -145,12 +146,34 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
   }
 }
 
-class FrameCryptorImpl implements FrameCryptor {
-  FrameCryptorImpl(this._frameCryptorId, this._participantId);
+class FrameCryptorImpl extends FrameCryptor {
+  FrameCryptorImpl(this._frameCryptorId, this._participantId) {
+    _eventSubscription = _eventChannelFor(_frameCryptorId)
+        .receiveBroadcastStream()
+        .listen(eventListener, onError: errorListener);
+  }
   final String _frameCryptorId;
   final String _participantId;
   @override
   String get participantId => _participantId;
+
+  StreamSubscription<dynamic>? _eventSubscription;
+
+  EventChannel _eventChannelFor(String peerConnectionId) {
+    return EventChannel('FlutterWebRTC/frameCryptorEvent$_frameCryptorId');
+  }
+
+  void errorListener(Object obj) {
+    if (obj is Exception) throw obj;
+  }
+
+  void eventListener(dynamic event) {
+    final Map<dynamic, dynamic> map = event;
+    switch (map['event']) {
+      case 'state':
+        break;
+    }
+  }
 
   @override
   Future<void> updateCodec(String codec) async {
@@ -213,6 +236,8 @@ class FrameCryptorImpl implements FrameCryptor {
 
   @override
   Future<void> dispose() async {
+    _eventSubscription?.cancel();
+    _eventSubscription = null;
     try {
       final response =
           await WebRTC.invokeMethod('frameCryptorDispose', <String, dynamic>{

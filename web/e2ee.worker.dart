@@ -177,7 +177,7 @@ void main() async {
         cryptor?.updateCodec(codec);
         break;
       default:
-        print('worker: unknown message kind ${msg.msgType}');
+        print('worker: unknown message kind $msg');
     }
     self.postMessage({});
   });

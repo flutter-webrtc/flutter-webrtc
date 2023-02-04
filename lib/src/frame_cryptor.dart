@@ -36,9 +36,22 @@ abstract class KeyManager {
   Future<void> dispose();
 }
 
+enum FrameCryptorState {
+  FrameCryptorStateNew,
+  FrameCryptorStateOk,
+  FrameCryptorStateEncryptionFailed,
+  FrameCryptorStateDecryptionFailed,
+  FrameCryptorStateMissingKey,
+  FrameCryptorStateInternalError,
+}
+
 /// Frame encryption/decryption.
 ///
 abstract class FrameCryptor {
+  FrameCryptor();
+
+  Function(FrameCryptorState state)? onFrameCryptorStateChanged;
+
   /// The unique identifier of the frame cryptor.
   String get participantId;
 

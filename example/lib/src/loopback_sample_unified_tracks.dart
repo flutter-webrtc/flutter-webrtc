@@ -491,6 +491,14 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void _stopVideo() async {
+    _frameCyrptors.removeWhere((key, value) {
+      if (key.startsWith('video')) {
+        value.dispose();
+        return true;
+      }
+      return false;
+    });
+
     await _removeExistingVideoTrack(fromConnection: true);
     await _negotiate();
     setState(() {
@@ -570,6 +578,13 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void _stopAudio() async {
+    _frameCyrptors.removeWhere((key, value) {
+      if (key.startsWith('audio')) {
+        value.dispose();
+        return true;
+      }
+      return false;
+    });
     await _removeExistingAudioTrack(fromConnection: true);
     await _negotiate();
     setState(() {

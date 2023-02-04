@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:html' as html;
 import 'dart:js' as js;
 import 'dart:js_util' as jsutil;
 
+import 'package:flutter/services.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 // ignore: implementation_imports
 import 'package:dart_webrtc/src/rtc_rtp_receiver_impl.dart';
@@ -39,7 +41,7 @@ extension RtcRtpReceiverExt on html.RtcRtpReceiver {
     writableStreams_[hashCode] = stream;
   }
 
-  void cleanStreams() {
+  void closeStreams() {
     readableStreams_.remove(hashCode);
     writableStreams_.remove(hashCode);
   }
@@ -71,13 +73,13 @@ extension RtcRtpSenderExt on html.RtcRtpSender {
     writableStreams_[hashCode] = stream;
   }
 
-  void cleanStreams() {
+  void closeStreams() {
     readableStreams_.remove(hashCode);
     writableStreams_.remove(hashCode);
   }
 }
 
-class FrameCryptorImpl implements FrameCryptor {
+class FrameCryptorImpl extends FrameCryptor {
   FrameCryptorImpl(this.worker, this._participantId, this._trackId,
       {this.jsSender, this.jsReceiver});
   html.Worker worker;
@@ -90,8 +92,8 @@ class FrameCryptorImpl implements FrameCryptor {
 
   @override
   Future<void> dispose() async {
-    jsSender?.cleanStreams();
-    jsReceiver?.cleanStreams();
+    jsSender?.closeStreams();
+    jsReceiver?.closeStreams();
     jsutil.callMethod(worker, 'postMessage', [
       jsutil.jsify({
         'msgType': 'dispose',
@@ -210,6 +212,9 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     worker = html.Worker('e2ee.worker.dart.js');
     worker.onMessage.listen((msg) {
       print('master got ${msg.data}');
+    });
+    worker.onError.listen((err) {
+      print('worker error: $err');
     });
   }
 
