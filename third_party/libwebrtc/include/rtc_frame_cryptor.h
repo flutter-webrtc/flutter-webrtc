@@ -19,16 +19,38 @@ class KeyManager : public RefCountInterface {
   LIB_WEBRTC_API static scoped_refptr<KeyManager> Create();
 
   /// Set the key at the given index.
-  virtual bool SetKey(const string participant_id, int index, vector<uint8_t> key) = 0;
+  virtual bool SetKey(const string participant_id,
+                      int index,
+                      vector<uint8_t> key) = 0;
 
   /// Set the keys.
-  virtual bool SetKeys(const string participant_id, vector<vector<uint8_t>> keys) = 0;
+  virtual bool SetKeys(const string participant_id,
+                       vector<vector<uint8_t>> keys) = 0;
 
   /// Get the keys.
-  virtual const vector<vector<uint8_t>> GetKeys(const string participant_id) const = 0;
+  virtual const vector<vector<uint8_t>> GetKeys(
+      const string participant_id) const = 0;
 
  protected:
   virtual ~KeyManager() {}
+};
+
+enum RTCFrameCryptionState {
+  kNew = 0,
+  kOk,
+  kEncryptionFailed,
+  kDecryptionFailed,
+  kMissingKey,
+  kInternalError,
+};
+
+class RTCFrameCryptorObserver {
+ public:
+  virtual void OnFrameCryptionStateChanged(const std::string participant_id,
+                                           RTCFrameCryptionState state) = 0;
+
+ protected:
+  virtual ~RTCFrameCryptorObserver() {}
 };
 
 /// Frame encryption/decryption.
@@ -49,6 +71,10 @@ class RTCFrameCryptor : public RefCountInterface {
   virtual int key_index() const = 0;
 
   virtual const string participant_id() const = 0;
+
+  virtual void RegisterRTCFrameCryptorObserver(RTCFrameCryptorObserver *observer) = 0;
+
+  virtual void DeRegisterRTCFrameCryptorObserver() = 0;
 
  protected:
   virtual ~RTCFrameCryptor() {}
