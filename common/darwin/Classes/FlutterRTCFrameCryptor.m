@@ -1,6 +1,45 @@
 #import "FlutterRTCFrameCryptor.h"
-#import <WebRTC/RTCFrameCryptor.h>
-#import <WebRTC/RTCFrameCryptorKeyManager.h>
+
+#import <objc/runtime.h>
+
+@implementation RTCFrameCryptor (Flutter)
+
+- (FlutterEventSink)eventSink {
+  return objc_getAssociatedObject(self, _cmd);
+}
+
+- (void)setEventSink:(FlutterEventSink)eventSink {
+  objc_setAssociatedObject(self, @selector(eventSink), eventSink,
+                           OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (void)setEventQueue:(NSArray<id>*)eventQueue {
+  objc_setAssociatedObject(self, @selector(eventQueue), eventQueue,
+                           OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (FlutterEventChannel*)eventChannel {
+  return objc_getAssociatedObject(self, _cmd);
+}
+
+- (void)setEventChannel:(FlutterEventChannel*)eventChannel {
+  objc_setAssociatedObject(self, @selector(eventChannel), eventChannel,
+                           OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+#pragma mark - FlutterStreamHandler methods
+
+- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
+  self.eventSink = nil;
+  return nil;
+}
+
+- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
+                                       eventSink:(nonnull FlutterEventSink)sink {
+  self.eventSink = sink;
+  return nil;
+}
+@end
 
 @implementation FlutterWebRTCPlugin (FrameCryptor)
 
@@ -108,6 +147,16 @@
                                                             algorithm:[self getAlgorithm:algorithm]
                                                            keyManager:keyManager];
     NSString* frameCryptorId = [[NSUUID UUID] UUIDString];
+
+    FlutterEventChannel* eventChannel = [FlutterEventChannel
+        eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/frameCryptorEvent%@",
+                                                        frameCryptorId]
+             binaryMessenger:self.messenger];
+
+    frameCryptor.eventChannel = eventChannel;
+    [eventChannel setStreamHandler:frameCryptor];
+    frameCryptor.delegate = self;
+
     self.frameCryptors[frameCryptorId] = frameCryptor;
     result(@{@"frameCryptorId" : frameCryptorId});
   } else if ([type isEqualToString:@"receiver"]) {
@@ -123,6 +172,14 @@
                                                               algorithm:[self getAlgorithm:algorithm]
                                                              keyManager:keyManager];
     NSString* frameCryptorId = [[NSUUID UUID] UUIDString];
+    FlutterEventChannel* eventChannel = [FlutterEventChannel
+        eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/frameCryptorEvent%@",
+                                                        frameCryptorId]
+             binaryMessenger:self.messenger];
+
+    frameCryptor.eventChannel = eventChannel;
+    [eventChannel setStreamHandler:frameCryptor];
+    frameCryptor.delegate = self;
     self.frameCryptors[frameCryptorId] = frameCryptor;
     result(@{@"frameCryptorId" : frameCryptorId});
   } else {
@@ -394,5 +451,39 @@
   [self.keyManagers removeObjectForKey:keyManagerId];
   result(@{@"result": @"success"});
 }
+
+- (NSString*) stringFromState:(RTCFrameCryptorErrorState)state {
+  switch (state) {
+    case RTCFrameCryptorErrorStateNew:
+      return @"new";
+    case RTCFrameCryptorErrorStateOk:
+      return @"ok";
+    case RTCFrameCryptorErrorStateEncryptionFailed:
+      return @"encryptionFailed";
+    case RTCFrameCryptorErrorStateDecryptionFailed:
+      return @"decryptionFailed";
+    case RTCFrameCryptorErrorStateMissingKey:
+      return @"missingKey";
+    case RTCFrameCryptorErrorStateInternalError:
+      return @"internalError";
+    default:
+      return @"unknown";
+  }
+}
+
+#pragma mark - RTCFrameCryptorDelegate methods
+
+- (void)frameCryptor
+    : (RTC_OBJC_TYPE(RTCFrameCryptor) *)frameCryptor didStateChangeWithParticipantId
+    : (NSString *)participantId withState : (RTCFrameCryptorErrorState)stateChanged {
+
+      if(frameCryptor.eventSink) {
+        frameCryptor.eventSink(@{
+          @"event": @"stateChanged",
+          @"participantId": participantId,
+          @"state": [self stringFromState:stateChanged]
+        });
+      }
+    }
 
 @end

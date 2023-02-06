@@ -4,12 +4,17 @@
 #import <FlutterMacOS/FlutterMacOS.h>
 #endif
 
-#import <Foundation/Foundation.h>
 #import <WebRTC/WebRTC.h>
 
 #import "FlutterWebRTCPlugin.h"
 
-@interface FlutterWebRTCPlugin (FrameCryptor)
+@interface RTCFrameCryptor (Flutter) <FlutterStreamHandler>
+@property(nonatomic, strong, nullable) FlutterEventSink eventSink;
+@property(nonatomic, strong, nullable) FlutterEventChannel* eventChannel;
+@end
+
+
+@interface FlutterWebRTCPlugin (FrameCryptor) <RTCFrameCryptorDelegate>
 
 - (void)handleFrameCryptorMethodCall:(nonnull FlutterMethodCall*)call result:(nonnull FlutterResult)result;
 
