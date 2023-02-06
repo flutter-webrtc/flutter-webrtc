@@ -13,11 +13,6 @@
                            OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-- (void)setEventQueue:(NSArray<id>*)eventQueue {
-  objc_setAssociatedObject(self, @selector(eventQueue), eventQueue,
-                           OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
 - (FlutterEventChannel*)eventChannel {
   return objc_getAssociatedObject(self, _cmd);
 }
@@ -479,7 +474,7 @@
 
       if(frameCryptor.eventSink) {
         frameCryptor.eventSink(@{
-          @"event": @"stateChanged",
+          @"event": @"frameCryptionStateChanged",
           @"participantId": participantId,
           @"state": [self stringFromState:stateChanged]
         });
