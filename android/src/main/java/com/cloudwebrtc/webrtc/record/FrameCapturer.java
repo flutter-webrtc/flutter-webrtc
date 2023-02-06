@@ -75,8 +75,7 @@ public class FrameCapturer implements VideoSink {
             width,
             height,
             // We omit the strides here. If they were included, the resulting image would
-            // have its
-            // colors offset.
+            // have its colors offset.
             null);
         i420Buffer.release();
         videoFrame.release();
