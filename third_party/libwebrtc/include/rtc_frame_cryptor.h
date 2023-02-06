@@ -46,7 +46,7 @@ enum RTCFrameCryptionState {
 
 class RTCFrameCryptorObserver {
  public:
-  virtual void OnFrameCryptionStateChanged(const std::string participant_id,
+  virtual void OnFrameCryptionStateChanged(const string participant_id,
                                            RTCFrameCryptionState state) = 0;
 
  protected:

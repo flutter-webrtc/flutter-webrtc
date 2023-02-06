@@ -50,7 +50,8 @@ enum FrameCryptorState {
 abstract class FrameCryptor {
   FrameCryptor();
 
-  Function(FrameCryptorState state)? onFrameCryptorStateChanged;
+  Function(String participantId, FrameCryptorState state)?
+      onFrameCryptorStateChanged;
 
   /// The unique identifier of the frame cryptor.
   String get participantId;

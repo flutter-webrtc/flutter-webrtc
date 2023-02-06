@@ -21,6 +21,7 @@ std::string RTCMediaTypeToString(RTCMediaType type) {
       return "";
   }
 }
+
 std::string transceiverDirectionString(RTCRtpTransceiverDirection direction) {
   switch (direction) {
     case RTCRtpTransceiverDirection::kSendRecv:

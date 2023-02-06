@@ -337,7 +337,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                 sender: element,
                 algorithm: Algorithm.kAesGcm,
                 keyManager: _keyManager!);
-
+        frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
+            print('EN onFrameCryptorStateChanged $participantId $state');
         _frameCyrptors[id] = frameCyrptor;
         await frameCyrptor.setKeyIndex(0);
       }
@@ -368,7 +369,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                 receiver: element,
                 algorithm: Algorithm.kAesGcm,
                 keyManager: _keyManager!);
-
+        frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
+            print('DE onFrameCryptorStateChanged $participantId $state');
         _frameCyrptors[id] = frameCyrptor;
         await frameCyrptor.setKeyIndex(0);
       }

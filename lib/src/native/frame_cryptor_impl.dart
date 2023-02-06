@@ -167,17 +167,39 @@ class FrameCryptorImpl extends FrameCryptor {
     if (obj is Exception) throw obj;
   }
 
+  FrameCryptorState _cryptorStateFromString(String str) {
+    switch (str) {
+      case 'new':
+        return FrameCryptorState.FrameCryptorStateNew;
+      case 'ok':
+        return FrameCryptorState.FrameCryptorStateOk;
+      case 'decryptionFailed':
+        return FrameCryptorState.FrameCryptorStateDecryptionFailed;
+      case 'encryptionFailed':
+        return FrameCryptorState.FrameCryptorStateEncryptionFailed;
+      case 'internalError':
+        return FrameCryptorState.FrameCryptorStateInternalError;
+      case 'missingKey':
+        return FrameCryptorState.FrameCryptorStateMissingKey;
+      default:
+        throw 'Unknown FrameCryptorState: $str';
+    }
+  }
+
   void eventListener(dynamic event) {
     final Map<dynamic, dynamic> map = event;
     switch (map['event']) {
-      case 'state':
+      case 'frameCryptionStateChanged':
+        var state = _cryptorStateFromString(map['state']);
+        var participantId = map['participantId'];
+        onFrameCryptorStateChanged?.call(participantId, state);
         break;
     }
   }
 
   @override
   Future<void> updateCodec(String codec) async {
-    print('only support for flutter web');
+    /// only needs for flutter web
   }
 
   @override
