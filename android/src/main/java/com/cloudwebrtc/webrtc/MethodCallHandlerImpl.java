@@ -1134,6 +1134,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     return context;
   }
 
+  @Override
+  public BinaryMessenger getMessenger() {
+    return messenger;
+  }
+
   MediaStream getStreamForId(String id, String peerConnectionId) {
     MediaStream stream = null;
     if (peerConnectionId.length() > 0) {

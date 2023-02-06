@@ -9,6 +9,8 @@ import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnectionFactory;
 
+import io.flutter.plugin.common.BinaryMessenger;
+
 /**
  * Provides interested components with access to the current application state.
  *
@@ -35,4 +37,6 @@ public interface StateProvider {
 
   @Nullable
   Context getApplicationContext();
+
+  BinaryMessenger getMessenger();
 }

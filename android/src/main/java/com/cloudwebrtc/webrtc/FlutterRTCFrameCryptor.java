@@ -1,5 +1,7 @@
 package com.cloudwebrtc.webrtc;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import org.webrtc.FrameCryptor;
@@ -14,14 +16,92 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+
+import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 
 public class FlutterRTCFrameCryptor {
+
+    class FrameCryptorStateObserver  implements FrameCryptor.Observer, EventChannel.StreamHandler {
+        public FrameCryptorStateObserver(BinaryMessenger messenger, String frameCryptorId){
+            this.frameCryptorId = frameCryptorId;
+            eventChannel = new EventChannel(messenger, "FlutterWebRTC/frameCryptorEvent" + frameCryptorId);
+            eventChannel.setStreamHandler(new EventChannel.StreamHandler() {
+                @Override
+                public void onListen(Object o, EventChannel.EventSink sink) {
+                    eventSink = new AnyThreadSink(sink);
+                    for(Object event : eventQueue) {
+                        eventSink.success(event);
+                    }
+                    eventQueue.clear();
+                }
+                @Override
+                public void onCancel(Object o) {
+                    eventSink = null;
+                }
+            });
+        }
+        private EventChannel eventChannel;
+        private EventChannel.EventSink eventSink;
+        private ArrayList eventQueue = new ArrayList();
+        private String frameCryptorId;
+
+        @Override
+        public void onListen(Object arguments, EventChannel.EventSink events) {
+            eventSink = new AnyThreadSink(events);
+            for(Object event : eventQueue) {
+                eventSink.success(event);
+            }
+            eventQueue.clear();
+        }
+
+        @Override
+        public void onCancel(Object arguments) {
+            eventSink = null;
+        }
+
+        private String  frameCryptorErrorStateToString( FrameCryptor.FrameCryptorErrorState state) {
+            switch (state) {
+                case NEW:
+                    return "new";
+                case OK:
+                    return "ok";
+                case DECRYPTIONFAILED:
+                    return "decryptionFailed";
+                case ENCRYPTIONFAILED:
+                    return "encryptionFailed";
+                case INTERNALERROR:
+                    return "internalError";
+                case MISSINGKEY:
+                    return "missingKey";
+                default:
+                    throw new IllegalArgumentException("Unknown FrameCryptorErrorState: " + state);
+            }
+        }
+
+        @Override
+        public void onFrameCryptorErrorState(String participantId, FrameCryptor.FrameCryptorErrorState state) {
+            Map<String, Object> event = new HashMap<>();
+            event.put("event", "frameCryptionStateChanged");
+            event.put("participantId", participantId);
+            event.put("state",frameCryptorErrorStateToString(state));
+            if (eventSink != null) {
+                eventSink.success(event);
+            } else {
+                eventQueue.add(event);
+            }
+        }
+    }
+
+    private static final String TAG = "FlutterRTCFrameCryptor";
     private final Map<String, FrameCryptor> frameCryptos = new HashMap<>();
+    private final Map<String, FrameCryptorStateObserver> frameCryptoObservers = new HashMap<>();
     private final Map<String, FrameCryptorKeyManager> keyManagers = new HashMap<>();
     private StateProvider stateProvider;
     public FlutterRTCFrameCryptor(StateProvider stateProvider) {
@@ -106,7 +186,9 @@ public class FlutterRTCFrameCryptor {
                     keyManager);
             String frameCryptorId = UUID.randomUUID().toString();
             frameCryptos.put(frameCryptorId, frameCryptor);
-
+            FrameCryptorStateObserver observer = new FrameCryptorStateObserver(stateProvider.getMessenger(), frameCryptorId);
+            frameCryptor.setObserver(observer);
+            frameCryptoObservers.put(frameCryptorId, observer);
             ConstraintsMap paramsResult = new ConstraintsMap();
             paramsResult.putString("frameCryptorId", frameCryptorId);
             result.success(paramsResult.toMap());
@@ -119,7 +201,9 @@ public class FlutterRTCFrameCryptor {
                     keyManager);
             String frameCryptorId = UUID.randomUUID().toString();
             frameCryptos.put(frameCryptorId, frameCryptor);
-
+            FrameCryptorStateObserver observer = new FrameCryptorStateObserver(stateProvider.getMessenger(), frameCryptorId);
+            frameCryptor.setObserver(observer);
+            frameCryptoObservers.put(frameCryptorId, observer);
             ConstraintsMap paramsResult = new ConstraintsMap();
             paramsResult.putString("frameCryptorId", frameCryptorId);
             result.success(paramsResult.toMap());
@@ -193,6 +277,7 @@ public class FlutterRTCFrameCryptor {
         }
         frameCryptor.dispose();
         frameCryptos.remove(frameCryptorId);
+        frameCryptoObservers.remove(frameCryptorId);
         ConstraintsMap paramsResult = new ConstraintsMap();
         paramsResult.putString("result", "success");
         result.success(paramsResult.toMap());
