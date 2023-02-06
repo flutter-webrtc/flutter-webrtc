@@ -85,9 +85,9 @@ public class FrameCapturer implements VideoSink {
         });
         try {
             if (!file.exists()) {
-                // noinspection ResultOfMethodCallIgnored
+                //noinspection ResultOfMethodCallIgnored
                 file.getParentFile().mkdirs();
-                // noinspection ResultOfMethodCallIgnored
+                //noinspection ResultOfMethodCallIgnored
                 file.createNewFile();
             }
         } catch (IOException io) {
@@ -126,5 +126,4 @@ public class FrameCapturer implements VideoSink {
             file = null;
         }
     }
-    
 }
