@@ -80,7 +80,8 @@ extension RtcRtpSenderExt on html.RtcRtpSender {
 }
 
 class FrameCryptorImpl extends FrameCryptor {
-  FrameCryptorImpl(this.worker, this._participantId, this._trackId,
+  FrameCryptorImpl(
+      this._factory, this.worker, this._participantId, this._trackId,
       {this.jsSender, this.jsReceiver});
   html.Worker worker;
   bool _enabled = false;
@@ -89,17 +90,17 @@ class FrameCryptorImpl extends FrameCryptor {
   final String _trackId;
   final html.RtcRtpSender? jsSender;
   final html.RtcRtpReceiver? jsReceiver;
+  final FrameCryptorFactoryImpl _factory;
 
   @override
   Future<void> dispose() async {
-    jsSender?.closeStreams();
-    jsReceiver?.closeStreams();
     jsutil.callMethod(worker, 'postMessage', [
       jsutil.jsify({
         'msgType': 'dispose',
         'participantId': participantId,
       })
     ]);
+    _factory.removeFrameCryptor(_trackId);
     return;
   }
 
@@ -220,6 +221,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
 
   static final FrameCryptorFactoryImpl instance =
       FrameCryptorFactoryImpl._internal();
+
   late html.Worker worker;
   final Map<String, FrameCryptor> _frameCryptors = {};
 
@@ -274,8 +276,10 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         jsutil.jsify([readable, writable]),
       ]);
     }
-    FrameCryptor cryptor = FrameCryptorImpl(worker, participantId, trackId);
-    _frameCryptors[participantId] = cryptor;
+    FrameCryptor cryptor = FrameCryptorImpl(
+        this, worker, participantId, trackId,
+        jsReceiver: jsReceiver);
+    _frameCryptors[trackId] = cryptor;
     return Future.value(cryptor);
   }
 
@@ -322,8 +326,14 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         jsutil.jsify([readable, writable]),
       ]);
     }
-    FrameCryptor cryptor = FrameCryptorImpl(worker, participantId, trackId);
-    _frameCryptors[participantId] = cryptor;
+    FrameCryptor cryptor = FrameCryptorImpl(
+        this, worker, participantId, trackId,
+        jsSender: jsSender);
+    _frameCryptors[trackId] = cryptor;
     return Future.value(cryptor);
+  }
+
+  void removeFrameCryptor(String trackId) {
+    _frameCryptors.remove(trackId);
   }
 }

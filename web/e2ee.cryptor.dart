@@ -109,8 +109,8 @@ class Cryptor {
       required this.trackId,
       required this.sharedKey});
   Map<int, int> sendCounts = {};
-  final String participantId;
-  String trackId;
+  String? participantId;
+  String? trackId;
   String? codec;
   final bool sharedKey;
   late String kind;
@@ -161,16 +161,17 @@ class Cryptor {
     required String kind,
     String? codec,
   }) async {
+    print('setupTransform $operation');
     this.kind = kind;
     if (codec != null) {
       print('setting codec on cryptor to $codec');
       this.codec = codec;
     }
+    var transformer = TransformStream(jsify({
+      'transform':
+          allowInterop(operation == 'encode' ? encodeFunction : decodeFunction)
+    }));
     try {
-      var transformer = TransformStream(jsify({
-        'transform': allowInterop(
-            operation == 'encode' ? encodeFunction : decodeFunction)
-      }));
       readable.pipeThrough(transformer).pipeTo(writable);
     } catch (e) {
       print('e ${e.toString()}');
@@ -257,8 +258,8 @@ class Cryptor {
 
       controller.enqueue(frame);
 
-      print(
-          'encrypto kind $kind,codec $codec headerLength: $headerLength,  timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, encrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()} , iv $iv');
+      //print(
+      //    'encrypto kind $kind,codec $codec headerLength: $headerLength,  timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, encrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()} , iv $iv');
     } catch (e) {
       print('encrypt: e ${e.toString()}');
     }
@@ -305,8 +306,8 @@ class Cryptor {
       frame.data = jsArrayBufferFrom(finalBuffer.toBytes());
       controller.enqueue(frame);
 
-      print(
-          'decrypto kind $kind,codec $codec headerLength: $headerLength, timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()}, keyindex $keyIndex iv $iv');
+      //print(
+      //    'decrypto kind $kind,codec $codec headerLength: $headerLength, timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()}, keyindex $keyIndex iv $iv');
     } catch (e) {
       print('derypto: e ${e.toString()}');
     }

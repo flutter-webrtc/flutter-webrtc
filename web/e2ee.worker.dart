@@ -120,12 +120,16 @@ void main() async {
         var writable = msg['writableStream'] as WritableStream;
         print(
             'worker: got $msgType, kind $kind, trackId $trackId, participantId $participantId, ${readable.runtimeType} ${writable.runtimeType}}');
-        var cryptor = participantCryptors.firstWhere(
-            (c) => c.trackId == trackId,
-            orElse: () => Cryptor(
-                participantId: participantId,
-                trackId: trackId,
-                sharedKey: useSharedKey));
+        var cryptor =
+            participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
+
+        if (cryptor == null) {
+          cryptor = Cryptor(
+              participantId: participantId,
+              trackId: trackId,
+              sharedKey: useSharedKey);
+          participantCryptors.add(cryptor);
+        }
 
         cryptor.setupTransform(
             operation: msgType,
@@ -134,7 +138,6 @@ void main() async {
             trackId: trackId,
             kind: kind);
 
-        participantCryptors.add(cryptor);
         break;
       case 'removeTransform':
         var trackId = msg['trackId'] as String;
