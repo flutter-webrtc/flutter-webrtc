@@ -730,7 +730,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         List<Map<String, Object>> codecs = call.argument("codecs");
         String transceiverId = call.argument("transceiverId");
         rtpTransceiverSetCodecPreferences(peerConnectionId, transceiverId, codecs, result);
-        result.success(null);
         break;
       default:
         if(frameCryptor.handleMethodCall(call, result)) {
