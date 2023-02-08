@@ -41,7 +41,7 @@ void FlutterFrameCryptorObserver::OnFrameCryptionStateChanged(
   params[EncodableValue("participantId")] = EncodableValue(participant_id.std_string());
   params[EncodableValue("state")] =
       EncodableValue(frameCryptionStateToString(state));
-  event_channel_->Success(params);
+  event_channel_->Success(EncodableValue(params));
 }
 
 bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
