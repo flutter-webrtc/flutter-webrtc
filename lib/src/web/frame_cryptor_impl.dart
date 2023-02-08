@@ -11,6 +11,7 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 import 'package:dart_webrtc/src/rtc_rtp_receiver_impl.dart';
 // ignore: implementation_imports
 import 'package:dart_webrtc/src/rtc_rtp_sender_impl.dart';
+import 'package:collection/collection.dart';
 
 import '../frame_cryptor.dart';
 import 'rtc_transform_stream.dart';
@@ -97,7 +98,7 @@ class FrameCryptorImpl extends FrameCryptor {
     jsutil.callMethod(worker, 'postMessage', [
       jsutil.jsify({
         'msgType': 'dispose',
-        'participantId': participantId,
+        'trackId': _trackId,
       })
     ]);
     _factory.removeFrameCryptor(_trackId);
@@ -112,6 +113,8 @@ class FrameCryptorImpl extends FrameCryptor {
 
   @override
   String get participantId => _participantId;
+
+  String get trackId => _trackId;
 
   @override
   Future<bool> setEnabled(bool enabled) async {
@@ -213,6 +216,38 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     worker = html.Worker('e2ee.worker.dart.js');
     worker.onMessage.listen((msg) {
       print('master got ${msg.data}');
+      var type = msg.data['type'];
+      if (type == 'cryptorState') {
+        var trackId = msg.data['trackId'];
+        var participantId = msg.data['participantId'];
+        var frameCryptor = _frameCryptors.values.firstWhereOrNull(
+            (element) => (element as FrameCryptorImpl).trackId == trackId);
+        var state = msg.data['state'];
+        FrameCryptorState frameCryptorState =
+            FrameCryptorState.FrameCryptorStateNew;
+        switch (state) {
+          case 'ok':
+            frameCryptorState = FrameCryptorState.FrameCryptorStateOk;
+            break;
+          case 'decryptError':
+            frameCryptorState =
+                FrameCryptorState.FrameCryptorStateDecryptionFailed;
+            break;
+          case 'encryptError':
+            frameCryptorState =
+                FrameCryptorState.FrameCryptorStateEncryptionFailed;
+            break;
+          case 'missingKey':
+            frameCryptorState = FrameCryptorState.FrameCryptorStateMissingKey;
+            break;
+          case 'internalError':
+            frameCryptorState =
+                FrameCryptorState.FrameCryptorStateInternalError;
+            break;
+        }
+        frameCryptor?.onFrameCryptorStateChanged
+            ?.call(participantId, frameCryptorState);
+      }
     });
     worker.onError.listen((err) {
       print('worker error: $err');
@@ -239,7 +274,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     html.RtcRtpReceiver jsReceiver =
         (receiver as RTCRtpReceiverWeb).jsRtpReceiver;
 
-    var trackId = jsReceiver.track!.id!;
+    var trackId = jsReceiver.hashCode.toString();
     var kind = jsReceiver.track!.kind!;
 
     if (js.context['RTCRtpScriptTransform'] != null) {
@@ -255,6 +290,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     } else {
       var writable = jsReceiver.writable;
       var readable = jsReceiver.readable;
+      bool exist = true;
       if (writable == null || readable == null) {
         EncodedStreams streams =
             jsutil.callMethod(jsReceiver, 'createEncodedStreams', []);
@@ -262,12 +298,14 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         jsReceiver.readableStream = readable;
         writable = streams.writable;
         jsReceiver.writableStream = writable;
+        exist = false;
       }
 
       jsutil.callMethod(worker, 'postMessage', [
         jsutil.jsify({
           'msgType': 'decode',
           'kind': kind,
+          'exist': exist,
           'participantId': participantId,
           'trackId': trackId,
           'readableStream': readable,
@@ -290,7 +328,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
       required Algorithm algorithm,
       required KeyManager keyManager}) {
     html.RtcRtpSender jsSender = (sender as RTCRtpSenderWeb).jsRtpSender;
-    var trackId = jsSender.track!.id!;
+    var trackId = jsSender.hashCode.toString();
     var kind = jsSender.track!.kind!;
 
     if (js.context['RTCRtpScriptTransform'] != null) {
@@ -306,6 +344,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     } else {
       var writable = jsSender.writable;
       var readable = jsSender.readable;
+      bool exist = true;
       if (writable == null || readable == null) {
         EncodedStreams streams =
             jsutil.callMethod(jsSender, 'createEncodedStreams', []);
@@ -313,11 +352,13 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         jsSender.readableStream = readable;
         writable = streams.writable;
         jsSender.writableStream = writable;
+        exist = false;
       }
       jsutil.callMethod(worker, 'postMessage', [
         jsutil.jsify({
           'msgType': 'encode',
           'kind': kind,
+          'exist': exist,
           'participantId': participantId,
           'trackId': trackId,
           'readableStream': readable,

@@ -77,6 +77,7 @@ void main() async {
       var msgType = options.msgType;
 
       var cryptor = Cryptor(
+          worker: self,
           participantId: participantId,
           trackId: trackId,
           sharedKey: useSharedKey);
@@ -108,12 +109,18 @@ void main() async {
             .where((c) => c.participantId == participantId)
             .toList();
         for (var cryptor in cryptors) {
-          cryptor.enabled = enabled;
+          cryptor.setEnabled(enabled);
         }
+        self.postMessage({
+          'type': 'cryptorEnabled',
+          'participantId': participantId,
+          'enable': enabled,
+        });
         break;
       case 'decode':
       case 'encode':
         var kind = msg['kind'];
+        var exist = msg['exist'] as bool;
         var participantId = msg['participantId'] as String;
         var trackId = msg['trackId'];
         var readable = msg['readableStream'] as ReadableStream;
@@ -125,19 +132,30 @@ void main() async {
 
         if (cryptor == null) {
           cryptor = Cryptor(
+              worker: self,
               participantId: participantId,
               trackId: trackId,
               sharedKey: useSharedKey);
           participantCryptors.add(cryptor);
         }
 
-        cryptor.setupTransform(
-            operation: msgType,
-            readable: readable,
-            writable: writable,
-            trackId: trackId,
-            kind: kind);
-
+        if (!exist) {
+          cryptor.setupTransform(
+              operation: msgType,
+              readable: readable,
+              writable: writable,
+              trackId: trackId,
+              kind: kind);
+        }
+        cryptor.setParticipantId(participantId);
+        self.postMessage({
+          'type': 'cryptorSetup',
+          'participantId': participantId,
+          'trackId': trackId,
+          'exist': exist,
+          'operation': msgType,
+        });
+        cryptor.lastError = CryptorError.kNew;
         break;
       case 'removeTransform':
         var trackId = msg['trackId'] as String;
@@ -179,9 +197,22 @@ void main() async {
             participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
         cryptor?.updateCodec(codec);
         break;
+      case 'dispose':
+        var trackId = msg['trackId'] as String;
+        print('worker: dispose trackId $trackId');
+        var cryptor =
+            participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
+        if (cryptor != null) {
+          cryptor.lastError = CryptorError.kDisposed;
+          self.postMessage({
+            'type': 'cryptorDispose',
+            'participantId': cryptor.participantId,
+            'trackId': trackId,
+          });
+        }
+        break;
       default:
         print('worker: unknown message kind $msg');
     }
-    self.postMessage({});
   });
 }

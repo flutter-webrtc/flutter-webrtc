@@ -103,9 +103,21 @@ int parseNALUType(int startByte) {
   return startByte & kNaluTypeMask;
 }
 
+enum CryptorError {
+  kNew,
+  kOk,
+  kDecryptError,
+  kEncryptError,
+  kUnsupportedCodec,
+  kMissingKey,
+  kInternalError,
+  kDisposed,
+}
+
 class Cryptor {
   Cryptor(
-      {required this.participantId,
+      {required this.worker,
+      required this.participantId,
       required this.trackId,
       required this.sharedKey});
   Map<int, int> sendCounts = {};
@@ -114,21 +126,53 @@ class Cryptor {
   String? codec;
   final bool sharedKey;
   late String kind;
-  late CryptoKey secretKey;
+  CryptoKey? secretKey;
   int keyIndex = 0;
   bool enabled = false;
+  CryptorError lastError = CryptorError.kNew;
+  final DedicatedWorkerGlobalScope worker;
+
+  void setParticipantId(String participantId) {
+    if (lastError != CryptorError.kOk) {
+      print(
+          'setParticipantId: lastError != CryptorError.kOk, reset state to kNew');
+      lastError = CryptorError.kNew;
+    }
+    this.participantId = participantId;
+  }
 
   void setKeyIndex(int keyIndex) {
+    if (lastError != CryptorError.kOk) {
+      print('setKeyIndex: lastError != CryptorError.kOk, reset state to kNew');
+      lastError = CryptorError.kNew;
+    }
     this.keyIndex = keyIndex;
   }
 
+  void setEnabled(bool enabled) {
+    if (lastError != CryptorError.kOk) {
+      print(
+          'setEnabled[$enabled]: lastError != CryptorError.kOk, reset state to kNew');
+      lastError = CryptorError.kNew;
+    }
+    this.enabled = enabled;
+  }
+
   Future<void> setKey(Uint8List key) async {
-    print('set key $key');
+    if (lastError != CryptorError.kOk) {
+      print('setKey: lastError != CryptorError.kOk, reset state to kNew');
+      lastError = CryptorError.kNew;
+    }
     secretKey =
         await cryptoKeyFromAesSecretKey(key, webCryptoAlgorithm: 'AES-GCM');
   }
 
   void updateCodec(String codec) {
+    if (lastError != CryptorError.kOk) {
+      print(
+          'updateCodec[$codec]: lastError != CryptorError.kOk, reset state to kNew');
+      lastError = CryptorError.kNew;
+    }
     this.codec = codec;
   }
 
@@ -153,6 +197,10 @@ class Cryptor {
     return iv.buffer.asUint8List();
   }
 
+  void postMessage(Object message) {
+    worker.postMessage(message);
+  }
+
   Future<void> setupTransform({
     required String operation,
     required ReadableStream readable,
@@ -175,6 +223,15 @@ class Cryptor {
       readable.pipeThrough(transformer).pipeTo(writable);
     } catch (e) {
       print('e ${e.toString()}');
+      if (lastError != CryptorError.kInternalError) {
+        lastError = CryptorError.kInternalError;
+        postMessage({
+          'type': 'cryptorState',
+          'participantId': participantId,
+          'state': 'internalError',
+          'error': 'Internal error: ${e.toString()}'
+        });
+      }
     }
     this.trackId = trackId;
   }
@@ -224,6 +281,22 @@ class Cryptor {
       controller.enqueue(frame);
       return;
     }
+
+    if (secretKey == null) {
+      if (lastError != CryptorError.kMissingKey) {
+        lastError = CryptorError.kMissingKey;
+        postMessage({
+          'type': 'cryptorState',
+          'participantId': participantId,
+          'trackId': trackId,
+          'kind': kind,
+          'state': 'missingKey',
+          'error': 'Missing key for track $trackId',
+        });
+      }
+      return;
+    }
+
     try {
       var headerLength =
           kind == 'video' ? getUnencryptedBytes(frame, codec) : 1;
@@ -242,7 +315,7 @@ class Cryptor {
           iv: jsArrayBufferFrom(iv),
           additionalData: jsArrayBufferFrom(buffer.sublist(0, headerLength)),
         ),
-        secretKey,
+        secretKey!,
         jsArrayBufferFrom(buffer.sublist(headerLength, buffer.length)),
       ));
 
@@ -258,10 +331,33 @@ class Cryptor {
 
       controller.enqueue(frame);
 
+      if (lastError != CryptorError.kOk) {
+        lastError = CryptorError.kOk;
+        postMessage({
+          'type': 'cryptorState',
+          'participantId': participantId,
+          'trackId': trackId,
+          'kind': kind,
+          'state': 'ok',
+          'error': 'encryption ok'
+        });
+      }
+
       //print(
       //    'encrypto kind $kind,codec $codec headerLength: $headerLength,  timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, encrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()} , iv $iv');
     } catch (e) {
-      print('encrypt: e ${e.toString()}');
+      //print('encrypt: e ${e.toString()}');
+      if (lastError != CryptorError.kEncryptError) {
+        lastError = CryptorError.kEncryptError;
+        postMessage({
+          'type': 'cryptorState',
+          'participantId': participantId,
+          'trackId': trackId,
+          'kind': kind,
+          'state': 'encryptError',
+          'error': e.toString()
+        });
+      }
     }
   }
 
@@ -277,6 +373,21 @@ class Cryptor {
       controller.enqueue(frame);
       return;
     }
+
+    if (secretKey == null) {
+      if (lastError != CryptorError.kMissingKey) {
+        lastError = CryptorError.kMissingKey;
+        postMessage({
+          'type': 'cryptorState',
+          'participantId': participantId,
+          'trackId': trackId,
+          'kind': kind,
+          'state': 'missingKey',
+          'error': 'Missing key for track $trackId'
+        });
+      }
+    }
+
     try {
       var headerLength =
           kind == 'video' ? getUnencryptedBytes(frame, codec) : 1;
@@ -293,7 +404,7 @@ class Cryptor {
           iv: jsArrayBufferFrom(iv),
           additionalData: jsArrayBufferFrom(buffer.sublist(0, headerLength)),
         ),
-        secretKey,
+        secretKey!,
         jsArrayBufferFrom(
             buffer.sublist(headerLength, buffer.length - ivLength - 2)),
       ));
@@ -306,10 +417,33 @@ class Cryptor {
       frame.data = jsArrayBufferFrom(finalBuffer.toBytes());
       controller.enqueue(frame);
 
+      if (lastError != CryptorError.kOk) {
+        lastError = CryptorError.kOk;
+        postMessage({
+          'type': 'cryptorState',
+          'participantId': participantId,
+          'trackId': trackId,
+          'kind': kind,
+          'state': 'ok',
+          'error': 'decryption ok'
+        });
+      }
+
       //print(
       //    'decrypto kind $kind,codec $codec headerLength: $headerLength, timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()}, keyindex $keyIndex iv $iv');
     } catch (e) {
-      print('derypto: e ${e.toString()}');
+      //print('derypto: e ${e.toString()}');
+      if (lastError != CryptorError.kDecryptError) {
+        lastError = CryptorError.kDecryptError;
+        postMessage({
+          'type': 'cryptorState',
+          'participantId': participantId,
+          'trackId': trackId,
+          'kind': kind,
+          'state': 'decryptError',
+          'error': e.toString()
+        });
+      }
     }
   }
 }
