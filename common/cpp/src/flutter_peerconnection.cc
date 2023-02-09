@@ -1160,7 +1160,6 @@ void FlutterPeerConnectionObserver::OnRemoveStream(
   params[EncodableValue("streamId")] =
       EncodableValue(stream->label().std_string());
   event_channel_->Success(EncodableValue(params));
-  RemoveStreamForId(stream->label().std_string());
 }
 
 void FlutterPeerConnectionObserver::OnAddTrack(

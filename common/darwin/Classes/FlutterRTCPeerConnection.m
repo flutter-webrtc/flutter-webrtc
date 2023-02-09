@@ -512,7 +512,6 @@
   for (RTCAudioTrack* track in stream.audioTracks) {
     [peerConnection.remoteTracks removeObjectForKey:track.trackId];
   }
-  [peerConnection.remoteStreams removeObjectForKey:streamId];
 
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {

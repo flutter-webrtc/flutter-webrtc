@@ -426,7 +426,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       this.remoteTracks.remove(track.id());
     }
 
-    this.remoteStreams.remove(streamId);
     ConstraintsMap params = new ConstraintsMap();
     params.putString("event", "onRemoveStream");
     params.putString("streamId", streamId);
