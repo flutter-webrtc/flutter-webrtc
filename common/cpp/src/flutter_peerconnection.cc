@@ -757,6 +757,7 @@ void FlutterPeerConnection::RtpTransceiverSetCodecPreferences(
     codecList.push_back(codecCapability);
   }
   transceiver->SetCodecPreferences(codecList);
+  result_ptr->Success();
  }
 
 void FlutterPeerConnection::GetSenders(
