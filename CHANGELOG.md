@@ -1,6 +1,13 @@
 # Changelog
 
 --------------------------------------------
+[0.9.21] - 2023-02-10
+
+* [Web] Fix: RTCRtpParameters.fromJsObject for Firefox.
+* [Web] Add bufferedamountlow.
+* [Android] Fixed frame capturer returning images with wrong colors (#1258).
+* [Windows] bug fix.
+
 [0.9.20] - 2023-02-03
 
 * [Dawrin/Android/Windows] Add getCapabilities/setCodecPreferences methods
