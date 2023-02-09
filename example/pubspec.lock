@@ -424,7 +424,7 @@ packages:
       name: puppeteer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.21.0"
+    version: "2.22.0"
   shelf:
     dependency: transitive
     description:
