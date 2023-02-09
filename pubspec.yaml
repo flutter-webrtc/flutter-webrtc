@@ -7,7 +7,7 @@ environment:
   flutter: '>=1.22.0'
 
 dependencies:
-  dart_webrtc: 1.0.14
+  dart_webrtc: 1.0.15
   flutter:
     sdk: flutter
   path_provider: ^2.0.2
