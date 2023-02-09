@@ -609,7 +609,7 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
       }
       value = findEncodableValue(map, "scaleResolutionDownBy");
       if (!value.IsNull()) {
-        param->set_scale_resolution_down_by(GetValue<int>(value));
+        param->set_scale_resolution_down_by(GetValue<double>(value));
       }
 
       encoding++;
@@ -634,9 +634,11 @@ void FlutterPeerConnection::RtpSenderSetParameters(
 
   auto param = sender->parameters();
   param = updateRtpParameters(parameters, param);
-  sender->set_parameters(param);
+  bool success = sender->set_parameters(param);
 
-  result_ptr->Success();
+    EncodableMap map;
+  map[EncodableValue("result")] = EncodableValue(success);
+  result_ptr->Success(EncodableValue(map));
 }
 
 void FlutterPeerConnection::RtpTransceiverStop(
@@ -839,7 +841,7 @@ void FlutterPeerConnection::GetStats(
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
   scoped_refptr<RTCMediaTrack> track = base_->MediaTracksForId(track_id);
-  if (track != nullptr) {
+  if (track != nullptr && track_id != "") {
     bool found = false;
     auto receivers = pc->receivers();
     for (auto receiver : receivers.std_vector()) {
