@@ -371,12 +371,9 @@ void FlutterWebRTC::HandleMethodCall(
     const std::string track_id = findString(params, "trackId");
     const EncodableValue enable = findEncodableValue(params, "enabled");
     RTCMediaTrack* track = MediaTrackForId(track_id);
-    if (nullptr == track) {
-      result->Error("mediaStreamTrackSetEnableFailed",
-                    "mediaStreamTrackSetEnable() track is null");
-      return;
+    if (track != nullptr) {
+      track->set_enabled(GetValue<bool>(enable));
     }
-    track->set_enabled(GetValue<bool>(enable));
     result->Success();
   } else if (method_call.method_name().compare("trackDispose") == 0) {
     if (!method_call.arguments()) {
@@ -794,7 +791,7 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const EncodableMap parameters = findMap(params, "parameters");
-    if (0 < parameters.size()) {
+    if (0 == parameters.size()) {
       result->Error("rtpSenderSetParameters",
                     "rtpSenderSetParameters() parameters is null or empty");
       return;
