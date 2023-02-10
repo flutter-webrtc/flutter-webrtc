@@ -107,16 +107,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "console_error_panic_hook"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
-dependencies = [
- "cfg-if",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "convert_case"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -212,9 +202,12 @@ dependencies = [
 
 [[package]]
 name = "dart-sys"
-version = "2.0.1"
+version = "4.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42fe64308f2072bb94ecd8f7557f9ac01b69d86e6199bac24be0f091ad74b092"
+checksum = "8d8b5680b5c2cc52f50acb2457d9b3a3b58adcca785db13a0e3655626f601de6"
+dependencies = [
+ "cc",
+]
 
 [[package]]
 name = "dashmap"
@@ -317,16 +310,15 @@ dependencies = [
 
 [[package]]
 name = "flutter_rust_bridge"
-version = "1.54.0"
+version = "1.62.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5df8e5ef5f0e51bc20a0f4f4dc9b84f08256f9fec19098fd66ef098cc77c30b3"
+checksum = "c0362439f3aed79a614d38f663228ada516ea667e743e516670943a1c2254d52"
 dependencies = [
  "allo-isolate",
  "anyhow",
  "build-target",
  "bytemuck",
  "cc",
- "console_error_panic_hook",
  "dart-sys",
  "flutter_rust_bridge_macros",
  "js-sys",
@@ -1209,9 +1201,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.4"
+version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bb2e075f03b3d66d8d8785356224ba688d2906a371015e225beeb65ca92c740"
+checksum = "7e267c18a719545b481171952a79f8c25c80361463ba44bc7fa9eba7c742ef4f"
 dependencies = [
  "bytes",
  "futures-core",

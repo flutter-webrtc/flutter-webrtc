@@ -23,7 +23,7 @@ class PeerEventController: PeerEventObserver {
       "transceiver": RtpTransceiverController(messenger: self.messenger,
                                               transceiver: transceiver)
         .asFlutterResult(),
-      ])
+    ])
   }
 
   /// Sends an `onIceConnectionStateChange` event to Flutter side.

@@ -227,7 +227,7 @@ packages:
       name: flutter_rust_bridge
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.54.0"
+    version: "1.62.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
