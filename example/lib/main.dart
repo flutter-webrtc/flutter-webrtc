@@ -17,7 +17,7 @@ import 'src/route_item.dart';
 void main() {
   if (WebRTC.platformIsDesktop) {
     debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
-  } else if (WebRTC.platformIsAndroid) {
+  } else {
     WidgetsFlutterBinding.ensureInitialized();
     startForegroundService();
   }
