@@ -8,29 +8,27 @@
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
   // we also need to set default WebRTC audio configuration, since it may be activated after
   // this method is called
-  RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
+  RTCAudioSessionConfiguration* config = nil;
   // require audio session to be either PlayAndRecord or MultiRoute
   if (recording && session.category != AVAudioSessionCategoryPlayAndRecord &&
       session.category != AVAudioSessionCategoryMultiRoute) {
+    config = [RTCAudioSessionConfiguration webRTCConfiguration];
     config.category = AVAudioSessionCategoryPlayAndRecord;
     config.categoryOptions =
         AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP;
     config.mode = AVAudioSessionModeVoiceChat;
 
-    [session lockForConfiguration];
-    [session setCategory:config.category withOptions:config.categoryOptions error:nil];
-    [session setMode:config.mode error:nil];
-    [session unlockForConfiguration];
   } else if (!recording || (session.category == AVAudioSessionCategoryAmbient ||
                             session.category == AVAudioSessionCategorySoloAmbient)) {
+    config = [RTCAudioSessionConfiguration webRTCConfiguration];
     config.category = AVAudioSessionCategoryPlayback;
     config.categoryOptions = 0;
     config.mode = AVAudioSessionModeDefault;
+  }
 
-    // upgrade from ambient if needed
+  if (config != nil) {
     [session lockForConfiguration];
-    [session setCategory:config.category withOptions:config.categoryOptions error:nil];
-    [session setMode:config.mode error:nil];
+    [session setConfiguration:config active:YES error:nil];
     [session unlockForConfiguration];
   }
 }
