@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -67,12 +66,7 @@ class RTCVideoViewState extends State<RTCVideoView> {
   }
 
   Widget buildVideoElementView() {
-    return Transform(
-      alignment: Alignment.center,
-      transform: Matrix4.rotationY(videoRenderer.mirror ? pi * -1 : 0),
-      child: HtmlElementView(
-          viewType: 'RTCVideoRenderer-${videoRenderer.textureId}'),
-    );
+    return HtmlElementView(viewType: videoRenderer.viewType);
   }
 
   @override

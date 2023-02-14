@@ -15,10 +15,10 @@ import 'src/loopback_sample_unified_tracks.dart';
 import 'src/route_item.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   if (WebRTC.platformIsDesktop) {
     debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
   } else if (WebRTC.platformIsAndroid) {
-    WidgetsFlutterBinding.ensureInitialized();
     startForegroundService();
   }
   runApp(MyApp());
