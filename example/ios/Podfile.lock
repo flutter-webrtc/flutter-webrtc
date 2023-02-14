@@ -1,0 +1,59 @@
+PODS:
+  - BIJKPlayer (0.7.16)
+  - fijkplayer (0.10.1):
+    - BIJKPlayer (~> 0.7.16)
+    - Flutter
+  - Flutter (1.0.0)
+  - flutter_webrtc (0.9.17):
+    - Flutter
+    - Turing-WebRTC-SDK (= 104.5112.06.3)
+  - orientation (0.0.1):
+    - Flutter
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - Turing-WebRTC-SDK (104.5112.06.3)
+
+DEPENDENCIES:
+  - fijkplayer (from `.symlinks/plugins/fijkplayer/ios`)
+  - Flutter (from `Flutter`)
+  - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
+  - orientation (from `.symlinks/plugins/orientation/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/ios`)
+
+SPEC REPOS:
+  trunk:
+    - BIJKPlayer
+    - Turing-WebRTC-SDK
+
+EXTERNAL SOURCES:
+  fijkplayer:
+    :path: ".symlinks/plugins/fijkplayer/ios"
+  Flutter:
+    :path: Flutter
+  flutter_webrtc:
+    :path: ".symlinks/plugins/flutter_webrtc/ios"
+  orientation:
+    :path: ".symlinks/plugins/orientation/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/ios"
+
+SPEC CHECKSUMS:
+  BIJKPlayer: 4c5d66e5cb99ae5bade6f22a4fcc031722a81c64
+  fijkplayer: 5ecf78e80cb97eed64cc170b094a4f691d9b9691
+  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  flutter_webrtc: 8a7ba86456eda3b0ed5a765452a26e9f5d34e61a
+  orientation: 6c9203efe86ce4cff379756910f18b2d745628c3
+  path_provider_foundation: 37748e03f12783f9de2cb2c4eadfaa25fe6d4852
+  shared_preferences_foundation: 297b3ebca31b34ec92be11acd7fb0ba932c822ca
+  Turing-WebRTC-SDK: 64d74e8045a9c8f7db6b8a30b5e3e1454ec5b36f
+
+PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
+
+COCOAPODS: 1.11.3
