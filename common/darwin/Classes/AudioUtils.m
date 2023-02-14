@@ -74,13 +74,6 @@
                                                  error:&error];
     if (!success)
       NSLog(@"Port override failed due to: %@", error);
-
-    success = [session setActive:YES error:&error];
-    if (!success)
-      NSLog(@"Audio session override failed: %@", error);
-    else
-      NSLog(@"AudioSession override via Earpiece/Headset is successful ");
-
   } else {
     [session setMode:config.mode error:&error];
     BOOL success = [session setCategory:config.category
@@ -94,12 +87,6 @@
                                          error:&error];
     if (!success)
       NSLog(@"Port override failed due to: %@", error);
-
-    success = [session setActive:YES error:&error];
-    if (!success)
-      NSLog(@"Audio session override failed: %@", error);
-    else
-      NSLog(@"AudioSession override via Loudspeaker is successful ");
   }
   [session unlockForConfiguration];
 }
@@ -108,11 +95,13 @@
     NSError* error = nil;
     RTCAudioSession* session = [RTCAudioSession sharedInstance];
     [session lockForConfiguration];
-    BOOL success = [session setActive:NO error:&error];
-    if (!success)
-        NSLog(@"RTC Audio session deactive failed: %@", error);
-    else
-        NSLog(@"RTC AudioSession deactive is successful ");
+    if([session isActive]) {
+      BOOL success = [session setActive:NO error:&error];
+      if (!success)
+          NSLog(@"RTC Audio session deactive failed: %@", error);
+      else
+          NSLog(@"RTC AudioSession deactive is successful ");
+    }
     [session unlockForConfiguration];
 }
 
