@@ -79,8 +79,6 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void _cleanUp() async {
     try {
       await _localStream?.dispose();
-      await _videoSender?.dispose();
-      await _audioSender?.dispose();
       await _remotePeerConnection?.close();
       await _remotePeerConnection?.dispose();
       _remotePeerConnection = null;

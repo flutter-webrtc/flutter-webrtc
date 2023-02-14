@@ -132,9 +132,9 @@ class RTCRtpSenderNative extends RTCRtpSender {
   @override
   RTCDTMFSender get dtmfSender => _dtmf;
 
+  @Deprecated(
+      'No need to dispose rtpSender as it is handled by peerConnection.')
   @override
   @mustCallSuper
-  Future<void> dispose() async {
-    /// No need to dispose rtpSender as it is handled by peerConnection.
-  }
+  Future<void> dispose() async {}
 }
