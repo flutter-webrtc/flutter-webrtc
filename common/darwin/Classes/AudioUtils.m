@@ -105,10 +105,15 @@
 }
 
 + (void)deactiveRtcAudioSession {
-  NSError* error = nil;
-  [[AVAudioSession sharedInstance] setActive:NO
-                                 withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
-                                       error:&error];
+    NSError* error = nil;
+    RTCAudioSession* session = [RTCAudioSession sharedInstance];
+    [session lockForConfiguration];
+    BOOL success = [session setActive:NO error:&error];
+    if (!success)
+        NSLog(@"RTC Audio session deactive failed: %@", error);
+    else
+        NSLog(@"RTC AudioSession deactive is successful ");
+    [session unlockForConfiguration];
 }
 
 @end
