@@ -1101,16 +1101,6 @@ private RtpParameters updateRtpParameters(RtpParameters parameters, Map<String, 
         result.success(null);
     }
 
-    public void rtpSenderDispose(String rtpSenderId, Result result) {
-        RtpSender sender = getRtpSenderById(rtpSenderId);
-        if (sender == null) {
-            resultError("rtpSenderDispose", "sender is null", result);
-            return;
-        }
-        sender.dispose();
-        result.success(null);
-    }
-
     public void getSenders(Result result) {
       List<RtpSender> senders = peerConnection.getSenders();
       ConstraintsArray sendersParams = new ConstraintsArray();
