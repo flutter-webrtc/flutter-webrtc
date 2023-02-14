@@ -27,7 +27,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   Timer? _timer;
   final _configuration = <String, dynamic>{
     'iceServers': [
-      //{'url': 'stun:stun.l.google.com:19302'},
+      {'urls': 'stun:stun.l.google.com:19302'},
     ],
     'sdpSemantics': 'unified-plan'
   };
