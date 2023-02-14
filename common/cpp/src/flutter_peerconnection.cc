@@ -528,20 +528,6 @@ void FlutterPeerConnection::GetReceivers(
   result_ptr->Success(EncodableValue(map));
 }
 
-void FlutterPeerConnection::RtpSenderDispose(
-    RTCPeerConnection* pc,
-    std::string rtpSenderId,
-    std::unique_ptr<MethodResultProxy> result) {
-  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
-
-  auto sender = GetRtpSenderById(pc, rtpSenderId);
-  if (nullptr == sender.get()) {
-    result_ptr->Error("rtpSenderDispose", "sender is null");
-    return;
-  }
-  // TODO RtpSenderDispose
-  result_ptr->Success();
-}
 
 void FlutterPeerConnection::RtpSenderSetTrack(
     RTCPeerConnection* pc,
@@ -551,7 +537,7 @@ void FlutterPeerConnection::RtpSenderSetTrack(
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
   auto sender = GetRtpSenderById(pc, rtpSenderId);
   if (nullptr == sender.get()) {
-    result_ptr->Error("rtpSenderDispose", "sender is null");
+    result_ptr->Error("rtpSenderSetTrack", "sender is null");
     return;
   }
   sender->set_track(track);
@@ -566,7 +552,7 @@ void FlutterPeerConnection::RtpSenderReplaceTrack(
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
   auto sender = GetRtpSenderById(pc, rtpSenderId);
   if (nullptr == sender.get()) {
-    result_ptr->Error("rtpSenderDispose", "sender is null");
+    result_ptr->Error("rtpSenderReplaceTrack", "sender is null");
     return;
   }
 
@@ -628,7 +614,7 @@ void FlutterPeerConnection::RtpSenderSetParameters(
 
   auto sender = GetRtpSenderById(pc, rtpSenderId);
   if (nullptr == sender.get()) {
-    result_ptr->Error("rtpSenderDispose", "sender is null");
+    result_ptr->Error("rtpSenderSetParameters", "sender is null");
     return;
   }
 
