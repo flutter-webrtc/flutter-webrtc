@@ -1,6 +1,14 @@
 # Changelog
 
 --------------------------------------------
+[0.9.22] - 2023-02-14
+
+* [iOS] fix: Without any setActive for rtc session, libwebrtc manages the session counter by itself. (#1266)
+* [dart] fix: remove rtpsender.dispose.
+* [web] fix video renderer issue for safari.
+* [macOS] Fixed macOS desktop capture crash with simulcast enabled.
+* [macOS] Fix the crash when setting the fps of the virtual camera.
+
 [0.9.21] - 2023-02-10
 
 * [Web] Fix: RTCRtpParameters.fromJsObject for Firefox.
