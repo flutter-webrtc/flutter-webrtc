@@ -45,6 +45,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /android/app/build
+/android/build
+/android/*gradle*
+/android/local.properties
 
 # Fastlane
 /fastlane/report.xml
