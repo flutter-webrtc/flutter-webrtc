@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.23] - 2023-02-17
+
+* [Windows/Linux] Updated libwebrtc binary for windows/linux to fix two crashes.
+
 [0.9.22] - 2023-02-14
 
 * [iOS] fix: Without any setActive for rtc session, libwebrtc manages the session counter by itself. (#1266)
