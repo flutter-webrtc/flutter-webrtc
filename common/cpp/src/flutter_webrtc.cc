@@ -372,12 +372,9 @@ void FlutterWebRTC::HandleMethodCall(
     const std::string track_id = findString(params, "trackId");
     const EncodableValue enable = findEncodableValue(params, "enabled");
     RTCMediaTrack* track = MediaTrackForId(track_id);
-    if (nullptr == track) {
-      result->Error("mediaStreamTrackSetEnableFailed",
-                    "mediaStreamTrackSetEnable() track is null");
-      return;
+    if (track != nullptr) {
+      track->set_enabled(GetValue<bool>(enable));
     }
-    track->set_enabled(GetValue<bool>(enable));
     result->Success();
   } else if (method_call.method_name().compare("trackDispose") == 0) {
     if (!method_call.arguments()) {
@@ -687,32 +684,6 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     GetSenders(pc, std::move(result));
-  } else if (method_call.method_name().compare("rtpSenderDispose") == 0) {
-    if (!method_call.arguments()) {
-      result->Error("Bad Arguments", "Null constraints arguments received");
-      return;
-    }
-    const EncodableMap params =
-        GetValue<EncodableMap>(*method_call.arguments());
-    const std::string peerConnectionId = findString(params, "peerConnectionId");
-
-    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
-    if (pc == nullptr) {
-      result->Error("rtpSenderDispose",
-                    "rtpSenderDispose() peerConnection is null");
-      return;
-    }
-
-    const std::string rtpSenderId = findString(params, "rtpSenderId");
-    if (0 < rtpSenderId.size()) {
-      if (pc == nullptr) {
-        result->Error("rtpSenderDispose",
-                      "rtpSenderDispose() rtpSenderId is null or empty");
-        return;
-      }
-    }
-    RtpSenderDispose(pc, rtpSenderId, std::move(result));
-
   } else if (method_call.method_name().compare("rtpSenderSetTrack") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -795,7 +766,7 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const EncodableMap parameters = findMap(params, "parameters");
-    if (0 < parameters.size()) {
+    if (0 == parameters.size()) {
       result->Error("rtpSenderSetParameters",
                     "rtpSenderSetParameters() parameters is null or empty");
       return;

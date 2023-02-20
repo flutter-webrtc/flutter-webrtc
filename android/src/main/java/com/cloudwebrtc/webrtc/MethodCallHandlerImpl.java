@@ -674,12 +674,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         rtpSenderSetTrack(peerConnectionId, rtpSenderId, trackId, false, result);
         break;
       }
-      case "rtpSenderDispose": {
-        String peerConnectionId = call.argument("peerConnectionId");
-        String rtpSenderId = call.argument("rtpSenderId");
-        rtpSenderDispose(peerConnectionId, rtpSenderId, result);
-        break;
-      }
       case "getSenders": {
         String peerConnectionId = call.argument("peerConnectionId");
         getSenders(peerConnectionId, result);
@@ -1855,15 +1849,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       resultError("rtpSenderSetParameters", "peerConnection is null", result);
     } else {
       pco.rtpSenderSetParameters(rtpSenderId, parameters, result);
-    }
-  }
-
-  public void rtpSenderDispose(String peerConnectionId, String rtpSenderId, Result result) {
-    PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
-    if (pco == null || pco.getPeerConnection() == null) {
-      resultError("rtpSenderDispose", "peerConnection is null", result);
-    } else {
-      pco.rtpSenderDispose(rtpSenderId, result);
     }
   }
 

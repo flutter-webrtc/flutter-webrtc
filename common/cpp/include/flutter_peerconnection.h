@@ -104,10 +104,6 @@ class FlutterPeerConnection {
   void GetReceivers(RTCPeerConnection* pc,
                     std::unique_ptr<MethodResultProxy> result);
 
-  void RtpSenderDispose(RTCPeerConnection* pc,
-                        std::string rtpSenderId,
-                        std::unique_ptr<MethodResultProxy> result);
-
   void RtpSenderSetTrack(RTCPeerConnection* pc,
                          RTCMediaTrack* track,
                          std::string rtpSenderId,

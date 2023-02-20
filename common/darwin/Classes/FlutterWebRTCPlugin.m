@@ -1044,27 +1044,6 @@
     }
     [sender setTrack:track];
     result(nil);
-  } else if ([@"rtpSenderDispose" isEqualToString:call.method]) {
-    NSDictionary* argsMap = call.arguments;
-    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-    NSString* senderId = argsMap[@"rtpSenderId"];
-    RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
-    if (peerConnection == nil) {
-      result([FlutterError
-          errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
-                message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
-                details:nil]);
-      return;
-    }
-    RTCRtpSender* sender = [self getRtpSenderById:peerConnection Id:senderId];
-    if (sender == nil) {
-      result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
-                                 message:[NSString stringWithFormat:@"Error: sender not found!"]
-                                 details:nil]);
-      return;
-    }
-    [peerConnection removeTrack:sender];
-    result(nil);
   } else if ([@"getSenders" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* peerConnectionId = argsMap[@"peerConnectionId"];
