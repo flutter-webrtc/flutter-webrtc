@@ -1107,7 +1107,7 @@
   } else if ([@"setCodecPreferences" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     [self transceiverSetCodecPreferences:argsMap result:result];
-  }  else if ([@"getRtpReceiverCapabilities" isEqualToString:call.method]) {
+  } else if ([@"getRtpReceiverCapabilities" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     [self peerConnectionGetRtpReceiverCapabilities:argsMap result:result];
   } else if ([@"getRtpSenderCapabilities" isEqualToString:call.method]) {
@@ -1443,7 +1443,7 @@
     BOOL srtpEnableAes128Sha1_32CryptoCipher = NO;
 
     if (options[@"enableGcmCryptoSuites"] != nil &&
-                [options[@"enableGcmCryptoSuites"] isKindOfClass:[NSNumber class]]) {
+        [options[@"enableGcmCryptoSuites"] isKindOfClass:[NSNumber class]]) {
       NSNumber* value = options[@"enableGcmCryptoSuites"];
       srtpEnableGcmCryptoSuites = [value boolValue];
     }

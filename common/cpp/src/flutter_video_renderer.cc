@@ -34,8 +34,8 @@ const FlutterDesktopPixelBuffer* FlutterVideoRenderer::CopyPixelBuffer(
     }
 
     frame_->ConvertToARGB(RTCVideoFrame::Type::kABGR, rgb_buffer_.get(), 0,
-                          (int)pixel_buffer_->width,
-                          (int)pixel_buffer_->height);
+                          static_cast<int>(pixel_buffer_->width),
+                          static_cast<int>(pixel_buffer_->height));
 
     pixel_buffer_->buffer = rgb_buffer_.get();
     mutex_.unlock();
