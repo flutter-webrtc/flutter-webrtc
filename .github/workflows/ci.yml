@@ -120,7 +120,7 @@ jobs:
   swiftformat:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: brew install swiftformat
 
       - run: make swift.fmt check=yes dockerized=no
