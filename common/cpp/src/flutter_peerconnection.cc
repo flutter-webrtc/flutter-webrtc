@@ -74,7 +74,7 @@ EncodableMap rtpParametersToMap(
     map[EncodableValue("minBitrate")] =
         EncodableValue(encoding->min_bitrate_bps());
     map[EncodableValue("maxFramerate")] =
-        EncodableValue(encoding->max_framerate());
+        EncodableValue(static_cast<int>(encoding->max_framerate()));
     map[EncodableValue("scaleResolutionDownBy")] =
         EncodableValue(encoding->scale_resolution_down_by());
     map[EncodableValue("ssrc")] = EncodableValue((long)encoding->ssrc());
@@ -528,21 +528,6 @@ void FlutterPeerConnection::GetReceivers(
   result_ptr->Success(EncodableValue(map));
 }
 
-void FlutterPeerConnection::RtpSenderDispose(
-    RTCPeerConnection* pc,
-    std::string rtpSenderId,
-    std::unique_ptr<MethodResultProxy> result) {
-  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
-
-  auto sender = GetRtpSenderById(pc, rtpSenderId);
-  if (nullptr == sender.get()) {
-    result_ptr->Error("rtpSenderDispose", "sender is null");
-    return;
-  }
-  // TODO RtpSenderDispose
-  result_ptr->Success();
-}
-
 void FlutterPeerConnection::RtpSenderSetTrack(
     RTCPeerConnection* pc,
     RTCMediaTrack* track,
@@ -551,7 +536,7 @@ void FlutterPeerConnection::RtpSenderSetTrack(
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
   auto sender = GetRtpSenderById(pc, rtpSenderId);
   if (nullptr == sender.get()) {
-    result_ptr->Error("rtpSenderDispose", "sender is null");
+    result_ptr->Error("rtpSenderSetTrack", "sender is null");
     return;
   }
   sender->set_track(track);
@@ -566,7 +551,7 @@ void FlutterPeerConnection::RtpSenderReplaceTrack(
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
   auto sender = GetRtpSenderById(pc, rtpSenderId);
   if (nullptr == sender.get()) {
-    result_ptr->Error("rtpSenderDispose", "sender is null");
+    result_ptr->Error("rtpSenderReplaceTrack", "sender is null");
     return;
   }
 
@@ -609,7 +594,7 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
       }
       value = findEncodableValue(map, "scaleResolutionDownBy");
       if (!value.IsNull()) {
-        param->set_scale_resolution_down_by(GetValue<int>(value));
+        param->set_scale_resolution_down_by(GetValue<double>(value));
       }
 
       encoding++;
@@ -628,15 +613,17 @@ void FlutterPeerConnection::RtpSenderSetParameters(
 
   auto sender = GetRtpSenderById(pc, rtpSenderId);
   if (nullptr == sender.get()) {
-    result_ptr->Error("rtpSenderDispose", "sender is null");
+    result_ptr->Error("rtpSenderSetParameters", "sender is null");
     return;
   }
 
   auto param = sender->parameters();
   param = updateRtpParameters(parameters, param);
-  sender->set_parameters(param);
+  bool success = sender->set_parameters(param);
 
-  result_ptr->Success();
+  EncodableMap map;
+  map[EncodableValue("result")] = EncodableValue(success);
+  result_ptr->Success(EncodableValue(map));
 }
 
 void FlutterPeerConnection::RtpTransceiverStop(
@@ -727,6 +714,38 @@ void FlutterPeerConnection::RtpTransceiverSetDirection(
   }
 }
 
+void FlutterPeerConnection::RtpTransceiverSetCodecPreferences(
+    RTCPeerConnection* pc,
+    std::string rtpTransceiverId,
+    const EncodableList codecs,
+    std::unique_ptr<MethodResultProxy> result) {
+  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
+  auto transceiver = getRtpTransceiverById(pc, rtpTransceiverId);
+  if (nullptr == transceiver.get()) {
+    result_ptr->Error("RtpTransceiverSetCodecPreferences",
+                      " transceiver is null ");
+    return;
+  }
+  std::vector<scoped_refptr<RTCRtpCodecCapability>> codecList;
+  for (auto codec : codecs) {
+    auto codecMap = GetValue<EncodableMap>(codec);
+    auto codecMimeType = findString(codecMap, "mimeType");
+    auto codecClockRate = findInt(codecMap, "clockRate");
+    auto codecNumChannels = findInt(codecMap, "channels");
+    auto codecSdpFmtpLine = findString(codecMap, "sdpFmtpLine");
+    auto codecCapability = RTCRtpCodecCapability::Create();
+    if (codecSdpFmtpLine != std::string())
+      codecCapability->set_sdp_fmtp_line(codecSdpFmtpLine);
+    codecCapability->set_clock_rate(codecClockRate);
+    if (codecNumChannels != -1)
+      codecCapability->set_channels(codecNumChannels);
+    codecCapability->set_mime_type(codecMimeType);
+    codecList.push_back(codecCapability);
+  }
+  transceiver->SetCodecPreferences(codecList);
+  result_ptr->Success();
+}
+
 void FlutterPeerConnection::GetSenders(
     RTCPeerConnection* pc,
     std::unique_ptr<MethodResultProxy> result) {
@@ -758,7 +777,7 @@ EncodableMap statsToMap(const scoped_refptr<MediaRTCStats>& stats) {
   report_map[EncodableValue("type")] =
       EncodableValue(stats->type().std_string());
   report_map[EncodableValue("timestamp")] =
-      EncodableValue(double(stats->timestamp_us()));
+      EncodableValue(static_cast<double>(stats->timestamp_us()));
   EncodableMap values;
   auto members = stats->Members();
   for (int i = 0; i < members.size(); i++) {
@@ -809,7 +828,7 @@ void FlutterPeerConnection::GetStats(
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
   scoped_refptr<RTCMediaTrack> track = base_->MediaTracksForId(track_id);
-  if (track != nullptr) {
+  if (track != nullptr && track_id != "") {
     bool found = false;
     auto receivers = pc->receivers();
     for (auto receiver : receivers.std_vector()) {
@@ -915,13 +934,15 @@ void FlutterPeerConnection::AddTrack(
     streamids.push_back(item.c_str());
   }
   if (0 == kind.compare("audio")) {
-    auto sender = pc->AddTrack((RTCAudioTrack*)track.get(), streamids);
+    auto sender =
+        pc->AddTrack(reinterpret_cast<RTCAudioTrack*>(track.get()), streamids);
     if (sender.get() != nullptr) {
       result_ptr->Success(EncodableValue(rtpSenderToMap(sender)));
       return;
     }
   } else if (0 == kind.compare("video")) {
-    auto sender = pc->AddTrack((RTCVideoTrack*)track.get(), streamids);
+    auto sender =
+        pc->AddTrack(reinterpret_cast<RTCAudioTrack*>(track.get()), streamids);
     if (sender.get() != nullptr) {
       result_ptr->Success(EncodableValue(rtpSenderToMap(sender)));
       return;

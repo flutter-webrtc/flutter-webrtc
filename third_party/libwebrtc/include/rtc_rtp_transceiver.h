@@ -2,6 +2,7 @@
 #define LIB_WEBRTC_RTC_RTP_TRANSCEIVER_HXX
 
 #include "base/refcount.h"
+#include "rtc_rtp_capabilities.h"
 #include "rtc_rtp_parameters.h"
 #include "rtc_rtp_receiver.h"
 #include "rtc_rtp_sender.h"
@@ -55,19 +56,8 @@ class RTCRtpTransceiver : public RefCountInterface {
 
   virtual void StopInternal() = 0;
 
-  // virtual string set_codec_preferences(vector<RTCRtpCodecCapability> codecs)
-  // = 0;
-
-  // virtual vector<RTCRtpCodecCapability> codec_preferences() const = 0;
-
-  // virtual vector<RTCRtpHeaderExtensionCapability> HeaderExtensionsToOffer()
-  // const = 0;
-
-  // virtual std::vector<RTCRtpHeaderExtensionCapability>
-  // HeaderExtensionsNegotiated() const = 0;
-
-  // virtual webrtc::RTCError SetOfferedRtpHeaderExtensions(vector<const
-  // RTCRtpHeaderExtensionCapability> header_extensions_to_offer);
+  virtual void SetCodecPreferences(
+      vector<scoped_refptr<RTCRtpCodecCapability>> codecs) = 0;
 };
 
 }  // namespace libwebrtc

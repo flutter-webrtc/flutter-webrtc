@@ -132,16 +132,9 @@ class RTCRtpSenderNative extends RTCRtpSender {
   @override
   RTCDTMFSender get dtmfSender => _dtmf;
 
+  @Deprecated(
+      'No need to dispose rtpSender as it is handled by peerConnection.')
   @override
   @mustCallSuper
-  Future<void> dispose() async {
-    try {
-      await WebRTC.invokeMethod('rtpSenderDispose', <String, dynamic>{
-        'peerConnectionId': _peerConnectionId,
-        'rtpSenderId': _id,
-      });
-    } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpSender::dispose: ${e.message}';
-    }
-  }
+  Future<void> dispose() async {}
 }

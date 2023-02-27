@@ -371,12 +371,9 @@ void FlutterWebRTC::HandleMethodCall(
     const std::string track_id = findString(params, "trackId");
     const EncodableValue enable = findEncodableValue(params, "enabled");
     RTCMediaTrack* track = MediaTrackForId(track_id);
-    if (nullptr == track) {
-      result->Error("mediaStreamTrackSetEnableFailed",
-                    "mediaStreamTrackSetEnable() track is null");
-      return;
+    if (track != nullptr) {
+      track->set_enabled(GetValue<bool>(enable));
     }
-    track->set_enabled(GetValue<bool>(enable));
     result->Success();
   } else if (method_call.method_name().compare("trackDispose") == 0) {
     if (!method_call.arguments()) {
@@ -534,7 +531,7 @@ void FlutterWebRTC::HandleMethodCall(
       if (renderer->CheckMediaStream(streamId) && 0 == kind.compare("video")) {
         renderer->SetVideoTrack(static_cast<RTCVideoTrack*>(track.get()));
       }
-    };
+    }
   } else if (method_call.method_name().compare("mediaStreamRemoveTrack") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -567,7 +564,7 @@ void FlutterWebRTC::HandleMethodCall(
       if (renderer->CheckVideoTrack(streamId)) {
         renderer->SetVideoTrack(nullptr);
       }
-    };
+    }
   } else if (method_call.method_name().compare("addTrack") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -590,7 +587,7 @@ void FlutterWebRTC::HandleMethodCall(
     if (track == nullptr) {
       result->Error("AddTrack", "AddTrack() track is null");
       return;
-    };
+    }
     std::list<std::string> listId;
     for (EncodableValue value : streamIds) {
       listId.push_back(GetValue<std::string>(value));
@@ -686,32 +683,6 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     GetSenders(pc, std::move(result));
-  } else if (method_call.method_name().compare("rtpSenderDispose") == 0) {
-    if (!method_call.arguments()) {
-      result->Error("Bad Arguments", "Null constraints arguments received");
-      return;
-    }
-    const EncodableMap params =
-        GetValue<EncodableMap>(*method_call.arguments());
-    const std::string peerConnectionId = findString(params, "peerConnectionId");
-
-    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
-    if (pc == nullptr) {
-      result->Error("rtpSenderDispose",
-                    "rtpSenderDispose() peerConnection is null");
-      return;
-    }
-
-    const std::string rtpSenderId = findString(params, "rtpSenderId");
-    if (0 < rtpSenderId.size()) {
-      if (pc == nullptr) {
-        result->Error("rtpSenderDispose",
-                      "rtpSenderDispose() rtpSenderId is null or empty");
-        return;
-      }
-    }
-    RtpSenderDispose(pc, rtpSenderId, std::move(result));
-
   } else if (method_call.method_name().compare("rtpSenderSetTrack") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -794,7 +765,7 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const EncodableMap parameters = findMap(params, "parameters");
-    if (0 < parameters.size()) {
+    if (0 == parameters.size()) {
       result->Error("rtpSenderSetParameters",
                     "rtpSenderSetParameters() parameters is null or empty");
       return;
@@ -945,7 +916,8 @@ void FlutterWebRTC::HandleMethodCall(
       result->Error("captureFrame", "captureFrame() track not is video track");
       return;
     }
-    CaptureFrame((RTCVideoTrack*)track, path, std::move(result));
+    CaptureFrame(reinterpret_cast<RTCVideoTrack*>(track), path,
+                 std::move(result));
 
   } else if (method_call.method_name().compare("createLocalMediaStream") == 0) {
     CreateLocalMediaStream(std::move(result));
@@ -1005,6 +977,112 @@ void FlutterWebRTC::HandleMethodCall(
     dtmfSender->InsertDtmf(tone, duration, gap);
 
     result->Success();
+  } else if (method_call.method_name().compare("getRtpSenderCapabilities") ==
+             0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+    RTCMediaType mediaType = RTCMediaType::AUDIO;
+    const std::string kind = findString(params, "kind");
+    if (0 == kind.compare("video")) {
+      mediaType = RTCMediaType::VIDEO;
+    } else if (0 == kind.compare("audio")) {
+      mediaType = RTCMediaType::AUDIO;
+    } else {
+      result->Error("getRtpSenderCapabilities",
+                    "getRtpSenderCapabilities() kind is null or empty");
+      return;
+    }
+    auto capabilities = factory_->GetRtpSenderCapabilities(mediaType);
+    EncodableMap map;
+    EncodableList codecsList;
+    for (auto codec : capabilities->codecs().std_vector()) {
+      EncodableMap codecMap;
+      codecMap[EncodableValue("mimeType")] =
+          EncodableValue(codec->mime_type().std_string());
+      codecMap[EncodableValue("clockRate")] =
+          EncodableValue(codec->clock_rate());
+      codecMap[EncodableValue("channels")] = EncodableValue(codec->channels());
+      codecMap[EncodableValue("sdpFmtpLine")] =
+          EncodableValue(codec->sdp_fmtp_line().std_string());
+      codecsList.push_back(EncodableValue(codecMap));
+    }
+    map[EncodableValue("codecs")] = EncodableValue(codecsList);
+    map[EncodableValue("headerExtensions")] = EncodableValue(EncodableList());
+    map[EncodableValue("fecMechanisms")] = EncodableValue(EncodableList());
+
+    result->Success(EncodableValue(map));
+  } else if (method_call.method_name().compare("getRtpReceiverCapabilities") ==
+             0) {
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+    RTCMediaType mediaType = RTCMediaType::AUDIO;
+    const std::string kind = findString(params, "kind");
+    if (0 == kind.compare("video")) {
+      mediaType = RTCMediaType::VIDEO;
+    } else if (0 == kind.compare("audio")) {
+      mediaType = RTCMediaType::AUDIO;
+    } else {
+      result->Error("getRtpSenderCapabilities",
+                    "getRtpSenderCapabilities() kind is null or empty");
+      return;
+    }
+    auto capabilities = factory_->GetRtpReceiverCapabilities(mediaType);
+    EncodableMap map;
+    EncodableList codecsList;
+    for (auto codec : capabilities->codecs().std_vector()) {
+      EncodableMap codecMap;
+      codecMap[EncodableValue("mimeType")] =
+          EncodableValue(codec->mime_type().std_string());
+      codecMap[EncodableValue("clockRate")] =
+          EncodableValue(codec->clock_rate());
+      codecMap[EncodableValue("channels")] = EncodableValue(codec->channels());
+      codecMap[EncodableValue("sdpFmtpLine")] =
+          EncodableValue(codec->sdp_fmtp_line().std_string());
+      codecsList.push_back(EncodableValue(codecMap));
+    }
+    map[EncodableValue("codecs")] = EncodableValue(codecsList);
+    map[EncodableValue("headerExtensions")] = EncodableValue(EncodableList());
+    map[EncodableValue("fecMechanisms")] = EncodableValue(EncodableList());
+
+    result->Success(EncodableValue(map));
+  } else if (method_call.method_name().compare("setCodecPreferences") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("setCodecPreferences",
+                    "setCodecPreferences() peerConnection is null");
+      return;
+    }
+
+    const std::string rtpTransceiverId = findString(params, "transceiverId");
+    if (0 < rtpTransceiverId.size()) {
+      if (pc == nullptr) {
+        result->Error(
+            "setCodecPreferences",
+            "setCodecPreferences() rtpTransceiverId is null or empty");
+        return;
+      }
+    }
+
+    const EncodableList codecs = findList(params, "codecs");
+    if (codecs == EncodableList()) {
+      result->Error("Bad Arguments", "Codecs is required");
+      return;
+    }
+    RtpTransceiverSetCodecPreferences(pc, rtpTransceiverId, codecs,
+                                      std::move(result));
   } else {
     result->NotImplemented();
   }
