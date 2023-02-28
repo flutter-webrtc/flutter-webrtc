@@ -118,6 +118,7 @@
 
 - (void)copyI420ToCVPixelBuffer:(CVPixelBufferRef)outputPixelBuffer
                       withFrame:(RTCVideoFrame*)frame {
+    //this way
   id<RTCI420Buffer> i420Buffer = [self correctRotation:[frame.buffer toI420]
                                           withRotation:frame.rotation];
   CVPixelBufferLockBaseAddress(outputPixelBuffer, 0);
@@ -175,6 +176,7 @@
                          width:i420Buffer.width
                         height:i420Buffer.height];
     }
+   
   }
 
   CVPixelBufferUnlockBaseAddress(outputPixelBuffer, 0);
@@ -269,88 +271,24 @@
     [userInfo setObject:[NSString stringWithFormat:@" %d",frame.height] forKey:@"height"];
     [userInfo setObject:[NSString stringWithFormat:@" %d",frame.width] forKey:@"width"];
 
-    UIImage* uiImage = [UIImage imageWithCGImage:cgImage];
-    _myStreamData = UIImagePNGRepresentation(uiImage);//(uiImage, 1.0f);
+    UIImage* uiImage = [UIImage imageWithCGImage:cgImage ];
 
- 
+    
+  
+
     if (isLocalStream) {
 //        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTLocal" object:_myStreamData userInfo:userInfo];
     } else {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTRemote" object:_myStreamData userInfo:userInfo];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTRemote" object:uiImage userInfo:userInfo];
     }
-
+    
     CGImageRelease(cgImage);
+    
 
-    _myStreamData = nil;
+    
 }
 
-- (CVPixelBufferRef)convertToCVPixelBuffer:(RTCVideoFrame*)frame {
-  id<RTCI420Buffer> i420Buffer = [frame.buffer toI420];
-  CVPixelBufferRef outputPixelBuffer;
-  size_t w = (size_t)roundf(i420Buffer.width);
-  size_t h = (size_t)roundf(i420Buffer.height);
-  NSDictionary* pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
-  CVPixelBufferCreate(kCFAllocatorDefault, w, h, kCVPixelFormatType_Lossless_32BGRA,
-                      (__bridge CFDictionaryRef)(pixelAttributes), &outputPixelBuffer);
-  CVPixelBufferLockBaseAddress(outputPixelBuffer, 0);
-  const OSType pixelFormat = CVPixelBufferGetPixelFormatType(outputPixelBuffer);
-  if (pixelFormat == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange ||
-      pixelFormat == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
-      
-      NSLog(@"kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange isRemote : %d",self.isLocalStream);
-    // NV12
-    uint8_t* dstY = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 0);
-    const size_t dstYStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 0);
-    uint8_t* dstUV = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 1);
-    const size_t dstUVStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 1);
 
-    [RTCYUVHelper I420ToNV12:i420Buffer.dataY
-                  srcStrideY:i420Buffer.strideY
-                        srcU:i420Buffer.dataU
-                  srcStrideU:i420Buffer.strideU
-                        srcV:i420Buffer.dataV
-                  srcStrideV:i420Buffer.strideV
-                        dstY:dstY
-                  dstStrideY:(int)dstYStride
-                       dstUV:dstUV
-                 dstStrideUV:(int)dstUVStride
-                       width:i420Buffer.width
-                       width:i420Buffer.height];
-  } else {
-    uint8_t* dst = CVPixelBufferGetBaseAddress(outputPixelBuffer);
-    const size_t bytesPerRow = CVPixelBufferGetBytesPerRow(outputPixelBuffer);
-
-    if (pixelFormat == kCVPixelFormatType_32BGRA) {
-        NSLog(@"kCVPixelFormatType_32BGRA  - isRemote : %d",self.isLocalStream);
-      // Corresponds to libyuv::FOURCC_ARGB
-      [RTCYUVHelper I420ToARGB:i420Buffer.dataY
-                    srcStrideY:i420Buffer.strideY
-                          srcU:i420Buffer.dataU
-                    srcStrideU:i420Buffer.strideU
-                          srcV:i420Buffer.dataV
-                    srcStrideV:i420Buffer.strideV
-                       dstARGB:dst
-                 dstStrideARGB:(int)bytesPerRow
-                         width:i420Buffer.width
-                        height:i420Buffer.height];
-    } else if (pixelFormat == kCVPixelFormatType_32ARGB) {
-        NSLog(@"kCVPixelFormatType_32ARGB isRemote : %d",self.isLocalStream);
-      // Corresponds to libyuv::FOURCC_BGRA
-      [RTCYUVHelper I420ToBGRA:i420Buffer.dataY
-                    srcStrideY:i420Buffer.strideY
-                          srcU:i420Buffer.dataU
-                    srcStrideU:i420Buffer.strideU
-                          srcV:i420Buffer.dataV
-                    srcStrideV:i420Buffer.strideV
-                       dstBGRA:dst
-                 dstStrideBGRA:(int)bytesPerRow
-                         width:i420Buffer.width
-                        height:i420Buffer.height];
-    }
-  }
-  CVPixelBufferUnlockBaseAddress(outputPixelBuffer, 0);
-  return outputPixelBuffer;
-}
 
 /**
  * Sets the size of the video frame to render.
