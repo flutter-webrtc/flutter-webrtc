@@ -21,6 +21,7 @@
                        result:(FlutterResult)result {
   self = [super init];
   if (self) {
+      
     _gotFrame = false;
     _track = track;
     _path = path;
