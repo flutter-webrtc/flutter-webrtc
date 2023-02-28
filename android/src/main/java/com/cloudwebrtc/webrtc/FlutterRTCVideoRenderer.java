@@ -53,7 +53,9 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
                 ConstraintsMap params = new ConstraintsMap();
                 params.putString("event", "didFirstFrameRendered");
                 params.putInt("id", id);
-                eventSink.success(params.toMap());
+                if (eventSink != null) {
+                    eventSink.success(params.toMap());
+                }
             }
 
             @Override
