@@ -3,6 +3,7 @@ package com.cloudwebrtc.webrtc;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
@@ -43,18 +44,22 @@ public class TextureRendererPlugIn {
 
     public long getTextureId() {
         if (unityTextureID != -1) updateTexture();
+        else {
+            bindExternalTexture(1);
+        }
         return unityTextureID;
     }
 
     private VideoTrack videoTrack;
     public void setVideoTrack(VideoTrack videoTrack, long id) {
 //        VideoTrack oldValue = this.videoTrack;
-        if (videoTrack != null) {
-            unityTextureID = (int) id;
-        } else {
-            unityTextureID = -1;
-            Log.e(TAG, "FlutterRTCVideoRenderer" + " FlutterRTCVideoRenderer.setVideoTrack, set video track to null");
-        }
+        if (id == 0) return;
+//        if (videoTrack != null) {
+//            unityTextureID = (int) id;
+//        } else {
+//            unityTextureID = -1;
+//            Log.e(TAG, "FlutterRTCVideoRenderer" + " FlutterRTCVideoRenderer.setVideoTrack, set video track to null");
+//        }
     }
 
     public void onRender(SurfaceTextureRenderer surfaceTextureRenderer, VideoFrame frame) {
@@ -63,6 +68,12 @@ public class TextureRendererPlugIn {
             public void onFrame(Bitmap bitmap) {
                 Log.e("FlutterRTCVideoRenderer", "onFrameAvailable Current thread " + Thread.currentThread().getName());
                 Log.e("RENDER", "onFrame bitmap");
+//                Bitmap bitmap;
+//                final BitmapFactory.Options options = new BitmapFactory.Options();
+//                options.inScaled = false;   // No pre-scaling
+//                options.inPreferredConfig = Bitmap.Config.ARGB_8888; //Unity will create texture in this format
+//                mBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_launcher, options);
+//                if (mBitmap == null) mBitmap = createTestBitmap(300, 300);
                 if (mBitmap == null) mBitmap = bitmap;
             }
         }, 1);
@@ -108,8 +119,13 @@ public class TextureRendererPlugIn {
     }
 
     private int bindExternalTexture(int textureId) {
+        if (unityTextureID == -1) {
+            int[] textures = new int[1];
+            GLES20.glGenTextures(1, textures, 0);
+            unityTextureID = textures[0];
+        }
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                textureId);
+                unityTextureID);
 
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
                 GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
