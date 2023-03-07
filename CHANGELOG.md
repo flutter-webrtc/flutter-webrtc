@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.24] - 2023-03-07
+
+* [iOS] avaudiosession mode changed to AVAudioSessionModeVideoChat (#1285)
+* [macOS] fix memory leak for screen capture.
+
 [0.9.23] - 2023-02-17
 
 * [Windows/Linux] Updated libwebrtc binary for windows/linux to fix two crashes.
