@@ -298,8 +298,8 @@ void FlutterMediaStream::GetSources(std::unique_ptr<MethodResultProxy> result) {
   EncodableList sources;
 
   int nb_audio_devices = base_->audio_device_->RecordingDevices();
-  char strNameUTF8[128];
-  char strGuidUTF8[128];
+  char strNameUTF8[RTCAudioDevice::kAdmMaxDeviceNameSize + 1] = {0};
+  char strGuidUTF8[RTCAudioDevice::kAdmMaxGuidSize + 1] = {0};
 
   for (uint16_t i = 0; i < nb_audio_devices; i++) {
     base_->audio_device_->RecordingDeviceName(i, strNameUTF8, strGuidUTF8);

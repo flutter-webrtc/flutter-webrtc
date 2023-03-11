@@ -146,6 +146,7 @@ class DesktopCapturerNative extends DesktopCapturer {
   @override
   Future<List<DesktopCapturerSource>> getSources(
       {required List<SourceType> types, ThumbnailSize? thumbnailSize}) async {
+    _sources.clear();
     final response = await WebRTC.invokeMethod(
       'getDesktopSources',
       <String, dynamic>{

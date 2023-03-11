@@ -167,4 +167,17 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
       throw 'Unable to RTCRtpTransceiver::stop: ${e.message}';
     }
   }
+
+  @override
+  Future<void> setCodecPreferences(List<RTCRtpCodecCapability> codecs) async {
+    try {
+      await WebRTC.invokeMethod('setCodecPreferences', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'transceiverId': _id,
+        'codecs': codecs.map((e) => e.toMap()).toList()
+      });
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpTransceiver::setCodecPreferences: ${e.message}';
+    }
+  }
 }

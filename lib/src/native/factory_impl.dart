@@ -61,6 +61,28 @@ class RTCFactoryNative extends RTCFactory {
 
   @override
   Navigator get navigator => NavigatorNative.instance;
+
+  @override
+  Future<RTCRtpCapabilities> getRtpReceiverCapabilities(String kind) async {
+    final response = await WebRTC.invokeMethod(
+      'getRtpReceiverCapabilities',
+      <String, dynamic>{
+        'kind': kind,
+      },
+    );
+    return RTCRtpCapabilities.fromMap(response);
+  }
+
+  @override
+  Future<RTCRtpCapabilities> getRtpSenderCapabilities(String kind) async {
+    final response = await WebRTC.invokeMethod(
+      'getRtpSenderCapabilities',
+      <String, dynamic>{
+        'kind': kind,
+      },
+    );
+    return RTCRtpCapabilities.fromMap(response);
+  }
 }
 
 Future<RTCPeerConnection> createPeerConnection(
@@ -72,6 +94,14 @@ Future<RTCPeerConnection> createPeerConnection(
 
 Future<MediaStream> createLocalMediaStream(String label) async {
   return RTCFactoryNative.instance.createLocalMediaStream(label);
+}
+
+Future<RTCRtpCapabilities> getRtpReceiverCapabilities(String kind) async {
+  return RTCFactoryNative.instance.getRtpReceiverCapabilities(kind);
+}
+
+Future<RTCRtpCapabilities> getRtpSenderCapabilities(String kind) async {
+  return RTCFactoryNative.instance.getRtpSenderCapabilities(kind);
 }
 
 MediaRecorder mediaRecorder() {

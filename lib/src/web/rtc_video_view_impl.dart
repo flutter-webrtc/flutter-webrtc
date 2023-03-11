@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -15,12 +14,14 @@ class RTCVideoView extends StatefulWidget {
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirror = false,
     this.filterQuality = FilterQuality.low,
+    this.placeholderBuilder,
   }) : super(key: key);
 
   final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
   final FilterQuality filterQuality;
+  final WidgetBuilder? placeholderBuilder;
 
   @override
   RTCVideoViewState createState() => RTCVideoViewState();
@@ -65,12 +66,7 @@ class RTCVideoViewState extends State<RTCVideoView> {
   }
 
   Widget buildVideoElementView() {
-    return Transform(
-      alignment: Alignment.center,
-      transform: Matrix4.rotationY(videoRenderer.mirror ? pi * -1 : 0),
-      child: HtmlElementView(
-          viewType: 'RTCVideoRenderer-${videoRenderer.textureId}'),
-    );
+    return HtmlElementView(viewType: videoRenderer.viewType);
   }
 
   @override
@@ -83,7 +79,7 @@ class RTCVideoViewState extends State<RTCVideoView> {
             height: constraints.maxHeight,
             child: widget._renderer.renderVideo
                 ? buildVideoElementView()
-                : Container(),
+                : widget.placeholderBuilder?.call(context) ?? Container(),
           ),
         );
       },

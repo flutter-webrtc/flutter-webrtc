@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import io.flutter.plugin.common.MethodChannel;
 
@@ -52,19 +53,31 @@ public class FrameCapturer implements VideoSink {
             i420Buffer.getStrideU(),
             i420Buffer.getStrideV()
         };
-        i420Buffer.release();
         final int chromaWidth = (width + 1) / 2;
         final int chromaHeight = (height + 1) / 2;
         final int minSize = width * height + chromaWidth * chromaHeight * 2;
+
         ByteBuffer yuvBuffer = ByteBuffer.allocateDirect(minSize);
+        // NV21 is the same as NV12, only that V and U are stored in the reverse oder
+        // NV21 (YYYYYYYYY:VUVU)
+        // NV12 (YYYYYYYYY:UVUV)
+        // Therefore we can use the NV12 helper, but swap the U and V input buffers
         YuvHelper.I420ToNV12(y, strides[0], v, strides[2], u, strides[1], yuvBuffer, width, height);
+
+        // For some reason the ByteBuffer may have leading 0. We remove them as
+        // otherwise the
+        // image will be shifted
+        byte[] cleanedArray = Arrays.copyOfRange(yuvBuffer.array(), yuvBuffer.arrayOffset(), minSize);
+
         YuvImage yuvImage = new YuvImage(
-            yuvBuffer.array(),
+            cleanedArray,
             ImageFormat.NV21,
             width,
             height,
-            strides
-        );
+            // We omit the strides here. If they were included, the resulting image would
+            // have its colors offset.
+            null);
+        i420Buffer.release();
         videoFrame.release();
         new Handler(Looper.getMainLooper()).post(() -> {
             videoTrack.removeSink(this);
@@ -112,5 +125,4 @@ public class FrameCapturer implements VideoSink {
             file = null;
         }
     }
-
 }

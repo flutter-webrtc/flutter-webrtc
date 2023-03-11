@@ -191,4 +191,14 @@
       withChannel:channel];
 }
 
+- (void)dataChannel:(RTCDataChannel*)channel didChangeBufferedAmount:(uint64_t)amount {
+  [self sendEvent:@{
+    @"event" : @"dataChannelBufferedAmountChange",
+    @"id" : [NSNumber numberWithInt:channel.channelId],
+    @"bufferedAmount" : [NSNumber numberWithLongLong:channel.bufferedAmount],
+    @"changedAmount" : [NSNumber numberWithLongLong:amount]
+  }
+      withChannel:channel];
+}
+
 @end
