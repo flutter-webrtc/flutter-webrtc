@@ -348,7 +348,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       case "mediaStreamTrackSetEnable": {
         String trackId = call.argument("trackId");
         Boolean enabled = call.argument("enabled");
-        mediaStreamTrackSetEnabled(trackId, enabled);
+        String peerConnectionId = call.argument("peerConnectionId");
+        mediaStreamTrackSetEnabled(trackId, enabled, peerConnectionId);
         result.success(null);
         break;
       }
@@ -470,7 +471,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       case "setVolume": {
         String trackId = call.argument("trackId");
         double volume = call.argument("volume");
-        mediaStreamTrackSetVolume(trackId, volume);
+        String peerConnectionId = call.argument("peerConnectionId");
+        mediaStreamTrackSetVolume(trackId, volume, peerConnectionId);
         result.success(null);
         break;
       }
@@ -512,8 +514,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           String path = call.argument("path");
           VideoTrack videoTrack = null;
           String videoTrackId = call.argument("videoTrackId");
+          String peerConnectionId = call.argument("peerConnectionId");
           if (videoTrackId != null) {
-            MediaStreamTrack track = getTrackForId(videoTrackId);
+            MediaStreamTrack track = getTrackForId(videoTrackId, peerConnectionId);
             if (track instanceof VideoTrack) {
               videoTrack = (VideoTrack) track;
             }
@@ -539,11 +542,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         getUserMediaImpl.stopRecording(recorderId);
         result.success(null);
         break;
-      case "captureFrame":
+      case "captureFrame": {
         String path = call.argument("path");
         String videoTrackId = call.argument("trackId");
+        String peerConnectionId = call.argument("peerConnectionId");
         if (videoTrackId != null) {
-          MediaStreamTrack track = getTrackForId(videoTrackId);
+          MediaStreamTrack track = getTrackForId(videoTrackId, peerConnectionId);
           if (track instanceof VideoTrack) {
             new FrameCapturer((VideoTrack) track, new File(path), result);
           } else {
@@ -553,6 +557,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           resultError("captureFrame", "Track is null", result);
         }
         break;
+      }
       case "getLocalDescription": {
         String peerConnectionId = call.argument("peerConnectionId");
         PeerConnection peerConnection = getPeerConnection(peerConnectionId);
@@ -1094,7 +1099,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     do {
       uuid = UUID.randomUUID().toString();
-    } while (getTrackForId(uuid) != null);
+    } while (getTrackForId(uuid, null) != null);
 
     return uuid;
   }
@@ -1140,11 +1145,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     return stream;
   }
 
-  private MediaStreamTrack getTrackForId(String trackId) {
+  private MediaStreamTrack getTrackForId(String trackId, String peerConnectionId) {
     MediaStreamTrack track = localTracks.get(trackId);
 
     if (track == null) {
       for (Entry<String, PeerConnectionObserver> entry : mPeerConnectionObservers.entrySet()) {
+        if (peerConnectionId != null && entry.getKey().compareTo(peerConnectionId) != 0)
+          continue;
+
         PeerConnectionObserver pco = entry.getValue();
         track = pco.remoteTracks.get(trackId);
 
@@ -1278,8 +1286,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     localTracks.remove(trackId);
   }
 
-  public void mediaStreamTrackSetEnabled(final String id, final boolean enabled) {
-    MediaStreamTrack track = getTrackForId(id);
+  public void mediaStreamTrackSetEnabled(final String id, final boolean enabled, String peerConnectionId) {
+    MediaStreamTrack track = getTrackForId(id, peerConnectionId);
 
     if (track == null) {
       Log.d(TAG, "mediaStreamTrackSetEnabled() track is null");
@@ -1290,8 +1298,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     track.setEnabled(enabled);
   }
 
-  public void mediaStreamTrackSetVolume(final String id, final double volume) {
-    MediaStreamTrack track = getTrackForId(id);
+  public void mediaStreamTrackSetVolume(final String id, final double volume, String peerConnectionId) {
+    MediaStreamTrack track = getTrackForId(id, null);
     if (track instanceof AudioTrack) {
       Log.d(TAG, "setVolume(): " + id + "," + volume);
       try {
@@ -1307,7 +1315,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void mediaStreamAddTrack(final String streamId, final String trackId, Result result) {
     MediaStream mediaStream = localStreams.get(streamId);
     if (mediaStream != null) {
-      MediaStreamTrack track = getTrackForId(trackId);//localTracks.get(trackId);
+      MediaStreamTrack track = getTrackForId(trackId, null);//localTracks.get(trackId);
       if (track != null) {
         String kind = track.kind();
         if (kind.equals("audio")) {

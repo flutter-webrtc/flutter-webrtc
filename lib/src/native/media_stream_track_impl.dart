@@ -9,23 +9,26 @@ import '../helper.dart';
 import 'utils.dart';
 
 class MediaStreamTrackNative extends MediaStreamTrack {
-  MediaStreamTrackNative(this._trackId, this._label, this._kind, this._enabled);
+  MediaStreamTrackNative(this._trackId, this._label, this._kind, this._enabled, this._peerConnectionId);
 
-  factory MediaStreamTrackNative.fromMap(Map<dynamic, dynamic> map) {
+  factory MediaStreamTrackNative.fromMap(Map<dynamic, dynamic> map, String peerConnectionId) {
     return MediaStreamTrackNative(
-        map['id'], map['label'], map['kind'], map['enabled']);
+        map['id'], map['label'], map['kind'], map['enabled'], peerConnectionId);
   }
   final String _trackId;
   final String _label;
   final String _kind;
+  final String _peerConnectionId;
   bool _enabled;
 
   bool _muted = false;
 
+  String get peerConnectionId => _peerConnectionId;
+
   @override
   set enabled(bool enabled) {
     WebRTC.invokeMethod('mediaStreamTrackSetEnable',
-        <String, dynamic>{'trackId': _trackId, 'enabled': enabled});
+        <String, dynamic>{'trackId': _trackId, 'enabled': enabled, 'peerConnectionId': _peerConnectionId});
     _enabled = enabled;
 
     if (kind == 'audio') {
@@ -77,6 +80,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
       'captureFrame',
       <String, dynamic>{
         'trackId': _trackId,
+        'peerConnectionId': _peerConnectionId,
         'path': '${filePath.path}/captureFrame.png'
       },
     );

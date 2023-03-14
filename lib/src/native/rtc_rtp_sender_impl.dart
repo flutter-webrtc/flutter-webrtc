@@ -19,7 +19,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
     return RTCRtpSenderNative(
         map['senderId'],
         (trackMap.isNotEmpty)
-            ? MediaStreamTrackNative.fromMap(map['track'])
+            ? MediaStreamTrackNative.fromMap(map['track'], peerConnectionId)
             : null,
         RTCDTMFSenderNative(peerConnectionId, map['senderId']),
         RTCRtpParameters.fromMap(map['rtpParameters']),
