@@ -5,6 +5,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
+class VideoSize {
+  VideoSize(this.width, this.height);
+
+  factory VideoSize.fromString(String size) {
+    final parts = size.split('x');
+    return VideoSize(int.parse(parts[0]), int.parse(parts[1]));
+  }
+  final int width;
+  final int height;
+
+  @override
+  String toString() {
+    return '$width x $height';
+  }
+}
+
 /*
  * DeviceEnumerationSample
  */
@@ -34,9 +50,13 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
       _devices.where((device) => device.kind == 'videoinput').toList();
 
   MediaDeviceInfo get selectedAudioInput => audioInputs.firstWhere(
-      (device) => device.deviceId == _selectedAudioInputId,
+      (device) => device.deviceId == _selectedVideoInputId,
       orElse: () => audioInputs.first);
-  String? _selectedAudioInputId;
+  String? _selectedVideoInputId;
+
+  String? _selectedVideoFPS = '30';
+
+  VideoSize _selectedVideoSize = VideoSize(1280, 720);
 
   @override
   void initState() {
@@ -114,14 +134,22 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     });
   }
 
-  Future<void> _selectVideoInput(String deviceId) async {
-    _selectedAudioInputId = deviceId;
-    /*
-    1) restart PCs.
+  Future<void> _selectVideoFps(String fps) async {
+    _selectedVideoFPS = fps;
     await _stop();
-    await _start(); 
-    */
+    await _start();
+    setState(() {});
+  }
 
+  Future<void> _selectVideoSize(String size) async {
+    _selectedVideoSize = VideoSize.fromString(size);
+    await _stop();
+    await _start();
+    setState(() {});
+  }
+
+  Future<void> _selectVideoInput(String deviceId) async {
+    _selectedVideoInputId = deviceId;
     // 2) replace track.
     // stop old track.
     _localRenderer.srcObject = null;
@@ -131,14 +159,15 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     var newLocalStream = await navigator.mediaDevices.getUserMedia({
       'audio': false,
       'video': {
-        if (_selectedAudioInputId != null && kIsWeb)
-          'deviceId': _selectedAudioInputId,
-        if (_selectedAudioInputId != null && !kIsWeb)
+        if (_selectedVideoInputId != null && kIsWeb)
+          'deviceId': _selectedVideoInputId,
+        if (_selectedVideoInputId != null && !kIsWeb)
           'optional': [
-            {'sourceId': _selectedAudioInputId}
+            {'sourceId': _selectedVideoInputId}
           ],
-        'width': {'ideal': 640},
-        'height': {'ideal': 480}
+        'width': _selectedVideoSize.width,
+        'height': _selectedVideoSize.height,
+        'frameRate': _selectedVideoFPS,
       },
     });
     _localRenderer.srcObject = newLocalStream;
@@ -159,14 +188,15 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
       _localStream = await navigator.mediaDevices.getUserMedia({
         'audio': false,
         'video': {
-          if (_selectedAudioInputId != null && kIsWeb)
-            'deviceId': _selectedAudioInputId,
-          if (_selectedAudioInputId != null && !kIsWeb)
+          if (_selectedVideoInputId != null && kIsWeb)
+            'deviceId': _selectedVideoInputId,
+          if (_selectedVideoInputId != null && !kIsWeb)
             'optional': [
-              {'sourceId': _selectedAudioInputId}
+              {'sourceId': _selectedVideoInputId}
             ],
-          'width': {'ideal': 640},
-          'height': {'ideal': 480}
+          'width': _selectedVideoSize.width,
+          'height': _selectedVideoSize.height,
+          'frameRate': _selectedVideoFPS,
         },
       });
       _localRenderer.srcObject = _localStream;
@@ -194,6 +224,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
       await _localStream?.dispose();
       _localStream = null;
       _localRenderer.srcObject = null;
+      _remoteRenderer.srcObject = null;
       _inCalling = false;
       await stopPCs();
       setState(() {});
@@ -220,6 +251,44 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
                   child: Text(device.label),
                 );
               }).toList();
+            },
+          ),
+          PopupMenuButton<String>(
+            onSelected: _selectVideoFps,
+            icon: Icon(Icons.menu),
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem<String>(
+                  value: _selectedVideoFPS,
+                  child: Text('Select FPS ($_selectedVideoFPS)'),
+                ),
+                PopupMenuDivider(),
+                ...['8', '15', '30', '60']
+                    .map((fps) => PopupMenuItem<String>(
+                          value: fps,
+                          child: Text(fps),
+                        ))
+                    .toList()
+              ];
+            },
+          ),
+          PopupMenuButton<String>(
+            onSelected: _selectVideoSize,
+            icon: Icon(Icons.screenshot_monitor),
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem<String>(
+                  value: _selectedVideoSize.toString(),
+                  child: Text('Select Video Size ($_selectedVideoSize)'),
+                ),
+                PopupMenuDivider(),
+                ...['320x240', '640x480', '1280x720', '1920x1080']
+                    .map((fps) => PopupMenuItem<String>(
+                          value: fps,
+                          child: Text(fps),
+                        ))
+                    .toList()
+              ];
             },
           ),
         ],
