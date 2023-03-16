@@ -8,6 +8,7 @@
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
+#import <WebRTC/RTCFieldTrials.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wprotocol"
@@ -82,6 +83,9 @@
 
   _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:simulcastFactory
                                                                      decoderFactory:decoderFactory];
+
+  NSDictionary *fieldTrials = @{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue};
+  RTCInitFieldTrialDictionary(fieldTrials);
 
   self.peerConnections = [NSMutableDictionary new];
   self.localStreams = [NSMutableDictionary new];
