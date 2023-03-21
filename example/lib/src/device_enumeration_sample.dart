@@ -170,9 +170,10 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
         'frameRate': _selectedVideoFPS,
       },
     });
-    _localRenderer.srcObject = newLocalStream;
+    _localStream = newLocalStream;
+    _localRenderer.srcObject = _localStream;
     // replace track.
-    var newTrack = newLocalStream.getVideoTracks().first;
+    var newTrack = _localStream?.getVideoTracks().first;
     var sender =
         senders.firstWhereOrNull((sender) => sender.track?.kind == 'video');
     await sender?.replaceTrack(newTrack);
@@ -225,6 +226,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
       _localStream = null;
       _localRenderer.srcObject = null;
       _remoteRenderer.srcObject = null;
+      senders.clear();
       _inCalling = false;
       await stopPCs();
       setState(() {});
