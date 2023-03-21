@@ -153,9 +153,12 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     // 2) replace track.
     // stop old track.
     _localRenderer.srcObject = null;
-    _localStream?.getTracks().forEach((track) {
-      track.stop();
+
+    _localStream?.getTracks().forEach((track) async {
+      await track.stop();
     });
+    await _localStream?.dispose();
+
     var newLocalStream = await navigator.mediaDevices.getUserMedia({
       'audio': false,
       'video': {

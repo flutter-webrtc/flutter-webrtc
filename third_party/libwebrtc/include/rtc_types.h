@@ -28,7 +28,7 @@ using map = std::map<Key, T>;
 
 enum class MediaSecurityType { kSRTP_None = 0, kSDES_SRTP, kDTLS_SRTP };
 
-enum class RTCMediaType { ANY, AUDIO, VIDEO, DATA };
+enum class RTCMediaType { AUDIO, VIDEO, DATA, UNSUPPORTED };
 
 using string = portable::string;
 
@@ -82,7 +82,7 @@ struct RTCConfiguration {
   int ice_candidate_pool_size = 0;
 
   MediaSecurityType srtp_type = MediaSecurityType::kDTLS_SRTP;
-  SdpSemantics sdp_semantics = SdpSemantics::kPlanB;
+  SdpSemantics sdp_semantics = SdpSemantics::kUnifiedPlan;
   bool offer_to_receive_audio = true;
   bool offer_to_receive_video = true;
   // private
