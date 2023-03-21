@@ -222,9 +222,9 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
 
   Future<void> _stop() async {
     try {
-      if (kIsWeb) {
-        _localStream?.getTracks().forEach((track) => track.stop());
-      }
+      _localStream?.getTracks().forEach((track) async {
+        await track.stop();
+      });
       await _localStream?.dispose();
       _localStream = null;
       _localRenderer.srcObject = null;
