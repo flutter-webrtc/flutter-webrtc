@@ -100,7 +100,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         this.surfaceTextureRenderer = new SurfaceTextureRenderer("");
         listenRendererEvents();
         surfaceTextureRenderer.init(EglUtils.getRootEglBaseContext(), rendererEvents);
-        surfaceTextureRenderer.surfaceCreated(texture, false);
+        surfaceTextureRenderer.surfaceCreated(texture, null, false);
 
         this.texture = texture;
         this.eventSink = null;
@@ -152,7 +152,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             videoTrack = videoTracks.isEmpty() ? null : videoTracks.get(0);
         }
 
-        if (isLocal || mediaStream == null) syncVideoStream(videoTrack);
+        syncVideoStream(videoTrack);
         setVideoTrack(isLocal, videoTrack);
     }
    /**
@@ -182,12 +182,12 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             }
         }
 
-        if (!isLocal || mediaStream == null) syncVideoStream(videoTrack);
+        syncVideoStream(videoTrack);
         setVideoTrack(isLocal, videoTrack);
     }
 
     private void syncVideoStream(VideoTrack videoTrack) {
-        if (TextureRendererPlugIn.getInstance() != null) TextureRendererPlugIn.getInstance().setVideoTrack(videoTrack, entry.id());
+        if (TextureRendererPlugIn.getInstance() != null) TextureRendererPlugIn.getInstance().setVideoTrack(videoTrack);
     }
 
     /**
@@ -237,7 +237,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             surfaceTextureRenderer.release();
             listenRendererEvents();
             surfaceTextureRenderer.init(sharedContext, rendererEvents);
-            surfaceTextureRenderer.surfaceCreated(texture, isLocal);
+            surfaceTextureRenderer.surfaceCreated(texture, videoTrack.id(), isLocal);
 
             videoTrack.addSink(surfaceTextureRenderer);
         }

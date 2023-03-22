@@ -220,11 +220,10 @@
   // Notify the Flutter new pixelBufferRef to be ready.
   dispatch_async(dispatch_get_main_queue(), ^{
     FlutterRTCVideoRenderer* strongSelf = weakSelf;
-    [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
-      if(strongSelf.isLocalStream == false){
-          [strongSelf sendFrameToMyRender:frame];
+      if (!strongSelf.isLocalStream) {
+          [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
       }
-   
+    [strongSelf sendFrameToMyRender:frame];
     if (!strongSelf->_isFirstFrameRendered) {
       if (strongSelf.eventSink) {
         strongSelf.eventSink(@{@"event" : @"didFirstFrameRendered"});
@@ -271,21 +270,15 @@
     [userInfo setObject:[NSString stringWithFormat:@" %d",frame.height] forKey:@"height"];
     [userInfo setObject:[NSString stringWithFormat:@" %d",frame.width] forKey:@"width"];
 
-    UIImage* uiImage = [UIImage imageWithCGImage:cgImage ];
-
-    
-  
+    UIImage* uiImage = [UIImage imageWithCGImage:cgImage];
 
     if (isLocalStream) {
-//        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTLocal" object:_myStreamData userInfo:userInfo];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTLocal" object:uiImage userInfo:userInfo];
     } else {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTRemote" object:uiImage userInfo:userInfo];
     }
     
     CGImageRelease(cgImage);
-    
-
-    
 }
 
 

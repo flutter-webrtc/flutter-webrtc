@@ -3,10 +3,6 @@ package com.cloudwebrtc.webrtc;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.util.Log;
@@ -15,13 +11,13 @@ import org.webrtc.EglRenderer;
 import org.webrtc.VideoFrame;
 import org.webrtc.VideoTrack;
 
-import java.util.Random;
+import java.util.ArrayList;
 
 public class TextureRendererPlugIn {
 
     private static TextureRendererPlugIn _instance;
 
-    private static int unityTextureID = -1;
+    private static final ArrayList<TextureEntity> listUnityTexture = new ArrayList<>();
 
     private static String TAG = "FlutterRTCVideoRenderer";
 
@@ -42,27 +38,46 @@ public class TextureRendererPlugIn {
         return _instance;
     }
 
-    public long getTextureId() {
-        if (unityTextureID != -1) updateTexture();
-        else {
-            bindExternalTexture(1);
+    public long getTextureId(String itemId) {
+        if (itemId.equals("refreshView")) {
+            for (TextureEntity data : listUnityTexture) {
+                if (data.isCreatedExternalTexture()) {
+                    updateTexture(data);
+                }
+            }
+            return;
         }
-        return unityTextureID;
+        if (listUnityTexture.size() > 0) {
+            for (TextureEntity data : listUnityTexture) {
+                if (data.getItemId().equals(itemId)) {
+                    if (data.isCreatedExternalTexture()) {
+                        updateTexture(data);
+                    } else {
+                        bindExternalTexture(data);
+                    }
+                    return data.getExternalTextureId();
+                }
+            }
+        }
+        return -1;
     }
 
-    private VideoTrack videoTrack;
-    public void setVideoTrack(VideoTrack videoTrack, long id) {
-//        VideoTrack oldValue = this.videoTrack;
-        if (id == 0) return;
-//        if (videoTrack != null) {
-//            unityTextureID = (int) id;
-//        } else {
-//            unityTextureID = -1;
-//            Log.e(TAG, "FlutterRTCVideoRenderer" + " FlutterRTCVideoRenderer.setVideoTrack, set video track to null");
-//        }
+    public void setVideoTrack(VideoTrack videoTrack) {
+        for (TextureEntity data : listUnityTexture) {
+            if (data.getVideoTrackId().equals(videoTrack.id())) {
+                return;
+            }
+        }
+        TextureEntity newTextureEntity = new TextureEntity();
+        newTextureEntity.setItemId("item-" + listUnityTexture.size());
+        newTextureEntity.setBitmap(null);
+        newTextureEntity.setVideoTrackId(videoTrack.id());
+        newTextureEntity.setCreatedExternalTexture(false);
+        newTextureEntity.setExternalTextureId(-1);
+        listUnityTexture.add(newTextureEntity);
     }
 
-    public void onRender(SurfaceTextureRenderer surfaceTextureRenderer, VideoFrame frame) {
+    public void onRender(SurfaceTextureRenderer surfaceTextureRenderer, String textureId, VideoFrame frame) {
         surfaceTextureRenderer.addFrameListener(new EglRenderer.FrameListener() {
             @Override
             public void onFrame(Bitmap bitmap) {
@@ -74,24 +89,22 @@ public class TextureRendererPlugIn {
 //                options.inPreferredConfig = Bitmap.Config.ARGB_8888; //Unity will create texture in this format
 //                mBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_launcher, options);
 //                if (mBitmap == null) mBitmap = createTestBitmap(300, 300);
-                if (mBitmap == null) mBitmap = bitmap;
+                for (TextureEntity data : listUnityTexture) {
+                    if (data.getVideoTrackId().equals(textureId)) {
+                        if (data.getBitmap() == null) data.setBitmap(bitmap);
+                        return;
+                    }
+                }
             }
         }, 1);
     }
 
-    public void onRender(VideoFrame.Buffer frame) {
-        Log.e("FlutterRTCVideoRenderer", "onFrameAvailable Current thread " + Thread.currentThread().getName());
-        Log.e("RENDER", "onFrame " + frame.toString());
-    }
-
-    Bitmap mBitmap;
-    public int updateTexture() {
-        if (mBitmap == null) return - 1;
-        Log.e(TAG, "FlutterRTCVideoRenderer unityTextureID " + unityTextureID);
+    public void updateTexture(TextureEntity textureEntity) {
+        if (textureEntity.getBitmap() == null) return;
 
         checkGlError("begin_updateTexture()");
         //create new texture
-        bindExternalTexture(unityTextureID);
+        bindExternalTexture(textureEntity);
         Log.d(TAG, "Loading image");
 
 //        Bitmap bitmap;
@@ -110,23 +123,22 @@ public class TextureRendererPlugIn {
 
         // Load the bitmap into the bound texture.
         checkGlError("beforeTexImage");
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, mBitmap, 0);
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textureEntity.getBitmap(), 0);
 
         checkGlError("texImage");
-        mBitmap.recycle();
-        mBitmap = null;
-        return unityTextureID;
+        textureEntity.getBitmap().recycle();
+        textureEntity.setBitmap(null);
     }
 
-    private int bindExternalTexture(int textureId) {
-        if (unityTextureID == -1) {
+    private void bindExternalTexture(TextureEntity textureEntity) {
+        if (!textureEntity.isCreatedExternalTexture()) {
             int[] textures = new int[1];
             GLES20.glGenTextures(1, textures, 0);
-            unityTextureID = textures[0];
+            textureEntity.setExternalTextureId(textures[0]);
+            textureEntity.setCreatedExternalTexture(true);
         }
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                unityTextureID);
-
+                textureEntity.getExternalTextureId());
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
                 GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
@@ -135,27 +147,73 @@ public class TextureRendererPlugIn {
                 GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D,
                 GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-
-        return textureId;
     }
 
-    public static Bitmap createTestBitmap(int w, int h) {
-        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-
-        int colors[] = new int[] { Color.BLUE, Color.GREEN, Color.RED,
-                Color.YELLOW, Color.WHITE };
-        Random rgen = new Random();
-        int color = colors[rgen.nextInt(colors.length - 1)];
-
-        canvas.drawColor(color);
-        return bitmap;
-    }
+//    public static Bitmap createTestBitmap(int w, int h) {
+//        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+//        Canvas canvas = new Canvas(bitmap);
+//
+//        int colors[] = new int[] { Color.BLUE, Color.GREEN, Color.RED,
+//                Color.YELLOW, Color.WHITE };
+//        Random rgen = new Random();
+//        int color = colors[rgen.nextInt(colors.length - 1)];
+//
+//        canvas.drawColor(color);
+//        return bitmap;
+//    }
 
     private void checkGlError(String op) {
         int error;
         while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
             Log.e(TAG, op + ": glError 0x" + Integer.toHexString(error));
         }
+    }
+}
+
+class TextureEntity {
+    private String itemId; // item-0, item-1
+    private Bitmap bitmap; // Image bitmap for this texture
+    private String videoTrackId;
+    private boolean isCreatedExternalTexture;
+    private int externalTextureId;
+
+    public String getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
+    }
+
+    public Bitmap getBitmap() {
+        return bitmap;
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        this.bitmap = bitmap;
+    }
+
+    public String getVideoTrackId() {
+        return videoTrackId;
+    }
+
+    public void setVideoTrackId(String videoTrackId) {
+        this.videoTrackId = videoTrackId;
+    }
+
+    public boolean isCreatedExternalTexture() {
+        return isCreatedExternalTexture;
+    }
+
+    public void setCreatedExternalTexture(boolean createdExternalTexture) {
+        isCreatedExternalTexture = createdExternalTexture;
+    }
+
+    public int getExternalTextureId() {
+        return externalTextureId;
+    }
+
+    public void setExternalTextureId(int externalTextureId) {
+        this.externalTextureId = externalTextureId;
     }
 }
