@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../src/native/media_stream_track_impl.dart';
+
 import '../flutter_webrtc.dart';
 
 class Helper {
@@ -125,7 +127,8 @@ class Helper {
       } else {
         await WebRTC.invokeMethod(
           'setVolume',
-          <String, dynamic>{'trackId': track.id, 'volume': volume},
+          <String, dynamic>{'trackId': track.id, 'volume': volume,
+          'peerConnectionId': track is MediaStreamTrackNative ? track.peerConnectionId : null}
         );
       }
     }
