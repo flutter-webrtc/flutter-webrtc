@@ -20,7 +20,7 @@ void main() {
   if (WebRTC.platformIsDesktop) {
     debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
   } else if (WebRTC.platformIsAndroid) {
-    startForegroundService();
+    //startForegroundService();
   }
   runApp(MyApp());
 }

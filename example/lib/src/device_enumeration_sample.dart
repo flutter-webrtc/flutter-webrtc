@@ -136,20 +136,27 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
 
   Future<void> _selectVideoFps(String fps) async {
     _selectedVideoFPS = fps;
-    await _stop();
-    await _start();
+    if (!_inCalling) {
+      return;
+    }
+    await _selectVideoInput(_selectedVideoInputId);
     setState(() {});
   }
 
   Future<void> _selectVideoSize(String size) async {
     _selectedVideoSize = VideoSize.fromString(size);
-    await _stop();
-    await _start();
+    if (!_inCalling) {
+      return;
+    }
+    await _selectVideoInput(_selectedVideoInputId);
     setState(() {});
   }
 
-  Future<void> _selectVideoInput(String deviceId) async {
+  Future<void> _selectVideoInput(String? deviceId) async {
     _selectedVideoInputId = deviceId;
+    if (!_inCalling) {
+      return;
+    }
     // 2) replace track.
     // stop old track.
     _localRenderer.srcObject = null;
