@@ -378,7 +378,7 @@ class GetUserMediaImpl {
 
         ConstraintsMap settings = new ConstraintsMap();
         settings.putString("deviceId", deviceId);
-        settings.putString("group", "audioinput");
+        settings.putString("kind", "audioinput");
         settings.putBoolean("autoGainControl", true);
         settings.putBoolean("echoCancellation", true);
         settings.putBoolean("noiseSuppression", true);
@@ -777,7 +777,7 @@ class GetUserMediaImpl {
 
         ConstraintsMap settings = new ConstraintsMap();
         settings.putString("deviceId", deviceId);
-        settings.putString("group", "videoinput");
+        settings.putString("kind", "videoinput");
         settings.putInt("width", info.width);
         settings.putInt("height", info.height);
         settings.putInt("frameRate", info.fps);
