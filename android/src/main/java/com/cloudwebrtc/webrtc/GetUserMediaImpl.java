@@ -311,6 +311,10 @@ class GetUserMediaImpl {
      */
     private String getSourceIdConstraint(ConstraintsMap mediaConstraints) {
         if (mediaConstraints != null
+                && mediaConstraints.hasKey("deviceId")) {
+            return mediaConstraints.getString("deviceId");
+        }
+        if (mediaConstraints != null
                 && mediaConstraints.hasKey("optional")
                 && mediaConstraints.getType("optional") == ObjectType.Array) {
             ConstraintsArray optional = mediaConstraints.getArray("optional");
@@ -331,15 +335,14 @@ class GetUserMediaImpl {
 
     private ConstraintsMap getUserAudio(ConstraintsMap constraints, MediaStream stream) {
         AudioSwitchManager.instance.start();
-        MediaConstraints audioConstraints;
+        MediaConstraints audioConstraints = new MediaConstraints();
+        String deviceId = null;
         if (constraints.getType("audio") == ObjectType.Boolean) {
-            audioConstraints = new MediaConstraints();
             addDefaultAudioConstraints(audioConstraints);
         } else {
             audioConstraints = MediaConstraintsUtils.parseMediaConstraints(constraints.getMap("audio"));
+            deviceId =  getSourceIdConstraint(constraints.getMap("audio"));
         }
-
-        String sourceId = ""; //TODO:
 
         Log.i(TAG, "getUserMedia(audio): " + audioConstraints);
 
@@ -347,14 +350,25 @@ class GetUserMediaImpl {
         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
         AudioSource audioSource = pcFactory.createAudioSource(audioConstraints);
 
+        if(deviceId == null) {
+            android.media.AudioManager audioManager = ((android.media.AudioManager) stateProvider.getActivity().getApplicationContext()
+                    .getSystemService(Context.AUDIO_SERVICE));
+            final AudioDeviceInfo[] devices = audioManager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS);
+            if(devices.length > 0) {
+                deviceId = "0";
+            }
+        }
+
+        if(deviceId != null) {
+            setPreferredInputDevice(Integer.parseInt(deviceId));
+        }
+
         AudioTrack track =  pcFactory.createAudioTrack(trackId, audioSource);
         stream.addTrack(track);
 
         stateProvider.putLocalTrack(track.id(), track);
 
-
         ConstraintsMap trackParams = new ConstraintsMap();
-
         trackParams.putBoolean("enabled", track.enabled());
         trackParams.putString("id", track.id());
         trackParams.putString("kind", "audio");
@@ -363,13 +377,13 @@ class GetUserMediaImpl {
         trackParams.putBoolean("remote", false);
 
         ConstraintsMap settings = new ConstraintsMap();
-        settings.putString("deviceId", sourceId);
+        settings.putString("deviceId", deviceId);
         settings.putString("group", "audioinput");
         settings.putBoolean("autoGainControl", true);
-        settings.putInt("channelCount", 1);
         settings.putBoolean("echoCancellation", true);
-        settings.putInt("latency", 0);
         settings.putBoolean("noiseSuppression", true);
+        settings.putInt("channelCount", 1);
+        settings.putInt("latency", 0);
         trackParams.putMap("settings", settings.toMap());
 
         return trackParams;
@@ -694,19 +708,19 @@ class GetUserMediaImpl {
 
         String facingMode = getFacingMode(videoConstraintsMap);
         isFacing = facingMode == null || !facingMode.equals("environment");
-        String sourceId = getSourceIdConstraint(videoConstraintsMap);
+        String deviceId = getSourceIdConstraint(videoConstraintsMap);
 
-        Map<String, VideoCapturer> result = createVideoCapturer(cameraEnumerator, isFacing, sourceId);
+        Map<String, VideoCapturer> result = createVideoCapturer(cameraEnumerator, isFacing, deviceId);
 
         if (result == null) {
             return null;
         }
 
-        if(sourceId == null) {
-            sourceId = result.keySet().iterator().next();
+        if(deviceId == null) {
+            deviceId = result.keySet().iterator().next();
         }
 
-        VideoCapturer videoCapturer = result.get(sourceId);
+        VideoCapturer videoCapturer = result.get(deviceId);
 
         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
         VideoSource videoSource = pcFactory.createVideoSource(false);
@@ -762,7 +776,7 @@ class GetUserMediaImpl {
         trackParams.putBoolean("remote", false);
 
         ConstraintsMap settings = new ConstraintsMap();
-        settings.putString("deviceId", sourceId);
+        settings.putString("deviceId", deviceId);
         settings.putString("group", "videoinput");
         settings.putInt("width", info.width);
         settings.putInt("height", info.height);
