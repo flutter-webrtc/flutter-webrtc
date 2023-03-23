@@ -134,6 +134,12 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
       }
     }
 
+    if (sourceId == "") {
+      base_->audio_device_->RecordingDeviceName(0, strRecordingName,
+                                                strRecordingGuid);
+      sourceId = strRecordingGuid;
+    }
+
     char strPlayoutName[256];
     char strPlayoutGuid[256];
     for (uint16_t i = 0; i < playout_devices; i++) {
@@ -159,6 +165,16 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
     track_info[EncodableValue("kind")] =
         EncodableValue(track->kind().std_string());
     track_info[EncodableValue("enabled")] = EncodableValue(track->enabled());
+
+    EncodableMap settings;
+    settings[EncodableValue("deviceId")] = EncodableValue(sourceId);
+    settings[EncodableValue("kind")] = EncodableValue("audioinput");
+    settings[EncodableValue("autoGainControl")] = EncodableValue(true);
+    settings[EncodableValue("echoCancellation")] = EncodableValue(true);
+    settings[EncodableValue("noiseSuppression")] = EncodableValue(true);
+    settings[EncodableValue("channelCount")] = EncodableValue(1);
+    settings[EncodableValue("latency")] = EncodableValue(0);
+    track_info[EncodableValue("settings")] = EncodableValue(settings);
 
     EncodableList audioTracks;
     audioTracks.push_back(EncodableValue(track_info));
@@ -264,6 +280,7 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
 
   if (!video_capturer.get()) {
     base_->video_device_->GetDeviceName(0, strNameUTF8, 128, strGuidUTF8, 128);
+    sourceId = strGuidUTF8;
     video_capturer =
         base_->video_device_->Create(strNameUTF8, 0, width, height, fps);
   }
@@ -286,6 +303,15 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   info[EncodableValue("label")] = EncodableValue(track->id().std_string());
   info[EncodableValue("kind")] = EncodableValue(track->kind().std_string());
   info[EncodableValue("enabled")] = EncodableValue(track->enabled());
+
+  EncodableMap settings;
+  settings[EncodableValue("deviceId")] = EncodableValue(sourceId);
+  settings[EncodableValue("kind")] = EncodableValue("videoinput");
+  settings[EncodableValue("width")] = EncodableValue(width);
+  settings[EncodableValue("height")] = EncodableValue(width);
+  settings[EncodableValue("frameRate")] = EncodableValue(fps);
+  info[EncodableValue("settings")] = EncodableValue(settings);
+
   videoTracks.push_back(EncodableValue(info));
   params[EncodableValue("videoTracks")] = EncodableValue(videoTracks);
 
