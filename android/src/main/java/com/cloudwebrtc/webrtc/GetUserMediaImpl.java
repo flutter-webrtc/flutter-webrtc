@@ -245,19 +245,20 @@ class GetUserMediaImpl {
      * @return VideoCapturer can invoke with <tt>startCapture</tt>/<tt>stopCapture</tt> <tt>null</tt>
      * if not matched camera with specified facing mode.
      */
-    private VideoCapturer createVideoCapturer(
+    private Map<String, VideoCapturer> createVideoCapturer(
             CameraEnumerator enumerator, boolean isFacing, String sourceId) {
         VideoCapturer videoCapturer = null;
-
+        Map<String,VideoCapturer> result = new HashMap<String,VideoCapturer>();
         // if sourceId given, use specified sourceId first
         final String[] deviceNames = enumerator.getDeviceNames();
-        if (sourceId != null) {
+        if (sourceId != null && !sourceId.equals("")) {
             for (String name : deviceNames) {
                 if (name.equals(sourceId)) {
                     videoCapturer = enumerator.createCapturer(name, new CameraEventsHandler());
                     if (videoCapturer != null) {
                         Log.d(TAG, "create user specified camera " + name + " succeeded");
-                        return videoCapturer;
+                       result.put(name,videoCapturer);
+                       return result;
                     } else {
                         Log.d(TAG, "create user specified camera " + name + " failed");
                         break; // fallback to facing mode
@@ -273,7 +274,9 @@ class GetUserMediaImpl {
                 videoCapturer = enumerator.createCapturer(name, new CameraEventsHandler());
                 if (videoCapturer != null) {
                     Log.d(TAG, "Create " + facingStr + " camera " + name + " succeeded");
-                    return videoCapturer;
+
+                    result.put(name,videoCapturer);
+                    return result;
                 } else {
                     Log.e(TAG, "Create " + facingStr + " camera " + name + " failed");
                 }
@@ -284,9 +287,10 @@ class GetUserMediaImpl {
         if (videoCapturer == null && deviceNames.length > 0){
             videoCapturer = enumerator.createCapturer(deviceNames[0], new CameraEventsHandler());
             Log.d(TAG, "Falling back to the first available camera");
+            result.put(deviceNames[0],videoCapturer);
         }
 
-        return videoCapturer;
+        return result;
     }
 
     /**
@@ -325,7 +329,7 @@ class GetUserMediaImpl {
         return null;
     }
 
-    private AudioTrack getUserAudio(ConstraintsMap constraints) {
+    private ConstraintsMap getUserAudio(ConstraintsMap constraints, MediaStream stream) {
         AudioSwitchManager.instance.start();
         MediaConstraints audioConstraints;
         if (constraints.getType("audio") == ObjectType.Boolean) {
@@ -335,13 +339,40 @@ class GetUserMediaImpl {
             audioConstraints = MediaConstraintsUtils.parseMediaConstraints(constraints.getMap("audio"));
         }
 
+        String sourceId = ""; //TODO:
+
         Log.i(TAG, "getUserMedia(audio): " + audioConstraints);
 
         String trackId = stateProvider.getNextTrackUUID();
         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
         AudioSource audioSource = pcFactory.createAudioSource(audioConstraints);
 
-        return pcFactory.createAudioTrack(trackId, audioSource);
+        AudioTrack track =  pcFactory.createAudioTrack(trackId, audioSource);
+        stream.addTrack(track);
+
+        stateProvider.putLocalTrack(track.id(), track);
+
+
+        ConstraintsMap trackParams = new ConstraintsMap();
+
+        trackParams.putBoolean("enabled", track.enabled());
+        trackParams.putString("id", track.id());
+        trackParams.putString("kind", "audio");
+        trackParams.putString("label", track.id());
+        trackParams.putString("readyState", track.state().toString());
+        trackParams.putBoolean("remote", false);
+
+        ConstraintsMap settings = new ConstraintsMap();
+        settings.putString("deviceId", sourceId);
+        settings.putString("group", "audioinput");
+        settings.putBoolean("autoGainControl", true);
+        settings.putInt("channelCount", 1);
+        settings.putBoolean("echoCancellation", true);
+        settings.putInt("latency", 0);
+        settings.putBoolean("noiseSuppression", true);
+        trackParams.putMap("settings", settings.toMap());
+
+        return trackParams;
     }
 
     /**
@@ -543,19 +574,23 @@ class GetUserMediaImpl {
             Result result,
             MediaStream mediaStream,
             List<String> grantedPermissions) {
-        MediaStreamTrack[] tracks = new MediaStreamTrack[2];
+        ConstraintsMap[] trackParams = new ConstraintsMap[2];
 
         // If we fail to create either, destroy the other one and fail.
         if ((grantedPermissions.contains(PERMISSION_AUDIO)
-                && (tracks[0] = getUserAudio(constraints)) == null)
+                && (trackParams[0] = getUserAudio(constraints, mediaStream)) == null)
                 || (grantedPermissions.contains(PERMISSION_VIDEO)
-                && (tracks[1] = getUserVideo(constraints)) == null)) {
-            for (MediaStreamTrack track : tracks) {
+                && (trackParams[1] = getUserVideo(constraints, mediaStream)) == null)) {
+            for (MediaStreamTrack track : mediaStream.audioTracks) {
                 if (track != null) {
                     track.dispose();
                 }
             }
-
+            for (MediaStreamTrack track : mediaStream.videoTracks) {
+                if (track != null) {
+                    track.dispose();
+                }
+            }
             // XXX The following does not follow the getUserMedia() algorithm
             // specified by
             // https://www.w3.org/TR/mediacapture-streams/#dom-mediadevices-getusermedia
@@ -568,39 +603,18 @@ class GetUserMediaImpl {
         ConstraintsArray videoTracks = new ConstraintsArray();
         ConstraintsMap successResult = new ConstraintsMap();
 
-        for (MediaStreamTrack track : tracks) {
-            if (track == null) {
+        for (ConstraintsMap trackParam : trackParams) {
+            if(trackParam == null) {
                 continue;
             }
-
-            String id = track.id();
-
-            if (track instanceof AudioTrack) {
-                mediaStream.addTrack((AudioTrack) track);
+            if (trackParam.getString("kind").equals("audio")) {
+                audioTracks.pushMap(trackParam);
             } else {
-                mediaStream.addTrack((VideoTrack) track);
-            }
-            stateProvider.putLocalTrack(id, track);
-
-            ConstraintsMap track_ = new ConstraintsMap();
-            String kind = track.kind();
-
-            track_.putBoolean("enabled", track.enabled());
-            track_.putString("id", id);
-            track_.putString("kind", kind);
-            track_.putString("label", kind);
-            track_.putString("readyState", track.state().toString());
-            track_.putBoolean("remote", false);
-
-            if (track instanceof AudioTrack) {
-                audioTracks.pushMap(track_);
-            } else {
-                videoTracks.pushMap(track_);
+                videoTracks.pushMap(trackParam);
             }
         }
 
         String streamId = mediaStream.getId();
-
         Log.d(TAG, "MediaStream id: " + streamId);
         stateProvider.putLocalStream(streamId, mediaStream);
 
@@ -630,6 +644,15 @@ class GetUserMediaImpl {
             }
         }
 
+        if (constraintsMap.getType(key) == ObjectType.String) {
+            try {
+                return Integer.parseInt(constraintsMap.getString(key));
+            } catch (Exception e) {
+                // Could be a double instead
+                return (int) Math.round(Double.parseDouble(constraintsMap.getString(key)));
+            }
+        }
+
         if (constraintsMap.getType(key) == ObjectType.Map) {
             ConstraintsMap innerMap = constraintsMap.getMap(key);
             if (constraintsMap.getType("ideal") == ObjectType.Number) {
@@ -640,17 +663,16 @@ class GetUserMediaImpl {
         return null;
     }
 
-    private VideoTrack getUserVideo(ConstraintsMap constraints) {
+    private ConstraintsMap getUserVideo(ConstraintsMap constraints, MediaStream mediaStream) {
         ConstraintsMap videoConstraintsMap = null;
         ConstraintsMap videoConstraintsMandatory = null;
         if (constraints.getType("video") == ObjectType.Map) {
             videoConstraintsMap = constraints.getMap("video");
             if (videoConstraintsMap.hasKey("mandatory")
                     && videoConstraintsMap.getType("mandatory") == ObjectType.Map) {
-                videoConstraintsMandatory = videoConstraintsMap.getMap("mandatory");
+                videoConstraintsMandatory.merge(videoConstraintsMap.getMap("mandatory").toMap());
             }
         }
-
 
         Log.i(TAG, "getUserMedia(video): " + videoConstraintsMap);
 
@@ -674,11 +696,17 @@ class GetUserMediaImpl {
         isFacing = facingMode == null || !facingMode.equals("environment");
         String sourceId = getSourceIdConstraint(videoConstraintsMap);
 
-        VideoCapturer videoCapturer = createVideoCapturer(cameraEnumerator, isFacing, sourceId);
+        Map<String, VideoCapturer> result = createVideoCapturer(cameraEnumerator, isFacing, sourceId);
 
-        if (videoCapturer == null) {
+        if (result == null) {
             return null;
         }
+
+        if(sourceId == null) {
+            sourceId = result.keySet().iterator().next();
+        }
+
+        VideoCapturer videoCapturer = result.get(sourceId);
 
         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
         VideoSource videoSource = pcFactory.createVideoSource(false);
@@ -719,7 +747,30 @@ class GetUserMediaImpl {
         Log.d(TAG, "changeCaptureFormat: " + info.width + "x" + info.height + "@" + info.fps);
         videoSource.adaptOutputFormat(info.width, info.height, info.fps);
 
-        return pcFactory.createVideoTrack(trackId, videoSource);
+        VideoTrack track = pcFactory.createVideoTrack(trackId, videoSource);
+        mediaStream.addTrack(track);
+
+        stateProvider.putLocalTrack(track.id(), track);
+
+        ConstraintsMap trackParams = new ConstraintsMap();
+
+        trackParams.putBoolean("enabled", track.enabled());
+        trackParams.putString("id", track.id());
+        trackParams.putString("kind", "video");
+        trackParams.putString("label", track.id());
+        trackParams.putString("readyState", track.state().toString());
+        trackParams.putBoolean("remote", false);
+
+        ConstraintsMap settings = new ConstraintsMap();
+        settings.putString("deviceId", sourceId);
+        settings.putString("group", "videoinput");
+        settings.putInt("width", info.width);
+        settings.putInt("height", info.height);
+        settings.putInt("frameRate", info.fps);
+        if( facingMode!= null) settings.putString("facingMode",facingMode);
+        trackParams.putMap("settings", settings.toMap());
+
+        return trackParams;
     }
 
     void removeVideoCapturer(String id) {

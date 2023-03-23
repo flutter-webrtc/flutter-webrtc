@@ -184,6 +184,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     _localRenderer.srcObject = _localStream;
     // replace track.
     var newTrack = _localStream?.getVideoTracks().first;
+    print('track.settings ' + newTrack!.getSettings().toString());
     var sender =
         senders.firstWhereOrNull((sender) => sender.track?.kind == 'video');
     await sender?.replaceTrack(newTrack);
@@ -217,6 +218,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
 
       _localStream?.getTracks().forEach((track) async {
         var rtpSender = await pc1?.addTrack(track, _localStream!);
+        print('track.settings ' + track.getSettings().toString());
         senders.add(rtpSender!);
       });
 
