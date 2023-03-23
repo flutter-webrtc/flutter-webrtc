@@ -1,7 +1,7 @@
 #include "flutter_media_stream.h"
 
-#define DEFAULT_WIDTH 640
-#define DEFAULT_HEIGHT 480
+#define DEFAULT_WIDTH 1280
+#define DEFAULT_HEIGHT 720
 #define DEFAULT_FPS 30
 
 namespace flutter_webrtc_plugin {
@@ -308,7 +308,7 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   settings[EncodableValue("deviceId")] = EncodableValue(sourceId);
   settings[EncodableValue("kind")] = EncodableValue("videoinput");
   settings[EncodableValue("width")] = EncodableValue(width);
-  settings[EncodableValue("height")] = EncodableValue(width);
+  settings[EncodableValue("height")] = EncodableValue(height);
   settings[EncodableValue("frameRate")] = EncodableValue(fps);
   info[EncodableValue("settings")] = EncodableValue(settings);
 
