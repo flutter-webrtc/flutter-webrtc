@@ -170,11 +170,6 @@ class KeyManagerImpl implements KeyManager {
   }
 
   @override
-  Future<List<Uint8List>> getKeys({required String participantId}) async {
-    return _keys[participantId] ?? [];
-  }
-
-  @override
   Future<bool> setKey(
       {required String participantId,
       required int index,
@@ -197,16 +192,15 @@ class KeyManagerImpl implements KeyManager {
   }
 
   @override
-  Future<bool> setKeys(
-      {required String participantId, required List<Uint8List> keys}) async {
+  Future<bool> ratchetKey(
+      {required String participantId, required int index}) async {
     jsutil.callMethod(worker, 'postMessage', [
       jsutil.jsify({
-        'msgType': 'setKey',
+        'msgType': 'ratchetKey',
         'participantId': participantId,
-        'keys': keys,
+        'index': index,
       })
     ]);
-    _keys[participantId] = keys;
     return true;
   }
 }
@@ -261,7 +255,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
   final Map<String, FrameCryptor> _frameCryptors = {};
 
   @override
-  Future<KeyManager> createDefaultKeyManager() async {
+  Future<KeyManager> createDefaultKeyManager(KeyProviderOptions options) async {
     return KeyManagerImpl('default', worker);
   }
 

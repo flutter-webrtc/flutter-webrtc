@@ -58,6 +58,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       {'DtlsSrtpKeyAgreement': false},
     ],
   };
+
+  final demoRatchetSalt = 'flutter-webrtc-ratchet-salt';
+
   final aesKey = Uint8List.fromList([
     200,
     244,
@@ -262,7 +265,14 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     initRenderers();
     initLocalConnection();
 
-    _keyManager ??= await _frameCyrptorFactory.createDefaultKeyManager();
+    var keyProviderOptions = KeyProviderOptions(
+      sharedKey: true,
+      ratchetSalt: Uint8List.fromList(demoRatchetSalt.codeUnits),
+      ratchetWindowSize: 16,
+    );
+
+    _keyManager ??=
+        await _frameCyrptorFactory.createDefaultKeyManager(keyProviderOptions);
     var acaps = await getRtpSenderCapabilities('audio');
     print('sender audio capabilities: ${acaps.toMap()}');
 

@@ -78,8 +78,8 @@ bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
   } else if (method_name == "keyManagerSetKey") {
     KeyManagerSetKey(params, std::move(result));
     return true;
-  } else if (method_name == "keyManagerGetKeys") {
-    KeyManagerGetKeys(params, std::move(result));
+  } else if (method_name == "keyManagerRatchetKey") {
+    KeyManagerRatchetKey(params, std::move(result));
     return true;
   } else if (method_name == "keyManagerDispose") {
     KeyManagerDispose(params, std::move(result));
@@ -291,7 +291,38 @@ void FlutterFrameCryptor::FrameCryptorDispose(
 void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyManager(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  auto keyManager = libwebrtc::KeyManager::Create();
+  libwebrtc::KeyProviderOptions options;
+  
+
+  auto keyProviderOptions = findMap(constraints, "keyProviderOptions");
+  if (keyProviderOptions == EncodableMap()) {
+    result->Error("FrameCryptorFactoryCreateKeyManagerFailed", "keyProviderOptions is null");
+    return;
+  }
+
+  auto sharedKey = findBoolean(keyProviderOptions, "sharedKey");
+  options.shared_key = sharedKey;
+
+
+  auto ratchetSalt = findVector(keyProviderOptions, "ratchetSalt");
+  if (ratchetSalt.size() == 0) {
+    result->Error("FrameCryptorFactoryCreateKeyManagerFailed",
+                  "ratchetSalt is null");
+    return;
+  }
+
+  options.ratchet_salt = ratchetSalt;
+
+  auto ratchetWindowSize = findInt(keyProviderOptions, "ratchetWindowSize");
+  if (ratchetWindowSize  == -1) {
+    result->Error("FrameCryptorFactoryCreateKeyManagerFailed",
+                  "ratchetSalt is null");
+    return;
+  }
+
+  options.ratchet_window_size = ratchetWindowSize;
+
+  auto keyManager = libwebrtc::KeyManager::Create(&options);
   if (nullptr == keyManager.get()) {
     result->Error("FrameCryptorFactoryCreateKeyManagerFailed",
                   "createKeyManager failed");
@@ -342,7 +373,7 @@ void FlutterFrameCryptor::KeyManagerSetKey(
   result->Success(EncodableValue(params));
 }
 
-void FlutterFrameCryptor::KeyManagerSetKeys(
+void FlutterFrameCryptor::KeyManagerRatchetKey(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
   auto keyManagerId = findString(constraints, "keyManagerId");
@@ -357,53 +388,25 @@ void FlutterFrameCryptor::KeyManagerSetKeys(
     return;
   }
 
-  std::vector<std::vector<uint8_t>> keys_input;
-  auto keys = findList(constraints, "keys");
-  for (auto key : keys) {
-    keys_input.push_back(GetValue<std::vector<uint8_t>>(key));
-  }
-
   auto participant_id = findString(constraints, "participantId");
   if (participant_id == std::string()) {
     result->Error("KeyManagerSetKeyFailed", "participantId is null");
     return;
   }
 
-  keyManager->SetKeys(participant_id, keys_input);
+  auto key_index = findInt(constraints, "keyIndex");
+  if (key_index == -1) {
+    result->Error("KeyManagerSetKeyFailed", "keyIndex is null");
+    return;
+  }
+
+  keyManager->RatchetKey(participant_id, key_index);
 
   EncodableMap params;
   params[EncodableValue("result")] = true;
   result->Success(EncodableValue(params));
 }
 
-void FlutterFrameCryptor::KeyManagerGetKeys(
-    const EncodableMap& constraints,
-    std::unique_ptr<MethodResultProxy> result) {
-  auto keyManagerId = findString(constraints, "keyManagerId");
-  if (keyManagerId == std::string()) {
-    result->Error("KeyManagerGetKeysFailed", "keyManagerId is null");
-    return;
-  }
-
-  auto keyManager = key_managers_[keyManagerId];
-  if (nullptr == keyManager.get()) {
-    result->Error("KeyManagerGetKeysFailed", "keyManager is null");
-    return;
-  }
-  auto participant_id = findString(constraints, "participantId");
-  if (participant_id == std::string()) {
-    result->Error("KeyManagerSetKeyFailed", "participantId is null");
-    return;
-  }
-  auto keys = keyManager->GetKeys(participant_id);
-  EncodableList keys_output;
-  for (auto key : keys.std_vector()) {
-    keys_output.push_back(EncodableValue(key.std_vector()));
-  }
-  EncodableMap params;
-  params[EncodableValue("keys")] = keys_output;
-  result->Success(EncodableValue(params));
-}
 
 void FlutterFrameCryptor::KeyManagerDispose(
     const EncodableMap& constraints,

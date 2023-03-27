@@ -53,10 +53,7 @@ class FlutterFrameCryptor {
   void KeyManagerSetKey(const EncodableMap& constraints,
                         std::unique_ptr<MethodResultProxy> result);
 
-  void KeyManagerSetKeys(const EncodableMap& constraints,
-                         std::unique_ptr<MethodResultProxy> result);
-
-  void KeyManagerGetKeys(const EncodableMap& constraints,
+  void KeyManagerRatchetKey(const EncodableMap& constraints,
                          std::unique_ptr<MethodResultProxy> result);
 
   void KeyManagerDispose(const EncodableMap& constraints,

@@ -11,26 +11,41 @@ enum Algorithm {
   kAesCbc,
 }
 
+class KeyProviderOptions {
+  KeyProviderOptions({
+    required this.sharedKey,
+    required this.ratchetSalt,
+    required this.ratchetWindowSize,
+  });
+  bool sharedKey;
+  Uint8List ratchetSalt;
+  int ratchetWindowSize;
+  Map<String, dynamic> toJson() {
+    return {
+      'sharedKey': sharedKey,
+      'ratchetSalt': ratchetSalt,
+      'ratchetWindowSize': ratchetWindowSize,
+    };
+  }
+}
+
 /// Shared secret key for frame encryption.
 abstract class KeyManager {
   /// The unique identifier of the key manager.
   String get id;
 
-  /// Set the key at the given index.
+  /// Set the raw key at the given index.
   Future<bool> setKey({
     required String participantId,
     required int index,
     required Uint8List key,
   });
 
-  /// Set the keys.
-  Future<bool> setKeys({
+  /// ratchet the key at the given index.
+  Future<bool> ratchetKey({
     required String participantId,
-    required List<Uint8List> keys,
+    required int index,
   });
-
-  /// Get the keys.
-  Future<List<Uint8List>> getKeys({required String participantId});
 
   /// Dispose the key manager.
   Future<void> dispose();
@@ -80,7 +95,7 @@ abstract class FrameCryptor {
 /// And set your key in keyManager.
 abstract class FrameCryptorFactory {
   /// Shared key manager.
-  Future<KeyManager> createDefaultKeyManager();
+  Future<KeyManager> createDefaultKeyManager(KeyProviderOptions options);
 
   /// Create a frame Cryptor from a [RTCRtpSender].
   Future<FrameCryptor> createFrameCryptorForRtpSender({

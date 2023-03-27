@@ -33,34 +33,20 @@ class KeyManagerImpl implements KeyManager {
   }
 
   @override
-  Future<bool> setKeys({
+  Future<bool> ratchetKey({
     required String participantId,
-    required List<Uint8List> keys,
+    required int index,
   }) async {
     try {
       final response =
-          await WebRTC.invokeMethod('keyManagerSetKeys', <String, dynamic>{
+          await WebRTC.invokeMethod('keyManagerRatchetKey', <String, dynamic>{
         'keyManagerId': _id,
-        'keys': keys,
+        'keyIndex': index,
         'participantId': participantId,
       });
       return response['result'];
     } on PlatformException catch (e) {
-      throw 'Unable to KeyManagerImpl::setKeys: ${e.message}';
-    }
-  }
-
-  @override
-  Future<List<Uint8List>> getKeys({required String participantId}) async {
-    try {
-      final response =
-          await WebRTC.invokeMethod('keyManagerGetKeys', <String, dynamic>{
-        'keyManagerId': _id,
-        'participantId': participantId,
-      });
-      return response['keys'] as List<Uint8List>;
-    } on PlatformException catch (e) {
-      throw 'Unable to get KeyManagerImpl::keys: ${e.message}';
+      throw 'Unable to KeyManagerImpl::ratchetKey: ${e.message}';
     }
   }
 
@@ -134,10 +120,12 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
   }
 
   @override
-  Future<KeyManager> createDefaultKeyManager() async {
+  Future<KeyManager> createDefaultKeyManager(KeyProviderOptions options) async {
     try {
       final response = await WebRTC.invokeMethod(
-          'frameCryptorFactoryCreateKeyManager', <String, dynamic>{});
+          'frameCryptorFactoryCreateKeyManager', <String, dynamic>{
+        'keyProviderOptions': options.toJson(),
+      });
       String keyManagerId = response['keyManagerId'];
       return KeyManagerImpl(keyManagerId);
     } on PlatformException catch (e) {
