@@ -82,7 +82,7 @@ struct RTCConfiguration {
   int ice_candidate_pool_size = 0;
 
   MediaSecurityType srtp_type = MediaSecurityType::kDTLS_SRTP;
-  SdpSemantics sdp_semantics = SdpSemantics::kPlanB;
+  SdpSemantics sdp_semantics = SdpSemantics::kUnifiedPlan;
   bool offer_to_receive_audio = true;
   bool offer_to_receive_video = true;
   // private
