@@ -76,11 +76,17 @@ void main() async {
       var codec = options.codec;
       var msgType = options.msgType;
 
-      var cryptor = Cryptor(
-          worker: self,
-          participantId: participantId,
-          trackId: trackId,
-          sharedKey: useSharedKey);
+      var cryptor =
+          participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
+
+      if (cryptor == null) {
+        cryptor = Cryptor(
+            worker: self,
+            participantId: participantId,
+            trackId: trackId,
+            sharedKey: useSharedKey);
+        participantCryptors.add(cryptor);
+      }
 
       cryptor.setupTransform(
           operation: msgType,
@@ -89,8 +95,6 @@ void main() async {
           trackId: trackId,
           kind: kind,
           codec: codec);
-
-      participantCryptors.add(cryptor);
     });
   }
 

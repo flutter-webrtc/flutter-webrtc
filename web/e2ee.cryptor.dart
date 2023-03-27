@@ -243,16 +243,14 @@ class Cryptor {
       for (var index in naluIndices) {
         var type = parseNALUType(data[index]);
         switch (type) {
-          case SPS:
-          case PPS:
-          case AUD:
-          case SEI:
-          case PREFIX_NALU:
+          case SLICE_IDR:
+          case SLICE_NON_IDR:
             // skipping
-            // workerLogger.debug(`skipping NALU of type ${NALUType[type]}`);
-            break;
-          default:
+            print('unEncryptedBytes NALU of type $type, offset ${index + 2}');
             return index + 2;
+          default:
+            print('skipping NALU of type $type');
+            break;
         }
       }
       throw Exception('Could not find NALU');
