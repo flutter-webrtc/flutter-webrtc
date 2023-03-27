@@ -9,6 +9,7 @@
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
+#import <WebRTC/RTCFieldTrials.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wprotocol"
@@ -83,6 +84,9 @@
 
   _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:simulcastFactory
                                                                      decoderFactory:decoderFactory];
+
+  NSDictionary *fieldTrials = @{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue};
+  RTCInitFieldTrialDictionary(fieldTrials);
 
   self.peerConnections = [NSMutableDictionary new];
   self.localStreams = [NSMutableDictionary new];
@@ -278,8 +282,9 @@
     NSDictionary* argsMap = call.arguments;
     NSString* path = argsMap[@"path"];
     NSString* trackId = argsMap[@"trackId"];
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
 
-    RTCMediaStreamTrack* track = [self trackForId:trackId];
+    RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId: peerConnectionId];
     if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
       RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
       [self mediaStreamTrackCaptureFrame:videoTrack toPath:path result:result];
@@ -468,7 +473,9 @@
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
     NSNumber* enabled = argsMap[@"enabled"];
-    RTCMediaStreamTrack* track = [self trackForId:trackId];
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+
+    RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId: peerConnectionId];
     if (track != nil) {
       track.isEnabled = enabled.boolValue;
     }
@@ -480,7 +487,7 @@
 
     RTCMediaStream* stream = self.localStreams[streamId];
     if (stream) {
-      RTCMediaStreamTrack* track = [self trackForId:trackId];
+      RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId: nil];
       if (track != nil) {
         if ([track isKindOfClass:[RTCAudioTrack class]]) {
           RTCAudioTrack* audioTrack = (RTCAudioTrack*)track;
@@ -697,7 +704,9 @@
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
     NSNumber* volume = argsMap[@"volume"];
-    RTCMediaStreamTrack* track = self.localTracks[trackId];
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+
+    RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId: peerConnectionId];
     if (track != nil && [track isKindOfClass:[RTCAudioTrack class]]) {
       RTCAudioTrack* audioTrack = (RTCAudioTrack*)track;
       RTCAudioSource* audioSource = audioTrack.source;
@@ -789,7 +798,7 @@
       return;
     }
 
-    RTCMediaStreamTrack* track = [self trackForId:trackId];
+    RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId: nil];
     if (track == nil) {
       result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
                                  message:[NSString stringWithFormat:@"Error: track not found!"]
@@ -843,7 +852,7 @@
     RTCRtpTransceiver* transceiver = nil;
     BOOL hasAudio = NO;
     if (trackId != nil) {
-      RTCMediaStreamTrack* track = [self trackForId:trackId];
+      RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId: nil];
       if (transceiverInit != nil) {
         RTCRtpTransceiverInit* init = [self mapToTransceiverInit:transceiverInit];
         transceiver = [peerConnection addTransceiverWithTrack:track init:init];
@@ -1002,7 +1011,7 @@
     }
     RTCMediaStreamTrack* track = nil;
     if ([trackId length] > 0) {
-      track = [self trackForId:trackId];
+      track = [self trackForId:trackId peerConnectionId: nil];
       if (track == nil) {
         result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
                                    message:[NSString stringWithFormat:@"Error: track not found!"]
@@ -1034,7 +1043,7 @@
     }
     RTCMediaStreamTrack* track = nil;
     if ([trackId length] > 0) {
-      track = [self trackForId:trackId];
+      track = [self trackForId:trackId peerConnectionId: nil];
       if (track == nil) {
         result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
                                    message:[NSString stringWithFormat:@"Error: track not found!"]
@@ -1110,7 +1119,7 @@
   } else if ([@"setCodecPreferences" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     [self transceiverSetCodecPreferences:argsMap result:result];
-  }  else if ([@"getRtpReceiverCapabilities" isEqualToString:call.method]) {
+  } else if ([@"getRtpReceiverCapabilities" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     [self peerConnectionGetRtpReceiverCapabilities:argsMap result:result];
   } else if ([@"getRtpSenderCapabilities" isEqualToString:call.method]) {
@@ -1218,10 +1227,14 @@
   return stream;
 }
 
-- (RTCMediaStreamTrack*)trackForId:(NSString*)trackId {
+- (RTCMediaStreamTrack*)trackForId:(NSString*)trackId peerConnectionId:(NSString*)peerConnectionId {
   RTCMediaStreamTrack* track = _localTracks[trackId];
   if (!track) {
-    for (RTCPeerConnection* peerConnection in _peerConnections.allValues) {
+    for (NSString* currentId in _peerConnections.allKeys) { 
+      if (peerConnectionId && [currentId isEqualToString: peerConnectionId] == false) {
+        continue;
+      }
+      RTCPeerConnection* peerConnection = _peerConnections[currentId];
       track = peerConnection.remoteTracks[trackId];
       if (!track) {
         for (RTCRtpTransceiver* transceiver in peerConnection.transceivers) {
@@ -1446,7 +1459,7 @@
     BOOL srtpEnableAes128Sha1_32CryptoCipher = NO;
 
     if (options[@"enableGcmCryptoSuites"] != nil &&
-                [options[@"enableGcmCryptoSuites"] isKindOfClass:[NSNumber class]]) {
+        [options[@"enableGcmCryptoSuites"] isKindOfClass:[NSNumber class]]) {
       NSNumber* value = options[@"enableGcmCryptoSuites"];
       srtpEnableGcmCryptoSuites = [value boolValue];
     }

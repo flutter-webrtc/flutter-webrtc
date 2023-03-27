@@ -208,7 +208,6 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList& iceServersArray,
     EncodableMap iceServerMap = GetValue<EncodableMap>(iceServersArray[i]);
 
     if (iceServerMap.find(EncodableValue("username")) != iceServerMap.end()) {
-      ;
       ice_server.username = GetValue<std::string>(
           iceServerMap.find(EncodableValue("username"))->second);
     }

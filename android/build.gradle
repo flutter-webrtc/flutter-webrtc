@@ -49,7 +49,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.webrtc-sdk:android:104.5112.07'
+    implementation 'io.github.webrtc-sdk:android:104.5112.07'
     implementation 'com.github.davidliu:audioswitch:c498d866c57f1d88056d5e7e7a78d622e3b0c046'
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

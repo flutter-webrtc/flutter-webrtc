@@ -11,7 +11,7 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
 
   factory RTCRtpReceiverNative.fromMap(Map<dynamic, dynamic> map,
       {required String peerConnectionId}) {
-    var track = MediaStreamTrackNative.fromMap(map['track']);
+    var track = MediaStreamTrackNative.fromMap(map['track'], peerConnectionId);
     var parameters = RTCRtpParameters.fromMap(map['rtpParameters']);
     return RTCRtpReceiverNative(
         map['receiverId'], track, parameters, peerConnectionId);
