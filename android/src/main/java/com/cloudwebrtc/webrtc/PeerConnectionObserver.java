@@ -43,10 +43,10 @@ import org.webrtc.VideoTrack;
 class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.StreamHandler {
   private final static String TAG = FlutterWebRTCPlugin.TAG;
   private final Map<String, DataChannel> dataChannels = new HashMap<>();
-  private BinaryMessenger messenger;
+  private final BinaryMessenger messenger;
   private final String id;
   private PeerConnection peerConnection;
-  private PeerConnection.RTCConfiguration configuration;
+  private final PeerConnection.RTCConfiguration configuration;
   final Map<String, MediaStream> remoteStreams = new HashMap<>();
   final Map<String, MediaStreamTrack> remoteTracks = new HashMap<>();
   final Map<String, RtpTransceiver> transceivers = new HashMap<>();
@@ -231,7 +231,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
               } else if(v instanceof BigInteger){
                   v_map.putLong(key, ((BigInteger)v).longValue());
               } else {
-                  Log.d(TAG, "getStats() unknown type: " + v.getClass().getName() + " for [" + key + "] value: " + v.toString());
+                  Log.d(TAG, "getStats() unknown type: " + v.getClass().getName() + " for [" + key + "] value: " + v);
               }
           }
           report_map.putMap("values", v_map.toMap());
@@ -1022,7 +1022,7 @@ private RtpParameters updateRtpParameters(RtpParameters parameters, Map<String, 
             if(codec.get("sdpFmtpLine") != null) {
                 String sdpFmtpLine = (String) codec.get("sdpFmtpLine");
                 codecCapability.parameters = new HashMap<>();
-                List<String> parameters = Arrays.asList(sdpFmtpLine.split(";"));
+                String[] parameters = sdpFmtpLine.split(";");
                 for(String parameter : parameters) {
                     if(parameter.contains("=")) {
                         List<String> parameterParts = Arrays.asList(parameter.split("="));

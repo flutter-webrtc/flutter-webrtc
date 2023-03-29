@@ -142,7 +142,7 @@ class GetUserMediaImpl {
 
         private ResultReceiver resultReceiver = null;
         private int requestCode = 0;
-        private int resultCode = 0;
+        private final int resultCode = 0;
 
         private void checkSelfPermissions(boolean requestPermissions) {
             if (resultCode != Activity.RESULT_OK) {
@@ -925,7 +925,7 @@ class GetUserMediaImpl {
             List<String> supportedModes = params.getSupportedFlashModes();
 
             result.success(
-                    (supportedModes == null) ? false : supportedModes.contains(Parameters.FLASH_MODE_TORCH));
+                    supportedModes != null && supportedModes.contains(Parameters.FLASH_MODE_TORCH));
             return;
         }
 

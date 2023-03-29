@@ -47,10 +47,10 @@ public class FlutterRTCFrameCryptor {
                 }
             });
         }
-        private EventChannel eventChannel;
+        private final EventChannel eventChannel;
         private EventChannel.EventSink eventSink;
-        private ArrayList eventQueue = new ArrayList();
-        private String frameCryptorId;
+        private final ArrayList eventQueue = new ArrayList();
+        private final String frameCryptorId;
 
         @Override
         public void onListen(Object arguments, EventChannel.EventSink events) {
@@ -66,7 +66,7 @@ public class FlutterRTCFrameCryptor {
             eventSink = null;
         }
 
-        private String  frameCryptorErrorStateToString( FrameCryptor.FrameCryptorErrorState state) {
+        private String  frameCryptorErrorStateToString( FrameCryptor.FrameCryptionState state) {
             switch (state) {
                 case NEW:
                     return "new";
@@ -78,6 +78,8 @@ public class FlutterRTCFrameCryptor {
                     return "encryptionFailed";
                 case INTERNALERROR:
                     return "internalError";
+                case KEYRATCHETED:
+                    return "keyRatcheted";
                 case MISSINGKEY:
                     return "missingKey";
                 default:
@@ -86,7 +88,7 @@ public class FlutterRTCFrameCryptor {
         }
 
         @Override
-        public void onFrameCryptorErrorState(String participantId, FrameCryptor.FrameCryptorErrorState state) {
+        public void onFrameCryptionStateChanged(String participantId, FrameCryptor.FrameCryptionState state) {
             Map<String, Object> event = new HashMap<>();
             event.put("event", "frameCryptionStateChanged");
             event.put("participantId", participantId);
@@ -103,7 +105,7 @@ public class FlutterRTCFrameCryptor {
     private final Map<String, FrameCryptor> frameCryptos = new HashMap<>();
     private final Map<String, FrameCryptorStateObserver> frameCryptoObservers = new HashMap<>();
     private final Map<String, FrameCryptorKeyManager> keyManagers = new HashMap<>();
-    private StateProvider stateProvider;
+    private final StateProvider stateProvider;
     public FlutterRTCFrameCryptor(StateProvider stateProvider) {
         this.stateProvider = stateProvider;
     }
@@ -134,11 +136,8 @@ public class FlutterRTCFrameCryptor {
           } else if (method_name.equals("keyManagerSetKey")) {
             keyManagerSetKey(params, result);
             return true;
-          } else if (method_name.equals("keyManagerSetKeys")) {
-            keyManagerSetKeys(params, result);
-            return true;
-          } else if (method_name.equals("keyManagerGetKeys")) {
-            keyManagerGetKeys(params, result);
+          } else if (method_name.equals("keyManagerRatchetKey")) {
+            keyManagerRatchetKey(params, result);
             return true;
           } else if (method_name.equals("keyManagerDispose")) {
             keyManagerDispose(params, result);
@@ -285,10 +284,13 @@ public class FlutterRTCFrameCryptor {
 
     private void frameCryptorFactoryCreateKeyManager(Map<String, Object> params, @NonNull Result result) {
         String keyManagerId = UUID.randomUUID().toString();
-        FrameCryptorKeyManager keyManager = FrameCryptorFactory.createFrameCryptorKeyManager();
-        keyManagers.put(keyManagerId, keyManager);
-
+        Map<String, Object> keyProviderOptions = (Map<String, Object>) params.get("keyProviderOptions");
+        boolean sharedKey = (boolean) keyProviderOptions.get("sharedKey");
+        int ratchetWindowSize = (int) keyProviderOptions.get("ratchetWindowSize");
+        byte[] ratchetSalt = ( byte[]) keyProviderOptions.get("ratchetSalt");
+        FrameCryptorKeyManager keyManager = FrameCryptorFactory.createFrameCryptorKeyManager(sharedKey, ratchetSalt, ratchetWindowSize);
         ConstraintsMap paramsResult = new ConstraintsMap();
+        keyManagers.put(keyManagerId, keyManager);
         paramsResult.putString("keyManagerId", keyManagerId);
         result.success(paramsResult.toMap());
     }
@@ -310,7 +312,7 @@ public class FlutterRTCFrameCryptor {
         result.success(paramsResult.toMap());
     }
 
-    private void keyManagerSetKeys(Map<String, Object> params, @NonNull Result result) {
+    private void keyManagerRatchetKey(Map<String, Object> params, @NonNull Result result) {
         String keyManagerId = (String) params.get("keyManagerId");
         FrameCryptorKeyManager keyManager = keyManagers.get(keyManagerId);
         if (keyManager == null) {
@@ -318,31 +320,12 @@ public class FlutterRTCFrameCryptor {
             return;
         }
         String participantId = (String) params.get("participantId");
-        ArrayList<byte[]> keys = ( ArrayList<byte[]>) params.get("keys");
-        keyManager.setKeys(participantId, keys);
-
-        ConstraintsMap paramsResult = new ConstraintsMap();
-        paramsResult.putBoolean("result", true);
-        result.success(paramsResult.toMap());
-    }
-
-    private void keyManagerGetKeys(Map<String, Object> params, @NonNull Result result) {
-        String keyManagerId = (String) params.get("keyManagerId");
-        FrameCryptorKeyManager keyManager = keyManagers.get(keyManagerId);
-        if (keyManager == null) {
-            result.error("keyManagerGetKeyFailed", "keyManager not found", null);
-            return;
-        }
         int keyIndex = (int) params.get("keyIndex");
-        String participantId = (String) params.get("participantId");
-        ArrayList<byte[]> keys = keyManager.getKeys(participantId);
+
+        byte[] newKey = keyManager.ratchetKey(participantId, keyIndex);
 
         ConstraintsMap paramsResult = new ConstraintsMap();
-        ConstraintsArray keysArray = new ConstraintsArray();
-        for (byte[] key : keys) {
-            keysArray.pushByte(key);
-        }
-        paramsResult.putArray("keys", keysArray.toArrayList());
+        paramsResult.putByte("result", newKey);
         result.success(paramsResult.toMap());
     }
 
