@@ -58,10 +58,8 @@
     [self frameCryptorFactoryCreateKeyManager:constraints result:result];
   } else if ([method isEqualToString:@"keyManagerSetKey"]) {
     [self keyManagerSetKey:constraints result:result];
-  } else if ([method isEqualToString:@"keyManagerSetKeys"]) {
-    [self keyManagerSetKeys:constraints result:result];
-  } else if ([method isEqualToString:@"keyManagerGetKeys"]) {
-    [self keyManagerGetKeys:constraints result:result];
+  } else if ([method isEqualToString:@"keyManagerRatchetKey"]) {
+    [self keyManagerRatchetKey:constraints result:result];
   } else if ([method isEqualToString:@"keyManagerDispose"]) {
     [self keyManagerDispose:constraints result:result];
   } else {
@@ -69,7 +67,7 @@
   }
 }
 
-- (RTCCyrptorAlgorithm) getAlgorithm:(NSNumber*)algorithm {
+- (RTCCyrptorAlgorithm)getAlgorithm:(NSNumber*)algorithm {
   switch ([algorithm intValue]) {
     case 0:
       return RTCCyrptorAlgorithmAesGcm;
@@ -137,10 +135,11 @@
       return;
     }
 
-    RTCFrameCryptor *frameCryptor = [[RTCFrameCryptor alloc] initWithRtpSender:sender
-                                                        participantId:participantId
-                                                            algorithm:[self getAlgorithm:algorithm]
-                                                           keyManager:keyManager];
+    RTCFrameCryptor* frameCryptor =
+        [[RTCFrameCryptor alloc] initWithRtpSender:sender
+                                     participantId:participantId
+                                         algorithm:[self getAlgorithm:algorithm]
+                                        keyManager:keyManager];
     NSString* frameCryptorId = [[NSUUID UUID] UUIDString];
 
     FlutterEventChannel* eventChannel = [FlutterEventChannel
@@ -162,10 +161,11 @@
                                  details:nil]);
       return;
     }
-    RTCFrameCryptor *frameCryptor = [[RTCFrameCryptor alloc] initWithRtpReceiver:receiver
-                                                          participantId:participantId
-                                                              algorithm:[self getAlgorithm:algorithm]
-                                                             keyManager:keyManager];
+    RTCFrameCryptor* frameCryptor =
+        [[RTCFrameCryptor alloc] initWithRtpReceiver:receiver
+                                       participantId:participantId
+                                           algorithm:[self getAlgorithm:algorithm]
+                                          keyManager:keyManager];
     NSString* frameCryptorId = [[NSUUID UUID] UUIDString];
     FlutterEventChannel* eventChannel = [FlutterEventChannel
         eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/frameCryptorEvent%@",
@@ -185,14 +185,14 @@
 
 - (void)frameCryptorSetKeyIndex:(nonnull NSDictionary*)constraints
                          result:(nonnull FlutterResult)result {
-  NSString *frameCryptorId = constraints[@"frameCryptorId"];
+  NSString* frameCryptorId = constraints[@"frameCryptorId"];
   if (frameCryptorId == nil) {
     result([FlutterError errorWithCode:@"frameCryptorSetKeyIndexFailed"
                                message:@"Invalid frameCryptorId"
                                details:nil]);
     return;
   }
-  RTCFrameCryptor *frameCryptor = self.frameCryptors[frameCryptorId];
+  RTCFrameCryptor* frameCryptor = self.frameCryptors[frameCryptorId];
   if (frameCryptor == nil) {
     result([FlutterError errorWithCode:@"frameCryptorSetKeyIndexFailed"
                                message:@"Invalid frameCryptor"
@@ -208,38 +208,38 @@
     return;
   }
   [frameCryptor setKeyIndex:[keyIndex intValue]];
-  result(@{@"result": @YES});
+  result(@{@"result" : @YES});
 }
 
 - (void)frameCryptorGetKeyIndex:(nonnull NSDictionary*)constraints
                          result:(nonnull FlutterResult)result {
-  NSString *frameCryptorId = constraints[@"frameCryptorId"];
+  NSString* frameCryptorId = constraints[@"frameCryptorId"];
   if (frameCryptorId == nil) {
     result([FlutterError errorWithCode:@"frameCryptorGetKeyIndexFailed"
                                message:@"Invalid frameCryptorId"
                                details:nil]);
     return;
   }
-  RTCFrameCryptor *frameCryptor = self.frameCryptors[frameCryptorId];
+  RTCFrameCryptor* frameCryptor = self.frameCryptors[frameCryptorId];
   if (frameCryptor == nil) {
     result([FlutterError errorWithCode:@"frameCryptorGetKeyIndexFailed"
                                message:@"Invalid frameCryptor"
                                details:nil]);
     return;
   }
-  result(@{@"keyIndex": [NSNumber numberWithInt:frameCryptor.keyIndex]});
+  result(@{@"keyIndex" : [NSNumber numberWithInt:frameCryptor.keyIndex]});
 }
 
 - (void)frameCryptorSetEnabled:(nonnull NSDictionary*)constraints
                         result:(nonnull FlutterResult)result {
-  NSString *frameCryptorId = constraints[@"frameCryptorId"];
+  NSString* frameCryptorId = constraints[@"frameCryptorId"];
   if (frameCryptorId == nil) {
     result([FlutterError errorWithCode:@"frameCryptorSetEnabledFailed"
                                message:@"Invalid frameCryptorId"
                                details:nil]);
     return;
   }
-  RTCFrameCryptor *frameCryptor = self.frameCryptors[frameCryptorId];
+  RTCFrameCryptor* frameCryptor = self.frameCryptors[frameCryptorId];
   if (frameCryptor == nil) {
     result([FlutterError errorWithCode:@"frameCryptorSetEnabledFailed"
                                message:@"Invalid frameCryptor"
@@ -255,38 +255,38 @@
     return;
   }
   frameCryptor.enabled = [enabled boolValue];
-  result(@{@"result": enabled});
+  result(@{@"result" : enabled});
 }
 
 - (void)frameCryptorGetEnabled:(nonnull NSDictionary*)constraints
                         result:(nonnull FlutterResult)result {
-  NSString *frameCryptorId = constraints[@"frameCryptorId"];
+  NSString* frameCryptorId = constraints[@"frameCryptorId"];
   if (frameCryptorId == nil) {
     result([FlutterError errorWithCode:@"frameCryptorGetEnabledFailed"
                                message:@"Invalid frameCryptorId"
                                details:nil]);
     return;
   }
-  RTCFrameCryptor *frameCryptor = self.frameCryptors[frameCryptorId];
+  RTCFrameCryptor* frameCryptor = self.frameCryptors[frameCryptorId];
   if (frameCryptor == nil) {
     result([FlutterError errorWithCode:@"frameCryptorGetEnabledFailed"
                                message:@"Invalid frameCryptor"
                                details:nil]);
     return;
   }
-  result(@{@"enabled": [NSNumber numberWithBool:frameCryptor.enabled]});
+  result(@{@"enabled" : [NSNumber numberWithBool:frameCryptor.enabled]});
 }
 
 - (void)frameCryptorDispose:(nonnull NSDictionary*)constraints
                      result:(nonnull FlutterResult)result {
-  NSString *frameCryptorId = constraints[@"frameCryptorId"];
+  NSString* frameCryptorId = constraints[@"frameCryptorId"];
   if (frameCryptorId == nil) {
     result([FlutterError errorWithCode:@"frameCryptorDisposeFailed"
                                message:@"Invalid frameCryptorId"
                                details:nil]);
     return;
   }
-  RTCFrameCryptor *frameCryptor = self.frameCryptors[frameCryptorId];
+  RTCFrameCryptor* frameCryptor = self.frameCryptors[frameCryptorId];
   if (frameCryptor == nil) {
     result([FlutterError errorWithCode:@"frameCryptorDisposeFailed"
                                message:@"Invalid frameCryptor"
@@ -295,26 +295,61 @@
   }
   [self.frameCryptors removeObjectForKey:frameCryptorId];
   frameCryptor.enabled = NO;
-  result(@{@"result": @"success"});
+  result(@{@"result" : @"success"});
 }
 
 - (void)frameCryptorFactoryCreateKeyManager:(nonnull NSDictionary*)constraints
                                      result:(nonnull FlutterResult)result {
-  NSString *keyManagerId = [[NSUUID UUID] UUIDString];
-  RTCFrameCryptorKeyManager *keyManager = [[RTCFrameCryptorKeyManager alloc] init];
+  NSString* keyManagerId = [[NSUUID UUID] UUIDString];
+
+  id keyProviderOptions = constraints[@"keyProviderOptions"];
+  if (keyProviderOptions == nil) {
+    result([FlutterError errorWithCode:@"frameCryptorFactoryCreateKeyManagerFailed"
+                               message:@"Invalid keyProviderOptions"
+                               details:nil]);
+    return;
+  }
+
+  NSNumber* sharedKey = keyProviderOptions[@"sharedKey"];
+  if (sharedKey == nil) {
+    result([FlutterError errorWithCode:@"frameCryptorFactoryCreateKeyManagerFailed"
+                               message:@"Invalid sharedKey"
+                               details:nil]);
+    return;
+  }
+
+FlutterStandardTypedData* ratchetSalt = keyProviderOptions[@"ratchetSalt"];
+  if (ratchetSalt == nil) {
+    result([FlutterError errorWithCode:@"frameCryptorFactoryCreateKeyManagerFailed"
+                               message:@"Invalid ratchetSalt"
+                               details:nil]);
+    return;
+  }
+
+  NSNumber* ratchetWindowSize = keyProviderOptions[@"ratchetWindowSize"];
+  if (ratchetWindowSize == nil) {
+    result([FlutterError errorWithCode:@"frameCryptorFactoryCreateKeyManagerFailed"
+                               message:@"Invalid ratchetWindowSize"
+                               details:nil]);
+    return;
+  }
+  RTCFrameCryptorKeyManager* keyManager =
+      [[RTCFrameCryptorKeyManager alloc] initWithRatchetSalt:ratchetSalt.data
+                                           ratchetWindowSize:[ratchetWindowSize intValue]
+                                               sharedKeyMode:[sharedKey boolValue]];
   self.keyManagers[keyManagerId] = keyManager;
-  result(@{@"keyManagerId": keyManagerId});
+  result(@{@"keyManagerId" : keyManagerId});
 }
 
 - (void)keyManagerSetKey:(nonnull NSDictionary*)constraints result:(nonnull FlutterResult)result {
- NSString *keyManagerId = constraints[@"keyManagerId"];
+  NSString* keyManagerId = constraints[@"keyManagerId"];
   if (keyManagerId == nil) {
     result([FlutterError errorWithCode:@"keyManagerSetKeyFailed"
                                message:@"Invalid keyManagerId"
                                details:nil]);
     return;
   }
-  RTCFrameCryptorKeyManager *keyManager = self.keyManagers[keyManagerId];
+  RTCFrameCryptorKeyManager* keyManager = self.keyManagers[keyManagerId];
   if (keyManager == nil) {
     result([FlutterError errorWithCode:@"keyManagerSetKeyFailed"
                                message:@"Invalid keyManager"
@@ -347,96 +382,55 @@
   }
 
   [keyManager setKey:key.data withIndex:[keyIndex intValue] forParticipant:participantId];
-  result(@{@"result": @YES});
+  result(@{@"result" : @YES});
 }
 
-- (void)keyManagerSetKeys:(nonnull NSDictionary*)constraints result:(nonnull FlutterResult)result {
- NSString *keyManagerId = constraints[@"keyManagerId"];
+- (void)keyManagerRatchetKey:(nonnull NSDictionary*)constraints
+                      result:(nonnull FlutterResult)result {
+  NSString* keyManagerId = constraints[@"keyManagerId"];
   if (keyManagerId == nil) {
-    result([FlutterError errorWithCode:@"keyManagerSetKeysFailed"
+    result([FlutterError errorWithCode:@"keyManagerRatchetKeyFailed"
                                message:@"Invalid keyManagerId"
                                details:nil]);
     return;
   }
-  RTCFrameCryptorKeyManager *keyManager = self.keyManagers[keyManagerId];
+  RTCFrameCryptorKeyManager* keyManager = self.keyManagers[keyManagerId];
   if (keyManager == nil) {
-    result([FlutterError errorWithCode:@"keyManagerSetKeysFailed"
+    result([FlutterError errorWithCode:@"keyManagerRatchetKeyFailed"
                                message:@"Invalid keyManager"
                                details:nil]);
     return;
   }
 
-
-  NSArray<FlutterStandardTypedData*> *keys = constraints[@"keys"];
-  if (keys == nil) {
-    result([FlutterError errorWithCode:@"keyManagerSetKeysFailed"
-                               message:@"Invalid keys"
+  NSNumber* keyIndex = constraints[@"keyIndex"];
+  if (keyIndex == nil) {
+    result([FlutterError errorWithCode:@"keyManagerRatchetKeyFailed"
+                               message:@"Invalid keyIndex"
                                details:nil]);
     return;
   }
 
   NSString* participantId = constraints[@"participantId"];
   if (participantId == nil) {
-    result([FlutterError errorWithCode:@"keyManagerSetKeysFailed"
+    result([FlutterError errorWithCode:@"keyManagerRatchetKeyFailed"
                                message:@"Invalid participantId"
                                details:nil]);
     return;
   }
-  NSMutableArray<NSData*>* keysData = [NSMutableArray array];
-  NSEnumerator* enumerator = [keys objectEnumerator];
-  FlutterStandardTypedData* object;
-  while ((object = enumerator.nextObject) != nil) {
-    [keysData addObject:object.data];
-  }
 
-  [keyManager setKeys:keysData forParticipant:participantId];
-  result(@{@"result": @YES});
-}
-
-- (void)keyManagerGetKeys:(nonnull NSDictionary*)constraints result:(nonnull FlutterResult)result {
-  NSString *keyManagerId = constraints[@"keyManagerId"];
-    if (keyManagerId == nil) {
-      result([FlutterError errorWithCode:@"keyManagerGetKeysFailed"
-                                message:@"Invalid keyManagerId"
-                                details:nil]);
-      return;
-    }
-    RTCFrameCryptorKeyManager *keyManager = self.keyManagers[keyManagerId];
-    if (keyManager == nil) {
-      result([FlutterError errorWithCode:@"keyManagerGetKeysFailed"
-                                message:@"Invalid keyManager"
-                                details:nil]);
-      return;
-    }
-  
-    NSString* participantId = constraints[@"participantId"];
-    if (participantId == nil) {
-      result([FlutterError errorWithCode:@"keyManagerGetKeysFailed"
-                                message:@"Invalid participantId"
-                                details:nil]);
-      return;
-    }
-  
-    NSArray<NSData*>* keys = [keyManager getKeys:participantId];
-    NSMutableArray<FlutterStandardTypedData*>* keysData = [NSMutableArray array];
-    NSEnumerator* enumerator = [keys objectEnumerator];
-    NSData* object;
-    while ((object = enumerator.nextObject) != nil) {
-      [keysData addObject:[FlutterStandardTypedData typedDataWithBytes:object]];
-    }
-  
-    result(@{@"keys": keysData});
+  NSDate* newKey = [keyManager ratchetKey:participantId withIndex:[keyIndex intValue]];
+  result(@{@"result" : newKey});
 }
 
 - (void)keyManagerDispose:(nonnull NSDictionary*)constraints result:(nonnull FlutterResult)result {
-  NSString *keyManagerId = constraints[@"keyManagerId"];
+  NSString* keyManagerId = constraints[@"keyManagerId"];
   if (keyManagerId == nil) {
     result([FlutterError errorWithCode:@"keyManagerDisposeFailed"
                                message:@"Invalid keyManagerId"
                                details:nil]);
     return;
   }
-  RTCFrameCryptorKeyManager *keyManager = self.keyManagers[keyManagerId];
+  RTCFrameCryptorKeyManager* keyManager = self.keyManagers[keyManagerId];
   if (keyManager == nil) {
     result([FlutterError errorWithCode:@"keyManagerDisposeFailed"
                                message:@"Invalid keyManager"
@@ -444,22 +438,24 @@
     return;
   }
   [self.keyManagers removeObjectForKey:keyManagerId];
-  result(@{@"result": @"success"});
+  result(@{@"result" : @"success"});
 }
 
-- (NSString*) stringFromState:(RTCFrameCryptorErrorState)state {
+- (NSString*)stringFromState:(FrameCryptionState)state {
   switch (state) {
-    case RTCFrameCryptorErrorStateNew:
+    case FrameCryptionStateNew:
       return @"new";
-    case RTCFrameCryptorErrorStateOk:
+    case FrameCryptionStateOk:
       return @"ok";
-    case RTCFrameCryptorErrorStateEncryptionFailed:
+    case FrameCryptionStateEncryptionFailed:
       return @"encryptionFailed";
-    case RTCFrameCryptorErrorStateDecryptionFailed:
+    case FrameCryptionStateDecryptionFailed:
       return @"decryptionFailed";
-    case RTCFrameCryptorErrorStateMissingKey:
+    case FrameCryptionStateMissingKey:
       return @"missingKey";
-    case RTCFrameCryptorErrorStateInternalError:
+    case FrameCryptionStateKeyRatcheted:
+      return @"keyRatcheted";
+    case FrameCryptionStateInternalError:
       return @"internalError";
     default:
       return @"unknown";
@@ -468,17 +464,16 @@
 
 #pragma mark - RTCFrameCryptorDelegate methods
 
-- (void)frameCryptor
-    : (RTC_OBJC_TYPE(RTCFrameCryptor) *)frameCryptor didStateChangeWithParticipantId
-    : (NSString *)participantId withState : (RTCFrameCryptorErrorState)stateChanged {
-
-      if(frameCryptor.eventSink) {
-        frameCryptor.eventSink(@{
-          @"event": @"frameCryptionStateChanged",
-          @"participantId": participantId,
-          @"state": [self stringFromState:stateChanged]
-        });
-      }
-    }
+- (void)frameCryptor:(RTC_OBJC_TYPE(RTCFrameCryptor) *)frameCryptor
+    didStateChangeWithParticipantId:(NSString*)participantId
+                          withState:(FrameCryptionState)stateChanged {
+  if (frameCryptor.eventSink) {
+    frameCryptor.eventSink(@{
+      @"event" : @"frameCryptionStateChanged",
+      @"participantId" : participantId,
+      @"state" : [self stringFromState:stateChanged]
+    });
+  }
+}
 
 @end

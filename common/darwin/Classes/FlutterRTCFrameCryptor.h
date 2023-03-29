@@ -42,7 +42,7 @@
 - (void)keyManagerSetKey:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;
 
-- (void)keyManagerSetKeys:(nonnull NSDictionary*)constraints
+- (void)keyManagerRatchetKey:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;
                         
 - (void)keyManagerGetKeys:(nonnull NSDictionary*)constraints
