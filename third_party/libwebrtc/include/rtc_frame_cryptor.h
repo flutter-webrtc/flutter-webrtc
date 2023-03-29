@@ -37,7 +37,7 @@ class KeyManager : public RefCountInterface {
                       int index,
                       vector<uint8_t> key) = 0;
   
-  virtual void RatchetKey(const string participant_id, int key_index) = 0;
+  virtual vector<uint8_t> RatchetKey(const string participant_id, int key_index) = 0;
 
  protected:
   virtual ~KeyManager() {}
@@ -49,6 +49,7 @@ enum RTCFrameCryptionState {
   kEncryptionFailed,
   kDecryptionFailed,
   kMissingKey,
+  kKeyRatcheted,
   kInternalError,
 };
 

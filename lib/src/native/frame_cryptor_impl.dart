@@ -33,7 +33,7 @@ class KeyManagerImpl implements KeyManager {
   }
 
   @override
-  Future<bool> ratchetKey({
+  Future<Uint8List> ratchetKey({
     required String participantId,
     required int index,
   }) async {
@@ -167,6 +167,8 @@ class FrameCryptorImpl extends FrameCryptor {
         return FrameCryptorState.FrameCryptorStateEncryptionFailed;
       case 'internalError':
         return FrameCryptorState.FrameCryptorStateInternalError;
+      case "keyRatcheted":
+        return FrameCryptorState.FrameCryptorStateKeyRatcheted;
       case 'missingKey':
         return FrameCryptorState.FrameCryptorStateMissingKey;
       default:

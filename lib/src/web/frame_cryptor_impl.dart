@@ -192,7 +192,7 @@ class KeyManagerImpl implements KeyManager {
   }
 
   @override
-  Future<bool> ratchetKey(
+  Future<Uint8List> ratchetKey(
       {required String participantId, required int index}) async {
     jsutil.callMethod(worker, 'postMessage', [
       jsutil.jsify({
@@ -201,7 +201,8 @@ class KeyManagerImpl implements KeyManager {
         'index': index,
       })
     ]);
-    return true;
+    //TODO: implement ratchetKey
+    return Uint8List.fromList([]);
   }
 }
 

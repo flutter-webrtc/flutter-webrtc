@@ -27,6 +27,8 @@ std::string frameCryptionStateToString(libwebrtc::RTCFrameCryptionState state) {
       return "encryptionFailed";
     case RTCFrameCryptionState::kInternalError:
       return "internalError";
+    case RTCFrameCryptionState::kKeyRatcheted:
+      return "keyRatcheted";
     case RTCFrameCryptionState::kMissingKey:
       return "missingKey";
   }
@@ -400,10 +402,10 @@ void FlutterFrameCryptor::KeyManagerRatchetKey(
     return;
   }
 
-  keyManager->RatchetKey(participant_id, key_index);
+  auto newMaterial = keyManager->RatchetKey(participant_id, key_index);
 
   EncodableMap params;
-  params[EncodableValue("result")] = true;
+  params[EncodableValue("result")] = EncodableValue(newMaterial.std_vector());
   result->Success(EncodableValue(params));
 }
 

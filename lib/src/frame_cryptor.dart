@@ -42,7 +42,7 @@ abstract class KeyManager {
   });
 
   /// ratchet the key at the given index.
-  Future<bool> ratchetKey({
+  Future<Uint8List> ratchetKey({
     required String participantId,
     required int index,
   });
@@ -57,6 +57,7 @@ enum FrameCryptorState {
   FrameCryptorStateEncryptionFailed,
   FrameCryptorStateDecryptionFailed,
   FrameCryptorStateMissingKey,
+  FrameCryptorStateKeyRatcheted,
   FrameCryptorStateInternalError,
 }
 

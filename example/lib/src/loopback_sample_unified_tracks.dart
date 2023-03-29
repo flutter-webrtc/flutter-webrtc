@@ -40,6 +40,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   bool _audioDecrypt = false;
   bool _videoDecrypt = false;
   List<MediaDeviceInfo>? _mediaDevicesList;
+  String? _senderParticipantId;
   final FrameCryptorFactory _frameCyrptorFactory = FrameCryptorFactory.instance;
   KeyManager? _keyManager;
   final Map<String, FrameCryptor> _frameCyrptors = {};
@@ -351,6 +352,10 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
         await frameCyrptor.setKeyIndex(0);
       }
 
+      if (kind == 'video') {
+        _senderParticipantId = id;
+      }
+
       var _frameCyrptor = _frameCyrptors[id];
       if (enabled) {
         await _frameCyrptor?.setEnabled(true);
@@ -407,6 +412,12 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     setState(() {
       _inCalling = false;
     });
+  }
+
+  void _ratchetKey() async {
+    var newKey = await _keyManager?.ratchetKey(
+        participantId: _senderParticipantId!, index: 0);
+    print('newKey $newKey');
   }
 
   Map<String, dynamic> _getMediaConstraints({audio = true, video = true}) {
@@ -785,6 +796,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                     );
                   }).toList(),
                 ),
+                TextButton(onPressed: _ratchetKey, child: Text('Ratchet Key'))
               ],
             ),
             Row(
