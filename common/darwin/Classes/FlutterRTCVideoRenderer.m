@@ -187,49 +187,47 @@
   [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
 
   __weak FlutterRTCVideoRenderer* weakSelf = self;
-  if (_renderSize.width != frame.width || _renderSize.height != frame.height) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      FlutterRTCVideoRenderer* strongSelf = weakSelf;
-      if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{
-          @"event" : @"didTextureChangeVideoSize",
-          @"id" : @(strongSelf.textureId),
-          @"width" : @(frame.width),
-          @"height" : @(frame.height),
-        });
-      }
-    });
-    _renderSize = CGSizeMake(frame.width, frame.height);
-  }
-
-  if (frame.rotation != _rotation) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      FlutterRTCVideoRenderer* strongSelf = weakSelf;
-      if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{
-          @"event" : @"didTextureChangeRotation",
-          @"id" : @(strongSelf.textureId),
-          @"rotation" : @(frame.rotation),
-        });
-      }
-    });
-
-    _rotation = frame.rotation;
-  }
+//  if (_renderSize.width != frame.width || _renderSize.height != frame.height) {
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//      FlutterRTCVideoRenderer* strongSelf = weakSelf;
+//      if (strongSelf.eventSink) {
+//        strongSelf.eventSink(@{
+//          @"event" : @"didTextureChangeVideoSize",
+//          @"id" : @(strongSelf.textureId),
+//          @"width" : @(frame.width),
+//          @"height" : @(frame.height),
+//        });
+//      }
+//    });
+//    _renderSize = CGSizeMake(frame.width, frame.height);
+//  }
+//
+//  if (frame.rotation != _rotation) {
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//      FlutterRTCVideoRenderer* strongSelf = weakSelf;
+//      if (strongSelf.eventSink) {
+//        strongSelf.eventSink(@{
+//          @"event" : @"didTextureChangeRotation",
+//          @"id" : @(strongSelf.textureId),
+//          @"rotation" : @(frame.rotation),
+//        });
+//      }
+//    });
+//
+//    _rotation = frame.rotation;
+//  }
 
   // Notify the Flutter new pixelBufferRef to be ready.
   dispatch_async(dispatch_get_main_queue(), ^{
     FlutterRTCVideoRenderer* strongSelf = weakSelf;
-      if (!strongSelf.isLocalStream) {
-          [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
-      }
-    [strongSelf sendFrameToMyRender:frame];
-    if (!strongSelf->_isFirstFrameRendered) {
-      if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{@"event" : @"didFirstFrameRendered"});
-        strongSelf->_isFirstFrameRendered = true;
-      }
-    }
+//      [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
+      [strongSelf sendFrameToMyRender:frame];
+//    if (!strongSelf->_isFirstFrameRendered) {
+//      if (strongSelf.eventSink) {
+//        strongSelf.eventSink(@{@"event" : @"didFirstFrameRendered"});
+//        strongSelf->_isFirstFrameRendered = true;
+//      }
+//    }
   });
 }
 
@@ -262,23 +260,14 @@
     } else {
       outputSize = CGRectMake(0, 0, frame.width, frame.height);
     }
-    CIContext* tempContext = [CIContext contextWithOptions:nil];
-    CGImageRef cgImage = [tempContext createCGImage:ciImage fromRect:outputSize];
     NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
     [userInfo setObject:[NSString stringWithFormat:@" %lld",_textureId] forKey:@"texture"];
-    
+
     [userInfo setObject:[NSString stringWithFormat:@" %d",frame.height] forKey:@"height"];
     [userInfo setObject:[NSString stringWithFormat:@" %d",frame.width] forKey:@"width"];
 
-    UIImage* uiImage = [UIImage imageWithCGImage:cgImage];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTRemote" object:ciImage userInfo:userInfo];
 
-    if (isLocalStream) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTLocal" object:uiImage userInfo:userInfo];
-    } else {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTRemote" object:uiImage userInfo:userInfo];
-    }
-    
-    CGImageRelease(cgImage);
 }
 
 
