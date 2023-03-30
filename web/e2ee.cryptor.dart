@@ -3,6 +3,7 @@ import 'dart:js';
 import 'dart:js_util' as jsutil;
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:collection';
 
 import 'package:flutter_webrtc/src/web/rtc_transform_stream.dart';
 
@@ -156,20 +157,24 @@ class Cryptor {
   bool enabled = false;
   CryptorError lastError = CryptorError.kNew;
   final DedicatedWorkerGlobalScope worker;
-
   int currentKeyIndex = 0;
+
+  final queue = Queue<RTCEncodedFrame>();
+  bool ratchetInProgress = false;
 
   List<KeySet?> cryptoKeyRing = List.filled(KEYRING_SIZE, null);
 
   Future<void> ratchetKey(int? keyIndex) async {
-    if (lastError != CryptorError.kOk) {
-      print('ratchetKey: lastError != CryptorError.kOk, reset state to kNew');
-      lastError = CryptorError.kNew;
-    }
     var currentMaterial = getKeySet(keyIndex)?.material;
     if (currentMaterial == null) {
       return;
     }
+    var newMaterial = await ratchetMaterial(currentMaterial);
+    var newKeySet = await deriveKeys(newMaterial, keyOptions.ratchetSalt);
+    await setKeySetFromMaterial(newKeySet, keyIndex ?? currentKeyIndex);
+  }
+
+  Future<CryptoKey> ratchetMaterial(CryptoKey currentMaterial) async {
     var newMaterial = await jsutil.promiseToFuture(crypto.importKey(
       'raw',
       crypto.jsArrayBufferFrom(
@@ -178,21 +183,7 @@ class Cryptor {
       false,
       ['deriveBits', 'deriveKey'],
     ));
-
-    await setKeyFromMaterial(newMaterial, keyIndex ?? currentKeyIndex);
-    if (lastError != CryptorError.kKeyRatcheted) {
-      print(
-          'ratchetKey: lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted');
-      lastError = CryptorError.kKeyRatcheted;
-      postMessage({
-        'type': 'cryptorState',
-        'participantId': participantId,
-        'trackId': trackId,
-        'kind': kind,
-        'state': 'keyRatcheted',
-        'error': 'Key ratcheted ok'
-      });
-    }
+    return newMaterial;
   }
 
   KeySet? getKeySet(int? keyIndex) {
@@ -232,19 +223,19 @@ class Cryptor {
     }
     var keyMaterial = await crypto.impportKeyFromRawData(key,
         webCryptoAlgorithm: 'PBKDF2', keyUsages: ['deriveBits', 'deriveKey']);
-
-    await setKeyFromMaterial(keyMaterial, keyIndex);
+    var keySet = await deriveKeys(
+      keyMaterial,
+      keyOptions.ratchetSalt,
+    );
+    await setKeySetFromMaterial(keySet, keyIndex);
   }
 
-  Future<void> setKeyFromMaterial(CryptoKey material, int keyIndex) async {
+  Future<void> setKeySetFromMaterial(KeySet keySet, int keyIndex) async {
     print('setting new key');
     if (keyIndex >= 0) {
       currentKeyIndex = keyIndex % cryptoKeyRing.length;
     }
-    cryptoKeyRing[currentKeyIndex] = await deriveKeys(
-      material,
-      keyOptions.ratchetSalt,
-    );
+    cryptoKeyRing[currentKeyIndex] = keySet;
   }
 
   /// Derives a set of keys from the master key.
@@ -253,23 +244,18 @@ class Cryptor {
     var algorithmOptions =
         getAlgoOptions((material.algorithm as crypto.Algorithm).name, salt);
 
-    try {
-      // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey#HKDF
-      // https://developer.mozilla.org/en-US/docs/Web/API/HkdfParams
-      var encryptionKey =
-          await jsutil.promiseToFuture<CryptoKey>(crypto.deriveKey(
-        jsutil.jsify(algorithmOptions),
-        material,
-        jsutil.jsify({'name': 'AES-GCM', 'length': 128}),
-        false,
-        ['encrypt', 'decrypt'],
-      ));
+    // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey#HKDF
+    // https://developer.mozilla.org/en-US/docs/Web/API/HkdfParams
+    var encryptionKey =
+        await jsutil.promiseToFuture<CryptoKey>(crypto.deriveKey(
+      jsutil.jsify(algorithmOptions),
+      material,
+      jsutil.jsify({'name': 'AES-GCM', 'length': 128}),
+      false,
+      ['encrypt', 'decrypt'],
+    ));
 
-      return KeySet(material, encryptionKey);
-    } catch (e) {
-      print(e);
-      return KeySet(material, material);
-    }
+    return KeySet(material, encryptionKey);
   }
 
   /// Ratchets a key. See
@@ -279,14 +265,9 @@ class Cryptor {
     var algorithmOptions = getAlgoOptions('PBKDF2', salt);
 
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveBits
-    try {
-      var newKey = await jsutil.promiseToFuture<ByteBuffer>(
-          crypto.deriveBits(jsutil.jsify(algorithmOptions), material, 256));
-      return newKey.asUint8List();
-    } catch (e) {
-      print(e);
-      return Uint8List(0);
-    }
+    var newKey = await jsutil.promiseToFuture<ByteBuffer>(
+        crypto.deriveBits(jsutil.jsify(algorithmOptions), material, 256));
+    return newKey.asUint8List();
   }
 
   void updateCodec(String codec) {
@@ -368,10 +349,10 @@ class Cryptor {
           case SLICE_IDR:
           case SLICE_NON_IDR:
             // skipping
-            print('unEncryptedBytes NALU of type $type, offset ${index + 2}');
+            //print('unEncryptedBytes NALU of type $type, offset ${index + 2}');
             return index + 2;
           default:
-            print('skipping NALU of type $type');
+            //print('skipping NALU of type $type');
             break;
         }
       }
@@ -491,7 +472,13 @@ class Cryptor {
   ) async {
     var ratchetCount = 0;
     var buffer = frame.data.asUint8List();
-    ByteBuffer decrypted = crypto.jsArrayBufferFrom(buffer);
+    ByteBuffer? decrypted;
+
+    if (ratchetInProgress) {
+      print('ratchet in progress, add the frame to the queue');
+      queue.add(frame);
+      return;
+    }
 
     if (!enabled ||
         // skip for encryption for empty dtx frames
@@ -510,9 +497,10 @@ class Cryptor {
       var keyIndex = frameTrailer[1];
       var iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
 
-      var secretKey = getKeySet(keyIndex)?.encryptionKey;
+      var keySet = getKeySet(keyIndex);
+      var initialKeySet = getKeySet(keyIndex);
 
-      if (secretKey == null) {
+      if (keySet == null) {
         if (lastError != CryptorError.kMissingKey) {
           lastError = CryptorError.kMissingKey;
           postMessage({
@@ -524,63 +512,78 @@ class Cryptor {
             'error': 'Missing key for track $trackId'
           });
         }
+        controller.enqueue(frame);
+        return;
       }
+      bool endDecLoop = false;
 
-      var initialKey = secretKey;
-      bool decryptSuccess = false;
+      while (!endDecLoop) {
+        try {
+          decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
+            crypto.AesGcmParams(
+              name: 'AES-GCM',
+              iv: crypto.jsArrayBufferFrom(iv),
+              additionalData:
+                  crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
+            ),
+            keySet!.encryptionKey,
+            crypto.jsArrayBufferFrom(
+                buffer.sublist(headerLength, buffer.length - ivLength - 2)),
+          ));
+          endDecLoop = true;
 
-      try {
-        decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
-          crypto.AesGcmParams(
-            name: 'AES-GCM',
-            iv: crypto.jsArrayBufferFrom(iv),
-            additionalData:
-                crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
-          ),
-          secretKey!,
-          crypto.jsArrayBufferFrom(
-              buffer.sublist(headerLength, buffer.length - ivLength - 2)),
-        ));
-        decryptSuccess = true;
-      } catch (e) {
-        print('decrypt: e ${e.toString()}');
-        while (keyOptions.ratchetWindowSize > ratchetCount) {
-          if (ratchetCount < keyOptions.ratchetWindowSize) {
-            print(
-                'ratcheting key attempt $ratchetCount of ${keyOptions.ratchetWindowSize}');
-
-            await ratchetKey(keyIndex);
-            ratchetCount++;
-            var secretKey = getKeySet(keyIndex)?.encryptionKey;
-
-            decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
-              crypto.AesGcmParams(
-                name: 'AES-GCM',
-                iv: crypto.jsArrayBufferFrom(iv),
-                additionalData:
-                    crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
-              ),
-              secretKey!,
-              crypto.jsArrayBufferFrom(
-                  buffer.sublist(headerLength, buffer.length - ivLength - 2)),
-            ));
-            decryptSuccess = true;
-            break;
+          if (keySet != initialKeySet) {
+            // decrypt ok, update keyset.
+            await setKeySetFromMaterial(keySet, keyIndex);
           }
-        }
 
-        /**
-           * Since the key it is first send and only afterwards actually used for encrypting, there were
-           * situations when the decrypting failed due to the fact that the received frame was not encrypted
-           * yet and ratcheting, of course, did not solve the problem. So if we fail RATCHET_WINDOW_SIZE times,
-           * we come back to the initial key.
-           */
-        if (initialKey && !decryptSuccess) {
-          this.keys.setKeyFromMaterial(initialKey);
-        }
+          if (lastError != CryptorError.kKeyRatcheted && ratchetCount > 0) {
+            print(
+                'ratchetKey: lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted');
+            lastError = CryptorError.kKeyRatcheted;
+            postMessage({
+              'type': 'cryptorState',
+              'participantId': participantId,
+              'trackId': trackId,
+              'kind': kind,
+              'state': 'keyRatcheted',
+              'error': 'Key ratcheted ok'
+            });
+          }
 
-        if (!decryptSuccess) {
-          rethrow;
+          ratchetInProgress = false;
+
+          if (queue.isNotEmpty) {
+            print('Ratchet done, process the queue of frames ${queue.length}}');
+            var q = queue;
+            queue.clear();
+            for (var f in q) {
+              await decodeFunction(f, controller);
+            }
+          }
+        } catch (e) {
+          ratchetInProgress = true;
+          print(
+              'decrypt e ${e.toString()}: ssrc ${metaData.synchronizationSource} timestamp ${frame.timestamp} ratchetCount $ratchetCount  participantId: $participantId');
+          endDecLoop = ratchetCount >= keyOptions.ratchetWindowSize ||
+              keyOptions.ratchetWindowSize <= 0;
+          if (endDecLoop) {
+            /// Since the key it is first send and only afterwards actually used for encrypting, there were
+            /// situations when the decrypting failed due to the fact that the received frame was not encrypted
+            /// yet and ratcheting, of course, did not solve the problem. So if we fail RATCHET_WINDOW_SIZE times,
+            ///  we come back to the initial key.
+            if (initialKeySet != null) {
+              await setKeySetFromMaterial(initialKeySet, keyIndex);
+            }
+            ratchetInProgress = false;
+            if (queue.isNotEmpty) {
+              queue.clear();
+            }
+            rethrow;
+          }
+          ratchetCount++;
+          var newMaterial = await ratchetMaterial(keySet!.material);
+          keySet = await deriveKeys(newMaterial, keyOptions.ratchetSalt);
         }
       }
 
@@ -589,7 +592,7 @@ class Cryptor {
       var finalBuffer = BytesBuilder();
 
       finalBuffer.add(Uint8List.fromList(buffer.sublist(0, headerLength)));
-      finalBuffer.add(decrypted.asUint8List());
+      finalBuffer.add(decrypted!.asUint8List());
       frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
       controller.enqueue(frame);
 
