@@ -83,7 +83,7 @@ extension RtcRtpSenderExt on html.RtcRtpSender {
 class FrameCryptorImpl extends FrameCryptor {
   FrameCryptorImpl(
       this._factory, this.worker, this._participantId, this._trackId,
-      {this.jsSender, this.jsReceiver});
+      {this.jsSender, this.jsReceiver, required this.keyManager});
   html.Worker worker;
   bool _enabled = false;
   int _keyIndex = 0;
@@ -92,6 +92,7 @@ class FrameCryptorImpl extends FrameCryptor {
   final html.RtcRtpSender? jsSender;
   final html.RtcRtpReceiver? jsReceiver;
   final FrameCryptorFactoryImpl _factory;
+  final KeyManagerImpl keyManager;
 
   @override
   Future<void> dispose() async {
@@ -205,6 +206,15 @@ class KeyManagerImpl implements KeyManager {
     return true;
   }
 
+  Completer<Uint8List>? _ratchetKeyCompleter;
+
+  void onRatchetKey(Uint8List key) {
+    if (_ratchetKeyCompleter != null) {
+      _ratchetKeyCompleter!.complete(key);
+      _ratchetKeyCompleter = null;
+    }
+  }
+
   @override
   Future<Uint8List> ratchetKey(
       {required String participantId, required int index}) async {
@@ -216,8 +226,11 @@ class KeyManagerImpl implements KeyManager {
       })
     ]);
 
-    //TODO: implement ratchetKey
-    return Uint8List.fromList([]);
+    if (_ratchetKeyCompleter == null) {
+      _ratchetKeyCompleter = Completer();
+    }
+
+    return _ratchetKeyCompleter!.future;
   }
 }
 
@@ -260,6 +273,14 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         }
         frameCryptor?.onFrameCryptorStateChanged
             ?.call(participantId, frameCryptorState);
+      } else if (type == 'ratchetKey') {
+        var trackId = msg.data['trackId'];
+        var frameCryptor = _frameCryptors.values.firstWhereOrNull(
+            (element) => (element as FrameCryptorImpl).trackId == trackId);
+        if (frameCryptor != null) {
+          ((frameCryptor as FrameCryptorImpl).keyManager as KeyManagerImpl)
+              .onRatchetKey(base64Decode(msg.data['key']));
+        }
       }
     });
     worker.onError.listen((err) {
@@ -331,7 +352,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     }
     FrameCryptor cryptor = FrameCryptorImpl(
         this, worker, participantId, trackId,
-        jsReceiver: jsReceiver);
+        jsReceiver: jsReceiver, keyManager: keyManager as KeyManagerImpl);
     _frameCryptors[trackId] = cryptor;
     return Future.value(cryptor);
   }
@@ -386,7 +407,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     }
     FrameCryptor cryptor = FrameCryptorImpl(
         this, worker, participantId, trackId,
-        jsSender: jsSender);
+        jsSender: jsSender, keyManager: keyManager as KeyManagerImpl);
     _frameCryptors[trackId] = cryptor;
     return Future.value(cryptor);
   }

@@ -60,6 +60,12 @@ external Promise<html.CryptoKey> importKey(
   List<String> keyUsages,
 );
 
+@JS('crypto.subtle.exportKey')
+external Promise<ByteBuffer> exportKey(
+  String format,
+  html.CryptoKey key,
+);
+
 @JS('crypto.subtle.deriveKey')
 external Promise<html.CryptoKey> deriveKey(
     dynamic algorithm,

@@ -9,6 +9,8 @@ import 'e2ee.cryptor.dart';
 import 'package:flutter_webrtc/src/web/rtc_transform_stream.dart';
 import 'package:collection/collection.dart';
 
+import 'crypto.dart' as crypto;
+
 @JS()
 abstract class TransformMessage {
   external String get msgType;
@@ -215,7 +217,17 @@ void main() async {
               .where((c) => c.participantId == participantId)
               .toList();
           for (var c in cryptors) {
-            c.ratchetKey(keyIndex);
+            var keySet = c.getKeySet(keyIndex);
+            c.ratchetKey(keyIndex).then((_) async {
+              var newKey = await c.ratchet(
+                  keySet!.material, keyProviderOptions.ratchetSalt);
+              self.postMessage({
+                'type': 'ratchetKey',
+                'participantId': participantId,
+                'trackId': c.trackId,
+                'key': base64Encode(newKey),
+              });
+            });
           }
         }
         break;
