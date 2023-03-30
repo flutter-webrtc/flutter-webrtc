@@ -52,6 +52,11 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   String? _selectedVideoInputId;
   String? _selectedAudioInputId;
 
+  MediaDeviceInfo get selectedAudioInput => audioInputs.firstWhere(
+      (device) => device.deviceId == _selectedVideoInputId,
+      orElse: () => audioInputs.first);
+  String? _selectedVideoInputId;
+
   String? _selectedVideoFPS = '30';
 
   VideoSize _selectedVideoSize = VideoSize(1280, 720);

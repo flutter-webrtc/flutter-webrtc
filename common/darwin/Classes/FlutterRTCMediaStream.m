@@ -336,6 +336,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
         }
       }
     }
+
     if (!videoDevice) {
       // constraints.video.facingMode
       // https://www.w3.org/TR/mediacapture-streams/#def-constraint-facingMode
