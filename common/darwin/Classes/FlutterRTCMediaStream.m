@@ -7,6 +7,17 @@
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
 
+@implementation RTCMediaStreamTrack (Flutter)
+
+- (id)settings {
+  return objc_getAssociatedObject(self, _cmd);
+}
+
+- (void)setSettings:(id)settings {
+  objc_setAssociatedObject(self, @selector(settings), settings, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+@end
+
 @implementation AVCaptureDevice (Flutter)
 
 - (NSString*)positionString {
@@ -65,8 +76,49 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
      successCallback:(NavigatorUserMediaSuccessCallback)successCallback
        errorCallback:(NavigatorUserMediaErrorCallback)errorCallback
          mediaStream:(RTCMediaStream*)mediaStream {
+  id audioConstraints = constraints[@"audio"];
+  NSString* audioDeviceId = @"";
+
+  if ([audioConstraints isKindOfClass:[NSDictionary class]]) {
+    // constraints.audio.deviceId
+    NSString* deviceId = audioConstraints[@"deviceId"];
+
+    if (deviceId) {
+      audioDeviceId = deviceId;
+    }
+
+    // constraints.audio.optional.sourceId
+    id optionalVideoConstraints = audioConstraints[@"optional"];
+    if (optionalVideoConstraints && [optionalVideoConstraints isKindOfClass:[NSArray class]] &&
+        !deviceId) {
+      NSArray* options = optionalVideoConstraints;
+      for (id item in options) {
+        if ([item isKindOfClass:[NSDictionary class]]) {
+          NSString* sourceId = ((NSDictionary*)item)[@"sourceId"];
+          if (sourceId) {
+            audioDeviceId = sourceId;
+          }
+        }
+      }
+    }
+  }
+
+  if (audioDeviceId != nil) {
+    [self selectAudioInput:audioDeviceId result:nil];
+  }
+
   NSString* trackId = [[NSUUID UUID] UUIDString];
   RTCAudioTrack* audioTrack = [self.peerConnectionFactory audioTrackWithTrackId:trackId];
+
+  audioTrack.settings = @{
+    @"deviceId" : audioDeviceId,
+    @"kind" : @"audioinput",
+    @"autoGainControl" : @YES,
+    @"echoCancellation" : @YES,
+    @"noiseSuppression" : @YES,
+    @"channelCount" : @1,
+    @"latency" : @0,
+  };
 
   [mediaStream addAudioTrack:audioTrack];
 
@@ -101,7 +153,8 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
             @"label" : track.trackId,
             @"enabled" : @(track.isEnabled),
             @"remote" : @(YES),
-            @"readyState" : @"live"
+            @"readyState" : @"live",
+            @"settings" : track.settings
           }];
         }
 
@@ -112,7 +165,8 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
             @"label" : track.trackId,
             @"enabled" : @(track.isEnabled),
             @"remote" : @(YES),
-            @"readyState" : @"live"
+            @"readyState" : @"live",
+            @"settings" : track.settings
           }];
         }
 
@@ -252,6 +306,8 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
          mediaStream:(RTCMediaStream*)mediaStream {
   id videoConstraints = constraints[@"video"];
   AVCaptureDevice* videoDevice;
+  NSString* videoDeviceId = nil;
+  NSString* facingMode = nil;
 
   if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
     // constraints.video.deviceId
@@ -259,6 +315,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 
     if (deviceId) {
       videoDevice = [AVCaptureDevice deviceWithUniqueID:deviceId];
+      videoDeviceId = deviceId;
     }
 
     // constraints.video.optional
@@ -272,6 +329,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
           if (sourceId) {
             videoDevice = [AVCaptureDevice deviceWithUniqueID:sourceId];
             if (videoDevice) {
+              videoDeviceId = sourceId;
               break;
             }
           }
@@ -282,7 +340,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     if (!videoDevice) {
       // constraints.video.facingMode
       // https://www.w3.org/TR/mediacapture-streams/#def-constraint-facingMode
-      id facingMode = videoConstraints[@"facingMode"];
+      facingMode = videoConstraints[@"facingMode"];
       if (facingMode && [facingMode isKindOfClass:[NSString class]]) {
         AVCaptureDevicePosition position;
         if ([facingMode isEqualToString:@"environment"]) {
@@ -394,6 +452,25 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     self.videoCapturerStopHandlers[videoTrack.trackId] = ^(CompletionHandler handler) {
       NSLog(@"Stop video capturer, trackID %@", videoTrack.trackId);
       [capturer stopCaptureWithCompletionHandler:handler];
+    };
+
+    if (!videoDeviceId) {
+      videoDeviceId = videoDevice.uniqueID;
+    }
+
+    if (!facingMode) {
+      facingMode = videoDevice.position == AVCaptureDevicePositionBack    ? @"environment"
+                   : videoDevice.position == AVCaptureDevicePositionFront ? @"user"
+                                                                          : @"unspecified";
+    }
+
+    videoTrack.settings = @{
+      @"deviceId" : videoDeviceId,
+      @"kind" : @"videoinput",
+      @"width" : [NSNumber numberWithInt:targetWidth],
+      @"height" : [NSNumber numberWithInt:targetHeight],
+      @"frameRate" : [NSNumber numberWithInt:selectedFps],
+      @"facingMode" : facingMode,
     };
 
     [mediaStream addVideoTrack:videoTrack];
@@ -601,7 +678,8 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   for (RTCAudioDevice* device in inputDevices) {
     if ([deviceId isEqualToString:device.deviceId]) {
       [audioDeviceModule setInputDevice:device];
-      result(nil);
+      if (result)
+        result(nil);
       return;
     }
   }
@@ -617,11 +695,13 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
       break;
     }
   }
-  result(nil);
+  if (result)
+    result(nil);
 #endif
-  result([FlutterError errorWithCode:@"selectAudioInputFailed"
-                             message:[NSString stringWithFormat:@"Error: deviceId not found!"]
-                             details:nil]);
+  if (result)
+    result([FlutterError errorWithCode:@"selectAudioInputFailed"
+                               message:[NSString stringWithFormat:@"Error: deviceId not found!"]
+                               details:nil]);
 }
 
 - (void)selectAudioOutput:(NSString*)deviceId result:(FlutterResult)result {

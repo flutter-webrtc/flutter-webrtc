@@ -1,6 +1,10 @@
 #import <Foundation/Foundation.h>
 #import "FlutterWebRTCPlugin.h"
 
+@interface RTCMediaStreamTrack (Flutter)
+@property(nonatomic, strong, nonnull) id settings;
+@end
+
 @interface FlutterWebRTCPlugin (RTCMediaStream)
 
 - (void)getUserMedia:(NSDictionary*)constraints result:(FlutterResult)result;
