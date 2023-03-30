@@ -1,0 +1,21 @@
+* get user media
+* get display media audio/video, audio only, video only
+* get sources/change audio input/output
+* audio/video loopback simple
+* getStats 
+* replace track in calling, turn on/off video or audio
+* set set codec preferences
+* simulcast sender
+* send dtmf
+* ice restart
+* muiltiple tracks on one peerconnection
+
+data channel
+* data channel loopback simple
+* transfer a file/data through data channel
+
+Insertable Streams:
+* frame crypto (e2ee)
+* frame processing (e.g. face detection, object detection, etc)
+* custom audio/video source from image, or file
+* capture audioFrame/videoFrame to file or image
