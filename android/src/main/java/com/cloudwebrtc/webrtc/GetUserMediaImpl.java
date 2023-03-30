@@ -684,7 +684,7 @@ class GetUserMediaImpl {
             videoConstraintsMap = constraints.getMap("video");
             if (videoConstraintsMap.hasKey("mandatory")
                     && videoConstraintsMap.getType("mandatory") == ObjectType.Map) {
-                videoConstraintsMandatory.merge(videoConstraintsMap.getMap("mandatory").toMap());
+                videoConstraintsMandatory = videoConstraintsMap.getMap("mandatory");
             }
         }
 
