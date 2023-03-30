@@ -45,9 +45,9 @@ typedef void (^CapturerStopHandler)(CompletionHandler handler);
 @property(nonatomic, strong) FlutterRTCFrameCapturer* frameCapturer;
 @property(nonatomic, strong) AVAudioSessionPort preferredInput;
 @property(nonatomic) BOOL _usingFrontCamera;
-@property(nonatomic) int _targetWidth;
-@property(nonatomic) int _targetHeight;
-@property(nonatomic) int _targetFps;
+@property(nonatomic) NSInteger _lastTargetWidth;
+@property(nonatomic) NSInteger _lastTargetHeight;
+@property(nonatomic) NSInteger _lastTargetFps;
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId peerConnectionId:(NSString*)peerConnectionId;
 - (RTCRtpTransceiver*)getRtpTransceiverById:(RTCPeerConnection*)peerConnection Id:(NSString*)Id;

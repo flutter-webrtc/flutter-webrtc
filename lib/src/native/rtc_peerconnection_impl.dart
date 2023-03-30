@@ -118,7 +118,12 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         Map<dynamic, dynamic> track = map['track'];
 
         var newTrack = MediaStreamTrackNative(
-            track['id'], track['label'], track['kind'], track['enabled'], _peerConnectionId);
+            track['id'],
+            track['label'],
+            track['kind'],
+            track['enabled'],
+            _peerConnectionId,
+            track['settings'] ?? {});
         String kind = track['kind'];
 
         var stream =
@@ -177,7 +182,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
             receiver: RTCRtpReceiverNative.fromMap(map['receiver'],
                 peerConnectionId: _peerConnectionId),
             streams: streams,
-            track: MediaStreamTrackNative.fromMap(map['track'], _peerConnectionId),
+            track:
+                MediaStreamTrackNative.fromMap(map['track'], _peerConnectionId),
             transceiver: transceiver));
         break;
 

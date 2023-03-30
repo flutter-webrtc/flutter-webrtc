@@ -86,8 +86,7 @@ void FlutterWebRTCBase::RemovePeerConnectionObserversForId(
 }
 
 scoped_refptr<RTCMediaStream> FlutterWebRTCBase::MediaStreamForId(
-    const std::string& id,
-    std::string ownerTag /* = std::string()*/) {
+    const std::string& id, std::string ownerTag) {
   if (!ownerTag.empty()) {
     if (ownerTag == "local") {
       auto it = local_streams_.find(id);
@@ -108,13 +107,6 @@ scoped_refptr<RTCMediaStream> FlutterWebRTCBase::MediaStreamForId(
   auto it = local_streams_.find(id);
   if (it != local_streams_.end()) {
     return (*it).second;
-  }
-
-  for (auto kv : peerconnection_observers_) {
-    auto pco = kv.second.get();
-    auto stream = pco->MediaStreamForId(id);
-    if (stream != nullptr)
-      return stream;
   }
 
   return nullptr;
@@ -304,6 +296,8 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap& map,
       conf.sdp_semantics = SdpSemantics::kPlanB;
     else if (v == "unified-plan")  // public
       conf.sdp_semantics = SdpSemantics::kUnifiedPlan;
+  } else {
+    conf.sdp_semantics = SdpSemantics::kUnifiedPlan;
   }
   return true;
 }

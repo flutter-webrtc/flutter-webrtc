@@ -462,6 +462,8 @@ RTCMediaType stringToMediaType(const std::string& mediaType) {
     type = RTCMediaType::AUDIO;
   else if (mediaType == "video")
     type = RTCMediaType::VIDEO;
+  else if (mediaType == "data")
+    type = RTCMediaType::DATA;
   return type;
 }
 
