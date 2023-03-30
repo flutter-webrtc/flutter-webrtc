@@ -1,11 +1,29 @@
 import 'dart:html';
 import 'dart:js';
-import 'dart:js_util';
+import 'dart:js_util' as jsutil;
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'crypto.dart';
 import 'package:flutter_webrtc/src/web/rtc_transform_stream.dart';
+
+import 'crypto.dart' as crypto;
+import 'e2ee.utils.dart';
+
+class KeyOptions {
+  KeyOptions({
+    required this.sharedKey,
+    required this.ratchetSalt,
+    required this.ratchetWindowSize,
+  });
+  bool sharedKey;
+  Uint8List ratchetSalt;
+  int ratchetWindowSize;
+
+  @override
+  String toString() {
+    return 'KeyOptions{sharedKey: $sharedKey, ratchetWindowSize: $ratchetWindowSize}';
+  }
+}
 
 const IV_LENGTH = 12;
 
@@ -110,8 +128,17 @@ enum CryptorError {
   kEncryptError,
   kUnsupportedCodec,
   kMissingKey,
+  kKeyRatcheted,
   kInternalError,
   kDisposed,
+}
+
+const KEYRING_SIZE = 16;
+
+class KeySet {
+  KeySet(this.material, this.encryptionKey);
+  CryptoKey material;
+  CryptoKey encryptionKey;
 }
 
 class Cryptor {
@@ -119,18 +146,58 @@ class Cryptor {
       {required this.worker,
       required this.participantId,
       required this.trackId,
-      required this.sharedKey});
+      required this.keyOptions});
   Map<int, int> sendCounts = {};
   String? participantId;
   String? trackId;
   String? codec;
-  final bool sharedKey;
+  final KeyOptions keyOptions;
   late String kind;
-  CryptoKey? secretKey;
-  int keyIndex = 0;
   bool enabled = false;
   CryptorError lastError = CryptorError.kNew;
   final DedicatedWorkerGlobalScope worker;
+
+  int currentKeyIndex = 0;
+
+  List<KeySet?> cryptoKeyRing = List.filled(KEYRING_SIZE, null);
+
+  Future<void> ratchetKey(int? keyIndex) async {
+    if (lastError != CryptorError.kOk) {
+      print('ratchetKey: lastError != CryptorError.kOk, reset state to kNew');
+      lastError = CryptorError.kNew;
+    }
+    var currentMaterial = getKeySet(keyIndex)?.material;
+    if (currentMaterial == null) {
+      return;
+    }
+    var newMaterial = await jsutil.promiseToFuture(crypto.importKey(
+      'raw',
+      crypto.jsArrayBufferFrom(
+          await ratchet(currentMaterial, keyOptions.ratchetSalt)),
+      (currentMaterial.algorithm as crypto.Algorithm).name,
+      false,
+      ['deriveBits', 'deriveKey'],
+    ));
+
+    await setKeyFromMaterial(newMaterial, keyIndex ?? currentKeyIndex);
+    if (lastError != CryptorError.kKeyRatcheted) {
+      print(
+          'ratchetKey: lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted');
+      lastError = CryptorError.kKeyRatcheted;
+      postMessage({
+        'type': 'cryptorState',
+        'participantId': participantId,
+        'trackId': trackId,
+        'kind': kind,
+        'state': 'keyRatcheted',
+        'error': 'Key ratcheted ok'
+      });
+    }
+  }
+
+  KeySet? getKeySet(int? keyIndex) {
+    return cryptoKeyRing[keyIndex ?? currentKeyIndex];
+  }
 
   void setParticipantId(String participantId) {
     if (lastError != CryptorError.kOk) {
@@ -146,7 +213,7 @@ class Cryptor {
       print('setKeyIndex: lastError != CryptorError.kOk, reset state to kNew');
       lastError = CryptorError.kNew;
     }
-    this.keyIndex = keyIndex;
+    currentKeyIndex = keyIndex;
   }
 
   void setEnabled(bool enabled) {
@@ -158,13 +225,68 @@ class Cryptor {
     this.enabled = enabled;
   }
 
-  Future<void> setKey(Uint8List key) async {
+  Future<void> setKey(int keyIndex, Uint8List key) async {
     if (lastError != CryptorError.kOk) {
       print('setKey: lastError != CryptorError.kOk, reset state to kNew');
       lastError = CryptorError.kNew;
     }
-    secretKey =
-        await cryptoKeyFromAesSecretKey(key, webCryptoAlgorithm: 'AES-GCM');
+    var keyMaterial = await crypto.impportKeyFromRawData(key,
+        webCryptoAlgorithm: 'PBKDF2', keyUsages: ['deriveBits', 'deriveKey']);
+
+    await setKeyFromMaterial(keyMaterial, keyIndex);
+  }
+
+  Future<void> setKeyFromMaterial(CryptoKey material, int keyIndex) async {
+    print('setting new key');
+    if (keyIndex >= 0) {
+      currentKeyIndex = keyIndex % cryptoKeyRing.length;
+    }
+    cryptoKeyRing[currentKeyIndex] = await deriveKeys(
+      material,
+      keyOptions.ratchetSalt,
+    );
+  }
+
+  /// Derives a set of keys from the master key.
+  /// See https://tools.ietf.org/html/draft-omara-sframe-00#section-4.3.1
+  Future<KeySet> deriveKeys(CryptoKey material, Uint8List salt) async {
+    var algorithmOptions =
+        getAlgoOptions((material.algorithm as crypto.Algorithm).name, salt);
+
+    try {
+      // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey#HKDF
+      // https://developer.mozilla.org/en-US/docs/Web/API/HkdfParams
+      var encryptionKey =
+          await jsutil.promiseToFuture<CryptoKey>(crypto.deriveKey(
+        jsutil.jsify(algorithmOptions),
+        material,
+        jsutil.jsify({'name': 'AES-GCM', 'length': 128}),
+        false,
+        ['encrypt', 'decrypt'],
+      ));
+
+      return KeySet(material, encryptionKey);
+    } catch (e) {
+      print(e);
+      return KeySet(material, material);
+    }
+  }
+
+  /// Ratchets a key. See
+  /// https://tools.ietf.org/html/draft-omara-sframe-00#section-4.3.5.1
+
+  Future<Uint8List> ratchet(CryptoKey material, Uint8List salt) async {
+    var algorithmOptions = getAlgoOptions('PBKDF2', salt);
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveBits
+    try {
+      var newKey = await jsutil.promiseToFuture<ByteBuffer>(
+          crypto.deriveBits(jsutil.jsify(algorithmOptions), material, 256));
+      return newKey.asUint8List();
+    } catch (e) {
+      print(e);
+      return Uint8List(0);
+    }
   }
 
   void updateCodec(String codec) {
@@ -215,7 +337,7 @@ class Cryptor {
       print('setting codec on cryptor to $codec');
       this.codec = codec;
     }
-    var transformer = TransformStream(jsify({
+    var transformer = TransformStream(jsutil.jsify({
       'transform':
           allowInterop(operation == 'encode' ? encodeFunction : decodeFunction)
     }));
@@ -280,6 +402,9 @@ class Cryptor {
       return;
     }
 
+    var secretKey = getKeySet(currentKeyIndex)?.encryptionKey;
+    var keyIndex = currentKeyIndex;
+
     if (secretKey == null) {
       if (lastError != CryptorError.kMissingKey) {
         lastError = CryptorError.kMissingKey;
@@ -307,14 +432,15 @@ class Cryptor {
       frameTrailer.setInt8(0, IV_LENGTH);
       frameTrailer.setInt8(1, keyIndex);
 
-      var cipherText = await promiseToFuture<ByteBuffer>(encrypt(
-        AesGcmParams(
+      var cipherText = await jsutil.promiseToFuture<ByteBuffer>(crypto.encrypt(
+        crypto.AesGcmParams(
           name: 'AES-GCM',
-          iv: jsArrayBufferFrom(iv),
-          additionalData: jsArrayBufferFrom(buffer.sublist(0, headerLength)),
+          iv: crypto.jsArrayBufferFrom(iv),
+          additionalData:
+              crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
         ),
-        secretKey!,
-        jsArrayBufferFrom(buffer.sublist(headerLength, buffer.length)),
+        secretKey,
+        crypto.jsArrayBufferFrom(buffer.sublist(headerLength, buffer.length)),
       ));
 
       //print(
@@ -325,7 +451,7 @@ class Cryptor {
       finalBuffer.add(cipherText.asUint8List());
       finalBuffer.add(iv);
       finalBuffer.add(frameTrailer.buffer.asUint8List());
-      frame.data = jsArrayBufferFrom(finalBuffer.toBytes());
+      frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
 
       controller.enqueue(frame);
 
@@ -363,27 +489,15 @@ class Cryptor {
     RTCEncodedFrame frame,
     TransformStreamDefaultController controller,
   ) async {
+    var ratchetCount = 0;
     var buffer = frame.data.asUint8List();
+    ByteBuffer decrypted = crypto.jsArrayBufferFrom(buffer);
 
     if (!enabled ||
         // skip for encryption for empty dtx frames
         buffer.isEmpty) {
       controller.enqueue(frame);
       return;
-    }
-
-    if (secretKey == null) {
-      if (lastError != CryptorError.kMissingKey) {
-        lastError = CryptorError.kMissingKey;
-        postMessage({
-          'type': 'cryptorState',
-          'participantId': participantId,
-          'trackId': trackId,
-          'kind': kind,
-          'state': 'missingKey',
-          'error': 'Missing key for track $trackId'
-        });
-      }
     }
 
     try {
@@ -396,23 +510,67 @@ class Cryptor {
       var keyIndex = frameTrailer[1];
       var iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
 
-      var decrypted = await promiseToFuture<ByteBuffer>(decrypt(
-        AesGcmParams(
-          name: 'AES-GCM',
-          iv: jsArrayBufferFrom(iv),
-          additionalData: jsArrayBufferFrom(buffer.sublist(0, headerLength)),
-        ),
-        secretKey!,
-        jsArrayBufferFrom(
-            buffer.sublist(headerLength, buffer.length - ivLength - 2)),
-      ));
+      var secretKey = getKeySet(keyIndex)?.encryptionKey;
+
+      if (secretKey == null) {
+        if (lastError != CryptorError.kMissingKey) {
+          lastError = CryptorError.kMissingKey;
+          postMessage({
+            'type': 'cryptorState',
+            'participantId': participantId,
+            'trackId': trackId,
+            'kind': kind,
+            'state': 'missingKey',
+            'error': 'Missing key for track $trackId'
+          });
+        }
+      }
+      try {
+        decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
+          crypto.AesGcmParams(
+            name: 'AES-GCM',
+            iv: crypto.jsArrayBufferFrom(iv),
+            additionalData:
+                crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
+          ),
+          secretKey!,
+          crypto.jsArrayBufferFrom(
+              buffer.sublist(headerLength, buffer.length - ivLength - 2)),
+        ));
+      } catch (e) {
+        print('decrypt: e ${e.toString()}');
+        while (keyOptions.ratchetWindowSize > ratchetCount) {
+          if (ratchetCount < keyOptions.ratchetWindowSize) {
+            print(
+                'ratcheting key attempt $ratchetCount of ${keyOptions.ratchetWindowSize}');
+
+            await ratchetKey(keyIndex);
+            ratchetCount++;
+            var secretKey = getKeySet(keyIndex)?.encryptionKey;
+
+            decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
+              crypto.AesGcmParams(
+                name: 'AES-GCM',
+                iv: crypto.jsArrayBufferFrom(iv),
+                additionalData:
+                    crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
+              ),
+              secretKey!,
+              crypto.jsArrayBufferFrom(
+                  buffer.sublist(headerLength, buffer.length - ivLength - 2)),
+            ));
+
+            break;
+          }
+        }
+      }
       //print(
       //    'buffer: ${buffer.length}, decrypted: ${decrypted.asUint8List().length}');
       var finalBuffer = BytesBuilder();
 
       finalBuffer.add(Uint8List.fromList(buffer.sublist(0, headerLength)));
       finalBuffer.add(decrypted.asUint8List());
-      frame.data = jsArrayBufferFrom(finalBuffer.toBytes());
+      frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
       controller.enqueue(frame);
 
       if (lastError != CryptorError.kOk) {
@@ -430,7 +588,6 @@ class Cryptor {
       //print(
       //    'decrypto kind $kind,codec $codec headerLength: $headerLength, timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, key ${secretKey.toString()}, keyindex $keyIndex iv $iv');
     } catch (e) {
-      //print('derypto: e ${e.toString()}');
       if (lastError != CryptorError.kDecryptError) {
         lastError = CryptorError.kDecryptError;
         postMessage({

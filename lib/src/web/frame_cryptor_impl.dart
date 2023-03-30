@@ -155,14 +155,28 @@ class FrameCryptorImpl extends FrameCryptor {
 }
 
 class KeyManagerImpl implements KeyManager {
-  KeyManagerImpl(this._id, this.worker);
+  KeyManagerImpl(this._id, this.worker, this.options);
   final String _id;
   final html.Worker worker;
-
+  final KeyProviderOptions options;
   final Map<String, List<Uint8List>> _keys = {};
 
   @override
   String get id => _id;
+
+  Future<void> init() async {
+    jsutil.callMethod(worker, 'postMessage', [
+      jsutil.jsify({
+        'msgType': 'init',
+        'id': id,
+        'keyOptions': {
+          'sharedKey': options.sharedKey,
+          'ratchetSalt': base64Encode(options.ratchetSalt),
+          'ratchetWindowSize': options.ratchetWindowSize,
+        },
+      })
+    ]);
+  }
 
   @override
   Future<void> dispose() {
@@ -178,7 +192,7 @@ class KeyManagerImpl implements KeyManager {
       jsutil.jsify({
         'msgType': 'setKey',
         'participantId': participantId,
-        'index': index,
+        'keyIndex': index,
         'key': base64Encode(key),
       })
     ]);
@@ -198,9 +212,10 @@ class KeyManagerImpl implements KeyManager {
       jsutil.jsify({
         'msgType': 'ratchetKey',
         'participantId': participantId,
-        'index': index,
+        'keyIndex': index,
       })
     ]);
+
     //TODO: implement ratchetKey
     return Uint8List.fromList([]);
   }
@@ -239,6 +254,9 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
             frameCryptorState =
                 FrameCryptorState.FrameCryptorStateInternalError;
             break;
+          case 'keyRatcheted':
+            frameCryptorState = FrameCryptorState.FrameCryptorStateKeyRatcheted;
+            break;
         }
         frameCryptor?.onFrameCryptorStateChanged
             ?.call(participantId, frameCryptorState);
@@ -257,7 +275,9 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
 
   @override
   Future<KeyManager> createDefaultKeyManager(KeyProviderOptions options) async {
-    return KeyManagerImpl('default', worker);
+    var keyManager = KeyManagerImpl('default', worker, options);
+    await keyManager.init();
+    return keyManager;
   }
 
   @override
@@ -333,6 +353,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         'kind': kind,
         'participantId': participantId,
         'trackId': trackId,
+        'options': (keyManager as KeyManagerImpl).options.toJson(),
       };
       jsutil.setProperty(jsSender, 'transform',
           RTCRtpScriptTransform(worker, jsutil.jsify(options)));
@@ -356,6 +377,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
           'exist': exist,
           'participantId': participantId,
           'trackId': trackId,
+          'options': (keyManager as KeyManagerImpl).options.toJson(),
           'readableStream': readable,
           'writableStream': writable
         }),

@@ -10,6 +10,11 @@ class Promise<T> {
   external factory Promise._();
 }
 
+@JS('Algorithm')
+class Algorithm {
+  external String get name;
+}
+
 @JS('crypto.subtle.encrypt')
 external Promise<ByteBuffer> encrypt(
   dynamic algorithm,
@@ -49,21 +54,35 @@ ByteBuffer jsArrayBufferFrom(List<int> data) {
 @JS('crypto.subtle.importKey')
 external Promise<html.CryptoKey> importKey(
   String format,
-  dynamic keyData,
+  ByteBuffer keyData,
   dynamic algorithm,
   bool extractable,
   List<String> keyUsages,
 );
 
-FutureOr<html.CryptoKey> cryptoKeyFromAesSecretKey(
-  List<int> secretKeyData, {
-  required String webCryptoAlgorithm,
-}) async {
-  return jsutil.promiseToFuture(importKey(
+@JS('crypto.subtle.deriveKey')
+external Promise<html.CryptoKey> deriveKey(
+    dynamic algorithm,
+    html.CryptoKey baseKey,
+    dynamic derivedKeyAlgorithm,
+    bool extractable,
+    List<String> keyUsages);
+
+@JS('crypto.subtle.deriveBits')
+external Promise<ByteBuffer> deriveBits(
+  dynamic algorithm,
+  html.CryptoKey baseKey,
+  int length,
+);
+
+Future<html.CryptoKey> impportKeyFromRawData(List<int> secretKeyData,
+    {required String webCryptoAlgorithm,
+    required List<String> keyUsages}) async {
+  return jsutil.promiseToFuture<html.CryptoKey>(importKey(
     'raw',
     jsArrayBufferFrom(secretKeyData),
-    webCryptoAlgorithm,
+    jsutil.jsify({'name': webCryptoAlgorithm}),
     false,
-    ['encrypt', 'decrypt'],
+    keyUsages,
   ));
 }
