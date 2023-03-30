@@ -9,7 +9,7 @@ namespace flutter_webrtc_plugin {
 
 std::string RTCMediaTypeToString(RTCMediaType type) {
   switch (type) {
-    case libwebrtc::RTCMediaType::ANY:
+    case libwebrtc::RTCMediaType::UNSUPPORTED:
       return "any";
     case libwebrtc::RTCMediaType::AUDIO:
       return "audio";
@@ -456,11 +456,13 @@ FlutterPeerConnection::mapToEncoding(const EncodableMap& params) {
 }
 
 RTCMediaType stringToMediaType(const std::string& mediaType) {
-  RTCMediaType type = RTCMediaType::ANY;
+  RTCMediaType type = RTCMediaType::UNSUPPORTED;
   if (mediaType == "audio")
     type = RTCMediaType::AUDIO;
   else if (mediaType == "video")
     type = RTCMediaType::VIDEO;
+  else if (mediaType == "data")
+    type = RTCMediaType::DATA;
   return type;
 }
 
