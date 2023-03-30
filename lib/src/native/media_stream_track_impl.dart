@@ -9,16 +9,21 @@ import '../helper.dart';
 import 'utils.dart';
 
 class MediaStreamTrackNative extends MediaStreamTrack {
-  MediaStreamTrackNative(this._trackId, this._label, this._kind, this._enabled, this._peerConnectionId);
+  MediaStreamTrackNative(this._trackId, this._label, this._kind, this._enabled,
+      this._peerConnectionId,
+      [this.settings_ = const {}]);
 
-  factory MediaStreamTrackNative.fromMap(Map<dynamic, dynamic> map, String peerConnectionId) {
-    return MediaStreamTrackNative(
-        map['id'], map['label'], map['kind'], map['enabled'], peerConnectionId);
+  factory MediaStreamTrackNative.fromMap(
+      Map<dynamic, dynamic> map, String peerConnectionId) {
+    return MediaStreamTrackNative(map['id'], map['label'], map['kind'],
+        map['enabled'], peerConnectionId, map['settings'] ?? {});
   }
   final String _trackId;
   final String _label;
   final String _kind;
   final String _peerConnectionId;
+  final Map<Object?, Object?> settings_;
+
   bool _enabled;
 
   bool _muted = false;
@@ -27,8 +32,11 @@ class MediaStreamTrackNative extends MediaStreamTrack {
 
   @override
   set enabled(bool enabled) {
-    WebRTC.invokeMethod('mediaStreamTrackSetEnable',
-        <String, dynamic>{'trackId': _trackId, 'enabled': enabled, 'peerConnectionId': _peerConnectionId});
+    WebRTC.invokeMethod('mediaStreamTrackSetEnable', <String, dynamic>{
+      'trackId': _trackId,
+      'enabled': enabled,
+      'peerConnectionId': _peerConnectionId
+    });
     _enabled = enabled;
 
     if (kind == 'audio') {
@@ -100,6 +108,11 @@ class MediaStreamTrackNative extends MediaStreamTrack {
     }
 
     return Future.value();
+  }
+
+  @override
+  Map<String, dynamic> getSettings() {
+    return settings_.map((key, value) => MapEntry(key.toString(), value));
   }
 
   @override

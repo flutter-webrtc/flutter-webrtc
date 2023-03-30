@@ -49,6 +49,9 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   List<MediaDeviceInfo> get videoInputs =>
       _devices.where((device) => device.kind == 'videoinput').toList();
 
+  String? _selectedVideoInputId;
+  String? _selectedAudioInputId;
+
   MediaDeviceInfo get selectedAudioInput => audioInputs.firstWhere(
       (device) => device.deviceId == _selectedVideoInputId,
       orElse: () => audioInputs.first);
@@ -152,6 +155,39 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     setState(() {});
   }
 
+  Future<void> _selectAudioInput(String? deviceId) async {
+    _selectedAudioInputId = deviceId;
+    if (!_inCalling) {
+      return;
+    }
+
+    var newLocalStream = await navigator.mediaDevices.getUserMedia({
+      'audio': {
+        if (_selectedAudioInputId != null && kIsWeb)
+          'deviceId': _selectedAudioInputId,
+        if (_selectedAudioInputId != null && !kIsWeb)
+          'optional': [
+            {'sourceId': _selectedAudioInputId}
+          ],
+      },
+      'video': false,
+    });
+
+    // replace track.
+    var newTrack = newLocalStream.getAudioTracks().first;
+    print('track.settings ' + newTrack.getSettings().toString());
+    var sender =
+        senders.firstWhereOrNull((sender) => sender.track?.kind == 'audio');
+    await sender?.replaceTrack(newTrack);
+  }
+
+  Future<void> _selectAudioOutput(String? deviceId) async {
+    if (!_inCalling) {
+      return;
+    }
+    await _localRenderer.audioOutput(deviceId!);
+  }
+
   Future<void> _selectVideoInput(String? deviceId) async {
     _selectedVideoInputId = deviceId;
     if (!_inCalling) {
@@ -184,6 +220,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     _localRenderer.srcObject = _localStream;
     // replace track.
     var newTrack = _localStream?.getVideoTracks().first;
+    print('track.settings ' + newTrack!.getSettings().toString());
     var sender =
         senders.firstWhereOrNull((sender) => sender.track?.kind == 'video');
     await sender?.replaceTrack(newTrack);
@@ -197,7 +234,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   Future<void> _start() async {
     try {
       _localStream = await navigator.mediaDevices.getUserMedia({
-        'audio': false,
+        'audio': true,
         'video': {
           if (_selectedVideoInputId != null && kIsWeb)
             'deviceId': _selectedVideoInputId,
@@ -217,6 +254,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
 
       _localStream?.getTracks().forEach((track) async {
         var rtpSender = await pc1?.addTrack(track, _localStream!);
+        print('track.settings ' + track.getSettings().toString());
         senders.add(rtpSender!);
       });
 
@@ -251,6 +289,34 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
       appBar: AppBar(
         title: Text('DeviceEnumerationSample'),
         actions: [
+          PopupMenuButton<String>(
+            onSelected: _selectAudioInput,
+            icon: Icon(Icons.settings_voice),
+            itemBuilder: (BuildContext context) {
+              return _devices
+                  .where((device) => device.kind == 'audioinput')
+                  .map((device) {
+                return PopupMenuItem<String>(
+                  value: device.deviceId,
+                  child: Text(device.label),
+                );
+              }).toList();
+            },
+          ),
+          PopupMenuButton<String>(
+            onSelected: _selectAudioOutput,
+            icon: Icon(Icons.volume_down_alt),
+            itemBuilder: (BuildContext context) {
+              return _devices
+                  .where((device) => device.kind == 'audiooutput')
+                  .map((device) {
+                return PopupMenuItem<String>(
+                  value: device.deviceId,
+                  child: Text(device.label),
+                );
+              }).toList();
+            },
+          ),
           PopupMenuButton<String>(
             onSelected: _selectVideoInput,
             icon: Icon(Icons.switch_camera),
