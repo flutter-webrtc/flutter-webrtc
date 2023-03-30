@@ -525,6 +525,10 @@ class Cryptor {
           });
         }
       }
+
+      var initialKey = secretKey;
+      bool decryptSuccess = false;
+
       try {
         decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
           crypto.AesGcmParams(
@@ -537,6 +541,7 @@ class Cryptor {
           crypto.jsArrayBufferFrom(
               buffer.sublist(headerLength, buffer.length - ivLength - 2)),
         ));
+        decryptSuccess = true;
       } catch (e) {
         print('decrypt: e ${e.toString()}');
         while (keyOptions.ratchetWindowSize > ratchetCount) {
@@ -559,11 +564,26 @@ class Cryptor {
               crypto.jsArrayBufferFrom(
                   buffer.sublist(headerLength, buffer.length - ivLength - 2)),
             ));
-
+            decryptSuccess = true;
             break;
           }
         }
+
+        /**
+           * Since the key it is first send and only afterwards actually used for encrypting, there were
+           * situations when the decrypting failed due to the fact that the received frame was not encrypted
+           * yet and ratcheting, of course, did not solve the problem. So if we fail RATCHET_WINDOW_SIZE times,
+           * we come back to the initial key.
+           */
+        if (initialKey && !decryptSuccess) {
+          this.keys.setKeyFromMaterial(initialKey);
+        }
+
+        if (!decryptSuccess) {
+          rethrow;
+        }
       }
+
       //print(
       //    'buffer: ${buffer.length}, decrypted: ${decrypted.asUint8List().length}');
       var finalBuffer = BytesBuilder();
