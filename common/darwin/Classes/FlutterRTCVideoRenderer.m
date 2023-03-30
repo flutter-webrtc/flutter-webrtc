@@ -235,7 +235,6 @@
     if (frame == nil) {
         return;
     }
-
     CIImage* ciImage = [CIImage imageWithCVPixelBuffer:_pixelBufferRef];
     CGRect outputSize;
 
@@ -269,8 +268,6 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"PhatKTRemote" object:ciImage userInfo:userInfo];
 
 }
-
-
 
 /**
  * Sets the size of the video frame to render.

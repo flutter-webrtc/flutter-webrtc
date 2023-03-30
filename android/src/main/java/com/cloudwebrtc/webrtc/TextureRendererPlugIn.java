@@ -45,7 +45,7 @@ public class TextureRendererPlugIn {
                     updateTexture(data);
                 }
             }
-            return;
+            return -1;
         }
         if (listUnityTexture.size() > 0) {
             for (TextureEntity data : listUnityTexture) {
