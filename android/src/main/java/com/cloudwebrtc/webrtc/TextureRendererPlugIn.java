@@ -39,23 +39,16 @@ public class TextureRendererPlugIn {
     }
 
     public long getTextureId(String itemId) {
-        if (itemId.equals("refreshView")) {
-            for (TextureEntity data : listUnityTexture) {
-                if (data.isCreatedExternalTexture()) {
-                    updateTexture(data);
-                }
-            }
-            return -1;
-        }
         if (listUnityTexture.size() > 0) {
             for (TextureEntity data : listUnityTexture) {
                 if (data.getItemId().equals(itemId)) {
                     if (data.isCreatedExternalTexture()) {
                         updateTexture(data);
+                        return -1;
                     } else {
                         bindExternalTexture(data);
+                        return data.getExternalTextureId();
                     }
-                    return data.getExternalTextureId();
                 }
             }
         }
