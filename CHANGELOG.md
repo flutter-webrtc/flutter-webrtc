@@ -1,6 +1,15 @@
 # Changelog
 
 --------------------------------------------
+[0.9.25] - 2023-04-10
+
+* [Dawrin/Android/Windows] Add  `addStreams` to `RTCRtpSender`
+* [Android] fix: label for Wired Headset. (#1305)
+* [Dawrin/Android/Windows] Feat/media stream track get settings (#1294)
+* [Android/iOS] Fix track lookup in the platform specific code for Android and iOS (#1289)
+* [iOS] fix: ICE Connectivity doesn't establish with DualSIM iPhones.
+* [Android] Switch to webrtc hosted on maven central (#1288)
+
 [0.9.24] - 2023-03-07
 
 * [iOS] avaudiosession mode changed to AVAudioSessionModeVideoChat (#1285)
