@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
-import 'media_stream_impl.dart';
 import 'media_stream_track_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
 import 'utils.dart';
@@ -39,7 +38,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
   String _peerConnectionId;
   String _id;
   MediaStreamTrack? _track;
-  Set<MediaStream> _streams = {};
+  final Set<MediaStream> _streams = {};
   RTCDTMFSender _dtmf;
   RTCRtpParameters _parameters;
   bool _ownsTrack = false;
