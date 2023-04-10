@@ -712,6 +712,44 @@ void FlutterWebRTC::HandleMethodCall(
       }
     }
     RtpSenderSetTrack(pc, track, rtpSenderId, std::move(result));
+  } else if (method_call.method_name().compare("rtpSenderSetStreams") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("rtpSenderSetStream",
+                    "rtpSenderSetStream() peerConnection is null");
+      return;
+    }
+
+    const EncodableList encodableStreamIds = findList(params, "streamIds");
+    if (0 < encodableStreamIds.size()) {
+      if (pc == nullptr) {
+        result->Error("rtpSenderSetStream",
+                      "rtpSenderSetStream() streamId is null or empty");
+        return;
+      }
+    }
+    std::list<std::string> streamIds{};
+    for (EncodableValue value : encodableStreamIds) {
+      streamIds.push_back(GetValue<std::string>(value));
+    }
+
+    const std::string rtpSenderId = findString(params, "rtpSenderId");
+    if (0 < rtpSenderId.size()) {
+      if (pc == nullptr) {
+        result->Error("rtpSenderSetStream",
+                      "rtpSenderSetStream() rtpSenderId is null or empty");
+        return;
+      }
+    }
+    RtpSenderSetStream(pc, streamIds, rtpSenderId, std::move(result));
   } else if (method_call.method_name().compare("rtpSenderReplaceTrack") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");

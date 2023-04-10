@@ -2,7 +2,6 @@ package com.cloudwebrtc.webrtc;
 
 import static com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils.parseMediaConstraints;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -675,6 +674,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         rtpSenderSetTrack(peerConnectionId, rtpSenderId, trackId, false, result);
         break;
       }
+      case "rtpSenderSetStreams": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        String rtpSenderId = call.argument("rtpSenderId");
+        List<String> streamIds = call.argument("streamIds");
+        rtpSenderSetStreams(peerConnectionId, rtpSenderId, streamIds, result);
+        break;
+      }
       case "getSenders": {
         String peerConnectionId = call.argument("peerConnectionId");
         getSenders(peerConnectionId, result);
@@ -1242,6 +1248,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                 device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET) {
           int type = (device.getType() & 0xFF);
           String label = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ? String.valueOf(i) : device.getAddress();
+          if(label.equals("")  && device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET) {
+            label = "Wired Headset";
+          }
           ConstraintsMap audio = new ConstraintsMap();
           audio.putString("label", label);
           audio.putString("deviceId", String.valueOf(i));
@@ -1897,6 +1906,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         }
       }
       pco.rtpSenderSetTrack(rtpSenderId, track, result, replace);
+    }
+  }
+
+  public void rtpSenderSetStreams(String peerConnectionId, String rtpSenderId, List<String> streamIds, Result result) {
+    PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+    if (pco == null || pco.getPeerConnection() == null) {
+      resultError("rtpSenderSetStreams", "peerConnection is null", result);
+    } else {
+      pco.rtpSenderSetStreams(rtpSenderId, streamIds, result);
     }
   }
 

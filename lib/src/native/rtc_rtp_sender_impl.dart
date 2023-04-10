@@ -38,6 +38,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
   String _peerConnectionId;
   String _id;
   MediaStreamTrack? _track;
+  final Set<MediaStream> _streams = {};
   RTCDTMFSender _dtmf;
   RTCRtpParameters _parameters;
   bool _ownsTrack = false;
@@ -110,6 +111,22 @@ class RTCRtpSenderNative extends RTCRtpSender {
       _track = track;
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSenderNative::setTrack: ${e.message}';
+    }
+  }
+
+  @override
+  Future<void> setStreams(List<MediaStream> streams) async {
+    try {
+      await WebRTC.invokeMethod('rtpSenderSetStreams', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'rtpSenderId': _id,
+        'streamIds': streams.map<String>((e) => e.id).toList(),
+      });
+
+      // change reference of associated MediaTrack
+      _streams.addAll(streams);
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
     }
   }
 
