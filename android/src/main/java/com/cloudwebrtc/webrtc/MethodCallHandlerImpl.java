@@ -1230,6 +1230,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                 device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET) {
           int type = (device.getType() & 0xFF);
           String label = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ? String.valueOf(i) : device.getAddress();
+          if(label.equals("")  && device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET) {
+            label = "Wired Headset";
+          }
           ConstraintsMap audio = new ConstraintsMap();
           audio.putString("label", label);
           audio.putString("deviceId", String.valueOf(i));
