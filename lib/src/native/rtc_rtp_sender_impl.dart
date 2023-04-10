@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
+import 'media_stream_impl.dart';
 import 'media_stream_track_impl.dart';
 import 'rtc_dtmf_sender_impl.dart';
 import 'utils.dart';
@@ -38,6 +39,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
   String _peerConnectionId;
   String _id;
   MediaStreamTrack? _track;
+  Set<MediaStream> _streams = {};
   RTCDTMFSender _dtmf;
   RTCRtpParameters _parameters;
   bool _ownsTrack = false;
@@ -108,6 +110,22 @@ class RTCRtpSenderNative extends RTCRtpSender {
 
       // change reference of associated MediaTrack
       _track = track;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
+    }
+  }
+
+  @override
+  Future<void> setStreams(List<MediaStream> streams) async {
+    try {
+      await WebRTC.invokeMethod('rtpSenderSetStreams', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'rtpSenderId': _id,
+        'streamIds': streams.map<String>((e) => e.id).toList(),
+      });
+
+      // change reference of associated MediaTrack
+      _streams.addAll(streams);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
     }
