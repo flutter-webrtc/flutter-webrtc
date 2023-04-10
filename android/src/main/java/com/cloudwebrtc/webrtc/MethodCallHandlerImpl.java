@@ -2,7 +2,6 @@ package com.cloudwebrtc.webrtc;
 
 import static com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils.parseMediaConstraints;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -674,6 +673,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         String rtpSenderId = call.argument("rtpSenderId");
         String trackId = call.argument("trackId");
         rtpSenderSetTrack(peerConnectionId, rtpSenderId, trackId, false, result);
+        break;
+      }
+      case "rtpSenderSetStreams": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        String rtpSenderId = call.argument("rtpSenderId");
+        List<String> streamIds = call.argument("streamIds");
+        rtpSenderSetStreams(peerConnectionId, rtpSenderId, streamIds, result);
         break;
       }
       case "getSenders": {
@@ -1888,6 +1894,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         }
       }
       pco.rtpSenderSetTrack(rtpSenderId, track, result, replace);
+    }
+  }
+
+  public void rtpSenderSetStreams(String peerConnectionId, String rtpSenderId, List<String> streamIds, Result result) {
+    PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+    if (pco == null || pco.getPeerConnection() == null) {
+      resultError("rtpSenderSetStreams", "peerConnection is null", result);
+    } else {
+      pco.rtpSenderSetStreams(rtpSenderId, streamIds, result);
     }
   }
 

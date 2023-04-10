@@ -545,6 +545,22 @@ void FlutterPeerConnection::RtpSenderSetTrack(
   result_ptr->Success();
 }
 
+void FlutterPeerConnection::RtpSenderSetStream(
+    RTCPeerConnection* pc,
+    std::list<std::string> streamIds,
+    std::string rtpSenderId,
+    std::unique_ptr<MethodResultProxy> result) {
+  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
+  auto sender = GetRtpSenderById(pc, rtpSenderId);
+  if (nullptr == sender.get()) {
+    result_ptr->Error("rtpSenderSetTrack", "sender is null");
+    return;
+  }
+  vector<string> ids {streamIds};
+  sender->set_stream_ids(ids);
+  result_ptr->Success();
+}
+
 void FlutterPeerConnection::RtpSenderReplaceTrack(
     RTCPeerConnection* pc,
     RTCMediaTrack* track,
