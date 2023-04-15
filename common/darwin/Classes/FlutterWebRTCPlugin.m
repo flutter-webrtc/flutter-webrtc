@@ -1601,13 +1601,27 @@
       @"kind" : codec.kind
     }];
   }
+    
+  NSString *degradationPreference = @"balanced";
+  if(parameters.degradationPreference != nil) {
+    if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainFramerate ) {
+       degradationPreference = @"maintain-framerate";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainResolution) {
+       degradationPreference = @"maintain-resolution";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceBalanced) {
+       degradationPreference = @"balanced";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceDisabled) {
+       degradationPreference = @"disabled";
+    }
+  }
 
   return @{
     @"transactionId" : parameters.transactionId,
     @"rtcp" : rtcp,
     @"headerExtensions" : headerExtensions,
     @"encodings" : encodings,
-    @"codecs" : codecs
+    @"codecs" : codecs,
+    @"degradationPreference" : degradationPreference,
   };
 }
 
@@ -1797,6 +1811,20 @@
   NSArray<RTCRtpEncodingParameters*>* currentEncodings = parameters.encodings;
   // new encodings
   NSArray* newEncodings = [newParameters objectForKey:@"encodings"];
+    
+  NSString *degradationPreference = [newParameters objectForKey:@"degradationPreference"];
+
+  if( degradationPreference != nil) {
+      if( [degradationPreference isEqualToString:@"maintain-framerate"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceMaintainFramerate];
+      } else if ([degradationPreference isEqualToString:@"maintain-resolution"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceMaintainResolution];
+      } else if ([degradationPreference isEqualToString:@"balanced"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceBalanced];
+      } else if ([degradationPreference isEqualToString:@"disabled"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceDisabled];
+      }
+  }
 
   for (int i = 0; i < [newEncodings count]; i++) {
     RTCRtpEncodingParameters* currentParams = nil;
