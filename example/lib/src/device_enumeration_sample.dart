@@ -222,7 +222,12 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     print('track.settings ' + newTrack!.getSettings().toString());
     var sender =
         senders.firstWhereOrNull((sender) => sender.track?.kind == 'video');
-    await sender?.replaceTrack(newTrack);
+    var params = sender!.parameters;
+    print('params degradationPreference' +
+        params.degradationPreference.toString());
+    params.degradationPreference = RTCDegradationPreference.MAINTAIN_RESOLUTION;
+    await sender.setParameters(params);
+    await sender.replaceTrack(newTrack);
   }
 
   Future<void> initRenderers() async {

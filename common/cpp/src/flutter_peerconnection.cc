@@ -106,6 +106,24 @@ EncodableMap rtpParametersToMap(
   }
   info[EncodableValue("codecs")] = EncodableValue(codecs_info);
 
+  switch(rtpParameters->GetDegradationPreference()) {
+    case libwebrtc::RTCDegradationPreference::MAINTAIN_FRAMERATE:
+      info[EncodableValue("degradationPreference")] = EncodableValue("maintain-framerate");
+      break;
+    case libwebrtc::RTCDegradationPreference::MAINTAIN_RESOLUTION:
+      info[EncodableValue("degradationPreference")] = EncodableValue("maintain-resolution");
+      break;
+    case libwebrtc::RTCDegradationPreference::BALANCED:
+      info[EncodableValue("degradationPreference")] = EncodableValue("balanced");
+      break;
+    case libwebrtc::RTCDegradationPreference::DISABLED:
+      info[EncodableValue("degradationPreference")] = EncodableValue("disabled");
+      break;
+    default:
+      info[EncodableValue("degradationPreference")] = EncodableValue("balanced"); 
+      break;
+  }
+
   return info;
 }
 
@@ -616,6 +634,20 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
       }
 
       encoding++;
+    }
+  }
+  
+  EncodableValue value = findEncodableValue(newParameters, "degradationPreference");
+  if(!value.IsNull()) {
+    const std::string degradationPreference = GetValue<std::string>(value);
+    if( degradationPreference == "maintain-framerate") {
+      parameters->SetDegradationPreference(libwebrtc::RTCDegradationPreference::MAINTAIN_FRAMERATE);
+    } else if (degradationPreference  == "maintain-resolution") {
+         parameters->SetDegradationPreference(libwebrtc::RTCDegradationPreference::MAINTAIN_RESOLUTION);
+    } else if(degradationPreference  == "balanced") {
+         parameters->SetDegradationPreference(libwebrtc::RTCDegradationPreference::BALANCED);
+    } else if(degradationPreference  == "disabled") {
+         parameters->SetDegradationPreference(libwebrtc::RTCDegradationPreference::DISABLED);
     }
   }
 
