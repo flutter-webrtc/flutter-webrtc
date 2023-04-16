@@ -22,52 +22,57 @@
 @interface VideoEncoderFactorySimulcast : RTCVideoEncoderFactorySimulcast
 @end
 
-NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*> * motifyH264ProfileLevelId(NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*> *codecs) {
-    NSMutableArray *newCodecs = [[NSMutableArray alloc] init];
-    NSInteger count = codecs.count;
-    for( NSInteger i=0; i < count; i++){
-        RTC_OBJC_TYPE(RTCVideoCodecInfo)* info = [codecs objectAtIndex:i];
-        if([info.name isEqualToString:kRTCVideoCodecH264Name]) {
-            NSString *hexString = info.parameters[@"profile-level-id"];
-            RTCH264ProfileLevelId *profileLevelId = [[RTCH264ProfileLevelId alloc] initWithHexString:hexString];
-            if(profileLevelId.level < RTCH264Level5_1) {
-                RTCH264ProfileLevelId *newProfileLevelId = [[RTCH264ProfileLevelId alloc] initWithProfile:profileLevelId.profile level:RTCH264Level5_1];
-                //NSLog(@"profile-level-id: %@ => %@", hexString, [newProfileLevelId hexString]);
-                NSMutableDictionary *parametersCopy = [[NSMutableDictionary alloc] init];
-                [parametersCopy addEntriesFromDictionary: info.parameters];
-                [parametersCopy setObject:[newProfileLevelId hexString] forKey:@"profile-level-id"];
-                [newCodecs insertObject:[[RTCVideoCodecInfo alloc] initWithName:kRTCVideoCodecH264Name parameters:parametersCopy] atIndex:i];
-            } else  {
-                [newCodecs insertObject:info atIndex:i];
-            }
-        } else  {
-            [newCodecs insertObject:info atIndex:i];
-        }
+NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
+    NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* codecs) {
+  NSMutableArray* newCodecs = [[NSMutableArray alloc] init];
+  NSInteger count = codecs.count;
+  for (NSInteger i = 0; i < count; i++) {
+    RTC_OBJC_TYPE(RTCVideoCodecInfo)* info = [codecs objectAtIndex:i];
+    if ([info.name isEqualToString:kRTCVideoCodecH264Name]) {
+      NSString* hexString = info.parameters[@"profile-level-id"];
+      RTCH264ProfileLevelId* profileLevelId =
+          [[RTCH264ProfileLevelId alloc] initWithHexString:hexString];
+      if (profileLevelId.level < RTCH264Level5_1) {
+        RTCH264ProfileLevelId* newProfileLevelId =
+            [[RTCH264ProfileLevelId alloc] initWithProfile:profileLevelId.profile
+                                                     level:RTCH264Level5_1];
+        // NSLog(@"profile-level-id: %@ => %@", hexString, [newProfileLevelId hexString]);
+        NSMutableDictionary* parametersCopy = [[NSMutableDictionary alloc] init];
+        [parametersCopy addEntriesFromDictionary:info.parameters];
+        [parametersCopy setObject:[newProfileLevelId hexString] forKey:@"profile-level-id"];
+        [newCodecs insertObject:[[RTCVideoCodecInfo alloc] initWithName:kRTCVideoCodecH264Name
+                                                             parameters:parametersCopy]
+                        atIndex:i];
+      } else {
+        [newCodecs insertObject:info atIndex:i];
+      }
+    } else {
+      [newCodecs insertObject:info atIndex:i];
     }
-    return newCodecs;
+  }
+  return newCodecs;
 }
 
 @implementation VideoEncoderFactory
-- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *> *)supportedCodecs {
-    NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*> *codecs = [super supportedCodecs];
-    return motifyH264ProfileLevelId(codecs);
+- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>*)supportedCodecs {
+  NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*>* codecs = [super supportedCodecs];
+  return motifyH264ProfileLevelId(codecs);
 }
 @end
 
 @implementation VideoDecoderFactory
-- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *> *)supportedCodecs {
-    NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*> *codecs = [super supportedCodecs];
-    return motifyH264ProfileLevelId(codecs);
+- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>*)supportedCodecs {
+  NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*>* codecs = [super supportedCodecs];
+  return motifyH264ProfileLevelId(codecs);
 }
 @end
 
 @implementation VideoEncoderFactorySimulcast
-- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *> *)supportedCodecs {
-    NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*> *codecs = [super supportedCodecs];
-    return motifyH264ProfileLevelId(codecs);
+- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>*)supportedCodecs {
+  NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*>* codecs = [super supportedCodecs];
+  return motifyH264ProfileLevelId(codecs);
 }
 @end
-
 
 @implementation FlutterWebRTCPlugin {
 #pragma clang diagnostic pop
@@ -134,8 +139,7 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*> * motifyH264ProfileLevelId(NSArray<RT
   VideoEncoderFactory* encoderFactory = [[VideoEncoderFactory alloc] init];
 
   VideoEncoderFactorySimulcast* simulcastFactory =
-      [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory
-                                                      fallback:encoderFactory];
+      [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
 
   _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:simulcastFactory
                                                                      decoderFactory:decoderFactory];
