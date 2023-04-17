@@ -685,6 +685,7 @@ void FlutterPeerConnection::RtpTransceiverStop(
   auto transceiver = getRtpTransceiverById(pc, rtpTransceiverId);
   if (nullptr == transceiver.get()) {
     result_ptr->Error("rtpTransceiverStop", "transceiver is null");
+    return;
   }
   transceiver->StopInternal();
   result_ptr->Success();
@@ -700,6 +701,7 @@ void FlutterPeerConnection::RtpTransceiverGetCurrentDirection(
   if (nullptr == transceiver.get()) {
     result_ptr->Error("rtpTransceiverGetCurrentDirection",
                       "transceiver is null");
+    return;
   }
   EncodableMap map;
   map[EncodableValue("result")] =
