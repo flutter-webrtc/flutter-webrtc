@@ -887,6 +887,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
                pixelFormat == [self.videoCapturer preferredOutputPixelFormat]) {
       selectedFormat = format;
     }
+    NSLog(@"AVCaptureDeviceFormats, dimension: %dx%d", dimension.width, dimension.height);
   }
   return selectedFormat;
 }

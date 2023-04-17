@@ -364,7 +364,21 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
                   child: Text('Select Video Size ($_selectedVideoSize)'),
                 ),
                 PopupMenuDivider(),
-                ...['320x240', '640x480', '1280x720', '1920x1080']
+                ...[
+                  '192x144',
+                  '320x240',
+                  '352x288',
+                  '480x360',
+                  '640x480',
+                  '960x540',
+                  '1280x720',
+                  '1920x1080',
+                  '1920x1440',
+                  '2592x1944',
+                  '3264x2448',
+                  '3840x2160',
+                  '4032x3024'
+                ]
                     .map((fps) => PopupMenuItem<String>(
                           value: fps,
                           child: Text(fps),
@@ -385,14 +399,14 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
                   children: <Widget>[
                     Expanded(
                       child: Container(
-                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        margin: const EdgeInsets.all(4),
                         decoration: BoxDecoration(color: Colors.black54),
                         child: RTCVideoView(_localRenderer),
                       ),
                     ),
                     Expanded(
                       child: Container(
-                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        margin: const EdgeInsets.all(4),
                         decoration: BoxDecoration(color: Colors.black54),
                         child: RTCVideoView(_remoteRenderer),
                       ),
