@@ -364,7 +364,9 @@ void FlutterPeerConnection::GetLocalDescription(
         params[EncodableValue("type")] = type;
         result_ptr->Success(EncodableValue(params));
       },
-      [result_ptr](const std::string& error) { result_ptr->Success(); });
+      [result_ptr](const char* error) {
+        result_ptr->Error("getLocalDescriptionFailed", error);
+      });
 }
 
 void FlutterPeerConnection::GetRemoteDescription(
@@ -378,7 +380,9 @@ void FlutterPeerConnection::GetRemoteDescription(
         params[EncodableValue("type")] = type;
         result_ptr->Success(EncodableValue(params));
       },
-      [result_ptr](const std::string& error) { result_ptr->Success(); });
+      [result_ptr](const char* error) {
+        result_ptr->Error("getRemoteDescriptionFailed", error);
+      });
 }
 
 scoped_refptr<RTCRtpTransceiverInit>
