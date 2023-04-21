@@ -501,13 +501,13 @@ void FlutterMediaStream::CreateLocalMediaStream(
 void FlutterMediaStream::MediaStreamTrackSetEnable(
     const std::string& track_id,
     std::unique_ptr<MethodResultProxy> result) {
-  result->Success();
+  result->NotImplemented();
 }
 
 void FlutterMediaStream::MediaStreamTrackSwitchCamera(
     const std::string& track_id,
     std::unique_ptr<MethodResultProxy> result) {
-  result->Success();
+  result->NotImplemented();
 }
 
 void FlutterMediaStream::MediaStreamTrackDispose(
