@@ -323,7 +323,7 @@ void FlutterPeerConnection::CreateAnswer(
         params[EncodableValue("type")] = EncodableValue(type.std_string());
         result_ptr->Success(EncodableValue(params));
       },
-      [result_ptr](const std::string& error) {
+      [result_ptr](const char* error) {
         result_ptr->Error("createAnswerFailed", error);
       },
       constraints);
