@@ -57,7 +57,7 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
 
     const EncodableList types = findList(params, "types");
-    if (types == EncodableList()) {
+    if (types.empty()) {
       result->Error("Bad Arguments", "Types is required");
       return;
     }
@@ -72,7 +72,7 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
 
     const EncodableList types = findList(params, "types");
-    if (types == EncodableList()) {
+    if (types.empty()) {
       result->Error("Bad Arguments", "Types is required");
       return;
     }
@@ -92,7 +92,7 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     const EncodableMap thumbnailSize = findMap(params, "thumbnailSize");
-    if (thumbnailSize != EncodableMap()) {
+    if (!thumbnailSize.empty()) {
       int width = 0;
       int height = 0;
       GetDesktopSourceThumbnail(sourceId, width, height, std::move(result));
@@ -1091,7 +1091,7 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const EncodableList codecs = findList(params, "codecs");
-    if (codecs == EncodableList()) {
+    if (codecs.empty()) {
       result->Error("Bad Arguments", "Codecs is required");
       return;
     }
