@@ -306,6 +306,11 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyManager(
   options.shared_key = sharedKey;
 
 
+  auto uncryptedMagicBytes = findVector(keyProviderOptions, "uncryptedMagicBytes");
+  if (uncryptedMagicBytes.size() != 0) {
+    options.uncrypted_magic_bytes = uncryptedMagicBytes;
+  }
+
   auto ratchetSalt = findVector(keyProviderOptions, "ratchetSalt");
   if (ratchetSalt.size() == 0) {
     result->Error("FrameCryptorFactoryCreateKeyManagerFailed",

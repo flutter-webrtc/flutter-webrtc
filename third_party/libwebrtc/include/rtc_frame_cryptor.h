@@ -16,6 +16,7 @@ enum class Algorithm {
 struct KeyProviderOptions {
   bool shared_key;
   vector<uint8_t> ratchet_salt;
+  vector<uint8_t> uncrypted_magic_bytes;
   int ratchet_window_size;
   KeyProviderOptions()
       : shared_key(false),
@@ -30,14 +31,15 @@ struct KeyProviderOptions {
 /// Shared secret key for frame encryption.
 class KeyManager : public RefCountInterface {
  public:
-  LIB_WEBRTC_API static scoped_refptr<KeyManager> Create(KeyProviderOptions *);
+  LIB_WEBRTC_API static scoped_refptr<KeyManager> Create(KeyProviderOptions*);
 
   /// Set the key at the given index.
   virtual bool SetKey(const string participant_id,
                       int index,
                       vector<uint8_t> key) = 0;
-  
-  virtual vector<uint8_t> RatchetKey(const string participant_id, int key_index) = 0;
+
+  virtual vector<uint8_t> RatchetKey(const string participant_id,
+                                     int key_index) = 0;
 
  protected:
   virtual ~KeyManager() {}

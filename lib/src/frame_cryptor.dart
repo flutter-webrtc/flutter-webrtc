@@ -16,14 +16,18 @@ class KeyProviderOptions {
     required this.sharedKey,
     required this.ratchetSalt,
     required this.ratchetWindowSize,
+    this.uncryptedMagicBytes,
   });
   bool sharedKey;
   Uint8List ratchetSalt;
+  Uint8List? uncryptedMagicBytes;
   int ratchetWindowSize;
   Map<String, dynamic> toJson() {
     return {
       'sharedKey': sharedKey,
       'ratchetSalt': ratchetSalt,
+      if (uncryptedMagicBytes != null)
+        'uncryptedMagicBytes': uncryptedMagicBytes,
       'ratchetWindowSize': ratchetWindowSize,
     };
   }

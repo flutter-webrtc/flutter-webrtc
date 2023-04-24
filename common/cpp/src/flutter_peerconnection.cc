@@ -552,7 +552,7 @@ void FlutterPeerConnection::RtpSenderSetStream(
     std::string rtpSenderId,
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
-  auto sender = GetRtpSenderById(pc, rtpSenderId);
+  auto sender = base_->GetRtpSenderById(pc, rtpSenderId);
   if (nullptr == sender.get()) {
     result_ptr->Error("rtpSenderSetTrack", "sender is null");
     return;
