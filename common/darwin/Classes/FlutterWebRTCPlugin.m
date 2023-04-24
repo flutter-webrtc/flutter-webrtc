@@ -14,6 +14,67 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wprotocol"
 
+@interface VideoEncoderFactory : RTCDefaultVideoEncoderFactory
+@end
+
+@interface VideoDecoderFactory : RTCDefaultVideoDecoderFactory
+@end
+
+@interface VideoEncoderFactorySimulcast : RTCVideoEncoderFactorySimulcast
+@end
+
+NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
+    NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* codecs) {
+  NSMutableArray* newCodecs = [[NSMutableArray alloc] init];
+  NSInteger count = codecs.count;
+  for (NSInteger i = 0; i < count; i++) {
+    RTC_OBJC_TYPE(RTCVideoCodecInfo)* info = [codecs objectAtIndex:i];
+    if ([info.name isEqualToString:kRTCVideoCodecH264Name]) {
+      NSString* hexString = info.parameters[@"profile-level-id"];
+      RTCH264ProfileLevelId* profileLevelId =
+          [[RTCH264ProfileLevelId alloc] initWithHexString:hexString];
+      if (profileLevelId.level < RTCH264Level5_1) {
+        RTCH264ProfileLevelId* newProfileLevelId =
+            [[RTCH264ProfileLevelId alloc] initWithProfile:profileLevelId.profile
+                                                     level:RTCH264Level5_1];
+        // NSLog(@"profile-level-id: %@ => %@", hexString, [newProfileLevelId hexString]);
+        NSMutableDictionary* parametersCopy = [[NSMutableDictionary alloc] init];
+        [parametersCopy addEntriesFromDictionary:info.parameters];
+        [parametersCopy setObject:[newProfileLevelId hexString] forKey:@"profile-level-id"];
+        [newCodecs insertObject:[[RTCVideoCodecInfo alloc] initWithName:kRTCVideoCodecH264Name
+                                                             parameters:parametersCopy]
+                        atIndex:i];
+      } else {
+        [newCodecs insertObject:info atIndex:i];
+      }
+    } else {
+      [newCodecs insertObject:info atIndex:i];
+    }
+  }
+  return newCodecs;
+}
+
+@implementation VideoEncoderFactory
+- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>*)supportedCodecs {
+  NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*>* codecs = [super supportedCodecs];
+  return motifyH264ProfileLevelId(codecs);
+}
+@end
+
+@implementation VideoDecoderFactory
+- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>*)supportedCodecs {
+  NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*>* codecs = [super supportedCodecs];
+  return motifyH264ProfileLevelId(codecs);
+}
+@end
+
+@implementation VideoEncoderFactorySimulcast
+- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>*)supportedCodecs {
+  NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*>* codecs = [super supportedCodecs];
+  return motifyH264ProfileLevelId(codecs);
+}
+@end
+
 @implementation FlutterWebRTCPlugin {
 #pragma clang diagnostic pop
   FlutterMethodChannel* _methodChannel;
@@ -75,12 +136,11 @@
 #endif
   }
   // RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
-  RTCDefaultVideoDecoderFactory* decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
-  RTCDefaultVideoEncoderFactory* encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
+  VideoDecoderFactory* decoderFactory = [[VideoDecoderFactory alloc] init];
+  VideoEncoderFactory* encoderFactory = [[VideoEncoderFactory alloc] init];
 
-  RTCVideoEncoderFactorySimulcast* simulcastFactory =
-      [[RTCVideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory
-                                                      fallback:encoderFactory];
+  VideoEncoderFactorySimulcast* simulcastFactory =
+      [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
 
   _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:simulcastFactory
                                                                      decoderFactory:decoderFactory];
@@ -1604,13 +1664,27 @@
       @"kind" : codec.kind
     }];
   }
+    
+  NSString *degradationPreference = @"balanced";
+  if(parameters.degradationPreference != nil) {
+    if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainFramerate ) {
+       degradationPreference = @"maintain-framerate";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainResolution) {
+       degradationPreference = @"maintain-resolution";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceBalanced) {
+       degradationPreference = @"balanced";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceDisabled) {
+       degradationPreference = @"disabled";
+    }
+  }
 
   return @{
     @"transactionId" : parameters.transactionId,
     @"rtcp" : rtcp,
     @"headerExtensions" : headerExtensions,
     @"encodings" : encodings,
-    @"codecs" : codecs
+    @"codecs" : codecs,
+    @"degradationPreference" : degradationPreference,
   };
 }
 
@@ -1801,6 +1875,20 @@
   NSArray<RTCRtpEncodingParameters*>* currentEncodings = parameters.encodings;
   // new encodings
   NSArray* newEncodings = [newParameters objectForKey:@"encodings"];
+    
+  NSString *degradationPreference = [newParameters objectForKey:@"degradationPreference"];
+
+  if( degradationPreference != nil) {
+      if( [degradationPreference isEqualToString:@"maintain-framerate"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceMaintainFramerate];
+      } else if ([degradationPreference isEqualToString:@"maintain-resolution"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceMaintainResolution];
+      } else if ([degradationPreference isEqualToString:@"balanced"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceBalanced];
+      } else if ([degradationPreference isEqualToString:@"disabled"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceDisabled];
+      }
+  }
 
   for (int i = 0; i < [newEncodings count]; i++) {
     RTCRtpEncodingParameters* currentParams = nil;

@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.26] - 2023-04-16
+
+* [iOS/macOS] motify h264 profile-level-id to support high resolution.
+* [Dawrin/Android/Windows] feat: add RTCDegradationPreference to RTCRtpParameters.
+
 [0.9.25] - 2023-04-10
 
 * [Dawrin/Android/Windows] Add  `addStreams` to `RTCRtpSender`

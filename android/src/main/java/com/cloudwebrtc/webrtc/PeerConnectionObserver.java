@@ -744,6 +744,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     // current
     final List<RtpParameters.Encoding> nativeEncodings = parameters.encodings;
 
+    String degradationPreference = (String) newParameters.get("degradationPreference");
+    if (degradationPreference != null) {
+      parameters.degradationPreference = RtpParameters.DegradationPreference.valueOf(degradationPreference.toUpperCase().replace("-", "_"));
+    }
+
     for (Map<String, Object> encoding : encodings) {
       RtpParameters.Encoding currentParams = null;
       String rid = (String) encoding.get("rid");
@@ -789,7 +794,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private Map<String, Object> rtpParametersToMap(RtpParameters rtpParameters) {
     ConstraintsMap info = new ConstraintsMap();
     info.putString("transactionId", rtpParameters.transactionId);
-
+    if(rtpParameters.degradationPreference != null) {
+      info.putString("degradationPreference", rtpParameters.degradationPreference.name().toLowerCase().replace("_", "-"));
+    }
     ConstraintsMap rtcp = new ConstraintsMap();
     rtcp.putString("cname", rtpParameters.getRtcp().getCname());
     rtcp.putBoolean("reducedSize", rtpParameters.getRtcp().getReducedSize());
