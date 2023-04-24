@@ -41,6 +41,8 @@ class KeyProvider : public RefCountInterface {
   virtual vector<uint8_t> RatchetKey(const string participant_id,
                                      int key_index) = 0;
 
+  virtual vector<uint8_t> ExportKey(const string participant_id,
+                                     int key_index) = 0;
  protected:
   virtual ~KeyProvider() {}
 };
