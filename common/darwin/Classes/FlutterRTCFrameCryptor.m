@@ -318,7 +318,7 @@
     return;
   }
 
-FlutterStandardTypedData* ratchetSalt = keyProviderOptions[@"ratchetSalt"];
+  FlutterStandardTypedData* ratchetSalt = keyProviderOptions[@"ratchetSalt"];
   if (ratchetSalt == nil) {
     result([FlutterError errorWithCode:@"frameCryptorFactoryCreateKeyManagerFailed"
                                message:@"Invalid ratchetSalt"
@@ -333,10 +333,14 @@ FlutterStandardTypedData* ratchetSalt = keyProviderOptions[@"ratchetSalt"];
                                details:nil]);
     return;
   }
+
+  FlutterStandardTypedData* uncryptedMagicBytes = keyProviderOptions[@"uncryptedMagicBytes"];
+  
   RTCFrameCryptorKeyManager* keyManager =
       [[RTCFrameCryptorKeyManager alloc] initWithRatchetSalt:ratchetSalt.data
                                            ratchetWindowSize:[ratchetWindowSize intValue]
-                                               sharedKeyMode:[sharedKey boolValue]];
+                                               sharedKeyMode:[sharedKey boolValue]
+                                         uncryptedMagicBytes: uncryptedMagicBytes != nil ? uncryptedMagicBytes.data : nil];
   self.keyManagers[keyManagerId] = keyManager;
   result(@{@"keyManagerId" : keyManagerId});
 }

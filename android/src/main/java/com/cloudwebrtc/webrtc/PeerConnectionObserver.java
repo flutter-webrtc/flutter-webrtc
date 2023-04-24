@@ -237,21 +237,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
                   Log.d(TAG, "getStats() unknown type: " + v.getClass().getName() + " for [" + key + "] value: " + v);
               }
           }
-          v_map.putArray(key, arr.toArrayList());
-        } else if (v instanceof Integer) {
-          v_map.putInt(key, (Integer) v);
-        } else if (v instanceof Long) {
-          v_map.putLong(key, (Long) v);
-        } else if (v instanceof Double) {
-          v_map.putDouble(key, (Double) v);
-        } else if (v instanceof Boolean) {
-          v_map.putBoolean(key, (Boolean) v);
-        } else if (v instanceof BigInteger) {
-          v_map.putLong(key, ((BigInteger) v).longValue());
-        } else {
-          Log.d(TAG, "getStats() unknown type: " + v.getClass().getName() + " for [" + key + "] value: " + v.toString());
-        }
-      }
       report_map.putMap("values", v_map.toMap());
       stats.pushMap(report_map);
     }
@@ -1055,8 +1040,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
                 codecCapability.parameters = new HashMap<>();
             }
             preferedCodecs.add(codecCapability);
-      }
-      preferedCodecs.add(codecCapability);
     }
     transceiver.setCodecPreferences(preferedCodecs);
     result.success(null);
