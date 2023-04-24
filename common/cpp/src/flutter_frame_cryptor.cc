@@ -74,17 +74,17 @@ bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
   } else if (method_name == "frameCryptorDispose") {
     FrameCryptorDispose(params, std::move(result));
     return true;
-  } else if (method_name == "frameCryptorFactoryCreateKeyManager") {
-    FrameCryptorFactoryCreateKeyManager(params, std::move(result));
+  } else if (method_name == "frameCryptorFactoryCreateKeyProvider") {
+    FrameCryptorFactoryCreateKeyProvider(params, std::move(result));
     return true;
-  } else if (method_name == "keyManagerSetKey") {
-    KeyManagerSetKey(params, std::move(result));
+  } else if (method_name == "keyProviderSetKey") {
+    KeyProviderSetKey(params, std::move(result));
     return true;
-  } else if (method_name == "keyManagerRatchetKey") {
-    KeyManagerRatchetKey(params, std::move(result));
+  } else if (method_name == "keyProviderRatchetKey") {
+    KeyProviderRatchetKey(params, std::move(result));
     return true;
-  } else if (method_name == "keyManagerDispose") {
-    KeyManagerDispose(params, std::move(result));
+  } else if (method_name == "keyProviderDispose") {
+    KeyProviderDispose(params, std::move(result));
     return true;
   }
 
@@ -127,7 +127,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
 
   auto algorithm = findInt(constraints, "algorithm");
   auto participantId = findString(constraints, "participantId");
-  auto keyManagerId = findString(constraints, "keyManagerId");
+  auto keyProviderId = findString(constraints, "keyProviderId");
 
   if (type == "sender") {
     auto sender = base_->GetRtpSenderById(pc, rtpSenderId);
@@ -137,16 +137,16 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
       return;
     }
     std::string uuid = base_->GenerateUUID();
-    auto keyManager = key_managers_[keyManagerId];
-    if (keyManager == nullptr) {
+    auto keyProvider = key_providers_[keyProviderId];
+    if (keyProvider == nullptr) {
       result->Error("FrameCryptorFactoryCreateFrameCryptorFailed",
-                    "keyManager is null");
+                    "keyProvider is null");
       return;
     }
     auto frameCryptor =
         libwebrtc::FrameCryptorFactory::frameCryptorFromRtpSender(
             string(participantId), sender, AlgorithmFromInt(algorithm),
-            keyManager);
+            keyProvider);
     std::string event_channel = "FlutterWebRTC/frameCryptorEvent" + uuid;
 
     std::unique_ptr<FlutterFrameCryptorObserver> observer(
@@ -168,11 +168,11 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
       return;
     }
     std::string uuid = base_->GenerateUUID();
-    auto keyManager = key_managers_[keyManagerId];
+    auto keyProvider = key_providers_[keyProviderId];
     auto frameCryptor =
         libwebrtc::FrameCryptorFactory::frameCryptorFromRtpReceiver(
             string(participantId), receiver, AlgorithmFromInt(algorithm),
-            keyManager);
+            keyProvider);
 
     std::string event_channel = "FlutterWebRTC/frameCryptorEvent" + uuid;
 
@@ -290,7 +290,7 @@ void FlutterFrameCryptor::FrameCryptorDispose(
   result->Success(EncodableValue(params));
 }
 
-void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyManager(
+void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyProvider(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
   libwebrtc::KeyProviderOptions options;
@@ -298,7 +298,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyManager(
 
   auto keyProviderOptions = findMap(constraints, "keyProviderOptions");
   if (keyProviderOptions == EncodableMap()) {
-    result->Error("FrameCryptorFactoryCreateKeyManagerFailed", "keyProviderOptions is null");
+    result->Error("FrameCryptorFactoryCreateKeyProviderFailed", "keyProviderOptions is null");
     return;
   }
 
@@ -313,7 +313,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyManager(
 
   auto ratchetSalt = findVector(keyProviderOptions, "ratchetSalt");
   if (ratchetSalt.size() == 0) {
-    result->Error("FrameCryptorFactoryCreateKeyManagerFailed",
+    result->Error("FrameCryptorFactoryCreateKeyProviderFailed",
                   "ratchetSalt is null");
     return;
   }
@@ -322,92 +322,92 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyManager(
 
   auto ratchetWindowSize = findInt(keyProviderOptions, "ratchetWindowSize");
   if (ratchetWindowSize  == -1) {
-    result->Error("FrameCryptorFactoryCreateKeyManagerFailed",
+    result->Error("FrameCryptorFactoryCreateKeyProviderFailed",
                   "ratchetSalt is null");
     return;
   }
 
   options.ratchet_window_size = ratchetWindowSize;
 
-  auto keyManager = libwebrtc::KeyManager::Create(&options);
-  if (nullptr == keyManager.get()) {
-    result->Error("FrameCryptorFactoryCreateKeyManagerFailed",
-                  "createKeyManager failed");
+  auto keyProvider = libwebrtc::KeyProvider::Create(&options);
+  if (nullptr == keyProvider.get()) {
+    result->Error("FrameCryptorFactoryCreateKeyProviderFailed",
+                  "createKeyProvider failed");
     return;
   }
   auto uuid = base_->GenerateUUID();
-  key_managers_[uuid] = keyManager;
+  key_providers_[uuid] = keyProvider;
   EncodableMap params;
-  params[EncodableValue("keyManagerId")] = uuid;
+  params[EncodableValue("keyProviderId")] = uuid;
   result->Success(EncodableValue(params));
 }
 
-void FlutterFrameCryptor::KeyManagerSetKey(
+void FlutterFrameCryptor::KeyProviderSetKey(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  auto keyManagerId = findString(constraints, "keyManagerId");
-  if (keyManagerId == std::string()) {
-    result->Error("KeyManagerSetKeyFailed", "keyManagerId is null");
+  auto keyProviderId = findString(constraints, "keyProviderId");
+  if (keyProviderId == std::string()) {
+    result->Error("KeyProviderSetKeyFailed", "keyProviderId is null");
     return;
   }
 
-  auto keyManager = key_managers_[keyManagerId];
-  if (nullptr == keyManager.get()) {
-    result->Error("KeyManagerSetKeyFailed", "keyManager is null");
+  auto keyProvider = key_providers_[keyProviderId];
+  if (nullptr == keyProvider.get()) {
+    result->Error("KeyProviderSetKeyFailed", "keyProvider is null");
     return;
   }
 
   auto key = findVector(constraints, "key");
   if (key.size() == 0) {
-    result->Error("KeyManagerSetKeyFailed", "key is null");
+    result->Error("KeyProviderSetKeyFailed", "key is null");
     return;
   }
   auto key_index = findInt(constraints, "keyIndex");
   if (key_index == -1) {
-    result->Error("KeyManagerSetKeyFailed", "keyIndex is null");
+    result->Error("KeyProviderSetKeyFailed", "keyIndex is null");
     return;
   }
 
   auto participant_id = findString(constraints, "participantId");
   if (participant_id == std::string()) {
-    result->Error("KeyManagerSetKeyFailed", "participantId is null");
+    result->Error("KeyProviderSetKeyFailed", "participantId is null");
     return;
   }
 
-  keyManager->SetKey(participant_id, key_index, vector<uint8_t>(key));
+  keyProvider->SetKey(participant_id, key_index, vector<uint8_t>(key));
   EncodableMap params;
   params[EncodableValue("result")] = true;
   result->Success(EncodableValue(params));
 }
 
-void FlutterFrameCryptor::KeyManagerRatchetKey(
+void FlutterFrameCryptor::KeyProviderRatchetKey(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  auto keyManagerId = findString(constraints, "keyManagerId");
-  if (keyManagerId == std::string()) {
-    result->Error("KeyManagerSetKeysFailed", "keyManagerId is null");
+  auto keyProviderId = findString(constraints, "keyProviderId");
+  if (keyProviderId == std::string()) {
+    result->Error("KeyProviderSetKeysFailed", "keyProviderId is null");
     return;
   }
 
-  auto keyManager = key_managers_[keyManagerId];
-  if (nullptr == keyManager.get()) {
-    result->Error("KeyManagerSetKeysFailed", "keyManager is null");
+  auto keyProvider = key_providers_[keyProviderId];
+  if (nullptr == keyProvider.get()) {
+    result->Error("KeyProviderSetKeysFailed", "keyProvider is null");
     return;
   }
 
   auto participant_id = findString(constraints, "participantId");
   if (participant_id == std::string()) {
-    result->Error("KeyManagerSetKeyFailed", "participantId is null");
+    result->Error("KeyProviderSetKeyFailed", "participantId is null");
     return;
   }
 
   auto key_index = findInt(constraints, "keyIndex");
   if (key_index == -1) {
-    result->Error("KeyManagerSetKeyFailed", "keyIndex is null");
+    result->Error("KeyProviderSetKeyFailed", "keyIndex is null");
     return;
   }
 
-  auto newMaterial = keyManager->RatchetKey(participant_id, key_index);
+  auto newMaterial = keyProvider->RatchetKey(participant_id, key_index);
 
   EncodableMap params;
   params[EncodableValue("result")] = EncodableValue(newMaterial.std_vector());
@@ -415,21 +415,21 @@ void FlutterFrameCryptor::KeyManagerRatchetKey(
 }
 
 
-void FlutterFrameCryptor::KeyManagerDispose(
+void FlutterFrameCryptor::KeyProviderDispose(
     const EncodableMap& constraints,
     std::unique_ptr<MethodResultProxy> result) {
-  auto keyManagerId = findString(constraints, "keyManagerId");
-  if (keyManagerId == std::string()) {
-    result->Error("KeyManagerDisposeFailed", "keyManagerId is null");
+  auto keyProviderId = findString(constraints, "keyProviderId");
+  if (keyProviderId == std::string()) {
+    result->Error("KeyProviderDisposeFailed", "keyProviderId is null");
     return;
   }
 
-  auto keyManager = key_managers_[keyManagerId];
-  if (nullptr == keyManager.get()) {
-    result->Error("KeyManagerDisposeFailed", "keyManager is null");
+  auto keyProvider = key_providers_[keyProviderId];
+  if (nullptr == keyProvider.get()) {
+    result->Error("KeyProviderDisposeFailed", "keyProvider is null");
     return;
   }
-  key_managers_.erase(keyManagerId);
+  key_providers_.erase(keyProviderId);
   EncodableMap params;
   params[EncodableValue("result")] = "success";
   result->Success(EncodableValue(params));

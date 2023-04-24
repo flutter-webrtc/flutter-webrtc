@@ -33,7 +33,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler handler);
     NSMutableDictionary<NSString*, CapturerStopHandler>* videoCapturerStopHandlers;
 
 @property(nonatomic, strong) NSMutableDictionary<NSString*, RTCFrameCryptor*>* frameCryptors;
-@property(nonatomic, strong) NSMutableDictionary<NSString*, RTCFrameCryptorKeyManager*>* keyManagers;
+@property(nonatomic, strong) NSMutableDictionary<NSString*, RTCFrameCryptorKeyProvider*>* keyProviders;
 
 #if TARGET_OS_IPHONE
 @property(nonatomic, retain) UIViewController* viewController; /*for broadcast or ReplayKit */

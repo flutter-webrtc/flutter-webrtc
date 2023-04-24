@@ -42,7 +42,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   List<MediaDeviceInfo>? _mediaDevicesList;
   String? _senderParticipantId;
   final FrameCryptorFactory _frameCyrptorFactory = FrameCryptorFactory.instance;
-  KeyManager? _keyManager;
+  KeyProvider? _keyProvider;
   final Map<String, FrameCryptor> _frameCyrptors = {};
   Timer? _timer;
   final _configuration = <String, dynamic>{
@@ -272,8 +272,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       ratchetWindowSize: 16,
     );
 
-    _keyManager ??=
-        await _frameCyrptorFactory.createDefaultKeyManager(keyProviderOptions);
+    _keyProvider ??=
+        await _frameCyrptorFactory.createDefaultKeyProvider(keyProviderOptions);
     var acaps = await getRtpSenderCapabilities('audio');
     print('sender audio capabilities: ${acaps.toMap()}');
 
@@ -345,7 +345,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                 participantId: id,
                 sender: element,
                 algorithm: Algorithm.kAesGcm,
-                keyManager: _keyManager!);
+                keyProvider: _keyProvider!);
         frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
             print('EN onFrameCryptorStateChanged $participantId $state');
         _frameCyrptors[id] = frameCyrptor;
@@ -359,7 +359,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var _frameCyrptor = _frameCyrptors[id];
       if (enabled) {
         await _frameCyrptor?.setEnabled(true);
-        await _keyManager?.setKey(participantId: id, index: 0, key: aesKey);
+        await _keyProvider?.setKey(participantId: id, index: 0, key: aesKey);
       } else {
         await _frameCyrptor?.setEnabled(false);
       }
@@ -381,7 +381,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                 participantId: id,
                 receiver: element,
                 algorithm: Algorithm.kAesGcm,
-                keyManager: _keyManager!);
+                keyProvider: _keyProvider!);
         frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
             print('DE onFrameCryptorStateChanged $participantId $state');
         _frameCyrptors[id] = frameCyrptor;
@@ -391,7 +391,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var _frameCyrptor = _frameCyrptors[id];
       if (enabled) {
         await _frameCyrptor?.setEnabled(true);
-        await _keyManager?.setKey(participantId: id, index: 0, key: aesKey);
+        await _keyProvider?.setKey(participantId: id, index: 0, key: aesKey);
       } else {
         await _frameCyrptor?.setEnabled(false);
       }
@@ -415,7 +415,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void _ratchetKey() async {
-    var newKey = await _keyManager?.ratchetKey(
+    var newKey = await _keyProvider?.ratchetKey(
         participantId: _senderParticipantId!, index: 0);
     print('newKey $newKey');
   }

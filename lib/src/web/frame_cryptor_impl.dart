@@ -83,7 +83,7 @@ extension RtcRtpSenderExt on html.RtcRtpSender {
 class FrameCryptorImpl extends FrameCryptor {
   FrameCryptorImpl(
       this._factory, this.worker, this._participantId, this._trackId,
-      {this.jsSender, this.jsReceiver, required this.keyManager});
+      {this.jsSender, this.jsReceiver, required this.keyProvider});
   html.Worker worker;
   bool _enabled = false;
   int _keyIndex = 0;
@@ -92,7 +92,7 @@ class FrameCryptorImpl extends FrameCryptor {
   final html.RtcRtpSender? jsSender;
   final html.RtcRtpReceiver? jsReceiver;
   final FrameCryptorFactoryImpl _factory;
-  final KeyManagerImpl keyManager;
+  final KeyProviderImpl keyProvider;
 
   @override
   Future<void> dispose() async {
@@ -155,8 +155,8 @@ class FrameCryptorImpl extends FrameCryptor {
   }
 }
 
-class KeyManagerImpl implements KeyManager {
-  KeyManagerImpl(this._id, this.worker, this.options);
+class KeyProviderImpl implements KeyProvider {
+  KeyProviderImpl(this._id, this.worker, this.options);
   final String _id;
   final html.Worker worker;
   final KeyProviderOptions options;
@@ -226,9 +226,7 @@ class KeyManagerImpl implements KeyManager {
       })
     ]);
 
-    if (_ratchetKeyCompleter == null) {
-      _ratchetKeyCompleter = Completer();
-    }
+    _ratchetKeyCompleter ??= Completer();
 
     return _ratchetKeyCompleter!.future;
   }
@@ -278,7 +276,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         var frameCryptor = _frameCryptors.values.firstWhereOrNull(
             (element) => (element as FrameCryptorImpl).trackId == trackId);
         if (frameCryptor != null) {
-          ((frameCryptor as FrameCryptorImpl).keyManager as KeyManagerImpl)
+          ((frameCryptor as FrameCryptorImpl).keyProvider as KeyProviderImpl)
               .onRatchetKey(base64Decode(msg.data['key']));
         }
       }
@@ -295,10 +293,11 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
   final Map<String, FrameCryptor> _frameCryptors = {};
 
   @override
-  Future<KeyManager> createDefaultKeyManager(KeyProviderOptions options) async {
-    var keyManager = KeyManagerImpl('default', worker, options);
-    await keyManager.init();
-    return keyManager;
+  Future<KeyProvider> createDefaultKeyProvider(
+      KeyProviderOptions options) async {
+    var keyProvider = KeyProviderImpl('default', worker, options);
+    await keyProvider.init();
+    return keyProvider;
   }
 
   @override
@@ -306,7 +305,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
       {required String participantId,
       required RTCRtpReceiver receiver,
       required Algorithm algorithm,
-      required KeyManager keyManager}) {
+      required KeyProvider keyProvider}) {
     html.RtcRtpReceiver jsReceiver =
         (receiver as RTCRtpReceiverWeb).jsRtpReceiver;
 
@@ -352,7 +351,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     }
     FrameCryptor cryptor = FrameCryptorImpl(
         this, worker, participantId, trackId,
-        jsReceiver: jsReceiver, keyManager: keyManager as KeyManagerImpl);
+        jsReceiver: jsReceiver, keyProvider: keyProvider as KeyProviderImpl);
     _frameCryptors[trackId] = cryptor;
     return Future.value(cryptor);
   }
@@ -362,7 +361,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
       {required String participantId,
       required RTCRtpSender sender,
       required Algorithm algorithm,
-      required KeyManager keyManager}) {
+      required KeyProvider keyProvider}) {
     html.RtcRtpSender jsSender = (sender as RTCRtpSenderWeb).jsRtpSender;
     var trackId = jsSender.hashCode.toString();
     var kind = jsSender.track!.kind!;
@@ -374,7 +373,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         'kind': kind,
         'participantId': participantId,
         'trackId': trackId,
-        'options': (keyManager as KeyManagerImpl).options.toJson(),
+        'options': (keyProvider as KeyProviderImpl).options.toJson(),
       };
       jsutil.setProperty(jsSender, 'transform',
           RTCRtpScriptTransform(worker, jsutil.jsify(options)));
@@ -398,7 +397,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
           'exist': exist,
           'participantId': participantId,
           'trackId': trackId,
-          'options': (keyManager as KeyManagerImpl).options.toJson(),
+          'options': (keyProvider as KeyProviderImpl).options.toJson(),
           'readableStream': readable,
           'writableStream': writable
         }),
@@ -407,7 +406,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     }
     FrameCryptor cryptor = FrameCryptorImpl(
         this, worker, participantId, trackId,
-        jsSender: jsSender, keyManager: keyManager as KeyManagerImpl);
+        jsSender: jsSender, keyProvider: keyProvider as KeyProviderImpl);
     _frameCryptors[trackId] = cryptor;
     return Future.value(cryptor);
   }

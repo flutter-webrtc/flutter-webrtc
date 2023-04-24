@@ -46,26 +46,26 @@ class FlutterFrameCryptor {
   void FrameCryptorDispose(const EncodableMap& constraints,
                            std::unique_ptr<MethodResultProxy> result);
 
-  void FrameCryptorFactoryCreateKeyManager(
+  void FrameCryptorFactoryCreateKeyProvider(
       const EncodableMap& constraints,
       std::unique_ptr<MethodResultProxy> result);
 
-  void KeyManagerSetKey(const EncodableMap& constraints,
+  void KeyProviderSetKey(const EncodableMap& constraints,
                         std::unique_ptr<MethodResultProxy> result);
 
-  void KeyManagerRatchetKey(const EncodableMap& constraints,
+  void KeyProviderRatchetKey(const EncodableMap& constraints,
                          std::unique_ptr<MethodResultProxy> result);
 
-  void KeyManagerDispose(const EncodableMap& constraints,
+  void KeyProviderDispose(const EncodableMap& constraints,
                          std::unique_ptr<MethodResultProxy> result);
 
   // std::unique_ptr<MethodResultProxy> result);
-  //   'keyManagerSetKey',
-  //   'keyManagerSetKeys',
-  //   'keyManagerGetKeys',
-  //   'keyManagerDispose',
+  //   'keyProviderSetKey',
+  //   'keyProviderSetKeys',
+  //   'keyProviderGetKeys',
+  //   'keyProviderDispose',
   //   'frameCryptorFactoryCreateFrameCryptor',
-  //   'frameCryptorFactoryCreateKeyManager',
+  //   'frameCryptorFactoryCreateKeyProvider',
   //   'frameCryptorSetKeyIndex',
   //   'frameCryptorGetKeyIndex',
   //   'frameCryptorSetEnabled',
@@ -78,7 +78,7 @@ class FlutterFrameCryptor {
       frame_cryptors_;
   std::map<std::string, std::unique_ptr<FlutterFrameCryptorObserver>>
       frame_cryptor_observers_;
-  std::map<std::string, scoped_refptr<libwebrtc::KeyManager>> key_managers_;
+  std::map<std::string, scoped_refptr<libwebrtc::KeyProvider>> key_providers_;
 };
 
 }  // namespace flutter_webrtc_plugin

@@ -34,8 +34,8 @@ class KeyProviderOptions {
 }
 
 /// Shared secret key for frame encryption.
-abstract class KeyManager {
-  /// The unique identifier of the key manager.
+abstract class KeyProvider {
+  /// The unique identifier of the key provider.
   String get id;
 
   /// Set the raw key at the given index.
@@ -96,18 +96,18 @@ abstract class FrameCryptor {
 }
 
 /// Factory for creating frame Cryptors.
-/// For End 2 End Encryption, you need to create a [KeyManager] for each peer.
-/// And set your key in keyManager.
+/// For End 2 End Encryption, you need to create a [KeyProvider] for each peer.
+/// And set your key in keyProvider.
 abstract class FrameCryptorFactory {
   /// Shared key manager.
-  Future<KeyManager> createDefaultKeyManager(KeyProviderOptions options);
+  Future<KeyProvider> createDefaultKeyProvider(KeyProviderOptions options);
 
   /// Create a frame Cryptor from a [RTCRtpSender].
   Future<FrameCryptor> createFrameCryptorForRtpSender({
     required String participantId,
     required RTCRtpSender sender,
     required Algorithm algorithm,
-    required KeyManager keyManager,
+    required KeyProvider keyProvider,
   });
 
   /// Create a frame Cryptor from a [RTCRtpReceiver].
@@ -115,7 +115,7 @@ abstract class FrameCryptorFactory {
     required String participantId,
     required RTCRtpReceiver receiver,
     required Algorithm algorithm,
-    required KeyManager keyManager,
+    required KeyProvider keyProvider,
   });
 
   static final FrameCryptorFactory instance = FrameCryptorFactoryImpl.instance;

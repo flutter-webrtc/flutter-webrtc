@@ -6,8 +6,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
 
-class KeyManagerImpl implements KeyManager {
-  KeyManagerImpl(this._id);
+class KeyProviderImpl implements KeyProvider {
+  KeyProviderImpl(this._id);
   final String _id;
   @override
   String get id => _id;
@@ -20,15 +20,15 @@ class KeyManagerImpl implements KeyManager {
   }) async {
     try {
       final response =
-          await WebRTC.invokeMethod('keyManagerSetKey', <String, dynamic>{
-        'keyManagerId': _id,
+          await WebRTC.invokeMethod('keyProviderSetKey', <String, dynamic>{
+        'keyProviderId': _id,
         'keyIndex': index,
         'key': key,
         'participantId': participantId,
       });
       return response['result'];
     } on PlatformException catch (e) {
-      throw 'Unable to KeyManagerImpl::setKey: ${e.message}';
+      throw 'Unable to KeyProviderImpl::setKey: ${e.message}';
     }
   }
 
@@ -39,25 +39,25 @@ class KeyManagerImpl implements KeyManager {
   }) async {
     try {
       final response =
-          await WebRTC.invokeMethod('keyManagerRatchetKey', <String, dynamic>{
-        'keyManagerId': _id,
+          await WebRTC.invokeMethod('keyProviderRatchetKey', <String, dynamic>{
+        'keyProviderId': _id,
         'keyIndex': index,
         'participantId': participantId,
       });
       return response['result'];
     } on PlatformException catch (e) {
-      throw 'Unable to KeyManagerImpl::ratchetKey: ${e.message}';
+      throw 'Unable to KeyProviderImpl::ratchetKey: ${e.message}';
     }
   }
 
   @override
   Future<void> dispose() async {
     try {
-      await WebRTC.invokeMethod('keyManagerDispose', <String, dynamic>{
-        'keyManagerId': _id,
+      await WebRTC.invokeMethod('keyProviderDispose', <String, dynamic>{
+        'keyProviderId': _id,
       });
     } on PlatformException catch (e) {
-      throw 'Unable to KeyManagerImpl::dispose: ${e.message}';
+      throw 'Unable to KeyProviderImpl::dispose: ${e.message}';
     }
   }
 }
@@ -73,7 +73,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     required String participantId,
     required RTCRtpSender sender,
     required Algorithm algorithm,
-    required KeyManager keyManager,
+    required KeyProvider keyProvider,
   }) async {
     RTCRtpSenderNative nativeSender = sender as RTCRtpSenderNative;
     try {
@@ -82,7 +82,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         'peerConnectionId': nativeSender.peerConnectionId,
         'rtpSenderId': sender.senderId,
         'participantId': participantId,
-        'keyManagerId': keyManager.id,
+        'keyProviderId': keyProvider.id,
         'algorithm': algorithm.index,
         'type': 'sender',
       });
@@ -98,7 +98,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     required String participantId,
     required RTCRtpReceiver receiver,
     required Algorithm algorithm,
-    required KeyManager keyManager,
+    required KeyProvider keyProvider,
   }) async {
     RTCRtpReceiverNative nativeReceiver = receiver as RTCRtpReceiverNative;
 
@@ -108,7 +108,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         'peerConnectionId': nativeReceiver.peerConnectionId,
         'rtpReceiverId': nativeReceiver.receiverId,
         'participantId': participantId,
-        'keyManagerId': keyManager.id,
+        'keyProviderId': keyProvider.id,
         'algorithm': algorithm.index,
         'type': 'receiver',
       });
@@ -120,16 +120,17 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
   }
 
   @override
-  Future<KeyManager> createDefaultKeyManager(KeyProviderOptions options) async {
+  Future<KeyProvider> createDefaultKeyProvider(
+      KeyProviderOptions options) async {
     try {
       final response = await WebRTC.invokeMethod(
-          'frameCryptorFactoryCreateKeyManager', <String, dynamic>{
+          'frameCryptorFactoryCreateKeyProvider', <String, dynamic>{
         'keyProviderOptions': options.toJson(),
       });
-      String keyManagerId = response['keyManagerId'];
-      return KeyManagerImpl(keyManagerId);
+      String keyProviderId = response['keyProviderId'];
+      return KeyProviderImpl(keyProviderId);
     } on PlatformException catch (e) {
-      throw 'Unable to FrameCryptorFactory::createKeyManager: ${e.message}';
+      throw 'Unable to FrameCryptorFactory::createKeyProvider: ${e.message}';
     }
   }
 }

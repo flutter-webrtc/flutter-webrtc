@@ -36,19 +36,19 @@
 - (void)frameCryptorDispose:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;
 
-- (void)frameCryptorFactoryCreateKeyManager:(nonnull NSDictionary*)constraints
+- (void)frameCryptorFactoryCreateKeyProvider:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;
 
-- (void)keyManagerSetKey:(nonnull NSDictionary*)constraints
+- (void)keyProviderSetKey:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;
 
-- (void)keyManagerRatchetKey:(nonnull NSDictionary*)constraints
+- (void)keyProviderRatchetKey:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;
                         
-- (void)keyManagerGetKeys:(nonnull NSDictionary*)constraints
+- (void)keyProviderGetKeys:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;   
 
-- (void)keyManagerDispose:(nonnull NSDictionary*)constraints
+- (void)keyProviderDispose:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;
 
 @end

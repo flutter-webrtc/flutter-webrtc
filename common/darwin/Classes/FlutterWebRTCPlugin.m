@@ -93,7 +93,7 @@
   self.localTracks = [NSMutableDictionary new];
   self.renders = [NSMutableDictionary new];
   self.frameCryptors = [NSMutableDictionary new];
-  self.keyManagers = [NSMutableDictionary new];
+  self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
   AVAudioSession* session = [AVAudioSession sharedInstance];
