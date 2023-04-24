@@ -709,7 +709,7 @@ void FlutterPeerConnection::RtpTransceiverGetCurrentDirection(
   }
   EncodableMap map;
   map[EncodableValue("result")] =
-      EncodableValue(transceiverDirectionString(transceiver->direction()));
+      EncodableValue(transceiverDirectionString(transceiver->current_direction()));
   result_ptr->Success(EncodableValue(map));
 }
 
