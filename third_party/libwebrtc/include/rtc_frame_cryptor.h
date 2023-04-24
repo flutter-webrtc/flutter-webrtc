@@ -29,9 +29,9 @@ struct KeyProviderOptions {
 };
 
 /// Shared secret key for frame encryption.
-class KeyManager : public RefCountInterface {
+class KeyProvider : public RefCountInterface {
  public:
-  LIB_WEBRTC_API static scoped_refptr<KeyManager> Create(KeyProviderOptions*);
+  LIB_WEBRTC_API static scoped_refptr<KeyProvider> Create(KeyProviderOptions*);
 
   /// Set the key at the given index.
   virtual bool SetKey(const string participant_id,
@@ -42,7 +42,7 @@ class KeyManager : public RefCountInterface {
                                      int key_index) = 0;
 
  protected:
-  virtual ~KeyManager() {}
+  virtual ~KeyProvider() {}
 };
 
 enum RTCFrameCryptionState {
@@ -99,14 +99,14 @@ class FrameCryptorFactory {
   frameCryptorFromRtpSender(const string participant_id,
                             scoped_refptr<RTCRtpSender> sender,
                             Algorithm algorithm,
-                            scoped_refptr<KeyManager> keyManager);
+                            scoped_refptr<KeyProvider> key_provider);
 
   /// Create a frame cyrptor for [RTCRtpReceiver].
   LIB_WEBRTC_API static scoped_refptr<RTCFrameCryptor>
   frameCryptorFromRtpReceiver(const string participant_id,
                               scoped_refptr<RTCRtpReceiver> receiver,
                               Algorithm algorithm,
-                              scoped_refptr<KeyManager> keyManager);
+                              scoped_refptr<KeyProvider> key_provider);
 };
 
 }  // namespace libwebrtc
