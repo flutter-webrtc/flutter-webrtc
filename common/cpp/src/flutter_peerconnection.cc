@@ -77,7 +77,8 @@ EncodableMap rtpParametersToMap(
         EncodableValue(static_cast<int>(encoding->max_framerate()));
     map[EncodableValue("scaleResolutionDownBy")] =
         EncodableValue(encoding->scale_resolution_down_by());
-    map[EncodableValue("ssrc")] = EncodableValue((long)encoding->ssrc());
+    map[EncodableValue("ssrc")] =
+        EncodableValue(static_cast<int>(encoding->ssrc()));
     encodings_info.push_back(EncodableValue(map));
   }
   info[EncodableValue("encodings")] = EncodableValue(encodings_info);
@@ -893,7 +894,7 @@ void FlutterPeerConnection::GetStats(
         pc->GetStats(
             receiver,
             [result_ptr](const vector<scoped_refptr<MediaRTCStats>> reports) {
-              std::vector<EncodableValue> list;
+              EncodableList list;
               for (int i = 0; i < reports.size(); i++) {
                 list.push_back(EncodableValue(statsToMap(reports[i])));
               }
@@ -914,7 +915,7 @@ void FlutterPeerConnection::GetStats(
         pc->GetStats(
             sender,
             [result_ptr](const vector<scoped_refptr<MediaRTCStats>> reports) {
-              std::vector<EncodableValue> list;
+              EncodableList list;
               for (int i = 0; i < reports.size(); i++) {
                 list.push_back(EncodableValue(statsToMap(reports[i])));
               }
@@ -934,7 +935,7 @@ void FlutterPeerConnection::GetStats(
   } else {
     pc->GetStats(
         [result_ptr](const vector<scoped_refptr<MediaRTCStats>> reports) {
-          std::vector<EncodableValue> list;
+          EncodableList list;
           for (int i = 0; i < reports.size(); i++) {
             list.push_back(EncodableValue(statsToMap(reports[i])));
           }
@@ -998,7 +999,7 @@ void FlutterPeerConnection::AddTrack(
     }
   } else if (0 == kind.compare("video")) {
     auto sender =
-        pc->AddTrack(reinterpret_cast<RTCAudioTrack*>(track.get()), streamids);
+        pc->AddTrack(reinterpret_cast<RTCVideoTrack*>(track.get()), streamids);
     if (sender.get() != nullptr) {
       result_ptr->Success(EncodableValue(rtpSenderToMap(sender)));
       return;
