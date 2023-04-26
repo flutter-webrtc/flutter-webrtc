@@ -23,7 +23,7 @@ import java.util.Arrays;
 import io.flutter.plugin.common.MethodChannel;
 
 public class FrameCapturer implements VideoSink {
-    private VideoTrack videoTrack;
+    private final VideoTrack videoTrack;
     private File file;
     private final MethodChannel.Result callback;
     private boolean gotFrame = false;

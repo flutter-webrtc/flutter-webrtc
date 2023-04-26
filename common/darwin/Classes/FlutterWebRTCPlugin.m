@@ -5,6 +5,7 @@
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
+#import "FlutterRTCFrameCryptor.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/RTCFieldTrials.h>
@@ -151,6 +152,8 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
   self.localStreams = [NSMutableDictionary new];
   self.localTracks = [NSMutableDictionary new];
   self.renders = [NSMutableDictionary new];
+  self.frameCryptors = [NSMutableDictionary new];
+  self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
   AVAudioSession* session = [AVAudioSession sharedInstance];
@@ -1205,7 +1208,7 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
     NSDictionary* argsMap = call.arguments;
     [self peerConnectionGetRtpSenderCapabilities:argsMap result:result];
   } else {
-    result(FlutterMethodNotImplemented);
+    [self handleFrameCryptorMethodCall:call result:result];
   }
 }
 
@@ -1754,7 +1757,8 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
 
 - (RTCRtpTransceiver*)getRtpTransceiverById:(RTCPeerConnection*)peerConnection Id:(NSString*)Id {
   for (RTCRtpTransceiver* transceiver in peerConnection.transceivers) {
-    if ([transceiver.mid isEqualToString:Id]) {
+      NSString *mid = transceiver.mid ? transceiver.mid : @"";
+    if ([mid isEqualToString:Id]) {
       return transceiver;
     }
   }
