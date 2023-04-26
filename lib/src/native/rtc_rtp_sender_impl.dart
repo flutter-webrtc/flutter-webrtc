@@ -60,7 +60,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
       }
       return stats;
     } on PlatformException catch (e) {
-      throw 'Unable to RTCPeerConnection::getStats: ${e.message}';
+      throw 'Unable to RTCRtpSenderNative::getStats: ${e.message}';
     }
   }
 
@@ -76,7 +76,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
       });
       return response['result'];
     } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpSender::setParameters: ${e.message}';
+      throw 'Unable to RTCRtpSenderNative::setParameters: ${e.message}';
     }
   }
 
@@ -92,7 +92,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
       // change reference of associated MediaTrack
       _track = track;
     } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpSender::replaceTrack: ${e.message}';
+      throw 'Unable to RTCRtpSenderNative::replaceTrack: ${e.message}';
     }
   }
 
@@ -110,7 +110,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
       // change reference of associated MediaTrack
       _track = track;
     } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
+      throw 'Unable to RTCRtpSenderNative::setTrack: ${e.message}';
     }
   }
 
@@ -148,6 +148,8 @@ class RTCRtpSenderNative extends RTCRtpSender {
 
   @override
   RTCDTMFSender get dtmfSender => _dtmf;
+
+  String get peerConnectionId => _peerConnectionId;
 
   @Deprecated(
       'No need to dispose rtpSender as it is handled by peerConnection.')

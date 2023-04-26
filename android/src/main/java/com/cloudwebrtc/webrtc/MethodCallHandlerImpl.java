@@ -69,6 +69,7 @@ import org.webrtc.audio.JavaAudioDeviceModule;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,16 +89,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   static public final String TAG = "FlutterWebRTCPlugin";
 
   private final Map<String, PeerConnectionObserver> mPeerConnectionObservers = new HashMap<>();
-  private BinaryMessenger messenger;
-  private Context context;
+  private final BinaryMessenger messenger;
+  private final Context context;
   private final TextureRegistry textures;
 
   private PeerConnectionFactory mFactory;
 
   private final Map<String, MediaStream> localStreams = new HashMap<>();
   private final Map<String, MediaStreamTrack> localTracks = new HashMap<>();
-
-  private LongSparseArray<FlutterRTCVideoRenderer> renders = new LongSparseArray<>();
+  private final LongSparseArray<FlutterRTCVideoRenderer> renders = new LongSparseArray<>();
 
   /**
    * The implementation of {@code getUserMedia} extracted into a separate file in order to reduce
@@ -106,6 +106,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   private GetUserMediaImpl getUserMediaImpl;
 
   private AudioDeviceModule audioDeviceModule;
+
+  private FlutterRTCFrameCryptor frameCryptor;
 
   private Activity activity;
 
@@ -151,6 +153,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
 
     getUserMediaImpl = new GetUserMediaImpl(this, context);
+
+    frameCryptor = new FlutterRTCFrameCryptor(this);
 
     audioDeviceModule = JavaAudioDeviceModule.builder(context)
             .setUseHardwareAcousticEchoCanceler(true)
@@ -319,13 +323,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         if (isBinary) {
           byteBuffer = ByteBuffer.wrap(call.argument("data"));
         } else {
-          try {
             String data = call.argument("data");
-            byteBuffer = ByteBuffer.wrap(data.getBytes("UTF-8"));
-          } catch (UnsupportedEncodingException e) {
-            resultError("dataChannelSend", "Could not encode text string as UTF-8.", result);
-            return;
-          }
+            byteBuffer = ByteBuffer.wrap(data.getBytes(StandardCharsets.UTF_8));
         }
         dataChannelSend(peerConnectionId, dataChannelId, byteBuffer, isBinary);
         result.success(null);
@@ -734,6 +733,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         rtpTransceiverSetCodecPreferences(peerConnectionId, transceiverId, codecs, result);
         break;
       default:
+        if(frameCryptor.handleMethodCall(call, result)) {
+          break;
+        }
         result.notImplemented();
         break;
     }
@@ -1115,6 +1117,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     return mFactory;
   }
 
+  @Override
+  public PeerConnectionObserver getPeerConnectionObserver(String peerConnectionId) {
+    return mPeerConnectionObservers.get(peerConnectionId);
+  }
+
   @Nullable
   @Override
   public Activity getActivity() {
@@ -1125,6 +1132,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   @Override
   public Context getApplicationContext() {
     return context;
+  }
+
+  @Override
+  public BinaryMessenger getMessenger() {
+    return messenger;
   }
 
   MediaStream getStreamForId(String id, String peerConnectionId) {

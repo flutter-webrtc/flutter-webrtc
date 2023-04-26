@@ -72,7 +72,7 @@ public class ConstraintsMap {
         } else if (value instanceof Byte) {
             return ObjectType.Byte;
         } else {
-            throw new IllegalArgumentException("Invalid value " + value.toString() + " for key " + name +
+            throw new IllegalArgumentException("Invalid value " + value + " for key " + name +
                     "contained in ConstraintsMap");
         }
     }

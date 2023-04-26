@@ -11,7 +11,8 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
       FlutterMediaStream::FlutterMediaStream(this),
       FlutterPeerConnection::FlutterPeerConnection(this),
       FlutterScreenCapture::FlutterScreenCapture(this),
-      FlutterDataChannel::FlutterDataChannel(this) {}
+      FlutterDataChannel::FlutterDataChannel(this),
+      FlutterFrameCryptor::FlutterFrameCryptor(this) {}
 
 FlutterWebRTC::~FlutterWebRTC() {}
 
@@ -450,9 +451,9 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string stream_id = findString(params, "streamId");
     int64_t texture_id = findLongInt(params, "textureId");
-    const std::string peerConnectionId = findString(params, "ownerTag");
+    const std::string ownerTag = findString(params, "ownerTag");
 
-    SetMediaStream(texture_id, stream_id, peerConnectionId);
+    SetMediaStream(texture_id, stream_id, ownerTag);
     result->Success();
   } else if (method_call.method_name().compare(
                  "mediaStreamTrackSwitchCamera") == 0) {
@@ -1097,6 +1098,8 @@ void FlutterWebRTC::HandleMethodCall(
     }
     RtpTransceiverSetCodecPreferences(pc, rtpTransceiverId, codecs,
                                       std::move(result));
+  } else if (HandleFrameCryptorMethodCall(method_call, std::move(result))) {
+    // Do nothing
   } else {
     result->NotImplemented();
   }

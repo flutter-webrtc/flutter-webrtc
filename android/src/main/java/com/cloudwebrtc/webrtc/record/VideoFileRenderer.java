@@ -32,7 +32,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private ByteBuffer[] audioInputBuffers;
     private ByteBuffer[] audioOutputBuffers;
     private EglBase eglBase;
-    private EglBase.Context sharedContext;
+    private final EglBase.Context sharedContext;
     private VideoFrameDrawer frameDrawer;
 
     // TODO: these ought to be configurable as well
@@ -40,9 +40,10 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private static final int FRAME_RATE = 30;               // 30fps
     private static final int IFRAME_INTERVAL = 5;           // 5 seconds between I-frames
 
-    private MediaMuxer mediaMuxer;
+    private final MediaMuxer mediaMuxer;
     private MediaCodec encoder;
-    private MediaCodec.BufferInfo bufferInfo, audioBufferInfo;
+    private final MediaCodec.BufferInfo bufferInfo;
+    private MediaCodec.BufferInfo audioBufferInfo;
     private int trackIndex = -1;
     private int audioTrackIndex;
     private boolean isRunning = true;
