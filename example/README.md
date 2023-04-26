@@ -26,6 +26,7 @@ flutter run -d macos
 Web
 
 ```bash
+dart compile js ../web/e2ee.worker.dart -o web/e2ee.worker.dart.js
 flutter run -d web
 ```
 
