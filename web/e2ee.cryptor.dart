@@ -3,7 +3,6 @@ import 'dart:js';
 import 'dart:js_util' as jsutil;
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:collection';
 import 'dart:async';
 
 import 'package:flutter_webrtc/src/web/rtc_transform_stream.dart';
@@ -553,12 +552,12 @@ class FrameCryptor {
               additionalData:
                   crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
             ),
-            currentkeySet!.encryptionKey,
+            currentkeySet.encryptionKey,
             crypto.jsArrayBufferFrom(
                 buffer.sublist(headerLength, buffer.length - ivLength - 2)),
           ));
 
-          if (decrypted != null && currentkeySet != initialKeySet) {
+          if (currentkeySet != initialKeySet) {
             await setKeySetFromMaterial(currentkeySet, initialKeyIndex);
           }
 
@@ -589,7 +588,7 @@ class FrameCryptor {
           if (endDecLoop) {
             rethrow;
           }
-          var newMaterial = await ratchetMaterial(currentkeySet!.material);
+          var newMaterial = await ratchetMaterial(currentkeySet.material);
           currentkeySet = await deriveKeys(newMaterial, keyOptions.ratchetSalt);
           ratchetCount++;
         }

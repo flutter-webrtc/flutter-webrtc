@@ -278,7 +278,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         var frameCryptor = _frameCryptors.values.firstWhereOrNull(
             (element) => (element as FrameCryptorImpl).trackId == trackId);
         if (frameCryptor != null) {
-          ((frameCryptor as FrameCryptorImpl).keyProvider as KeyProviderImpl)
+          ((frameCryptor as FrameCryptorImpl).keyProvider)
               .onRatchetKey(base64Decode(msg.data['key']));
         }
       }
@@ -408,7 +408,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
     }
     FrameCryptor cryptor = FrameCryptorImpl(
         this, worker, participantId, trackId,
-        jsSender: jsSender, keyProvider: keyProvider as KeyProviderImpl);
+        jsSender: jsSender, keyProvider: keyProvider);
     _frameCryptors[trackId] = cryptor;
     return Future.value(cryptor);
   }
