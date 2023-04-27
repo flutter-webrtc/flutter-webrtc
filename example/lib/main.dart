@@ -1,7 +1,7 @@
 import 'dart:core';
 
 import 'package:flutter/foundation.dart'
-    show debugDefaultTargetPlatformOverride, kIsWeb;
+    show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
