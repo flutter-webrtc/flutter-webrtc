@@ -1,6 +1,13 @@
 # Changelog
 
 --------------------------------------------
+[0.9.27] - 2023-04-27
+
+* [Darwin/Android/Windows/Linux] feat: framecryptor.
+* [Windows/Linux] Fix the type/code mistake.
+* [Windows/Linux] Fix uneffective RTPTransceiver::GetCurrentDirection.
+* [Windows/Linux] RTPtransceiver::getCurrentDirection returns correct value.
+
 [0.9.26] - 2023-04-16
 
 * [iOS/macOS] motify h264 profile-level-id to support high resolution.
