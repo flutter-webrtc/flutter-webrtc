@@ -16,10 +16,12 @@ class KeyOptions {
     required this.sharedKey,
     required this.ratchetSalt,
     required this.ratchetWindowSize,
+    this.uncryptedMagicBytes,
   });
   bool sharedKey;
   Uint8List ratchetSalt;
   int ratchetWindowSize;
+  Uint8List? uncryptedMagicBytes;
 
   @override
   String toString() {
@@ -143,8 +145,8 @@ class KeySet {
   CryptoKey encryptionKey;
 }
 
-class Cryptor {
-  Cryptor(
+class FrameCryptor {
+  FrameCryptor(
       {required this.worker,
       required this.participantId,
       required this.trackId,
@@ -496,6 +498,22 @@ class Cryptor {
       return;
     }
 
+    if (keyOptions.uncryptedMagicBytes != null) {
+      var magicBytes = keyOptions.uncryptedMagicBytes!;
+      if (buffer.length >= magicBytes.length + 1) {
+        var magicBytesBuffer = buffer.sublist(
+            buffer.length - (magicBytes.length + 1), magicBytes.length);
+        if (magicBytesBuffer.toString() == magicBytes.toString()) {
+          var finalBuffer = BytesBuilder();
+          finalBuffer.add(Uint8List.fromList(
+              buffer.sublist(0, buffer.length - (magicBytes.length + 1))));
+          frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
+          controller.enqueue(frame);
+          return;
+        }
+      }
+    }
+
     try {
       var headerLength =
           kind == 'video' ? getUnencryptedBytes(frame, codec) : 1;
@@ -506,11 +524,10 @@ class Cryptor {
       var keyIndex = frameTrailer[1];
       var iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
 
-      var currentkeySet = getKeySet(keyIndex);
-      initialKeySet = currentkeySet;
+      var initialKeySet = getKeySet(keyIndex);
       initialKeyIndex = keyIndex;
 
-      if (currentkeySet == null) {
+      if (initialKeySet == null) {
         if (lastError != CryptorError.kMissingKey) {
           lastError = CryptorError.kMissingKey;
           postMessage({
@@ -526,7 +543,7 @@ class Cryptor {
         return;
       }
       bool endDecLoop = false;
-
+      var currentkeySet = initialKeySet;
       while (!endDecLoop) {
         try {
           decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
@@ -540,6 +557,11 @@ class Cryptor {
             crypto.jsArrayBufferFrom(
                 buffer.sublist(headerLength, buffer.length - ivLength - 2)),
           ));
+
+          if (decrypted != null && currentkeySet != initialKeySet) {
+            await setKeySetFromMaterial(currentkeySet, initialKeyIndex);
+          }
+
           endDecLoop = true;
 
           if (lastError != CryptorError.kOk &&
@@ -562,18 +584,14 @@ class Cryptor {
           }
         } catch (e) {
           lastError = CryptorError.kInternalError;
-
           endDecLoop = ratchetCount >= keyOptions.ratchetWindowSize ||
               keyOptions.ratchetWindowSize <= 0;
           if (endDecLoop) {
             rethrow;
           }
-
-          if (currentkeySet == getKeySet(keyIndex)) {
-            ratchetCount++;
-            await ratchetKey(keyIndex);
-          }
-          currentkeySet = getKeySet(keyIndex);
+          var newMaterial = await ratchetMaterial(currentkeySet!.material);
+          currentkeySet = await deriveKeys(newMaterial, keyOptions.ratchetSalt);
+          ratchetCount++;
         }
       }
 
