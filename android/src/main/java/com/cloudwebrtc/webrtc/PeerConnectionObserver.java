@@ -18,7 +18,6 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -47,6 +46,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private final static String TAG = FlutterWebRTCPlugin.TAG;
   private final Map<String, DataChannel> dataChannels = new HashMap<>();
   private final BinaryMessenger messenger;
+
+  private final AudioSwitchManager audioSwitchManager;
   private final String id;
   private PeerConnection peerConnection;
   private final PeerConnection.RTCConfiguration configuration;
@@ -57,10 +58,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private final EventChannel eventChannel;
   private EventChannel.EventSink eventSink;
 
-  PeerConnectionObserver(PeerConnection.RTCConfiguration configuration, StateProvider stateProvider, BinaryMessenger messenger, String id) {
+  PeerConnectionObserver(PeerConnection.RTCConfiguration configuration, StateProvider stateProvider, BinaryMessenger messenger, String id, AudioSwitchManager audioSwitchManager) {
     this.configuration = configuration;
     this.stateProvider = stateProvider;
     this.messenger = messenger;
+    this.audioSwitchManager = audioSwitchManager;
     this.id = id;
 
     eventChannel = new EventChannel(messenger, "FlutterWebRTC/peerConnectionEvent" + id);
@@ -486,7 +488,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       sendEvent(params);
 
       if ("audio".equals(track.kind())) {
-        AudioSwitchManager.instance.start();
+        audioSwitchManager.start();
       }
     }
 

@@ -104,6 +104,8 @@ class GetUserMediaImpl {
     private final StateProvider stateProvider;
     private final Context applicationContext;
 
+    private final AudioSwitchManager audioSwitchManager;
+
     static final int minAPILevel = Build.VERSION_CODES.LOLLIPOP;
 
     final AudioSamplesInterceptor inputSamplesInterceptor = new AudioSamplesInterceptor();
@@ -206,9 +208,10 @@ class GetUserMediaImpl {
         }
     }
 
-    GetUserMediaImpl(StateProvider stateProvider, Context applicationContext) {
+    GetUserMediaImpl(StateProvider stateProvider, Context applicationContext, AudioSwitchManager audioSwitchManager) {
         this.stateProvider = stateProvider;
         this.applicationContext = applicationContext;
+        this.audioSwitchManager = audioSwitchManager;
     }
 
     static private void resultError(String method, String error, Result result) {
@@ -335,7 +338,7 @@ class GetUserMediaImpl {
     }
 
     private ConstraintsMap getUserAudio(ConstraintsMap constraints, MediaStream stream) {
-        AudioSwitchManager.instance.start();
+        audioSwitchManager.start();
         MediaConstraints audioConstraints = new MediaConstraints();
         String deviceId = null;
         if (constraints.getType("audio") == ObjectType.Boolean) {

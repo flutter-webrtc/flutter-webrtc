@@ -27,8 +27,6 @@ public class AudioSwitchManager {
 
     public static final String TAG = "AudioSwitchManager";
 
-    @SuppressLint("StaticFieldLeak")
-    public static AudioSwitchManager instance;
     @NonNull
     private final Context context;
     @NonNull
@@ -37,13 +35,13 @@ public class AudioSwitchManager {
     public boolean loggingEnabled;
     private boolean isActive = false;
     @NonNull
-    public Function2<
+    private Function2<
             ? super List<? extends AudioDevice>,
             ? super AudioDevice,
             Unit> audioDeviceChangeListener = (devices, currentDevice) -> null;
 
     @NonNull
-    public AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = (i -> {});
+    private AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = (i -> {});
 
     @NonNull
     public List<Class<? extends AudioDevice>> preferredDeviceList;
@@ -70,9 +68,13 @@ public class AudioSwitchManager {
      */
     private int audioMode = AudioManager.MODE_NORMAL;
 
-    public AudioSwitchManager(@NonNull Context context) {
+    public AudioSwitchManager(@NonNull Context context, Function2<
+            ? super List<? extends AudioDevice>,
+            ? super AudioDevice,
+            Unit> audioDeviceChangeListener) {
         this.context = context;
         this.audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        this.audioDeviceChangeListener = audioDeviceChangeListener;
 
         preferredDeviceList = new ArrayList<>();
         preferredDeviceList.add(AudioDevice.BluetoothHeadset.class);
