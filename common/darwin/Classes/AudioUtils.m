@@ -59,6 +59,27 @@
   return NO;
 }
 
++ (void)selectAudioOutputIsSpeaker:(BOOL)isSpeaker error:(NSError **)error {
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
+  [session lockForConfiguration];
+  
+  if (isSpeaker) {
+    [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_Speaker
+                                       error:error];
+    if (!error) {
+      [session.session setMode:config.mode error:error];
+    }
+  } else {
+    [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
+                                       error:error];
+    if (!error) {
+      [session.session setMode:AVAudioSessionModeVoiceChat error:error];
+    }
+  }
+  [session unlockForConfiguration];
+}
+
 + (void)setSpeakerphoneOn:(BOOL)enable {
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
   RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
@@ -71,13 +92,13 @@
   [session lockForConfiguration];
   NSError* error = nil;
   if (!enable) {
-    [session setMode:config.mode error:&error];
+    [session setMode:AVAudioSessionModeVoiceChat error:&error];
     BOOL success = [session setCategory:config.category
                             withOptions:AVAudioSessionCategoryOptionAllowAirPlay |
                                         AVAudioSessionCategoryOptionAllowBluetoothA2DP |
                                         AVAudioSessionCategoryOptionAllowBluetooth
                                   error:&error];
-
+    
     success = [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
                                                  error:&error];
     if (!success)
@@ -90,7 +111,6 @@
                                         AVAudioSessionCategoryOptionAllowBluetoothA2DP |
                                         AVAudioSessionCategoryOptionAllowBluetooth
                                   error:&error];
-
     success = [session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_Speaker
                                          error:&error];
     if (!success)
