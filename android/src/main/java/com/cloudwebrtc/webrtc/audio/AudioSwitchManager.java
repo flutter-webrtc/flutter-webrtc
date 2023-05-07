@@ -20,6 +20,7 @@ import java.util.Objects;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function2;
+import io.flutter.plugin.common.MethodChannel.Result;
 
 public class AudioSwitchManager {
     @SuppressLint("StaticFieldLeak")
@@ -132,6 +133,10 @@ public class AudioSwitchManager {
 
     public void enableSpeakerphone(boolean enable) {
         audioManager.setSpeakerphoneOn(enable);
+    }
+    public void isSpeakerphoneEnabled(Result result) {
+         boolean enabled = audioManager.isSpeakerphoneOn();
+         result.success(enabled);
     }
     
     public void selectAudioOutput(@Nullable AudioDeviceKind kind) {
