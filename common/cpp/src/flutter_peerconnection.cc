@@ -206,9 +206,8 @@ EncodableMap rtpReceiverToMap(
 
 EncodableMap transceiverToMap(scoped_refptr<RTCRtpTransceiver> transceiver) {
   EncodableMap info;
-  std::string mid = transceiver->mid().std_string();
-  info[EncodableValue("transceiverId")] = EncodableValue(mid);
-  info[EncodableValue("mid")] = EncodableValue(mid);
+  info[EncodableValue("transceiverId")] = EncodableValue(transceiver->transceiver_id().std_string());
+  info[EncodableValue("mid")] = EncodableValue(transceiver->mid().std_string());
   info[EncodableValue("direction")] =
       EncodableValue(transceiverDirectionString(transceiver->direction()));
   info[EncodableValue("sender")] =
@@ -684,11 +683,11 @@ void FlutterPeerConnection::RtpSenderSetParameters(
 
 void FlutterPeerConnection::RtpTransceiverStop(
     RTCPeerConnection* pc,
-    std::string rtpTransceiverId,
+    std::string transceiverId,
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
 
-  auto transceiver = getRtpTransceiverById(pc, rtpTransceiverId);
+  auto transceiver = getRtpTransceiverById(pc, transceiverId);
   if (nullptr == transceiver.get()) {
     result_ptr->Error("rtpTransceiverStop", "transceiver is null");
     return;
@@ -699,11 +698,11 @@ void FlutterPeerConnection::RtpTransceiverStop(
 
 void FlutterPeerConnection::RtpTransceiverGetCurrentDirection(
     RTCPeerConnection* pc,
-    std::string rtpTransceiverId,
+    std::string transceiverId,
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
 
-  auto transceiver = getRtpTransceiverById(pc, rtpTransceiverId);
+  auto transceiver = getRtpTransceiverById(pc, transceiverId);
   if (nullptr == transceiver.get()) {
     result_ptr->Error("rtpTransceiverGetCurrentDirection",
                       "transceiver is null");
@@ -744,8 +743,8 @@ scoped_refptr<RTCRtpTransceiver> FlutterPeerConnection::getRtpTransceiverById(
   auto transceivers = pc->transceivers();
   for (scoped_refptr<RTCRtpTransceiver> transceiver :
        transceivers.std_vector()) {
-    std::string mid = transceiver->mid().std_string();
-    if (nullptr == result.get() && 0 == id.compare(mid)) {
+    if (nullptr == result.get() &&
+        0 == id.compare(transceiver->transceiver_id().std_string())) {
       result = transceiver;
     }
   }
@@ -754,11 +753,11 @@ scoped_refptr<RTCRtpTransceiver> FlutterPeerConnection::getRtpTransceiverById(
 
 void FlutterPeerConnection::RtpTransceiverSetDirection(
     RTCPeerConnection* pc,
-    std::string rtpTransceiverId,
+    std::string transceiverId,
     std::string direction,
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
-  auto transceiver = getRtpTransceiverById(pc, rtpTransceiverId);
+  auto transceiver = getRtpTransceiverById(pc, transceiverId);
   if (nullptr == transceiver.get()) {
     result_ptr->Error("RtpTransceiverSetDirection", " transceiver is null ");
     return;
@@ -774,11 +773,11 @@ void FlutterPeerConnection::RtpTransceiverSetDirection(
 
 void FlutterPeerConnection::RtpTransceiverSetCodecPreferences(
     RTCPeerConnection* pc,
-    std::string rtpTransceiverId,
+    std::string transceiverId,
     const EncodableList codecs,
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
-  auto transceiver = getRtpTransceiverById(pc, rtpTransceiverId);
+  auto transceiver = getRtpTransceiverById(pc, transceiverId);
   if (nullptr == transceiver.get()) {
     result_ptr->Error("RtpTransceiverSetCodecPreferences",
                       " transceiver is null ");

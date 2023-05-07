@@ -520,6 +520,10 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       return false;
     });
 
+    _localStream?.getTracks().forEach((track) async {
+      await track.stop();
+    });
+
     await _removeExistingVideoTrack(fromConnection: true);
     await _negotiate();
     setState(() {
