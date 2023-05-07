@@ -129,12 +129,12 @@ class FlutterPeerConnection {
                               std::unique_ptr<MethodResultProxy> result);
 
   void RtpTransceiverStop(RTCPeerConnection* pc,
-                          std::string rtpTransceiverId,
+                          std::string transceiverId,
                           std::unique_ptr<MethodResultProxy> result);
 
   void RtpTransceiverGetCurrentDirection(
       RTCPeerConnection* pc,
-      std::string rtpTransceiverId,
+      std::string transceiverId,
       std::unique_ptr<MethodResultProxy> result);
 
   void SetConfiguration(RTCPeerConnection* pc,
@@ -149,13 +149,13 @@ class FlutterPeerConnection {
                                                          std::string id);
 
   void RtpTransceiverSetDirection(RTCPeerConnection* pc,
-                                  std::string rtpTransceiverId,
+                                  std::string transceiverId,
                                   std::string direction,
                                   std::unique_ptr<MethodResultProxy> result);
 
   void RtpTransceiverSetCodecPreferences(
       RTCPeerConnection* pc,
-      std::string rtpTransceiverId,
+      std::string transceiverId,
       const EncodableList codecs,
       std::unique_ptr<MethodResultProxy> result);
 

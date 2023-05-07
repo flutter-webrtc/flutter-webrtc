@@ -817,14 +817,14 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    const std::string rtpTransceiverId = findString(params, "rtpTransceiverId");
-    if (rtpTransceiverId.empty()) {
+    const std::string transceiverId = findString(params, "transceiverId");
+    if (transceiverId.empty()) {
       result->Error("rtpTransceiverStop",
-                    "rtpTransceiverStop() rtpTransceiverId is null or empty");
+                    "rtpTransceiverStop() transceiverId is null or empty");
       return;
     }
 
-    RtpTransceiverStop(pc, rtpTransceiverId, std::move(result));
+    RtpTransceiverStop(pc, transceiverId, std::move(result));
   } else if (method_call.method_name().compare(
                  "rtpTransceiverGetCurrentDirection") == 0) {
     if (!method_call.arguments()) {
@@ -843,15 +843,15 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    const std::string rtpTransceiverId = findString(params, "transceiverId");
-    if (rtpTransceiverId.empty()) {
+    const std::string transceiverId = findString(params, "transceiverId");
+    if (transceiverId.empty()) {
       result->Error("rtpTransceiverGetCurrentDirection",
-                    "rtpTransceiverGetCurrentDirection() rtpTransceiverId is "
+                    "rtpTransceiverGetCurrentDirection() transceiverId is "
                     "null or empty");
       return;
     }
 
-    RtpTransceiverGetCurrentDirection(pc, rtpTransceiverId, std::move(result));
+    RtpTransceiverGetCurrentDirection(pc, transceiverId, std::move(result));
   } else if (method_call.method_name().compare("rtpTransceiverSetDirection") ==
              0) {
     if (!method_call.arguments()) {
@@ -869,8 +869,8 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    const std::string rtpTransceiverId = findString(params, "transceiverId");
-    if (rtpTransceiverId.empty()) {
+    const std::string transceiverId = findString(params, "transceiverId");
+    if (transceiverId.empty()) {
       result->Error("rtpTransceiverSetDirection",
                     "rtpTransceiverSetDirection() transceiverId is "
                     "null or empty");
@@ -878,13 +878,13 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string direction = findString(params, "direction");
-    if (rtpTransceiverId.empty()) {
+    if (transceiverId.empty()) {
       result->Error("rtpTransceiverSetDirection",
                     "rtpTransceiverSetDirection() direction is null or empty");
       return;
     }
 
-    RtpTransceiverSetDirection(pc, rtpTransceiverId, direction,
+    RtpTransceiverSetDirection(pc, transceiverId, direction,
                                std::move(result));
   } else if (method_call.method_name().compare("setConfiguration") == 0) {
     if (!method_call.arguments()) {
@@ -1084,10 +1084,10 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    const std::string rtpTransceiverId = findString(params, "transceiverId");
-    if (rtpTransceiverId.empty()) {
+    const std::string transceiverId = findString(params, "transceiverId");
+    if (transceiverId.empty()) {
       result->Error("setCodecPreferences",
-                    "setCodecPreferences() rtpTransceiverId is null or empty");
+                    "setCodecPreferences() transceiverId is null or empty");
       return;
     }
 
@@ -1096,7 +1096,7 @@ void FlutterWebRTC::HandleMethodCall(
       result->Error("Bad Arguments", "Codecs is required");
       return;
     }
-    RtpTransceiverSetCodecPreferences(pc, rtpTransceiverId, codecs,
+    RtpTransceiverSetCodecPreferences(pc, transceiverId, codecs,
                                       std::move(result));
   } else if (HandleFrameCryptorMethodCall(method_call, std::move(result))) {
     // Do nothing
