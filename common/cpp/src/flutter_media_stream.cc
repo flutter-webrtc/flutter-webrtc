@@ -288,6 +288,9 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   if (!video_capturer.get())
     return;
 
+  
+  video_capturer->StartCapture();
+
   const char* video_source_label = "video_input";
   scoped_refptr<RTCVideoSource> source = base_->factory_->CreateVideoSource(
       video_capturer, video_source_label,
@@ -318,6 +321,7 @@ void FlutterMediaStream::GetUserVideo(const EncodableMap& constraints,
   stream->AddTrack(track);
 
   base_->local_tracks_[track->id().std_string()] = track;
+  base_->video_capturers_[track->id().std_string()] = video_capturer;
 }
 
 void FlutterMediaStream::GetSources(std::unique_ptr<MethodResultProxy> result) {
@@ -479,6 +483,14 @@ void FlutterMediaStream::MediaStreamDispose(
   for (auto track : video_tracks.std_vector()) {
     stream->RemoveTrack(track);
     base_->local_tracks_.erase(track->id().std_string());
+    if (base_->video_capturers_.find(track->id().std_string()) !=
+        base_->video_capturers_.end()) {
+      auto video_capture = base_->video_capturers_[track->id().std_string()];
+      if (video_capture->CaptureStarted()) {
+        video_capture->StopCapture();
+      }
+      base_->video_capturers_.erase(track->id().std_string());
+    }
   }
 
   base_->RemoveStreamForId(stream_id);
@@ -525,6 +537,15 @@ void FlutterMediaStream::MediaStreamTrackDispose(
     for (auto track : video_tracks.std_vector()) {
       if (track->id().std_string() == track_id) {
         stream->RemoveTrack(track);
+
+      if (base_->video_capturers_.find(track_id) !=
+        base_->video_capturers_.end()) {
+        auto video_capture = base_->video_capturers_[track_id];
+        if (video_capture->CaptureStarted()) {
+          video_capture->StopCapture();
+        }
+        base_->video_capturers_.erase(track_id);
+       }
       }
     }
   }
