@@ -1,7 +1,7 @@
 # Changelog
 
 --------------------------------------------
-[0.9.29] - 2023-05-08
+[0.9.29+hotfix.1] - 2023-05-08
 
 * [Android] fix: application context null when app is terminated.
 * [Android/iOS] feat: add way to enable speaker but prefer bluetooth.
