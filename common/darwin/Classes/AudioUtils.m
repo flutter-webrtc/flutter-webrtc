@@ -104,7 +104,7 @@
                                       AVAudioSessionCategoryOptionDefaultToSpeaker
                                 error:&error];
 
-  success = [session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_Speaker
+  success = [session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
                                         error:&error];
   if (!success)
     NSLog(@"Port override failed due to: %@", error);
@@ -113,7 +113,7 @@
   if (!success)
     NSLog(@"Audio session override failed: %@", error);
   else
-    NSLog(@"AudioSession override via Loudspeaker is successful ");
+    NSLog(@"AudioSession override with bluetooth preference via setSpeakerphoneOnButPreferBluetooth successfull ");
   [session unlockForConfiguration];
 }
 
