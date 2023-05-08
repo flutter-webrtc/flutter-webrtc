@@ -61,6 +61,14 @@ class Helper {
     );
   }
 
+  /// Enable speakerphone, but use bluetooth if audio output device available
+  /// for iOS/Android only
+  static Future<void> setSpeakerphoneOnButPreferBluetooth() async {
+    await WebRTC.invokeMethod(
+      'enableSpeakerphoneButPreferBluetooth'
+    );
+  }
+
   /// To select a a specific camera, you need to set constraints
   /// eg.
   /// var constraints = {
