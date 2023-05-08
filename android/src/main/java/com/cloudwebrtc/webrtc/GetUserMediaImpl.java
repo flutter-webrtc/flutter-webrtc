@@ -351,7 +351,7 @@ class GetUserMediaImpl {
         AudioSource audioSource = pcFactory.createAudioSource(audioConstraints);
 
         if(deviceId == null) {
-            android.media.AudioManager audioManager = ((android.media.AudioManager) stateProvider.getActivity().getApplicationContext()
+            android.media.AudioManager audioManager = ((android.media.AudioManager) stateProvider.getApplicationContext()
                     .getSystemService(Context.AUDIO_SERVICE));
             final AudioDeviceInfo[] devices = audioManager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS);
             if(devices.length > 0) {
