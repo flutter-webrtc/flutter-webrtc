@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.28] - 2023-05-08
+
+* [Windows/Linux] fix: use the correct transceiver id.
+* [Windows/Linux] fix: Support restart camera for Windows/Linux.
+
 [0.9.27] - 2023-04-27
 
 * [Darwin/Android/Windows/Linux] feat: framecryptor.
