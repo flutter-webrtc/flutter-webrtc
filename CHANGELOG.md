@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.29] - 2023-05-08
+
+* [Android] fix: application context null when app is terminated.
+* [Android/iOS] feat: add way to enable speaker but prefer bluetooth.
+
 [0.9.28] - 2023-05-08
 
 * [Windows/Linux] fix: use the correct transceiver id.
