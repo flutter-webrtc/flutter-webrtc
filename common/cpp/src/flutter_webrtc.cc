@@ -589,12 +589,12 @@ void FlutterWebRTC::HandleMethodCall(
       result->Error("AddTrack", "AddTrack() track is null");
       return;
     }
-    std::list<std::string> listId;
+    std::vector<std::string> ids;
     for (EncodableValue value : streamIds) {
-      listId.push_back(GetValue<std::string>(value));
+      ids.push_back(GetValue<std::string>(value));
     }
 
-    AddTrack(pc, track, listId, std::move(result));
+    AddTrack(pc, track, ids, std::move(result));
 
   } else if (method_call.method_name().compare("removeTrack") == 0) {
     if (!method_call.arguments()) {
@@ -732,7 +732,7 @@ void FlutterWebRTC::HandleMethodCall(
                     "rtpSenderSetStream() streamId is null or empty");
       return;
     }
-    std::list<std::string> streamIds{};
+    std::vector<std::string> streamIds{};
     for (EncodableValue value : encodableStreamIds) {
       streamIds.push_back(GetValue<std::string>(value));
     }
