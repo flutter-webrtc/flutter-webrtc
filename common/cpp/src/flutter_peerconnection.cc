@@ -9,17 +9,16 @@ namespace flutter_webrtc_plugin {
 
 std::string RTCMediaTypeToString(RTCMediaType type) {
   switch (type) {
-    case libwebrtc::RTCMediaType::UNSUPPORTED:
-      return "any";
     case libwebrtc::RTCMediaType::AUDIO:
       return "audio";
     case libwebrtc::RTCMediaType::VIDEO:
       return "video";
     case libwebrtc::RTCMediaType::DATA:
       return "data";
-    default:
-      return "";
+    case libwebrtc::RTCMediaType::UNSUPPORTED:
+      return "unsupported";
   }
+  return "";
 }
 
 std::string transceiverDirectionString(RTCRtpTransceiverDirection direction) {
@@ -570,7 +569,7 @@ void FlutterPeerConnection::RtpSenderSetTrack(
 
 void FlutterPeerConnection::RtpSenderSetStream(
     RTCPeerConnection* pc,
-    std::list<std::string> streamIds,
+    std::vector<std::string> streamIds,
     std::string rtpSenderId,
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
@@ -579,8 +578,7 @@ void FlutterPeerConnection::RtpSenderSetStream(
     result_ptr->Error("rtpSenderSetTrack", "sender is null");
     return;
   }
-  vector<string> ids {streamIds};
-  sender->set_stream_ids(ids);
+  sender->set_stream_ids(streamIds);
   result_ptr->Success();
 }
 
@@ -982,24 +980,20 @@ void FlutterPeerConnection::MediaStreamRemoveTrack(
 void FlutterPeerConnection::AddTrack(
     RTCPeerConnection* pc,
     scoped_refptr<RTCMediaTrack> track,
-    std::list<std::string> streamIds,
+    std::vector<std::string> streamIds,
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
   std::string kind = track->kind().std_string();
-  std::vector<string> streamids;
-  for (std::string item : streamIds) {
-    streamids.push_back(item.c_str());
-  }
   if (0 == kind.compare("audio")) {
     auto sender =
-        pc->AddTrack(reinterpret_cast<RTCAudioTrack*>(track.get()), streamids);
+        pc->AddTrack(reinterpret_cast<RTCAudioTrack*>(track.get()), streamIds);
     if (sender.get() != nullptr) {
       result_ptr->Success(EncodableValue(rtpSenderToMap(sender)));
       return;
     }
   } else if (0 == kind.compare("video")) {
     auto sender =
-        pc->AddTrack(reinterpret_cast<RTCVideoTrack*>(track.get()), streamids);
+        pc->AddTrack(reinterpret_cast<RTCVideoTrack*>(track.get()), streamIds);
     if (sender.get() != nullptr) {
       result_ptr->Success(EncodableValue(rtpSenderToMap(sender)));
       return;
