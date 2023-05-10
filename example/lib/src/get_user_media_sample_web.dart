@@ -142,7 +142,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('GetUserMedia API Test'),
+        title: Text('GetUserMedia API Test Web'),
         actions: _inCalling
             ? <Widget>[
                 IconButton(

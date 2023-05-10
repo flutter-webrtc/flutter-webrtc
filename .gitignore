@@ -54,3 +54,6 @@ android/.settings/org.eclipse.buildship.core.prefs
 
 !webrtc_android.iml
 !webrtc.iml
+
+# vs
+*.pdb

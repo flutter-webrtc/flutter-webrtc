@@ -1,6 +1,76 @@
 # Changelog
 
 --------------------------------------------
+[0.9.29+hotfix.1] - 2023-05-08
+
+* [Android] fix: application context null when app is terminated.
+* [Android/iOS] feat: add way to enable speaker but prefer bluetooth.
+
+[0.9.28] - 2023-05-08
+
+* [Windows/Linux] fix: use the correct transceiver id.
+* [Windows/Linux] fix: Support restart camera for Windows/Linux.
+
+[0.9.27] - 2023-04-27
+
+* [Darwin/Android/Windows/Linux] feat: framecryptor.
+* [Windows/Linux] Fix the type/code mistake.
+* [Windows/Linux] Fix uneffective RTPTransceiver::GetCurrentDirection.
+* [Windows/Linux] RTPtransceiver::getCurrentDirection returns correct value.
+
+[0.9.26] - 2023-04-16
+
+* [iOS/macOS] motify h264 profile-level-id to support high resolution.
+* [Dawrin/Android/Windows] feat: add RTCDegradationPreference to RTCRtpParameters.
+
+[0.9.25] - 2023-04-10
+
+* [Dawrin/Android/Windows] Add  `addStreams` to `RTCRtpSender`
+* [Android] fix: label for Wired Headset. (#1305)
+* [Dawrin/Android/Windows] Feat/media stream track get settings (#1294)
+* [Android/iOS] Fix track lookup in the platform specific code for Android and iOS (#1289)
+* [iOS] fix: ICE Connectivity doesn't establish with DualSIM iPhones.
+* [Android] Switch to webrtc hosted on maven central (#1288)
+
+[0.9.24] - 2023-03-07
+
+* [iOS] avaudiosession mode changed to AVAudioSessionModeVideoChat (#1285)
+* [macOS] fix memory leak for screen capture.
+
+[0.9.23] - 2023-02-17
+
+* [Windows/Linux] Updated libwebrtc binary for windows/linux to fix two crashes.
+
+[0.9.22] - 2023-02-14
+
+* [iOS] fix: Without any setActive for rtc session, libwebrtc manages the session counter by itself. (#1266)
+* [dart] fix: remove rtpsender.dispose.
+* [web] fix video renderer issue for safari.
+* [macOS] Fixed macOS desktop capture crash with simulcast enabled.
+* [macOS] Fix the crash when setting the fps of the virtual camera.
+
+[0.9.21] - 2023-02-10
+
+* [Web] Fix: RTCRtpParameters.fromJsObject for Firefox.
+* [Web] Add bufferedamountlow.
+* [Android] Fixed frame capturer returning images with wrong colors (#1258).
+* [Windows] bug fix.
+
+[0.9.20] - 2023-02-03
+
+* [Dawrin/Android/Windows] Add getCapabilities/setCodecPreferences methods
+* [Darwin] buffered amount
+* [Linux] Fixed audio device name buffer size
+* [Android] Start audioswitch and only activate it when needed
+* [Darwin] Fix typo which broke GcmCryptoSuites
+
+[0.9.19] - 2023-01-10
+
+* [Dart] Fix getStats: change 'track' to 'trackId' (#1199)
+* [Android] keep the audio switch after stopping (#1202)
+* [Dart] Enhance RTC video view with placeholder builder property (#1206)
+* [Android] Use forked version of audio switch to avoid BLUETOOTH_CONNECT permission (#1218)
+
 [0.9.18] - 2022-12-12
 
 * [Web] Bump dart_webrtc to 1.0.12, Convert iceconnectionstate to connectionstate for Firefox.

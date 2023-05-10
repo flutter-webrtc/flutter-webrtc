@@ -11,7 +11,7 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
 
   factory RTCRtpReceiverNative.fromMap(Map<dynamic, dynamic> map,
       {required String peerConnectionId}) {
-    var track = MediaStreamTrackNative.fromMap(map['track']);
+    var track = MediaStreamTrackNative.fromMap(map['track'], peerConnectionId);
     var parameters = RTCRtpParameters.fromMap(map['rtpParameters']);
     return RTCRtpReceiverNative(
         map['receiverId'], track, parameters, peerConnectionId);
@@ -30,7 +30,7 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
     try {
       final response = await WebRTC.invokeMethod('getStats', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
-        'track': track.id
+        'trackId': track.id
       });
       var stats = <StatsReport>[];
       if (response != null) {
@@ -42,7 +42,7 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
       }
       return stats;
     } on PlatformException catch (e) {
-      throw 'Unable to RTCPeerConnection::getStats: ${e.message}';
+      throw 'Unable to RTCRtpReceiverNative::getStats: ${e.message}';
     }
   }
 
@@ -63,4 +63,6 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
 
   @override
   String get receiverId => _id;
+
+  String get peerConnectionId => _peerConnectionId;
 }

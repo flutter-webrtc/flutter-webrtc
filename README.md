@@ -33,6 +33,7 @@ Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/chat/flutt
 | Unified-Plan | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | |
 | Simulcast | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | [WIP] | |
 | MediaRecorder | :warning: | :warning: | :heavy_check_mark: | | | | | |
+| SFrame/FrameCryptor | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | |
 | Insertable Streams | | | | | | | | |
 ## Usage
 
@@ -87,7 +88,6 @@ If you need to use a Bluetooth device, please add:
 ```xml
 <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
 
 The Flutter project template adds it, so it may already be there.

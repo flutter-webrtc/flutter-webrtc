@@ -1,4 +1,4 @@
-﻿#ifndef LIB_WEBRTC_RTC_VIDEO_TRACK_HXX
+#ifndef LIB_WEBRTC_RTC_VIDEO_TRACK_HXX
 #define LIB_WEBRTC_RTC_VIDEO_TRACK_HXX
 
 #include "rtc_types.h"

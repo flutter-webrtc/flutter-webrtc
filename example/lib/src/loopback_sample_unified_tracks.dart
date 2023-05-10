@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:core';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class LoopBackSampleUnifiedTracks extends StatefulWidget {
@@ -11,7 +12,18 @@ class LoopBackSampleUnifiedTracks extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
+const List<String> audioCodecList = <String>[
+  'OPUS',
+  'ISAC',
+  'PCMA',
+  'PCMU',
+  'G729'
+];
+const List<String> videoCodecList = <String>['VP8', 'VP9', 'H264', 'AV1'];
+
 class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
+  String audioDropdownValue = audioCodecList.first;
+  String videoDropdownValue = videoCodecList.first;
   MediaStream? _localStream;
   RTCPeerConnection? _localPeerConnection;
   RTCPeerConnection? _remotePeerConnection;
@@ -23,13 +35,22 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   bool _micOn = false;
   bool _cameraOn = false;
   bool _speakerOn = false;
+  bool _audioEncrypt = false;
+  bool _videoEncrypt = false;
+  bool _audioDecrypt = false;
+  bool _videoDecrypt = false;
   List<MediaDeviceInfo>? _mediaDevicesList;
+  String? _senderParticipantId;
+  final FrameCryptorFactory _frameCyrptorFactory = FrameCryptorFactory.instance;
+  KeyProvider? _keyProvider;
+  final Map<String, FrameCryptor> _frameCyrptors = {};
   Timer? _timer;
   final _configuration = <String, dynamic>{
     'iceServers': [
-      //{'url': 'stun:stun.l.google.com:19302'},
+      {'urls': 'stun:stun.l.google.com:19302'},
     ],
-    'sdpSemantics': 'unified-plan'
+    'sdpSemantics': 'unified-plan',
+    'encodedInsertableStreams': true,
   };
 
   final _constraints = <String, dynamic>{
@@ -38,6 +59,43 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       {'DtlsSrtpKeyAgreement': false},
     ],
   };
+
+  final demoRatchetSalt = 'flutter-webrtc-ratchet-salt';
+
+  final aesKey = Uint8List.fromList([
+    200,
+    244,
+    58,
+    72,
+    214,
+    245,
+    86,
+    82,
+    192,
+    127,
+    23,
+    153,
+    167,
+    172,
+    122,
+    234,
+    140,
+    70,
+    175,
+    74,
+    61,
+    11,
+    134,
+    58,
+    185,
+    102,
+    172,
+    17,
+    11,
+    6,
+    119,
+    253
+  ]);
 
   @override
   void initState() {
@@ -79,8 +137,6 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void _cleanUp() async {
     try {
       await _localStream?.dispose();
-      await _videoSender?.dispose();
-      await _audioSender?.dispose();
       await _remotePeerConnection?.close();
       await _remotePeerConnection?.dispose();
       _remotePeerConnection = null;
@@ -189,33 +245,10 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
   void _onTrack(RTCTrackEvent event) async {
     print('onTrack ${event.track.id}');
-    if (event.track.kind == 'video') {
-      // onMute/onEnded/onUnMute are not wired up
-      // event.track.onEnded = () {
-      //   print("Ended");
-      //   setState(() {
-      //     _remoteRenderer.srcObject = null;
-      //   });
-      // };
-      // event.track.onUnMute = () async {
-      //   print("UnMute");
-      //   var stream = await createLocalMediaStream(event.track.id!);
-      //   await stream.addTrack(event.track);
-      //   setState(() {
-      //     _remoteRenderer.srcObject = stream;
-      //   });
-      // };
-      // event.track.onMute = () {
-      //   print("OnMute");
-      //   setState(() {
-      //     _remoteRenderer.srcObject = null;
-      //   });
-      // };
 
-      var stream = await createLocalMediaStream(event.track.id!);
-      await stream.addTrack(event.track);
+    if (event.track.kind == 'video') {
       setState(() {
-        _remoteRenderer.srcObject = stream;
+        _remoteRenderer.srcObject = event.streams[0];
       });
     }
   }
@@ -232,6 +265,20 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void _makeCall() async {
     initRenderers();
     initLocalConnection();
+
+    var keyProviderOptions = KeyProviderOptions(
+      sharedKey: true,
+      ratchetSalt: Uint8List.fromList(demoRatchetSalt.codeUnits),
+      ratchetWindowSize: 16,
+    );
+
+    _keyProvider ??=
+        await _frameCyrptorFactory.createDefaultKeyProvider(keyProviderOptions);
+    var acaps = await getRtpSenderCapabilities('audio');
+    print('sender audio capabilities: ${acaps.toMap()}');
+
+    var vcaps = await getRtpSenderCapabilities('video');
+    print('sender video capabilities: ${vcaps.toMap()}');
 
     if (_remotePeerConnection != null) return;
 
@@ -270,7 +317,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
     if (_remotePeerConnection == null) return;
 
-    var offer = await _localPeerConnection!.createOffer(oaConstraints);
+    var offer = await _localPeerConnection!.createOffer({});
     await _localPeerConnection!.setLocalDescription(offer);
     var localDescription = await _localPeerConnection!.getLocalDescription();
 
@@ -280,6 +327,77 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     var remoteDescription = await _remotePeerConnection!.getLocalDescription();
 
     await _localPeerConnection!.setRemoteDescription(remoteDescription!);
+  }
+
+  void _enableEncryption({bool video = false, bool enabled = true}) async {
+    var senders = await _localPeerConnection?.senders;
+
+    var kind = video ? 'video' : 'audio';
+
+    senders?.forEach((element) async {
+      if (kind != element.track?.kind) return;
+
+      var trackId = element.track?.id;
+      var id = kind + '_' + trackId! + '_sender';
+      if (!_frameCyrptors.containsKey(id)) {
+        var frameCyrptor =
+            await _frameCyrptorFactory.createFrameCryptorForRtpSender(
+                participantId: id,
+                sender: element,
+                algorithm: Algorithm.kAesGcm,
+                keyProvider: _keyProvider!);
+        frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
+            print('EN onFrameCryptorStateChanged $participantId $state');
+        _frameCyrptors[id] = frameCyrptor;
+        await frameCyrptor.setKeyIndex(0);
+      }
+
+      if (kind == 'video') {
+        _senderParticipantId = id;
+      }
+
+      var _frameCyrptor = _frameCyrptors[id];
+      if (enabled) {
+        await _frameCyrptor?.setEnabled(true);
+        await _keyProvider?.setKey(participantId: id, index: 0, key: aesKey);
+      } else {
+        await _frameCyrptor?.setEnabled(false);
+      }
+      await _frameCyrptor?.updateCodec(
+          kind == 'video' ? videoDropdownValue : audioDropdownValue);
+    });
+  }
+
+  void _enableDecryption({bool video = false, bool enabled = true}) async {
+    var receivers = await _remotePeerConnection?.receivers;
+    var kind = video ? 'video' : 'audio';
+    receivers?.forEach((element) async {
+      if (kind != element.track?.kind) return;
+      var trackId = element.track?.id;
+      var id = kind + '_' + trackId! + '_receiver';
+      if (!_frameCyrptors.containsKey(id)) {
+        var frameCyrptor =
+            await _frameCyrptorFactory.createFrameCryptorForRtpReceiver(
+                participantId: id,
+                receiver: element,
+                algorithm: Algorithm.kAesGcm,
+                keyProvider: _keyProvider!);
+        frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
+            print('DE onFrameCryptorStateChanged $participantId $state');
+        _frameCyrptors[id] = frameCyrptor;
+        await frameCyrptor.setKeyIndex(0);
+      }
+
+      var _frameCyrptor = _frameCyrptors[id];
+      if (enabled) {
+        await _frameCyrptor?.setEnabled(true);
+        await _keyProvider?.setKey(participantId: id, index: 0, key: aesKey);
+      } else {
+        await _frameCyrptor?.setEnabled(false);
+      }
+      await _frameCyrptor?.updateCodec(
+          kind == 'video' ? videoDropdownValue : audioDropdownValue);
+    });
   }
 
   void _hangUp() async {
@@ -294,6 +412,12 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     setState(() {
       _inCalling = false;
     });
+  }
+
+  void _ratchetKey() async {
+    var newKey = await _keyProvider?.ratchetKey(
+        participantId: _senderParticipantId!, index: 0);
+    print('newKey $newKey');
   }
 
   Map<String, dynamic> _getMediaConstraints({audio = true, video = true}) {
@@ -332,6 +456,48 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     }
 
     await _addOrReplaceVideoTracks();
+
+    var transceivers = await _localPeerConnection?.getTransceivers();
+    transceivers?.forEach((transceiver) {
+      if (transceiver.sender.track == null) return;
+      print('transceiver: ${transceiver.sender.track!.kind!}');
+      var codecCapability = RTCRtpCodecCapability(
+        mimeType: 'video/VP8',
+        clockRate: 90000,
+      );
+      switch (videoDropdownValue) {
+        case 'VP8':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'video/VP8',
+            clockRate: 90000,
+          );
+          break;
+        case 'VP9':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'video/VP9',
+            clockRate: 90000,
+          );
+          break;
+        case 'AV1':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'video/AV1',
+            clockRate: 90000,
+          );
+          break;
+        case 'H264':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'video/H264',
+            clockRate: 90000,
+            sdpFmtpLine:
+                'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f',
+          );
+          break;
+      }
+      transceiver.setCodecPreferences([
+        codecCapability,
+      ]);
+    });
+
     await _negotiate();
 
     setState(() {
@@ -341,11 +507,23 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
     _timer?.cancel();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
-      handleStatsReport(timer);
+      //handleStatsReport(timer);
     });
   }
 
   void _stopVideo() async {
+    _frameCyrptors.removeWhere((key, value) {
+      if (key.startsWith('video')) {
+        value.dispose();
+        return true;
+      }
+      return false;
+    });
+
+    _localStream?.getTracks().forEach((track) async {
+      await track.stop();
+    });
+
     await _removeExistingVideoTrack(fromConnection: true);
     await _negotiate();
     setState(() {
@@ -372,6 +550,51 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     }
 
     await _addOrReplaceAudioTracks();
+    var transceivers = await _localPeerConnection?.getTransceivers();
+    transceivers?.forEach((transceiver) {
+      if (transceiver.sender.track == null) return;
+      var codecCapability = RTCRtpCodecCapability(
+        mimeType: 'audio/OPUS',
+        clockRate: 48000,
+        channels: 1,
+      );
+      switch (audioDropdownValue) {
+        case 'OPUS':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'audio/OPUS',
+            clockRate: 48000,
+            channels: 1,
+          );
+          break;
+        case 'ISAC':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'audio/ISAC',
+            clockRate: 16000,
+          );
+          break;
+        case 'G722':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'audio/G722',
+            clockRate: 16000,
+          );
+          break;
+        case 'PCMU':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'audio/PCMU',
+            clockRate: 8000,
+          );
+          break;
+        case 'PCMA':
+          codecCapability = RTCRtpCodecCapability(
+            mimeType: 'audio/PCMA',
+            clockRate: 8000,
+          );
+          break;
+      }
+      transceiver.setCodecPreferences([
+        codecCapability,
+      ]);
+    });
     await _negotiate();
 
     setState(() {
@@ -380,6 +603,13 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void _stopAudio() async {
+    _frameCyrptors.removeWhere((key, value) {
+      if (key.startsWith('audio')) {
+        value.dispose();
+        return true;
+      }
+      return false;
+    });
     await _removeExistingAudioTrack(fromConnection: true);
     await _negotiate();
     setState(() {
@@ -510,10 +740,129 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   Widget build(BuildContext context) {
     var widgets = <Widget>[
       Expanded(
-        child: RTCVideoView(_localRenderer, mirror: true),
+        child: Container(
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Row(
+              children: [
+                Text('audio codec:'),
+                DropdownButton<String>(
+                  value: audioDropdownValue,
+                  icon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.blue,
+                  ),
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.blue),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.blueAccent,
+                  ),
+                  onChanged: (String? value) {
+                    // This is called when the user selects an item.
+                    setState(() {
+                      audioDropdownValue = value!;
+                    });
+                  },
+                  items: audioCodecList
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                Text('video codec:'),
+                DropdownButton<String>(
+                  value: videoDropdownValue,
+                  icon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.blue,
+                  ),
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.blue),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.blueAccent,
+                  ),
+                  onChanged: (String? value) {
+                    // This is called when the user selects an item.
+                    setState(() {
+                      videoDropdownValue = value!;
+                    });
+                  },
+                  items: videoCodecList
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                TextButton(onPressed: _ratchetKey, child: Text('Ratchet Key'))
+              ],
+            ),
+            Row(
+              children: [
+                Text('audio encrypt:'),
+                Switch(
+                    value: _audioEncrypt,
+                    onChanged: (value) {
+                      setState(() {
+                        _audioEncrypt = value;
+                        _enableEncryption(video: false, enabled: _audioEncrypt);
+                      });
+                    }),
+                Text('video encrypt:'),
+                Switch(
+                    value: _videoEncrypt,
+                    onChanged: (value) {
+                      setState(() {
+                        _videoEncrypt = value;
+                        _enableEncryption(video: true, enabled: _videoEncrypt);
+                      });
+                    })
+              ],
+            ),
+            Expanded(
+              child: RTCVideoView(_localRenderer, mirror: true),
+            ),
+          ],
+        )),
       ),
       Expanded(
-        child: RTCVideoView(_remoteRenderer),
+        child: Container(
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Row(
+              children: [
+                Text('audio decrypt:'),
+                Switch(
+                    value: _audioDecrypt,
+                    onChanged: (value) {
+                      setState(() {
+                        _audioDecrypt = value;
+                        _enableDecryption(video: false, enabled: _audioDecrypt);
+                      });
+                    }),
+                Text('video decrypt:'),
+                Switch(
+                    value: _videoDecrypt,
+                    onChanged: (value) {
+                      setState(() {
+                        _videoDecrypt = value;
+                        _enableDecryption(video: true, enabled: _videoDecrypt);
+                      });
+                    })
+              ],
+            ),
+            Expanded(
+              child: RTCVideoView(_remoteRenderer),
+            ),
+          ],
+        )),
       )
     ];
     return Scaffold(

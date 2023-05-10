@@ -97,8 +97,8 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         methodCallHandler.setActivity(null);
         if (this.observer != null) {
             this.lifecycle.removeObserver(this.observer);
-            if (this.application!=null) {
-                this.application.unregisterActivityLifecycleCallbacks(this.observer);
+            if (application!=null) {
+                application.unregisterActivityLifecycleCallbacks(this.observer);
             }
         }
         this.lifecycle = null;
@@ -129,7 +129,6 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         if (AudioSwitchManager.instance != null) {
             Log.d(TAG, "Stopping the audio manager...");
             AudioSwitchManager.instance.stop();
-            AudioSwitchManager.instance = null;
         }
     }
 

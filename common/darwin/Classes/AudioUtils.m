@@ -15,7 +15,7 @@
     config.category = AVAudioSessionCategoryPlayAndRecord;
     config.categoryOptions =
         AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP;
-    config.mode = AVAudioSessionModeVoiceChat;
+    config.mode = AVAudioSessionModeVideoChat;
 
     [session lockForConfiguration];
     [session setCategory:config.category withOptions:config.categoryOptions error:nil];
@@ -74,13 +74,6 @@
                                                  error:&error];
     if (!success)
       NSLog(@"Port override failed due to: %@", error);
-
-    success = [session setActive:YES error:&error];
-    if (!success)
-      NSLog(@"Audio session override failed: %@", error);
-    else
-      NSLog(@"AudioSession override via Earpiece/Headset is successful ");
-
   } else {
     [session setMode:config.mode error:&error];
     BOOL success = [session setCategory:config.category
@@ -94,21 +87,48 @@
                                          error:&error];
     if (!success)
       NSLog(@"Port override failed due to: %@", error);
-
-    success = [session setActive:YES error:&error];
-    if (!success)
-      NSLog(@"Audio session override failed: %@", error);
-    else
-      NSLog(@"AudioSession override via Loudspeaker is successful ");
   }
+  [session unlockForConfiguration];
+}
+
++ (void)setSpeakerphoneOnButPreferBluetooth {
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
+  [session lockForConfiguration];
+  NSError* error = nil;
+  [session setMode:config.mode error:&error];
+  BOOL success = [session setCategory:config.category
+                          withOptions:AVAudioSessionCategoryOptionAllowAirPlay |
+                                      AVAudioSessionCategoryOptionAllowBluetoothA2DP |
+                                      AVAudioSessionCategoryOptionAllowBluetooth |
+                                      AVAudioSessionCategoryOptionDefaultToSpeaker
+                                error:&error];
+
+  success = [session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
+                                        error:&error];
+  if (!success)
+    NSLog(@"Port override failed due to: %@", error);
+
+  success = [session setActive:YES error:&error];
+  if (!success)
+    NSLog(@"Audio session override failed: %@", error);
+  else
+    NSLog(@"AudioSession override with bluetooth preference via setSpeakerphoneOnButPreferBluetooth successfull ");
   [session unlockForConfiguration];
 }
 
 + (void)deactiveRtcAudioSession {
   NSError* error = nil;
-  [[AVAudioSession sharedInstance] setActive:NO
-                                 withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
-                                       error:&error];
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  [session lockForConfiguration];
+  if ([session isActive]) {
+    BOOL success = [session setActive:NO error:&error];
+    if (!success)
+      NSLog(@"RTC Audio session deactive failed: %@", error);
+    else
+      NSLog(@"RTC AudioSession deactive is successful ");
+  }
+  [session unlockForConfiguration];
 }
 
 @end
