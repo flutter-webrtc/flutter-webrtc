@@ -49,17 +49,17 @@ NSArray<RTCDesktopSource*>* _captureSources;
   };
 
   if (useBroadcastExtension) {
-    NSDictionary* infoDictionary = [[NSBundle mainBundle] infoDictionary];
-    NSString* extension = infoDictionary[kRTCAppGroupIdentifier];
-    if (extension) {
-      RPSystemBroadcastPickerView* picker = [[RPSystemBroadcastPickerView alloc] init];
-      picker.preferredExtension = extension;
-      picker.showsMicrophoneButton = false;
+    NSString* extension =
+        [[[NSBundle mainBundle] infoDictionary] valueForKey:kRTCScreenSharingExtension];
 
-      SEL selector = NSSelectorFromString(@"buttonPressed:");
-      if ([picker respondsToSelector:selector]) {
-        [picker performSelector:selector withObject:nil];
-      }
+    RPSystemBroadcastPickerView* picker = [[RPSystemBroadcastPickerView alloc] init];
+    picker.showsMicrophoneButton = false;
+    if (extension) {
+      picker.preferredExtension = extension;
+    }
+    SEL selector = NSSelectorFromString(@"buttonPressed:");
+    if ([picker respondsToSelector:selector]) {
+      [picker performSelector:selector withObject:nil];
     }
   }
 #endif
