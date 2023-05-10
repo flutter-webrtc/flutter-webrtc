@@ -49,8 +49,8 @@ NSArray<RTCDesktopSource*>* _captureSources;
   };
 
   if (useBroadcastExtension) {
-    NSString* extension =
-        [[[NSBundle mainBundle] infoDictionary] valueForKey:kRTCScreenSharingExtension];
+    NSDictionary* infoDictionary = [[NSBundle mainBundle] infoDictionary];
+    NSString* extension = infoDictionary[kRTCAppGroupIdentifier];
     if (extension) {
       RPSystemBroadcastPickerView* picker = [[RPSystemBroadcastPickerView alloc] init];
       picker.preferredExtension = extension;
