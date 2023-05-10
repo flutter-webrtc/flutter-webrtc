@@ -787,24 +787,32 @@ class GetUserMediaImpl {
         return trackParams;
     }
 
-    void removeVideoCapturer(String id) {
-        VideoCapturerInfo info = mVideoCapturers.get(id);
-        if (info != null) {
-            try {
-                info.capturer.stopCapture();
-            } catch (InterruptedException e) {
-                Log.e(TAG, "removeVideoCapturer() Failed to stop video capturer");
-            } finally {
-                info.capturer.dispose();
-                mVideoCapturers.remove(id);
-                SurfaceTextureHelper helper = mSurfaceTextureHelpers.get(id);
-                if (helper != null)  {
-                    helper.stopListening();
-                    helper.dispose();
-                    mSurfaceTextureHelpers.remove(id);
+    void removeVideoCapturerSync(String id) {
+        synchronized (mVideoCapturers) {
+            VideoCapturerInfo info = mVideoCapturers.get(id);
+            if (info != null) {
+                try {
+                    info.capturer.stopCapture();
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "removeVideoCapturer() Failed to stop video capturer");
+                } finally {
+                    info.capturer.dispose();
+                    mVideoCapturers.remove(id);
+                    SurfaceTextureHelper helper = mSurfaceTextureHelpers.get(id);
+                    if (helper != null)  {
+                        helper.stopListening();
+                        helper.dispose();
+                        mSurfaceTextureHelpers.remove(id);
+                    }
                 }
             }
         }
+    }
+
+    void removeVideoCapturer(String id) {
+        new Thread(() -> {
+            removeVideoCapturerSync(id);
+        }).start();
     }
 
     @RequiresApi(api = VERSION_CODES.M)
