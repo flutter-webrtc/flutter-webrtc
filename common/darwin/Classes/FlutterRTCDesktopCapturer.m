@@ -56,6 +56,8 @@ NSArray<RTCDesktopSource*>* _captureSources;
     picker.showsMicrophoneButton = false;
     if (extension) {
       picker.preferredExtension = extension;
+    } else {
+      NSLog(@"Not able to find the %@ key", kRTCScreenSharingExtension);
     }
     SEL selector = NSSelectorFromString(@"buttonPressed:");
     if ([picker respondsToSelector:selector]) {
