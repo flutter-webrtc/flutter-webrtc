@@ -92,9 +92,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   private final BinaryMessenger messenger;
   private final Context context;
   private final TextureRegistry textures;
-
   private PeerConnectionFactory mFactory;
-
   private final Map<String, MediaStream> localStreams = new HashMap<>();
   private final Map<String, MediaStreamTrack> localTracks = new HashMap<>();
   private final LongSparseArray<FlutterRTCVideoRenderer> renders = new LongSparseArray<>();
