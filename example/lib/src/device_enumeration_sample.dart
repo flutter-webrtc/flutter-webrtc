@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class VideoSize {
   VideoSize(this.width, this.height);
@@ -63,6 +64,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   @override
   void initState() {
     super.initState();
+
     initRenderers();
     loadDevices();
     navigator.mediaDevices.ondevicechange = (event) {
@@ -130,6 +132,17 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   }
 
   Future<void> loadDevices() async {
+    //Ask for runtime permissions if necessary.
+    var status = await Permission.bluetooth.request();
+    if (status.isPermanentlyDenied) {
+      print('BLEpermdisabled');
+    }
+
+    status = await Permission.bluetoothConnect.request();
+    if (status.isPermanentlyDenied) {
+      print('ConnectPermdisabled');
+    }
+
     final devices = await navigator.mediaDevices.enumerateDevices();
     setState(() {
       _devices = devices;
