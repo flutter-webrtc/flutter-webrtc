@@ -933,6 +933,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
     }
 
+    // maxIPv6Networks
+    if (map.hasKey("maxIPv6Networks")
+            && map.getType("maxIPv6Networks") == ObjectType.Number) {
+      conf.maxIPv6Networks = map.getInt("maxIPv6Networks");
+    }
+
     // === below is private api in webrtc ===
 
     // tcpCandidatePolicy (private api)
