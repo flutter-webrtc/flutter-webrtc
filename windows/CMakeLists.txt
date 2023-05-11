@@ -13,6 +13,7 @@ add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/flutter_webrtc_plugin.cc"
   "../common/cpp/src/flutter_common.cc"
   "../common/cpp/src/flutter_data_channel.cc"
+  "../common/cpp/src/flutter_frame_cryptor.cc"
   "../common/cpp/src/flutter_media_stream.cc"
   "../common/cpp/src/flutter_peerconnection.cc"
   "../common/cpp/src/flutter_video_renderer.cc"

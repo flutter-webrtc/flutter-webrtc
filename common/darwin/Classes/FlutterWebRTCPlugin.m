@@ -5,12 +5,75 @@
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
+#import "FlutterRTCFrameCryptor.h"
 
 #import <AVFoundation/AVFoundation.h>
+#import <WebRTC/RTCFieldTrials.h>
 #import <WebRTC/WebRTC.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wprotocol"
+
+@interface VideoEncoderFactory : RTCDefaultVideoEncoderFactory
+@end
+
+@interface VideoDecoderFactory : RTCDefaultVideoDecoderFactory
+@end
+
+@interface VideoEncoderFactorySimulcast : RTCVideoEncoderFactorySimulcast
+@end
+
+NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
+    NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* codecs) {
+  NSMutableArray* newCodecs = [[NSMutableArray alloc] init];
+  NSInteger count = codecs.count;
+  for (NSInteger i = 0; i < count; i++) {
+    RTC_OBJC_TYPE(RTCVideoCodecInfo)* info = [codecs objectAtIndex:i];
+    if ([info.name isEqualToString:kRTCVideoCodecH264Name]) {
+      NSString* hexString = info.parameters[@"profile-level-id"];
+      RTCH264ProfileLevelId* profileLevelId =
+          [[RTCH264ProfileLevelId alloc] initWithHexString:hexString];
+      if (profileLevelId.level < RTCH264Level5_1) {
+        RTCH264ProfileLevelId* newProfileLevelId =
+            [[RTCH264ProfileLevelId alloc] initWithProfile:profileLevelId.profile
+                                                     level:RTCH264Level5_1];
+        // NSLog(@"profile-level-id: %@ => %@", hexString, [newProfileLevelId hexString]);
+        NSMutableDictionary* parametersCopy = [[NSMutableDictionary alloc] init];
+        [parametersCopy addEntriesFromDictionary:info.parameters];
+        [parametersCopy setObject:[newProfileLevelId hexString] forKey:@"profile-level-id"];
+        [newCodecs insertObject:[[RTCVideoCodecInfo alloc] initWithName:kRTCVideoCodecH264Name
+                                                             parameters:parametersCopy]
+                        atIndex:i];
+      } else {
+        [newCodecs insertObject:info atIndex:i];
+      }
+    } else {
+      [newCodecs insertObject:info atIndex:i];
+    }
+  }
+  return newCodecs;
+}
+
+@implementation VideoEncoderFactory
+- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>*)supportedCodecs {
+  NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*>* codecs = [super supportedCodecs];
+  return motifyH264ProfileLevelId(codecs);
+}
+@end
+
+@implementation VideoDecoderFactory
+- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>*)supportedCodecs {
+  NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*>* codecs = [super supportedCodecs];
+  return motifyH264ProfileLevelId(codecs);
+}
+@end
+
+@implementation VideoEncoderFactorySimulcast
+- (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>*)supportedCodecs {
+  NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo)*>* codecs = [super supportedCodecs];
+  return motifyH264ProfileLevelId(codecs);
+}
+@end
 
 @implementation FlutterWebRTCPlugin {
 #pragma clang diagnostic pop
@@ -73,20 +136,24 @@
 #endif
   }
   // RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
-  RTCDefaultVideoDecoderFactory* decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
-  RTCDefaultVideoEncoderFactory* encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
+  VideoDecoderFactory* decoderFactory = [[VideoDecoderFactory alloc] init];
+  VideoEncoderFactory* encoderFactory = [[VideoEncoderFactory alloc] init];
 
-  RTCVideoEncoderFactorySimulcast* simulcastFactory =
-      [[RTCVideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory
-                                                      fallback:encoderFactory];
+  VideoEncoderFactorySimulcast* simulcastFactory =
+      [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
 
   _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:simulcastFactory
                                                                      decoderFactory:decoderFactory];
+
+  NSDictionary* fieldTrials = @{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue};
+  RTCInitFieldTrialDictionary(fieldTrials);
 
   self.peerConnections = [NSMutableDictionary new];
   self.localStreams = [NSMutableDictionary new];
   self.localTracks = [NSMutableDictionary new];
   self.renders = [NSMutableDictionary new];
+  self.frameCryptors = [NSMutableDictionary new];
+  self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
   AVAudioSession* session = [AVAudioSession sharedInstance];
@@ -275,8 +342,9 @@
     NSDictionary* argsMap = call.arguments;
     NSString* path = argsMap[@"path"];
     NSString* trackId = argsMap[@"trackId"];
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
 
-    RTCMediaStreamTrack* track = [self trackForId:trackId];
+    RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId:peerConnectionId];
     if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
       RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
       [self mediaStreamTrackCaptureFrame:videoTrack toPath:path result:result];
@@ -465,7 +533,9 @@
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
     NSNumber* enabled = argsMap[@"enabled"];
-    RTCMediaStreamTrack* track = [self trackForId:trackId];
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+
+    RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId:peerConnectionId];
     if (track != nil) {
       track.isEnabled = enabled.boolValue;
     }
@@ -477,7 +547,7 @@
 
     RTCMediaStream* stream = self.localStreams[streamId];
     if (stream) {
-      RTCMediaStreamTrack* track = [self trackForId:trackId];
+      RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId:nil];
       if (track != nil) {
         if ([track isKindOfClass:[RTCAudioTrack class]]) {
           RTCAudioTrack* audioTrack = (RTCAudioTrack*)track;
@@ -694,7 +764,9 @@
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
     NSNumber* volume = argsMap[@"volume"];
-    RTCMediaStreamTrack* track = self.localTracks[trackId];
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+
+    RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId:peerConnectionId];
     if (track != nil && [track isKindOfClass:[RTCAudioTrack class]]) {
       RTCAudioTrack* audioTrack = (RTCAudioTrack*)track;
       RTCAudioSource* audioSource = audioTrack.source;
@@ -718,6 +790,10 @@
     NSNumber* enable = argsMap[@"enable"];
     _speakerOn = enable.boolValue;
     [AudioUtils setSpeakerphoneOn:_speakerOn];
+    result(nil);
+  }
+  else if ([@"enableSpeakerphoneButPreferBluetooth" isEqualToString:call.method]) {
+    [AudioUtils setSpeakerphoneOnButPreferBluetooth];
     result(nil);
   }
 #endif
@@ -786,7 +862,7 @@
       return;
     }
 
-    RTCMediaStreamTrack* track = [self trackForId:trackId];
+    RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId:nil];
     if (track == nil) {
       result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
                                  message:[NSString stringWithFormat:@"Error: track not found!"]
@@ -840,7 +916,7 @@
     RTCRtpTransceiver* transceiver = nil;
     BOOL hasAudio = NO;
     if (trackId != nil) {
-      RTCMediaStreamTrack* track = [self trackForId:trackId];
+      RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId:nil];
       if (transceiverInit != nil) {
         RTCRtpTransceiverInit* init = [self mapToTransceiverInit:transceiverInit];
         transceiver = [peerConnection addTransceiverWithTrack:track init:init];
@@ -999,7 +1075,7 @@
     }
     RTCMediaStreamTrack* track = nil;
     if ([trackId length] > 0) {
-      track = [self trackForId:trackId];
+      track = [self trackForId:trackId peerConnectionId:nil];
       if (track == nil) {
         result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
                                    message:[NSString stringWithFormat:@"Error: track not found!"]
@@ -1031,7 +1107,7 @@
     }
     RTCMediaStreamTrack* track = nil;
     if ([trackId length] > 0) {
-      track = [self trackForId:trackId];
+      track = [self trackForId:trackId peerConnectionId:nil];
       if (track == nil) {
         result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
                                    message:[NSString stringWithFormat:@"Error: track not found!"]
@@ -1040,6 +1116,28 @@
       }
     }
     [sender setTrack:track];
+    result(nil);
+  } else if ([@"rtpSenderSetStreams" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+    NSString* senderId = argsMap[@"rtpSenderId"];
+    NSArray* streamIds = argsMap[@"streamIds"];
+    RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
+    if (peerConnection == nil) {
+      result([FlutterError
+          errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
+                message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                details:nil]);
+      return;
+    }
+    RTCRtpSender* sender = [self getRtpSenderById:peerConnection Id:senderId];
+    if (sender == nil) {
+      result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
+                                 message:[NSString stringWithFormat:@"Error: sender not found!"]
+                                 details:nil]);
+      return;
+    }
+    [sender setStreamIds:streamIds];
     result(nil);
   } else if ([@"getSenders" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
@@ -1114,7 +1212,7 @@
     NSDictionary* argsMap = call.arguments;
     [self peerConnectionGetRtpSenderCapabilities:argsMap result:result];
   } else {
-    result(FlutterMethodNotImplemented);
+    [self handleFrameCryptorMethodCall:call result:result];
   }
 }
 
@@ -1215,10 +1313,14 @@
   return stream;
 }
 
-- (RTCMediaStreamTrack*)trackForId:(NSString*)trackId {
+- (RTCMediaStreamTrack*)trackForId:(NSString*)trackId peerConnectionId:(NSString*)peerConnectionId {
   RTCMediaStreamTrack* track = _localTracks[trackId];
   if (!track) {
-    for (RTCPeerConnection* peerConnection in _peerConnections.allValues) {
+    for (NSString* currentId in _peerConnections.allKeys) {
+      if (peerConnectionId && [currentId isEqualToString:peerConnectionId] == false) {
+        continue;
+      }
+      RTCPeerConnection* peerConnection = _peerConnections[currentId];
       track = peerConnection.remoteTracks[trackId];
       if (!track) {
         for (RTCRtpTransceiver* transceiver in peerConnection.transceivers) {
@@ -1566,13 +1668,27 @@
       @"kind" : codec.kind
     }];
   }
+    
+  NSString *degradationPreference = @"balanced";
+  if(parameters.degradationPreference != nil) {
+    if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainFramerate ) {
+       degradationPreference = @"maintain-framerate";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainResolution) {
+       degradationPreference = @"maintain-resolution";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceBalanced) {
+       degradationPreference = @"balanced";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceDisabled) {
+       degradationPreference = @"disabled";
+    }
+  }
 
   return @{
     @"transactionId" : parameters.transactionId,
     @"rtcp" : rtcp,
     @"headerExtensions" : headerExtensions,
     @"encodings" : encodings,
-    @"codecs" : codecs
+    @"codecs" : codecs,
+    @"degradationPreference" : degradationPreference,
   };
 }
 
@@ -1645,7 +1761,8 @@
 
 - (RTCRtpTransceiver*)getRtpTransceiverById:(RTCPeerConnection*)peerConnection Id:(NSString*)Id {
   for (RTCRtpTransceiver* transceiver in peerConnection.transceivers) {
-    if ([transceiver.mid isEqualToString:Id]) {
+      NSString *mid = transceiver.mid ? transceiver.mid : @"";
+    if ([mid isEqualToString:Id]) {
       return transceiver;
     }
   }
@@ -1762,6 +1879,20 @@
   NSArray<RTCRtpEncodingParameters*>* currentEncodings = parameters.encodings;
   // new encodings
   NSArray* newEncodings = [newParameters objectForKey:@"encodings"];
+    
+  NSString *degradationPreference = [newParameters objectForKey:@"degradationPreference"];
+
+  if( degradationPreference != nil) {
+      if( [degradationPreference isEqualToString:@"maintain-framerate"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceMaintainFramerate];
+      } else if ([degradationPreference isEqualToString:@"maintain-resolution"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceMaintainResolution];
+      } else if ([degradationPreference isEqualToString:@"balanced"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceBalanced];
+      } else if ([degradationPreference isEqualToString:@"disabled"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceDisabled];
+      }
+  }
 
   for (int i = 0; i < [newEncodings count]; i++) {
     RTCRtpEncodingParameters* currentParams = nil;

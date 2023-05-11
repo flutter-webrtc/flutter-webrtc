@@ -19,7 +19,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
     return RTCRtpSenderNative(
         map['senderId'],
         (trackMap.isNotEmpty)
-            ? MediaStreamTrackNative.fromMap(map['track'])
+            ? MediaStreamTrackNative.fromMap(map['track'], peerConnectionId)
             : null,
         RTCDTMFSenderNative(peerConnectionId, map['senderId']),
         RTCRtpParameters.fromMap(map['rtpParameters']),
@@ -38,6 +38,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
   String _peerConnectionId;
   String _id;
   MediaStreamTrack? _track;
+  final Set<MediaStream> _streams = {};
   RTCDTMFSender _dtmf;
   RTCRtpParameters _parameters;
   bool _ownsTrack = false;
@@ -59,7 +60,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
       }
       return stats;
     } on PlatformException catch (e) {
-      throw 'Unable to RTCPeerConnection::getStats: ${e.message}';
+      throw 'Unable to RTCRtpSenderNative::getStats: ${e.message}';
     }
   }
 
@@ -75,7 +76,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
       });
       return response['result'];
     } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpSender::setParameters: ${e.message}';
+      throw 'Unable to RTCRtpSenderNative::setParameters: ${e.message}';
     }
   }
 
@@ -91,7 +92,7 @@ class RTCRtpSenderNative extends RTCRtpSender {
       // change reference of associated MediaTrack
       _track = track;
     } on PlatformException catch (e) {
-      throw 'Unable to RTCRtpSender::replaceTrack: ${e.message}';
+      throw 'Unable to RTCRtpSenderNative::replaceTrack: ${e.message}';
     }
   }
 
@@ -108,6 +109,22 @@ class RTCRtpSenderNative extends RTCRtpSender {
 
       // change reference of associated MediaTrack
       _track = track;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpSenderNative::setTrack: ${e.message}';
+    }
+  }
+
+  @override
+  Future<void> setStreams(List<MediaStream> streams) async {
+    try {
+      await WebRTC.invokeMethod('rtpSenderSetStreams', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        'rtpSenderId': _id,
+        'streamIds': streams.map<String>((e) => e.id).toList(),
+      });
+
+      // change reference of associated MediaTrack
+      _streams.addAll(streams);
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpSender::setTrack: ${e.message}';
     }
@@ -131,6 +148,8 @@ class RTCRtpSenderNative extends RTCRtpSender {
 
   @override
   RTCDTMFSender get dtmfSender => _dtmf;
+
+  String get peerConnectionId => _peerConnectionId;
 
   @Deprecated(
       'No need to dispose rtpSender as it is handled by peerConnection.')

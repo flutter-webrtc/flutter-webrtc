@@ -6,6 +6,7 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import org.webrtc.DataChannel;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import io.flutter.plugin.common.BinaryMessenger;
@@ -16,9 +17,9 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     private final String flutterId;
     private final DataChannel dataChannel;
 
-    private EventChannel eventChannel;
+    private final EventChannel eventChannel;
     private EventChannel.EventSink eventSink;
-    private ArrayList eventQueue = new ArrayList();
+    private final ArrayList eventQueue = new ArrayList();
 
     DataChannelObserver(BinaryMessenger messenger, String peerConnectionId, String flutterId,
                         DataChannel dataChannel) {
@@ -95,7 +96,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
             params.putByte("data", bytes);
         } else {
             params.putString("type", "text");
-            params.putString("data", new String(bytes, Charset.forName("UTF-8")));
+            params.putString("data", new String(bytes, StandardCharsets.UTF_8));
         }
 
         sendEvent(params);
