@@ -550,12 +550,24 @@ impl NewWithNullPtr for wire_AudioConstraints {
     }
 }
 
+impl Default for wire_AudioConstraints {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
+    }
+}
+
 impl NewWithNullPtr for wire_MediaStreamConstraints {
     fn new_with_null_ptr() -> Self {
         Self {
             audio: core::ptr::null_mut(),
             video: core::ptr::null_mut(),
         }
+    }
+}
+
+impl Default for wire_MediaStreamConstraints {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
     }
 }
 
@@ -569,6 +581,12 @@ impl NewWithNullPtr for wire_RtcConfiguration {
     }
 }
 
+impl Default for wire_RtcConfiguration {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
+    }
+}
+
 impl NewWithNullPtr for wire_RtcIceServer {
     fn new_with_null_ptr() -> Self {
         Self {
@@ -576,6 +594,12 @@ impl NewWithNullPtr for wire_RtcIceServer {
             username: core::ptr::null_mut(),
             credential: core::ptr::null_mut(),
         }
+    }
+}
+
+impl Default for wire_RtcIceServer {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
     }
 }
 
@@ -588,6 +612,12 @@ impl NewWithNullPtr for wire_VideoConstraints {
             frame_rate: Default::default(),
             is_display: Default::default(),
         }
+    }
+}
+
+impl Default for wire_VideoConstraints {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
     }
 }
 

@@ -16,6 +16,17 @@ class DisplayConstraints {
   }
 }
 
+/// Possible directions in which a camera may produce video.
+enum FacingMode {
+  /// Indicates that video source is facing toward the user (this includes, for
+  /// example, the front-facing camera on a smartphone).
+  user,
+
+  /// Indicates that video source is facing away from the user, thereby viewing
+  /// their environment (the back camera on a smartphone).
+  environment,
+}
+
 /// Device audio and video constraints data.
 class DeviceConstraints {
   /// Optional constraints to lookup audio devices with.
@@ -73,17 +84,6 @@ class AudioConstraints implements DeviceMediaConstraints {
     }
     return map;
   }
-}
-
-/// Directions in which a camera may produce a video.
-enum FacingMode {
-  /// Indicates that video source is facing toward the user (this includes, for
-  /// example, the front-facing camera on a smartphone).
-  user,
-
-  /// Indicates that video source is facing away from the user, thereby viewing
-  /// their environment (the back camera on a smartphone).
-  environment,
 }
 
 /// Device constraints related to a video.

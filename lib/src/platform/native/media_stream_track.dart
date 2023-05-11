@@ -36,6 +36,9 @@ abstract class NativeMediaStreamTrack extends MediaStreamTrack {
   /// [MediaKind] of this [NativeMediaStreamTrack].
   late MediaKind _kind;
 
+  /// [FacingMode] of this [NativeMediaStreamTrack].
+  FacingMode? _facingMode;
+
   /// Unique ID of the device from which this [NativeMediaStreamTrack] was
   /// created.
   ///
@@ -99,6 +102,9 @@ class _NativeMediaStreamTrackChannel extends NativeMediaStreamTrack {
     _id = map['id'];
     _deviceId = map['deviceId'];
     _kind = MediaKind.values[map['kind']];
+    if (map['facingMode'] != null) {
+      _facingMode = FacingMode.values[map['facingMode']];
+    }
   }
 
   /// [MethodChannel] used for the messaging with a native side.
@@ -146,6 +152,11 @@ class _NativeMediaStreamTrackChannel extends NativeMediaStreamTrack {
   @override
   Future<MediaStreamTrack> clone() async {
     return NativeMediaStreamTrack.from(await _chan.invokeMethod('clone'));
+  }
+
+  @override
+  FacingMode? facingMode() {
+    return _facingMode;
   }
 }
 
@@ -216,5 +227,10 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
           .disposeTrack(trackId: _id, kind: ffi.MediaType.values[_kind.index]);
     }
     _stopped = true;
+  }
+
+  @override
+  FacingMode? facingMode() {
+    return null;
   }
 }

@@ -1,3 +1,4 @@
+import 'package:medea_flutter_webrtc/src/model/constraints.dart';
 import '/src/model/track.dart';
 
 /// Representation of the `onEnded` callback.
@@ -53,4 +54,7 @@ abstract class MediaStreamTrack {
 
   /// Disposes this [MediaStreamTrack] instance.
   Future<void> dispose();
+
+  /// Returns [FacingMode] of this [MediaStreamTrack].
+  FacingMode? facingMode();
 }

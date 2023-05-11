@@ -396,12 +396,16 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
         surfaceTextureRenderer, state.getAppContext(), videoSource.capturerObserver)
     videoCapturer.startCapture(width, height, fps)
 
+    val facingMode =
+        if (cameraEnumerator.isBackFacing(deviceId)) FacingMode.ENVIRONMENT else FacingMode.USER
+
     val videoTrackSource =
         VideoMediaTrackSource(
             videoCapturer,
             videoSource,
             surfaceTextureRenderer,
             state.getPeerConnectionFactory(),
+            facingMode,
             deviceId)
 
     val track = videoTrackSource.newTrack()

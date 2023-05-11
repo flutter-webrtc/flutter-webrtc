@@ -5452,9 +5452,7 @@ mixin _$RtcStatsType {
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult? Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult? Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult? Function()? unimplemented,
   }) =>
       throw _privateConstructorUsedError;
@@ -5501,9 +5499,7 @@ mixin _$RtcStatsType {
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult Function()? unimplemented,
     required TResult orElse(),
   }) =>
@@ -5778,9 +5774,7 @@ class _$RtcStatsType_RtcMediaSourceStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult? Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult? Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult? Function()? unimplemented,
   }) {
     return rtcMediaSourceStats?.call(trackIdentifier, kind);
@@ -5830,9 +5824,7 @@ class _$RtcStatsType_RtcMediaSourceStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult Function()? unimplemented,
     required TResult orElse(),
   }) {
@@ -6110,9 +6102,7 @@ class _$RtcStatsType_RtcIceCandidateStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult? Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult? Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult? Function()? unimplemented,
   }) {
     return rtcIceCandidateStats?.call(field0);
@@ -6162,9 +6152,7 @@ class _$RtcStatsType_RtcIceCandidateStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult Function()? unimplemented,
     required TResult orElse(),
   }) {
@@ -6499,9 +6487,7 @@ class _$RtcStatsType_RtcOutboundRtpStreamStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult? Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult? Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult? Function()? unimplemented,
   }) {
     return rtcOutboundRtpStreamStats?.call(
@@ -6552,9 +6538,7 @@ class _$RtcStatsType_RtcOutboundRtpStreamStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult Function()? unimplemented,
     required TResult orElse(),
   }) {
@@ -6993,9 +6977,7 @@ class _$RtcStatsType_RtcInboundRtpStreamStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult? Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult? Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult? Function()? unimplemented,
   }) {
     return rtcInboundRtpStreamStats?.call(
@@ -7053,9 +7035,7 @@ class _$RtcStatsType_RtcInboundRtpStreamStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult Function()? unimplemented,
     required TResult orElse(),
   }) {
@@ -7510,9 +7490,7 @@ class _$RtcStatsType_RtcIceCandidatePairStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult? Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult? Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult? Function()? unimplemented,
   }) {
     return rtcIceCandidatePairStats?.call(
@@ -7569,9 +7547,7 @@ class _$RtcStatsType_RtcIceCandidatePairStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult Function()? unimplemented,
     required TResult orElse(),
   }) {
@@ -7969,9 +7945,7 @@ class _$RtcStatsType_RtcTransportStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult? Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult? Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult? Function()? unimplemented,
   }) {
     return rtcTransportStats?.call(
@@ -8022,9 +7996,7 @@ class _$RtcStatsType_RtcTransportStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult Function()? unimplemented,
     required TResult orElse(),
   }) {
@@ -8409,9 +8381,7 @@ class _$RtcStatsType_RtcRemoteInboundRtpStreamStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult? Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult? Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult? Function()? unimplemented,
   }) {
     return rtcRemoteInboundRtpStreamStats?.call(localId, jitter, roundTripTime,
@@ -8462,9 +8432,7 @@ class _$RtcStatsType_RtcRemoteInboundRtpStreamStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult Function()? unimplemented,
     required TResult orElse(),
   }) {
@@ -8818,9 +8786,7 @@ class _$RtcStatsType_RtcRemoteOutboundRtpStreamStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult? Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult? Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult? Function()? unimplemented,
   }) {
     return rtcRemoteOutboundRtpStreamStats?.call(
@@ -8871,9 +8837,7 @@ class _$RtcStatsType_RtcRemoteOutboundRtpStreamStats
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult Function()? unimplemented,
     required TResult orElse(),
   }) {
@@ -9132,9 +9096,7 @@ class _$RtcStatsType_Unimplemented implements RtcStatsType_Unimplemented {
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult? Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult? Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult? Function()? unimplemented,
   }) {
     return unimplemented?.call();
@@ -9184,9 +9146,7 @@ class _$RtcStatsType_Unimplemented implements RtcStatsType_Unimplemented {
             int? reportsReceived,
             int? roundTripTimeMeasurements)?
         rtcRemoteInboundRtpStreamStats,
-    TResult Function(
-            String? localId, double? remoteTimestamp, int? reportsSent)?
-        rtcRemoteOutboundRtpStreamStats,
+    TResult Function(String? localId, double? remoteTimestamp, int? reportsSent)? rtcRemoteOutboundRtpStreamStats,
     TResult Function()? unimplemented,
     required TResult orElse(),
   }) {

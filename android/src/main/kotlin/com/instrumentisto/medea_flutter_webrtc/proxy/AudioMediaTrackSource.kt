@@ -34,6 +34,7 @@ class AudioMediaTrackSource(
     val track =
         MediaStreamTrackProxy(
             peerConnectionFactory.createAudioTrack(LocalTrackIdGenerator.nextId(), source),
+            null,
             "audio-1",
             this)
     track.onStop { trackStopped() }

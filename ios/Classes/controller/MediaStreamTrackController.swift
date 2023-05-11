@@ -68,10 +68,10 @@ class MediaStreamTrackController {
       result(nil)
     case "clone":
       do {
-        result(
+        try result(
           MediaStreamTrackController(
             messenger: self.messenger,
-            track: try self.track.fork()
+            track: self.track.fork()
           )
           .asFlutterResult()
         )
@@ -88,11 +88,16 @@ class MediaStreamTrackController {
 
   /// Converts this controller into a Flutter method call response.
   func asFlutterResult() -> [String: Any] {
-    [
+    var res: [String: Any] = [
       "channelId": self.channelId,
       "id": self.track.id(),
       "kind": self.track.kind().rawValue,
       "deviceId": self.track.getDeviceId(),
     ]
+    let facingMode = self.track.getFacingMode()
+    if facingMode != nil {
+      res["facingMode"] = facingMode!.rawValue
+    }
+    return res
   }
 }

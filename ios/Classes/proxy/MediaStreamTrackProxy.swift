@@ -74,6 +74,18 @@ class MediaStreamTrackProxy: Equatable {
     }
   }
 
+  /// Returns `FacingMode` of this `MediaStreamTrackProxy`.
+  ///
+  /// Returns `nil` if it's an audio track.
+  func getFacingMode() -> FacingMode? {
+    let source = self.source as? VideoMediaTrackSourceProxy
+    if source != nil {
+      return source!.getFacingMode()
+    } else {
+      return nil
+    }
+  }
+
   /// Returns device ID of this track.
   func getDeviceId() -> String {
     self.deviceId

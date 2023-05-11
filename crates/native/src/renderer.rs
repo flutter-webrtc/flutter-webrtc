@@ -55,6 +55,7 @@ mod frame_handler {
 
     #[allow(
         clippy::items_after_statements,
+        clippy::let_underscore_untyped,
         clippy::trait_duplication_in_bounds,
         let_underscore_drop
     )]

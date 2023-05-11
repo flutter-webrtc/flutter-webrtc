@@ -131,6 +131,7 @@ pub fn init_option_bool() -> Box<OptionBool> {
 #[allow(
     clippy::expl_impl_clone_on_copy,
     clippy::items_after_statements,
+    clippy::let_underscore_untyped,
     clippy::ptr_as_ptr,
     clippy::trait_duplication_in_bounds,
     let_underscore_drop

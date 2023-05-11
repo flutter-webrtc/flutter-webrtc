@@ -1,6 +1,6 @@
 import WebRTC
 
-/// Source of an input video of an user.
+/// Source of an input video of a user.
 ///
 /// This source can create new `MediaStreamTrackProxy`s with the same video
 /// source.
@@ -23,16 +23,34 @@ class VideoMediaTrackSourceProxy: MediaTrackSource {
   /// Count of all alive `MediaStreamTrackProxy`s created from this source.
   private var tracksCount: Int = 0
 
+  /// `FacingMode` of the track.
+  private var facingMode: FacingMode
+
   /// Initializes a new `VideoMediaTrackSourceProxy`.
   init(
-    peerConnectionFactory: RTCPeerConnectionFactory, source: RTCVideoSource,
+    peerConnectionFactory: RTCPeerConnectionFactory,
+    source: RTCVideoSource,
+    position: AVCaptureDevice.Position,
     deviceId: String,
     capturer: RTCCameraVideoCapturer
   ) {
     self.peerConnectionFactory = peerConnectionFactory
     self.source = source
+    switch position {
+    case AVCaptureDevice.Position.front:
+      self.facingMode = FacingMode.user
+    case AVCaptureDevice.Position.back:
+      self.facingMode = FacingMode.environment
+    case AVCaptureDevice.Position.unspecified:
+      self.facingMode = FacingMode.environment
+    }
     self.deviceId = deviceId
     self.capturer = capturer
+  }
+
+  /// Returns `FacingMode` of this `VideoMediaTrackSourceProxy`.
+  func getFacingMode() -> FacingMode {
+    return self.facingMode
   }
 
   /// Creates a new `MediaStreamTrackProxy` with the underlying

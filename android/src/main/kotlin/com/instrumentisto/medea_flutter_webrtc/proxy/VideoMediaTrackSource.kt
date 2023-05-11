@@ -1,6 +1,7 @@
 package com.instrumentisto.medea_flutter_webrtc.proxy
 
 import com.instrumentisto.medea_flutter_webrtc.SurfaceTextureRenderer
+import com.instrumentisto.medea_flutter_webrtc.model.FacingMode
 import com.instrumentisto.medea_flutter_webrtc.utils.LocalTrackIdGenerator
 import org.webrtc.PeerConnectionFactory
 import org.webrtc.SurfaceTextureHelper
@@ -27,6 +28,7 @@ class VideoMediaTrackSource(
     private val videoSource: VideoSource,
     private val surfaceTextureRenderer: SurfaceTextureHelper,
     private val peerConnectionFactoryProxy: PeerConnectionFactory,
+    private val facingMode: FacingMode,
     private val deviceId: String
 ) : MediaTrackSource {
   /**
@@ -44,6 +46,7 @@ class VideoMediaTrackSource(
         MediaStreamTrackProxy(
             peerConnectionFactoryProxy.createVideoTrack(
                 LocalTrackIdGenerator.nextId(), videoSource),
+            facingMode,
             deviceId,
             this)
     aliveTracksCount += 1

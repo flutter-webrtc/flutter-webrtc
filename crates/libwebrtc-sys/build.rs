@@ -197,7 +197,7 @@ fn download_libwebrtc() -> anyhow::Result<()> {
                 break;
             };
             hasher.update(&buffer[0..count]);
-            let _ = out_file.write(&buffer[0..count])?;
+            _ = out_file.write(&buffer[0..count])?;
         }
 
         if format!("{:x}", hasher.finalize()) != expected_hash {

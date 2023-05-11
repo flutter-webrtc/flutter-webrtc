@@ -227,7 +227,7 @@ abstract class RtcStatsType {
   /// the native side.
   static RtcStatsType? fromFFI(ffi.RtcStatsType stats) {
     switch (stats.runtimeType.toString().substring(2)) // Skip '_$' prefix.
-        {
+    {
       case 'RtcStatsType_RtcMediaSourceStats':
         {
           var source = (stats as ffi.RtcStatsType_RtcMediaSourceStats);

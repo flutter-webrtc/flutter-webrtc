@@ -163,9 +163,11 @@ class MediaDevices {
     let capturer = RTCCameraVideoCapturer(delegate: source)
     #if targetEnvironment(simulator)
       let deviceId = "fake-camera"
+      let position = AVCaptureDevice.Position.front
     #else
       let videoDevice = self
         .findVideoDeviceForConstraints(constraints: constraints)!
+      let position = videoDevice.position
       let selectedFormat = self.selectFormatForDevice(
         device: videoDevice,
         constraints: constraints
@@ -178,7 +180,9 @@ class MediaDevices {
       let deviceId = videoDevice.uniqueID
     #endif
     let videoTrackSource = VideoMediaTrackSourceProxy(
-      peerConnectionFactory: self.state.getPeerFactory(), source: source,
+      peerConnectionFactory: self.state.getPeerFactory(),
+      source: source,
+      position: position,
       deviceId: deviceId,
       capturer: capturer
     )

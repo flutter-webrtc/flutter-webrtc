@@ -57,7 +57,8 @@ void FlutterVideoRendererManager::VideoRendererDispose(
 
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
-    registrar_->UnregisterTexture(texture_id);
+    std::shared_ptr<TextureVideoRenderer> renderer = it->second;
+    registrar_->UnregisterTexture(texture_id, [renderer] {});
     renderers_.erase(it);
     result->Success();
     return;

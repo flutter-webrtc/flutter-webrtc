@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:html' as html;
 
+import '../../model/constraints.dart';
 import '/src/model/track.dart';
 import '/src/platform/track.dart';
 
@@ -66,5 +67,16 @@ class WebMediaStreamTrack extends MediaStreamTrack {
   @override
   Future<MediaStreamTrack> clone() async {
     return WebMediaStreamTrack(jsTrack.clone());
+  }
+
+  @override
+  FacingMode? facingMode() {
+    var settings = jsTrack.getSettings();
+    String? facingMode = settings['facingMode'];
+    if (facingMode != null) {
+      return FacingMode.values
+          .firstWhere((element) => element.name.toLowerCase() == facingMode);
+    }
+    return null;
   }
 }
