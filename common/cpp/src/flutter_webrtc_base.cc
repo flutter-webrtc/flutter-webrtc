@@ -299,6 +299,12 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap& map,
   } else {
     conf.sdp_semantics = SdpSemantics::kUnifiedPlan;
   }
+
+  // maxIPv6Networks
+  it = map.find(EncodableValue("maxIPv6Networks"));
+  if (it != map.end()) {
+    conf.max_ipv6_networks = GetValue<int>(it->second);
+  }
   return true;
 }
 

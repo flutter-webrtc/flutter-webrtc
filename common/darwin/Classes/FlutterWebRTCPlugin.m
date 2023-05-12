@@ -1451,6 +1451,11 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
     }
   }
 
+  if (json[@"maxIPv6Networks"] != nil && [json[@"maxIPv6Networks"] isKindOfClass:[NSNumber class]]) {
+    NSNumber* maxIPv6Networks = json[@"maxIPv6Networks"];
+     config.maxIPv6Networks = [maxIPv6Networks intValue];
+  }
+    
   // === below is private api in webrtc ===
   if (json[@"tcpCandidatePolicy"] != nil &&
       [json[@"tcpCandidatePolicy"] isKindOfClass:[NSString class]]) {
