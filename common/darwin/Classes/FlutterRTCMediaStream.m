@@ -429,9 +429,16 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     self._lastTargetFps = selectedFps;
     self._lastTargetWidth = targetWidth;
     self._lastTargetHeight = targetHeight;
-    NSLog(@"target format %ldx%ld, fps %ld", targetWidth, targetHeight, selectedFps);
+    
+    NSLog(@"target format %ldx%ld, targetFps: %ld, seledted fps %ld", targetWidth, targetHeight, targetFps, selectedFps);
+
     if ([videoDevice lockForConfiguration:NULL]) {
-      videoDevice.activeVideoMinFrameDuration = CMTimeMake(1, (int32_t)selectedFps);
+      @try {
+        videoDevice.activeVideoMaxFrameDuration = CMTimeMake(1, (int32_t)selectedFps);
+        videoDevice.activeVideoMinFrameDuration = CMTimeMake(1, (int32_t)selectedFps);
+      } @catch (NSException* exception) {
+        NSLog(@"Failed to set active frame rate!\n User info:%@", exception.userInfo);
+      }
       [videoDevice unlockForConfiguration];
     }
 
@@ -879,6 +886,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   for (AVCaptureDeviceFormat* format in formats) {
     CMVideoDimensions dimension = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
     FourCharCode pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription);
+    //NSLog(@"AVCaptureDeviceFormats,fps %d, dimension: %dx%d", format.videoSupportedFrameRateRanges, dimension.width, dimension.height);
     int diff = abs(targetWidth - dimension.width) + abs(targetHeight - dimension.height);
     if (diff < currentDiff) {
       selectedFormat = format;
