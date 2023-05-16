@@ -39,8 +39,7 @@ Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/chat/flutt
 Additional platform/OS support from the other community
 
 - flutter-tizen: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_webrtc
-
-## Usage
+- flutter-elinux(WIP): https://github.com/sony/flutter-elinux-plugins/issues/7
 
 Add `flutter_webrtc` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
 
