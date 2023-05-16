@@ -1,6 +1,15 @@
 # Changelog
 
 --------------------------------------------
+[0.9.30] - 2023-05-16
+
+* [Darwin] Handle exceptions for frame rate settings for darinw. (#1351)
+* [Android] Fix bluetooth device enumerate. (#1349)
+* [Darwin/Android/Windows/Linux] Added maxIPv6Networks configuration (#1350)
+* [iOS] Fix: broadcast extension not found fallback logic (#1347)
+* [Android] Move the call of capturer.stopCapture() outside the main thread to avoid blocking of flutter method call.
+* [Windows/Linux] Fix the crash issue of video room (#1343)
+
 [0.9.29+hotfix.1] - 2023-05-08
 
 * [Android] fix: application context null when app is terminated.
