@@ -35,6 +35,11 @@ Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/chat/flutt
 | MediaRecorder | :warning: | :warning: | :heavy_check_mark: | | | | | |
 | SFrame/FrameCryptor | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | | |
 | Insertable Streams | | | | | | | | |
+
+Additional platform/OS support from the community
+
+- flutter-tizen: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_webrtc
+
 ## Usage
 
 Add `flutter_webrtc` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
