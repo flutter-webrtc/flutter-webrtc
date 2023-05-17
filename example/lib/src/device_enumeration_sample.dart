@@ -132,17 +132,18 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   }
 
   Future<void> loadDevices() async {
-    //Ask for runtime permissions if necessary.
-    var status = await Permission.bluetooth.request();
-    if (status.isPermanentlyDenied) {
-      print('BLEpermdisabled');
-    }
+    if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
+      //Ask for runtime permissions if necessary.
+      var status = await Permission.bluetooth.request();
+      if (status.isPermanentlyDenied) {
+        print('BLEpermdisabled');
+      }
 
-    status = await Permission.bluetoothConnect.request();
-    if (status.isPermanentlyDenied) {
-      print('ConnectPermdisabled');
+      status = await Permission.bluetoothConnect.request();
+      if (status.isPermanentlyDenied) {
+        print('ConnectPermdisabled');
+      }
     }
-
     final devices = await navigator.mediaDevices.enumerateDevices();
     setState(() {
       _devices = devices;
