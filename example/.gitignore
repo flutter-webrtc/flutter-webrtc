@@ -29,8 +29,6 @@
 .pub-cache/
 .pub/
 /build/
-/android/
-/ios/
 .metadata
 
 # Web related
