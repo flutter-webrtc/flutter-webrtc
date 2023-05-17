@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter_webrtc/src/native/mediadevices_impl.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../desktop_capturer.dart';
 import 'desktop_capturer_impl.dart';
 import 'media_recorder_impl.dart';
 import 'media_stream_impl.dart';
+import 'mediadevices_impl.dart';
 import 'navigator_impl.dart';
 import 'rtc_peerconnection_impl.dart';
 import 'rtc_video_renderer_impl.dart';

@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter_webrtc/src/native/event_channel.dart';
-
 import '../desktop_capturer.dart';
+import 'event_channel.dart';
 import 'utils.dart';
 
 class DesktopCapturerSourceNative extends DesktopCapturerSource {

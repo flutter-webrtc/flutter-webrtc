@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../src/native/media_stream_track_impl.dart';
-
 import '../flutter_webrtc.dart';
+import 'native/media_stream_track_impl.dart';
 
 class Helper {
   static Future<List<MediaDeviceInfo>> enumerateDevices(String type) async {

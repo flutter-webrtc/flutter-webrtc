@@ -1,20 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:html' as html;
 import 'dart:js' as js;
 import 'dart:js_util' as jsutil;
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
-import 'package:webrtc_interface/webrtc_interface.dart';
-// ignore: implementation_imports
-import 'package:dart_webrtc/src/rtc_rtp_receiver_impl.dart';
-// ignore: implementation_imports
-import 'package:dart_webrtc/src/rtc_rtp_sender_impl.dart';
+
 import 'package:collection/collection.dart';
+import 'package:dart_webrtc/src/rtc_rtp_receiver_impl.dart';
+import 'package:dart_webrtc/src/rtc_rtp_sender_impl.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../frame_cryptor.dart';
 import 'rtc_transform_stream.dart';
+
+// ignore: implementation_imports
+// ignore: implementation_imports
 
 extension RtcRtpReceiverExt on html.RtcRtpReceiver {
   static Map<int, ReadableStream> readableStreams_ = {};
@@ -278,7 +280,8 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
         var frameCryptor = _frameCryptors.values.firstWhereOrNull(
             (element) => (element as FrameCryptorImpl).trackId == trackId);
         if (frameCryptor != null) {
-          ((frameCryptor as FrameCryptorImpl).keyProvider)
+          (frameCryptor as FrameCryptorImpl)
+              .keyProvider
               .onRatchetKey(base64Decode(msg.data['key']));
         }
       }
