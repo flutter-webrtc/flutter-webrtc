@@ -21,11 +21,17 @@ jobs:
           java-version: '12.x'
       - uses: subosito/flutter-action@v1
         with:
-          flutter-version: '3.0.2'
+          flutter-version: '3.7.12'
           channel: 'stable'
+          cache: true
       - run: flutter packages get
       - run: flutter format lib/ test/ --set-exit-if-changed
       - run: flutter pub run import_sorter:main --no-comments --exit-if-changed
       - run: flutter analyze
       - run: flutter test
-  
+      - name: Start Web Release Build
+        run: flutter build web --release
+      - name: Start android Build
+        run: flutter build apk
+      - name: Start Linux Build
+        run: flutter build linux
