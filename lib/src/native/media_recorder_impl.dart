@@ -25,7 +25,9 @@ class MediaRecorderNative extends MediaRecorder {
       if (audioChannel != null) 'audioChannel': audioChannel.index,
       if (videoTrack != null) 'videoTrackId': videoTrack.id,
       'recorderId': _recorderId,
-      'peerConnectionId': videoTrack is MediaStreamTrackNative ? videoTrack.peerConnectionId : null
+      'peerConnectionId': videoTrack is MediaStreamTrackNative
+          ? videoTrack.peerConnectionId
+          : null
     });
   }
 
