@@ -542,7 +542,7 @@ class FrameCryptor {
         return;
       }
       bool endDecLoop = false;
-      var currentkeySet = initialKeySet;
+      KeySet currentkeySet = initialKeySet;
       while (!endDecLoop) {
         try {
           decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
@@ -634,9 +634,7 @@ class FrameCryptor {
       /// situations when the decrypting failed due to the fact that the received frame was not encrypted
       /// yet and ratcheting, of course, did not solve the problem. So if we fail RATCHET_WINDOW_SIZE times,
       ///  we come back to the initial key.
-      if (initialKeySet != null) {
-        await setKeySetFromMaterial(initialKeySet, initialKeyIndex);
-      }
+      await setKeySetFromMaterial(initialKeySet!, initialKeyIndex);
     }
   }
 }

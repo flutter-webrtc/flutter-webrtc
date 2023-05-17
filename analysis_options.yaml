@@ -48,3 +48,5 @@ analyzer:
     # Conflict with import_sorter
     directives_ordering: ignore
     constant_identifier_names: ignore
+    deprecated_member_use: ignore
+    implementation_imports: ignore

@@ -3,8 +3,7 @@ import 'dart:math';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
-import '../native/media_stream_track_impl.dart';
-
+import 'media_stream_track_impl.dart';
 import 'utils.dart';
 
 class MediaRecorderNative extends MediaRecorder {
