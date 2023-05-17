@@ -425,8 +425,7 @@ void FlutterWebRTC::HandleMethodCall(
     const std::string peerConnectionId = findString(params, "peerConnectionId");
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
-      result->Error("peerConnectionDisposeFailed",
-                    "peerConnectionDisposeClose() peerConnection is null");
+      result->Success();
       return;
     }
     RTCPeerConnectionDispose(pc, peerConnectionId, std::move(result));
