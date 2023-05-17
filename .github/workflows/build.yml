@@ -19,16 +19,18 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: '12.x'
-      - uses: subosito/flutter-action@v1
+      - uses: actions/checkout@v2
+
+      - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.7.12'
           channel: 'stable'
-          cache: true
+
       - run: flutter packages get
-      - run: flutter format lib/ test/ --set-exit-if-changed
+      - run: dart format lib/ test/ --set-exit-if-changed
       - run: flutter pub run import_sorter:main --no-comments --exit-if-changed
       - run: flutter analyze
       - run: flutter test
+
       - name: Start Web Build
         working-directory: ./example
         run: flutter build web --release
