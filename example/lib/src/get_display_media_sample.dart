@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:flutter_webrtc_example/src/widgets/screen_select_dialog.dart';
 
@@ -50,6 +51,38 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
         await _makeCall(source);
       }
     } else {
+      if (WebRTC.platformIsAndroid) {
+        // Android specific
+        Future<void> requestBackgroundPermission([bool isRetry = false]) async {
+          // Required for android screenshare.
+          try {
+            var hasPermissions = await FlutterBackground.hasPermissions;
+            if (!isRetry) {
+              const androidConfig = FlutterBackgroundAndroidConfig(
+                notificationTitle: 'Screen Sharing',
+                notificationText: 'LiveKit Example is sharing the screen.',
+                notificationImportance: AndroidNotificationImportance.Default,
+                notificationIcon: AndroidResource(
+                    name: 'livekit_ic_launcher', defType: 'mipmap'),
+              );
+              hasPermissions = await FlutterBackground.initialize(
+                  androidConfig: androidConfig);
+            }
+            if (hasPermissions &&
+                !FlutterBackground.isBackgroundExecutionEnabled) {
+              await FlutterBackground.enableBackgroundExecution();
+            }
+          } catch (e) {
+            if (!isRetry) {
+              return await Future<void>.delayed(const Duration(seconds: 1),
+                  () => requestBackgroundPermission(true));
+            }
+            print('could not publish video: $e');
+          }
+        }
+
+        await requestBackgroundPermission();
+      }
       await _makeCall(null);
     }
   }
