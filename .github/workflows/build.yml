@@ -7,12 +7,9 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    name: Test on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+  test-for-linux-and-android-and-web:
+    name: Test on flutter web, linux and android
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -41,3 +38,33 @@ jobs:
       - name: Start android Build
         working-directory: ./example
         run: flutter build apk
+
+  build-on-windows:
+    name: Test build on flutter windows
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: Build for windows
+        working-directory: ./example
+        run: flutter build windows --release
+
+  build-on-macos:
+    name: Test build on flutter macOS
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: Build for windows
+        working-directory: ./example
+        run: flutter build macos --release
