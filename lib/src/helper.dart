@@ -64,9 +64,7 @@ class Helper {
   /// Enable speakerphone, but use bluetooth if audio output device available
   /// for iOS/Android only
   static Future<void> setSpeakerphoneOnButPreferBluetooth() async {
-    await WebRTC.invokeMethod(
-      'enableSpeakerphoneButPreferBluetooth'
-    );
+    await WebRTC.invokeMethod('enableSpeakerphoneButPreferBluetooth');
   }
 
   /// To select a a specific camera, you need to set constraints
@@ -133,11 +131,12 @@ class Helper {
         constraints['volume'] = volume;
         await track.applyConstraints(constraints);
       } else {
-        await WebRTC.invokeMethod(
-          'setVolume',
-          <String, dynamic>{'trackId': track.id, 'volume': volume,
-          'peerConnectionId': track is MediaStreamTrackNative ? track.peerConnectionId : null}
-        );
+        await WebRTC.invokeMethod('setVolume', <String, dynamic>{
+          'trackId': track.id,
+          'volume': volume,
+          'peerConnectionId':
+              track is MediaStreamTrackNative ? track.peerConnectionId : null
+        });
       }
     }
 
