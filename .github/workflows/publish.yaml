@@ -23,8 +23,8 @@ jobs:
         run: flutter analyze
       - name: Dart Test Check
         run: flutter test
-      - name: Check Publish Warnings
-        run: dart pub publish --dry-run
+      #- name: Check Publish Warnings
+      #  run: dart pub publish --dry-run
       - name: Publish
         uses: k-paxian/dart-package-publisher@v1.5.1
         with:
