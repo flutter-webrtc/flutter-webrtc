@@ -29,9 +29,15 @@ jobs:
       - run: flutter pub run import_sorter:main --no-comments --exit-if-changed
       - run: flutter analyze
       - run: flutter test
+      - name: create examples
+        working-directory: ./example
+        run: flutter create .
       - name: Start Web Release Build
+        working-directory: ./example
         run: flutter build web --release
       - name: Start android Build
+        working-directory: ./example
         run: flutter build apk
       - name: Start Linux Build
+        working-directory: ./example
         run: flutter build linux
