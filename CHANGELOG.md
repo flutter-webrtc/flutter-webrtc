@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.30+hotfix.1] - 2023-05-17
+
+* [Windows/Linux] Fix compiler error.
+
 [0.9.30] - 2023-05-16
 
 * [Darwin] Handle exceptions for frame rate settings for darinw. (#1351)
