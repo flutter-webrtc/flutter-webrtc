@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.30+hotfix.2] - 2023-05-18
+
+* [Windows/Linux] fix bug for eventchannel proxy.
+* [Windows/Linux] fix: crash for pc.close/dispose on win/linux. (#1360)
+
 [0.9.30+hotfix.1] - 2023-05-17
 
 * [Windows/Linux] Fix compiler error.
