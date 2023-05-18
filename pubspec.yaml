@@ -35,5 +35,6 @@ flutter:
         pluginClass: FlutterWebRTCPlugin
       windows:
         pluginClass: FlutterWebRTCPlugin
-      linux:
-        pluginClass: FlutterWebRTCPlugin
+        # Until https://github.com/flutter-webrtc/flutter-webrtc/issues/1212 is fixed:
+      #linux:
+      #  pluginClass: FlutterWebRTCPlugin
