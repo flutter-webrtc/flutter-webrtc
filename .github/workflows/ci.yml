@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: ["master"]
+    branches: ["main"]
+    tags: ["*"]
   pull_request:
-    branches: ["master"]
+    branches: ["main"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -329,7 +330,7 @@ jobs:
   release-dart:
     name: dart pub publish (pub.dev)
     if: ${{ startsWith(github.ref, 'refs/tags/')
-         || github.ref_name == 'master'
+         || github.ref_name == 'main'
          || (github.event_name == 'pull_request'
              && github.event.pull_request.head.repo.owner.login == 'instrumentisto') }}
     needs:
