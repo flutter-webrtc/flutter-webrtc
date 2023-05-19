@@ -109,7 +109,7 @@ For more details, please see the [`medea_flutter_webrtc_example` example][6].
 
 Copyright © 2021-2023 Instrumentisto Team, <https://github.com/instrumentisto>
 
-This Source Code Form is subject to the terms of the [Mozilla Public License, v. 2.0](https://github.com/instrumentisto/medea-flutter-webrtc/blob/main/LICENSE.md). If a copy of the MPL was not distributed with this file, You can obtain one at <http://mozilla.org/MPL/2.0/>.
+This Source Code Form is subject to the terms of the [Mozilla Public License, v. 2.0](https://github.com/instrumentisto/medea-flutter-webrtc/blob/main/LICENSE). If a copy of the MPL was not distributed with this file, You can obtain one at <http://mozilla.org/MPL/2.0/>.
 
 The [original upstream source code][0] is licensed under [MIT license][1] with modifications following [Apache License 2.0][2]. 
 
