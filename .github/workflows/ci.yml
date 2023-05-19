@@ -202,7 +202,7 @@ jobs:
   ###########
 
   test-flutter:
-    name: Test Flutter integration
+    name: test (example, ${{ matrix.platform }})
     needs: ["build", "build-linux"]
     strategy:
       fail-fast: false
@@ -327,7 +327,7 @@ jobs:
   #############
 
   release-dart:
-    name: Release Dart package
+    name: dart pub publish (pub.dev)
     if: ${{ startsWith(github.ref, 'refs/tags/')
          || github.ref_name == 'master'
          || (github.event_name == 'pull_request'
@@ -348,6 +348,22 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 2  # for PRs only
+
+      - name: Parse pubspec version
+        id: pubspec
+        run: echo "version=$(grep -m1 'version:' pubspec.yaml | cut -d' ' -f2)"
+             >> $GITHUB_OUTPUT
+      - name: Parse release version
+        id: release
+        run: echo "version=${GITHUB_REF#refs/tags/}"
+             >> $GITHUB_OUTPUT
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      - name: Verify release version matches pubspec version
+        run: |
+          test "${{ steps.release.outputs.version }}" \
+            == "${{ steps.pubspec.outputs.version }}"
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+
       - name: Retrieve commit message and hash
         id: commit
         run: |
@@ -357,12 +373,14 @@ jobs:
                          && github.event.pull_request.head.sha)
                      ||     github.sha }}" \
           >> $GITHUB_OUTPUT
-
       - name: Check whether should be skipped
         id: skip
         run: echo "no=${{ !(
-               github.event_name == 'pull_request'
-               && !contains(steps.commit.outputs.message, '[publish]')
+               (!startsWith(github.ref, 'refs/tags/')
+                && !contains(steps.pubspec.outputs.version, '-'))
+               ||
+               (github.event_name == 'pull_request'
+                && !contains(steps.commit.outputs.message, '[publish]'))
              ) }}" >> $GITHUB_OUTPUT
 
       - uses: subosito/flutter-action@v2
@@ -410,3 +428,29 @@ jobs:
                  ${XDG_CONFIG_HOME:-${HOME:-default}}/dart/pub-credentials.json
         if: ${{ always()
              && steps.skip.outputs.no == 'true' }}
+
+  release-github:
+    name: release (GitHub)
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    needs: ["release-dart"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Parse release version
+        id: release
+        run: echo "version=${GITHUB_REF#refs/tags/}"
+             >> $GITHUB_OUTPUT
+      - name: Parse CHANGELOG link
+        id: changelog
+        run: echo "link=${{ github.server_url }}/${{ github.repository }}/blob/${{ steps.release.outputs.version }}/CHANGELOG.md#$(sed -n '/^## \[${{ steps.release.outputs.version }}\]/{s/^## \[\(.*\)\][^0-9]*\([0-9].*\)/\1--\2/;s/[^0-9a-z-]*//g;p;}' CHANGELOG.md)"
+             >> $GITHUB_OUTPUT
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.release.outputs.version }}
+          body: |
+            [pub.dev](https://pub.dev/packages/medea_flutter_webrtc/versions/${{ steps.release.outputs.version }})
+            [Changelog](${{ steps.changelog.outputs.link }})
+          prerelease: ${{ contains(steps.release.outputs.version, '-') }}

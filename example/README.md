@@ -1,38 +1,51 @@
-# webrtc_example
+Medea Flutter-WebRTC usage example
+==================================
 
-Demonstrates how to use the webrtc plugin.
+Demonstrates how to use the [Medea Flutter-WebRTC] plugin.
+
+
+
 
 ## Getting Started
 
-Make sure your flutter is using the `dev` channel.
-
+Make sure your [Flutter] is using the `dev` channel:
 ```bash
 flutter channel dev
 ./scripts/project_tools.sh create
 ```
 
-Android/iOS
+
+### Android/iOS
 
 ```bash
 flutter run
 ```
 
-macOS
+
+### macOS
 
 ```bash
 flutter run -d macos
 ```
 
-Web
+
+### Web
 
 ```bash
 flutter run -d web
 ```
 
-Windows
+
+### Windows
 
 ```bash
 flutter channel master
 flutter create --platforms windows .
 flutter run -d windows
 ```
+
+
+
+
+[Flutter]: https://www.flutter.dev
+[Medea Flutter-WebRTC]: https://github.com/instrumentisto/flutter-webrtc

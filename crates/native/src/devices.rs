@@ -595,26 +595,28 @@ pub unsafe fn init() {
         let lpsz_class_name = OsStr::new("EventWatcher")
             .encode_wide()
             .chain(Some(0).into_iter())
-            .collect::<Vec<u16>>()
-            .as_ptr();
+            .collect::<Vec<u16>>();
+        let lpsz_class_name_ptr = lpsz_class_name.as_ptr();
 
         #[allow(clippy::cast_possible_truncation)]
         let class = WNDCLASSEXW {
             cbSize: mem::size_of::<WNDCLASSEXW>() as u32,
             lpfnWndProc: Some(wndproc),
-            lpszClassName: lpsz_class_name,
+            lpszClassName: lpsz_class_name_ptr,
             ..WNDCLASSEXW::default()
         };
         RegisterClassExW(&class);
 
+        let lp_window_name = OsStr::new("Notifier")
+            .encode_wide()
+            .chain(Some(0).into_iter())
+            .collect::<Vec<u16>>();
+        let lp_window_name_ptr = lp_window_name.as_ptr();
+
         let hwnd = CreateWindowExW(
             0,
             class.lpszClassName,
-            OsStr::new("Notifier")
-                .encode_wide()
-                .chain(Some(0).into_iter())
-                .collect::<Vec<u16>>()
-                .as_ptr(),
+            lp_window_name_ptr,
             WS_ICONIC,
             0,
             0,
