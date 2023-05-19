@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.description      = <<-DESC
 Flutter WebRTC plugin based on Google WebRTC.
                        DESC
-  s.homepage         = 'https://github.com/instrumentisto/flutter-webrtc'
+  s.homepage         = 'https://github.com/instrumentisto/medea-flutter-webrtc'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Instrumentisto Team' => 'developer@instrumentisto.com' }
 

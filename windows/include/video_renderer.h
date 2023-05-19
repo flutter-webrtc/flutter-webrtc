@@ -9,7 +9,7 @@
 #include "flutter/method_result.h"
 #include "flutter/plugin_registrar.h"
 #include "flutter/texture_registrar.h"
-#include "flutter_webrtc_native.h"
+#include "medea_flutter_webrtc_native.h"
 
 using namespace flutter;
 

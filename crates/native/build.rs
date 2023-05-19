@@ -11,7 +11,7 @@ fn main() -> anyhow::Result<()> {
         println!("cargo:rustc-link-arg=-Wl,-undefined,dynamic_lookup");
         println!(
             "cargo:rustc-link-arg=-Wl,-install_name,\
-             @rpath/libflutter_webrtc_native.dylib"
+             @rpath/libmedea_flutter_webrtc_native.dylib"
         );
 
         let path = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
@@ -25,7 +25,7 @@ fn main() -> anyhow::Result<()> {
             .flag("-DNOMINMAX")
             .flag("-objC")
             .flag("-fobjc-arc");
-        build.compile("flutter-webrtc-native");
+        build.compile("medea-flutter-webrtc-native");
     }
 
     #[cfg(not(target_os = "macos"))]

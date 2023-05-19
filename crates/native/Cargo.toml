@@ -1,5 +1,5 @@
 [package]
-name = "flutter-webrtc-native"
+name = "medea-flutter-webrtc-native"
 version = "0.0.0"
 edition = "2021"
 rust-version = "1.62"

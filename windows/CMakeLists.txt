@@ -19,7 +19,7 @@ list(APPEND PLUGIN_SOURCES
   "medea_flutter_webrtc_plugin.cpp"
   "medea_flutter_webrtc_plugin.h"
   "src/video_renderer.cc"
-  "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/flutter_webrtc_native.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/medea_flutter_webrtc_native.cc"
 )
 
 # Define the plugin library target. Its name must not be changed (see comment
@@ -54,13 +54,13 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
 target_link_libraries(${PLUGIN_NAME} PRIVATE
   flutter
   flutter_wrapper_plugin
-  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-pc-windows-msvc/flutter_webrtc_native.dll.lib"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-pc-windows-msvc/medea_flutter_webrtc_native.dll.lib"
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin.
 # This list could contain prebuilt libraries, or libraries created by an
 # external build triggered from this build file.
 set(medea_flutter_webrtc_bundled_libraries
-  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-pc-windows-msvc/flutter_webrtc_native.dll"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-pc-windows-msvc/medea_flutter_webrtc_native.dll"
   PARENT_SCOPE
 )

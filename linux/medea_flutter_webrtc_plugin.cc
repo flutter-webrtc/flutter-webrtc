@@ -7,7 +7,7 @@
 #include <sys/utsname.h>
 
 #include "include/medea_flutter_webrtc/medea_flutter_webrtc_plugin.h"
-#include <flutter_webrtc_native.h>
+#include <medea_flutter_webrtc_native.h>
 #include <video_texture.h>
 
 const char* kChannelName = "FlutterWebRtc/VideoRendererFactory/0";

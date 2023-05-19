@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Any new source files that you add to the plugin should be added here.
 add_library(${PLUGIN_NAME} SHARED
   "medea_flutter_webrtc_plugin.cc"
-  "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/flutter_webrtc_native.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/medea_flutter_webrtc_native.cc"
 )
 
 include_directories(
@@ -47,13 +47,13 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
   PkgConfig::GTK
 )
 target_link_libraries(${PLUGIN_NAME} INTERFACE
-  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-unknown-linux-gnu/libflutter_webrtc_native.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-unknown-linux-gnu/libmedea_flutter_webrtc_native.so"
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin.
 # This list could contain prebuilt libraries, or libraries created by an
 # external build triggered from this build file.
 set(medea_flutter_webrtc_bundled_libraries
-  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-unknown-linux-gnu/libflutter_webrtc_native.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-unknown-linux-gnu/libmedea_flutter_webrtc_native.so"
   PARENT_SCOPE
 )

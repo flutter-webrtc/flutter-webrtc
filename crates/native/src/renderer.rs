@@ -90,7 +90,7 @@ mod frame_handler {
         }
 
         unsafe extern "C++" {
-            include!("flutter-webrtc-native/include/api.h");
+            include!("medea-flutter-webrtc-native/include/api.h");
 
             pub type OnFrameCallbackInterface;
 

@@ -7,9 +7,9 @@ All user visible changes to this project will be documented in this file. This p
 
 
 ## [0.8.0] · 2023-05-19
-[0.8.0]: https://github.com/instrumentisto/flutter-webrtc/tree/0.8.0
+[0.8.0]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.8.0
 
-[Diff](https://github.com/instrumentisto/flutter-webrtc/compare/35858a85...0.8.0)
+[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/35858a85...0.8.0)
 
 ### Added
 
@@ -44,53 +44,53 @@ All user visible changes to this project will be documented in this file. This p
 - Fully rewrote [Android] platform implementation. ([#6], [#31], [#48], [#75], [#77], [#80])
 - Fully rewrote [iOS] platform implementation. ([#89], [#92], [#93], [#94], [#100])
 
-[#6]: https://github.com/instrumentisto/flutter-webrtc/pull/6
-[#9]: https://github.com/instrumentisto/flutter-webrtc/pull/9
-[#10]: https://github.com/instrumentisto/flutter-webrtc/pull/10
-[#14]: https://github.com/instrumentisto/flutter-webrtc/pull/14
-[#15]: https://github.com/instrumentisto/flutter-webrtc/pull/15
-[#18]: https://github.com/instrumentisto/flutter-webrtc/pull/18
-[#19]: https://github.com/instrumentisto/flutter-webrtc/pull/19
-[#20]: https://github.com/instrumentisto/flutter-webrtc/pull/20
-[#26]: https://github.com/instrumentisto/flutter-webrtc/pull/26
-[#28]: https://github.com/instrumentisto/flutter-webrtc/pull/28
-[#31]: https://github.com/instrumentisto/flutter-webrtc/pull/31
-[#34]: https://github.com/instrumentisto/flutter-webrtc/pull/34
-[#35]: https://github.com/instrumentisto/flutter-webrtc/pull/35
-[#37]: https://github.com/instrumentisto/flutter-webrtc/pull/37
-[#39]: https://github.com/instrumentisto/flutter-webrtc/pull/39
-[#42]: https://github.com/instrumentisto/flutter-webrtc/pull/42
-[#45]: https://github.com/instrumentisto/flutter-webrtc/pull/45
-[#46]: https://github.com/instrumentisto/flutter-webrtc/pull/46
-[#48]: https://github.com/instrumentisto/flutter-webrtc/pull/48
-[#50]: https://github.com/instrumentisto/flutter-webrtc/pull/50
-[#54]: https://github.com/instrumentisto/flutter-webrtc/pull/54
-[#57]: https://github.com/instrumentisto/flutter-webrtc/pull/57
-[#62]: https://github.com/instrumentisto/flutter-webrtc/pull/62
-[#65]: https://github.com/instrumentisto/flutter-webrtc/pull/65
-[#69]: https://github.com/instrumentisto/flutter-webrtc/pull/69
-[#71]: https://github.com/instrumentisto/flutter-webrtc/pull/71
-[#73]: https://github.com/instrumentisto/flutter-webrtc/pull/73
-[#75]: https://github.com/instrumentisto/flutter-webrtc/pull/75
-[#76]: https://github.com/instrumentisto/flutter-webrtc/pull/76
-[#77]: https://github.com/instrumentisto/flutter-webrtc/pull/77
-[#78]: https://github.com/instrumentisto/flutter-webrtc/pull/78
-[#80]: https://github.com/instrumentisto/flutter-webrtc/pull/80
-[#82]: https://github.com/instrumentisto/flutter-webrtc/pull/82
-[#85]: https://github.com/instrumentisto/flutter-webrtc/pull/85
-[#86]: https://github.com/instrumentisto/flutter-webrtc/pull/86
-[#88]: https://github.com/instrumentisto/flutter-webrtc/pull/88
-[#89]: https://github.com/instrumentisto/flutter-webrtc/pull/89
-[#91]: https://github.com/instrumentisto/flutter-webrtc/pull/91
-[#92]: https://github.com/instrumentisto/flutter-webrtc/pull/92
-[#93]: https://github.com/instrumentisto/flutter-webrtc/pull/93
-[#94]: https://github.com/instrumentisto/flutter-webrtc/pull/94
-[#98]: https://github.com/instrumentisto/flutter-webrtc/pull/98
-[#100]: https://github.com/instrumentisto/flutter-webrtc/pull/100
-[#101]: https://github.com/instrumentisto/flutter-webrtc/pull/101
-[#102]: https://github.com/instrumentisto/flutter-webrtc/pull/102
-[#103]: https://github.com/instrumentisto/flutter-webrtc/pull/103
-[#109]: https://github.com/instrumentisto/flutter-webrtc/pull/109
+[#6]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/6
+[#9]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/9
+[#10]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/10
+[#14]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/14
+[#15]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/15
+[#18]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/18
+[#19]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/19
+[#20]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/20
+[#26]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/26
+[#28]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/28
+[#31]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/31
+[#34]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/34
+[#35]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/35
+[#37]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/37
+[#39]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/39
+[#42]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/42
+[#45]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/45
+[#46]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/46
+[#48]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/48
+[#50]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/50
+[#54]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/54
+[#57]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/57
+[#62]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/62
+[#65]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/65
+[#69]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/69
+[#71]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/71
+[#73]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/73
+[#75]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/75
+[#76]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/76
+[#77]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/77
+[#78]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/78
+[#80]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/80
+[#82]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/82
+[#85]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/85
+[#86]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/86
+[#88]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/88
+[#89]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/89
+[#91]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/91
+[#92]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/92
+[#93]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/93
+[#94]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/94
+[#98]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/98
+[#100]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/100
+[#101]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/101
+[#102]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/102
+[#103]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/103
+[#109]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/109
 
 
 

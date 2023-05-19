@@ -4,7 +4,7 @@ Medea Flutter-WebRTC
 [![pub](https://img.shields.io/pub/v/medea_flutter_webrtc "pub")](https://pub.dev/packages/medea_flutter_webrtc)
 [![libwebrtc](https://img.shields.io/badge/libwebrtc-106.0.5249.91-blue "libwebrtc")](https://github.com/instrumentisto/libwebrtc-bin/releases/tag/106.0.5249.91)
 
-[Changelog](https://github.com/instrumentisto/flutter-webrtc/blob/main/CHANGELOG.md)
+[Changelog](https://github.com/instrumentisto/medea-flutter-webrtc/blob/main/CHANGELOG.md)
 
 [WebRTC] plugin for [Flutter], designed for and used in [Medea Jason WebRTC client], built on top of [prebuilt `libwebrtc` binaries][3].
 
@@ -33,7 +33,7 @@ flowchart TD
         C --> D["Mobile (Dart)"]
             D -->|Platform Channel| F["Native Mobile (Kotlin / Swift)"]
         C --> E["Desktop (Dart)"]
-            E -->|"FFI (flutter_rust_bridge)"| G["flutter-webrtc-native (Rust) "]
+            E -->|"FFI (flutter_rust_bridge)"| G["medea-flutter-webrtc-native (Rust) "]
                 G -->|Rust| H["libwebrtc-sys (Rust)"]
                     H -->|"FFI (cxx)"| I["Native Desktop (c++ / objc)"]
 ```
@@ -109,7 +109,7 @@ For more details, please see the [`medea_flutter_webrtc_example` example][6].
 
 Copyright © 2021-2023 Instrumentisto Team, <https://github.com/instrumentisto>
 
-This Source Code Form is subject to the terms of the [Mozilla Public License, v. 2.0](https://github.com/instrumentisto/flutter-webrtc/blob/main/LICENSE.md). If a copy of the MPL was not distributed with this file, You can obtain one at <http://mozilla.org/MPL/2.0/>.
+This Source Code Form is subject to the terms of the [Mozilla Public License, v. 2.0](https://github.com/instrumentisto/medea-flutter-webrtc/blob/main/LICENSE.md). If a copy of the MPL was not distributed with this file, You can obtain one at <http://mozilla.org/MPL/2.0/>.
 
 The [original upstream source code][0] is licensed under [MIT license][1] with modifications following [Apache License 2.0][2]. 
 
@@ -137,5 +137,5 @@ The [original upstream source code][0] is licensed under [MIT license][1] with m
 [3]: https://github.com/instrumentisto/libwebrtc-bin
 [4]: https://flutter.io/using-packages
 [5]: https://webrtc.github.io/webrtc-org/native-code/android
-[6]: https://github.com/instrumentisto/flutter-webrtc/tree/main/example
-[7]: https://github.com/instrumentisto/flutter-webrtc/blob/main/android/proguard-rules.pro
+[6]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/main/example
+[7]: https://github.com/instrumentisto/medea-flutter-webrtc/blob/main/android/proguard-rules.pro

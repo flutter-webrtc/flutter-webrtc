@@ -48,4 +48,4 @@ flutter run -d windows
 
 
 [Flutter]: https://www.flutter.dev
-[Medea Flutter-WebRTC]: https://github.com/instrumentisto/flutter-webrtc
+[Medea Flutter-WebRTC]: https://github.com/instrumentisto/medea-flutter-webrtc
