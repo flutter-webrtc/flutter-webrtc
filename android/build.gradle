@@ -53,7 +53,7 @@ android {
 
 dependencies {
     implementation 'io.github.webrtc-sdk:android:114.5735.02'
-    implementation 'com.twilio:audioswitch:1.1.8'
+    implementation 'com.github.davidliu:audioswitch:fb33b237aa50b3d1d2dea0e0695ecb7b38a98971'
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

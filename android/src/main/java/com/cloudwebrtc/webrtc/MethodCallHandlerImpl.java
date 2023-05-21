@@ -556,7 +556,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       case "setAndroidAudioConfiguration": {
         Map<String, Object> configuration = call.argument("configuration");
-        AudioSwitchManager.instance.setAudioConfiguration(configuration);
+        audioSwitchManager.setAudioConfiguration(configuration);
         break;
       }
       case "enableSpeakerphone":
@@ -565,7 +565,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         result.success(null);
         break;
       case "enableSpeakerphoneButPreferBluetooth":
-        AudioSwitchManager.instance.enableSpeakerButPreferBluetooth();
+        audioSwitchManager.enableSpeakerButPreferBluetooth();
         result.success(null);
         break;
       case "getDisplayMedia": {
