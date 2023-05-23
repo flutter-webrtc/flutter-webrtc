@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.31] - 2023-05-23
+
+* [Darwin] Improve iOS/macOS H264 encoder (Upgrade to WebRTC-SDK M104.5112.17).
+
 [0.9.30+hotfix.2] - 2023-05-18
 
 * [Windows/Linux] fix bug for eventchannel proxy.
