@@ -3,7 +3,7 @@ PODS:
   - integration_test (0.0.1):
     - Flutter
   - libyuv-iOS (1.0.2)
-  - medea_flutter_webrtc (0.8.0):
+  - medea_flutter_webrtc (0.8.1):
     - Flutter
     - libyuv-iOS
     - WebRTC-SDK (= 104.5112.04)
