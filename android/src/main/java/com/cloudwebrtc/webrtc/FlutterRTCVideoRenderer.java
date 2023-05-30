@@ -6,6 +6,8 @@ import android.graphics.SurfaceTexture;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
+import com.cloudwebrtc.webrtc.utils.RTCVideoFrameFormat;
+import com.cloudwebrtc.webrtc.utils.ExportFrame;
 
 import java.util.List;
 
@@ -24,6 +26,8 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
     private final TextureRegistry.SurfaceTextureEntry entry;
     private int id = -1;
     private MediaStream mediaStream;
+    private ExportFrame exportFrame;
+
 
     private String ownerTag;
 
@@ -100,16 +104,17 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
     EventChannel eventChannel;
     EventChannel.EventSink eventSink;
 
-    public FlutterRTCVideoRenderer(SurfaceTexture texture, TextureRegistry.SurfaceTextureEntry entry) {
+    public FlutterRTCVideoRenderer(SurfaceTexture texture, TextureRegistry.SurfaceTextureEntry entry, ExportFrame exportFrame) {
         this.surfaceTextureRenderer = new SurfaceTextureRenderer("");
         listenRendererEvents();
-        surfaceTextureRenderer.init(EglUtils.getRootEglBaseContext(), rendererEvents);
+        surfaceTextureRenderer.init(EglUtils.getRootEglBaseContext(), rendererEvents, exportFrame);
         surfaceTextureRenderer.surfaceCreated(texture);
 
         this.texture = texture;
         this.eventSink = null;
         this.entry = entry;
         this.ownerTag = null;
+        this.exportFrame = exportFrame;
     }
 
     public void setEventChannel(EventChannel eventChannel) {
@@ -123,6 +128,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
     @Override
     public void onListen(Object o, EventChannel.EventSink sink) {
         eventSink = new AnyThreadSink(sink);
+        surfaceTextureRenderer.setEventSink(eventSink, id);
     }
 
     @Override
@@ -237,7 +243,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
 
             surfaceTextureRenderer.release();
             listenRendererEvents();
-            surfaceTextureRenderer.init(sharedContext, rendererEvents);
+            surfaceTextureRenderer.init(sharedContext, rendererEvents, exportFrame);
             surfaceTextureRenderer.surfaceCreated(texture);
 
             videoTrack.addSink(surfaceTextureRenderer);

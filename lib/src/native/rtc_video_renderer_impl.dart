@@ -8,19 +8,44 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 import '../helper.dart';
 import 'utils.dart';
 
+enum RTCVideoFrameFormat { KI420, kMJPEG }
+
+extension RTCVideoFrameFormatExtension on RTCVideoFrameFormat {
+  String getStringValue() {
+    switch (this) {
+      case RTCVideoFrameFormat.KI420:
+        return "KI420";
+      case RTCVideoFrameFormat.kMJPEG:
+        return "kMJPEG";
+      default:
+        return "";
+    }
+  }
+}
+
+class RTCVideoFrame {
+  RTCVideoFrameFormat fromat;
+  Uint8List data;
+  RTCVideoFrame(this.fromat, this.data);
+}
+
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     implements VideoRenderer {
   RTCVideoRenderer() : super(RTCVideoValue.empty);
   int? _textureId;
   MediaStream? _srcObject;
   StreamSubscription<dynamic>? _eventSubscription;
+  Function(RTCVideoFrame frame)? onFrame;
 
   @override
-  Future<void> initialize() async {
+  Future<void> initialize({bool enabledExportFrame = false,
+      int? frameCount = -1,
+      RTCVideoFrameFormat format = RTCVideoFrameFormat.kMJPEG}) async {
     if (_textureId != null) {
       return;
     }
-    final response = await WebRTC.invokeMethod('createVideoRenderer', {});
+    final response =
+        await WebRTC.invokeMethod('createVideoRenderer', {"enabledExportFrame": enabledExportFrame, "frameCount": frameCount, "format": format.getStringValue()});
     _textureId = response['textureId'];
     _eventSubscription = EventChannel('FlutterWebRTC/Texture$textureId')
         .receiveBroadcastStream()
@@ -108,6 +133,10 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       case 'didFirstFrameRendered':
         value = value.copyWith(renderVideo: renderVideo);
         onFirstFrameRendered?.call();
+        break;
+      case 'onVideoFrame':
+        Uint8List data = map['data'];
+        onFrame?.call(RTCVideoFrame(RTCVideoFrameFormat.kMJPEG, data));
         break;
     }
   }
