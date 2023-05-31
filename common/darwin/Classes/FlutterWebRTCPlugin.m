@@ -661,8 +661,17 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
     [self deactiveRtcAudioSession];
     result(nil);
   } else if ([@"createVideoRenderer" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSDictionary *frameFormatMapping = @{
+      @"KMJPEG" : @(KMJPEG),
+      @"KI420" : @(KI420)
+    };
+    BOOL enabledExportFrame = argsMap[@"enabledExportFrame"];
+    NSNumber* frameCount = argsMap[@"frameCount"];
+    RTCVideoFrameFormat format = [frameFormatMapping[argsMap[@"format"]] integerValue];
     FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures
-                                                            messenger:_messenger];
+                                                            messenger:_messenger
+                                                          exportFrame:[[ExportFrame alloc] initWithEnabledExportFrame:enabledExportFrame frameCount:frameCount format:format]];
     self.renders[@(render.textureId)] = render;
     result(@{@"textureId" : @(render.textureId)});
   } else if ([@"videoRendererDispose" isEqualToString:call.method]) {

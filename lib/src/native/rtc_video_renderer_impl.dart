@@ -38,14 +38,18 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   Function(RTCVideoFrame frame)? onFrame;
 
   @override
-  Future<void> initialize({bool enabledExportFrame = false,
+  Future<void> initialize(
+      {bool enabledExportFrame = false,
       int? frameCount = -1,
       RTCVideoFrameFormat format = RTCVideoFrameFormat.kMJPEG}) async {
     if (_textureId != null) {
       return;
     }
-    final response =
-        await WebRTC.invokeMethod('createVideoRenderer', {"enabledExportFrame": enabledExportFrame, "frameCount": frameCount, "format": format.getStringValue()});
+    final response = await WebRTC.invokeMethod('createVideoRenderer', {
+      "enabledExportFrame": enabledExportFrame,
+      "frameCount": frameCount,
+      "format": format.getStringValue()
+    });
     _textureId = response['textureId'];
     _eventSubscription = EventChannel('FlutterWebRTC/Texture$textureId')
         .receiveBroadcastStream()

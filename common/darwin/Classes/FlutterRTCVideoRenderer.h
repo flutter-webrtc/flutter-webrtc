@@ -1,9 +1,27 @@
+#import <Foundation/Foundation.h>
+
 #import "FlutterWebRTCPlugin.h"
 
 #import <WebRTC/RTCMediaStream.h>
 #import <WebRTC/RTCVideoFrame.h>
 #import <WebRTC/RTCVideoRenderer.h>
 #import <WebRTC/RTCVideoTrack.h>
+
+typedef NS_ENUM(NSInteger, RTCVideoFrameFormat) {
+    KMJPEG,
+    KI420
+};
+
+
+@interface ExportFrame : NSObject
+
+@property (nonatomic, assign) BOOL enabledExportFrame;
+@property (nonatomic, strong) NSNumber *frameCount;
+@property (nonatomic, assign) RTCVideoFrameFormat format;
+
+- (instancetype)initWithEnabledExportFrame:(BOOL)enabled frameCount:(NSNumber *)count format:(RTCVideoFrameFormat)format;
+
+@end
 
 @interface FlutterRTCVideoRenderer
     : NSObject <FlutterTexture, RTCVideoRenderer, FlutterStreamHandler>
@@ -15,6 +33,8 @@
 @property(nonatomic) int64_t textureId;
 @property(nonatomic, weak) id<FlutterTextureRegistry> registry;
 @property(nonatomic, strong) FlutterEventSink eventSink;
+@property (nonatomic, strong) ExportFrame *exportFrame;
+@property (nonatomic) int frameCount;
 
 - (instancetype)initWithTextureRegistry:(id<FlutterTextureRegistry>)registry
                               messenger:(NSObject<FlutterBinaryMessenger>*)messenger;
@@ -26,7 +46,8 @@
 @interface FlutterWebRTCPlugin (FlutterVideoRendererManager)
 
 - (FlutterRTCVideoRenderer*)createWithTextureRegistry:(id<FlutterTextureRegistry>)registry
-                                            messenger:(NSObject<FlutterBinaryMessenger>*)messenger;
+                                            messenger:(NSObject<FlutterBinaryMessenger>*)messenger
+                                          exportFrame: (ExportFrame *)exportFrame;
 
 - (void)rendererSetSrcObject:(FlutterRTCVideoRenderer*)renderer stream:(RTCVideoTrack*)videoTrack;
 

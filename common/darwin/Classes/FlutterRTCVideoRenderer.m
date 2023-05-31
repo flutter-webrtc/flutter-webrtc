@@ -9,6 +9,7 @@
 #import <objc/runtime.h>
 
 #import "FlutterWebRTCPlugin.h"
+#import "FlutterRTCVideoFrameTransform.h"
 
 @implementation FlutterRTCVideoRenderer {
   CGSize _frameSize;
@@ -17,6 +18,8 @@
   RTCVideoRotation _rotation;
   FlutterEventChannel* _eventChannel;
   bool _isFirstFrameRendered;
+  ExportFrame* _exportFrame;
+  int _frameCount;
 }
 
 @synthesize textureId = _textureId;
@@ -24,7 +27,8 @@
 @synthesize eventSink = _eventSink;
 
 - (instancetype)initWithTextureRegistry:(id<FlutterTextureRegistry>)registry
-                              messenger:(NSObject<FlutterBinaryMessenger>*)messenger {
+                              messenger:(NSObject<FlutterBinaryMessenger>*)messenger
+                            exportFrame: (ExportFrame *)exportFrame {
   self = [super init];
   if (self) {
     _isFirstFrameRendered = false;
@@ -36,6 +40,8 @@
     _eventSink = nil;
     _rotation = -1;
     _textureId = [registry registerTexture:self];
+    _frameCount = 0;
+    _exportFrame = exportFrame;
     /*Create Event Channel.*/
     _eventChannel = [FlutterEventChannel
         eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/Texture%lld", _textureId]
@@ -224,6 +230,25 @@
       }
     }
   });
+  if(weakSelf.exportFrame.enabledExportFrame){
+      FlutterRTCVideoRenderer* strongSelf = weakSelf;
+      if(strongSelf.eventSink) {
+          if([strongSelf.exportFrame.frameCount intValue] == -1) {
+              strongSelf.eventSink(@{
+                @"event" : @"onVideoFrame",
+                @"id" : @(strongSelf.textureId),
+                @"data" : [RTCVideoFrameTransform transform:frame format:weakSelf.exportFrame.format]
+              });
+          }else if([weakSelf.exportFrame.frameCount intValue] == weakSelf.frameCount) {
+              strongSelf.eventSink(@{
+                @"event" : @"onVideoFrame",
+                @"id" : @(strongSelf.textureId),
+                @"data" : [RTCVideoFrameTransform transform:frame format:weakSelf.exportFrame.format]
+              });
+          }
+          weakSelf.frameCount++;
+      }
+  }
 }
 
 /**
@@ -262,11 +287,26 @@
 @implementation FlutterWebRTCPlugin (FlutterVideoRendererManager)
 
 - (FlutterRTCVideoRenderer*)createWithTextureRegistry:(id<FlutterTextureRegistry>)registry
-                                            messenger:(NSObject<FlutterBinaryMessenger>*)messenger {
-  return [[FlutterRTCVideoRenderer alloc] initWithTextureRegistry:registry messenger:messenger];
+                                            messenger:(NSObject<FlutterBinaryMessenger>*)messenger
+                                          exportFrame: (ExportFrame *)exportFrame {
+  return [[FlutterRTCVideoRenderer alloc] initWithTextureRegistry:registry messenger:messenger exportFrame:exportFrame];
 }
 
 - (void)rendererSetSrcObject:(FlutterRTCVideoRenderer*)renderer stream:(RTCVideoTrack*)videoTrack {
   renderer.videoTrack = videoTrack;
 }
+@end
+
+@implementation ExportFrame
+
+- (instancetype)initWithEnabledExportFrame:(BOOL)enabled frameCount:(NSNumber *)count format:(RTCVideoFrameFormat)format {
+    self = [super init];
+    if (self) {
+        self.enabledExportFrame = enabled;
+        self.frameCount = count;
+        self.format = format;
+    }
+    return self;
+}
+
 @end
