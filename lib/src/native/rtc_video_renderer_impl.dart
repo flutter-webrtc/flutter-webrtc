@@ -24,9 +24,9 @@ extension RTCVideoFrameFormatExtension on RTCVideoFrameFormat {
 }
 
 class RTCVideoFrame {
-  RTCVideoFrameFormat fromat;
+  RTCVideoFrame(this.format, this.data);
+  RTCVideoFrameFormat format;
   Uint8List data;
-  RTCVideoFrame(this.fromat, this.data);
 }
 
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
