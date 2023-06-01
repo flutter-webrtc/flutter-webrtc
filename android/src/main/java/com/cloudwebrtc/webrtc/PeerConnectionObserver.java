@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -233,6 +234,27 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
                   v_map.putBoolean(key, (Boolean)v);
               } else if(v instanceof BigInteger){
                   v_map.putLong(key, ((BigInteger)v).longValue());
+              }  else if(v instanceof LinkedHashMap) {
+                    ConstraintsMap m = new ConstraintsMap();
+                    for(Map.Entry<String, Object> entry : ((LinkedHashMap<String, Object>)v).entrySet()) {
+                        Object value = entry.getValue();
+                        if(value instanceof String) {
+                            m.putString(entry.getKey(), (String)value);
+                        } else if(value instanceof Integer) {
+                            m.putInt(entry.getKey(), (Integer)value);
+                        } else if(value instanceof Long) {
+                            m.putLong(entry.getKey(), (Long)value);
+                        } else if(value instanceof Double) {
+                            m.putDouble(entry.getKey(), (Double)value);
+                        } else if(value instanceof Boolean) {
+                            m.putBoolean(entry.getKey(), (Boolean)value);
+                        } else if(value instanceof BigInteger) {
+                            m.putLong(entry.getKey(), ((BigInteger)value).longValue());
+                        } else {
+                            Log.d(TAG, "getStats() unknown type: " + value.getClass().getName() + " for [" + entry.getKey() + "] value: " + value);
+                        }
+                    }
+                    v_map.putMap(key, m.toMap());
               } else {
                   Log.d(TAG, "getStats() unknown type: " + v.getClass().getName() + " for [" + key + "] value: " + v);
               }

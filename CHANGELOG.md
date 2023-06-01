@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.32] - 2023-05-30
+
+* [Android] fix issue for get user audio.
+* [Android] fix getStats throw LinkedHasMap exception.
+
 [0.9.31] - 2023-05-23
 
 * [Darwin] Improve iOS/macOS H264 encoder (Upgrade to WebRTC-SDK M104.5112.17).
