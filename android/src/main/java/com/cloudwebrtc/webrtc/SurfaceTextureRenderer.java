@@ -16,7 +16,6 @@ import java.util.function.Function;
 import com.cloudwebrtc.webrtc.utils.VideoFrameTransform;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
-import com.cloudwebrtc.webrtc.utils.RTCVideoFrameFormat;
 import com.cloudwebrtc.webrtc.utils.ExportFrame;
 
 
@@ -122,18 +121,20 @@ public class SurfaceTextureRenderer extends EglRenderer{
         onFrameCallback(frame);
       } else if(frameCount == exportFrame.frameCount) {
         onFrameCallback(frame);
-      } else {
-        frameCount++;
       }
+      frameCount++;
     }
   }
 
   private void onFrameCallback(VideoFrame frame) {
-    byte[] jpegData = VideoFrameTransform.transform(frame, exportFrame.format);
+    VideoFrameTransform.PhotographFormat transformResult = VideoFrameTransform.transform(frame, exportFrame.format);
     ConstraintsMap params = new ConstraintsMap();
     params.putString("event", "onVideoFrame");
     params.putInt("id", id);
-    params.putByte("data", jpegData);
+    params.putByte("data", transformResult.data);
+    params.putInt("width", transformResult.width);
+    params.putInt("height", transformResult.height);
+    params.putString("format", transformResult.format.name());
     eventSink.success(params.toMap());
   }
 

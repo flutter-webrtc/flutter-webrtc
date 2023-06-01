@@ -8,15 +8,17 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 import '../helper.dart';
 import 'utils.dart';
 
-enum RTCVideoFrameFormat { KI420, kMJPEG }
+enum RTCVideoFrameFormat { KI420, KRGBA, KMJPEG }
 
 extension RTCVideoFrameFormatExtension on RTCVideoFrameFormat {
   String getStringValue() {
     switch (this) {
       case RTCVideoFrameFormat.KI420:
         return "KI420";
-      case RTCVideoFrameFormat.kMJPEG:
-        return "kMJPEG";
+      case RTCVideoFrameFormat.KMJPEG:
+        return "KMJPEG";
+      case RTCVideoFrameFormat.KRGBA:
+        return "KRGBA";
       default:
         return "";
     }
@@ -24,9 +26,11 @@ extension RTCVideoFrameFormatExtension on RTCVideoFrameFormat {
 }
 
 class RTCVideoFrame {
-  RTCVideoFrame(this.format, this.data);
+  RTCVideoFrame(this.format, this.data, this.width, this.height);
   RTCVideoFrameFormat format;
   Uint8List data;
+  int width;
+  int height;
 }
 
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
@@ -41,7 +45,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   Future<void> initialize(
       {bool enabledExportFrame = false,
       int? frameCount = -1,
-      RTCVideoFrameFormat format = RTCVideoFrameFormat.kMJPEG}) async {
+      RTCVideoFrameFormat format = RTCVideoFrameFormat.KMJPEG}) async {
     if (_textureId != null) {
       return;
     }
@@ -140,9 +144,20 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
         break;
       case 'onVideoFrame':
         Uint8List data = map['data'];
-        onFrame?.call(RTCVideoFrame(RTCVideoFrameFormat.kMJPEG, data));
+        int width = map['width'];
+        int height = map['height'];
+        String format = map['format'];
+        onFrame?.call(
+            RTCVideoFrame(stringToEnum(format)!, data, width, height));
         break;
     }
+  }
+
+  RTCVideoFrameFormat? stringToEnum(String value) {
+    return RTCVideoFrameFormat.values.firstWhere(
+      (e) => e.toString().split('.').last == value,
+      orElse: () => RTCVideoFrameFormat.KMJPEG,
+    );
   }
 
   void errorListener(Object obj) {

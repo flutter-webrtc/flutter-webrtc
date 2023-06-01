@@ -6,7 +6,6 @@ import android.graphics.SurfaceTexture;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
-import com.cloudwebrtc.webrtc.utils.RTCVideoFrameFormat;
 import com.cloudwebrtc.webrtc.utils.ExportFrame;
 
 import java.util.List;
