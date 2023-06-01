@@ -147,8 +147,8 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
         int width = map['width'];
         int height = map['height'];
         String format = map['format'];
-        onFrame?.call(
-            RTCVideoFrame(stringToEnum(format)!, data, width, height));
+        onFrame
+            ?.call(RTCVideoFrame(stringToEnum(format)!, data, width, height));
         break;
     }
   }
