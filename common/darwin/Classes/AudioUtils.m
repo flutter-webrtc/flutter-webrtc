@@ -15,7 +15,7 @@
     config.category = AVAudioSessionCategoryPlayAndRecord;
     config.categoryOptions =
         AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP;
-    config.mode = AVAudioSessionModeVoiceChat;
+    config.mode = AVAudioSessionModeVideoChat;
 
     [session lockForConfiguration];
     [session setCategory:config.category withOptions:config.categoryOptions error:nil];
@@ -33,6 +33,27 @@
     [session setMode:config.mode error:nil];
     [session unlockForConfiguration];
   }
+}
+
++ (void)selectAudioOutputIsSpeaker:(BOOL)isSpeaker error:(NSError **)error {
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
+  [session lockForConfiguration];
+
+  if (isSpeaker) {
+    [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_Speaker
+                                       error:error];
+    if (!error) {
+      [session.session setMode:config.mode error:error];
+    }
+  } else {
+    [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
+                                       error:error];
+    if (!error) {
+      [session.session setMode:AVAudioSessionModeVoiceChat error:error];
+    }
+  }
+  [session unlockForConfiguration];
 }
 
 + (BOOL)selectAudioInput:(AVAudioSessionPort)type {
@@ -63,7 +84,7 @@
   [session lockForConfiguration];
   NSError* error = nil;
   if (!enable) {
-    [session setMode:config.mode error:&error];
+    [session setMode:AVAudioSessionModeVoiceChat error:&error];
     BOOL success = [session setCategory:config.category
                             withOptions:AVAudioSessionCategoryOptionAllowAirPlay |
                                         AVAudioSessionCategoryOptionAllowBluetoothA2DP |

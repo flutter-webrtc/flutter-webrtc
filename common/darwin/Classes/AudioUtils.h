@@ -9,6 +9,7 @@
 + (void)setSpeakerphoneOn:(BOOL)enable;
 + (void)setSpeakerphoneOnButPreferBluetooth;
 + (void)deactiveRtcAudioSession;
++ (void)selectAudioOutputIsSpeaker:(BOOL)isSpeaker error:(NSError**)error;
 @end
 
 #endif

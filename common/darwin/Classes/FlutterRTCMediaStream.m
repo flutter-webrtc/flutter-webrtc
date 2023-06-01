@@ -724,27 +724,19 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   }
 #endif
 #if TARGET_OS_IPHONE
-  RTCAudioSession* session = [RTCAudioSession sharedInstance];
-  NSError* setCategoryError = nil;
 
-  if ([deviceId isEqualToString:@"Speaker"]) {
-    [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_Speaker
-                                       error:&setCategoryError];
-  } else {
-    [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
-                                       error:&setCategoryError];
-  }
+  NSError* selectError = nil;
+  [AudioUtils selectAudioOutputIsSpeaker:[deviceId isEqualToString:@"Speaker"] error:&selectError];
 
-  if (setCategoryError == nil) {
+  if (selectError == nil) {
     result(nil);
     return;
   }
 
   result([FlutterError
-      errorWithCode:@"selectAudioOutputFailed"
-            message:[NSString
-                        stringWithFormat:@"Error: %@", [setCategoryError localizedFailureReason]]
-            details:nil]);
+          errorWithCode:@"selectAudioOutputFailed"
+          message:[NSString stringWithFormat:@"Error: %@", [selectError localizedFailureReason]]
+          details:nil]);
 
 #endif
   result([FlutterError errorWithCode:@"selectAudioOutputFailed"
