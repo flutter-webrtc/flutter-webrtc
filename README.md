@@ -2,7 +2,7 @@ Medea Flutter-WebRTC
 ====================
 
 [![pub](https://img.shields.io/pub/v/medea_flutter_webrtc "pub")](https://pub.dev/packages/medea_flutter_webrtc)
-[![libwebrtc](https://img.shields.io/badge/libwebrtc-106.0.5249.91-blue "libwebrtc")](https://github.com/instrumentisto/libwebrtc-bin/releases/tag/106.0.5249.91)
+[![libwebrtc](https://img.shields.io/badge/libwebrtc-112.0.5615.165-blue "libwebrtc")](https://github.com/instrumentisto/libwebrtc-bin/releases/tag/112.0.5615.165)
 
 [Changelog](https://github.com/instrumentisto/medea-flutter-webrtc/blob/main/CHANGELOG.md)
 

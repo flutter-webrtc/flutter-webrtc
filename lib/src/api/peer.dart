@@ -19,17 +19,17 @@ import 'transceiver.dart';
 bool isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
 /// Bindings to the Rust side API.
-final ffi.FlutterWebrtcNativeImpl? api = isDesktop ? buildBridge() : null;
+final ffi.MedeaFlutterWebrtcNative? api = isDesktop ? buildBridge() : null;
 
-/// Opens the dynamic library and instantiates [ffi.FlutterWebrtcNativeImpl].
-ffi.FlutterWebrtcNativeImpl? buildBridge() {
+/// Opens the dynamic library and instantiates [ffi.MedeaFlutterWebrtcNative].
+ffi.MedeaFlutterWebrtcNative? buildBridge() {
   const base = 'medea_flutter_webrtc_native';
   final path = Platform.isWindows ? '$base.dll' : 'lib$base.so';
   late final dylib = Platform.isMacOS
       ? DynamicLibrary.executable()
       : DynamicLibrary.open(path);
 
-  return ffi.FlutterWebrtcNativeImpl(dylib);
+  return ffi.MedeaFlutterWebrtcNativeImpl(dylib);
 }
 
 /// Shortcut for the `on_track` callback.

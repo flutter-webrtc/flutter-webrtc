@@ -584,7 +584,7 @@ rust::Vec<RTCStatsWrap> rtc_stats_report_get_stats(
       type = RTCStatsType::Unimplemented;
     }
 
-    RTCStatsWrap wrap_stat = {rust::String(stats.id()), stats.timestamp_us(),
+    RTCStatsWrap wrap_stat = {rust::String(stats.id()), stats.timestamp().us(),
                               type, stats.copy()};
     stats_result.push_back(std::move(wrap_stat));
   }

@@ -1,5 +1,5 @@
 group 'com.instrumentisto.medea_flutter_webrtc'
-version '1.0-SNAPSHOT'
+version '0.8.2-dev'
 
 buildscript {
     ext.kotlin_version = '1.7.10'
@@ -53,7 +53,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.instrumentisto:libwebrtc-bin:106.0.5249.91@aar'
+    implementation 'com.github.instrumentisto:libwebrtc-bin:112.0.5615.165@aar'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 }

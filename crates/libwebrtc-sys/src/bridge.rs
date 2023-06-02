@@ -44,6 +44,7 @@ impl OptionI32 {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`i32`]`>`.
+#[allow(clippy::unnecessary_box_returns)]
 pub fn init_option_i32() -> Box<OptionI32> {
     Box::new(OptionI32(None))
 }
@@ -60,6 +61,7 @@ impl OptionString {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`String`]`>`.
+#[allow(clippy::unnecessary_box_returns)]
 pub fn init_option_string() -> Box<OptionString> {
     Box::new(OptionString(None))
 }
@@ -76,6 +78,7 @@ impl OptionF64 {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`f64`]`>`.
+#[allow(clippy::unnecessary_box_returns)]
 pub fn init_option_f64() -> Box<OptionF64> {
     Box::new(OptionF64(None))
 }
@@ -92,6 +95,7 @@ impl OptionU32 {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`u32`]`>`.
+#[allow(clippy::unnecessary_box_returns)]
 pub fn init_option_u32() -> Box<OptionU32> {
     Box::new(OptionU32(None))
 }
@@ -108,6 +112,7 @@ impl OptionU64 {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`u64`]`>`.
+#[allow(clippy::unnecessary_box_returns)]
 pub fn init_option_u64() -> Box<OptionU64> {
     Box::new(OptionU64(None))
 }
@@ -124,6 +129,7 @@ impl OptionBool {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`bool`]`>`.
+#[allow(clippy::unnecessary_box_returns)]
 pub fn init_option_bool() -> Box<OptionBool> {
     Box::new(OptionBool(None))
 }
@@ -134,6 +140,7 @@ pub fn init_option_bool() -> Box<OptionBool> {
     clippy::let_underscore_untyped,
     clippy::ptr_as_ptr,
     clippy::trait_duplication_in_bounds,
+    clippy::unnecessary_box_returns,
     let_underscore_drop
 )]
 #[cxx::bridge(namespace = "bridge")]
@@ -1192,8 +1199,6 @@ pub(crate) mod webrtc {
 
         /// Creates a default [`TaskQueueFactory`] based on the current
         /// platform.
-        #[namespace = "webrtc"]
-        #[cxx_name = "CreateDefaultTaskQueueFactory"]
         pub fn create_default_task_queue_factory()
             -> UniquePtr<TaskQueueFactory>;
 

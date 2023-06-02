@@ -261,7 +261,7 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: Nexus 6
-          script: make flutter.test
+          script: make flutter.test.mobile
         if: ${{ matrix.platform == 'android' }}
 
       - name: Start iOS simulator
@@ -272,16 +272,16 @@ jobs:
           os: iOS
         if: ${{ matrix.platform == 'ios' }}
       - name: Test on `${{ matrix.platform }}` platform with simulator
-        run: make flutter.test device=${{ steps.simulator.outputs.udid }}
-                               debug=yes
+        run: make flutter.test.mobile device=${{ steps.simulator.outputs.udid }}
+                                      debug=yes
         if: ${{ matrix.platform == 'ios' }}
 
       - name: Test on `${{ matrix.platform }}` platform with Xvfb
-        run: xvfb-run -a make flutter.test device=${{ matrix.platform }}
+        run: xvfb-run -a make flutter.test.desktop device=${{ matrix.platform }}
         if: ${{ matrix.platform == 'linux' }}
 
       - name: Test on `${{ matrix.platform }}` platform
-        run: make flutter.test device=${{ matrix.platform }}
+        run: make flutter.test.desktop device=${{ matrix.platform }}
         if: ${{ matrix.platform == 'macos'
              || matrix.platform == 'windows' }}
 

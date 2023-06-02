@@ -111,11 +111,10 @@ std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     Thread& worker_thread,
     AudioLayer audio_layer,
     TaskQueueFactory& task_queue_factory) {
-  AudioDeviceModule adm = worker_thread.Invoke<AudioDeviceModule>(
-      RTC_FROM_HERE, [audio_layer, &task_queue_factory] {
-        return webrtc::AudioDeviceModule::Create(audio_layer,
-                                                 &task_queue_factory);
-      });
+  AudioDeviceModule adm = worker_thread.BlockingCall([audio_layer,
+                                                      &task_queue_factory] {
+    return webrtc::AudioDeviceModule::Create(audio_layer, &task_queue_factory);
+  });
 
   if (adm == nullptr) {
     return nullptr;
@@ -293,6 +292,11 @@ int32_t video_device_name(VideoDeviceInfo& device_info,
 // Calls `Thread->Create()`.
 std::unique_ptr<rtc::Thread> create_thread() {
   return rtc::Thread::Create();
+}
+
+// Creates a default `TaskQueueFactory`, basing on the current platform.
+std::unique_ptr<TaskQueueFactory> create_default_task_queue_factory() {
+  return webrtc::CreateDefaultTaskQueueFactory();
 }
 
 // Calls `Thread->CreateWithSocketServer()`.
