@@ -1,4 +1,4 @@
-﻿#ifndef LIB_WEBRTC_RTC_MEDIA_STREAM_HXX
+#ifndef LIB_WEBRTC_RTC_MEDIA_STREAM_HXX
 #define LIB_WEBRTC_RTC_MEDIA_STREAM_HXX
 
 #include "rtc_audio_track.h"

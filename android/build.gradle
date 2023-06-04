@@ -18,7 +18,6 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
     }
 }
 
@@ -49,8 +48,8 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.webrtc-sdk:android:104.5112.06'
-    implementation 'com.github.davidliu:audioswitch:c498d866c57f1d88056d5e7e7a78d622e3b0c046'
+    implementation 'io.github.webrtc-sdk:android:104.5112.09'
+    implementation 'com.twilio:audioswitch:1.1.7'
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

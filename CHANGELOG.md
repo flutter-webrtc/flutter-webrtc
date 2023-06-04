@@ -1,6 +1,69 @@
 # Changelog
 
 --------------------------------------------
+[0.9.32] - 2023-05-30
+
+* [Android] fix issue for get user audio.
+* [Android] fix getStats throw LinkedHasMap exception.
+
+[0.9.31] - 2023-05-23
+
+* [Darwin] Improve iOS/macOS H264 encoder (Upgrade to WebRTC-SDK M104.5112.17).
+
+[0.9.30+hotfix.2] - 2023-05-18
+
+* [Windows/Linux] fix bug for eventchannel proxy.
+* [Windows/Linux] fix: crash for pc.close/dispose on win/linux. (#1360)
+
+[0.9.30+hotfix.1] - 2023-05-17
+
+* [Windows/Linux] Fix compiler error.
+
+[0.9.30] - 2023-05-16
+
+* [Darwin] Handle exceptions for frame rate settings for darinw. (#1351)
+* [Android] Fix bluetooth device enumerate. (#1349)
+* [Darwin/Android/Windows/Linux] Added maxIPv6Networks configuration (#1350)
+* [iOS] Fix: broadcast extension not found fallback logic (#1347)
+* [Android] Move the call of capturer.stopCapture() outside the main thread to avoid blocking of flutter method call.
+* [Windows/Linux] Fix the crash issue of video room (#1343)
+
+[0.9.29+hotfix.1] - 2023-05-08
+
+* [Android] fix: application context null when app is terminated.
+* [Android/iOS] feat: add way to enable speaker but prefer bluetooth.
+
+[0.9.28] - 2023-05-08
+
+* [Windows/Linux] fix: use the correct transceiver id.
+* [Windows/Linux] fix: Support restart camera for Windows/Linux.
+
+[0.9.27] - 2023-04-27
+
+* [Darwin/Android/Windows/Linux] feat: framecryptor.
+* [Windows/Linux] Fix the type/code mistake.
+* [Windows/Linux] Fix uneffective RTPTransceiver::GetCurrentDirection.
+* [Windows/Linux] RTPtransceiver::getCurrentDirection returns correct value.
+
+[0.9.26] - 2023-04-16
+
+* [iOS/macOS] motify h264 profile-level-id to support high resolution.
+* [Dawrin/Android/Windows] feat: add RTCDegradationPreference to RTCRtpParameters.
+
+[0.9.25] - 2023-04-10
+
+* [Dawrin/Android/Windows] Add  `addStreams` to `RTCRtpSender`
+* [Android] fix: label for Wired Headset. (#1305)
+* [Dawrin/Android/Windows] Feat/media stream track get settings (#1294)
+* [Android/iOS] Fix track lookup in the platform specific code for Android and iOS (#1289)
+* [iOS] fix: ICE Connectivity doesn't establish with DualSIM iPhones.
+* [Android] Switch to webrtc hosted on maven central (#1288)
+
+[0.9.24] - 2023-03-07
+
+* [iOS] avaudiosession mode changed to AVAudioSessionModeVideoChat (#1285)
+* [macOS] fix memory leak for screen capture.
+
 [0.9.23] - 2023-02-17
 
 * [Windows/Linux] Updated libwebrtc binary for windows/linux to fix two crashes.

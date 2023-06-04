@@ -16,6 +16,9 @@ dependencies:
     path: ../
   # Required for MediaRecorder example
   path_provider: ^2.0.2
+  permission_handler: ^10.2.0
+  sdp_transform: ^0.3.2
+
 
 dev_dependencies:
   flutter_test:
