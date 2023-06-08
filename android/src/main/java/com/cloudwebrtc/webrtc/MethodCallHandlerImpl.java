@@ -34,7 +34,6 @@ import com.twilio.audioswitch.AudioDevice;
 
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
-import org.webrtc.DefaultVideoDecoderFactory;
 import org.webrtc.DtmfSender;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
@@ -64,6 +63,7 @@ import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
 import org.webrtc.VideoTrack;
+import org.webrtc.WrappedVideoDecoderFactory;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
@@ -166,7 +166,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mFactory = PeerConnectionFactory.builder()
             .setOptions(new Options())
             .setVideoEncoderFactory(new SimulcastVideoEncoderFactoryWrapper(eglContext, true, true))
-            .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext))
+            .setVideoDecoderFactory(new WrappedVideoDecoderFactory(eglContext))
             .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory();
   }
