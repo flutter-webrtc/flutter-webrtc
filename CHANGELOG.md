@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+
+[0.9.33] - 2023-06-08
+
+* [Android] fix frame drops for android.
+
 [0.9.32] - 2023-05-30
 
 * [Android] fix issue for get user audio.
