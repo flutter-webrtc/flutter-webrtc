@@ -27,16 +27,7 @@ Initially, represented a fork of the [Flutter-WebRTC] plugin, but at the moment,
 
 ## How it works
 
-```mermaid
-flowchart TD
-    A[User App] -->|Dart| B[medea_flutter_webrtc] -->|Dart| C{Platform}
-        C --> D["Mobile (Dart)"]
-            D -->|Platform Channel| F["Native Mobile (Kotlin / Swift)"]
-        C --> E["Desktop (Dart)"]
-            E -->|"FFI (flutter_rust_bridge)"| G["medea-flutter-webrtc-native (Rust) "]
-                G -->|Rust| H["libwebrtc-sys (Rust)"]
-                    H -->|"FFI (cxx)"| I["Native Desktop (c++ / objc)"]
-```
+![Diagram](https://kroki.io/mermaid/svg/eNptT9tKwzAYvvcpfnLVMoJvIMxm3cZQxMNVGKXN_rrMrClJZifGd7fpiSn7br9zqXQj9rlx8MpuoMWcv1k0MK_rLVB651nLebjnR9xhnpXq5ByarMHCOHGpSL6fVO5KbY4_XU5AEnhgnDzoQiqEKEhjsp0EAawLGc2Q7POqQuUh5eQxd_ITYXRvtFOyglt4aWT5J6cvWnDC0H44XV9vWnRNJE3XEI1HzMm6rDBy944x8bDkpDtKB572R2nVL4meW3kM_3IDll12oD2sOFGyGJz2yw62K66A1cUqcT6HFevp-vRHzGbtcV0cRJvzC_FKfaY= "Diagram")
 
 
 
@@ -69,7 +60,7 @@ If you need to use a [Bluetooth] device (like headphones), then also add:
 
 The [Flutter] project template usually adds them, so they may already be there.
 
-Also, you will need to set your build settings to [Java 8], because the [official WebRTC JAR] on [Android] uses static methods in `EglBase` interface. Just add this to your app level `build.gradle`:
+Also, you will need to set your build settings to [Java 8], because the [official WebRTC JAR][5] on [Android] uses static methods in `EglBase` interface. Just add this to your app level `build.gradle`:
 ```groovy
 android {
     //...
