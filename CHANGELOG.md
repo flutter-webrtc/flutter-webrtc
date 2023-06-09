@@ -6,7 +6,7 @@ All user visible changes to this project will be documented in this file. This p
 
 
 
-## [0.8.2] · 2023-??-?? (unreleased)
+## [0.8.2] · 2023-06-09
 [0.8.2]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.8.2
 
 [Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.8.1...0.8.2)
