@@ -6,6 +6,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 
     dependencies {
@@ -18,6 +19,7 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 
@@ -49,6 +51,7 @@ android {
 
 dependencies {
     implementation 'io.github.webrtc-sdk:android:104.5112.10'
+    implementation 'com.github.naman14:TAndroidLame:1.1'
     implementation 'com.twilio:audioswitch:1.1.7'
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

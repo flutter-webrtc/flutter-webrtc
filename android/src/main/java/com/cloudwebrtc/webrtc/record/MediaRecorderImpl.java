@@ -15,6 +15,8 @@ public class MediaRecorderImpl {
     private final VideoTrack videoTrack;
     private final AudioSamplesInterceptor audioInterceptor;
     private VideoFileRenderer videoFileRenderer;
+
+    private AudioFileRender audioFileRender;
     private boolean isRunning = false;
     private File recordFile;
 
@@ -41,10 +43,9 @@ public class MediaRecorderImpl {
             if (audioInterceptor != null)
                 audioInterceptor.attachCallback(id, videoFileRenderer);
         } else {
-            Log.e(TAG, "Video track is null");
+            audioFileRender = new AudioFileRender(file.getAbsolutePath());
             if (audioInterceptor != null) {
-                //TODO(rostopira): audio only recording
-                throw new Exception("Audio-only recording not implemented yet");
+                audioInterceptor.attachCallback(id, audioFileRender);
             }
         }
     }
@@ -59,6 +60,10 @@ public class MediaRecorderImpl {
             videoTrack.removeSink(videoFileRenderer);
             videoFileRenderer.release();
             videoFileRenderer = null;
+        }
+        if (audioFileRender != null){
+            audioFileRender.release();
+            audioFileRender = null;
         }
     }
 
