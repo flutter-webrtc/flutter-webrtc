@@ -474,9 +474,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     videoTrack.settings = @{
       @"deviceId" : videoDeviceId,
       @"kind" : @"videoinput",
-      @"width" : [NSNumber numberWithInt:targetWidth],
-      @"height" : [NSNumber numberWithInt:targetHeight],
-      @"frameRate" : [NSNumber numberWithInt:selectedFps],
+      @"width" : [NSNumber numberWithInteger:targetWidth ],
+      @"height" : [NSNumber numberWithInteger:targetHeight],
+      @"frameRate" : [NSNumber numberWithInteger:selectedFps],
       @"facingMode" : facingMode,
     };
 
@@ -656,7 +656,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
 
   NSArray* inputDevices = [audioDeviceModule inputDevices];
-  for (RTCAudioDevice* device in inputDevices) {
+  for (RTCIODevice* device in inputDevices) {
     [sources addObject:@{
       @"facing" : @"",
       @"deviceId" : device.deviceId,
@@ -666,7 +666,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   }
 
   NSArray* outputDevices = [audioDeviceModule outputDevices];
-  for (RTCAudioDevice* device in outputDevices) {
+  for (RTCIODevice* device in outputDevices) {
     [sources addObject:@{
       @"facing" : @"",
       @"deviceId" : device.deviceId,
@@ -682,7 +682,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 #if TARGET_OS_OSX
   RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
   NSArray* inputDevices = [audioDeviceModule inputDevices];
-  for (RTCAudioDevice* device in inputDevices) {
+  for (RTCIODevice* device in inputDevices) {
     if ([deviceId isEqualToString:device.deviceId]) {
       [audioDeviceModule setInputDevice:device];
       if (result)
@@ -715,7 +715,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 #if TARGET_OS_OSX
   RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
   NSArray* outputDevices = [audioDeviceModule outputDevices];
-  for (RTCAudioDevice* device in outputDevices) {
+  for (RTCIODevice* device in outputDevices) {
     if ([deviceId isEqualToString:device.deviceId]) {
       [audioDeviceModule setOutputDevice:device];
       result(nil);
@@ -764,12 +764,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     } else if ([track.kind isEqualToString:@"video"]) {
       [mediaStream removeVideoTrack:(RTCVideoTrack*)track];
     }
-  }
-}
-
-- (void)mediaStreamTrackSetEnabled:(RTCMediaStreamTrack*)track:(BOOL)enabled {
-  if (track && track.isEnabled != enabled) {
-    track.isEnabled = enabled;
   }
 }
 
@@ -882,12 +876,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   NSArray<AVCaptureDeviceFormat*>* formats =
       [RTCCameraVideoCapturer supportedFormatsForDevice:device];
   AVCaptureDeviceFormat* selectedFormat = nil;
-  int currentDiff = INT_MAX;
+  long currentDiff = INT_MAX;
   for (AVCaptureDeviceFormat* format in formats) {
     CMVideoDimensions dimension = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
     FourCharCode pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription);
     //NSLog(@"AVCaptureDeviceFormats,fps %d, dimension: %dx%d", format.videoSupportedFrameRateRanges, dimension.width, dimension.height);
-    int diff = abs(targetWidth - dimension.width) + abs(targetHeight - dimension.height);
+      long diff = labs(targetWidth - dimension.width) + labs(targetHeight - dimension.height);
     if (diff < currentDiff) {
       selectedFormat = format;
       currentDiff = diff;

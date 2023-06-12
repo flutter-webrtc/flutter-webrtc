@@ -7,25 +7,25 @@
 
 @interface FlutterWebRTCPlugin (RTCMediaStream)
 
-- (void)getUserMedia:(NSDictionary*)constraints result:(FlutterResult)result;
+- (void)getUserMedia:(nonnull NSDictionary*)constraints result:(nonnull FlutterResult)result;
 
-- (void)createLocalMediaStream:(FlutterResult)result;
+- (void)createLocalMediaStream:(nonnull FlutterResult)result;
 
-- (void)getSources:(FlutterResult)result;
+- (void)getSources:(nonnull FlutterResult)result;
 
-- (void)mediaStreamTrackHasTorch:(RTCMediaStreamTrack*)track result:(FlutterResult)result;
+- (void)mediaStreamTrackHasTorch:(nonnull RTCMediaStreamTrack*)track result:(nonnull FlutterResult)result;
 
-- (void)mediaStreamTrackSetTorch:(RTCMediaStreamTrack*)track
+- (void)mediaStreamTrackSetTorch:(nonnull RTCMediaStreamTrack*)track
                            torch:(BOOL)torch
-                          result:(FlutterResult)result;
+                          result:(nonnull FlutterResult)result;
 
-- (void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack*)track result:(FlutterResult)result;
+- (void)mediaStreamTrackSwitchCamera:(nonnull RTCMediaStreamTrack*)track result:(nonnull FlutterResult)result;
 
-- (void)mediaStreamTrackCaptureFrame:(RTCMediaStreamTrack*)track
-                              toPath:(NSString*)path
-                              result:(FlutterResult)result;
+- (void)mediaStreamTrackCaptureFrame:(nonnull RTCMediaStreamTrack*)track
+                              toPath:(nonnull NSString*)path
+                              result:(nonnull FlutterResult)result;
 
-- (void)selectAudioInput:(NSString*)deviceId result:(FlutterResult)result;
+- (void)selectAudioInput:(nonnull NSString*)deviceId result:(nullable FlutterResult)result;
 
-- (void)selectAudioOutput:(NSString*)deviceId result:(FlutterResult)result;
+- (void)selectAudioOutput:(nonnull NSString*)deviceId result:(nullable FlutterResult)result;
 @end
