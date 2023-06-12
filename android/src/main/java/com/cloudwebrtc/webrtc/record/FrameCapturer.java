@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import org.webrtc.VideoFrame;
 import org.webrtc.VideoSink;

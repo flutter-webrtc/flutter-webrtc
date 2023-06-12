@@ -664,7 +664,8 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
     NSDictionary* argsMap = call.arguments;
     NSDictionary *frameFormatMapping = @{
       @"KMJPEG" : @(KMJPEG),
-      @"KI420" : @(KI420)
+      @"KI420" : @(KI420),
+      @"KRGBA" : @(KRGBA)
     };
     BOOL enabledExportFrame = argsMap[@"enabledExportFrame"];
     NSNumber* frameCount = argsMap[@"frameCount"];

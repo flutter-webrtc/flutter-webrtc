@@ -7,17 +7,13 @@
 #import <WebRTC/RTCVideoRenderer.h>
 #import <WebRTC/RTCVideoTrack.h>
 
-typedef NS_ENUM(NSInteger, RTCVideoFrameFormat) {
-    KMJPEG,
-    KI420
-};
-
+#import "FlutterRTCVideoFrameTransform.h"
 
 @interface ExportFrame : NSObject
 
-@property (nonatomic, assign) BOOL enabledExportFrame;
-@property (nonatomic, strong) NSNumber *frameCount;
-@property (nonatomic, assign) RTCVideoFrameFormat format;
+@property (nonatomic, assign)BOOL enabledExportFrame;
+@property (nonatomic, strong)NSNumber *frameCount;
+@property (nonatomic, assign)RTCVideoFrameFormat format;
 
 - (instancetype)initWithEnabledExportFrame:(BOOL)enabled frameCount:(NSNumber *)count format:(RTCVideoFrameFormat)format;
 

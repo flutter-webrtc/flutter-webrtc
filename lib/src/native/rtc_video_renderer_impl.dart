@@ -8,7 +8,11 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 import '../helper.dart';
 import 'utils.dart';
 
-enum RTCVideoFrameFormat { KI420, KRGBA, KMJPEG }
+enum RTCVideoFrameFormat {
+  KI420, // NV12
+  KRGBA,
+  KMJPEG
+}
 
 extension RTCVideoFrameFormatExtension on RTCVideoFrameFormat {
   String getStringValue() {

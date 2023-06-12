@@ -5,6 +5,8 @@ import android.graphics.YuvImage;
 import android.graphics.ImageFormat;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.util.Log;
 
 import org.webrtc.VideoFrame;
 import org.webrtc.YuvHelper;
@@ -15,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 
 public class VideoFrameTransform {
     PhotographFormat i420Data;
+    float rotation;
     public static enum RTCVideoFrameFormat {
         KI420,
         KRGBA,
@@ -35,6 +38,7 @@ public class VideoFrameTransform {
 
     VideoFrameTransform(VideoFrame videoFrame){
         i420Data = videoFrameToI420(videoFrame);
+        rotation = videoFrame.getRotation();
     }
 
     public static PhotographFormat transform(VideoFrame videoFrame, RTCVideoFrameFormat format){
@@ -70,21 +74,18 @@ public class VideoFrameTransform {
         ByteBuffer yuvBuffer = ByteBuffer.allocateDirect(minSize);
         YuvHelper.I420ToNV12(y, strides[0], v, strides[2], u, strides[1], yuvBuffer,
             width, height);
-        byte[] cleanedArray = Arrays.copyOfRange(yuvBuffer.array(),
+        byte[] NV12Array = Arrays.copyOfRange(yuvBuffer.array(),
             yuvBuffer.arrayOffset(), minSize);
         i420Buffer.release();
 
-        return new PhotographFormat(cleanedArray, width, height, RTCVideoFrameFormat.KI420);
+        return new PhotographFormat(NV12Array, width, height, RTCVideoFrameFormat.KI420);
     }
-
     PhotographFormat I420ToRGBA(){
         PhotographFormat jpegData = I420ToJPEG();
         ByteBuffer buffer = ByteBuffer.allocate(jpegData.width * jpegData.height * 4);
         Bitmap bitmap = BitmapFactory.decodeByteArray(jpegData.data, 0, jpegData.data.length);
-
         bitmap.copyPixelsToBuffer(buffer);
         byte[] rgbaData = buffer.array();
-
         return new PhotographFormat(rgbaData, jpegData.width, jpegData.height, RTCVideoFrameFormat.KRGBA);
     }
 
@@ -100,7 +101,26 @@ public class VideoFrameTransform {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         yuvImage.compressToJpeg(new Rect(0, 0, i420Data.width, i420Data.height), 100, outputStream);
         byte[] jpegData = outputStream.toByteArray();
-
+        // if rotate==90 || rotate==270, switch width and height
+        if(rotation == 90 || rotation == 270) {
+            byte[] rotatedJpegData = rotateJpeg(jpegData);
+            return new PhotographFormat(rotatedJpegData, i420Data.height, i420Data.width, RTCVideoFrameFormat.KMJPEG);
+        }
         return new PhotographFormat(jpegData, i420Data.width, i420Data.height, RTCVideoFrameFormat.KMJPEG);
+    }
+
+    byte[] rotateJpeg(byte[] jpegData) {
+        if(rotation == 0) {
+            return jpegData;
+        }
+        Bitmap bitmap = BitmapFactory.decodeByteArray(jpegData, 0, jpegData.length);
+        Matrix matrix = new Matrix();
+        matrix.postRotate(rotation);
+        Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+        byte[] rotatedJpegData = outputStream.toByteArray();
+
+        return rotatedJpegData;
     }
 }

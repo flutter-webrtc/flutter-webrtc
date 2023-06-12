@@ -3,23 +3,132 @@
 @import CoreImage;
 @import CoreVideo;
 
-@implementation RTCVideoFrameTransform
-
-+ (nullable NSData *)transform:(RTCVideoFrame *)frame format:(RTCVideoFrameFormat)format {
-    NSData *result;
-    switch (format) {
-        case KMJPEG:
-            result = [self videoFrameToJPEG:frame];
-            break;
-        case KI420:
-            // todo
-            break;
-    }
-    return result;
+@implementation PhotographFormat {
+    NSData* _data;
+    NSInteger _width;
+    NSInteger _height;
+    NSString* _format;
 }
 
-+ (nullable NSData *)videoFrameToJPEG:(RTCVideoFrame *)frame {
-    // do something
+- (instancetype)initWidthData:(NSData *)data width:(NSInteger)width height:(NSInteger)height format:(RTCVideoFrameFormat)format {
+    self = [super init];
+    
+    if(self) {
+        _data = data;
+        _width = width;
+        _height = height;
+        _format = [PhotographFormat getFormatString:format];
+    }
+    
+    return self;
+}
+
++ (NSString *)getFormatString:(RTCVideoFrameFormat)format {
+    switch(format) {
+        case KI420:
+            return @"KI420";
+        case KRGBA:
+            return @"KRGBA";
+        case KMJPEG:
+            return @"KMJPEG";
+    }
+}
+
+@end
+
+@implementation RTCVideoFrameTransform{}
+
++ (PhotographFormat *)transform:(RTCVideoFrame *)frame format:(RTCVideoFrameFormat)format {
+    RTCVideoFrameTransform *videoTransform = [[RTCVideoFrameTransform alloc] init];
+    
+    switch (format) {
+        case KI420:
+            return [videoTransform videoFrameToI420:frame];
+        case KRGBA:
+            return [videoTransform videoFrameToRGBA:frame];
+        case KMJPEG:
+            return [videoTransform videoFrameToJPEG:frame];
+    };
+}
+
+- (PhotographFormat *)videoFrameToI420:(RTCVideoFrame *)frame {
+    id<RTCI420Buffer> i420Buffer = [frame.buffer toI420];
+    int width = i420Buffer.width;
+    int height = i420Buffer.height;
+    int strideY = i420Buffer.strideY;
+    int strideU = i420Buffer.strideU;
+    int strideV = i420Buffer.strideV;
+
+    size_t dataSizeY = strideY * height;
+    size_t dataSizeU = strideU * height / 2;
+    size_t dataSizeV = strideV * height / 2;
+
+    NSMutableData *binaryData = [NSMutableData dataWithLength:dataSizeY + dataSizeU + dataSizeV];
+
+    uint8_t *yPlane = binaryData.mutableBytes;
+    uint8_t *uPlane = yPlane + dataSizeY;
+    uint8_t *vPlane = uPlane + dataSizeU;
+    memcpy(yPlane, i420Buffer.dataY, dataSizeY);
+    memcpy(uPlane, i420Buffer.dataU, dataSizeU);
+    memcpy(vPlane, i420Buffer.dataV, dataSizeV);
+
+    NSUInteger dataLength = binaryData.length;
+    NSData *data = [NSData dataWithBytes:binaryData.bytes length:dataLength];
+
+    return [[PhotographFormat alloc] initWidthData:data width:i420Buffer.width height:i420Buffer.height format:KI420 ];
+}
+
+- (PhotographFormat *)videoFrameToJPEG:(RTCVideoFrame *)frame {
+    NSDictionary *result = [self createPixelBufferAndImage:frame];
+    CVPixelBufferRef pixelBufferRef = (__bridge CVPixelBufferRef)[result objectForKey:@"pixelBufferRef"];
+    CIImage *ciImage = [result objectForKey:@"ciImage"];
+    CGRect outputSize = [[result objectForKey:@"outputSize"] CGRectValue];
+    bool shouldRelease = [[result objectForKey:@"shouldRelease"] boolValue];
+  
+    CIContext* tempContext = [CIContext contextWithOptions:nil];
+    CGImageRef cgImage = [tempContext createCGImage:ciImage fromRect:outputSize];
+    NSData* imageData;
+    #if TARGET_OS_IPHONE
+    UIImage* uiImage = [UIImage imageWithCGImage:cgImage];
+    imageData = UIImageJPEGRepresentation(uiImage, 1.0f);
+    #else
+    NSBitmapImageRep* newRep = [[NSBitmapImageRep alloc] initWithCGImage:cgImage];
+    [newRep setSize:NSSizeToCGSize(outputSize.size)];
+    NSDictionary<NSBitmapImageRepPropertyKey, id>* quality = @{NSImageCompressionFactor : @1.0f};
+    imageData = [newRep representationUsingType:NSJPEGFileType properties:quality];
+    #endif
+    CGImageRelease(cgImage);
+    if (shouldRelease)
+        CVPixelBufferRelease(pixelBufferRef);
+    if(frame.rotation == RTCVideoRotation_90 || frame.rotation == RTCVideoRotation_180){
+      return [[PhotographFormat alloc] initWidthData:imageData width:frame.height height:frame.width format:KMJPEG];
+    }
+    return [[PhotographFormat alloc] initWidthData:imageData width:frame.width height:frame.width format:KMJPEG];
+}
+
+- (PhotographFormat *)videoFrameToRGBA:(RTCVideoFrame *)frame {
+    NSDictionary *result = [self createPixelBufferAndImage:frame];
+    CVPixelBufferRef pixelBufferRef = (__bridge CVPixelBufferRef)[result objectForKey:@"pixelBufferRef"];
+    CIImage *ciImage = [result objectForKey:@"ciImage"];
+    CGRect outputSize = [[result objectForKey:@"outputSize"] CGRectValue];
+    bool shouldRelease = [[result objectForKey:@"shouldRelease"] boolValue];
+  
+    CIContext* tempContext = [CIContext contextWithOptions:nil];
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    NSUInteger bytesPerRow = ciImage.extent.size.width * 4;
+    NSMutableData *bitmapData = [NSMutableData dataWithLength:bytesPerRow * ciImage.extent.size.height];
+    [tempContext render:ciImage toBitmap:bitmapData.mutableBytes rowBytes:bytesPerRow bounds:ciImage.extent format:kCIFormatRGBA8 colorSpace:colorSpace];
+    CGColorSpaceRelease(colorSpace);
+
+    if (shouldRelease)
+        CVPixelBufferRelease(pixelBufferRef);
+    if(frame.rotation == RTCVideoRotation_90 || frame.rotation == RTCVideoRotation_180){
+      return [[PhotographFormat alloc] initWidthData:bitmapData width:frame.height height:frame.width format:KRGBA];
+    }
+    return [[PhotographFormat alloc] initWidthData:bitmapData width:frame.width height:frame.height format:KRGBA];
+}
+
+- (NSDictionary *)createPixelBufferAndImage:(RTCVideoFrame *)frame {
     id<RTCVideoFrameBuffer> buffer = frame.buffer;
     CVPixelBufferRef pixelBufferRef;
     bool shouldRelease;
@@ -53,26 +162,16 @@
     } else {
       outputSize = CGRectMake(0, 0, frame.width, frame.height);
     }
-    CIContext* tempContext = [CIContext contextWithOptions:nil];
-    CGImageRef cgImage = [tempContext createCGImage:ciImage fromRect:outputSize];
-    NSData* imageData;
-    #if TARGET_OS_IPHONE
-    UIImage* uiImage = [UIImage imageWithCGImage:cgImage];
-    imageData = UIImageJPEGRepresentation(uiImage, 1.0f);
-    #else
-    NSBitmapImageRep* newRep = [[NSBitmapImageRep alloc] initWithCGImage:cgImage];
-    [newRep setSize:NSSizeToCGSize(outputSize.size)];
-    NSDictionary<NSBitmapImageRepPropertyKey, id>* quality = @{NSImageCompressionFactor : @1.0f};
-    imageData = [newRep representationUsingType:NSJPEGFileType properties:quality];
-    #endif
-    CGImageRelease(cgImage);
-    if (shouldRelease)
-      CVPixelBufferRelease(pixelBufferRef);
-    
-    return imageData;
+    NSDictionary *result = @{
+        @"pixelBufferRef": (__bridge id)pixelBufferRef,
+        @"ciImage": ciImage,
+        @"outputSize": [NSValue valueWithCGRect:outputSize],
+        @"shouldRelease": [NSNumber numberWithBool:shouldRelease]
+    };
+    return result;
 }
 
-+ (CVPixelBufferRef)convertToCVPixelBuffer:(RTCVideoFrame*)frame {
+- (CVPixelBufferRef)convertToCVPixelBuffer:(RTCVideoFrame*)frame {
   id<RTCI420Buffer> i420Buffer = [frame.buffer toI420];
   CVPixelBufferRef outputPixelBuffer;
   size_t w = (size_t)roundf(i420Buffer.width);

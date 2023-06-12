@@ -9,7 +9,6 @@
 #import <objc/runtime.h>
 
 #import "FlutterWebRTCPlugin.h"
-#import "FlutterRTCVideoFrameTransform.h"
 
 @implementation FlutterRTCVideoRenderer {
   CGSize _frameSize;
@@ -234,21 +233,26 @@
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
       if(strongSelf.eventSink) {
           if([strongSelf.exportFrame.frameCount intValue] == -1) {
-              strongSelf.eventSink(@{
-                @"event" : @"onVideoFrame",
-                @"id" : @(strongSelf.textureId),
-                @"data" : [RTCVideoFrameTransform transform:frame format:weakSelf.exportFrame.format]
-              });
+              [self onFrameCallback:frame];
           }else if([weakSelf.exportFrame.frameCount intValue] == weakSelf.frameCount) {
-              strongSelf.eventSink(@{
-                @"event" : @"onVideoFrame",
-                @"id" : @(strongSelf.textureId),
-                @"data" : [RTCVideoFrameTransform transform:frame format:weakSelf.exportFrame.format]
-              });
+              [self onFrameCallback:frame];
           }
           weakSelf.frameCount++;
       }
   }
+}
+
+- (void)onFrameCallback:(RTCVideoFrame*)frame {
+    __weak FlutterRTCVideoRenderer* weakSelf = self;
+    PhotographFormat* transformResult = [RTCVideoFrameTransform transform:frame format:weakSelf.exportFrame.format];
+    weakSelf.eventSink(@{
+      @"event" : @"onVideoFrame",
+      @"id" : @(weakSelf.textureId),
+      @"data" : transformResult.data,
+      @"width" : @(transformResult.width),
+      @"height" : @(transformResult.height),
+      @"format" : transformResult.format
+    });
 }
 
 /**
