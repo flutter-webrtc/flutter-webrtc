@@ -62,7 +62,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       "frameCount": exportFrame != null ? exportFrame.frameCount : -1,
       "format": exportFrame != null
           ? exportFrame.format.getStringValue()
-          : RTCVideoFrameFormat.KMJPEG
+          : RTCVideoFrameFormat.KMJPEG.getStringValue()
     });
     _textureId = response['textureId'];
     _eventSubscription = EventChannel('FlutterWebRTC/Texture$textureId')

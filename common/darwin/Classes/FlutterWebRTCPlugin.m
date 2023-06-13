@@ -667,7 +667,7 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
       @"KI420" : @(KI420),
       @"KRGBA" : @(KRGBA)
     };
-    BOOL enabledExportFrame = argsMap[@"enabledExportFrame"];
+    BOOL enabledExportFrame = [argsMap[@"enabledExportFrame"] boolValue];
     NSNumber* frameCount = argsMap[@"frameCount"];
     RTCVideoFrameFormat format = [frameFormatMapping[argsMap[@"format"]] integerValue];
     FlutterRTCVideoRenderer* render = [self createWithTextureRegistry:_textures

@@ -31,7 +31,7 @@ import io.flutter.plugin.common.BinaryMessenger;
  * Interaction from C++ rtc::VideoSinkInterface in renderFrame.
  * Interaction from SurfaceHolder lifecycle in surfaceCreated, surfaceChanged, and surfaceDestroyed.
  */
-public class SurfaceTextureRenderer extends EglRenderer{
+public class SurfaceTextureRenderer extends EglRenderer {
   // Callback for reporting renderer events. Read-only after initilization so no lock required.
   private RendererCommon.RendererEvents rendererEvents;
   private final Object layoutLock = new Object();
