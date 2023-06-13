@@ -98,7 +98,7 @@
     #endif
     CGImageRelease(cgImage);
     if (shouldRelease)
-//        CVPixelBufferRelease(pixelBufferRef);
+       CVPixelBufferRelease(pixelBufferRef);
     if(frame.rotation == RTCVideoRotation_90 || frame.rotation == RTCVideoRotation_180){
       return [[PhotographFormat alloc] initWidthData:imageData width:frame.height height:frame.width format:KMJPEG];
     }
@@ -116,7 +116,7 @@
     NSUInteger bytesPerRow = ciImage.extent.size.width * 4;
     NSMutableData *bitmapData = [NSMutableData dataWithLength:bytesPerRow * ciImage.extent.size.height];
     [tempContext render:ciImage toBitmap:bitmapData.mutableBytes rowBytes:bytesPerRow bounds:ciImage.extent format:kCIFormatRGBA8 colorSpace:colorSpace];
-//    CGColorSpaceRelease(colorSpace);
+    CGColorSpaceRelease(colorSpace);
 
     if (shouldRelease)
         CVPixelBufferRelease(pixelBufferRef);

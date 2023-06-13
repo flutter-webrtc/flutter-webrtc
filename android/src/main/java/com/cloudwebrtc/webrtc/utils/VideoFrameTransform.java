@@ -17,7 +17,7 @@ import java.io.ByteArrayOutputStream;
 
 public class VideoFrameTransform {
     PhotographFormat i420Data;
-    float rotation;
+    int rotation;
     public static enum RTCVideoFrameFormat {
         KI420,
         KRGBA,
@@ -113,14 +113,25 @@ public class VideoFrameTransform {
         if(rotation == 0) {
             return jpegData;
         }
-        Bitmap bitmap = BitmapFactory.decodeByteArray(jpegData, 0, jpegData.length);
-        Matrix matrix = new Matrix();
-        matrix.postRotate(rotation);
-        Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-        byte[] rotatedJpegData = outputStream.toByteArray();
-
-        return rotatedJpegData;
+        switch (rotation) {
+            case 0:
+                break;
+            case 90:
+            case 180:
+            case 270:
+                Bitmap bitmap = BitmapFactory.decodeByteArray(jpegData, 0, jpegData.length);
+                Matrix matrix = new Matrix();
+                Bitmap rotatedBitmap;
+                matrix.postRotate(rotation);
+                rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+                byte[] rotatedJpegData = outputStream.toByteArray();
+                return rotatedJpegData;
+            default:
+                // Rotation is checked to always be 0, 90, 180 or 270 by VideoFrame
+                throw new RuntimeException("Invalid rotation");
+        }
+        return jpegData;
     }
 }

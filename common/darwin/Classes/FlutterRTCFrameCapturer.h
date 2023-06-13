@@ -5,6 +5,8 @@
 #endif
 #import <WebRTC/WebRTC.h>
 
+#import "FlutterRTCVideoFrameTransform.h"
+
 @interface FlutterRTCFrameCapturer : NSObject <RTCVideoRenderer>
 
 - (instancetype)initWithTrack:(RTCVideoTrack*)track
