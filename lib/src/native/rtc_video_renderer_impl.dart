@@ -8,11 +8,7 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 import '../helper.dart';
 import 'utils.dart';
 
-enum RTCVideoFrameFormat {
-  KI420, // NV12
-  KRGBA,
-  KMJPEG
-}
+enum RTCVideoFrameFormat { KI420, KRGBA, KMJPEG } // KI420 use NV12
 
 extension RTCVideoFrameFormatExtension on RTCVideoFrameFormat {
   String getStringValue() {
@@ -37,6 +33,13 @@ class RTCVideoFrame {
   int height;
 }
 
+class ExportFrame {
+  ExportFrame({this.enabledExportFrame=false, this.frameCount=-1, this.format=RTCVideoFrameFormat.KMJPEG});
+  final bool enabledExportFrame;
+  final int frameCount;
+  final RTCVideoFrameFormat format;
+}
+
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     implements VideoRenderer {
   RTCVideoRenderer() : super(RTCVideoValue.empty);
@@ -46,17 +49,14 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   Function(RTCVideoFrame frame)? onFrame;
 
   @override
-  Future<void> initialize(
-      {bool enabledExportFrame = false,
-      int? frameCount = -1,
-      RTCVideoFrameFormat format = RTCVideoFrameFormat.KMJPEG}) async {
+  Future<void> initialize({ExportFrame? exportFrame}) async {
     if (_textureId != null) {
       return;
     }
     final response = await WebRTC.invokeMethod('createVideoRenderer', {
-      "enabledExportFrame": enabledExportFrame,
-      "frameCount": frameCount,
-      "format": format.getStringValue()
+      "enabledExportFrame": exportFrame != null ? exportFrame.enabledExportFrame : false,
+      "frameCount": exportFrame != null ? exportFrame.frameCount : -1,
+      "format": exportFrame != null ? exportFrame.format.getStringValue() : RTCVideoFrameFormat.KMJPEG
     });
     _textureId = response['textureId'];
     _eventSubscription = EventChannel('FlutterWebRTC/Texture$textureId')
