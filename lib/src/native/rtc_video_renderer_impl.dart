@@ -34,7 +34,10 @@ class RTCVideoFrame {
 }
 
 class ExportFrame {
-  ExportFrame({this.enabledExportFrame=false, this.frameCount=-1, this.format=RTCVideoFrameFormat.KMJPEG});
+  ExportFrame(
+      {this.enabledExportFrame = false,
+      this.frameCount = -1,
+      this.format = RTCVideoFrameFormat.KMJPEG});
   final bool enabledExportFrame;
   final int frameCount;
   final RTCVideoFrameFormat format;
@@ -54,9 +57,12 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       return;
     }
     final response = await WebRTC.invokeMethod('createVideoRenderer', {
-      "enabledExportFrame": exportFrame != null ? exportFrame.enabledExportFrame : false,
+      "enabledExportFrame":
+          exportFrame != null ? exportFrame.enabledExportFrame : false,
       "frameCount": exportFrame != null ? exportFrame.frameCount : -1,
-      "format": exportFrame != null ? exportFrame.format.getStringValue() : RTCVideoFrameFormat.KMJPEG
+      "format": exportFrame != null
+          ? exportFrame.format.getStringValue()
+          : RTCVideoFrameFormat.KMJPEG
     });
     _textureId = response['textureId'];
     _eventSubscription = EventChannel('FlutterWebRTC/Texture$textureId')
