@@ -116,6 +116,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     await _mediaRecorder!.start(
       filePath,
       videoTrack: videoTrack,
+      audioChannel: RecorderAudioChannel.INPUT
     );
   }
 
