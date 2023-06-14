@@ -2,6 +2,10 @@
 
 --------------------------------------------
 
+[0.9.34] - 2023-06-14
+
+* [Web] fix facingMode for flutter web mobile.
+
 [0.9.33] - 2023-06-08
 
 * [Android] fix frame drops for android.
