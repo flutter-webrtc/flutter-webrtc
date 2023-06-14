@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   collection: ^1.16.0
-  dart_webrtc: 1.0.16
+  dart_webrtc: 1.0.17
   flutter:
     sdk: flutter
   js: ^0.6.4
