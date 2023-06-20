@@ -21,7 +21,7 @@ extension IOSAudioModeExt on IOSAudioMode {
 }
 
 extension IOSAudioModeEnumEx on String {
-  IOSAudioMode toEnum() =>
+  IOSAudioMode toIOSAudioMode() =>
       IOSAudioMode.values.firstWhere((d) => describeEnum(d) == toLowerCase());
 }
 
@@ -103,7 +103,7 @@ class Helper {
   static Future<IOSAudioMode> getAudioSessionMode() async {
     if (WebRTC.platformIsIOS) {
       final mode = await WebRTC.invokeMethod('getAudioSessionMode');
-      return mode.toString().toEnum();
+      return mode.toString().toIOSAudioMode();
     }
     return IOSAudioMode.default_;
   }
