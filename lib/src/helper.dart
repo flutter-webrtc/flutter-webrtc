@@ -4,6 +4,27 @@ import 'package:flutter/services.dart';
 import '../flutter_webrtc.dart';
 import 'native/media_stream_track_impl.dart';
 
+enum IOSAudioMode {
+  default_,
+  gameChat,
+  measurement,
+  moviePlayback,
+  spokenAudio,
+  videoChat,
+  videoRecording,
+  voiceChat,
+  voicePrompt,
+}
+
+extension IOSAudioModeExt on IOSAudioMode {
+  String get value => describeEnum(this);
+}
+
+extension IOSAudioModeEnumEx on String {
+  IOSAudioMode toEnum() =>
+      IOSAudioMode.values.firstWhere((d) => describeEnum(d) == toLowerCase());
+}
+
 class Helper {
   static Future<List<MediaDeviceInfo>> enumerateDevices(String type) async {
     var devices = await navigator.mediaDevices.enumerateDevices();
@@ -64,6 +85,27 @@ class Helper {
   /// for iOS/Android only
   static Future<void> setSpeakerphoneOnButPreferBluetooth() async {
     await WebRTC.invokeMethod('enableSpeakerphoneButPreferBluetooth');
+  }
+
+  /// Set audio session mode for iOS
+  /// for iOS only
+  static Future<void> setAudioSessionMode(IOSAudioMode mode) async {
+    if (WebRTC.platformIsIOS) {
+      await WebRTC.invokeMethod(
+        'setAudioSessionMode',
+        <String, dynamic>{'mode': mode.value},
+      );
+    }
+  }
+
+  /// Get audio session mode for iOS
+  /// for iOS only
+  static Future<IOSAudioMode> getAudioSessionMode() async {
+    if (WebRTC.platformIsIOS) {
+      final mode = await WebRTC.invokeMethod('getAudioSessionMode');
+      return mode.toString().toEnum();
+    }
+    return IOSAudioMode.default_;
   }
 
   /// To select a a specific camera, you need to set constraints

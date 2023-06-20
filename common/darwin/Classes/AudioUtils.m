@@ -15,7 +15,6 @@
     config.category = AVAudioSessionCategoryPlayAndRecord;
     config.categoryOptions =
         AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP;
-    config.mode = AVAudioSessionModeVideoChat;
 
     [session lockForConfiguration];
     [session setCategory:config.category withOptions:config.categoryOptions error:nil];
@@ -129,6 +128,62 @@
       NSLog(@"RTC AudioSession deactive is successful ");
   }
   [session unlockForConfiguration];
+}
+
++ (void) setAudioSessionMode:(NSString*)mode {
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
+  [session lockForConfiguration];
+
+  if([@"default_" isEqualToString:mode]) {
+    config.mode = AVAudioSessionModeDefault;
+  } else if([@"voicePrompt" isEqualToString:mode]) {
+    config.mode = AVAudioSessionModeVoicePrompt;
+  } else if([@"videoRecording" isEqualToString:mode]) {
+    config.mode = AVAudioSessionModeVideoRecording;
+  } else if([@"videoChat" isEqualToString:mode]) {
+    config.mode = AVAudioSessionModeVideoChat;
+  } else if([@"voiceChat" isEqualToString:mode]) {
+    config.mode = AVAudioSessionModeVoiceChat;
+  } else if([@"gameChat" isEqualToString:mode]) {
+    config.mode = AVAudioSessionModeGameChat;
+  } else if([@"measurement" isEqualToString:mode]) {
+    config.mode = AVAudioSessionModeMeasurement;
+  } else if([@"moviePlayback" isEqualToString:mode]) {
+    config.mode = AVAudioSessionModeMoviePlayback;
+  } else if([@"spokenAudio" isEqualToString:mode]) {
+    config.mode = AVAudioSessionModeSpokenAudio;
+  } else {
+    config.mode = AVAudioSessionModeDefault;
+  }
+
+  [session setMode:config.mode error:nil];
+  [session unlockForConfiguration];
+}
+
++ (NSString*) getAudioSessionMode {
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  if(session.mode == AVAudioSessionModeDefault) {
+    return @"default_";
+  } else if(session.mode == AVAudioSessionModeVoicePrompt) {
+    return @"voicePrompt";
+  } else if(session.mode == AVAudioSessionModeVideoRecording) {
+    return @"videoRecording";
+  } else if(session.mode == AVAudioSessionModeVideoChat) {
+    return @"videoChat";
+  } else if(session.mode == AVAudioSessionModeVoiceChat) {
+    return @"voiceChat";
+  } else if(session.mode == AVAudioSessionModeGameChat) {
+    return @"gameChat";
+  } else if(session.mode == AVAudioSessionModeMeasurement) {
+    return @"measurement";
+  } else if(session.mode == AVAudioSessionModeMoviePlayback) {
+    return @"moviePlayback";
+  } else if(session.mode == AVAudioSessionModeSpokenAudio) {
+    return @"spokenAudio";
+  } else {
+    return @"default_";
+  }
 }
 
 @end

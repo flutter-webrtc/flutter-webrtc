@@ -796,6 +796,16 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
     [AudioUtils setSpeakerphoneOnButPreferBluetooth];
     result(nil);
   }
+  else if([@"setAudioSessionMode" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* mode = argsMap[@"mode"];
+    [AudioUtils setAudioSessionMode:mode];
+    result(nil);
+  }
+  else if([@"getAudioSessionMode" isEqualToString:call.method]) {
+    NSString *mode = [AudioUtils getAudioSessionMode];
+    result(mode);
+  }
 #endif
   else if ([@"getLocalDescription" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
