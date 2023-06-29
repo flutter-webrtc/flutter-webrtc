@@ -272,7 +272,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
   NSRect imageRect = NSMakeRect(0.0, 0.0, width, height);
 
   [newImage lockFocus];
-  [sourceImage drawInRect:thumbnailRect fromRect:imageRect operation:NSCompositeCopy fraction:1.0];
+    [sourceImage drawInRect:thumbnailRect fromRect:imageRect operation:NSCompositingOperationCopy fraction:1.0];
   [newImage unlockFocus];
 
   return newImage;

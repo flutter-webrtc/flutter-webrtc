@@ -44,9 +44,6 @@
 
 - (void)keyProviderRatchetKey:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;
-                        
-- (void)keyProviderGetKeys:(nonnull NSDictionary*)constraints
-                            result:(nonnull FlutterResult)result;   
 
 - (void)keyProviderDispose:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;
