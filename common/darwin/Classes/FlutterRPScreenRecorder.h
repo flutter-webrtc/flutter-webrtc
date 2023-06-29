@@ -1,5 +1,5 @@
-#import <WebRTC/WebRTC.h>
 #if TARGET_OS_IPHONE
+#import <WebRTC/WebRTC.h>
 @interface FlutterRPScreenRecorder : RTCVideoCapturer
 
 - (void)startCapture;
