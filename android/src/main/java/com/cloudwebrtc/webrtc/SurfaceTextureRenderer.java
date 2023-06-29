@@ -1,6 +1,7 @@
 package com.cloudwebrtc.webrtc;
 
 import android.graphics.SurfaceTexture;
+import android.util.Log;
 
 import org.webrtc.EglBase;
 import org.webrtc.EglRenderer;
@@ -10,6 +11,17 @@ import org.webrtc.ThreadUtils;
 import org.webrtc.VideoFrame;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Function;
+
+import com.cloudwebrtc.webrtc.utils.VideoFrameTransform;
+import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
+import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
+import com.cloudwebrtc.webrtc.utils.ExportFrame;
+
+
+import io.flutter.plugin.common.EventChannel;
+import io.flutter.plugin.common.BinaryMessenger;
+
 
 /**
  * Display the video stream on a Surface.
@@ -28,6 +40,10 @@ public class SurfaceTextureRenderer extends EglRenderer {
   private int rotatedFrameWidth;
   private int rotatedFrameHeight;
   private int frameRotation;
+  private EventChannel.EventSink eventSink;
+  private int id;
+  private ExportFrame exportFrame;
+  private int frameCount;
 
   /**
    * In order to render something, you must first call init().
@@ -37,7 +53,8 @@ public class SurfaceTextureRenderer extends EglRenderer {
   }
 
   public void init(final EglBase.Context sharedContext,
-                   RendererCommon.RendererEvents rendererEvents) {
+                   RendererCommon.RendererEvents rendererEvents, ExportFrame exportFrame) {
+    this.exportFrame = exportFrame;
     init(sharedContext, rendererEvents, EglBase.CONFIG_PLAIN, new GlRectDrawer());
   }
 
@@ -97,7 +114,30 @@ public class SurfaceTextureRenderer extends EglRenderer {
   public void onFrame(VideoFrame frame) {
     updateFrameDimensionsAndReportEvents(frame);
     super.onFrame(frame);
+    if(exportFrame.enabledExportFrame && eventSink != null) {
+      // if exportFrame.frameCount == -1, keep callback
+      // else only once frame caputure
+      if(exportFrame.frameCount == -1) {
+        onFrameCallback(frame);
+      } else if(frameCount == exportFrame.frameCount) {
+        onFrameCallback(frame);
+      }
+      frameCount++;
+    }
   }
+
+  private void onFrameCallback(VideoFrame frame) {
+    VideoFrameTransform.PhotographFormat transformResult = VideoFrameTransform.transform(frame, exportFrame.format);
+    ConstraintsMap params = new ConstraintsMap();
+    params.putString("event", "onVideoFrame");
+    params.putInt("id", id);
+    params.putByte("data", transformResult.data);
+    params.putInt("width", transformResult.width);
+    params.putInt("height", transformResult.height);
+    params.putString("format", transformResult.format.name());
+    eventSink.success(params.toMap());
+  }
+
 
   private SurfaceTexture texture;
 
@@ -105,6 +145,11 @@ public class SurfaceTextureRenderer extends EglRenderer {
     ThreadUtils.checkIsOnMainThread();
     this.texture = texture;
     createEglSurface(texture);
+  }
+
+  public void setEventSink(EventChannel.EventSink sink, int id){
+    this.eventSink = sink;
+    this.id = id;
   }
 
   public void surfaceDestroyed() {

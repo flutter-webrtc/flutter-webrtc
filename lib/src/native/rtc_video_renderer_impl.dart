@@ -8,19 +8,62 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 import '../helper.dart';
 import 'utils.dart';
 
+enum RTCVideoFrameFormat { KI420, KRGBA, KMJPEG } // KI420 use NV12
+
+extension RTCVideoFrameFormatExtension on RTCVideoFrameFormat {
+  String getStringValue() {
+    switch (this) {
+      case RTCVideoFrameFormat.KI420:
+        return "KI420";
+      case RTCVideoFrameFormat.KMJPEG:
+        return "KMJPEG";
+      case RTCVideoFrameFormat.KRGBA:
+        return "KRGBA";
+      default:
+        return "";
+    }
+  }
+}
+
+class RTCVideoFrame {
+  RTCVideoFrame(this.format, this.data, this.width, this.height);
+  RTCVideoFrameFormat format;
+  Uint8List data;
+  int width;
+  int height;
+}
+
+class ExportFrame {
+  ExportFrame(
+      {this.enabledExportFrame = false,
+      this.frameCount = -1,
+      this.format = RTCVideoFrameFormat.KMJPEG});
+  final bool enabledExportFrame;
+  final int frameCount;
+  final RTCVideoFrameFormat format;
+}
+
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     implements VideoRenderer {
   RTCVideoRenderer() : super(RTCVideoValue.empty);
   int? _textureId;
   MediaStream? _srcObject;
   StreamSubscription<dynamic>? _eventSubscription;
+  Function(RTCVideoFrame frame)? onFrame;
 
   @override
-  Future<void> initialize() async {
+  Future<void> initialize({ExportFrame? exportFrame}) async {
     if (_textureId != null) {
       return;
     }
-    final response = await WebRTC.invokeMethod('createVideoRenderer', {});
+    final response = await WebRTC.invokeMethod('createVideoRenderer', {
+      "enabledExportFrame":
+          exportFrame != null ? exportFrame.enabledExportFrame : false,
+      "frameCount": exportFrame != null ? exportFrame.frameCount : -1,
+      "format": exportFrame != null
+          ? exportFrame.format.getStringValue()
+          : RTCVideoFrameFormat.KMJPEG.getStringValue()
+    });
     _textureId = response['textureId'];
     _eventSubscription = EventChannel('FlutterWebRTC/Texture$textureId')
         .receiveBroadcastStream()
@@ -109,7 +152,22 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
         value = value.copyWith(renderVideo: renderVideo);
         onFirstFrameRendered?.call();
         break;
+      case 'onVideoFrame':
+        Uint8List data = map['data'];
+        int width = map['width'];
+        int height = map['height'];
+        String format = map['format'];
+        onFrame
+            ?.call(RTCVideoFrame(stringToEnum(format)!, data, width, height));
+        break;
     }
+  }
+
+  RTCVideoFrameFormat? stringToEnum(String value) {
+    return RTCVideoFrameFormat.values.firstWhere(
+      (e) => e.toString().split('.').last == value,
+      orElse: () => RTCVideoFrameFormat.KMJPEG,
+    );
   }
 
   void errorListener(Object obj) {

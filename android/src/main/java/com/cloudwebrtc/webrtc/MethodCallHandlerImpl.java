@@ -29,6 +29,8 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
+import com.cloudwebrtc.webrtc.utils.VideoFrameTransform;
+import com.cloudwebrtc.webrtc.utils.ExportFrame;
 
 import com.twilio.audioswitch.AudioDevice;
 
@@ -394,9 +396,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       case "createVideoRenderer": {
+        Boolean enabledExportFrame = call.argument("enabledExportFrame");
+        int frameCount = call.argument("frameCount");
+        String format = call.argument("format");
         SurfaceTextureEntry entry = textures.createSurfaceTexture();
         SurfaceTexture surfaceTexture = entry.surfaceTexture();
-        FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, entry);
+        ExportFrame exportFrame = new ExportFrame(enabledExportFrame, frameCount, VideoFrameTransform.RTCVideoFrameFormat.valueOf(format));
+        FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, entry, exportFrame);
         renders.put(entry.id(), render);
 
         EventChannel eventChannel =
