@@ -7,7 +7,6 @@ export 'src/helper.dart';
 export 'src/desktop_capturer.dart';
 export 'src/media_devices.dart';
 export 'src/media_recorder.dart';
-export 'src/frame_cryptor.dart';
 export 'src/native/factory_impl.dart'
     if (dart.library.html) 'src/web/factory_impl.dart';
 export 'src/native/rtc_video_renderer_impl.dart'

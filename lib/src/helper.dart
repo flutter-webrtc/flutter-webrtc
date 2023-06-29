@@ -184,7 +184,8 @@ class Helper {
     return Future.value();
   }
 
-  static void setMicrophoneMute(bool mute, MediaStreamTrack track) async {
+  static Future<void> setMicrophoneMute(
+      bool mute, MediaStreamTrack track) async {
     if (track.kind != 'audio') {
       throw 'The is not an audio track => $track';
     }
