@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
-import '../frame_cryptor.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
 import 'utils.dart';
