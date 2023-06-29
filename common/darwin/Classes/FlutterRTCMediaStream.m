@@ -656,7 +656,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
 
   NSArray* inputDevices = [audioDeviceModule inputDevices];
-  for (RTCAudioDevice* device in inputDevices) {
+  for (RTCIODevice* device in inputDevices) {
     [sources addObject:@{
       @"facing" : @"",
       @"deviceId" : device.deviceId,
@@ -666,7 +666,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   }
 
   NSArray* outputDevices = [audioDeviceModule outputDevices];
-  for (RTCAudioDevice* device in outputDevices) {
+  for (RTCIODevice* device in outputDevices) {
     [sources addObject:@{
       @"facing" : @"",
       @"deviceId" : device.deviceId,
@@ -682,7 +682,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 #if TARGET_OS_OSX
   RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
   NSArray* inputDevices = [audioDeviceModule inputDevices];
-  for (RTCAudioDevice* device in inputDevices) {
+  for (RTCIODevice* device in inputDevices) {
     if ([deviceId isEqualToString:device.deviceId]) {
       [audioDeviceModule setInputDevice:device];
       if (result)
@@ -715,7 +715,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 #if TARGET_OS_OSX
   RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
   NSArray* outputDevices = [audioDeviceModule outputDevices];
-  for (RTCAudioDevice* device in outputDevices) {
+  for (RTCIODevice* device in outputDevices) {
     if ([deviceId isEqualToString:device.deviceId]) {
       [audioDeviceModule setOutputDevice:device];
       result(nil);
