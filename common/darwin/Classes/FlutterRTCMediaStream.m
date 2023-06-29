@@ -474,9 +474,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     videoTrack.settings = @{
       @"deviceId" : videoDeviceId,
       @"kind" : @"videoinput",
-      @"width" : [NSNumber numberWithInt:targetWidth],
-      @"height" : [NSNumber numberWithInt:targetHeight],
-      @"frameRate" : [NSNumber numberWithInt:selectedFps],
+      @"width" : [NSNumber numberWithInteger:targetWidth ],
+      @"height" : [NSNumber numberWithInteger:targetHeight],
+      @"frameRate" : [NSNumber numberWithInteger:selectedFps],
       @"facingMode" : facingMode,
     };
 
@@ -767,12 +767,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   }
 }
 
-- (void)mediaStreamTrackSetEnabled:(RTCMediaStreamTrack*)track:(BOOL)enabled {
-  if (track && track.isEnabled != enabled) {
-    track.isEnabled = enabled;
-  }
-}
-
 - (void)mediaStreamTrackHasTorch:(RTCMediaStreamTrack*)track result:(FlutterResult)result {
   if (!self.videoCapturer) {
     result(@NO);
@@ -882,12 +876,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   NSArray<AVCaptureDeviceFormat*>* formats =
       [RTCCameraVideoCapturer supportedFormatsForDevice:device];
   AVCaptureDeviceFormat* selectedFormat = nil;
-  int currentDiff = INT_MAX;
+  long currentDiff = INT_MAX;
   for (AVCaptureDeviceFormat* format in formats) {
     CMVideoDimensions dimension = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
     FourCharCode pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription);
     //NSLog(@"AVCaptureDeviceFormats,fps %d, dimension: %dx%d", format.videoSupportedFrameRateRanges, dimension.width, dimension.height);
-    int diff = abs(targetWidth - dimension.width) + abs(targetHeight - dimension.height);
+      long diff = labs(targetWidth - dimension.width) + labs(targetHeight - dimension.height);
     if (diff < currentDiff) {
       selectedFormat = format;
       currentDiff = diff;
