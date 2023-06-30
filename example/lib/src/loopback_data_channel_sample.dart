@@ -115,10 +115,12 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
     });
 
     Timer(const Duration(seconds: 1), () {
-      setState(() {
-        _dc1Status = '';
-        _dc2Status = '';
-      });
+      if (mounted) {
+        setState(() {
+          _dc1Status = '';
+          _dc2Status = '';
+        });
+      }
     });
   }
 

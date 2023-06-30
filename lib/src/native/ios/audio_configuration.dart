@@ -87,40 +87,44 @@ enum AppleAudioIOMode {
   localAndRemote,
 }
 
-AppleAudioConfiguration getAppleAudioConfigurationForMode(AppleAudioIOMode mode,
-    {bool preferSpeakerOutput = false}) {
-  if (mode == AppleAudioIOMode.remoteOnly) {
+class AppleNativeAudioManagement {
+  static AppleAudioIOMode currentMode = AppleAudioIOMode.none;
+
+  static AppleAudioConfiguration getAppleAudioConfigurationForMode(
+      AppleAudioIOMode mode,
+      {bool preferSpeakerOutput = false}) {
+    currentMode = mode;
+    if (mode == AppleAudioIOMode.remoteOnly) {
+      return AppleAudioConfiguration(
+        appleAudioCategory: AppleAudioCategory.playback,
+        appleAudioCategoryOptions: {
+          AppleAudioCategoryOption.mixWithOthers,
+        },
+        appleAudioMode: AppleAudioMode.spokenAudio,
+      );
+    } else if ([
+      AppleAudioIOMode.localOnly,
+      AppleAudioIOMode.localAndRemote,
+    ].contains(mode)) {
+      return AppleAudioConfiguration(
+        appleAudioCategory: AppleAudioCategory.playAndRecord,
+        appleAudioCategoryOptions: {
+          AppleAudioCategoryOption.allowBluetooth,
+          AppleAudioCategoryOption.mixWithOthers,
+        },
+        appleAudioMode: preferSpeakerOutput
+            ? AppleAudioMode.videoChat
+            : AppleAudioMode.voiceChat,
+      );
+    }
+
     return AppleAudioConfiguration(
-      appleAudioCategory: AppleAudioCategory.playback,
-      appleAudioCategoryOptions: {
-        AppleAudioCategoryOption.mixWithOthers,
-      },
-      appleAudioMode: AppleAudioMode.spokenAudio,
-    );
-  } else if ([
-    AppleAudioIOMode.localOnly,
-    AppleAudioIOMode.localAndRemote,
-  ].contains(mode)) {
-    return AppleAudioConfiguration(
-      appleAudioCategory: AppleAudioCategory.playAndRecord,
-      appleAudioCategoryOptions: {
-        AppleAudioCategoryOption.allowBluetooth,
-        AppleAudioCategoryOption.mixWithOthers,
-      },
-      appleAudioMode: preferSpeakerOutput
-          ? AppleAudioMode.videoChat
-          : AppleAudioMode.voiceChat,
+      appleAudioCategory: AppleAudioCategory.soloAmbient,
+      appleAudioCategoryOptions: {},
+      appleAudioMode: AppleAudioMode.default_,
     );
   }
 
-  return AppleAudioConfiguration(
-    appleAudioCategory: AppleAudioCategory.soloAmbient,
-    appleAudioCategoryOptions: {},
-    appleAudioMode: AppleAudioMode.default_,
-  );
-}
-
-class AppleNativeAudioManagement {
   static Future<void> setAppleAudioConfiguration(
       AppleAudioConfiguration config) async {
     if (WebRTC.platformIsIOS) {

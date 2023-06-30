@@ -123,9 +123,15 @@ class Helper {
       NativeAudioManagement.setMicrophoneMute(mute, track);
 
   /// Set the audio configuration for iOS
-  static Future<void> setAppleAudioConfiguration(AppleAudioIOMode mode,
+  static Future<void> setAppleAudioConfiguration(
+          AppleAudioConfiguration appleAudioConfiguration) =>
+      AppleNativeAudioManagement.setAppleAudioConfiguration(
+          appleAudioConfiguration);
+
+  /// Set the audio configuration for iOS
+  static Future<void> setAppleAudioIOMode(AppleAudioIOMode mode,
           {bool preferSpeakerOutput = false}) =>
       AppleNativeAudioManagement.setAppleAudioConfiguration(
-          getAppleAudioConfigurationForMode(mode,
+          AppleNativeAudioManagement.getAppleAudioConfigurationForMode(mode,
               preferSpeakerOutput: preferSpeakerOutput));
 }
