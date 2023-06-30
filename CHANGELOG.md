@@ -1,6 +1,13 @@
 # Changelog
 
 --------------------------------------------
+[0.9.35] - 2023-06-30
+
+* [iOS] feat: expose audio mode for ios.
+* [Darwin] fix: compiler warning for Darwin.
+* [Dart] Fix setMicrophoneMute() not awaitable.
+* [Native] Update libwebrtc to m114.
+* [Dart/Web] Separate frame cryptor to dart-webrtc.
 
 [0.9.34] - 2023-06-14
 
