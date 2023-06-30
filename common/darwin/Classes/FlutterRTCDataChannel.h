@@ -1,4 +1,3 @@
-#import <WebRTC/RTCDataChannel.h>
 #import "FlutterWebRTCPlugin.h"
 
 @interface RTCDataChannel (Flutter) <FlutterStreamHandler>

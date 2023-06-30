@@ -1,7 +1,4 @@
 #import <objc/runtime.h>
-
-#import <WebRTC/WebRTC.h>
-
 #import "AudioUtils.h"
 #import "FlutterRTCFrameCapturer.h"
 #import "FlutterRTCMediaStream.h"
