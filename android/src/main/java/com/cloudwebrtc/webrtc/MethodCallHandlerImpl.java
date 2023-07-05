@@ -138,7 +138,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mPeerConnectionObservers.clear();
   }
 
-  private void ensureInitialized() {
+  private void initialize(int networkIgnoreMask) {
     if (mFactory != null) {
       return;
     }
@@ -163,8 +163,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     getUserMediaImpl.audioDeviceModule = (JavaAudioDeviceModule) audioDeviceModule;
 
+    final Options options = new Options();
+    options.networkIgnoreMask = networkIgnoreMask;
+
     mFactory = PeerConnectionFactory.builder()
-            .setOptions(new Options())
+            .setOptions(options)
             .setVideoEncoderFactory(new SimulcastVideoEncoderFactoryWrapper(eglContext, true, true))
             .setVideoDecoderFactory(new WrappedVideoDecoderFactory(eglContext))
             .setAudioDeviceModule(audioDeviceModule)
@@ -173,10 +176,45 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   @Override
   public void onMethodCall(MethodCall call, @NonNull Result notSafeResult) {
-    ensureInitialized();
 
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
+      case "initialize": {
+        int networkIgnoreMask = 0;
+        Map<String, Object> options = call.argument("options");
+        ConstraintsMap constraintsMap = new ConstraintsMap(options);
+        if (constraintsMap.hasKey("networkIgnoreMask")
+                && constraintsMap.getType("networkIgnoreMask") == ObjectType.Array) {
+          final ConstraintsArray ignoredAdapters = constraintsMap.getArray("networkIgnoreMask");
+          if (ignoredAdapters != null) {
+            for (Object adapter : ignoredAdapters.toArrayList()) {
+              switch (adapter.toString()) {
+                case "adapterTypeEthernet":
+                  networkIgnoreMask += 1;
+                  break;
+                case "adapterTypeWifi":
+                  networkIgnoreMask += (1 << 1);
+                  break;
+                case "adapterTypeCellular":
+                  networkIgnoreMask += (1 << 2);
+                  break;
+                case "adapterTypeVpn":
+                  networkIgnoreMask += (1 << 3);
+                  break;
+                case "adapterTypeLoopback":
+                  networkIgnoreMask += (1 << 4);
+                  break;
+                case "adapterTypeAny":
+                  networkIgnoreMask += (1 << 5);
+                  break;
+              }
+            }
+
+          }
+        }
+        initialize(networkIgnoreMask);
+        result.success(null);
+      }
       case "createPeerConnection": {
         Map<String, Object> constraints = call.argument("constraints");
         Map<String, Object> configuration = call.argument("configuration");
