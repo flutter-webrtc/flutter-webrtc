@@ -20,12 +20,15 @@ class FlutterFrameCapturer
 
   virtual void OnFrame(scoped_refptr<RTCVideoFrame> frame) override;
 
-  void Capture(std::unique_ptr<MethodResultProxy> result);
+  void CaptureFrame(std::unique_ptr<MethodResultProxy> result);
 
  private:
   RTCVideoTrack* track_;
   std::string path_;
   std::mutex mutex_;
+  scoped_refptr<RTCVideoFrame> frame_;
+
+  bool SaveFrame();
 };
 
 }  // namespace flutter_webrtc_plugin
