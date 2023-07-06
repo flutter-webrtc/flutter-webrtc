@@ -48,6 +48,7 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
 )
 target_link_libraries(${PLUGIN_NAME} INTERFACE
   "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-unknown-linux-gnu/libmedea_flutter_webrtc_native.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-unknown-linux-gnu/libopenal.so.1"
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin.
@@ -55,5 +56,6 @@ target_link_libraries(${PLUGIN_NAME} INTERFACE
 # external build triggered from this build file.
 set(medea_flutter_webrtc_bundled_libraries
   "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-unknown-linux-gnu/libmedea_flutter_webrtc_native.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/rust/lib/x86_64-unknown-linux-gnu/libopenal.so.1"
   PARENT_SCOPE
 )

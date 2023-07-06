@@ -26,6 +26,7 @@
 #include "screen_video_capturer.h"
 #include "video_sink.h"
 
+#include "adm.h"
 #include "adm_proxy.h"
 
 #include "media/base/fake_frame_source.h"
