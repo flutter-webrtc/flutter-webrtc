@@ -35,7 +35,6 @@ include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/svpng"
 )
 
-
 apply_standard_settings(${PLUGIN_NAME})
 set_target_properties(${PLUGIN_NAME} PROPERTIES
   CXX_VISIBILITY_PRESET hidden)
