@@ -52,7 +52,12 @@ bool FlutterFrameCapturer::SaveFrame() {
   frame_.get()->ConvertToARGB(RTCVideoFrame::Type::kABGR, pixels,
                               /* unused */ -1, width, height);
 
-  FILE* file = fopen(path_.c_str(), "wb");
+  FILE* file;
+#if defined(_WINDOWS)
+  file = fopen_s(path_.c_str(), "wb");
+#else
+  file = fopen(path_.c_str(), "wb");
+#endif
   if (!file) {
     return false;
   }

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc_example/src/capture_frame_sample.dart';
 
 import 'src/device_enumeration_sample.dart';
 import 'src/get_display_media_sample.dart';
@@ -125,6 +126,14 @@ class _MyAppState extends State<MyApp> {
                 MaterialPageRoute(
                     builder: (BuildContext context) =>
                         DataChannelLoopBackSample()));
+          }),
+      RouteItem(
+          title: 'Capture Frame',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) => CaptureFrameSample()));
           }),
     ];
   }
