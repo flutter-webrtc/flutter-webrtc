@@ -214,6 +214,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         }
         initialize(networkIgnoreMask);
         result.success(null);
+        break;
       }
       case "createPeerConnection": {
         Map<String, Object> constraints = call.argument("constraints");
