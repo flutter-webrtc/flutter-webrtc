@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "flutter_frame_capturer.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,12 +56,7 @@ bool FlutterFrameCapturer::SaveFrame() {
   frame_.get()->ConvertToARGB(RTCVideoFrame::Type::kABGR, pixels,
                               /* unused */ -1, width, height);
 
-  FILE* file;
-#if defined(_WINDOWS)
-  file = fopen_s(path_.c_str(), "wb");
-#else
-  file = fopen(path_.c_str(), "wb");
-#endif
+  FILE* file = fopen(path_.c_str(), "wb");
   if (!file) {
     return false;
   }
