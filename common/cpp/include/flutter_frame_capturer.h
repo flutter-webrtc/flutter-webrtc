@@ -1,5 +1,5 @@
-#ifndef FLUTTER_WEBRTC_RTC_VIDEO_RENDERER_HXX
-#define FLUTTER_WEBRTC_RTC_VIDEO_RENDERER_HXX
+#ifndef FLUTTER_WEBRTC_RTC_FRAME_CAPTURER_HXX
+#define FLUTTER_WEBRTC_RTC_FRAME_CAPTURER_HXX
 
 #include "flutter_common.h"
 #include "flutter_webrtc_base.h"
@@ -33,4 +33,4 @@ class FlutterFrameCapturer
 
 }  // namespace flutter_webrtc_plugin
 
-#endif  // !FLUTTER_WEBRTC_RTC_VIDEO_RENDERER_HXX
+#endif  // !FLUTTER_WEBRTC_RTC_FRAME_CAPTURER_HXX
