@@ -11,17 +11,35 @@ class OnDeviceChangeNotifierSample extends StatefulWidget {
 class _State extends State<OnDeviceChangeNotifierSample> {
   int count = 0;
   String text = 'Add devices!!!';
+  String counterText = 'Events count: 0.';
 
   @override
   void initState() {
     super.initState();
 
     onDeviceChange(() {
-      count++;
+      _handleOnDeviceChange();
+    });
+  }
 
-      setState(() {
-        text = 'Events: $count.';
-      });
+  void _handleOnDeviceChange() async {
+    count++;
+    var mediaDeviceInfos = await enumerateDevices();
+    var mediaDisplayInfos = await enumerateDisplays();
+
+    setState(() {
+      counterText = 'Events count: $count.';
+
+      var devicesInfo = '';
+      for (var device in mediaDeviceInfos) {
+        devicesInfo +=
+            'Kind: ${device.kind}\nName: ${device.label}\nId: ${device.deviceId}\n\n';
+      }
+      for (var display in mediaDisplayInfos) {
+        devicesInfo +=
+            'Kind(ScreenCapture): ${MediaDeviceKind.videoinput}\nTitle: ${display.title.toString()}\nId: ${display.deviceId}\n\n';
+      }
+      text = devicesInfo;
     });
   }
 
@@ -36,7 +54,7 @@ class _State extends State<OnDeviceChangeNotifierSample> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifier'),
+        title: Text(counterText),
       ),
       body: Center(child: Text(text)),
     );

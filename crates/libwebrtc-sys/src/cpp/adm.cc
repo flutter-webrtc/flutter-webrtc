@@ -183,9 +183,6 @@ OpenALPlayoutADM::OpenALPlayoutADM(AudioLayer audio_layer,
 
 template <typename Callback>
 void EnumerateDevices(ALCenum specifier, Callback&& callback) {
-  auto defaultDevice = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
-  callback(defaultDevice);
-
   auto devices = alcGetString(nullptr, specifier);
   while (*devices != 0) {
     callback(devices);
@@ -228,9 +225,6 @@ int DeviceName(ALCenum specifier,
       const auto prefix = std::string("OpenAL Soft on ");
       if (string.rfind(prefix, 0) == 0) {
         string = string.substr(prefix.size());
-      }
-      if (string == "OpenAL Soft") {
-        string = "Default";
       }
       *name = std::move(string);
     } else if (guid) {
@@ -444,9 +438,9 @@ int32_t OpenALPlayoutADM::SpeakerMute(bool* enabled) const {
 }
 
 void OpenALPlayoutADM::openPlayoutDevice() {
-  _mutex.lock();
+  std::lock_guard<std::recursive_mutex> lk(_mutex);
+
   if (_playoutDevice || _playoutFailed) {
-    _mutex.unlock();
     return;
   }
   _playoutDevice = alcOpenDevice(
@@ -455,7 +449,6 @@ void OpenALPlayoutADM::openPlayoutDevice() {
     RTC_LOG(LS_ERROR) << "OpenAL Device open failed, deviceID: '"
                       << _playoutDeviceId << "'";
     _playoutFailed = true;
-    _mutex.unlock();
     return;
   }
   _playoutContext = alcCreateContext(_playoutDevice, nullptr);
@@ -463,13 +456,13 @@ void OpenALPlayoutADM::openPlayoutDevice() {
     RTC_LOG(LS_ERROR) << "OpenAL Context create failed.";
     _playoutFailed = true;
     closePlayoutDevice();
-    _mutex.unlock();
     return;
   }
 
-  _data->_playoutThread->PostTask([=] {
+  _data->_playoutThread->PostTask([=]() {
+    std::lock_guard<std::recursive_mutex> lk(_mutex);
+
     alcSetThreadContext(_playoutContext);
-    _mutex.unlock();
   });
 }
 
@@ -539,11 +532,11 @@ int32_t OpenALPlayoutADM::RegisterAudioCallback(
 }
 
 bool OpenALPlayoutADM::processPlayout() {
-  _mutex.lock();
+  std::lock_guard<std::recursive_mutex> lk(_mutex);
+
   const auto playing = [&] {
     auto state = ALint(AL_INITIAL);
     alGetSourcei(_data->source, AL_SOURCE_STATE, &state);
-    _mutex.unlock();
     return (state == AL_PLAYING);
   };
   const auto wasPlaying = playing();
@@ -582,7 +575,6 @@ bool OpenALPlayoutADM::processPlayout() {
     }
   }
   if (!_data->queuedBuffersCount) {
-    _mutex.unlock();
     return false;
   }
   if (!playing()) {
@@ -608,7 +600,6 @@ bool OpenALPlayoutADM::processPlayout() {
     _playoutFailed = true;
   }
 
-  _mutex.unlock();
   return true;
 }
 
@@ -645,11 +636,11 @@ bool OpenALPlayoutADM::validatePlayoutDeviceId() {
 }
 
 void OpenALPlayoutADM::startPlayingOnThread() {
-  _mutex.lock();
   _data->_playoutThread->PostTask([this] {
+    std::lock_guard<std::recursive_mutex> lk(_mutex);
+
     _data->playing = true;
     if (_playoutFailed) {
-      _mutex.unlock();
       return;
     }
 
@@ -677,29 +668,29 @@ void OpenALPlayoutADM::startPlayingOnThread() {
 
       ensureThreadStarted();
     }
-    _mutex.unlock();
   });
 }
 
 void OpenALPlayoutADM::stopPlayingOnThread() {
+  std::lock_guard<std::recursive_mutex> lk(_mutex);
+
   if (!_data->playing) {
-    _mutex.lock();
     _data->_playoutThread->PostTask([this] {
+      std::lock_guard<std::recursive_mutex> lk(_mutex);
+
       alcSetThreadContext(nullptr);
-      _mutex.unlock();
     });
     return;
   }
   _data->playing = false;
   if (_playoutFailed) {
-    _mutex.lock();
     _data->_playoutThread->PostTask([this] {
+      std::lock_guard<std::recursive_mutex> lk(_mutex);
+
       alcSetThreadContext(nullptr);
-      _mutex.unlock();
     });
     return;
   }
-  _mutex.lock();
   if (_data->source) {
     alSourceStop(_data->source);
     unqueueAllBuffers();
@@ -710,5 +701,4 @@ void OpenALPlayoutADM::stopPlayingOnThread() {
   }
   _data->_playoutThread->PostTask([this] { alcSetThreadContext(nullptr); });
   _data->_playoutThread->Stop();
-  _mutex.unlock();
 }

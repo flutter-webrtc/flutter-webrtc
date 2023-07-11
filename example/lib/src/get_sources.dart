@@ -31,7 +31,7 @@ class _GetSourcesSampleState extends State<GetSourcesSample> {
       }
       for (var display in mediaDisplayInfos) {
         devicesInfo +=
-            'Kind: ${MediaDeviceKind.videoinput}\nTitle: ${display.title.toString()}\nId: ${display.deviceId}\n\n';
+            'Kind(ScreenCapture): ${MediaDeviceKind.videoinput}\nTitle: ${display.title.toString()}\nId: ${display.deviceId}\n\n';
       }
       text = devicesInfo;
     });

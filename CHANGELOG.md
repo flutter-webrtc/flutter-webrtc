@@ -14,8 +14,10 @@ All user visible changes to this project will be documented in this file. This p
 ### Changed
 
 - Refactor Audio Device Module to use [OpenAL] library for playout. ([#117])
+- Fire `onDeviceChange` callback whenever an output audio device is changed in system settings on desktop platforms. ([#119])
 
-[#117]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/113
+[#117]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/117
+[#119]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/119
 
 
 

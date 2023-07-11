@@ -27,7 +27,7 @@ nix = { version = "0.26", features = ["poll"] }
 pulse = { version = "2.27", package = "libpulse-binding" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-winapi = { version = "0.3", features = ["dbt", "winuser"] }
+windows = { version = "0.48", features = ["implement", "Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Media_Audio", "Win32_System_Com", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging"] }
 
 [build-dependencies]
 anyhow = "1.0"

@@ -151,9 +151,9 @@ checksum = "e496a50fda8aacccc86d7529e2c1e0892dbd0f898a6b5645b5561b89c3210efa"
 
 [[package]]
 name = "cpufeatures"
-version = "0.2.8"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03e69e28e9f7f77debdedbaafa2866e1de9ba56df55a8bd7cfc724c25a09987c"
+checksum = "a17b76ff3a4162b0b27f354a0c87015ddad39d35f9c0c36607a3bdd175dde1f1"
 dependencies = [
  "libc",
 ]
@@ -179,9 +179,9 @@ dependencies = [
 
 [[package]]
 name = "cxx"
-version = "1.0.97"
+version = "1.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e88abab2f5abbe4c56e8f1fb431b784d710b709888f35755a160e62e33fe38e8"
+checksum = "e928d50d5858b744d1ea920b790641129c347a770d1530c3a85b77705a5ee031"
 dependencies = [
  "cc",
  "cxxbridge-flags",
@@ -191,9 +191,9 @@ dependencies = [
 
 [[package]]
 name = "cxx-build"
-version = "1.0.97"
+version = "1.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c0c11acd0e63bae27dcd2afced407063312771212b7a823b4fd72d633be30fb"
+checksum = "8332ba63f8a8040ca479de693150129067304a3496674477fff6d0c372cc34ae"
 dependencies = [
  "cc",
  "codespan-reporting",
@@ -201,24 +201,24 @@ dependencies = [
  "proc-macro2",
  "quote",
  "scratch",
- "syn 2.0.23",
+ "syn 2.0.24",
 ]
 
 [[package]]
 name = "cxxbridge-flags"
-version = "1.0.97"
+version = "1.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d3816ed957c008ccd4728485511e3d9aaf7db419aa321e3d2c5a2f3411e36c8"
+checksum = "5966a5a87b6e9bb342f5fab7170a93c77096efe199872afffc4b477cfeb86957"
 
 [[package]]
 name = "cxxbridge-macro"
-version = "1.0.97"
+version = "1.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a26acccf6f445af85ea056362561a24ef56cdc15fcc685f03aec50b9c702cb6d"
+checksum = "81b2dab6991c7ab1572fea8cb049db819b1aeea1e2dac74c0869f244d9f21a7c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.23",
+ "syn 2.0.24",
 ]
 
 [[package]]
@@ -738,7 +738,7 @@ dependencies = [
  "nix",
  "once_cell",
  "threadpool",
- "winapi",
+ "windows",
  "xxhash-rust",
 ]
 
@@ -883,7 +883,7 @@ checksum = "a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.23",
+ "syn 2.0.24",
 ]
 
 [[package]]
@@ -953,9 +953,9 @@ checksum = "26072860ba924cbfa98ea39c8c19b4dd6a4a25423dbdf219c1eca91aa0cf6964"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.63"
+version = "1.0.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b368fba921b0dce7e60f5e04ec15e565b3303972b42bcfde1d0713b881959eb"
+checksum = "78803b62cbf1f46fde80d7c0e803111524b9877184cfe7c3033659490ac7a7da"
 dependencies = [
  "unicode-ident",
 ]
@@ -1041,9 +1041,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.37.22"
+version = "0.37.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8818fa822adcc98b18fedbb3632a6a33213c070556b5aa7c4c8cc21cff565c4c"
+checksum = "4d69718bf81c6127a49dc64e44a742e8bb9213c0ff8869a22c308f84c1d4ab06"
 dependencies = [
  "bitflags",
  "errno",
@@ -1085,9 +1085,9 @@ checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
 
 [[package]]
 name = "scratch"
-version = "1.0.5"
+version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1792db035ce95be60c3f8853017b3999209281c24e2ba5bc8e59bf97a0c590c1"
+checksum = "764cad9e7e1ca5fe15b552859ff5d96a314e6ed2934f2260168cd5dfa5891409"
 
 [[package]]
 name = "security-framework"
@@ -1120,9 +1120,9 @@ checksum = "bebd363326d05ec3e2f532ab7660680f3b02130d780c299bca73469d521bc0ed"
 
 [[package]]
 name = "serde"
-version = "1.0.166"
+version = "1.0.169"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d01b7404f9d441d3ad40e6a636a7782c377d2abdbe4fa2440e2edcc2f4f10db8"
+checksum = "bd51c3db8f9500d531e6c12dd0fd4ad13d133e9117f5aebac3cdbb8b6d9824b0"
 
 [[package]]
 name = "serde_json"
@@ -1169,9 +1169,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.10.0"
+version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
+checksum = "62bb4feee49fdd9f707ef802e22365a35de4b7b299de4763d44bfea899442ff9"
 
 [[package]]
 name = "socket2"
@@ -1202,9 +1202,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.23"
+version = "2.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59fb7d6d8281a51045d62b8eb3a7d1ce347b76f312af50cd3dc0af39c87c1737"
+checksum = "36ccaf716a23c35ff908f91c971a86a9a71af5998c1d8f10e828d9f55f68ac00"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1444,7 +1444,7 @@ dependencies = [
  "once_cell",
  "proc-macro2",
  "quote",
- "syn 2.0.23",
+ "syn 2.0.24",
  "wasm-bindgen-shared",
 ]
 
@@ -1478,7 +1478,7 @@ checksum = "54681b18a46765f095758388f2d0cf16eb8d4169b639ab575a8f5693af210c7b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.23",
+ "syn 2.0.24",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -1529,6 +1529,39 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+
+[[package]]
+name = "windows"
+version = "0.48.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e686886bc078bc1b0b600cac0147aadb815089b6e4da64016cbd754b6342700f"
+dependencies = [
+ "windows-implement",
+ "windows-interface",
+ "windows-targets",
+]
+
+[[package]]
+name = "windows-implement"
+version = "0.48.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e2ee588991b9e7e6c8338edf3333fbe4da35dc72092643958ebb43f0ab2c49c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "windows-interface"
+version = "0.48.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6fb8df20c9bcaa8ad6ab513f7b40104840c8867d5751126e4df3b08388d0cc7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
 
 [[package]]
 name = "windows-sys"

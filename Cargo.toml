@@ -1,2 +1,6 @@
 [workspace]
 members = ["crates/libwebrtc-sys", "crates/native"]
+
+[profile.release]
+lto = "fat"
+codegen-units = 1

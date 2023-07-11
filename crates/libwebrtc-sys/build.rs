@@ -274,6 +274,10 @@ fn compile_openal() -> anyhow::Result<()> {
             )?;
         }
         "x86_64-unknown-linux-gnu" => {
+            _ = Command::new("strip")
+                .arg("libopenal.so.1")
+                .current_dir(&openal_src_path)
+                .output()?;
             fs::copy(
                 openal_src_path.join("libopenal.so.1"),
                 openal_path.join("libopenal.so.1"),
