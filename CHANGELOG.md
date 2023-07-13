@@ -1,6 +1,12 @@
 # Changelog
 
 --------------------------------------------
+[0.9.36] - 2023-07-13
+
+* [Native] upgrade libwebrtc to m114.5735.02.
+* [Windows/Linux] Add implementation to MediaStreamTrack.captureFrame() for linux/windows.
+* [Darwin/Android] Support to ignore network adapters used for ICE on Android, iOS and macOS.
+
 [0.9.35] - 2023-06-30
 
 * [iOS] feat: expose audio mode for ios.
