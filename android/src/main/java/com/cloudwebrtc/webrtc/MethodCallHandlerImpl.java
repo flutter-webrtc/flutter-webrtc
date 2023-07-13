@@ -180,7 +180,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
       case "initialize": {
-        int networkIgnoreMask = 0;
+        int networkIgnoreMask = Options.ADAPTER_TYPE_UNKNOWN;
         Map<String, Object> options = call.argument("options");
         ConstraintsMap constraintsMap = new ConstraintsMap(options);
         if (constraintsMap.hasKey("networkIgnoreMask")
@@ -190,22 +190,22 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             for (Object adapter : ignoredAdapters.toArrayList()) {
               switch (adapter.toString()) {
                 case "adapterTypeEthernet":
-                  networkIgnoreMask += 1;
+                  networkIgnoreMask += Options.ADAPTER_TYPE_ETHERNET;
                   break;
                 case "adapterTypeWifi":
-                  networkIgnoreMask += (1 << 1);
+                  networkIgnoreMask += Options.ADAPTER_TYPE_WIFI;
                   break;
                 case "adapterTypeCellular":
-                  networkIgnoreMask += (1 << 2);
+                  networkIgnoreMask += Options.ADAPTER_TYPE_CELLULAR;
                   break;
                 case "adapterTypeVpn":
-                  networkIgnoreMask += (1 << 3);
+                  networkIgnoreMask += Options.ADAPTER_TYPE_VPN;
                   break;
                 case "adapterTypeLoopback":
-                  networkIgnoreMask += (1 << 4);
+                  networkIgnoreMask += Options.ADAPTER_TYPE_LOOPBACK;
                   break;
                 case "adapterTypeAny":
-                  networkIgnoreMask += (1 << 5);
+                  networkIgnoreMask += Options.ADAPTER_TYPE_ANY;
                   break;
               }
             }
