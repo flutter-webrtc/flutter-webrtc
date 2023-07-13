@@ -19,7 +19,12 @@ FlutterWebRTC::~FlutterWebRTC() {}
 void FlutterWebRTC::HandleMethodCall(
     const MethodCallProxy& method_call,
     std::unique_ptr<MethodResultProxy> result) {
-  if (method_call.method_name().compare("createPeerConnection") == 0) {
+  if (method_call.method_name().compare("initialize") == 0) {
+   const EncodableMap params =
+       GetValue<EncodableMap>(*method_call.arguments());
+   const EncodableMap options = findMap(params, "options");
+   result->Success();
+  } else if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");
       return;
