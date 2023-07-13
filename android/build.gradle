@@ -25,6 +25,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    if (project.android.hasProperty("namespace")) {
+        namespace 'com.cloudwebrtc.webrtc'
+    }
     compileSdkVersion 31
 
     defaultConfig {
