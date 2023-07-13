@@ -460,7 +460,7 @@ pub mod linux_device_change {
         impl AudioMonitor {
             /// Creates a new [`AudioMonitor`].
             pub fn new() -> anyhow::Result<Self> {
-                use Facility::{Sink, Source};
+                use Facility::{Server, Sink, Source};
                 use Operation::{Changed, New, Removed};
 
                 let mut main_loop = Mainloop::new()
@@ -474,17 +474,24 @@ pub mod linux_device_change {
                 context.set_subscribe_callback(Some(Box::new(
                     |facility, operation, _| {
                         if let Some(New | Removed | Changed) = operation {
-                            if let Some(Sink | Source) = facility {
+                            if let Some(Sink | Source | Server) = facility {
                                 let state =
                                     ON_DEVICE_CHANGE.load(Ordering::SeqCst);
                                 if !state.is_null() {
                                     let device_state = unsafe { &mut *state };
-                                    let new_count =
-                                        device_state.count_audio_devices();
 
-                                    if device_state.audio_count != new_count {
-                                        device_state.set_audio_count(new_count);
+                                    if facility == Some(Server) {
                                         device_state.on_device_change();
+                                    } else {
+                                        let new_count =
+                                            device_state.count_audio_devices();
+
+                                        if device_state.audio_count != new_count
+                                        {
+                                            device_state
+                                                .set_audio_count(new_count);
+                                            device_state.on_device_change();
+                                        }
                                     }
                                 }
                             }
@@ -517,7 +524,9 @@ pub mod linux_device_change {
                     }
                 }
 
-                let mask = InterestMaskSet::SOURCE | InterestMaskSet::SINK;
+                let mask = InterestMaskSet::SOURCE
+                    | InterestMaskSet::SINK
+                    | InterestMaskSet::SERVER;
                 context.subscribe(mask, |_| {});
 
                 Ok(Self { context, main_loop })
