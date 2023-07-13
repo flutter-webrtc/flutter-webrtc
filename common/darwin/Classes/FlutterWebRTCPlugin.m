@@ -135,15 +135,6 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
     self.viewController = viewController;
 #endif
   }
-  // RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
-  VideoDecoderFactory* decoderFactory = [[VideoDecoderFactory alloc] init];
-  VideoEncoderFactory* encoderFactory = [[VideoEncoderFactory alloc] init];
-
-  VideoEncoderFactorySimulcast* simulcastFactory =
-      [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
-
-  _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:simulcastFactory
-                                                                     decoderFactory:decoderFactory];
 
   NSDictionary* fieldTrials = @{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue};
   RTCInitFieldTrialDictionary(fieldTrials);
@@ -223,8 +214,55 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
 #endif
 }
 
+- (void)initialize:(NSArray*)networkIgnoreMask {
+    // RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
+    if (!_peerConnectionFactory) {
+        VideoDecoderFactory* decoderFactory = [[VideoDecoderFactory alloc] init];
+        VideoEncoderFactory* encoderFactory = [[VideoEncoderFactory alloc] init];
+
+        VideoEncoderFactorySimulcast* simulcastFactory =
+            [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
+
+        _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:simulcastFactory
+                                                                           decoderFactory:decoderFactory];
+
+        RTCPeerConnectionFactoryOptions *options = [[RTCPeerConnectionFactoryOptions alloc] init];
+        for (NSString* adapter in networkIgnoreMask)
+        {
+            if ([@"adapterTypeEthernet" isEqualToString:adapter]) {
+                options.ignoreEthernetNetworkAdapter = YES;
+            } else if ([@"adapterTypeWifi" isEqualToString:adapter]) {
+                options.ignoreWiFiNetworkAdapter = YES;
+            } else if ([@"adapterTypeCellular" isEqualToString:adapter]) {
+                options.ignoreCellularNetworkAdapter = YES;
+            } else if ([@"adapterTypeVpn" isEqualToString:adapter]) {
+                options.ignoreVPNNetworkAdapter = YES;
+            } else if ([@"adapterTypeLoopback" isEqualToString:adapter]) {
+                options.ignoreLoopbackNetworkAdapter = YES;
+            } else if ([@"adapterTypeAny" isEqualToString:adapter]) {
+                options.ignoreEthernetNetworkAdapter = YES;
+                options.ignoreWiFiNetworkAdapter = YES;
+                options.ignoreCellularNetworkAdapter = YES;
+                options.ignoreVPNNetworkAdapter = YES;
+                options.ignoreLoopbackNetworkAdapter = YES;
+            }
+        }
+
+        [_peerConnectionFactory setOptions: options];
+    }
+}
+
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-  if ([@"createPeerConnection" isEqualToString:call.method]) {
+  if ([@"initialize" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSDictionary* options = argsMap[@"options"];
+    NSArray* networkIgnoreMask = [NSArray new];
+    if (options[@"networkIgnoreMask"] != nil) {
+      networkIgnoreMask = ((NSArray*)options[@"networkIgnoreMask"]);
+    }
+    [self initialize:networkIgnoreMask];
+    result(@"");
+  } else if ([@"createPeerConnection" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSDictionary* configuration = argsMap[@"configuration"];
     NSDictionary* constraints = argsMap[@"constraints"];
