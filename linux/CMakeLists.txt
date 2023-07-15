@@ -54,3 +54,10 @@ set(flutter_webrtc_bundled_libraries
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/${FLUTTER_TARGET_PLATFORM}/libwebrtc.so"
   PARENT_SCOPE
 )
+
+# Add $ORIGIN to RPATH so that lib/libflutter_webrtc_plugin.so can find lib/libwebrtc.so at runtime
+set_property(
+    TARGET ${PLUGIN_NAME}
+    PROPERTY BUILD_RPATH
+    "\$ORIGIN"
+)
