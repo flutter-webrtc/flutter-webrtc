@@ -5,6 +5,8 @@ import static com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils.parseMediaConst
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
@@ -104,6 +106,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
    */
   private GetUserMediaImpl getUserMediaImpl;
 
+  private FlutterRTCVirtualBackground flutterRTCVirtualBackground;
+
   private AudioDeviceModule audioDeviceModule;
 
   private FlutterRTCFrameCryptor frameCryptor;
@@ -151,7 +155,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     // Initialize EGL contexts required for HW acceleration.
     EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
 
-    getUserMediaImpl = new GetUserMediaImpl(this, context);
+    flutterRTCVirtualBackground = new FlutterRTCVirtualBackground();
+
+    getUserMediaImpl = new GetUserMediaImpl(this, context, flutterRTCVirtualBackground);
 
     frameCryptor = new FlutterRTCFrameCryptor(this);
 
@@ -230,6 +236,22 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         Map<String, Object> constraints = call.argument("constraints");
         ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
         getUserMedia(constraintsMap, result);
+        break;
+      }
+      case "enableVirtualBackground":{
+        byte[] image = call.argument("imageBytes");
+        double confidence = call.argument("confidence");
+        Bitmap bgImage = null;
+        if (image != null) {
+          bgImage =  BitmapFactory.decodeByteArray(image, 0, image.length);
+        }
+        flutterRTCVirtualBackground.configurationVirtualBackground(bgImage, confidence);
+        result.success(true);
+        break;
+      }
+      case "disableVirtualBackground": {
+        flutterRTCVirtualBackground.setBackgroundIsNull();
+        result.success(true);
         break;
       }
       case "createLocalMediaStream":

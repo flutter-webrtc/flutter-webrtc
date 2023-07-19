@@ -134,4 +134,29 @@ class Helper {
       AppleNativeAudioManagement.setAppleAudioConfiguration(
           AppleNativeAudioManagement.getAppleAudioConfigurationForMode(mode,
               preferSpeakerOutput: preferSpeakerOutput));
+
+  // Enable Virtual Background with the provided background image and threshold confidence level.
+  // The backgroundImage is expected to be in Uint8List format representing the image bytes.
+  // The thresholdConfidence is an optional parameter with a default value of 0.7, which represents
+  // the confidence level (ranging from 0 to 1) for selecting the foreground in the segmentation mask.
+  static Future<void> enableVirtualBackground({
+    required Uint8List backgroundImage,
+    double thresholdConfidence = 0.7,
+  }) async {
+    if (!WebRTC.platformIsAndroid) return;
+    // Invoke the native method "enableVirtualBackground" through WebRTC plugin,
+    // passing the backgroundImage and thresholdConfidence as parameters.
+    await WebRTC.invokeMethod("enableVirtualBackground", {
+      "imageBytes": backgroundImage,
+      "confidence": thresholdConfidence,
+    });
+  }
+
+  // Disable Virtual Background feature.
+  // This function invokes the native method "disableVirtualBackground" through WebRTC plugin.
+  static Future<void> disableVirtualBackground() async {
+    if (!WebRTC.platformIsAndroid) return;
+
+    await WebRTC.invokeMethod("disableVirtualBackground");
+  }
 }
