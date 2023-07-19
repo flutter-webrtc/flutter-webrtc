@@ -110,6 +110,31 @@ android {
 
 If necessary, in the same `build.gradle` you will need to increase `minSdkVersion` of `defaultConfig` up to `23` (currently default Flutter generator set it to `16`).
 
+### Virtual Background (Work in Progress - Only Android)
+The Virtual Background feature allows users to set a background image for their video stream during video calls. This feature is powered by the WebRTC plugin and enables users to replace their real background with a custom image.
+
+#### How to Use
+
+- Enable virtual background
+  
+```dart
+final ByteData data = await rootBundle.load(
+  Assets.images.virtualBackgroundSimple.path,
+);
+final Uint8List virtualBackgroundImage = data.buffer.asUint8List();
+
+rtc.Helper.enableVirtualBackground(
+  backgroundImage: virtualBackgroundImage,
+  thresholdConfidence: 0.6,
+);
+```
+
+- Disable virtual background
+
+```dart
+rtc.Helper.disableVirtualBackground();
+```
+
 ### Important reminder
 When you compile the release apk, you need to add the following operations,
 [Setup Proguard Rules](https://github.com/flutter-webrtc/flutter-webrtc/commit/d32dab13b5a0bed80dd9d0f98990f107b9b514f4)
