@@ -62,6 +62,8 @@ import org.webrtc.RtpSender;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
+import org.webrtc.SoftwareVideoDecoderFactory;
+import org.webrtc.SoftwareVideoEncoderFactory;
 import org.webrtc.VideoTrack;
 import org.webrtc.WrappedVideoDecoderFactory;
 import org.webrtc.audio.AudioDeviceModule;
@@ -138,7 +140,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mPeerConnectionObservers.clear();
   }
 
-  private void initialize(int networkIgnoreMask) {
+  private void initialize(int networkIgnoreMask, boolean forceSWCodec) {
     if (mFactory != null) {
       return;
     }
@@ -148,8 +150,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                     .setEnableInternalTracer(true)
                     .createInitializationOptions());
 
-    // Initialize EGL contexts required for HW acceleration.
-    EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
+
 
     getUserMediaImpl = new GetUserMediaImpl(this, context);
 
@@ -166,12 +167,25 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     final Options options = new Options();
     options.networkIgnoreMask = networkIgnoreMask;
 
-    mFactory = PeerConnectionFactory.builder()
-            .setOptions(options)
-            .setVideoEncoderFactory(new SimulcastVideoEncoderFactoryWrapper(eglContext, true, true))
-            .setVideoDecoderFactory(new WrappedVideoDecoderFactory(eglContext))
+    final PeerConnectionFactory.Builder factoryBuilder = PeerConnectionFactory.builder()
+            .setOptions(options);
+
+    if (forceSWCodec) {
+      factoryBuilder
+              .setVideoEncoderFactory(new SoftwareVideoEncoderFactory())
+              .setVideoDecoderFactory(new SoftwareVideoDecoderFactory());
+    } else {
+      // Initialize EGL contexts required for HW acceleration.
+      EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
+
+      factoryBuilder
+              .setVideoEncoderFactory(new SimulcastVideoEncoderFactoryWrapper(eglContext, true, true))
+              .setVideoDecoderFactory(new WrappedVideoDecoderFactory(eglContext));
+    }
+    mFactory = factoryBuilder
             .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory();
+
   }
 
   @Override
@@ -212,7 +226,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
           }
         }
-        initialize(networkIgnoreMask);
+        boolean forceSWCodec = false;
+        if (constraintsMap.hasKey("forceSWCodec")
+                && constraintsMap.getType("forceSWCodec") == ObjectType.Boolean) {
+          final boolean v = constraintsMap.getBoolean("forceSWCodec");
+          forceSWCodec = v;
+        }
+        initialize(networkIgnoreMask,forceSWCodec);
         result.success(null);
         break;
       }
