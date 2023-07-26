@@ -52,7 +52,7 @@ pub fn enumerate_displays() -> Vec<api::MediaDisplayInfo> {
 /// Struct containing the current number of media devices and some tools to
 /// enumerate them (such as [`AudioDeviceModule`] and [`VideoDeviceInfo`]), and
 /// generate event with [`OnDeviceChangeCallback`], if the last is needed.
-struct DeviceState {
+pub struct DeviceState {
     cb: StreamSink<()>,
     adm: AudioDeviceModule,
     _thread: sys::Thread,
@@ -63,7 +63,7 @@ struct DeviceState {
 
 impl DeviceState {
     /// Creates a new [`DeviceState`].
-    fn new(
+    pub fn new(
         cb: StreamSink<()>,
         tq: &mut sys::TaskQueueFactory,
     ) -> anyhow::Result<Self> {
@@ -309,17 +309,9 @@ impl Webrtc {
     ///
     /// Only one callback can be set at a time, so the previous one will be
     /// dropped, if any.
-    pub fn set_on_device_changed(
-        &mut self,
-        cb: StreamSink<()>,
-    ) -> anyhow::Result<()> {
-        let prev = ON_DEVICE_CHANGE.swap(
-            Box::into_raw(Box::new(DeviceState::new(
-                cb,
-                &mut self.task_queue_factory,
-            )?)),
-            Ordering::SeqCst,
-        );
+    pub fn set_on_device_changed(device_state: DeviceState) {
+        let prev = ON_DEVICE_CHANGE
+            .swap(Box::into_raw(Box::new(device_state)), Ordering::SeqCst);
 
         if prev.is_null() {
             unsafe {
@@ -330,8 +322,6 @@ impl Webrtc {
                 drop(Box::from_raw(prev));
             }
         }
-
-        Ok(())
     }
 }
 

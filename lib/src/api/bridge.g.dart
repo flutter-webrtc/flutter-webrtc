@@ -46,7 +46,7 @@ abstract class MedeaFlutterWebrtcNative {
   /// Initiates the creation of an SDP offer for the purpose of starting a new
   /// WebRTC connection to a remote peer.
   Future<RtcSessionDescription> createOffer(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required bool voiceActivityDetection,
       required bool iceRestart,
       required bool useRtpMux,
@@ -57,7 +57,7 @@ abstract class MedeaFlutterWebrtcNative {
   /// Creates an SDP answer to an offer received from a remote peer during an
   /// offer/answer negotiation of a WebRTC connection.
   Future<RtcSessionDescription> createAnswer(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required bool voiceActivityDetection,
       required bool iceRestart,
       required bool useRtpMux,
@@ -67,7 +67,7 @@ abstract class MedeaFlutterWebrtcNative {
 
   /// Changes the local description associated with the connection.
   Future<void> setLocalDescription(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required SdpType kind,
       required String sdp,
       dynamic hint});
@@ -77,7 +77,7 @@ abstract class MedeaFlutterWebrtcNative {
   /// Sets the specified session description as the remote peer's current offer or
   /// answer.
   Future<void> setRemoteDescription(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required SdpType kind,
       required String sdp,
       dynamic hint});
@@ -87,7 +87,7 @@ abstract class MedeaFlutterWebrtcNative {
   /// Creates a new [`RtcRtpTransceiver`] and adds it to the set of transceivers
   /// of the specified [`PeerConnection`].
   Future<RtcRtpTransceiver> addTransceiver(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required MediaType mediaType,
       required RtpTransceiverDirection direction,
       dynamic hint});
@@ -97,14 +97,13 @@ abstract class MedeaFlutterWebrtcNative {
   /// Returns a sequence of [`RtcRtpTransceiver`] objects representing the RTP
   /// transceivers currently attached to the specified [`PeerConnection`].
   Future<List<RtcRtpTransceiver>> getTransceivers(
-      {required int peerId, dynamic hint});
+      {required ArcPeerConnection peer, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kGetTransceiversConstMeta;
 
   /// Changes the preferred `direction` of the specified [`RtcRtpTransceiver`].
   Future<void> setTransceiverDirection(
-      {required int peerId,
-      required int transceiverIndex,
+      {required ArcRtpTransceiver transceiver,
       required RtpTransceiverDirection direction,
       dynamic hint});
 
@@ -112,8 +111,7 @@ abstract class MedeaFlutterWebrtcNative {
 
   /// Changes the receive direction of the specified [`RtcRtpTransceiver`].
   Future<void> setTransceiverRecv(
-      {required int peerId,
-      required int transceiverIndex,
+      {required ArcRtpTransceiver transceiver,
       required bool recv,
       dynamic hint});
 
@@ -121,8 +119,7 @@ abstract class MedeaFlutterWebrtcNative {
 
   /// Changes the send direction of the specified [`RtcRtpTransceiver`].
   Future<void> setTransceiverSend(
-      {required int peerId,
-      required int transceiverIndex,
+      {required ArcRtpTransceiver transceiver,
       required bool send,
       dynamic hint});
 
@@ -133,18 +130,19 @@ abstract class MedeaFlutterWebrtcNative {
   ///
   /// [1]: https://w3.org/TR/webrtc#dfn-media-stream-identification-tag
   Future<String?> getTransceiverMid(
-      {required int peerId, required int transceiverIndex, dynamic hint});
+      {required ArcRtpTransceiver transceiver, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kGetTransceiverMidConstMeta;
 
   /// Returns the preferred direction of the specified [`RtcRtpTransceiver`].
   Future<RtpTransceiverDirection> getTransceiverDirection(
-      {required int peerId, required int transceiverIndex, dynamic hint});
+      {required ArcRtpTransceiver transceiver, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kGetTransceiverDirectionConstMeta;
 
   /// Returns [`RtcStats`] of the [`PeerConnection`] by its ID.
-  Future<List<RtcStats>> getPeerStats({required int peerId, dynamic hint});
+  Future<List<RtcStats>> getPeerStats(
+      {required ArcPeerConnection peer, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kGetPeerStatsConstMeta;
 
@@ -154,15 +152,15 @@ abstract class MedeaFlutterWebrtcNative {
   /// This will immediately cause the transceiver's sender to no longer send, and
   /// its receiver to no longer receive.
   Future<void> stopTransceiver(
-      {required int peerId, required int transceiverIndex, dynamic hint});
+      {required ArcRtpTransceiver transceiver, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kStopTransceiverConstMeta;
 
   /// Replaces the specified [`AudioTrack`] (or [`VideoTrack`]) on the
   /// [`sys::Transceiver`]'s `sender`.
   Future<void> senderReplaceTrack(
-      {required int peerId,
-      required int transceiverIndex,
+      {required ArcPeerConnection peer,
+      required ArcRtpTransceiver transceiver,
       String? trackId,
       dynamic hint});
 
@@ -170,7 +168,7 @@ abstract class MedeaFlutterWebrtcNative {
 
   /// Adds the new ICE `candidate` to the given [`PeerConnection`].
   Future<void> addIceCandidate(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required String candidate,
       required String sdpMid,
       required int sdpMlineIndex,
@@ -179,12 +177,13 @@ abstract class MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kAddIceCandidateConstMeta;
 
   /// Tells the [`PeerConnection`] that ICE should be restarted.
-  Future<void> restartIce({required int peerId, dynamic hint});
+  Future<void> restartIce({required ArcPeerConnection peer, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kRestartIceConstMeta;
 
   /// Closes the [`PeerConnection`].
-  Future<void> disposePeerConnection({required int peerId, dynamic hint});
+  Future<void> disposePeerConnection(
+      {required ArcPeerConnection peer, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kDisposePeerConnectionConstMeta;
 
@@ -282,6 +281,44 @@ abstract class MedeaFlutterWebrtcNative {
   Future<void> disposeVideoSink({required int sinkId, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kDisposeVideoSinkConstMeta;
+
+  DropFnType get dropOpaqueArcPeerConnection;
+  ShareFnType get shareOpaqueArcPeerConnection;
+  OpaqueTypeFinalizer get ArcPeerConnectionFinalizer;
+
+  DropFnType get dropOpaqueArcRtpTransceiver;
+  ShareFnType get shareOpaqueArcRtpTransceiver;
+  OpaqueTypeFinalizer get ArcRtpTransceiverFinalizer;
+}
+
+@sealed
+class ArcPeerConnection extends FrbOpaque {
+  final MedeaFlutterWebrtcNative bridge;
+  ArcPeerConnection.fromRaw(int ptr, int size, this.bridge)
+      : super.unsafe(ptr, size);
+  @override
+  DropFnType get dropFn => bridge.dropOpaqueArcPeerConnection;
+
+  @override
+  ShareFnType get shareFn => bridge.shareOpaqueArcPeerConnection;
+
+  @override
+  OpaqueTypeFinalizer get staticFinalizer => bridge.ArcPeerConnectionFinalizer;
+}
+
+@sealed
+class ArcRtpTransceiver extends FrbOpaque {
+  final MedeaFlutterWebrtcNative bridge;
+  ArcRtpTransceiver.fromRaw(int ptr, int size, this.bridge)
+      : super.unsafe(ptr, size);
+  @override
+  DropFnType get dropFn => bridge.dropOpaqueArcRtpTransceiver;
+
+  @override
+  ShareFnType get shareFn => bridge.shareOpaqueArcRtpTransceiver;
+
+  @override
+  OpaqueTypeFinalizer get staticFinalizer => bridge.ArcRtpTransceiverFinalizer;
 }
 
 /// Nature and settings of the audio [`MediaStreamTrack`] returned by
@@ -659,8 +696,8 @@ enum MediaType {
 class PeerConnectionEvent with _$PeerConnectionEvent {
   /// [`PeerConnection`] has been created.
   const factory PeerConnectionEvent.peerCreated({
-    /// ID of the created [`PeerConnection`].
-    required int id,
+    /// Rust side [`PeerConnection`].
+    required ArcPeerConnection peer,
   }) = PeerConnectionEvent_PeerCreated;
 
   /// [RTCIceCandidate][1] has been discovered.
@@ -1096,14 +1133,11 @@ class RtcOutboundRtpStreamStatsMediaType
 /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
 /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
 class RtcRtpTransceiver {
-  /// ID of the [`PeerConnection`] that this [`RtcRtpTransceiver`] belongs to.
-  final int peerId;
+  /// [`PeerConnection`] that this [`RtcRtpTransceiver`] belongs to.
+  final ArcPeerConnection peer;
 
-  /// ID of this [`RtcRtpTransceiver`].
-  ///
-  /// It's not unique across all possible [`RtcRtpTransceiver`]s, but only
-  /// within a specific peer.
-  final int index;
+  /// Rust side [`RtpTransceiver`].
+  final ArcRtpTransceiver transceiver;
 
   /// [Negotiated media ID (mid)][1] which the local and remote peers have
   /// agreed upon to uniquely identify the [`MediaStream`]'s pairing of
@@ -1118,8 +1152,8 @@ class RtcRtpTransceiver {
   final RtpTransceiverDirection direction;
 
   const RtcRtpTransceiver({
-    required this.peerId,
-    required this.index,
+    required this.peer,
+    required this.transceiver,
     this.mid,
     required this.direction,
   });
@@ -1816,12 +1850,12 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
       );
 
   Future<RtcSessionDescription> createOffer(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required bool voiceActivityDetection,
       required bool iceRestart,
       required bool useRtpMux,
       dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     var arg1 = voiceActivityDetection;
     var arg2 = iceRestart;
     var arg3 = useRtpMux;
@@ -1830,7 +1864,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
           _platform.inner.wire_create_offer(port_, arg0, arg1, arg2, arg3),
       parseSuccessData: _wire2api_rtc_session_description,
       constMeta: kCreateOfferConstMeta,
-      argValues: [peerId, voiceActivityDetection, iceRestart, useRtpMux],
+      argValues: [peer, voiceActivityDetection, iceRestart, useRtpMux],
       hint: hint,
     ));
   }
@@ -1838,21 +1872,16 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kCreateOfferConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "create_offer",
-        argNames: [
-          "peerId",
-          "voiceActivityDetection",
-          "iceRestart",
-          "useRtpMux"
-        ],
+        argNames: ["peer", "voiceActivityDetection", "iceRestart", "useRtpMux"],
       );
 
   Future<RtcSessionDescription> createAnswer(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required bool voiceActivityDetection,
       required bool iceRestart,
       required bool useRtpMux,
       dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     var arg1 = voiceActivityDetection;
     var arg2 = iceRestart;
     var arg3 = useRtpMux;
@@ -1861,7 +1890,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
           _platform.inner.wire_create_answer(port_, arg0, arg1, arg2, arg3),
       parseSuccessData: _wire2api_rtc_session_description,
       constMeta: kCreateAnswerConstMeta,
-      argValues: [peerId, voiceActivityDetection, iceRestart, useRtpMux],
+      argValues: [peer, voiceActivityDetection, iceRestart, useRtpMux],
       hint: hint,
     ));
   }
@@ -1869,20 +1898,15 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kCreateAnswerConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "create_answer",
-        argNames: [
-          "peerId",
-          "voiceActivityDetection",
-          "iceRestart",
-          "useRtpMux"
-        ],
+        argNames: ["peer", "voiceActivityDetection", "iceRestart", "useRtpMux"],
       );
 
   Future<void> setLocalDescription(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required SdpType kind,
       required String sdp,
       dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     var arg1 = api2wire_sdp_type(kind);
     var arg2 = _platform.api2wire_String(sdp);
     return _platform.executeNormal(FlutterRustBridgeTask(
@@ -1890,7 +1914,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
           _platform.inner.wire_set_local_description(port_, arg0, arg1, arg2),
       parseSuccessData: _wire2api_unit,
       constMeta: kSetLocalDescriptionConstMeta,
-      argValues: [peerId, kind, sdp],
+      argValues: [peer, kind, sdp],
       hint: hint,
     ));
   }
@@ -1898,15 +1922,15 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kSetLocalDescriptionConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "set_local_description",
-        argNames: ["peerId", "kind", "sdp"],
+        argNames: ["peer", "kind", "sdp"],
       );
 
   Future<void> setRemoteDescription(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required SdpType kind,
       required String sdp,
       dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     var arg1 = api2wire_sdp_type(kind);
     var arg2 = _platform.api2wire_String(sdp);
     return _platform.executeNormal(FlutterRustBridgeTask(
@@ -1914,7 +1938,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
           _platform.inner.wire_set_remote_description(port_, arg0, arg1, arg2),
       parseSuccessData: _wire2api_unit,
       constMeta: kSetRemoteDescriptionConstMeta,
-      argValues: [peerId, kind, sdp],
+      argValues: [peer, kind, sdp],
       hint: hint,
     ));
   }
@@ -1922,15 +1946,15 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kSetRemoteDescriptionConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "set_remote_description",
-        argNames: ["peerId", "kind", "sdp"],
+        argNames: ["peer", "kind", "sdp"],
       );
 
   Future<RtcRtpTransceiver> addTransceiver(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required MediaType mediaType,
       required RtpTransceiverDirection direction,
       dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     var arg1 = api2wire_media_type(mediaType);
     var arg2 = api2wire_rtp_transceiver_direction(direction);
     return _platform.executeNormal(FlutterRustBridgeTask(
@@ -1938,7 +1962,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
           _platform.inner.wire_add_transceiver(port_, arg0, arg1, arg2),
       parseSuccessData: _wire2api_rtc_rtp_transceiver,
       constMeta: kAddTransceiverConstMeta,
-      argValues: [peerId, mediaType, direction],
+      argValues: [peer, mediaType, direction],
       hint: hint,
     ));
   }
@@ -1946,17 +1970,17 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kAddTransceiverConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "add_transceiver",
-        argNames: ["peerId", "mediaType", "direction"],
+        argNames: ["peer", "mediaType", "direction"],
       );
 
   Future<List<RtcRtpTransceiver>> getTransceivers(
-      {required int peerId, dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
+      {required ArcPeerConnection peer, dynamic hint}) {
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) => _platform.inner.wire_get_transceivers(port_, arg0),
       parseSuccessData: _wire2api_list_rtc_rtp_transceiver,
       constMeta: kGetTransceiversConstMeta,
-      argValues: [peerId],
+      argValues: [peer],
       hint: hint,
     ));
   }
@@ -1964,23 +1988,21 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kGetTransceiversConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "get_transceivers",
-        argNames: ["peerId"],
+        argNames: ["peer"],
       );
 
   Future<void> setTransceiverDirection(
-      {required int peerId,
-      required int transceiverIndex,
+      {required ArcRtpTransceiver transceiver,
       required RtpTransceiverDirection direction,
       dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
-    var arg1 = api2wire_u32(transceiverIndex);
-    var arg2 = api2wire_rtp_transceiver_direction(direction);
+    var arg0 = _platform.api2wire_ArcRtpTransceiver(transceiver);
+    var arg1 = api2wire_rtp_transceiver_direction(direction);
     return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner
-          .wire_set_transceiver_direction(port_, arg0, arg1, arg2),
+      callFfi: (port_) =>
+          _platform.inner.wire_set_transceiver_direction(port_, arg0, arg1),
       parseSuccessData: _wire2api_unit,
       constMeta: kSetTransceiverDirectionConstMeta,
-      argValues: [peerId, transceiverIndex, direction],
+      argValues: [transceiver, direction],
       hint: hint,
     ));
   }
@@ -1988,23 +2010,21 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kSetTransceiverDirectionConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "set_transceiver_direction",
-        argNames: ["peerId", "transceiverIndex", "direction"],
+        argNames: ["transceiver", "direction"],
       );
 
   Future<void> setTransceiverRecv(
-      {required int peerId,
-      required int transceiverIndex,
+      {required ArcRtpTransceiver transceiver,
       required bool recv,
       dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
-    var arg1 = api2wire_u32(transceiverIndex);
-    var arg2 = recv;
+    var arg0 = _platform.api2wire_ArcRtpTransceiver(transceiver);
+    var arg1 = recv;
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
-          _platform.inner.wire_set_transceiver_recv(port_, arg0, arg1, arg2),
+          _platform.inner.wire_set_transceiver_recv(port_, arg0, arg1),
       parseSuccessData: _wire2api_unit,
       constMeta: kSetTransceiverRecvConstMeta,
-      argValues: [peerId, transceiverIndex, recv],
+      argValues: [transceiver, recv],
       hint: hint,
     ));
   }
@@ -2012,23 +2032,21 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kSetTransceiverRecvConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "set_transceiver_recv",
-        argNames: ["peerId", "transceiverIndex", "recv"],
+        argNames: ["transceiver", "recv"],
       );
 
   Future<void> setTransceiverSend(
-      {required int peerId,
-      required int transceiverIndex,
+      {required ArcRtpTransceiver transceiver,
       required bool send,
       dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
-    var arg1 = api2wire_u32(transceiverIndex);
-    var arg2 = send;
+    var arg0 = _platform.api2wire_ArcRtpTransceiver(transceiver);
+    var arg1 = send;
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
-          _platform.inner.wire_set_transceiver_send(port_, arg0, arg1, arg2),
+          _platform.inner.wire_set_transceiver_send(port_, arg0, arg1),
       parseSuccessData: _wire2api_unit,
       constMeta: kSetTransceiverSendConstMeta,
-      argValues: [peerId, transceiverIndex, send],
+      argValues: [transceiver, send],
       hint: hint,
     ));
   }
@@ -2036,19 +2054,17 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kSetTransceiverSendConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "set_transceiver_send",
-        argNames: ["peerId", "transceiverIndex", "send"],
+        argNames: ["transceiver", "send"],
       );
 
   Future<String?> getTransceiverMid(
-      {required int peerId, required int transceiverIndex, dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
-    var arg1 = api2wire_u32(transceiverIndex);
+      {required ArcRtpTransceiver transceiver, dynamic hint}) {
+    var arg0 = _platform.api2wire_ArcRtpTransceiver(transceiver);
     return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) =>
-          _platform.inner.wire_get_transceiver_mid(port_, arg0, arg1),
+      callFfi: (port_) => _platform.inner.wire_get_transceiver_mid(port_, arg0),
       parseSuccessData: _wire2api_opt_String,
       constMeta: kGetTransceiverMidConstMeta,
-      argValues: [peerId, transceiverIndex],
+      argValues: [transceiver],
       hint: hint,
     ));
   }
@@ -2056,19 +2072,18 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kGetTransceiverMidConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "get_transceiver_mid",
-        argNames: ["peerId", "transceiverIndex"],
+        argNames: ["transceiver"],
       );
 
   Future<RtpTransceiverDirection> getTransceiverDirection(
-      {required int peerId, required int transceiverIndex, dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
-    var arg1 = api2wire_u32(transceiverIndex);
+      {required ArcRtpTransceiver transceiver, dynamic hint}) {
+    var arg0 = _platform.api2wire_ArcRtpTransceiver(transceiver);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
-          _platform.inner.wire_get_transceiver_direction(port_, arg0, arg1),
+          _platform.inner.wire_get_transceiver_direction(port_, arg0),
       parseSuccessData: _wire2api_rtp_transceiver_direction,
       constMeta: kGetTransceiverDirectionConstMeta,
-      argValues: [peerId, transceiverIndex],
+      argValues: [transceiver],
       hint: hint,
     ));
   }
@@ -2076,16 +2091,17 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kGetTransceiverDirectionConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "get_transceiver_direction",
-        argNames: ["peerId", "transceiverIndex"],
+        argNames: ["transceiver"],
       );
 
-  Future<List<RtcStats>> getPeerStats({required int peerId, dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
+  Future<List<RtcStats>> getPeerStats(
+      {required ArcPeerConnection peer, dynamic hint}) {
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) => _platform.inner.wire_get_peer_stats(port_, arg0),
       parseSuccessData: _wire2api_list_rtc_stats,
       constMeta: kGetPeerStatsConstMeta,
-      argValues: [peerId],
+      argValues: [peer],
       hint: hint,
     ));
   }
@@ -2093,19 +2109,17 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kGetPeerStatsConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "get_peer_stats",
-        argNames: ["peerId"],
+        argNames: ["peer"],
       );
 
   Future<void> stopTransceiver(
-      {required int peerId, required int transceiverIndex, dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
-    var arg1 = api2wire_u32(transceiverIndex);
+      {required ArcRtpTransceiver transceiver, dynamic hint}) {
+    var arg0 = _platform.api2wire_ArcRtpTransceiver(transceiver);
     return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) =>
-          _platform.inner.wire_stop_transceiver(port_, arg0, arg1),
+      callFfi: (port_) => _platform.inner.wire_stop_transceiver(port_, arg0),
       parseSuccessData: _wire2api_unit,
       constMeta: kStopTransceiverConstMeta,
-      argValues: [peerId, transceiverIndex],
+      argValues: [transceiver],
       hint: hint,
     ));
   }
@@ -2113,23 +2127,23 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kStopTransceiverConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "stop_transceiver",
-        argNames: ["peerId", "transceiverIndex"],
+        argNames: ["transceiver"],
       );
 
   Future<void> senderReplaceTrack(
-      {required int peerId,
-      required int transceiverIndex,
+      {required ArcPeerConnection peer,
+      required ArcRtpTransceiver transceiver,
       String? trackId,
       dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
-    var arg1 = api2wire_u32(transceiverIndex);
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
+    var arg1 = _platform.api2wire_ArcRtpTransceiver(transceiver);
     var arg2 = _platform.api2wire_opt_String(trackId);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
           _platform.inner.wire_sender_replace_track(port_, arg0, arg1, arg2),
       parseSuccessData: _wire2api_unit,
       constMeta: kSenderReplaceTrackConstMeta,
-      argValues: [peerId, transceiverIndex, trackId],
+      argValues: [peer, transceiver, trackId],
       hint: hint,
     ));
   }
@@ -2137,16 +2151,16 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kSenderReplaceTrackConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "sender_replace_track",
-        argNames: ["peerId", "transceiverIndex", "trackId"],
+        argNames: ["peer", "transceiver", "trackId"],
       );
 
   Future<void> addIceCandidate(
-      {required int peerId,
+      {required ArcPeerConnection peer,
       required String candidate,
       required String sdpMid,
       required int sdpMlineIndex,
       dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     var arg1 = _platform.api2wire_String(candidate);
     var arg2 = _platform.api2wire_String(sdpMid);
     var arg3 = api2wire_i32(sdpMlineIndex);
@@ -2155,7 +2169,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
           _platform.inner.wire_add_ice_candidate(port_, arg0, arg1, arg2, arg3),
       parseSuccessData: _wire2api_unit,
       constMeta: kAddIceCandidateConstMeta,
-      argValues: [peerId, candidate, sdpMid, sdpMlineIndex],
+      argValues: [peer, candidate, sdpMid, sdpMlineIndex],
       hint: hint,
     ));
   }
@@ -2163,16 +2177,16 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kAddIceCandidateConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "add_ice_candidate",
-        argNames: ["peerId", "candidate", "sdpMid", "sdpMlineIndex"],
+        argNames: ["peer", "candidate", "sdpMid", "sdpMlineIndex"],
       );
 
-  Future<void> restartIce({required int peerId, dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
+  Future<void> restartIce({required ArcPeerConnection peer, dynamic hint}) {
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) => _platform.inner.wire_restart_ice(port_, arg0),
       parseSuccessData: _wire2api_unit,
       constMeta: kRestartIceConstMeta,
-      argValues: [peerId],
+      argValues: [peer],
       hint: hint,
     ));
   }
@@ -2180,17 +2194,18 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kRestartIceConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "restart_ice",
-        argNames: ["peerId"],
+        argNames: ["peer"],
       );
 
-  Future<void> disposePeerConnection({required int peerId, dynamic hint}) {
-    var arg0 = _platform.api2wire_u64(peerId);
+  Future<void> disposePeerConnection(
+      {required ArcPeerConnection peer, dynamic hint}) {
+    var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
           _platform.inner.wire_dispose_peer_connection(port_, arg0),
       parseSuccessData: _wire2api_unit,
       constMeta: kDisposePeerConnectionConstMeta,
-      argValues: [peerId],
+      argValues: [peer],
       hint: hint,
     ));
   }
@@ -2198,7 +2213,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kDisposePeerConnectionConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "dispose_peer_connection",
-        argNames: ["peerId"],
+        argNames: ["peer"],
       );
 
   Future<GetMediaResult> getMedia(
@@ -2447,10 +2462,32 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
         argNames: ["sinkId"],
       );
 
+  DropFnType get dropOpaqueArcPeerConnection =>
+      _platform.inner.drop_opaque_ArcPeerConnection;
+  ShareFnType get shareOpaqueArcPeerConnection =>
+      _platform.inner.share_opaque_ArcPeerConnection;
+  OpaqueTypeFinalizer get ArcPeerConnectionFinalizer =>
+      _platform.ArcPeerConnectionFinalizer;
+
+  DropFnType get dropOpaqueArcRtpTransceiver =>
+      _platform.inner.drop_opaque_ArcRtpTransceiver;
+  ShareFnType get shareOpaqueArcRtpTransceiver =>
+      _platform.inner.share_opaque_ArcRtpTransceiver;
+  OpaqueTypeFinalizer get ArcRtpTransceiverFinalizer =>
+      _platform.ArcRtpTransceiverFinalizer;
+
   void dispose() {
     _platform.dispose();
   }
 // Section: wire2api
+
+  ArcPeerConnection _wire2api_ArcPeerConnection(dynamic raw) {
+    return ArcPeerConnection.fromRaw(raw[0], raw[1], this);
+  }
+
+  ArcRtpTransceiver _wire2api_ArcRtpTransceiver(dynamic raw) {
+    return ArcRtpTransceiver.fromRaw(raw[0], raw[1], this);
+  }
 
   String _wire2api_String(dynamic raw) {
     return raw as String;
@@ -2699,7 +2736,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
     switch (raw[0]) {
       case 0:
         return PeerConnectionEvent_PeerCreated(
-          id: _wire2api_u64(raw[1]),
+          peer: _wire2api_ArcPeerConnection(raw[1]),
         );
       case 1:
         return PeerConnectionEvent_IceCandidate(
@@ -2844,8 +2881,8 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
     if (arr.length != 4)
       throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return RtcRtpTransceiver(
-      peerId: _wire2api_u64(arr[0]),
-      index: _wire2api_u64(arr[1]),
+      peer: _wire2api_ArcPeerConnection(arr[0]),
+      transceiver: _wire2api_ArcRtpTransceiver(arr[1]),
       mid: _wire2api_opt_String(arr[2]),
       direction: _wire2api_rtp_transceiver_direction(arr[3]),
     );
@@ -3059,6 +3096,20 @@ class MedeaFlutterWebrtcNativePlatform
 // Section: api2wire
 
   @protected
+  wire_ArcPeerConnection api2wire_ArcPeerConnection(ArcPeerConnection raw) {
+    final ptr = inner.new_ArcPeerConnection();
+    _api_fill_to_wire_ArcPeerConnection(raw, ptr);
+    return ptr;
+  }
+
+  @protected
+  wire_ArcRtpTransceiver api2wire_ArcRtpTransceiver(ArcRtpTransceiver raw) {
+    final ptr = inner.new_ArcRtpTransceiver();
+    _api_fill_to_wire_ArcRtpTransceiver(raw, ptr);
+    return ptr;
+  }
+
+  @protected
   ffi.Pointer<wire_uint_8_list> api2wire_String(String raw) {
     return api2wire_uint_8_list(utf8.encoder.convert(raw));
   }
@@ -3155,7 +3206,25 @@ class MedeaFlutterWebrtcNativePlatform
 
 // Section: finalizer
 
+  late final OpaqueTypeFinalizer _ArcPeerConnectionFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_ArcPeerConnectionPtr);
+  OpaqueTypeFinalizer get ArcPeerConnectionFinalizer =>
+      _ArcPeerConnectionFinalizer;
+  late final OpaqueTypeFinalizer _ArcRtpTransceiverFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_ArcRtpTransceiverPtr);
+  OpaqueTypeFinalizer get ArcRtpTransceiverFinalizer =>
+      _ArcRtpTransceiverFinalizer;
 // Section: api_fill_to_wire
+
+  void _api_fill_to_wire_ArcPeerConnection(
+      ArcPeerConnection apiObj, wire_ArcPeerConnection wireObj) {
+    wireObj.ptr = apiObj.shareOrMove();
+  }
+
+  void _api_fill_to_wire_ArcRtpTransceiver(
+      ArcRtpTransceiver apiObj, wire_ArcRtpTransceiver wireObj) {
+    wireObj.ptr = apiObj.shareOrMove();
+  }
 
   void _api_fill_to_wire_audio_constraints(
       AudioConstraints apiObj, wire_AudioConstraints wireObj) {
@@ -3398,14 +3467,14 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
 
   void wire_create_offer(
     int port_,
-    int peer_id,
+    wire_ArcPeerConnection peer,
     bool voice_activity_detection,
     bool ice_restart,
     bool use_rtp_mux,
   ) {
     return _wire_create_offer(
       port_,
-      peer_id,
+      peer,
       voice_activity_detection,
       ice_restart,
       use_rtp_mux,
@@ -3414,21 +3483,21 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
 
   late final _wire_create_offerPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Bool, ffi.Bool,
-              ffi.Bool)>>('wire_create_offer');
-  late final _wire_create_offer = _wire_create_offerPtr
-      .asFunction<void Function(int, int, bool, bool, bool)>();
+          ffi.Void Function(ffi.Int64, wire_ArcPeerConnection, ffi.Bool,
+              ffi.Bool, ffi.Bool)>>('wire_create_offer');
+  late final _wire_create_offer = _wire_create_offerPtr.asFunction<
+      void Function(int, wire_ArcPeerConnection, bool, bool, bool)>();
 
   void wire_create_answer(
     int port_,
-    int peer_id,
+    wire_ArcPeerConnection peer,
     bool voice_activity_detection,
     bool ice_restart,
     bool use_rtp_mux,
   ) {
     return _wire_create_answer(
       port_,
-      peer_id,
+      peer,
       voice_activity_detection,
       ice_restart,
       use_rtp_mux,
@@ -3437,20 +3506,20 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
 
   late final _wire_create_answerPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Bool, ffi.Bool,
-              ffi.Bool)>>('wire_create_answer');
-  late final _wire_create_answer = _wire_create_answerPtr
-      .asFunction<void Function(int, int, bool, bool, bool)>();
+          ffi.Void Function(ffi.Int64, wire_ArcPeerConnection, ffi.Bool,
+              ffi.Bool, ffi.Bool)>>('wire_create_answer');
+  late final _wire_create_answer = _wire_create_answerPtr.asFunction<
+      void Function(int, wire_ArcPeerConnection, bool, bool, bool)>();
 
   void wire_set_local_description(
     int port_,
-    int peer_id,
+    wire_ArcPeerConnection peer,
     int kind,
     ffi.Pointer<wire_uint_8_list> sdp,
   ) {
     return _wire_set_local_description(
       port_,
-      peer_id,
+      peer,
       kind,
       sdp,
     );
@@ -3458,21 +3527,22 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
 
   late final _wire_set_local_descriptionPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Int32,
+          ffi.Void Function(ffi.Int64, wire_ArcPeerConnection, ffi.Int32,
               ffi.Pointer<wire_uint_8_list>)>>('wire_set_local_description');
   late final _wire_set_local_description =
       _wire_set_local_descriptionPtr.asFunction<
-          void Function(int, int, int, ffi.Pointer<wire_uint_8_list>)>();
+          void Function(int, wire_ArcPeerConnection, int,
+              ffi.Pointer<wire_uint_8_list>)>();
 
   void wire_set_remote_description(
     int port_,
-    int peer_id,
+    wire_ArcPeerConnection peer,
     int kind,
     ffi.Pointer<wire_uint_8_list> sdp,
   ) {
     return _wire_set_remote_description(
       port_,
-      peer_id,
+      peer,
       kind,
       sdp,
     );
@@ -3480,21 +3550,22 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
 
   late final _wire_set_remote_descriptionPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Int32,
+          ffi.Void Function(ffi.Int64, wire_ArcPeerConnection, ffi.Int32,
               ffi.Pointer<wire_uint_8_list>)>>('wire_set_remote_description');
   late final _wire_set_remote_description =
       _wire_set_remote_descriptionPtr.asFunction<
-          void Function(int, int, int, ffi.Pointer<wire_uint_8_list>)>();
+          void Function(int, wire_ArcPeerConnection, int,
+              ffi.Pointer<wire_uint_8_list>)>();
 
   void wire_add_transceiver(
     int port_,
-    int peer_id,
+    wire_ArcPeerConnection peer,
     int media_type,
     int direction,
   ) {
     return _wire_add_transceiver(
       port_,
-      peer_id,
+      peer,
       media_type,
       direction,
     );
@@ -3502,197 +3573,191 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
 
   late final _wire_add_transceiverPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Int32,
+          ffi.Void Function(ffi.Int64, wire_ArcPeerConnection, ffi.Int32,
               ffi.Int32)>>('wire_add_transceiver');
-  late final _wire_add_transceiver =
-      _wire_add_transceiverPtr.asFunction<void Function(int, int, int, int)>();
+  late final _wire_add_transceiver = _wire_add_transceiverPtr
+      .asFunction<void Function(int, wire_ArcPeerConnection, int, int)>();
 
   void wire_get_transceivers(
     int port_,
-    int peer_id,
+    wire_ArcPeerConnection peer,
   ) {
     return _wire_get_transceivers(
       port_,
-      peer_id,
+      peer,
     );
   }
 
-  late final _wire_get_transceiversPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64, ffi.Uint64)>>(
-          'wire_get_transceivers');
-  late final _wire_get_transceivers =
-      _wire_get_transceiversPtr.asFunction<void Function(int, int)>();
+  late final _wire_get_transceiversPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Int64, wire_ArcPeerConnection)>>('wire_get_transceivers');
+  late final _wire_get_transceivers = _wire_get_transceiversPtr
+      .asFunction<void Function(int, wire_ArcPeerConnection)>();
 
   void wire_set_transceiver_direction(
     int port_,
-    int peer_id,
-    int transceiver_index,
+    wire_ArcRtpTransceiver transceiver,
     int direction,
   ) {
     return _wire_set_transceiver_direction(
       port_,
-      peer_id,
-      transceiver_index,
+      transceiver,
       direction,
     );
   }
 
   late final _wire_set_transceiver_directionPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Uint32,
+          ffi.Void Function(ffi.Int64, wire_ArcRtpTransceiver,
               ffi.Int32)>>('wire_set_transceiver_direction');
   late final _wire_set_transceiver_direction =
       _wire_set_transceiver_directionPtr
-          .asFunction<void Function(int, int, int, int)>();
+          .asFunction<void Function(int, wire_ArcRtpTransceiver, int)>();
 
   void wire_set_transceiver_recv(
     int port_,
-    int peer_id,
-    int transceiver_index,
+    wire_ArcRtpTransceiver transceiver,
     bool recv,
   ) {
     return _wire_set_transceiver_recv(
       port_,
-      peer_id,
-      transceiver_index,
+      transceiver,
       recv,
     );
   }
 
   late final _wire_set_transceiver_recvPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Uint32,
+          ffi.Void Function(ffi.Int64, wire_ArcRtpTransceiver,
               ffi.Bool)>>('wire_set_transceiver_recv');
   late final _wire_set_transceiver_recv = _wire_set_transceiver_recvPtr
-      .asFunction<void Function(int, int, int, bool)>();
+      .asFunction<void Function(int, wire_ArcRtpTransceiver, bool)>();
 
   void wire_set_transceiver_send(
     int port_,
-    int peer_id,
-    int transceiver_index,
+    wire_ArcRtpTransceiver transceiver,
     bool send,
   ) {
     return _wire_set_transceiver_send(
       port_,
-      peer_id,
-      transceiver_index,
+      transceiver,
       send,
     );
   }
 
   late final _wire_set_transceiver_sendPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Uint32,
+          ffi.Void Function(ffi.Int64, wire_ArcRtpTransceiver,
               ffi.Bool)>>('wire_set_transceiver_send');
   late final _wire_set_transceiver_send = _wire_set_transceiver_sendPtr
-      .asFunction<void Function(int, int, int, bool)>();
+      .asFunction<void Function(int, wire_ArcRtpTransceiver, bool)>();
 
   void wire_get_transceiver_mid(
     int port_,
-    int peer_id,
-    int transceiver_index,
+    wire_ArcRtpTransceiver transceiver,
   ) {
     return _wire_get_transceiver_mid(
       port_,
-      peer_id,
-      transceiver_index,
+      transceiver,
     );
   }
 
   late final _wire_get_transceiver_midPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(
-              ffi.Int64, ffi.Uint64, ffi.Uint32)>>('wire_get_transceiver_mid');
-  late final _wire_get_transceiver_mid =
-      _wire_get_transceiver_midPtr.asFunction<void Function(int, int, int)>();
+              ffi.Int64, wire_ArcRtpTransceiver)>>('wire_get_transceiver_mid');
+  late final _wire_get_transceiver_mid = _wire_get_transceiver_midPtr
+      .asFunction<void Function(int, wire_ArcRtpTransceiver)>();
 
   void wire_get_transceiver_direction(
     int port_,
-    int peer_id,
-    int transceiver_index,
+    wire_ArcRtpTransceiver transceiver,
   ) {
     return _wire_get_transceiver_direction(
       port_,
-      peer_id,
-      transceiver_index,
+      transceiver,
     );
   }
 
   late final _wire_get_transceiver_directionPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64,
-              ffi.Uint32)>>('wire_get_transceiver_direction');
+          ffi.Void Function(ffi.Int64,
+              wire_ArcRtpTransceiver)>>('wire_get_transceiver_direction');
   late final _wire_get_transceiver_direction =
       _wire_get_transceiver_directionPtr
-          .asFunction<void Function(int, int, int)>();
+          .asFunction<void Function(int, wire_ArcRtpTransceiver)>();
 
   void wire_get_peer_stats(
     int port_,
-    int peer_id,
+    wire_ArcPeerConnection peer,
   ) {
     return _wire_get_peer_stats(
       port_,
-      peer_id,
+      peer,
     );
   }
 
-  late final _wire_get_peer_statsPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64, ffi.Uint64)>>(
-          'wire_get_peer_stats');
-  late final _wire_get_peer_stats =
-      _wire_get_peer_statsPtr.asFunction<void Function(int, int)>();
+  late final _wire_get_peer_statsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Int64, wire_ArcPeerConnection)>>('wire_get_peer_stats');
+  late final _wire_get_peer_stats = _wire_get_peer_statsPtr
+      .asFunction<void Function(int, wire_ArcPeerConnection)>();
 
   void wire_stop_transceiver(
     int port_,
-    int peer_id,
-    int transceiver_index,
+    wire_ArcRtpTransceiver transceiver,
   ) {
     return _wire_stop_transceiver(
       port_,
-      peer_id,
-      transceiver_index,
+      transceiver,
     );
   }
 
   late final _wire_stop_transceiverPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(
-              ffi.Int64, ffi.Uint64, ffi.Uint32)>>('wire_stop_transceiver');
-  late final _wire_stop_transceiver =
-      _wire_stop_transceiverPtr.asFunction<void Function(int, int, int)>();
+              ffi.Int64, wire_ArcRtpTransceiver)>>('wire_stop_transceiver');
+  late final _wire_stop_transceiver = _wire_stop_transceiverPtr
+      .asFunction<void Function(int, wire_ArcRtpTransceiver)>();
 
   void wire_sender_replace_track(
     int port_,
-    int peer_id,
-    int transceiver_index,
+    wire_ArcPeerConnection peer,
+    wire_ArcRtpTransceiver transceiver,
     ffi.Pointer<wire_uint_8_list> track_id,
   ) {
     return _wire_sender_replace_track(
       port_,
-      peer_id,
-      transceiver_index,
+      peer,
+      transceiver,
       track_id,
     );
   }
 
   late final _wire_sender_replace_trackPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Uint64, ffi.Uint32,
+          ffi.Void Function(
+              ffi.Int64,
+              wire_ArcPeerConnection,
+              wire_ArcRtpTransceiver,
               ffi.Pointer<wire_uint_8_list>)>>('wire_sender_replace_track');
   late final _wire_sender_replace_track =
       _wire_sender_replace_trackPtr.asFunction<
-          void Function(int, int, int, ffi.Pointer<wire_uint_8_list>)>();
+          void Function(int, wire_ArcPeerConnection, wire_ArcRtpTransceiver,
+              ffi.Pointer<wire_uint_8_list>)>();
 
   void wire_add_ice_candidate(
     int port_,
-    int peer_id,
+    wire_ArcPeerConnection peer,
     ffi.Pointer<wire_uint_8_list> candidate,
     ffi.Pointer<wire_uint_8_list> sdp_mid,
     int sdp_mline_index,
   ) {
     return _wire_add_ice_candidate(
       port_,
-      peer_id,
+      peer,
       candidate,
       sdp_mid,
       sdp_mline_index,
@@ -3703,45 +3768,47 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
       ffi.NativeFunction<
           ffi.Void Function(
               ffi.Int64,
-              ffi.Uint64,
+              wire_ArcPeerConnection,
               ffi.Pointer<wire_uint_8_list>,
               ffi.Pointer<wire_uint_8_list>,
               ffi.Int32)>>('wire_add_ice_candidate');
   late final _wire_add_ice_candidate = _wire_add_ice_candidatePtr.asFunction<
-      void Function(int, int, ffi.Pointer<wire_uint_8_list>,
+      void Function(int, wire_ArcPeerConnection, ffi.Pointer<wire_uint_8_list>,
           ffi.Pointer<wire_uint_8_list>, int)>();
 
   void wire_restart_ice(
     int port_,
-    int peer_id,
+    wire_ArcPeerConnection peer,
   ) {
     return _wire_restart_ice(
       port_,
-      peer_id,
+      peer,
     );
   }
 
-  late final _wire_restart_icePtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64, ffi.Uint64)>>(
-          'wire_restart_ice');
-  late final _wire_restart_ice =
-      _wire_restart_icePtr.asFunction<void Function(int, int)>();
+  late final _wire_restart_icePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Int64, wire_ArcPeerConnection)>>('wire_restart_ice');
+  late final _wire_restart_ice = _wire_restart_icePtr
+      .asFunction<void Function(int, wire_ArcPeerConnection)>();
 
   void wire_dispose_peer_connection(
     int port_,
-    int peer_id,
+    wire_ArcPeerConnection peer,
   ) {
     return _wire_dispose_peer_connection(
       port_,
-      peer_id,
+      peer,
     );
   }
 
-  late final _wire_dispose_peer_connectionPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64, ffi.Uint64)>>(
-          'wire_dispose_peer_connection');
-  late final _wire_dispose_peer_connection =
-      _wire_dispose_peer_connectionPtr.asFunction<void Function(int, int)>();
+  late final _wire_dispose_peer_connectionPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64,
+              wire_ArcPeerConnection)>>('wire_dispose_peer_connection');
+  late final _wire_dispose_peer_connection = _wire_dispose_peer_connectionPtr
+      .asFunction<void Function(int, wire_ArcPeerConnection)>();
 
   void wire_get_media(
     int port_,
@@ -3969,6 +4036,26 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
   late final _wire_dispose_video_sink =
       _wire_dispose_video_sinkPtr.asFunction<void Function(int, int)>();
 
+  wire_ArcPeerConnection new_ArcPeerConnection() {
+    return _new_ArcPeerConnection();
+  }
+
+  late final _new_ArcPeerConnectionPtr =
+      _lookup<ffi.NativeFunction<wire_ArcPeerConnection Function()>>(
+          'new_ArcPeerConnection');
+  late final _new_ArcPeerConnection =
+      _new_ArcPeerConnectionPtr.asFunction<wire_ArcPeerConnection Function()>();
+
+  wire_ArcRtpTransceiver new_ArcRtpTransceiver() {
+    return _new_ArcRtpTransceiver();
+  }
+
+  late final _new_ArcRtpTransceiverPtr =
+      _lookup<ffi.NativeFunction<wire_ArcRtpTransceiver Function()>>(
+          'new_ArcRtpTransceiver');
+  late final _new_ArcRtpTransceiver =
+      _new_ArcRtpTransceiverPtr.asFunction<wire_ArcRtpTransceiver Function()>();
+
   ffi.Pointer<wire_StringList> new_StringList_0(
     int len,
   ) {
@@ -4059,6 +4146,66 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
   late final _new_uint_8_list_0 = _new_uint_8_list_0Ptr
       .asFunction<ffi.Pointer<wire_uint_8_list> Function(int)>();
 
+  void drop_opaque_ArcPeerConnection(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _drop_opaque_ArcPeerConnection(
+      ptr,
+    );
+  }
+
+  late final _drop_opaque_ArcPeerConnectionPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'drop_opaque_ArcPeerConnection');
+  late final _drop_opaque_ArcPeerConnection = _drop_opaque_ArcPeerConnectionPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Void> share_opaque_ArcPeerConnection(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _share_opaque_ArcPeerConnection(
+      ptr,
+    );
+  }
+
+  late final _share_opaque_ArcPeerConnectionPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(
+              ffi.Pointer<ffi.Void>)>>('share_opaque_ArcPeerConnection');
+  late final _share_opaque_ArcPeerConnection =
+      _share_opaque_ArcPeerConnectionPtr
+          .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
+
+  void drop_opaque_ArcRtpTransceiver(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _drop_opaque_ArcRtpTransceiver(
+      ptr,
+    );
+  }
+
+  late final _drop_opaque_ArcRtpTransceiverPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'drop_opaque_ArcRtpTransceiver');
+  late final _drop_opaque_ArcRtpTransceiver = _drop_opaque_ArcRtpTransceiverPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Void> share_opaque_ArcRtpTransceiver(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _share_opaque_ArcRtpTransceiver(
+      ptr,
+    );
+  }
+
+  late final _share_opaque_ArcRtpTransceiverPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(
+              ffi.Pointer<ffi.Void>)>>('share_opaque_ArcRtpTransceiver');
+  late final _share_opaque_ArcRtpTransceiver =
+      _share_opaque_ArcRtpTransceiverPtr
+          .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
+
   void free_WireSyncReturn(
     WireSyncReturn ptr,
   ) {
@@ -4113,6 +4260,14 @@ final class wire_RtcConfiguration extends ffi.Struct {
   external int bundle_policy;
 
   external ffi.Pointer<wire_list_rtc_ice_server> ice_servers;
+}
+
+final class wire_ArcPeerConnection extends ffi.Struct {
+  external ffi.Pointer<ffi.Void> ptr;
+}
+
+final class wire_ArcRtpTransceiver extends ffi.Struct {
+  external ffi.Pointer<ffi.Void> ptr;
 }
 
 final class wire_AudioConstraints extends ffi.Struct {

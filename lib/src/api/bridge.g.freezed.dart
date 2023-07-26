@@ -725,7 +725,7 @@ abstract class GetMediaResult_Err implements GetMediaResult {
 mixin _$PeerConnectionEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) peerCreated,
+    required TResult Function(ArcPeerConnection peer) peerCreated,
     required TResult Function(
             String sdpMid, int sdpMlineIndex, String candidate)
         iceCandidate,
@@ -743,7 +743,7 @@ mixin _$PeerConnectionEvent {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? peerCreated,
+    TResult? Function(ArcPeerConnection peer)? peerCreated,
     TResult? Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult? Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -759,7 +759,7 @@ mixin _$PeerConnectionEvent {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? peerCreated,
+    TResult Function(ArcPeerConnection peer)? peerCreated,
     TResult Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -862,7 +862,7 @@ abstract class _$$PeerConnectionEvent_PeerCreatedCopyWith<$Res> {
           $Res Function(_$PeerConnectionEvent_PeerCreated) then) =
       __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<$Res>;
   @useResult
-  $Res call({int id});
+  $Res call({ArcPeerConnection peer});
 }
 
 /// @nodoc
@@ -878,13 +878,13 @@ class __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
+    Object? peer = null,
   }) {
     return _then(_$PeerConnectionEvent_PeerCreated(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
+      peer: null == peer
+          ? _value.peer
+          : peer // ignore: cast_nullable_to_non_nullable
+              as ArcPeerConnection,
     ));
   }
 }
@@ -893,15 +893,15 @@ class __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<$Res>
 
 class _$PeerConnectionEvent_PeerCreated
     implements PeerConnectionEvent_PeerCreated {
-  const _$PeerConnectionEvent_PeerCreated({required this.id});
+  const _$PeerConnectionEvent_PeerCreated({required this.peer});
 
-  /// ID of the created [`PeerConnection`].
+  /// Rust side [`PeerConnection`].
   @override
-  final int id;
+  final ArcPeerConnection peer;
 
   @override
   String toString() {
-    return 'PeerConnectionEvent.peerCreated(id: $id)';
+    return 'PeerConnectionEvent.peerCreated(peer: $peer)';
   }
 
   @override
@@ -909,11 +909,11 @@ class _$PeerConnectionEvent_PeerCreated
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PeerConnectionEvent_PeerCreated &&
-            (identical(other.id, id) || other.id == id));
+            (identical(other.peer, peer) || other.peer == peer));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id);
+  int get hashCode => Object.hash(runtimeType, peer);
 
   @JsonKey(ignore: true)
   @override
@@ -925,7 +925,7 @@ class _$PeerConnectionEvent_PeerCreated
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) peerCreated,
+    required TResult Function(ArcPeerConnection peer) peerCreated,
     required TResult Function(
             String sdpMid, int sdpMlineIndex, String candidate)
         iceCandidate,
@@ -940,13 +940,13 @@ class _$PeerConnectionEvent_PeerCreated
     required TResult Function(PeerConnectionState field0) connectionStateChange,
     required TResult Function(RtcTrackEvent field0) track,
   }) {
-    return peerCreated(id);
+    return peerCreated(peer);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? peerCreated,
+    TResult? Function(ArcPeerConnection peer)? peerCreated,
     TResult? Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult? Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -959,13 +959,13 @@ class _$PeerConnectionEvent_PeerCreated
     TResult? Function(PeerConnectionState field0)? connectionStateChange,
     TResult? Function(RtcTrackEvent field0)? track,
   }) {
-    return peerCreated?.call(id);
+    return peerCreated?.call(peer);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? peerCreated,
+    TResult Function(ArcPeerConnection peer)? peerCreated,
     TResult Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -980,7 +980,7 @@ class _$PeerConnectionEvent_PeerCreated
     required TResult orElse(),
   }) {
     if (peerCreated != null) {
-      return peerCreated(id);
+      return peerCreated(peer);
     }
     return orElse();
   }
@@ -1060,11 +1060,12 @@ class _$PeerConnectionEvent_PeerCreated
 }
 
 abstract class PeerConnectionEvent_PeerCreated implements PeerConnectionEvent {
-  const factory PeerConnectionEvent_PeerCreated({required final int id}) =
+  const factory PeerConnectionEvent_PeerCreated(
+          {required final ArcPeerConnection peer}) =
       _$PeerConnectionEvent_PeerCreated;
 
-  /// ID of the created [`PeerConnection`].
-  int get id;
+  /// Rust side [`PeerConnection`].
+  ArcPeerConnection get peer;
   @JsonKey(ignore: true)
   _$$PeerConnectionEvent_PeerCreatedCopyWith<_$PeerConnectionEvent_PeerCreated>
       get copyWith => throw _privateConstructorUsedError;
@@ -1182,7 +1183,7 @@ class _$PeerConnectionEvent_IceCandidate
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) peerCreated,
+    required TResult Function(ArcPeerConnection peer) peerCreated,
     required TResult Function(
             String sdpMid, int sdpMlineIndex, String candidate)
         iceCandidate,
@@ -1203,7 +1204,7 @@ class _$PeerConnectionEvent_IceCandidate
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? peerCreated,
+    TResult? Function(ArcPeerConnection peer)? peerCreated,
     TResult? Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult? Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -1222,7 +1223,7 @@ class _$PeerConnectionEvent_IceCandidate
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? peerCreated,
+    TResult Function(ArcPeerConnection peer)? peerCreated,
     TResult Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -1422,7 +1423,7 @@ class _$PeerConnectionEvent_IceGatheringStateChange
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) peerCreated,
+    required TResult Function(ArcPeerConnection peer) peerCreated,
     required TResult Function(
             String sdpMid, int sdpMlineIndex, String candidate)
         iceCandidate,
@@ -1443,7 +1444,7 @@ class _$PeerConnectionEvent_IceGatheringStateChange
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? peerCreated,
+    TResult? Function(ArcPeerConnection peer)? peerCreated,
     TResult? Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult? Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -1462,7 +1463,7 @@ class _$PeerConnectionEvent_IceGatheringStateChange
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? peerCreated,
+    TResult Function(ArcPeerConnection peer)? peerCreated,
     TResult Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -1702,7 +1703,7 @@ class _$PeerConnectionEvent_IceCandidateError
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) peerCreated,
+    required TResult Function(ArcPeerConnection peer) peerCreated,
     required TResult Function(
             String sdpMid, int sdpMlineIndex, String candidate)
         iceCandidate,
@@ -1723,7 +1724,7 @@ class _$PeerConnectionEvent_IceCandidateError
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? peerCreated,
+    TResult? Function(ArcPeerConnection peer)? peerCreated,
     TResult? Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult? Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -1742,7 +1743,7 @@ class _$PeerConnectionEvent_IceCandidateError
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? peerCreated,
+    TResult Function(ArcPeerConnection peer)? peerCreated,
     TResult Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -1922,7 +1923,7 @@ class _$PeerConnectionEvent_NegotiationNeeded
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) peerCreated,
+    required TResult Function(ArcPeerConnection peer) peerCreated,
     required TResult Function(
             String sdpMid, int sdpMlineIndex, String candidate)
         iceCandidate,
@@ -1943,7 +1944,7 @@ class _$PeerConnectionEvent_NegotiationNeeded
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? peerCreated,
+    TResult? Function(ArcPeerConnection peer)? peerCreated,
     TResult? Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult? Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -1962,7 +1963,7 @@ class _$PeerConnectionEvent_NegotiationNeeded
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? peerCreated,
+    TResult Function(ArcPeerConnection peer)? peerCreated,
     TResult Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -2132,7 +2133,7 @@ class _$PeerConnectionEvent_SignallingChange
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) peerCreated,
+    required TResult Function(ArcPeerConnection peer) peerCreated,
     required TResult Function(
             String sdpMid, int sdpMlineIndex, String candidate)
         iceCandidate,
@@ -2153,7 +2154,7 @@ class _$PeerConnectionEvent_SignallingChange
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? peerCreated,
+    TResult? Function(ArcPeerConnection peer)? peerCreated,
     TResult? Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult? Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -2172,7 +2173,7 @@ class _$PeerConnectionEvent_SignallingChange
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? peerCreated,
+    TResult Function(ArcPeerConnection peer)? peerCreated,
     TResult Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -2349,7 +2350,7 @@ class _$PeerConnectionEvent_IceConnectionStateChange
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) peerCreated,
+    required TResult Function(ArcPeerConnection peer) peerCreated,
     required TResult Function(
             String sdpMid, int sdpMlineIndex, String candidate)
         iceCandidate,
@@ -2370,7 +2371,7 @@ class _$PeerConnectionEvent_IceConnectionStateChange
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? peerCreated,
+    TResult? Function(ArcPeerConnection peer)? peerCreated,
     TResult? Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult? Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -2389,7 +2390,7 @@ class _$PeerConnectionEvent_IceConnectionStateChange
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? peerCreated,
+    TResult Function(ArcPeerConnection peer)? peerCreated,
     TResult Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -2566,7 +2567,7 @@ class _$PeerConnectionEvent_ConnectionStateChange
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) peerCreated,
+    required TResult Function(ArcPeerConnection peer) peerCreated,
     required TResult Function(
             String sdpMid, int sdpMlineIndex, String candidate)
         iceCandidate,
@@ -2587,7 +2588,7 @@ class _$PeerConnectionEvent_ConnectionStateChange
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? peerCreated,
+    TResult? Function(ArcPeerConnection peer)? peerCreated,
     TResult? Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult? Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -2606,7 +2607,7 @@ class _$PeerConnectionEvent_ConnectionStateChange
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? peerCreated,
+    TResult Function(ArcPeerConnection peer)? peerCreated,
     TResult Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -2779,7 +2780,7 @@ class _$PeerConnectionEvent_Track implements PeerConnectionEvent_Track {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) peerCreated,
+    required TResult Function(ArcPeerConnection peer) peerCreated,
     required TResult Function(
             String sdpMid, int sdpMlineIndex, String candidate)
         iceCandidate,
@@ -2800,7 +2801,7 @@ class _$PeerConnectionEvent_Track implements PeerConnectionEvent_Track {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? peerCreated,
+    TResult? Function(ArcPeerConnection peer)? peerCreated,
     TResult? Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult? Function(IceGatheringState field0)? iceGatheringStateChange,
@@ -2819,7 +2820,7 @@ class _$PeerConnectionEvent_Track implements PeerConnectionEvent_Track {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? peerCreated,
+    TResult Function(ArcPeerConnection peer)? peerCreated,
     TResult Function(String sdpMid, int sdpMlineIndex, String candidate)?
         iceCandidate,
     TResult Function(IceGatheringState field0)? iceGatheringStateChange,

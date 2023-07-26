@@ -1,15 +1,22 @@
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
-        mpsc, Mutex,
+        mpsc, Arc, Mutex,
     },
     time::Duration,
 };
 
-use flutter_rust_bridge::StreamSink;
+use flutter_rust_bridge::{RustOpaque, StreamSink};
 use libwebrtc_sys as sys;
 
-use crate::{devices, renderer::FrameHandler, Webrtc};
+use crate::{
+    devices::{self, DeviceState},
+    renderer::FrameHandler,
+    Webrtc,
+};
+
+// Re-exporting since it is used in the generated code.
+pub use crate::{PeerConnection, RtpTransceiver};
 
 lazy_static::lazy_static! {
     static ref WEBRTC: Mutex<Webrtc> = Mutex::new(Webrtc::new().unwrap());
@@ -1120,12 +1127,12 @@ impl From<sys::IceGatheringState> for IceGatheringState {
 }
 
 /// Representation of [`PeerConnection`]'s events.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum PeerConnectionEvent {
     /// [`PeerConnection`] has been created.
     PeerCreated {
-        /// ID of the created [`PeerConnection`].
-        id: u64,
+        /// Rust side [`PeerConnection`].
+        peer: RustOpaque<Arc<PeerConnection>>,
     },
 
     /// [RTCIceCandidate][1] has been discovered.
@@ -1665,16 +1672,13 @@ pub struct MediaStreamTrack {
 ///
 /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
 /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct RtcRtpTransceiver {
-    /// ID of the [`PeerConnection`] that this [`RtcRtpTransceiver`] belongs to.
-    pub peer_id: u64,
+    /// [`PeerConnection`] that this [`RtcRtpTransceiver`] belongs to.
+    pub peer: RustOpaque<Arc<PeerConnection>>,
 
-    /// ID of this [`RtcRtpTransceiver`].
-    ///
-    /// It's not unique across all possible [`RtcRtpTransceiver`]s, but only
-    /// within a specific peer.
-    pub index: u64,
+    /// Rust side [`RtpTransceiver`].
+    pub transceiver: RustOpaque<Arc<RtpTransceiver>>,
 
     /// [Negotiated media ID (mid)][1] which the local and remote peers have
     /// agreed upon to uniquely identify the [`MediaStream`]'s pairing of
@@ -1691,7 +1695,7 @@ pub struct RtcRtpTransceiver {
 
 /// Representation of a track event, sent when a new [`MediaStreamTrack`] is
 /// added to an [`RtcRtpTransceiver`] as part of a [`PeerConnection`].
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct RtcTrackEvent {
     /// [`MediaStreamTrack`] associated with the [RTCRtpReceiver] identified
     /// by the receiver.
@@ -1885,169 +1889,134 @@ pub fn create_peer_connection(
 
 /// Initiates the creation of an SDP offer for the purpose of starting a new
 /// WebRTC connection to a remote peer.
+#[allow(clippy::needless_pass_by_value)]
 pub fn create_offer(
-    peer_id: u64,
+    peer: RustOpaque<Arc<PeerConnection>>,
     voice_activity_detection: bool,
     ice_restart: bool,
     use_rtp_mux: bool,
 ) -> anyhow::Result<RtcSessionDescription> {
     let (tx, rx) = mpsc::channel();
 
-    WEBRTC.lock().unwrap().create_offer(
-        peer_id,
-        voice_activity_detection,
-        ice_restart,
-        use_rtp_mux,
-        tx,
-    )?;
+    peer.create_offer(voice_activity_detection, ice_restart, use_rtp_mux, tx);
 
     rx.recv_timeout(RX_TIMEOUT)?
 }
 
 /// Creates an SDP answer to an offer received from a remote peer during an
 /// offer/answer negotiation of a WebRTC connection.
+#[allow(clippy::needless_pass_by_value)]
 pub fn create_answer(
-    peer_id: u64,
+    peer: RustOpaque<Arc<PeerConnection>>,
     voice_activity_detection: bool,
     ice_restart: bool,
     use_rtp_mux: bool,
 ) -> anyhow::Result<RtcSessionDescription> {
     let (tx, rx) = mpsc::channel();
 
-    WEBRTC.lock().unwrap().create_answer(
-        peer_id,
-        voice_activity_detection,
-        ice_restart,
-        use_rtp_mux,
-        tx,
-    )?;
+    peer.create_answer(voice_activity_detection, ice_restart, use_rtp_mux, tx);
 
     rx.recv_timeout(RX_TIMEOUT)?
 }
 
 /// Changes the local description associated with the connection.
+#[allow(clippy::needless_pass_by_value)]
 pub fn set_local_description(
-    peer_id: u64,
+    peer: RustOpaque<Arc<PeerConnection>>,
     kind: SdpType,
     sdp: String,
 ) -> anyhow::Result<()> {
     let (tx, rx) = mpsc::channel();
 
-    WEBRTC.lock().unwrap().set_local_description(
-        peer_id,
-        kind.into(),
-        sdp,
-        tx,
-    )?;
+    peer.set_local_description(kind.into(), &sdp, tx);
 
     rx.recv_timeout(RX_TIMEOUT)?
 }
 
 /// Sets the specified session description as the remote peer's current offer or
 /// answer.
+#[allow(clippy::needless_pass_by_value)]
 pub fn set_remote_description(
-    peer_id: u64,
+    peer: RustOpaque<Arc<PeerConnection>>,
     kind: SdpType,
     sdp: String,
 ) -> anyhow::Result<()> {
-    WEBRTC
-        .lock()
-        .unwrap()
-        .set_remote_description(peer_id, kind.into(), sdp)
+    peer.set_remote_description(kind.into(), &sdp)
 }
 
 /// Creates a new [`RtcRtpTransceiver`] and adds it to the set of transceivers
 /// of the specified [`PeerConnection`].
 pub fn add_transceiver(
-    peer_id: u64,
+    peer: RustOpaque<Arc<PeerConnection>>,
     media_type: MediaType,
     direction: RtpTransceiverDirection,
 ) -> anyhow::Result<RtcRtpTransceiver> {
-    WEBRTC.lock().unwrap().add_transceiver(
-        peer_id,
-        media_type.into(),
-        direction.into(),
-    )
+    PeerConnection::add_transceiver(peer, media_type.into(), direction.into())
 }
 
 /// Returns a sequence of [`RtcRtpTransceiver`] objects representing the RTP
 /// transceivers currently attached to the specified [`PeerConnection`].
+#[allow(clippy::needless_pass_by_value)]
 pub fn get_transceivers(
-    peer_id: u64,
-) -> anyhow::Result<Vec<RtcRtpTransceiver>> {
-    WEBRTC.lock().unwrap().get_transceivers(peer_id)
+    peer: RustOpaque<Arc<PeerConnection>>,
+) -> Vec<RtcRtpTransceiver> {
+    Webrtc::get_transceivers(&peer)
 }
 
 /// Changes the preferred `direction` of the specified [`RtcRtpTransceiver`].
+#[allow(clippy::needless_pass_by_value)]
 pub fn set_transceiver_direction(
-    peer_id: u64,
-    transceiver_index: u32,
+    transceiver: RustOpaque<Arc<RtpTransceiver>>,
     direction: RtpTransceiverDirection,
 ) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().set_transceiver_direction(
-        peer_id,
-        transceiver_index,
-        direction,
-    )
+    transceiver.set_direction(direction)
 }
 
 /// Changes the receive direction of the specified [`RtcRtpTransceiver`].
+#[allow(clippy::needless_pass_by_value)]
 pub fn set_transceiver_recv(
-    peer_id: u64,
-    transceiver_index: u32,
+    transceiver: RustOpaque<Arc<RtpTransceiver>>,
     recv: bool,
 ) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().set_transceiver_recv(
-        peer_id,
-        transceiver_index,
-        recv,
-    )
+    transceiver.set_recv(recv)
 }
 
 /// Changes the send direction of the specified [`RtcRtpTransceiver`].
+#[allow(clippy::needless_pass_by_value)]
 pub fn set_transceiver_send(
-    peer_id: u64,
-    transceiver_index: u32,
+    transceiver: RustOpaque<Arc<RtpTransceiver>>,
     send: bool,
 ) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().set_transceiver_send(
-        peer_id,
-        transceiver_index,
-        send,
-    )
+    transceiver.set_send(send)
 }
 
 /// Returns the [negotiated media ID (mid)][1] of the specified
 /// [`RtcRtpTransceiver`].
 ///
 /// [1]: https://w3.org/TR/webrtc#dfn-media-stream-identification-tag
+#[allow(clippy::needless_pass_by_value)]
 pub fn get_transceiver_mid(
-    peer_id: u64,
-    transceiver_index: u32,
-) -> anyhow::Result<Option<String>> {
-    WEBRTC
-        .lock()
-        .unwrap()
-        .get_transceiver_mid(peer_id, transceiver_index)
+    transceiver: RustOpaque<Arc<RtpTransceiver>>,
+) -> Option<String> {
+    transceiver.mid()
 }
 
 /// Returns the preferred direction of the specified [`RtcRtpTransceiver`].
+#[allow(clippy::needless_pass_by_value)]
 pub fn get_transceiver_direction(
-    peer_id: u64,
-    transceiver_index: u32,
-) -> anyhow::Result<RtpTransceiverDirection> {
-    WEBRTC
-        .lock()
-        .unwrap()
-        .get_transceiver_direction(peer_id, transceiver_index)
-        .map(Into::into)
+    transceiver: RustOpaque<Arc<RtpTransceiver>>,
+) -> RtpTransceiverDirection {
+    transceiver.direction().into()
 }
 
 /// Returns [`RtcStats`] of the [`PeerConnection`] by its ID.
-pub fn get_peer_stats(peer_id: u64) -> anyhow::Result<Vec<RtcStats>> {
+#[allow(clippy::needless_pass_by_value)]
+pub fn get_peer_stats(
+    peer: RustOpaque<Arc<PeerConnection>>,
+) -> anyhow::Result<Vec<RtcStats>> {
     let (tx, rx) = mpsc::channel();
 
-    WEBRTC.lock().unwrap().get_stats(peer_id, tx)?;
+    peer.get_stats(tx);
     let report = rx.recv_timeout(RX_TIMEOUT)?;
 
     Ok(report
@@ -2062,59 +2031,52 @@ pub fn get_peer_stats(peer_id: u64) -> anyhow::Result<Vec<RtcStats>> {
 ///
 /// This will immediately cause the transceiver's sender to no longer send, and
 /// its receiver to no longer receive.
+#[allow(clippy::needless_pass_by_value)]
 pub fn stop_transceiver(
-    peer_id: u64,
-    transceiver_index: u32,
+    transceiver: RustOpaque<Arc<RtpTransceiver>>,
 ) -> anyhow::Result<()> {
-    WEBRTC
-        .lock()
-        .unwrap()
-        .stop_transceiver(peer_id, transceiver_index)
+    transceiver.stop()
 }
 
 /// Replaces the specified [`AudioTrack`] (or [`VideoTrack`]) on the
 /// [`sys::Transceiver`]'s `sender`.
+#[allow(clippy::needless_pass_by_value)]
 pub fn sender_replace_track(
-    peer_id: u64,
-    transceiver_index: u32,
+    peer: RustOpaque<Arc<PeerConnection>>,
+    transceiver: RustOpaque<Arc<RtpTransceiver>>,
     track_id: Option<String>,
 ) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().sender_replace_track(
-        peer_id,
-        transceiver_index,
-        track_id,
-    )
+    WEBRTC
+        .lock()
+        .unwrap()
+        .sender_replace_track(&peer, &transceiver, track_id)
 }
 
 /// Adds the new ICE `candidate` to the given [`PeerConnection`].
 #[allow(clippy::needless_pass_by_value)]
 pub fn add_ice_candidate(
-    peer_id: u64,
+    peer: RustOpaque<Arc<PeerConnection>>,
     candidate: String,
     sdp_mid: String,
     sdp_mline_index: i32,
 ) -> anyhow::Result<()> {
     let (tx, rx) = mpsc::channel();
 
-    WEBRTC.lock().unwrap().add_ice_candidate(
-        peer_id,
-        candidate,
-        sdp_mid,
-        sdp_mline_index,
-        tx,
-    )?;
+    peer.add_ice_candidate(candidate, sdp_mid, sdp_mline_index, tx)?;
 
     rx.recv_timeout(RX_TIMEOUT)?
 }
 
 /// Tells the [`PeerConnection`] that ICE should be restarted.
-pub fn restart_ice(peer_id: u64) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().restart_ice(peer_id)
+#[allow(clippy::needless_pass_by_value)]
+pub fn restart_ice(peer: RustOpaque<Arc<PeerConnection>>) {
+    peer.restart_ice();
 }
 
 /// Closes the [`PeerConnection`].
-pub fn dispose_peer_connection(peer_id: u64) {
-    WEBRTC.lock().unwrap().dispose_peer_connection(peer_id);
+#[allow(clippy::needless_pass_by_value)]
+pub fn dispose_peer_connection(peer: RustOpaque<Arc<PeerConnection>>) {
+    WEBRTC.lock().unwrap().dispose_peer_connection(&peer);
 }
 
 /// Creates a [`MediaStream`] with tracks according to provided
@@ -2206,7 +2168,12 @@ pub fn register_track_observer(
 /// Only one callback can be set at a time, so the previous one will be dropped,
 /// if any.
 pub fn set_on_device_changed(cb: StreamSink<()>) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().set_on_device_changed(cb.into())
+    let device_state = DeviceState::new(
+        cb.into(),
+        &mut WEBRTC.lock().unwrap().task_queue_factory,
+    )?;
+    Webrtc::set_on_device_changed(device_state);
+    Ok(())
 }
 
 /// Creates a new [`VideoSink`] attached to the specified video track.
