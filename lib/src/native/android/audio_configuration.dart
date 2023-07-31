@@ -24,6 +24,7 @@ enum AndroidAudioFocusMode {
   gainTransient,
   gainTransientExclusive,
   gainTransientMayDuck,
+  loss
 }
 
 extension AndroidAudioFocusModeExt on AndroidAudioFocusMode {
