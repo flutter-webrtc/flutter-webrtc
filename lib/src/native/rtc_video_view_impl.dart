@@ -49,19 +49,19 @@ class RTCVideoView extends StatelessWidget {
                 return SizedBox(
                   width: constraints.maxHeight * value.aspectRatio,
                   height: constraints.maxHeight,
-                  child: child,
+                  child: Transform(
+                    transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
+                    alignment: FractionalOffset.center,
+                    child: value.renderVideo
+                        ? Texture(
+                            textureId: videoRenderer.textureId!,
+                            filterQuality: filterQuality,
+                          )
+                        : child,
+                  ),
                 );
               },
-              child: Transform(
-                transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
-                alignment: FractionalOffset.center,
-                child: videoRenderer.renderVideo
-                    ? Texture(
-                        textureId: videoRenderer.textureId!,
-                        filterQuality: filterQuality,
-                      )
-                    : placeholderBuilder?.call(context) ?? Container(),
-              ),
+              child: placeholderBuilder?.call(context) ?? Container(),
             ),
           ),
         ),
