@@ -129,6 +129,10 @@ class Helper {
       AndroidNativeAudioManagement.setAndroidAudioConfiguration(
           androidAudioConfiguration);
 
+  /// After Android app finishes a session, on audio focus loss, clear the active communication device.
+  static Future<void> clearAndroidCommunicationDevice() =>
+      WebRTC.invokeMethod('clearAndroidCommunicationDevice');
+
   /// Set the audio configuration for iOS
   static Future<void> setAppleAudioConfiguration(
           AppleAudioConfiguration appleAudioConfiguration) =>
