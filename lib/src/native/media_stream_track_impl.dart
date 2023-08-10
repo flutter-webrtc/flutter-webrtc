@@ -72,7 +72,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
         <String, dynamic>{'trackId': _trackId, 'torch': torch},
       );
 
-  @override
+//  @override
   Future<void> setZoom(double zoomLevel) => WebRTC.invokeMethod(
         'mediaStreamTrackSetZoom',
         <String, dynamic>{'trackId': _trackId, 'zoomLevel': zoomLevel},
