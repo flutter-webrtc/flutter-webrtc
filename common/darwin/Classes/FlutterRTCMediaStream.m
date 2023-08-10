@@ -815,6 +815,11 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 - (void)mediaStreamTrackSetZoom:(RTCMediaStreamTrack*)track
                            zoomLevel:(double)zoomLevel
                           result:(FlutterResult)result {
+#if TARGET_OS_OSX
+  NSLog(@"Not supported on macOS. Can't set zoom");
+  return;
+#endif
+#if TARGET_OS_IPHONE
   if (!self.videoCapturer) {
     NSLog(@"Video capturer is null. Can't set zoom");
     return;
@@ -832,12 +837,13 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     NSLog(@"Failed to acquire configuration lock. %@", error.localizedDescription);
     return;
   }
+  
   CGFloat desiredZoomFactor = (CGFloat)zoomLevel;
   device.videoZoomFactor = MAX(1.0, MIN(desiredZoomFactor, device.activeFormat.videoMaxZoomFactor));
-
   [device unlockForConfiguration];
 
   result(nil);
+#endif
 }
 
 - (void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack*)track result:(FlutterResult)result {
