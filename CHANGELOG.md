@@ -1,6 +1,13 @@
 # Changelog
 
 --------------------------------------------
+[0.9.38] - 2023-08-11
+
+* [Android] fix: Expose helper to clearCommunicationDevice on AudioManager.AUDIOFOCUS_LOSS/
+* [Android] feat: support force SW codec list for android, and disable HW codec for VP9 by default.
+* [Android] fix: issue for audio device switch (#1417)
+* [Android/iOS] feat: Added setZoom method to support camera zooming while streaming. (#1412).
+
 [0.9.37] - 2023-08-07
 
 * [Native] fix: Skip set_sdp_fmtp_line if sdpFmtpLine is empty.
