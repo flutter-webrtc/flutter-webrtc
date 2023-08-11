@@ -150,7 +150,24 @@ public class AudioSwitchManager {
         });
     }
 
+    private void updatePreferredDeviceList(boolean speakerOn) {
+        preferredDeviceList = new ArrayList<>();
+        preferredDeviceList.add(AudioDevice.BluetoothHeadset.class);
+        preferredDeviceList.add(AudioDevice.WiredHeadset.class);
+        if(speakerOn) {
+            preferredDeviceList.add(AudioDevice.Speakerphone.class);
+            preferredDeviceList.add(AudioDevice.Earpiece.class);
+        } else {
+            preferredDeviceList.add(AudioDevice.Earpiece.class);
+            preferredDeviceList.add(AudioDevice.Speakerphone.class);
+        }
+        handler.post(() -> {
+            Objects.requireNonNull(audioSwitch).setPreferredDeviceList(preferredDeviceList);
+        });
+    }
+
     public void enableSpeakerphone(boolean enable) {
+        updatePreferredDeviceList(enable);
         if(enable) {
             selectAudioOutput(AudioDevice.Speakerphone.class);
         } else  {
