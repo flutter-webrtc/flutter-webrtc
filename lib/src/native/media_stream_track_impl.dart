@@ -72,14 +72,10 @@ class MediaStreamTrackNative extends MediaStreamTrack {
         <String, dynamic>{'trackId': _trackId, 'torch': torch},
       );
 
-//  @override
-  Future<void> setZoom(double zoomLevel) => WebRTC.invokeMethod(
-        'mediaStreamTrackSetZoom',
-        <String, dynamic>{'trackId': _trackId, 'zoomLevel': zoomLevel},
-      );
-
   @override
   Future<bool> switchCamera() => Helper.switchCamera(this);
+
+  Future<void> setZoom(double zoomLevel) => Helper.setZoom(this, zoomLevel);
 
   @Deprecated('Use Helper.setSpeakerphoneOn instead')
   @override
