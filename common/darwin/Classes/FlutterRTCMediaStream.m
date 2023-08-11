@@ -812,6 +812,40 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   result(nil);
 }
 
+- (void)mediaStreamTrackSetZoom:(RTCMediaStreamTrack*)track
+                           zoomLevel:(double)zoomLevel
+                          result:(FlutterResult)result {
+#if TARGET_OS_OSX
+  NSLog(@"Not supported on macOS. Can't set zoom");
+  return;
+#endif
+#if TARGET_OS_IPHONE
+  if (!self.videoCapturer) {
+    NSLog(@"Video capturer is null. Can't set zoom");
+    return;
+  }
+  if (self.videoCapturer.captureSession.inputs.count == 0) {
+    NSLog(@"Video capturer is missing an input. Can't set zoom");
+    return;
+  }
+
+  AVCaptureDeviceInput* deviceInput = [self.videoCapturer.captureSession.inputs objectAtIndex:0];
+  AVCaptureDevice* device = deviceInput.device;
+
+  NSError* error;
+  if ([device lockForConfiguration:&error] == NO) {
+    NSLog(@"Failed to acquire configuration lock. %@", error.localizedDescription);
+    return;
+  }
+  
+  CGFloat desiredZoomFactor = (CGFloat)zoomLevel;
+  device.videoZoomFactor = MAX(1.0, MIN(desiredZoomFactor, device.activeFormat.videoMaxZoomFactor));
+  [device unlockForConfiguration];
+
+  result(nil);
+#endif
+}
+
 - (void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack*)track result:(FlutterResult)result {
   if (!self.videoCapturer) {
     NSLog(@"Video capturer is null. Can't switch camera");

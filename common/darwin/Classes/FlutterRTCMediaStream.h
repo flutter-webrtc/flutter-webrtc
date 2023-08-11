@@ -19,6 +19,10 @@
                            torch:(BOOL)torch
                           result:(nonnull FlutterResult)result;
 
+- (void)mediaStreamTrackSetZoom:(nonnull RTCMediaStreamTrack*)track
+                           zoomLevel:(double)zoomLevel
+                          result:(nonnull FlutterResult)result;
+
 - (void)mediaStreamTrackSwitchCamera:(nonnull RTCMediaStreamTrack*)track result:(nonnull FlutterResult)result;
 
 - (void)mediaStreamTrackCaptureFrame:(nonnull RTCMediaStreamTrack*)track
