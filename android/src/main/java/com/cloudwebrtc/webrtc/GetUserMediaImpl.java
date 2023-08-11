@@ -82,7 +82,6 @@ import io.flutter.plugin.common.MethodChannel.Result;
  * complexity and to (somewhat) separate concerns.
  */
 class GetUserMediaImpl {
-
     private static final int DEFAULT_WIDTH = 1280;
     private static final int DEFAULT_HEIGHT = 720;
     private static final int DEFAULT_FPS = 30;
