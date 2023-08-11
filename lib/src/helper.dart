@@ -67,6 +67,18 @@ class Helper {
     return Future.value(true);
   }
 
+  static Future<void> setZoom(
+      MediaStreamTrack videoTrack, double zoomLevel) async {
+    if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
+      await WebRTC.invokeMethod(
+        'mediaStreamTrackSetZoom',
+        <String, dynamic>{'trackId': videoTrack.id, 'zoomLevel': zoomLevel},
+      );
+    } else {
+      throw Exception('setZoom only support for mobile devices!');
+    }
+  }
+
   /// Used to select a specific audio output device.
   ///
   /// Note: This method is only used for Flutter native,
