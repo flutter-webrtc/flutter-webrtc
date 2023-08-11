@@ -15,7 +15,6 @@ import com.twilio.audioswitch.AudioDevice;
 import com.twilio.audioswitch.AudioSwitch;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Map;
@@ -53,8 +52,6 @@ public class AudioSwitchManager {
 
     @Nullable
     private AudioSwitch audioSwitch;
-
-    private boolean _speakerphoneOn = false;
 
     /**
      * The audio focus mode to use while started.
@@ -105,7 +102,6 @@ public class AudioSwitchManager {
             handler.postAtFrontOfQueue(() -> {
                 if (!isActive) {
                     Objects.requireNonNull(audioSwitch).activate();
-                    audioManager.setSpeakerphoneOn(_speakerphoneOn);
                     isActive = true;
                 }
             });
@@ -154,24 +150,66 @@ public class AudioSwitchManager {
         });
     }
 
-    public void enableSpeakerphone(boolean enable) {
-        audioManager.setSpeakerphoneOn(enable);
-        _speakerphoneOn = enable;
+    private void updatePreferredDeviceList(boolean speakerOn) {
+        preferredDeviceList = new ArrayList<>();
+        preferredDeviceList.add(AudioDevice.BluetoothHeadset.class);
+        preferredDeviceList.add(AudioDevice.WiredHeadset.class);
+        if(speakerOn) {
+            preferredDeviceList.add(AudioDevice.Speakerphone.class);
+            preferredDeviceList.add(AudioDevice.Earpiece.class);
+        } else {
+            preferredDeviceList.add(AudioDevice.Earpiece.class);
+            preferredDeviceList.add(AudioDevice.Speakerphone.class);
+        }
+        handler.post(() -> {
+            Objects.requireNonNull(audioSwitch).setPreferredDeviceList(preferredDeviceList);
+        });
     }
 
-    public void enableSpeakerButPreferBluetooth() {
-        AudioDeviceInfo bluetoothDevice = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            AudioDeviceInfo[] devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-            for (AudioDeviceInfo device : devices) {
-                if (device.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
-                    bluetoothDevice = device;
+    public void enableSpeakerphone(boolean enable) {
+        updatePreferredDeviceList(enable);
+        if(enable) {
+            selectAudioOutput(AudioDevice.Speakerphone.class);
+        } else  {
+            List<AudioDevice> devices = availableAudioDevices();
+            AudioDevice audioDevice = null;
+            for (AudioDevice device : devices) {
+                if (device.getClass().equals(AudioDevice.BluetoothHeadset.class)) {
+                    audioDevice = device;
+                    break;
+                } else if(device.getClass().equals(AudioDevice.WiredHeadset.class)) {
+                    audioDevice = device;
+                    break;
+                } else if(device.getClass().equals(AudioDevice.Earpiece.class)) {
+                    audioDevice = device;
                     break;
                 }
             }
+            if (audioDevice != null) {
+                selectAudioOutput(audioDevice.getClass());
+            } else {
+                handler.post(() -> {
+                    Objects.requireNonNull(audioSwitch).selectDevice(null);
+                });
+            }
         }
-        if (bluetoothDevice == null) {
-            audioManager.setSpeakerphoneOn(_speakerphoneOn);
+    }
+
+    public void enableSpeakerButPreferBluetooth() {
+        List<AudioDevice> devices = availableAudioDevices();
+        AudioDevice audioDevice = null;
+        for (AudioDevice device : devices) {
+            if (device.getClass().equals(AudioDevice.BluetoothHeadset.class)) {
+                audioDevice = device;
+                break;
+            } else if(device.getClass().equals(AudioDevice.WiredHeadset.class)) {
+                audioDevice = device;
+                break;
+            }
+        }
+
+        if (audioDevice == null) {
+            selectAudioOutput(AudioDevice.Speakerphone.class);
         }
     }
 
