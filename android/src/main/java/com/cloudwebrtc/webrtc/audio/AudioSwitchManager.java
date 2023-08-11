@@ -293,6 +293,9 @@ public class AudioSwitchManager {
             case "gainTransientMayDuck":
                 focusMode = AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK;
                 break;
+            case "loss":
+                focusMode = AudioManager.AUDIOFOCUS_LOSS;
+                break;
             default:
                 Log.w(TAG, "Unknown audio focus mode: " + focusModeString);
                 break;
@@ -305,5 +308,9 @@ public class AudioSwitchManager {
                 Objects.requireNonNull(audioSwitch).setFocusMode(focusMode);
             }
         }
+    }
+
+    public void clearCommunicationDevice() {
+        audioManager.clearCommunicationDevice();
     }
 }

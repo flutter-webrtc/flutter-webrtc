@@ -801,7 +801,7 @@ void FlutterPeerConnection::RtpTransceiverSetCodecPreferences(
     auto codecNumChannels = findInt(codecMap, "channels");
     auto codecSdpFmtpLine = findString(codecMap, "sdpFmtpLine");
     auto codecCapability = RTCRtpCodecCapability::Create();
-    if (codecSdpFmtpLine != std::string())
+    if (codecSdpFmtpLine != std::string() && codecSdpFmtpLine.length() != 0)
       codecCapability->set_sdp_fmtp_line(codecSdpFmtpLine);
     codecCapability->set_clock_rate(codecClockRate);
     if (codecNumChannels != -1)
