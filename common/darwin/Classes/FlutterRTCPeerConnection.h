@@ -53,4 +53,13 @@
 
 - (void)transceiverSetCodecPreferences:(nonnull NSDictionary*)argsMap
                                 result:(nonnull FlutterResult)result;
+
+- (nullable NSString*)stringForSignalingState:(RTCSignalingState)state;
+
+- (nullable NSString*)stringForICEGatheringState:(RTCIceGatheringState)state;
+
+- (nullable NSString*)stringForICEConnectionState:(RTCIceConnectionState)state;
+
+- (nullable NSString*)stringForPeerConnectionState:(RTCPeerConnectionState)state;
+
 @end

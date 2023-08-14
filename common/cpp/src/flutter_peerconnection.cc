@@ -38,6 +38,76 @@ std::string transceiverDirectionString(RTCRtpTransceiverDirection direction) {
   return "";
 }
 
+const char* iceConnectionStateString(RTCIceConnectionState state) {
+  switch (state) {
+    case RTCIceConnectionStateNew:
+      return "new";
+    case RTCIceConnectionStateChecking:
+      return "checking";
+    case RTCIceConnectionStateConnected:
+      return "connected";
+    case RTCIceConnectionStateCompleted:
+      return "completed";
+    case RTCIceConnectionStateFailed:
+      return "failed";
+    case RTCIceConnectionStateDisconnected:
+      return "disconnected";
+    case RTCIceConnectionStateClosed:
+      return "closed";
+    case RTCIceConnectionStateMax:
+      return "statemax";
+  }
+  return "";
+}
+
+const char* signalingStateString(RTCSignalingState state) {
+  switch (state) {
+    case RTCSignalingStateStable:
+      return "stable";
+    case RTCSignalingStateHaveLocalOffer:
+      return "have-local-offer";
+    case RTCSignalingStateHaveLocalPrAnswer:
+      return "have-local-pranswer";
+    case RTCSignalingStateHaveRemoteOffer:
+      return "have-remote-offer";
+    case RTCSignalingStateHaveRemotePrAnswer:
+      return "have-remote-pranswer";
+    case RTCSignalingStateClosed:
+      return "closed";
+  }
+  return "";
+}
+
+const char* peerConnectionStateString(RTCPeerConnectionState state) {
+  switch (state) {
+    case RTCPeerConnectionStateNew:
+      return "new";
+    case RTCPeerConnectionStateConnecting:
+      return "connecting";
+    case RTCPeerConnectionStateConnected:
+      return "connected";
+    case RTCPeerConnectionStateDisconnected:
+      return "disconnected";
+    case RTCPeerConnectionStateFailed:
+      return "failed";
+    case RTCPeerConnectionStateClosed:
+      return "closed";
+  }
+  return "";
+}
+
+const char* iceGatheringStateString(RTCIceGatheringState state) {
+  switch (state) {
+    case RTCIceGatheringStateNew:
+      return "new";
+    case RTCIceGatheringStateGathering:
+      return "gathering";
+    case RTCIceGatheringStateComplete:
+      return "complete";
+  }
+  return "";
+}
+
 EncodableMap rtpParametersToMap(
     libwebrtc::scoped_refptr<libwebrtc::RTCRtpParameters> rtpParameters) {
   EncodableMap info;
@@ -1043,69 +1113,12 @@ FlutterPeerConnectionObserver::FlutterPeerConnectionObserver(
   peerconnection->RegisterRTCPeerConnectionObserver(this);
 }
 
-static const char* iceConnectionStateString(RTCIceConnectionState state) {
-  switch (state) {
-    case RTCIceConnectionStateNew:
-      return "new";
-    case RTCIceConnectionStateChecking:
-      return "checking";
-    case RTCIceConnectionStateConnected:
-      return "connected";
-    case RTCIceConnectionStateCompleted:
-      return "completed";
-    case RTCIceConnectionStateFailed:
-      return "failed";
-    case RTCIceConnectionStateDisconnected:
-      return "disconnected";
-    case RTCIceConnectionStateClosed:
-      return "closed";
-    case RTCIceConnectionStateMax:
-      return "statemax";
-  }
-  return "";
-}
-
-static const char* signalingStateString(RTCSignalingState state) {
-  switch (state) {
-    case RTCSignalingStateStable:
-      return "stable";
-    case RTCSignalingStateHaveLocalOffer:
-      return "have-local-offer";
-    case RTCSignalingStateHaveLocalPrAnswer:
-      return "have-local-pranswer";
-    case RTCSignalingStateHaveRemoteOffer:
-      return "have-remote-offer";
-    case RTCSignalingStateHaveRemotePrAnswer:
-      return "have-remote-pranswer";
-    case RTCSignalingStateClosed:
-      return "closed";
-  }
-  return "";
-}
 
 void FlutterPeerConnectionObserver::OnSignalingState(RTCSignalingState state) {
   EncodableMap params;
   params[EncodableValue("event")] = "signalingState";
   params[EncodableValue("state")] = signalingStateString(state);
   event_channel_->Success(EncodableValue(params));
-}
-
-static const char* peerConnectionStateString(RTCPeerConnectionState state) {
-  switch (state) {
-    case RTCPeerConnectionStateNew:
-      return "new";
-    case RTCPeerConnectionStateConnecting:
-      return "connecting";
-    case RTCPeerConnectionStateConnected:
-      return "connected";
-    case RTCPeerConnectionStateDisconnected:
-      return "disconnected";
-    case RTCPeerConnectionStateFailed:
-      return "failed";
-    case RTCPeerConnectionStateClosed:
-      return "closed";
-  }
-  return "";
 }
 
 void FlutterPeerConnectionObserver::OnPeerConnectionState(
@@ -1116,17 +1129,6 @@ void FlutterPeerConnectionObserver::OnPeerConnectionState(
   event_channel_->Success(EncodableValue(params));
 }
 
-static const char* iceGatheringStateString(RTCIceGatheringState state) {
-  switch (state) {
-    case RTCIceGatheringStateNew:
-      return "new";
-    case RTCIceGatheringStateGathering:
-      return "gathering";
-    case RTCIceGatheringStateComplete:
-      return "complete";
-  }
-  return "";
-}
 
 void FlutterPeerConnectionObserver::OnIceGatheringState(
     RTCIceGatheringState state) {
