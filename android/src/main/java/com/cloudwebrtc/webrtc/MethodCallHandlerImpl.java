@@ -565,7 +565,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       case "clearAndroidCommunicationDevice": {
-        AudioSwitchManager.instance.clearCommunicationDevice();
+        audioSwitchManager.clearCommunicationDevice();
         break;
       }
       case "setMicrophoneMute":
