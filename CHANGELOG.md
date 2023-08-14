@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.39] - 2023-08-14
+
+* [Dart/Native] feat: add async methods for getting pc states.
+
 [0.9.38] - 2023-08-11
 
 * [Android] fix: Expose helper to clearCommunicationDevice on AudioManager.AUDIOFOCUS_LOSS/
