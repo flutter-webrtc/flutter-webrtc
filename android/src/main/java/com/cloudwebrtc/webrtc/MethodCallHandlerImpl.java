@@ -29,6 +29,7 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
+import com.cloudwebrtc.webrtc.utils.Utils;
 
 import com.twilio.audioswitch.AudioDevice;
 
@@ -821,12 +822,61 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         result.success(capabilitiestoMap(capabilities).toMap());
         break;
       }
-      case "setCodecPreferences":
+      case "setCodecPreferences": {
         String peerConnectionId = call.argument("peerConnectionId");
         List<Map<String, Object>> codecs = call.argument("codecs");
         String transceiverId = call.argument("transceiverId");
         rtpTransceiverSetCodecPreferences(peerConnectionId, transceiverId, codecs, result);
         break;
+      }
+      case "getSignalingState": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        PeerConnection pc = getPeerConnection(peerConnectionId);
+        if (pc == null) {
+          resultError("getSignalingState", "peerConnection is null", result);
+        } else {
+          ConstraintsMap params = new ConstraintsMap();
+          params.putString("state", Utils.signalingStateString(pc.signalingState()));
+          result.success(params.toMap());
+        }
+        break;
+      }
+      case "getIceGatheringState": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        PeerConnection pc = getPeerConnection(peerConnectionId);
+        if (pc == null) {
+          resultError("getIceGatheringState", "peerConnection is null", result);
+        } else {
+          ConstraintsMap params = new ConstraintsMap();
+          params.putString("state", Utils.iceGatheringStateString(pc.iceGatheringState()));
+          result.success(params.toMap());
+        }
+        break;
+      }
+      case "getIceConnectionState": {
+       String peerConnectionId = call.argument("peerConnectionId");
+       PeerConnection pc = getPeerConnection(peerConnectionId);
+        if (pc == null) {
+          resultError("getIceConnectionState", "peerConnection is null", result);
+        } else {
+          ConstraintsMap params = new ConstraintsMap();
+          params.putString("state", Utils.iceConnectionStateString(pc.iceConnectionState()));
+          result.success(params.toMap());
+        }
+        break;
+      }
+      case "getConnectionState": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        PeerConnection pc = getPeerConnection(peerConnectionId);
+        if (pc == null) {
+          resultError("getConnectionState", "peerConnection is null", result);
+        } else {
+          ConstraintsMap params = new ConstraintsMap();
+          params.putString("state", Utils.connectionStateString(pc.connectionState()));
+          result.success(params.toMap());
+        }
+        break;
+      }
       default:
         if(frameCryptor.handleMethodCall(call, result)) {
           break;
