@@ -8,13 +8,11 @@ environment:
 
 dependencies:
   collection: ^1.17.1
-  dart_webrtc:
-    path: ../dart-webrtc
+  dart_webrtc: 1.1.2
   flutter:
     sdk: flutter
   path_provider: ^2.0.2
-  webrtc_interface:
-    path: ../webrtc-interface
+  webrtc_interface: 1.1.1
 
 dev_dependencies:
   flutter_test:
