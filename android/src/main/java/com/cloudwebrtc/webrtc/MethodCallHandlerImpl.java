@@ -68,6 +68,8 @@ import org.webrtc.VideoTrack;
 import org.webrtc.WrappedVideoDecoderFactory;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
+import org.webrtc.video.CustomVideoDecoderFactory;
+import org.webrtc.video.CustomVideoEncoderFactory;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -113,6 +115,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   private Activity activity;
 
+  private CustomVideoEncoderFactory videoEncoderFactory;
+
+  private CustomVideoDecoderFactory videoDecoderFactory;
+  
   MethodCallHandlerImpl(Context context, BinaryMessenger messenger, TextureRegistry textureRegistry, AudioSwitchManager audioSwitchManager) {
     this.context = context;
     this.textures = textureRegistry;
@@ -142,7 +148,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mPeerConnectionObservers.clear();
   }
 
-  private void initialize(int networkIgnoreMask, boolean forceSWCodec) {
+  private void initialize(int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList) {
     if (mFactory != null) {
       return;
     }
@@ -151,8 +157,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             InitializationOptions.builder(context)
                     .setEnableInternalTracer(true)
                     .createInitializationOptions());
-
-
 
     getUserMediaImpl = new GetUserMediaImpl(this, context, audioSwitchManager);
 
@@ -172,18 +176,21 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     final PeerConnectionFactory.Builder factoryBuilder = PeerConnectionFactory.builder()
             .setOptions(options);
 
-    if (forceSWCodec) {
-      factoryBuilder
-              .setVideoEncoderFactory(new SoftwareVideoEncoderFactory())
-              .setVideoDecoderFactory(new SoftwareVideoDecoderFactory());
-    } else {
-      // Initialize EGL contexts required for HW acceleration.
-      EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
+    // Initialize EGL contexts required for HW acceleration.
+    EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
 
-      factoryBuilder
-              .setVideoEncoderFactory(new SimulcastVideoEncoderFactoryWrapper(eglContext, true, true))
-              .setVideoDecoderFactory(new WrappedVideoDecoderFactory(eglContext));
-    }
+    videoEncoderFactory = new CustomVideoEncoderFactory(eglContext, true, true);
+    videoDecoderFactory = new CustomVideoDecoderFactory(eglContext);
+
+    factoryBuilder
+            .setVideoEncoderFactory(videoEncoderFactory)
+            .setVideoDecoderFactory(videoDecoderFactory);
+
+    videoDecoderFactory.setForceSWCodec(forceSWCodec);
+    videoDecoderFactory.setForceSWCodecList(forceSWCodecList);
+    videoEncoderFactory.setForceSWCodec(forceSWCodec);
+    videoEncoderFactory.setForceSWCodecList(forceSWCodecList);
+
     mFactory = factoryBuilder
             .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory();
@@ -234,7 +241,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           final boolean v = constraintsMap.getBoolean("forceSWCodec");
           forceSWCodec = v;
         }
-        initialize(networkIgnoreMask,forceSWCodec);
+        List<String> forceSWCodecList = new ArrayList<>();
+        if(constraintsMap.hasKey("forceSWCodecList")
+                && constraintsMap.getType("forceSWCodecList") == ObjectType.Array) {
+          final List<Object> array = constraintsMap.getListArray("forceSWCodecList");
+          for(Object v : array) {
+            forceSWCodecList.add(v.toString());
+          }
+        } else {
+          // disable HW Codec for VP9 by default.
+          forceSWCodecList.add("VP9");
+        }
+        initialize(networkIgnoreMask,forceSWCodec, forceSWCodecList);
         result.success(null);
         break;
       }
@@ -521,6 +539,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         getUserMediaImpl.setTorch(trackId, torch, result);
         break;
       }
+      case "mediaStreamTrackSetZoom": {
+        String trackId = call.argument("trackId");
+        double zoomLevel = call.argument("zoomLevel");
+        getUserMediaImpl.setZoom(trackId, zoomLevel, result);
+        break;
+      }
       case "mediaStreamTrackSwitchCamera": {
         String trackId = call.argument("trackId");
         getUserMediaImpl.switchCamera(trackId, result);
@@ -538,6 +562,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         String deviceId = call.argument("deviceId");
         audioSwitchManager.selectAudioOutput(AudioDeviceKind.fromTypeName(deviceId));
         result.success(null);
+        break;
+      }
+      case "clearAndroidCommunicationDevice": {
+        AudioSwitchManager.instance.clearCommunicationDevice();
         break;
       }
       case "setMicrophoneMute":

@@ -67,6 +67,18 @@ class Helper {
     return Future.value(true);
   }
 
+  static Future<void> setZoom(
+      MediaStreamTrack videoTrack, double zoomLevel) async {
+    if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
+      await WebRTC.invokeMethod(
+        'mediaStreamTrackSetZoom',
+        <String, dynamic>{'trackId': videoTrack.id, 'zoomLevel': zoomLevel},
+      );
+    } else {
+      throw Exception('setZoom only support for mobile devices!');
+    }
+  }
+
   /// Used to select a specific audio output device.
   ///
   /// Note: This method is only used for Flutter native,
@@ -128,6 +140,10 @@ class Helper {
           AndroidAudioConfiguration androidAudioConfiguration) =>
       AndroidNativeAudioManagement.setAndroidAudioConfiguration(
           androidAudioConfiguration);
+
+  /// After Android app finishes a session, on audio focus loss, clear the active communication device.
+  static Future<void> clearAndroidCommunicationDevice() =>
+      WebRTC.invokeMethod('clearAndroidCommunicationDevice');
 
   /// Set the audio configuration for iOS
   static Future<void> setAppleAudioConfiguration(

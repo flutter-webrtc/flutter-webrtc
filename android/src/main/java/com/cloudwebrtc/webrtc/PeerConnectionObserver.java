@@ -1055,7 +1055,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
             codecCapability.clockRate = (int) codec.get("clockRate");
             if(codec.get("numChannels") != null)
                 codecCapability.numChannels = (int) codec.get("numChannels");
-            if(codec.get("sdpFmtpLine") != null) {
+            if(codec.get("sdpFmtpLine") != null && codec.get("sdpFmtpLine") != "") {
                 String sdpFmtpLine = (String) codec.get("sdpFmtpLine");
                 codecCapability.parameters = new HashMap<>();
                 String[] parameters = sdpFmtpLine.split(";");
