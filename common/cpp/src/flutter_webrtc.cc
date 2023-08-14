@@ -1102,6 +1102,85 @@ void FlutterWebRTC::HandleMethodCall(
     }
     RtpTransceiverSetCodecPreferences(pc, transceiverId, codecs,
                                       std::move(result));
+  } else if (method_call.method_name().compare("getSignalingState") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("getSignalingState", "getSignalingState() peerConnection is null");
+      return;
+    }
+    EncodableMap state;
+    state[EncodableValue("state")] =
+        signalingStateString(pc->signaling_state());
+    result->Success(EncodableValue(state));
+  } else if (method_call.method_name().compare("getIceGatheringState") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("getIceGatheringState",
+                    "getIceGatheringState() peerConnection is null");
+      return;
+    }
+    EncodableMap state;
+    state[EncodableValue("state")] =
+        iceGatheringStateString(pc->ice_gathering_state());
+    result->Success(EncodableValue(state));
+  } else if (method_call.method_name().compare("getIceConnectionState") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("getIceConnectionState",
+                    "getIceConnectionState() peerConnection is null");
+      return;
+    }
+    EncodableMap state;
+    state[EncodableValue("state")] =
+        iceConnectionStateString(pc->ice_connection_state());
+    result->Success(EncodableValue(state));
+  } else if (method_call.method_name().compare("getConnectionState") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("getConnectionState",
+                    "getConnectionState() peerConnection is null");
+      return;
+    }
+    EncodableMap state;
+    state[EncodableValue("state")] =
+        peerConnectionStateString(pc->peer_connection_state());
+    result->Success(EncodableValue(state));
   } else if (HandleFrameCryptorMethodCall(method_call, std::move(result))) {
     // Do nothing
   } else {
