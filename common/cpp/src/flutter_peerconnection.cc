@@ -969,7 +969,7 @@ void FlutterPeerConnection::GetStats(
     bool found = false;
     auto receivers = pc->receivers();
     for (auto receiver : receivers.std_vector()) {
-      if (receiver->track()->id().c_string() == track_id) {
+      if (receiver->track() && receiver->track()->id().c_string() == track_id) {
         found = true;
         pc->GetStats(
             receiver,
@@ -990,7 +990,7 @@ void FlutterPeerConnection::GetStats(
     }
     auto senders = pc->senders();
     for (auto sender : senders.std_vector()) {
-      if (sender->track()->id().c_string() == track_id) {
+      if (sender->track() && sender->track()->id().c_string() == track_id) {
         found = true;
         pc->GetStats(
             sender,
