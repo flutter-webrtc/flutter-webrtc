@@ -100,7 +100,7 @@ class Helper {
   static Future<void> selectAudioInput(String deviceId) =>
       NativeAudioManagement.selectAudioInput(deviceId);
 
-  /// Set microphone mute/unmute for Flutter native.
+  /// Enable or disable speakerphone
   /// for iOS/Android only
   static Future<void> setSpeakerphoneOn(bool enable) =>
       NativeAudioManagement.setSpeakerphoneOn(enable);
