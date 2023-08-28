@@ -2,11 +2,11 @@ package com.cloudwebrtc.webrtc.audio;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.media.AudioDeviceInfo;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,8 +16,8 @@ import com.twilio.audioswitch.AudioSwitch;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Map;
+import java.util.Objects;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function2;
@@ -42,7 +42,8 @@ public class AudioSwitchManager {
             Unit> audioDeviceChangeListener = (devices, currentDevice) -> null;
 
     @NonNull
-    public AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = (i -> {});
+    public AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = (i -> {
+    });
 
     @NonNull
     public List<Class<? extends AudioDevice>> preferredDeviceList;
@@ -54,18 +55,61 @@ public class AudioSwitchManager {
     private AudioSwitch audioSwitch;
 
     /**
+     * When true, AudioSwitchManager will request audio focus on start and abandon on stop.
+     * <br />
+     * Defaults to true.
+     */
+    private boolean manageAudioFocus = true;
+
+    /**
      * The audio focus mode to use while started.
-     *
-     * Defaults to [AudioManager.AUDIOFOCUS_GAIN].
+     * <br />
+     * Defaults to AudioManager.AUDIOFOCUS_GAIN.
      */
     private int focusMode = AudioManager.AUDIOFOCUS_GAIN;
 
     /**
      * The audio mode to use while started.
-     *
-     * Defaults to [AudioManager.MODE_NORMAL].
+     * <br />
+     * Defaults to AudioManager.MODE_NORMAL.
      */
-    private int audioMode = AudioManager.MODE_NORMAL;
+    private int audioMode = AudioManager.MODE_IN_COMMUNICATION;
+
+    /**
+     * The audio stream type to use when requesting audio focus on pre-O devices.
+     * <br />
+     * Defaults to AudioManager.STREAM_VOICE_CALL.
+     * <br />
+     * Refer to this <a href="https://source.android.com/docs/core/audio/attributes#compatibility">compatibility table</a>
+     * to ensure that your values match between android versions.
+     * <br />
+     * Note: Manual audio routing may not work appropriately when using non-default values.
+     */
+    private int audioStreamType = AudioManager.STREAM_VOICE_CALL;
+
+    /**
+     * The audio attribute usage type to use when requesting audio focus on devices O and beyond.
+     * <br />
+     * Defaults to AudioAttributes.USAGE_VOICE_COMMUNICATION.
+     * <br />
+     * Refer to this <a href="https://source.android.com/docs/core/audio/attributes#compatibility">compatibility table</a>
+     * to ensure that your values match between android versions.
+     * <br />
+     * Note: Manual audio routing may not work appropriately when using non-default values.
+     */
+    private int audioAttributeUsageType = AudioAttributes.USAGE_VOICE_COMMUNICATION;
+
+    /**
+     * The audio attribute content type to use when requesting audio focus on devices O and beyond.
+     * <br />
+     * Defaults to AudioAttributes.CONTENT_TYPE_SPEECH.
+     * <br />
+     * Refer to this <a href="https://source.android.com/docs/core/audio/attributes#compatibility">compatibility table</a>
+     * to ensure that your values match between android versions.
+     * <br />
+     * Note: Manual audio routing may not work appropriately when using non-default values.
+     */
+    private int audioAttributeContentType = AudioAttributes.CONTENT_TYPE_SPEECH;
 
     public AudioSwitchManager(@NonNull Context context) {
         this.context = context;
@@ -89,8 +133,12 @@ public class AudioSwitchManager {
                         audioFocusChangeListener,
                         preferredDeviceList
                 );
+                audioSwitch.setManageAudioFocus(manageAudioFocus);
                 audioSwitch.setFocusMode(focusMode);
                 audioSwitch.setAudioMode(audioMode);
+                audioSwitch.setAudioStreamType(audioStreamType);
+                audioSwitch.setAudioAttributeContentType(audioAttributeContentType);
+                audioSwitch.setAudioAttributeUsageType(audioAttributeUsageType);
                 audioSwitch.start(audioDeviceChangeListener);
             });
         }
@@ -120,7 +168,7 @@ public class AudioSwitchManager {
         }
     }
 
-    public void setMicrophoneMute(boolean mute){
+    public void setMicrophoneMute(boolean mute) {
         audioManager.setMicrophoneMute(mute);
     }
 
@@ -154,7 +202,7 @@ public class AudioSwitchManager {
         preferredDeviceList = new ArrayList<>();
         preferredDeviceList.add(AudioDevice.BluetoothHeadset.class);
         preferredDeviceList.add(AudioDevice.WiredHeadset.class);
-        if(speakerOn) {
+        if (speakerOn) {
             preferredDeviceList.add(AudioDevice.Speakerphone.class);
             preferredDeviceList.add(AudioDevice.Earpiece.class);
         } else {
@@ -168,19 +216,19 @@ public class AudioSwitchManager {
 
     public void enableSpeakerphone(boolean enable) {
         updatePreferredDeviceList(enable);
-        if(enable) {
+        if (enable) {
             selectAudioOutput(AudioDevice.Speakerphone.class);
-        } else  {
+        } else {
             List<AudioDevice> devices = availableAudioDevices();
             AudioDevice audioDevice = null;
             for (AudioDevice device : devices) {
                 if (device.getClass().equals(AudioDevice.BluetoothHeadset.class)) {
                     audioDevice = device;
                     break;
-                } else if(device.getClass().equals(AudioDevice.WiredHeadset.class)) {
+                } else if (device.getClass().equals(AudioDevice.WiredHeadset.class)) {
                     audioDevice = device;
                     break;
-                } else if(device.getClass().equals(AudioDevice.Earpiece.class)) {
+                } else if (device.getClass().equals(AudioDevice.Earpiece.class)) {
                     audioDevice = device;
                     break;
                 }
@@ -202,7 +250,7 @@ public class AudioSwitchManager {
             if (device.getClass().equals(AudioDevice.BluetoothHeadset.class)) {
                 audioDevice = device;
                 break;
-            } else if(device.getClass().equals(AudioDevice.WiredHeadset.class)) {
+            } else if (device.getClass().equals(AudioDevice.WiredHeadset.class)) {
                 audioDevice = device;
                 break;
             }
@@ -220,97 +268,117 @@ public class AudioSwitchManager {
     }
 
     public void setAudioConfiguration(Map<String, Object> configuration) {
-        if(configuration == null) {
+        if (configuration == null) {
             return;
         }
+
+        Boolean manageAudioFocus = null;
+        if (configuration.get("manageAudioFocus") instanceof Boolean) {
+            manageAudioFocus = (Boolean) configuration.get("manageAudioFocus");
+        }
+        setManageAudioFocus(manageAudioFocus);
 
         String audioMode = null;
         if (configuration.get("androidAudioMode") instanceof String) {
             audioMode = (String) configuration.get("androidAudioMode");
         }
+        setAudioMode(audioMode);
 
         String focusMode = null;
         if (configuration.get("androidAudioFocusMode") instanceof String) {
             focusMode = (String) configuration.get("androidAudioFocusMode");
         }
-
-        setAudioMode(audioMode);
         setFocusMode(focusMode);
+
+        String streamType = null;
+        if (configuration.get("androidAudioStreamType") instanceof String) {
+            streamType = (String) configuration.get("androidAudioStreamType");
+        }
+        setAudioStreamType(streamType);
+
+        String usageType = null;
+        if (configuration.get("androidAudioAttributesUsageType") instanceof String) {
+            usageType = (String) configuration.get("androidAudioAttributesUsageType");
+        }
+        setAudioAttributesUsageType(usageType);
+
+        String contentType = null;
+        if (configuration.get("androidAudioAttributesContentType") instanceof String) {
+            contentType = (String) configuration.get("androidAudioAttributesContentType");
+        }
+        setAudioAttributesContentType(contentType);
+    }
+
+    public void setManageAudioFocus(@Nullable Boolean manage) {
+        if (manage != null && audioSwitch != null) {
+            this.manageAudioFocus = manage;
+            Objects.requireNonNull(audioSwitch).setManageAudioFocus(this.manageAudioFocus);
+        }
     }
 
     public void setAudioMode(@Nullable String audioModeString) {
-        if (audioModeString == null) {
+        Integer audioMode = AudioUtils.getAudioModeForString(audioModeString);
+
+        if (audioMode == null) {
             return;
         }
-
-        int audioMode = -1;
-        switch (audioModeString) {
-            case "normal":
-                audioMode = AudioManager.MODE_NORMAL;
-                break;
-            case "callScreening":
-                audioMode = AudioManager.MODE_CALL_SCREENING;
-                break;
-            case "inCall":
-                audioMode = AudioManager.MODE_IN_CALL;
-                break;
-            case "inCommunication":
-                audioMode = AudioManager.MODE_IN_COMMUNICATION;
-                break;
-            case "ringtone":
-                audioMode = AudioManager.MODE_RINGTONE;
-                break;
-            default:
-                Log.w(TAG, "Unknown audio mode: " + audioModeString);
-                break;
-        }
-
-        // Valid audio modes start from 0
-        if (audioMode >= 0) {
-            this.audioMode = audioMode;
-            if (audioSwitch != null) {
-                Objects.requireNonNull(audioSwitch).setAudioMode(audioMode);
-            }
+        this.audioMode = audioMode;
+        if (audioSwitch != null) {
+            Objects.requireNonNull(audioSwitch).setAudioMode(audioMode);
         }
     }
 
     public void setFocusMode(@Nullable String focusModeString) {
-        if (focusModeString == null) {
+        Integer focusMode = AudioUtils.getFocusModeForString(focusModeString);
+
+        if (focusMode == null) {
             return;
         }
-
-        int focusMode = -1;
-        switch(focusModeString) {
-            case "gain":
-                focusMode = AudioManager.AUDIOFOCUS_GAIN;
-                break;
-            case "gainTransient":
-                focusMode = AudioManager.AUDIOFOCUS_GAIN_TRANSIENT;
-                break;
-            case "gainTransientExclusive":
-                focusMode = AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE;
-                break;
-            case "gainTransientMayDuck":
-                focusMode = AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK;
-                break;
-            case "loss":
-                focusMode = AudioManager.AUDIOFOCUS_LOSS;
-                break;
-            default:
-                Log.w(TAG, "Unknown audio focus mode: " + focusModeString);
-                break;
+        this.focusMode = focusMode;
+        if (audioSwitch != null) {
+            Objects.requireNonNull(audioSwitch).setFocusMode(focusMode);
         }
+    }
 
-        // Valid focus modes start from 1
-        if (focusMode > 0) {
-            this.focusMode = focusMode;
-            if (audioSwitch != null) {
-                Objects.requireNonNull(audioSwitch).setFocusMode(focusMode);
-            }
+    public void setAudioStreamType(@Nullable String streamTypeString) {
+        Integer streamType = AudioUtils.getStreamTypeForString(streamTypeString);
+
+        if (streamType == null) {
+            return;
+        }
+        this.audioStreamType = streamType;
+        if (audioSwitch != null) {
+            Objects.requireNonNull(audioSwitch).setAudioStreamType(this.audioStreamType);
+        }
+    }
+
+    public void setAudioAttributesUsageType(@Nullable String usageTypeString) {
+        Integer usageType = AudioUtils.getAudioAttributesUsageTypeForString(usageTypeString);
+
+        if (usageType == null) {
+            return;
+        }
+        this.audioAttributeUsageType = usageType;
+        if (audioSwitch != null) {
+            Objects.requireNonNull(audioSwitch).setAudioAttributeUsageType(this.audioAttributeUsageType);
+        }
+    }
+
+    public void setAudioAttributesContentType(@Nullable String contentTypeString) {
+        Integer contentType = AudioUtils.getAudioAttributesContentTypeFromString(contentTypeString);
+
+        if (contentType == null) {
+            return;
+        }
+        this.audioAttributeContentType = contentType;
+        if (audioSwitch != null) {
+            Objects.requireNonNull(audioSwitch).setAudioAttributeContentType(this.audioAttributeContentType);
         }
     }
 
     public void clearCommunicationDevice() {
-        audioManager.clearCommunicationDevice();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            audioManager.clearCommunicationDevice();
+        }
     }
 }
