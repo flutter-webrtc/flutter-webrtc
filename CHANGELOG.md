@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.41] - 2023-08-30
+
+* [Android] feat: Add more control over android audio options.
+
 [0.9.40] - 2023-08-16
 
 * [Windows/Linux] fix: nullptr checking for sender/receiver for getStats.
