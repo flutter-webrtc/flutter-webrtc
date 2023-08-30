@@ -8,8 +8,8 @@ import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
-import android.media.AudioManager;
 import android.os.Build;
 import android.util.Log;
 import android.util.LongSparseArray;
@@ -20,6 +20,7 @@ import androidx.annotation.RequiresApi;
 
 import com.cloudwebrtc.webrtc.audio.AudioDeviceKind;
 import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
+import com.cloudwebrtc.webrtc.audio.AudioUtils;
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
@@ -30,7 +31,6 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
 import com.cloudwebrtc.webrtc.utils.Utils;
-
 import com.twilio.audioswitch.AudioDevice;
 
 import org.webrtc.AudioTrack;
@@ -63,17 +63,13 @@ import org.webrtc.RtpSender;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
-import org.webrtc.SoftwareVideoDecoderFactory;
-import org.webrtc.SoftwareVideoEncoderFactory;
 import org.webrtc.VideoTrack;
-import org.webrtc.WrappedVideoDecoderFactory;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
 import org.webrtc.video.CustomVideoDecoderFactory;
 import org.webrtc.video.CustomVideoEncoderFactory;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -146,8 +142,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
     mPeerConnectionObservers.clear();
   }
-
-  private void initialize(int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList) {
+  private void initialize(int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
+  @Nullable ConstraintsMap androidAudioConfiguration) {
     if (mFactory != null) {
       return;
     }
@@ -161,11 +157,36 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     frameCryptor = new FlutterRTCFrameCryptor(this);
 
-    audioDeviceModule = JavaAudioDeviceModule.builder(context)
+    AudioAttributes audioAttributes = null;
+    if (androidAudioConfiguration != null) {
+      Integer usageType = AudioUtils.getAudioAttributesUsageTypeForString(
+              androidAudioConfiguration.getString("androidAudioAttributesUsageType"));
+      Integer contentType = AudioUtils.getAudioAttributesContentTypeFromString(
+              androidAudioConfiguration.getString("androidAudioAttributesContentType"));
+
+      // Warn if one is provided without the other.
+      if (usageType == null ^ contentType == null) {
+          Log.w(TAG, "usageType and contentType must both be provided!");
+      }
+
+      if (usageType != null && contentType != null) {
+          audioAttributes = new AudioAttributes.Builder()
+                  .setUsage(usageType)
+                  .setContentType(contentType)
+                  .build();
+      }
+    }
+
+    JavaAudioDeviceModule.Builder audioDeviceModuleBuilder = JavaAudioDeviceModule.builder(context)
             .setUseHardwareAcousticEchoCanceler(true)
             .setUseHardwareNoiseSuppressor(true)
-            .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
-            .createAudioDeviceModule();
+            .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor);
+
+    if (audioAttributes != null) {
+      audioDeviceModuleBuilder.setAudioAttributes(audioAttributes);
+    }
+
+    audioDeviceModule = audioDeviceModuleBuilder.createAudioDeviceModule();
 
     getUserMediaImpl.audioDeviceModule = (JavaAudioDeviceModule) audioDeviceModule;
 
@@ -251,7 +272,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           // disable HW Codec for VP9 by default.
           forceSWCodecList.add("VP9");
         }
-        initialize(networkIgnoreMask,forceSWCodec, forceSWCodecList);
+
+        ConstraintsMap androidAudioConfiguration = null;
+        if (constraintsMap.hasKey("androidAudioConfiguration")
+                && constraintsMap.getType("androidAudioConfiguration") == ObjectType.Map) {
+            androidAudioConfiguration = constraintsMap.getMap("androidAudioConfiguration");
+        }
+
+        initialize(networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration);
         result.success(null);
         break;
       }
