@@ -79,6 +79,39 @@ class Helper {
     }
   }
 
+  /// Set the exposure point for the camera, focusMode can be:
+  /// 'auto', 'locked'
+  static Future<void> setFocusMode(MediaStreamTrack videoTrack,
+      {String focusMode = 'auto'}) async {
+    if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
+      await WebRTC.invokeMethod(
+        'mediaStreamTrackSetFocusMode',
+        <String, dynamic>{
+          'trackId': videoTrack.id,
+          'focusMode': focusMode,
+        },
+      );
+    } else {
+      throw Exception('setFocusMode only support for mobile devices!');
+    }
+  }
+
+  static Future<void> setFocusPoint(
+      MediaStreamTrack videoTrack, double x, double y) async {
+    if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
+      await WebRTC.invokeMethod(
+        'mediaStreamTrackSetFocusPoint',
+        <String, dynamic>{
+          'trackId': videoTrack.id,
+          'x': x,
+          'y': y,
+        },
+      );
+    } else {
+      throw Exception('setFocusPoint only support for mobile devices!');
+    }
+  }
+
   /// Used to select a specific audio output device.
   ///
   /// Note: This method is only used for Flutter native,
