@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 import '../flutter_webrtc.dart';
-import 'native/audio_management.dart';
-import 'native/camera_utils.dart';
 
 class Helper {
   static Future<List<MediaDeviceInfo>> enumerateDevices(String type) async {
