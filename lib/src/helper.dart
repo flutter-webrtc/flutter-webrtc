@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_webrtc/src/native/camera_utils.dart';
 
 import '../flutter_webrtc.dart';
 import 'native/audio_management.dart';
@@ -67,50 +68,24 @@ class Helper {
     return Future.value(true);
   }
 
-  static Future<void> setZoom(
-      MediaStreamTrack videoTrack, double zoomLevel) async {
-    if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
-      await WebRTC.invokeMethod(
-        'mediaStreamTrackSetZoom',
-        <String, dynamic>{'trackId': videoTrack.id, 'zoomLevel': zoomLevel},
-      );
-    } else {
-      throw Exception('setZoom only support for mobile devices!');
-    }
-  }
+  static Future<void> setZoom(MediaStreamTrack videoTrack, double zoomLevel) =>
+      CameraUtils.setZoom(videoTrack, zoomLevel);
 
-  /// Set the exposure point for the camera, focusMode can be:
-  /// 'auto', 'locked'
-  static Future<void> setFocusMode(MediaStreamTrack videoTrack,
-      {String focusMode = 'auto'}) async {
-    if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
-      await WebRTC.invokeMethod(
-        'mediaStreamTrackSetFocusMode',
-        <String, dynamic>{
-          'trackId': videoTrack.id,
-          'focusMode': focusMode,
-        },
-      );
-    } else {
-      throw Exception('setFocusMode only support for mobile devices!');
-    }
-  }
+  static Future<void> setFocusMode(
+          MediaStreamTrack videoTrack, CameraFocusMode focusMode) =>
+      CameraUtils.setFocusMode(videoTrack, focusMode);
 
   static Future<void> setFocusPoint(
-      MediaStreamTrack videoTrack, double x, double y) async {
-    if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
-      await WebRTC.invokeMethod(
-        'mediaStreamTrackSetFocusPoint',
-        <String, dynamic>{
-          'trackId': videoTrack.id,
-          'x': x,
-          'y': y,
-        },
-      );
-    } else {
-      throw Exception('setFocusPoint only support for mobile devices!');
-    }
-  }
+          MediaStreamTrack videoTrack, double x, double y) =>
+      CameraUtils.setFocusPoint(videoTrack, x, y);
+
+  static Future<void> setExposureMode(
+          MediaStreamTrack videoTrack, CameraExposureMode exposureMode) =>
+      CameraUtils.setExposureMode(videoTrack, exposureMode);
+
+  static Future<void> setExposurePoint(
+          MediaStreamTrack videoTrack, double x, double y) =>
+      CameraUtils.setExposurePoint(videoTrack, x, y);
 
   /// Used to select a specific audio output device.
   ///
