@@ -1273,6 +1273,54 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
   } else if ([@"getRtpSenderCapabilities" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     [self peerConnectionGetRtpSenderCapabilities:argsMap result:result];
+  } else if ([@"getSignalingState" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+    RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
+    if (peerConnection) {
+      result(@{@"state" : [self stringForSignalingState:peerConnection.signalingState]});
+    } else {
+      result([FlutterError
+          errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
+                message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                details:nil]);
+    }
+  } else if ([@"getIceGatheringState" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+    RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
+    if (peerConnection) {
+      result(@{@"state" : [self stringForICEGatheringState:peerConnection.iceGatheringState]});
+    } else {
+      result([FlutterError
+          errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
+                message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                details:nil]);
+    }
+  } else if ([@"getIceConnectionState" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+    RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
+    if (peerConnection) {
+      result(@{@"state" : [self stringForICEConnectionState:peerConnection.iceConnectionState]});
+    } else {
+      result([FlutterError
+          errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
+                message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                details:nil]);
+    }
+  } else if ([@"getConnectionState" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+    RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
+    if (peerConnection) {
+      result(@{@"state" : [self stringForPeerConnectionState:peerConnection.connectionState]});
+    } else {
+      result([FlutterError
+          errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
+                message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
+                details:nil]);
+    }
   } else {
     [self handleFrameCryptorMethodCall:call result:result];
   }

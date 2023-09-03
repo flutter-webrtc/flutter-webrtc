@@ -8,6 +8,7 @@ import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
+import com.cloudwebrtc.webrtc.utils.Utils;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
@@ -85,7 +86,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     eventSink = null;
   }
 
-  PeerConnection getPeerConnection() {
+  public PeerConnection getPeerConnection() {
     return peerConnection;
   }
 
@@ -335,7 +336,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {
     ConstraintsMap params = new ConstraintsMap();
     params.putString("event", "iceConnectionState");
-    params.putString("state", iceConnectionStateString(iceConnectionState));
+    params.putString("state", Utils.iceConnectionStateString(iceConnectionState));
     sendEvent(params);
   }
 
@@ -353,7 +354,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     Log.d(TAG, "onIceGatheringChange" + iceGatheringState.name());
     ConstraintsMap params = new ConstraintsMap();
     params.putString("event", "iceGatheringState");
-    params.putString("state", iceGatheringStateString(iceGatheringState));
+    params.putString("state", Utils.iceGatheringStateString(iceGatheringState));
     sendEvent(params);
   }
 
@@ -574,7 +575,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   public void onSignalingChange(PeerConnection.SignalingState signalingState) {
     ConstraintsMap params = new ConstraintsMap();
     params.putString("event", "signalingState");
-    params.putString("state", signalingStateString(signalingState));
+    params.putString("state", Utils.signalingStateString(signalingState));
     sendEvent(params);
   }
 
@@ -583,80 +584,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     Log.d(TAG, "onConnectionChange" + connectionState.name());
     ConstraintsMap params = new ConstraintsMap();
     params.putString("event", "peerConnectionState");
-    params.putString("state", connectionStateString(connectionState));
+    params.putString("state", Utils.connectionStateString(connectionState));
     sendEvent(params);
-  }
-
-  @Nullable
-  private String iceConnectionStateString(PeerConnection.IceConnectionState iceConnectionState) {
-    switch (iceConnectionState) {
-      case NEW:
-        return "new";
-      case CHECKING:
-        return "checking";
-      case CONNECTED:
-        return "connected";
-      case COMPLETED:
-        return "completed";
-      case FAILED:
-        return "failed";
-      case DISCONNECTED:
-        return "disconnected";
-      case CLOSED:
-        return "closed";
-    }
-    return null;
-  }
-
-  @Nullable
-  private String iceGatheringStateString(PeerConnection.IceGatheringState iceGatheringState) {
-    switch (iceGatheringState) {
-      case NEW:
-        return "new";
-      case GATHERING:
-        return "gathering";
-      case COMPLETE:
-        return "complete";
-    }
-    return null;
-  }
-
-  @Nullable
-  private String signalingStateString(PeerConnection.SignalingState signalingState) {
-    switch (signalingState) {
-      case STABLE:
-        return "stable";
-      case HAVE_LOCAL_OFFER:
-        return "have-local-offer";
-      case HAVE_LOCAL_PRANSWER:
-        return "have-local-pranswer";
-      case HAVE_REMOTE_OFFER:
-        return "have-remote-offer";
-      case HAVE_REMOTE_PRANSWER:
-        return "have-remote-pranswer";
-      case CLOSED:
-        return "closed";
-    }
-    return null;
-  }
-
-  @Nullable
-  private String connectionStateString(PeerConnection.PeerConnectionState connectionState) {
-    switch (connectionState) {
-      case NEW:
-        return "new";
-      case CONNECTING:
-        return "connecting";
-      case CONNECTED:
-        return "connected";
-      case DISCONNECTED:
-        return "disconnected";
-      case FAILED:
-        return "failed";
-      case CLOSED:
-        return "closed";
-    }
-    return null;
   }
 
   @Nullable

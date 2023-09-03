@@ -8,8 +8,8 @@ import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
-import android.media.AudioManager;
 import android.os.Build;
 import android.util.Log;
 import android.util.LongSparseArray;
@@ -20,6 +20,7 @@ import androidx.annotation.RequiresApi;
 
 import com.cloudwebrtc.webrtc.audio.AudioDeviceKind;
 import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
+import com.cloudwebrtc.webrtc.audio.AudioUtils;
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
@@ -29,7 +30,7 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
-
+import com.cloudwebrtc.webrtc.utils.Utils;
 import com.twilio.audioswitch.AudioDevice;
 
 import org.webrtc.AudioTrack;
@@ -62,10 +63,7 @@ import org.webrtc.RtpSender;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
-import org.webrtc.SoftwareVideoDecoderFactory;
-import org.webrtc.SoftwareVideoEncoderFactory;
 import org.webrtc.VideoTrack;
-import org.webrtc.WrappedVideoDecoderFactory;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
 import org.webrtc.video.CustomVideoDecoderFactory;
@@ -147,8 +145,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
     mPeerConnectionObservers.clear();
   }
-
-  private void initialize(int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList) {
+  private void initialize(int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
+  @Nullable ConstraintsMap androidAudioConfiguration) {
     if (mFactory != null) {
       return;
     }
@@ -162,11 +160,36 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     frameCryptor = new FlutterRTCFrameCryptor(this);
 
-    audioDeviceModule = JavaAudioDeviceModule.builder(context)
+    AudioAttributes audioAttributes = null;
+    if (androidAudioConfiguration != null) {
+      Integer usageType = AudioUtils.getAudioAttributesUsageTypeForString(
+              androidAudioConfiguration.getString("androidAudioAttributesUsageType"));
+      Integer contentType = AudioUtils.getAudioAttributesContentTypeFromString(
+              androidAudioConfiguration.getString("androidAudioAttributesContentType"));
+
+      // Warn if one is provided without the other.
+      if (usageType == null ^ contentType == null) {
+          Log.w(TAG, "usageType and contentType must both be provided!");
+      }
+
+      if (usageType != null && contentType != null) {
+          audioAttributes = new AudioAttributes.Builder()
+                  .setUsage(usageType)
+                  .setContentType(contentType)
+                  .build();
+      }
+    }
+
+    JavaAudioDeviceModule.Builder audioDeviceModuleBuilder = JavaAudioDeviceModule.builder(context)
             .setUseHardwareAcousticEchoCanceler(true)
             .setUseHardwareNoiseSuppressor(true)
-            .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor)
-            .createAudioDeviceModule();
+            .setSamplesReadyCallback(getUserMediaImpl.inputSamplesInterceptor);
+
+    if (audioAttributes != null) {
+      audioDeviceModuleBuilder.setAudioAttributes(audioAttributes);
+    }
+
+    audioDeviceModule = audioDeviceModuleBuilder.createAudioDeviceModule();
 
     getUserMediaImpl.audioDeviceModule = (JavaAudioDeviceModule) audioDeviceModule;
 
@@ -252,7 +275,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           // disable HW Codec for VP9 by default.
           forceSWCodecList.add("VP9");
         }
-        initialize(networkIgnoreMask,forceSWCodec, forceSWCodecList);
+
+        ConstraintsMap androidAudioConfiguration = null;
+        if (constraintsMap.hasKey("androidAudioConfiguration")
+                && constraintsMap.getType("androidAudioConfiguration") == ObjectType.Map) {
+            androidAudioConfiguration = constraintsMap.getMap("androidAudioConfiguration");
+        }
+
+        initialize(networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration);
         result.success(null);
         break;
       }
@@ -823,12 +853,61 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         result.success(capabilitiestoMap(capabilities).toMap());
         break;
       }
-      case "setCodecPreferences":
+      case "setCodecPreferences": {
         String peerConnectionId = call.argument("peerConnectionId");
         List<Map<String, Object>> codecs = call.argument("codecs");
         String transceiverId = call.argument("transceiverId");
         rtpTransceiverSetCodecPreferences(peerConnectionId, transceiverId, codecs, result);
         break;
+      }
+      case "getSignalingState": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        PeerConnection pc = getPeerConnection(peerConnectionId);
+        if (pc == null) {
+          resultError("getSignalingState", "peerConnection is null", result);
+        } else {
+          ConstraintsMap params = new ConstraintsMap();
+          params.putString("state", Utils.signalingStateString(pc.signalingState()));
+          result.success(params.toMap());
+        }
+        break;
+      }
+      case "getIceGatheringState": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        PeerConnection pc = getPeerConnection(peerConnectionId);
+        if (pc == null) {
+          resultError("getIceGatheringState", "peerConnection is null", result);
+        } else {
+          ConstraintsMap params = new ConstraintsMap();
+          params.putString("state", Utils.iceGatheringStateString(pc.iceGatheringState()));
+          result.success(params.toMap());
+        }
+        break;
+      }
+      case "getIceConnectionState": {
+       String peerConnectionId = call.argument("peerConnectionId");
+       PeerConnection pc = getPeerConnection(peerConnectionId);
+        if (pc == null) {
+          resultError("getIceConnectionState", "peerConnection is null", result);
+        } else {
+          ConstraintsMap params = new ConstraintsMap();
+          params.putString("state", Utils.iceConnectionStateString(pc.iceConnectionState()));
+          result.success(params.toMap());
+        }
+        break;
+      }
+      case "getConnectionState": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        PeerConnection pc = getPeerConnection(peerConnectionId);
+        if (pc == null) {
+          resultError("getConnectionState", "peerConnection is null", result);
+        } else {
+          ConstraintsMap params = new ConstraintsMap();
+          params.putString("state", Utils.connectionStateString(pc.connectionState()));
+          result.success(params.toMap());
+        }
+        break;
+      }
       default:
         if(frameCryptor.handleMethodCall(call, result)) {
           break;
