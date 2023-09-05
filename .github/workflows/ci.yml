@@ -56,7 +56,7 @@ jobs:
               || (matrix.platform == 'windows' && 'windows-latest')
               ||                                  'macos-latest' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: stable
@@ -76,7 +76,7 @@ jobs:
   dartanalyze:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
 
       - run: flutter pub get
@@ -86,7 +86,7 @@ jobs:
   dartfmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
 
       - run: flutter pub get
@@ -96,7 +96,7 @@ jobs:
   ktfmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
@@ -107,7 +107,7 @@ jobs:
   rustfmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
@@ -118,7 +118,7 @@ jobs:
   swiftformat:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: brew install swiftformat
 
       - run: make swift.fmt check=yes dockerized=no
@@ -140,7 +140,7 @@ jobs:
     runs-on: ${{ (matrix.platform == 'windows' && 'windows-latest')
               || 'macos-11' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: stable
@@ -168,7 +168,7 @@ jobs:
     # Pin glibc to 2.31 version for better compatibility.
     container: debian:bullseye
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Linux platform dependencies
         run: |
           apt-get update
@@ -218,7 +218,7 @@ jobs:
               || (matrix.platform == 'windows' && 'windows-latest')
               ||                                  'macos-13' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: stable
@@ -304,7 +304,7 @@ jobs:
               || (matrix.platform == 'windows' && 'windows-latest')
               ||                                  'macos-latest' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: stable
@@ -346,7 +346,7 @@ jobs:
       - test-flutter
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2  # for PRs only
 
@@ -436,7 +436,7 @@ jobs:
     needs: ["release-dart"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Parse release version
         id: release
