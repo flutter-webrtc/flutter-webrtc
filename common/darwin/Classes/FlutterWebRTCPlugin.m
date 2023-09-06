@@ -1,5 +1,6 @@
 #import "FlutterWebRTCPlugin.h"
 #import "AudioUtils.h"
+#import "CameraUtils.h"
 #import "FlutterRTCDataChannel.h"
 #import "FlutterRTCDesktopCapturer.h"
 #import "FlutterRTCMediaStream.h"
@@ -799,6 +800,78 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
                                    details:nil]);
       }
     }
+  } else if ([@"mediaStreamTrackSetFocusMode" isEqualToString:call.method]) {
+      NSDictionary* argsMap = call.arguments;
+      NSString* trackId = argsMap[@"trackId"];
+      NSString* focusMode = argsMap[@"focusMode"];
+      RTCMediaStreamTrack* track = self.localTracks[trackId];
+      if (track != nil && focusMode != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
+        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+        [self mediaStreamTrackSetFocusMode:videoTrack focusMode:focusMode result:result];
+      } else {
+        if (track == nil) {
+          result([FlutterError errorWithCode:@"Track is nil" message:nil details:nil]);
+        } else {
+          result([FlutterError errorWithCode:[@"Track is class of "
+                                                 stringByAppendingString:[[track class] description]]
+                                     message:nil
+                                     details:nil]);
+        }
+      }
+  } else if ([@"mediaStreamTrackSetFocusPoint" isEqualToString:call.method]) {
+      NSDictionary* argsMap = call.arguments;
+      NSString* trackId = argsMap[@"trackId"];
+      NSDictionary* focusPoint = argsMap[@"focusPoint"];
+      RTCMediaStreamTrack* track = self.localTracks[trackId];
+      if (track != nil && focusPoint != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
+        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+        [self mediaStreamTrackSetFocusPoint:videoTrack focusPoint:focusPoint result:result];
+      } else {
+        if (track == nil) {
+          result([FlutterError errorWithCode:@"Track is nil" message:nil details:nil]);
+        } else {
+          result([FlutterError errorWithCode:[@"Track is class of "
+                                                 stringByAppendingString:[[track class] description]]
+                                     message:nil
+                                     details:nil]);
+        }
+      }
+  } else if ([@"mediaStreamTrackSetExposureMode" isEqualToString:call.method]) {
+      NSDictionary* argsMap = call.arguments;
+      NSString* trackId = argsMap[@"trackId"];
+      NSString* exposureMode = argsMap[@"exposureMode"];
+      RTCMediaStreamTrack* track = self.localTracks[trackId];
+      if (track != nil && exposureMode != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
+        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+        [self mediaStreamTrackSetExposureMode:videoTrack exposureMode:exposureMode result:result];
+      } else {
+        if (track == nil) {
+          result([FlutterError errorWithCode:@"Track is nil" message:nil details:nil]);
+        } else {
+          result([FlutterError errorWithCode:[@"Track is class of "
+                                                 stringByAppendingString:[[track class] description]]
+                                     message:nil
+                                     details:nil]);
+        }
+      }
+  } else if ([@"mediaStreamTrackSetExposurePoint" isEqualToString:call.method]) {
+      NSDictionary* argsMap = call.arguments;
+      NSString* trackId = argsMap[@"trackId"];
+      NSDictionary* exposurePoint = argsMap[@"exposurePoint"];
+      RTCMediaStreamTrack* track = self.localTracks[trackId];
+      if (track != nil && exposurePoint != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
+        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+        [self mediaStreamTrackSetExposurePoint:videoTrack exposurePoint:exposurePoint result:result];
+      } else {
+        if (track == nil) {
+          result([FlutterError errorWithCode:@"Track is nil" message:nil details:nil]);
+        } else {
+          result([FlutterError errorWithCode:[@"Track is class of "
+                                                 stringByAppendingString:[[track class] description]]
+                                     message:nil
+                                     details:nil]);
+        }
+      }
   } else if ([@"mediaStreamTrackSwitchCamera" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];

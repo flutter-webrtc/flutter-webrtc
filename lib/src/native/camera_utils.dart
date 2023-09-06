@@ -53,8 +53,10 @@ class CameraUtils {
         'mediaStreamTrackSetFocusPoint',
         <String, dynamic>{
           'trackId': videoTrack.id,
-          'x': x,
-          'y': y,
+          'focusPoint': {
+            'x': x,
+            'y': y,
+          },
         },
       );
     } else {
@@ -84,8 +86,10 @@ class CameraUtils {
         'mediaStreamTrackSetExposurePoint',
         <String, dynamic>{
           'trackId': videoTrack.id,
-          'x': x,
-          'y': y,
+          'exposurePoint': {
+            'x': x,
+            'y': y,
+          },
         },
       );
     } else {
