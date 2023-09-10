@@ -148,6 +148,8 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
   self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
+  self.focusMode = @"auto";
+  self.exposureMode = @"auto";
   AVAudioSession* session = [AVAudioSession sharedInstance];
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(didSessionRouteChange:)

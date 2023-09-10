@@ -42,6 +42,8 @@ typedef void (^CapturerStopHandler)(CompletionHandler handler);
 @property(nonatomic, strong) FlutterEventSink eventSink;
 @property(nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
 @property(nonatomic, strong) RTCCameraVideoCapturer* videoCapturer;
+@property(nonatomic, strong) NSString *focusMode;
+@property(nonatomic, strong) NSString *exposureMode;
 @property(nonatomic, strong) FlutterRTCFrameCapturer* frameCapturer;
 @property(nonatomic, strong) AVAudioSessionPort preferredInput;
 @property(nonatomic) BOOL _usingFrontCamera;

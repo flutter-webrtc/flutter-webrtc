@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
@@ -47,15 +49,16 @@ class CameraUtils {
   }
 
   static Future<void> setFocusPoint(
-      MediaStreamTrack videoTrack, double x, double y) async {
+      MediaStreamTrack videoTrack, Point<double>? point) async {
     if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
       await WebRTC.invokeMethod(
         'mediaStreamTrackSetFocusPoint',
         <String, dynamic>{
           'trackId': videoTrack.id,
           'focusPoint': {
-            'x': x,
-            'y': y,
+            'reset': point == null,
+            'x': point?.x,
+            'y': point?.y,
           },
         },
       );
@@ -80,15 +83,16 @@ class CameraUtils {
   }
 
   static Future<void> setExposurePoint(
-      MediaStreamTrack videoTrack, double x, double y) async {
+      MediaStreamTrack videoTrack, Point<double>? point) async {
     if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
       await WebRTC.invokeMethod(
         'mediaStreamTrackSetExposurePoint',
         <String, dynamic>{
           'trackId': videoTrack.id,
           'exposurePoint': {
-            'x': x,
-            'y': y,
+            'reset': point == null,
+            'x': point?.x,
+            'y': point?.y,
           },
         },
       );

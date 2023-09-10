@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 
 import '../flutter_webrtc.dart';
@@ -74,16 +76,16 @@ class Helper {
       CameraUtils.setFocusMode(videoTrack, focusMode);
 
   static Future<void> setFocusPoint(
-          MediaStreamTrack videoTrack, double x, double y) =>
-      CameraUtils.setFocusPoint(videoTrack, x, y);
+          MediaStreamTrack videoTrack, Point<double>? point) =>
+      CameraUtils.setFocusPoint(videoTrack, point);
 
   static Future<void> setExposureMode(
           MediaStreamTrack videoTrack, CameraExposureMode exposureMode) =>
       CameraUtils.setExposureMode(videoTrack, exposureMode);
 
   static Future<void> setExposurePoint(
-          MediaStreamTrack videoTrack, double x, double y) =>
-      CameraUtils.setExposurePoint(videoTrack, x, y);
+          MediaStreamTrack videoTrack, Point<double>? point) =>
+      CameraUtils.setExposurePoint(videoTrack, point);
 
   /// Used to select a specific audio output device.
   ///
