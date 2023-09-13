@@ -15,7 +15,7 @@ dependencies:
   js: ^0.6.5
   flutter:
     sdk: flutter
-  flutter_rust_bridge: 1.77.1  # should be the same as in `Cargo.lock`
+  flutter_rust_bridge: 1.81.0  # should be the same as in `Cargo.lock`
   freezed_annotation: ^2.2.0
   meta: ^1.8.0
   uuid: ^3.0.7

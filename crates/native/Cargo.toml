@@ -13,7 +13,7 @@ anyhow = "1.0"
 cxx = "1.0"
 dashmap = "5.4"
 derive_more = "0.99"
-flutter_rust_bridge = { version = "=1.77.1", default-features = false }
+flutter_rust_bridge = { version = "=1.81.0", default-features = false }
 lazy_static = "1.4"
 libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"
@@ -27,7 +27,7 @@ nix = { version = "0.26", features = ["poll"] }
 pulse = { version = "2.27", package = "libpulse-binding" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.48", features = ["implement", "Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Media_Audio", "Win32_System_Com", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging"] }
+windows = { version = "0.51", features = ["implement", "Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Media_Audio", "Win32_System_Com", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging"] }
 
 [build-dependencies]
 anyhow = "1.0"

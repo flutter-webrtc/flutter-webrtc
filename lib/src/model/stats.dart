@@ -731,7 +731,7 @@ class RtcOutboundRtpStreamStats extends RtcStatsType {
       stats['trackId'],
       mediaType,
       tryParse(stats['bytesSent']),
-      stats['packetsSent'],
+      tryParse(stats['packetsSent']),
       stats['mediaSourceId'],
     );
   }

@@ -53,12 +53,6 @@ mod frame_handler {
     #[derive(From)]
     pub struct Frame(Box<UniquePtr<sys::VideoFrame>>);
 
-    #[allow(
-        clippy::items_after_statements,
-        clippy::let_underscore_untyped,
-        clippy::trait_duplication_in_bounds,
-        let_underscore_drop
-    )]
     #[cxx::bridge]
     mod cpp_api_bindings {
         /// Single video `frame`.

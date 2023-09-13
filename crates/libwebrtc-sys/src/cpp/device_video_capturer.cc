@@ -67,8 +67,6 @@ bool DeviceVideoCapturer::Init(size_t width,
     return false;
   }
 
-  RTC_CHECK(vcm_->CaptureStarted());
-
   return true;
 }
 

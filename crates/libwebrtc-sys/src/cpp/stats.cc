@@ -98,8 +98,8 @@ RTCOutboundRTPStreamStatsWrap cast_to_rtc_outbound_rtp_stream_stats(
         static_cast<RTCOutboundRTPStreamStats*>(stats.release()));
 
     auto track_id = init_option_string();
-    if (cast->track_id.is_defined()) {
-      track_id->set_value(rust::String(*cast->track_id));
+    if (cast->remote_id.is_defined()) {
+      track_id->set_value(rust::String(*cast->remote_id));
     }
 
     auto frame_width = init_option_u32();

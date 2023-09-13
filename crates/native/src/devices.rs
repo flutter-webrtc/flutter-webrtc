@@ -701,7 +701,7 @@ pub unsafe fn init() {
     thread::spawn(|| {
         let lpsz_class_name = OsStr::new("EventWatcher")
             .encode_wide()
-            .chain(Some(0).into_iter())
+            .chain(Some(0))
             .collect::<Vec<u16>>();
         let lpsz_class_name_ptr = lpsz_class_name.as_ptr();
 
@@ -716,7 +716,7 @@ pub unsafe fn init() {
 
         let lp_window_name = OsStr::new("Notifier")
             .encode_wide()
-            .chain(Some(0).into_iter())
+            .chain(Some(0))
             .collect::<Vec<u16>>();
         let lp_window_name_ptr = lp_window_name.as_ptr();
 

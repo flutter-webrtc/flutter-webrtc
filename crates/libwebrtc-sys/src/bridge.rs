@@ -134,15 +134,7 @@ pub fn init_option_bool() -> Box<OptionBool> {
     Box::new(OptionBool(None))
 }
 
-#[allow(
-    clippy::expl_impl_clone_on_copy,
-    clippy::items_after_statements,
-    clippy::let_underscore_untyped,
-    clippy::ptr_as_ptr,
-    clippy::trait_duplication_in_bounds,
-    clippy::unnecessary_box_returns,
-    let_underscore_drop
-)]
+#[allow(clippy::unnecessary_box_returns)]
 #[cxx::bridge(namespace = "bridge")]
 pub(crate) mod webrtc {
     /// Wrapper for a `(String, String)` tuple transferable via FFI boundaries.

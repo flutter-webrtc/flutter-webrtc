@@ -1,6 +1,6 @@
 [package]
 name = "libwebrtc-sys"
-version = "0.0.0+112.0.5615.165"
+version = "0.0.0+116.0.5845.110"
 edition = "2021"
 rust-version = "1.62"
 publish = false
