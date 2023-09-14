@@ -287,12 +287,13 @@ public class FlutterRTCFrameCryptor {
         Map<String, Object> keyProviderOptions = (Map<String, Object>) params.get("keyProviderOptions");
         boolean sharedKey = (boolean) keyProviderOptions.get("sharedKey");
         int ratchetWindowSize = (int) keyProviderOptions.get("ratchetWindowSize");
+        int failureTolerance = (int) keyProviderOptions.get("failureTolerance");
         byte[] ratchetSalt = ( byte[]) keyProviderOptions.get("ratchetSalt");
         byte[] uncryptedMagicBytes = new byte[0];
         if(keyProviderOptions.containsKey("uncryptedMagicBytes")) {
             uncryptedMagicBytes = ( byte[]) keyProviderOptions.get("uncryptedMagicBytes");
         }
-        FrameCryptorKeyProvider keyProvider = FrameCryptorFactory.createFrameCryptorKeyProvider(sharedKey, ratchetSalt, ratchetWindowSize, uncryptedMagicBytes);
+        FrameCryptorKeyProvider keyProvider = FrameCryptorFactory.createFrameCryptorKeyProvider(sharedKey, ratchetSalt, ratchetWindowSize, uncryptedMagicBytes, failureTolerance);
         ConstraintsMap paramsResult = new ConstraintsMap();
         keyProviders.put(keyProviderId, keyProvider);
         paramsResult.putString("keyProviderId", keyProviderId);

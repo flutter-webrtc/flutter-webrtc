@@ -334,13 +334,16 @@
     return;
   }
 
+  NSNumber* failureTolerance = keyProviderOptions[@"failureTolerance"];
+
   FlutterStandardTypedData* uncryptedMagicBytes = keyProviderOptions[@"uncryptedMagicBytes"];
   
   RTCFrameCryptorKeyProvider* keyProvider =
       [[RTCFrameCryptorKeyProvider alloc] initWithRatchetSalt:ratchetSalt.data
                                            ratchetWindowSize:[ratchetWindowSize intValue]
                                                sharedKeyMode:[sharedKey boolValue]
-                                         uncryptedMagicBytes: uncryptedMagicBytes != nil ? uncryptedMagicBytes.data : nil];
+                                         uncryptedMagicBytes: uncryptedMagicBytes != nil ? uncryptedMagicBytes.data : nil
+                                            failureTolerance:failureTolerance != nil ? [failureTolerance intValue] : -1];
   self.keyProviders[keyProviderId] = keyProvider;
   result(@{@"keyProviderId" : keyProviderId});
 }

@@ -329,6 +329,9 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyProvider(
 
   options.ratchet_window_size = ratchetWindowSize;
 
+  auto failureTolerance = findInt(keyProviderOptions, "failureTolerance");
+  options.failure_tolerance = failureTolerance;
+
   auto keyProvider = libwebrtc::KeyProvider::Create(&options);
   if (nullptr == keyProvider.get()) {
     result->Error("FrameCryptorFactoryCreateKeyProviderFailed",
