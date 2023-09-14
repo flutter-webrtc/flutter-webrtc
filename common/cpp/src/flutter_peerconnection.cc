@@ -148,6 +148,8 @@ EncodableMap rtpParametersToMap(
         EncodableValue(static_cast<int>(encoding->max_framerate()));
     map[EncodableValue("scaleResolutionDownBy")] =
         EncodableValue(encoding->scale_resolution_down_by());
+    map[EncodableValue("scalabilityMode")] =
+        EncodableValue(encoding->scalability_mode().std_string());
     map[EncodableValue("ssrc")] =
         EncodableValue(static_cast<int>(encoding->ssrc()));
     encodings_info.push_back(EncodableValue(map));
@@ -692,7 +694,14 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
       if (!value.IsNull()) {
         param->set_active(GetValue<bool>(value));
       }
-
+      value = findEncodableValue(map, "rid");
+      if (!value.IsNull()) {
+        param->set_rid(GetValue<std::string>(value));
+      }
+      value = findEncodableValue(map, "ssrc");
+      if (!value.IsNull()) {
+        param->set_ssrc(GetValue<int>(value));
+      }
       value = findEncodableValue(map, "maxBitrate");
       if (!value.IsNull()) {
         param->set_max_bitrate_bps(GetValue<int>(value));
@@ -715,7 +724,10 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
       if (!value.IsNull()) {
         param->set_scale_resolution_down_by(GetValue<double>(value));
       }
-
+      value = findEncodableValue(map, "scalabilityMode");
+      if (!value.IsNull()) {
+        param->set_scalability_mode(GetValue<std::string>(value));
+      }
       encoding++;
     }
   }
