@@ -18,20 +18,29 @@ struct KeyProviderOptions {
   vector<uint8_t> ratchet_salt;
   vector<uint8_t> uncrypted_magic_bytes;
   int ratchet_window_size;
+  int failure_tolerance;
   KeyProviderOptions()
       : shared_key(false),
         ratchet_salt(vector<uint8_t>()),
-        ratchet_window_size(0) {}
+        ratchet_window_size(0),
+        failure_tolerance(-1) {}
   KeyProviderOptions(KeyProviderOptions& copy)
       : shared_key(copy.shared_key),
         ratchet_salt(copy.ratchet_salt),
-        ratchet_window_size(copy.ratchet_window_size) {}
+        ratchet_window_size(copy.ratchet_window_size),
+        failure_tolerance(copy.failure_tolerance) {}
 };
 
 /// Shared secret key for frame encryption.
 class KeyProvider : public RefCountInterface {
  public:
   LIB_WEBRTC_API static scoped_refptr<KeyProvider> Create(KeyProviderOptions*);
+  
+  virtual bool SetSharedKey(int index, vector<uint8_t> key) = 0;
+
+  virtual vector<uint8_t> RatchetSharedKey(int key_index) = 0;
+
+  virtual vector<uint8_t> ExportSharedKey(int key_index) = 0;
 
   /// Set the key at the given index.
   virtual bool SetKey(const string participant_id,
@@ -43,6 +52,8 @@ class KeyProvider : public RefCountInterface {
 
   virtual vector<uint8_t> ExportKey(const string participant_id,
                                     int key_index) = 0;
+
+  virtual void SetSifTrailer(vector<uint8_t> trailer) = 0;
 
  protected:
   virtual ~KeyProvider() {}
