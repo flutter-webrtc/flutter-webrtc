@@ -1936,6 +1936,11 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
   if (map[@"scaleResolutionDownBy"] != nil) {
     [encoding setScaleResolutionDownBy:(NSNumber*)map[@"scaleResolutionDownBy"]];
   }
+
+  if (map[@"scalabilityMode"] != nil) {
+    [encoding setScalabilityMode:(NSString*)map[@"scalabilityMode"]];
+  }
+
   return encoding;
 }
 
@@ -1957,7 +1962,7 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
   if (encodingsParams != nil) {
     NSMutableArray<RTCRtpEncodingParameters*>* sendEncodings = [[NSMutableArray alloc] init];
     for (NSDictionary* map in encodingsParams) {
-      [sendEncodings insertObject:[self mapToEncoding:map] atIndex:0];
+      [sendEncodings addObject:[self mapToEncoding:map]];
     }
     [init setSendEncodings:sendEncodings];
   }

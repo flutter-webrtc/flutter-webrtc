@@ -63,6 +63,37 @@ class KeyProviderImpl implements KeyProvider {
       throw 'Unable to KeyProviderImpl::dispose: ${e.message}';
     }
   }
+
+  @override
+  Future<Uint8List> exportKey(
+      {required String participantId, required int index}) {
+    // TODO: implement exportKey
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Uint8List> exportSharedKey({int index = 0}) {
+    // TODO: implement exportSharedKey
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Uint8List> ratchetSharedKey({int index = 0}) {
+    // TODO: implement ratchetSharedKey
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> setSharedKey({required Uint8List key, int index = 0}) {
+    // TODO: implement setSharedKey
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> setSifTrailer({required Uint8List trailer}) {
+    // TODO: implement setSifTrailer
+    throw UnimplementedError();
+  }
 }
 
 class FrameCryptorFactoryImpl implements FrameCryptorFactory {
