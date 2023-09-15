@@ -50,25 +50,10 @@ class FlutterFrameCryptor {
       const EncodableMap& constraints,
       std::unique_ptr<MethodResultProxy> result);
 
-  void KeyProviderSetSharedKey(const EncodableMap& constraints,
-                        std::unique_ptr<MethodResultProxy> result);
-
-  void KeyProviderRatchetSharedKey(const EncodableMap& constraints,
-                         std::unique_ptr<MethodResultProxy> result);
-
-  void KeyProviderExportSharedKey(const EncodableMap& constraints,
-                        std::unique_ptr<MethodResultProxy> result);
-
   void KeyProviderSetKey(const EncodableMap& constraints,
                         std::unique_ptr<MethodResultProxy> result);
 
   void KeyProviderRatchetKey(const EncodableMap& constraints,
-                         std::unique_ptr<MethodResultProxy> result);
-
-  void KeyProviderExportKey(const EncodableMap& constraints,
-                        std::unique_ptr<MethodResultProxy> result);
-
-  void KeyProviderSetSifTrailer(const EncodableMap& constraints,
                          std::unique_ptr<MethodResultProxy> result);
 
   void KeyProviderDispose(const EncodableMap& constraints,

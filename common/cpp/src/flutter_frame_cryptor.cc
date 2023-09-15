@@ -77,26 +77,11 @@ bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
   } else if (method_name == "frameCryptorFactoryCreateKeyProvider") {
     FrameCryptorFactoryCreateKeyProvider(params, std::move(result));
     return true;
-  } else if (method_name == "keyProviderSetSharedKey") {
-    KeyProviderSetSharedKey(params, std::move(result));
-    return true;
-  } else if (method_name == "keyProviderRatchetSharedKey") {
-    KeyProviderRatchetSharedKey(params, std::move(result));
-    return true;
-  } else if (method_name == "keyProviderExportSharedKey") {
-    KeyProviderExportSharedKey(params, std::move(result));
-    return true;
-  }else if (method_name == "keyProviderSetKey") {
+  } else if (method_name == "keyProviderSetKey") {
     KeyProviderSetKey(params, std::move(result));
     return true;
   } else if (method_name == "keyProviderRatchetKey") {
     KeyProviderRatchetKey(params, std::move(result));
-    return true;
-  } else if (method_name == "keyProviderExportKey") {
-    KeyProviderExportKey(params, std::move(result));
-    return true;
-  }  else if (method_name == "keyProviderSetSifTrailer") {
-    KeyProviderSetSifTrailer(params, std::move(result));
     return true;
   } else if (method_name == "keyProviderDispose") {
     KeyProviderDispose(params, std::move(result));
@@ -344,9 +329,6 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyProvider(
 
   options.ratchet_window_size = ratchetWindowSize;
 
-  auto failureTolerance = findInt(keyProviderOptions, "failureTolerance");
-  options.failure_tolerance = failureTolerance;
-
   auto keyProvider = libwebrtc::KeyProvider::Create(&options);
   if (nullptr == keyProvider.get()) {
     result->Error("FrameCryptorFactoryCreateKeyProviderFailed",
@@ -357,152 +339,6 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyProvider(
   key_providers_[uuid] = keyProvider;
   EncodableMap params;
   params[EncodableValue("keyProviderId")] = uuid;
-  result->Success(EncodableValue(params));
-}
-
-void FlutterFrameCryptor::KeyProviderSetSharedKey(const EncodableMap& constraints,
-                      std::unique_ptr<MethodResultProxy> result) {
-  auto keyProviderId = findString(constraints, "keyProviderId");
-  if (keyProviderId == std::string()) {
-    result->Error("KeyProviderSetSharedKeyFailed", "keyProviderId is null");
-    return;
-  }
-
-  auto keyProvider = key_providers_[keyProviderId];
-  if (nullptr == keyProvider.get()) {
-    result->Error("KeyProviderSetSharedKeyFailed", "keyProvider is null");
-    return;
-  }
-
-  auto key = findVector(constraints, "key");
-  if (key.size() == 0) {
-    result->Error("KeyProviderSetSharedKeyFailed", "key is null");
-    return;
-  }
-
-  auto key_index = findInt(constraints, "keyIndex");
-  if (key_index == -1) {
-    result->Error("KeyProviderSetSharedKeyFailed", "keyIndex is null");
-    return;
-  }
-
-
-  keyProvider->SetSharedKey(key_index, vector<uint8_t>(key));
-  EncodableMap params;
-  params[EncodableValue("result")] = true;
-  result->Success(EncodableValue(params));
-}
-
-void FlutterFrameCryptor::KeyProviderRatchetSharedKey(const EncodableMap& constraints,
-                       std::unique_ptr<MethodResultProxy> result) {
- auto keyProviderId = findString(constraints, "keyProviderId");
-  if (keyProviderId == std::string()) {
-    result->Error("KeyProviderRatchetSharedKeyFailed", "keyProviderId is null");
-    return;
-  }
-
-  auto keyProvider = key_providers_[keyProviderId];
-  if (nullptr == keyProvider.get()) {
-    result->Error("KeyProviderRatchetSharedKeyFailed", "keyProvider is null");
-    return;
-  }
-
-  auto key_index = findInt(constraints, "keyIndex");
-  if (key_index == -1) {
-    result->Error("KeyProviderRatchetSharedKeyFailed", "keyIndex is null");
-    return;
-  }
-
-  auto newMaterial = keyProvider->RatchetSharedKey(key_index);
-
-  EncodableMap params;
-  params[EncodableValue("result")] = EncodableValue(newMaterial.std_vector());
-  result->Success(EncodableValue(params));
-}
-
-void FlutterFrameCryptor::KeyProviderExportSharedKey(const EncodableMap& constraints,
-                      std::unique_ptr<MethodResultProxy> result) {
-auto keyProviderId = findString(constraints, "keyProviderId");
-  if (keyProviderId == std::string()) {
-    result->Error("KeyProviderExportSharedKeyFailed", "keyProviderId is null");
-    return;
-  }
-
-  auto keyProvider = key_providers_[keyProviderId];
-  if (nullptr == keyProvider.get()) {
-    result->Error("KeyProviderExportSharedKeyFailed", "keyProvider is null");
-    return;
-  }
-
-  auto key_index = findInt(constraints, "keyIndex");
-  if (key_index == -1) {
-    result->Error("KeyProviderExportSharedKeyFailed", "keyIndex is null");
-    return;
-  }
-
-  auto newMaterial = keyProvider->ExportSharedKey(key_index);
-
-  EncodableMap params;
-  params[EncodableValue("result")] = EncodableValue(newMaterial.std_vector());
-  result->Success(EncodableValue(params));
-}
-
-void FlutterFrameCryptor::KeyProviderExportKey(const EncodableMap& constraints,
-                      std::unique_ptr<MethodResultProxy> result) {
-  auto keyProviderId = findString(constraints, "keyProviderId");
-  if (keyProviderId == std::string()) {
-    result->Error("KeyProviderExportKeyFailed", "keyProviderId is null");
-    return;
-  }
-
-  auto keyProvider = key_providers_[keyProviderId];
-  if (nullptr == keyProvider.get()) {
-    result->Error("KeyProviderExportKeyFailed", "keyProvider is null");
-    return;
-  }
-
-  auto participant_id = findString(constraints, "participantId");
-  if (participant_id == std::string()) {
-    result->Error("KeyProviderExportKeyFailed", "participantId is null");
-    return;
-  }
-
-  auto key_index = findInt(constraints, "keyIndex");
-  if (key_index == -1) {
-    result->Error("KeyProviderExportKeyFailed", "keyIndex is null");
-    return;
-  }
-
-  auto newMaterial = keyProvider->ExportKey(participant_id, key_index);
-
-  EncodableMap params;
-  params[EncodableValue("result")] = EncodableValue(newMaterial.std_vector());
-  result->Success(EncodableValue(params));
-}
-
-void FlutterFrameCryptor::KeyProviderSetSifTrailer(const EncodableMap& constraints,
-                       std::unique_ptr<MethodResultProxy> result) {
-  auto keyProviderId = findString(constraints, "keyProviderId");
-  if (keyProviderId == std::string()) {
-    result->Error("KeyProviderSetSifTrailerFailed", "keyProviderId is null");
-    return;
-  }
-
-  auto keyProvider = key_providers_[keyProviderId];
-  if (nullptr == keyProvider.get()) {
-    result->Error("KeyProviderSetSifTrailerFailed", "keyProvider is null");
-    return;
-  }
-
-  auto sifTrailer = findVector(constraints, "sifTrailer");
-  if (sifTrailer.size() == 0) {
-    result->Error("KeyProviderSetSifTrailerFailed", "sifTrailer is null");
-    return;
-  }
-
-  keyProvider->SetSifTrailer(vector<uint8_t>(sifTrailer));
-  EncodableMap params;
-  params[EncodableValue("result")] = true;
   result->Success(EncodableValue(params));
 }
 
