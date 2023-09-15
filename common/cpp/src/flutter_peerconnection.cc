@@ -556,6 +556,11 @@ FlutterPeerConnection::mapToEncoding(const EncodableMap& params) {
     encoding->set_scale_resolution_down_by(GetValue<double>(value));
   }
 
+  value = findEncodableValue(params, "scalabilityMode");
+  if (!value.IsNull()) {
+    encoding->set_scalability_mode(GetValue<std::string>(value));
+  }
+
   return encoding;
 }
 
