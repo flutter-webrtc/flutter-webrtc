@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.42+hotfix.1] - 2023-09-15
+
+* [Windows/Linux] fix: fix cannot start vp8/h264 encoder correctly.
+
 [0.9.42] - 2023-09-15
 
 * [Dart/Native] feat: add more framcryptor api (#1444)
