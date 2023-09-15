@@ -259,7 +259,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
     _keySharedProvider ??=
         await _frameCyrptorFactory.createDefaultKeyProvider(keyProviderOptions);
-
+    await _keySharedProvider?.setSharedKey(key: aesKey);
     acaps = await getRtpSenderCapabilities('audio');
     print('sender audio capabilities: ${acaps!.toMap()}');
 
@@ -453,7 +453,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       transceiver.setCodecPreferences(codecs);
     });
     await _negotiate();
-    await _keySharedProvider?.setSharedKey(key: aesKey);
+
     setState(() {
       _localRenderer.srcObject = _localStream;
       _cameraOn = true;
@@ -516,7 +516,6 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       transceiver.setCodecPreferences(codecs);
     });
     await _negotiate();
-    await _keySharedProvider?.setSharedKey(key: aesKey);
     setState(() {
       _micOn = true;
     });
