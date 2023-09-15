@@ -1,6 +1,14 @@
 # Changelog
 
 --------------------------------------------
+[0.9.42] - 2023-09-15
+
+* [Dart/Native] feat: add more framcryptor api (#1444)
+* [Dart/Native] feat: support scalability mode (#1442)
+* [Android] fix: Turn off audio routing in non communication modes (#1438)
+
+* [Android] feat: Add more control over android audio options.
+
 [0.9.41] - 2023-08-30
 
 * [Android] feat: Add more control over android audio options.
