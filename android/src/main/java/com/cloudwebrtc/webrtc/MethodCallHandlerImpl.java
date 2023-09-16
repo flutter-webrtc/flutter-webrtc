@@ -615,6 +615,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       case "setAndroidAudioConfiguration": {
         Map<String, Object> configuration = call.argument("configuration");
         audioSwitchManager.setAudioConfiguration(configuration);
+        result.success(null);
         break;
       }
       case "enableSpeakerphone":
