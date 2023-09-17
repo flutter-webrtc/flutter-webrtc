@@ -111,14 +111,24 @@ class AndroidAudioConfiguration {
     this.androidAudioStreamType,
     this.androidAudioAttributesUsageType,
     this.androidAudioAttributesContentType,
+    this.forceHandleAudioRouting,
   });
 
+  /// Controls whether audio focus should be automatically managed during
+  /// a WebRTC session.
   final bool? manageAudioFocus;
   final AndroidAudioMode? androidAudioMode;
   final AndroidAudioFocusMode? androidAudioFocusMode;
   final AndroidAudioStreamType? androidAudioStreamType;
   final AndroidAudioAttributesUsageType? androidAudioAttributesUsageType;
   final AndroidAudioAttributesContentType? androidAudioAttributesContentType;
+
+  /// On certain Android devices, audio routing does not function properly and
+  /// bluetooth microphones will not work unless audio mode is set to
+  /// `inCommunication` or `inCall`. Audio routing is turned off those cases.
+  ///
+  /// If this set to true, will attempt to do audio routing regardless of audio mode.
+  final bool? forceHandleAudioRouting;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
         if (manageAudioFocus != null) 'manageAudioFocus': manageAudioFocus!,
@@ -134,6 +144,8 @@ class AndroidAudioConfiguration {
         if (androidAudioAttributesContentType != null)
           'androidAudioAttributesContentType':
               androidAudioAttributesContentType!.value,
+        if (forceHandleAudioRouting != null)
+          'forceHandleAudioRouting': forceHandleAudioRouting!,
       };
 
   /// A pre-configured AndroidAudioConfiguration for media playback.

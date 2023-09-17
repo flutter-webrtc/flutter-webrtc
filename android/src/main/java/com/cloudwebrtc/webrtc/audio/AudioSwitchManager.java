@@ -111,6 +111,16 @@ public class AudioSwitchManager {
      */
     private int audioAttributeContentType = AudioAttributes.CONTENT_TYPE_SPEECH;
 
+    /**
+     * On certain Android devices, audio routing does not function properly and bluetooth microphones will not work
+     * unless audio mode is set to [AudioManager.MODE_IN_COMMUNICATION] or [AudioManager.MODE_IN_CALL].
+     *
+     * AudioSwitchManager by default will not handle audio routing in those cases to avoid audio issues.
+     *
+     * If this set to true, AudioSwitchManager will attempt to do audio routing, though behavior is undefined.
+     */
+    private boolean forceHandleAudioRouting = false;
+
     public AudioSwitchManager(@NonNull Context context) {
         this.context = context;
         this.audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
@@ -139,6 +149,7 @@ public class AudioSwitchManager {
                 audioSwitch.setAudioStreamType(audioStreamType);
                 audioSwitch.setAudioAttributeContentType(audioAttributeContentType);
                 audioSwitch.setAudioAttributeUsageType(audioAttributeUsageType);
+                audioSwitch.setForceHandleAudioRouting(forceHandleAudioRouting);
                 audioSwitch.start(audioDeviceChangeListener);
             });
         }
@@ -307,6 +318,12 @@ public class AudioSwitchManager {
             contentType = (String) configuration.get("androidAudioAttributesContentType");
         }
         setAudioAttributesContentType(contentType);
+
+        Boolean forceHandleAudioRouting = null;
+        if (configuration.get("forceHandleAudioRouting") instanceof Boolean) {
+            forceHandleAudioRouting = (Boolean) configuration.get("forceHandleAudioRouting");
+        }
+        setForceHandleAudioRouting(forceHandleAudioRouting);
     }
 
     public void setManageAudioFocus(@Nullable Boolean manage) {
@@ -373,6 +390,13 @@ public class AudioSwitchManager {
         this.audioAttributeContentType = contentType;
         if (audioSwitch != null) {
             Objects.requireNonNull(audioSwitch).setAudioAttributeContentType(this.audioAttributeContentType);
+        }
+    }
+
+    public void setForceHandleAudioRouting(@Nullable Boolean force) {
+        if (force != null && audioSwitch != null) {
+            this.forceHandleAudioRouting = force;
+            Objects.requireNonNull(audioSwitch).setForceHandleAudioRouting(this.forceHandleAudioRouting);
         }
     }
 
