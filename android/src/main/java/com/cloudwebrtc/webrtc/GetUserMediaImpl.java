@@ -49,6 +49,7 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
+import com.cloudwebrtc.webrtc.video.VideoCapturerInfo;
 
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
@@ -82,7 +83,7 @@ import io.flutter.plugin.common.MethodChannel.Result;
  * The implementation of {@code getUserMedia} extracted into a separate file in order to reduce
  * complexity and to (somewhat) separate concerns.
  */
-class GetUserMediaImpl {
+public class GetUserMediaImpl {
     private static final int DEFAULT_WIDTH = 1280;
     private static final int DEFAULT_HEIGHT = 720;
     private static final int DEFAULT_FPS = 30;
@@ -111,7 +112,6 @@ class GetUserMediaImpl {
     JavaAudioDeviceModule audioDeviceModule;
     private final SparseArray<MediaRecorderImpl> mediaRecorders = new SparseArray<>();
     private AudioDeviceInfo preferredInput = null;
-    private boolean isTorchOn;
 
     public void screenRequestPermissions(ResultReceiver resultReceiver) {
         final Activity activity = stateProvider.getActivity();
@@ -755,6 +755,7 @@ class GetUserMediaImpl {
                 : DEFAULT_FPS;
         info.capturer = videoCapturer;
         videoCapturer.startCapture(info.width, info.height, info.fps);
+        info.cameraName = deviceId;
 
         String trackId = stateProvider.getNextTrackUUID();
         mVideoCapturers.put(trackId, info);
@@ -807,6 +808,12 @@ class GetUserMediaImpl {
                     }
                 }
             }
+        }
+    }
+
+    public VideoCapturerInfo getCapturerInfo(String trackId) {
+        synchronized (mVideoCapturers) {
+            return mVideoCapturers.get(trackId);
         }
     }
 
@@ -884,7 +891,6 @@ class GetUserMediaImpl {
                             @Override
                             public void onCameraSwitchDone(boolean b) {
                                 isFacing = !isFacing;
-                                isTorchOn = false;
                                 result.success(b);
                             }
 
@@ -942,299 +948,7 @@ class GetUserMediaImpl {
         }
     }
 
-    void hasTorch(String trackId, Result result) {
-        VideoCapturerInfo info = mVideoCapturers.get(trackId);
-        if (info == null) {
-            resultError("hasTorch", "Video capturer not found for id: " + trackId, result);
-            return;
-        }
 
-        if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP && info.capturer instanceof Camera2Capturer) {
-            CameraManager manager;
-            CameraDevice cameraDevice;
-
-            try {
-                Object session =
-                        getPrivateProperty(
-                                Camera2Capturer.class.getSuperclass(), info.capturer, "currentSession");
-                manager =
-                        (CameraManager)
-                                getPrivateProperty(Camera2Capturer.class, info.capturer, "cameraManager");
-                cameraDevice =
-                        (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
-            } catch (NoSuchFieldWithNameException e) {
-                // Most likely the upstream Camera2Capturer class have changed
-                resultError("hasTorch", "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
-                return;
-            }
-
-            boolean flashIsAvailable;
-            try {
-                CameraCharacteristics characteristics =
-                        manager.getCameraCharacteristics(cameraDevice.getId());
-                flashIsAvailable = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
-            } catch (CameraAccessException e) {
-                // Should never happen since we are already accessing the camera
-                throw new RuntimeException(e);
-            }
-
-            result.success(flashIsAvailable);
-            return;
-        }
-
-        if (info.capturer instanceof Camera1Capturer) {
-            Camera camera;
-
-            try {
-                Object session =
-                        getPrivateProperty(
-                                Camera1Capturer.class.getSuperclass(), info.capturer, "currentSession");
-                camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
-            } catch (NoSuchFieldWithNameException e) {
-                // Most likely the upstream Camera1Capturer class have changed
-                resultError("hasTorch", "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
-                return;
-            }
-
-            Parameters params = camera.getParameters();
-            List<String> supportedModes = params.getSupportedFlashModes();
-
-            result.success(
-                    supportedModes != null && supportedModes.contains(Parameters.FLASH_MODE_TORCH));
-            return;
-        }
-
-        resultError("hasTorch", "[TORCH] Video capturer not compatible", result);
-    }
-
-    @RequiresApi(api = VERSION_CODES.LOLLIPOP)
-    void setZoom(String trackId, double zoomLevel, Result result) {
-        VideoCapturerInfo info = mVideoCapturers.get(trackId);
-        if (info == null) {
-            resultError("setZoom", "Video capturer not found for id: " + trackId, result);
-            return;
-        }
-
-        if (info.capturer instanceof Camera2Capturer) {
-            CameraCaptureSession captureSession;
-            CameraDevice cameraDevice;
-            CaptureFormat captureFormat;
-            int fpsUnitFactor;
-            Surface surface;
-            Handler cameraThreadHandler;
-            CameraManager manager;
-
-            try {
-                Object session =
-                        getPrivateProperty(
-                                Camera2Capturer.class.getSuperclass(), info.capturer, "currentSession");
-                manager =
-                        (CameraManager)
-                                getPrivateProperty(Camera2Capturer.class, info.capturer, "cameraManager");
-                captureSession =
-                        (CameraCaptureSession)
-                                getPrivateProperty(session.getClass(), session, "captureSession");
-                cameraDevice =
-                        (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
-                captureFormat =
-                        (CaptureFormat) getPrivateProperty(session.getClass(), session, "captureFormat");
-                fpsUnitFactor = (int) getPrivateProperty(session.getClass(), session, "fpsUnitFactor");
-                surface = (Surface) getPrivateProperty(session.getClass(), session, "surface");
-                cameraThreadHandler =
-                        (Handler) getPrivateProperty(session.getClass(), session, "cameraThreadHandler");
-            } catch (NoSuchFieldWithNameException e) {
-                // Most likely the upstream Camera2Capturer class have changed
-                resultError("setZoom", "[ZOOM] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
-                return;
-            }
-
-            try {
-                final CaptureRequest.Builder captureRequestBuilder =
-                        cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-
-                final CameraCharacteristics cameraCharacteristics = manager.getCameraCharacteristics(cameraDevice.getId());
-                final Rect rect = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
-                final double maxZoomLevel = cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
-
-                final double desiredZoomLevel = Math.max(1.0, Math.min(zoomLevel, maxZoomLevel));
-
-                float ratio = 1.0f / (float)desiredZoomLevel;
-
-                if (rect != null) {
-                    int croppedWidth = rect.width() - Math.round((float) rect.width() * ratio);
-                    int croppedHeight = rect.height() - Math.round((float) rect.height() * ratio);
-                    final Rect desiredRegion = new Rect(croppedWidth / 2, croppedHeight / 2, rect.width() - croppedWidth / 2, rect.height() - croppedHeight / 2);
-                    captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, desiredRegion);
-                }
-
-                captureRequestBuilder.set(
-                        CaptureRequest.FLASH_MODE,
-                        isTorchOn ? CaptureRequest.FLASH_MODE_TORCH : CaptureRequest.FLASH_MODE_OFF);
-                captureRequestBuilder.set(
-                        CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
-                        new Range<>(
-                                captureFormat.framerate.min / fpsUnitFactor,
-                                captureFormat.framerate.max / fpsUnitFactor));
-                captureRequestBuilder.set(
-                        CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
-                captureRequestBuilder.set(CaptureRequest.CONTROL_AE_LOCK, false);
-                captureRequestBuilder.addTarget(surface);
-                captureSession.setRepeatingRequest(
-                        captureRequestBuilder.build(), null, cameraThreadHandler);
-            } catch (CameraAccessException e) {
-                // Should never happen since we are already accessing the camera
-                throw new RuntimeException(e);
-            }
-
-
-            result.success(null);
-            return;
-        }
-
-        if (info.capturer instanceof Camera1Capturer) {
-            Camera camera;
-            try {
-                Object session =
-                        getPrivateProperty(
-                                Camera1Capturer.class.getSuperclass(), info.capturer, "currentSession");
-                camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
-            } catch (NoSuchFieldWithNameException e) {
-                // Most likely the upstream Camera1Capturer class have changed
-                resultError("setZoom", "[ZOOM] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
-                return;
-            }
-
-            Camera.Parameters params = camera.getParameters();
-            params.setFlashMode(
-                    isTorchOn ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF);
-            if(params.isZoomSupported()) {
-                int maxZoom = params.getMaxZoom();
-                double desiredZoom = Math.max(0, Math.min(zoomLevel, maxZoom));
-                params.setZoom((int)desiredZoom);
-                result.success(null);
-                return;
-            }
-        }
-        resultError("setZoom", "[ZOOM] Video capturer not compatible", result);
-    }
-
-    @RequiresApi(api = VERSION_CODES.LOLLIPOP)
-    void setTorch(String trackId, boolean torch, Result result) {
-        VideoCapturerInfo info = mVideoCapturers.get(trackId);
-        if (info == null) {
-            resultError("setTorch", "Video capturer not found for id: " + trackId, result);
-            return;
-        }
-
-        if (info.capturer instanceof Camera2Capturer) {
-            CameraCaptureSession captureSession;
-            CameraDevice cameraDevice;
-            CaptureFormat captureFormat;
-            int fpsUnitFactor;
-            Surface surface;
-            Handler cameraThreadHandler;
-
-            try {
-                Object session =
-                        getPrivateProperty(
-                                Camera2Capturer.class.getSuperclass(), info.capturer, "currentSession");
-                CameraManager manager =
-                        (CameraManager)
-                                getPrivateProperty(Camera2Capturer.class, info.capturer, "cameraManager");
-                captureSession =
-                        (CameraCaptureSession)
-                                getPrivateProperty(session.getClass(), session, "captureSession");
-                cameraDevice =
-                        (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
-                captureFormat =
-                        (CaptureFormat) getPrivateProperty(session.getClass(), session, "captureFormat");
-                fpsUnitFactor = (int) getPrivateProperty(session.getClass(), session, "fpsUnitFactor");
-                surface = (Surface) getPrivateProperty(session.getClass(), session, "surface");
-                cameraThreadHandler =
-                        (Handler) getPrivateProperty(session.getClass(), session, "cameraThreadHandler");
-            } catch (NoSuchFieldWithNameException e) {
-                // Most likely the upstream Camera2Capturer class have changed
-                resultError("setTorch", "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
-                return;
-            }
-
-            try {
-                final CaptureRequest.Builder captureRequestBuilder =
-                        cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-                captureRequestBuilder.set(
-                        CaptureRequest.FLASH_MODE,
-                        torch ? CaptureRequest.FLASH_MODE_TORCH : CaptureRequest.FLASH_MODE_OFF);
-                captureRequestBuilder.set(
-                        CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
-                        new Range<>(
-                                captureFormat.framerate.min / fpsUnitFactor,
-                                captureFormat.framerate.max / fpsUnitFactor));
-                captureRequestBuilder.set(
-                        CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
-                captureRequestBuilder.set(CaptureRequest.CONTROL_AE_LOCK, false);
-                captureRequestBuilder.addTarget(surface);
-                captureSession.setRepeatingRequest(
-                        captureRequestBuilder.build(), null, cameraThreadHandler);
-            } catch (CameraAccessException e) {
-                // Should never happen since we are already accessing the camera
-                throw new RuntimeException(e);
-            }
-
-            result.success(null);
-            isTorchOn = torch;
-            return;
-        }
-
-        if (info.capturer instanceof Camera1Capturer) {
-            Camera camera;
-            try {
-                Object session =
-                        getPrivateProperty(
-                                Camera1Capturer.class.getSuperclass(), info.capturer, "currentSession");
-                camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
-            } catch (NoSuchFieldWithNameException e) {
-                // Most likely the upstream Camera1Capturer class have changed
-                resultError("setTorch", "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
-                return;
-            }
-
-            Camera.Parameters params = camera.getParameters();
-            params.setFlashMode(
-                    torch ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF);
-            camera.setParameters(params);
-
-            result.success(null);
-            isTorchOn = torch;
-            return;
-        }
-        resultError("setTorch", "[TORCH] Video capturer not compatible", result);
-    }
-
-    private Object getPrivateProperty(Class klass, Object object, String fieldName)
-            throws NoSuchFieldWithNameException {
-        try {
-            Field field = klass.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            return field.get(object);
-        } catch (NoSuchFieldException e) {
-            throw new NoSuchFieldWithNameException(klass.getName(), fieldName, e);
-        } catch (IllegalAccessException e) {
-            // Should never happen since we are calling `setAccessible(true)`
-            throw new RuntimeException(e);
-        }
-    }
-
-    private class NoSuchFieldWithNameException extends NoSuchFieldException {
-
-        String className;
-        String fieldName;
-
-        NoSuchFieldWithNameException(String className, String fieldName, NoSuchFieldException e) {
-            super(e.getMessage());
-            this.className = className;
-            this.fieldName = fieldName;
-        }
-    }
 
     public void reStartCamera(IsCameraEnabled getCameraId) {
         for (Map.Entry<String, VideoCapturerInfo> item : mVideoCapturers.entrySet()) {
@@ -1250,14 +964,6 @@ class GetUserMediaImpl {
 
     public interface IsCameraEnabled {
         boolean isEnabled(String id);
-    }
-
-    public class VideoCapturerInfo {
-        VideoCapturer capturer;
-        int width;
-        int height;
-        int fps;
-        boolean isScreenCapture = false;
     }
 
     @RequiresApi(api = VERSION_CODES.M)
