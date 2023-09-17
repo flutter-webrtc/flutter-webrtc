@@ -135,7 +135,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       details.localPosition.dy / constraints.maxHeight,
     );
     Helper.setFocusPoint(_localStream!.getVideoTracks().first, point);
-    //Helper.setExposurePoint(_localStream!.getVideoTracks().first, point);
+    Helper.setExposurePoint(_localStream!.getVideoTracks().first, point);
   }
 
   void _toggleTorch() async {
@@ -261,7 +261,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                 },
                 onTapDown: (TapDownDetails details) =>
                     onViewFinderTap(details, constraints),
-                child: RTCVideoView(_localRenderer, mirror: _isFrontCamera),
+                child: RTCVideoView(_localRenderer, mirror: false),
               );
             }),
           ));
