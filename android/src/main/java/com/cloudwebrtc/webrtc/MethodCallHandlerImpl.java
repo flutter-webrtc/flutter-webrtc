@@ -600,7 +600,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       case "mediaStreamTrackSetExposurePoint": {
-        cameraUtils.setExposurePoint(call, result);
+        Map<String, Object> exposurePoint = call.argument("exposurePoint");
+        Boolean reset = (Boolean)exposurePoint.get("reset");
+        Double x = null;
+        Double y = null;
+        if (reset == null || !reset) {
+          x =  (Double)exposurePoint.get("x");
+          y =  (Double)exposurePoint.get("y");
+        }
+        cameraUtils.setExposurePoint(call, new Point(x, y), result);
         break;
       }
       case "mediaStreamTrackSwitchCamera": {

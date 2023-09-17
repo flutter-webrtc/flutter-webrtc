@@ -101,8 +101,6 @@ public class CameraUtils {
       try {
         final CaptureRequest.Builder captureRequestBuilder =
                 cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-
-        final CameraCharacteristics cameraCharacteristics = manager.getCameraCharacteristics(cameraDevice.getId());
         switch (mode) {
           case "locked":
             // When locking the auto-focus the camera device should do a one-time focus and afterwards
@@ -220,10 +218,11 @@ public class CameraUtils {
       }
 
       try {
+        final CameraCharacteristics cameraCharacteristics = manager.getCameraCharacteristics(cameraDevice.getId());
         final CaptureRequest.Builder captureRequestBuilder =
                 cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
         MeteringRectangle focusRectangle = null;
-        Size cameraBoundaries = null;
+        Size cameraBoundaries = CameraRegionUtils.getCameraBoundaries(cameraCharacteristics, captureRequestBuilder);
         PlatformChannel.DeviceOrientation orientation = deviceOrientationManager.getLastUIOrientation();
         focusRectangle =
                 convertPointToMeteringRectangle(cameraBoundaries, focusPoint.x, focusPoint.y, orientation);
@@ -231,6 +230,7 @@ public class CameraUtils {
         captureRequestBuilder.set(
                 CaptureRequest.CONTROL_AF_REGIONS,
                 captureRequestBuilder == null ? null : new MeteringRectangle[] {focusRectangle});
+        captureRequestBuilder.addTarget(surface);
         captureSession.setRepeatingRequest(
                 captureRequestBuilder.build(), null, cameraThreadHandler);
       } catch (CameraAccessException e) {
@@ -259,44 +259,112 @@ public class CameraUtils {
       Camera.Parameters params = camera.getParameters();
       params.setFlashMode(
               isTorchOn ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF);
-      if(!params.getSupportedFocusModes().isEmpty()) {
-        switch (mode) {
-          case "locked":
-            params.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
-            break;
-          case "auto":
-            params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-            break;
-          default:
-            break;
-        }
-        result.success(null);
-        return;
-      }
+      params.setFocusAreas(null);
     }
     resultError("setFocusMode", "[FocusMode] Video capturer not compatible", result);
   }
 
   public void setExposureMode(MethodCall call, AnyThreadResult result) {}
 
-  public void setExposurePoint(MethodCall call, AnyThreadResult result) {}
-
-
-  int getDeviceDefaultOrientation() {
-    Configuration config = activity.getResources().getConfiguration();
-    int rotation = getDisplay().getRotation();
-    if (((rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180)
-            && config.orientation == Configuration.ORIENTATION_LANDSCAPE)
-            || ((rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270)
-            && config.orientation == Configuration.ORIENTATION_PORTRAIT)) {
-      return Configuration.ORIENTATION_LANDSCAPE;
-    } else {
-      return Configuration.ORIENTATION_PORTRAIT;
+  public void setExposurePoint(MethodCall call,Point exposurePoint,  AnyThreadResult result) {
+    String trackId = call.argument("trackId");
+    String mode = call.argument("mode");
+    VideoCapturerInfo info = getUserMediaImpl.getCapturerInfo(trackId);
+    if (info == null) {
+      resultError("setExposurePoint", "Video capturer not found for id: " + trackId, result);
+      return;
     }
+
+    if (info.capturer instanceof Camera2Capturer) {
+      CameraCaptureSession captureSession;
+      CameraDevice cameraDevice;
+      CameraEnumerationAndroid.CaptureFormat captureFormat;
+      int fpsUnitFactor;
+      Surface surface;
+      Handler cameraThreadHandler;
+      CameraManager manager;
+
+      try {
+        Object session =
+                getPrivateProperty(
+                        Camera2Capturer.class.getSuperclass(), info.capturer, "currentSession");
+        manager =
+                (CameraManager)
+                        getPrivateProperty(Camera2Capturer.class, info.capturer, "cameraManager");
+        captureSession =
+                (CameraCaptureSession)
+                        getPrivateProperty(session.getClass(), session, "captureSession");
+        cameraDevice =
+                (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
+        captureFormat =
+                (CameraEnumerationAndroid.CaptureFormat) getPrivateProperty(session.getClass(), session, "captureFormat");
+        fpsUnitFactor = (int) getPrivateProperty(session.getClass(), session, "fpsUnitFactor");
+        surface = (Surface) getPrivateProperty(session.getClass(), session, "surface");
+        cameraThreadHandler =
+                (Handler) getPrivateProperty(session.getClass(), session, "cameraThreadHandler");
+      } catch (NoSuchFieldWithNameException e) {
+        // Most likely the upstream Camera2Capturer class have changed
+        resultError("setExposurePoint", "[setExposurePoint] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
+        return;
+      }
+
+      try {
+        final CameraCharacteristics cameraCharacteristics = manager.getCameraCharacteristics(cameraDevice.getId());
+        final CaptureRequest.Builder captureRequestBuilder =
+                cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+
+        if(CameraRegionUtils.getControlMaxRegionsAutoExposure(cameraCharacteristics) <= 0) {
+          resultError("setExposurePoint", "[setExposurePoint] Camera does not support auto exposure", result);
+          return;
+        }
+
+        MeteringRectangle exposureRectangle = null;
+        Size cameraBoundaries = CameraRegionUtils.getCameraBoundaries(cameraCharacteristics, captureRequestBuilder);
+        PlatformChannel.DeviceOrientation orientation = deviceOrientationManager.getLastUIOrientation();
+        exposureRectangle =
+                convertPointToMeteringRectangle(cameraBoundaries, exposurePoint.x, exposurePoint.y, orientation);
+        if (exposureRectangle != null) {
+          captureRequestBuilder.set(
+                  CaptureRequest.CONTROL_AE_REGIONS, new MeteringRectangle[] {exposureRectangle});
+        } else {
+          MeteringRectangle[] defaultRegions = captureRequestBuilder.get(CaptureRequest.CONTROL_AE_REGIONS);
+          captureRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS, defaultRegions);
+        }
+
+        captureRequestBuilder.addTarget(surface);
+        captureSession.setRepeatingRequest(
+                captureRequestBuilder.build(), null, cameraThreadHandler);
+      } catch (CameraAccessException e) {
+        // Should never happen since we are already accessing the camera
+        throw new RuntimeException(e);
+      }
+
+
+      result.success(null);
+      return;
+    }
+
+    if (info.capturer instanceof Camera1Capturer) {
+      Camera camera;
+      try {
+        Object session =
+                getPrivateProperty(
+                        Camera1Capturer.class.getSuperclass(), info.capturer, "currentSession");
+        camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
+      } catch (NoSuchFieldWithNameException e) {
+        // Most likely the upstream Camera1Capturer class have changed
+        resultError("setFocusMode", "[FocusMode] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
+        return;
+      }
+
+      Camera.Parameters params = camera.getParameters();
+      params.setFlashMode(
+              isTorchOn ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF);
+      params.setFocusAreas(null);
+    }
+    resultError("setFocusMode", "[FocusMode] Video capturer not compatible", result);
   }
-  Display getDisplay() {
-    return ((WindowManager) activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-  }
+
   public void hasTorch(String trackId, MethodChannel.Result result) {
     VideoCapturerInfo info = getUserMediaImpl.getCapturerInfo(trackId);
     if (info == null) {
@@ -594,39 +662,6 @@ public class CameraUtils {
       throw new RuntimeException(e);
     }
   }
-/*
-  @NonNull
-  public Range<Integer>[] getControlAutoExposureAvailableTargetFpsRanges() {
-    return cameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
-  }
-
-  @NonNull
-  public Range<Integer> getControlAutoExposureCompensationRange() {
-    return cameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
-  }
-
-  public double getControlAutoExposureCompensationStep() {
-    Rational rational =
-        cameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_STEP);
-
-    return rational == null ? 0.0 : rational.doubleValue();
-  }
-
-  @NonNull
-  public int[] getControlAutoFocusAvailableModes() {
-    return cameraCharacteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
-  }
-
-  @NonNull
-  public Integer getControlMaxRegionsAutoExposure() {
-    return cameraCharacteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AE);
-  }
-
-  @NonNull
-  public Integer getControlMaxRegionsAutoFocus() {
-    return cameraCharacteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AF);
-  }
-*/
   @NonNull
   public static MeteringRectangle convertPointToMeteringRectangle(
           @NonNull Size boundaries,
