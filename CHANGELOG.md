@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.43] - 2023-09-15
+
+* [Native] fix: send frame cryptor events from signaling thread.
+* [Native] fix: h264 freeze when using E2EE.
+
 [0.9.42+hotfix.1] - 2023-09-15
 
 * [Windows/Linux] fix: fix cannot start vp8/h264 encoder correctly.
