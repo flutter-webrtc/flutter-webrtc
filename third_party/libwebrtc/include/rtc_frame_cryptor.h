@@ -2,6 +2,7 @@
 #define LIB_RTC_FRAME_CYRPTOR_H_
 
 #include "base/refcount.h"
+#include "rtc_peerconnection_factory.h"
 #include "rtc_rtp_receiver.h"
 #include "rtc_rtp_sender.h"
 #include "rtc_types.h"
@@ -69,7 +70,7 @@ enum RTCFrameCryptionState {
   kInternalError,
 };
 
-class RTCFrameCryptorObserver {
+class RTCFrameCryptorObserver : public RefCountInterface {
  public:
   virtual void OnFrameCryptionStateChanged(const string participant_id,
                                            RTCFrameCryptionState state) = 0;
@@ -98,7 +99,7 @@ class RTCFrameCryptor : public RefCountInterface {
   virtual const string participant_id() const = 0;
 
   virtual void RegisterRTCFrameCryptorObserver(
-      RTCFrameCryptorObserver* observer) = 0;
+       scoped_refptr<RTCFrameCryptorObserver> observer) = 0;
 
   virtual void DeRegisterRTCFrameCryptorObserver() = 0;
 
@@ -110,14 +111,16 @@ class FrameCryptorFactory {
  public:
   /// Create a frame cyrptor for [RTCRtpSender].
   LIB_WEBRTC_API static scoped_refptr<RTCFrameCryptor>
-  frameCryptorFromRtpSender(const string participant_id,
+  frameCryptorFromRtpSender(scoped_refptr<RTCPeerConnectionFactory> factory,
+                            const string participant_id,
                             scoped_refptr<RTCRtpSender> sender,
                             Algorithm algorithm,
                             scoped_refptr<KeyProvider> key_provider);
 
   /// Create a frame cyrptor for [RTCRtpReceiver].
   LIB_WEBRTC_API static scoped_refptr<RTCFrameCryptor>
-  frameCryptorFromRtpReceiver(const string participant_id,
+  frameCryptorFromRtpReceiver(scoped_refptr<RTCPeerConnectionFactory> factory,
+                              const string participant_id,
                               scoped_refptr<RTCRtpReceiver> receiver,
                               Algorithm algorithm,
                               scoped_refptr<KeyProvider> key_provider);
