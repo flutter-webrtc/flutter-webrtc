@@ -146,7 +146,8 @@
     }
 
     RTCFrameCryptor* frameCryptor =
-        [[RTCFrameCryptor alloc] initWithRtpSender:sender
+        [[RTCFrameCryptor alloc] initWithFactory:self.peerConnectionFactory
+                                         rtpSender:sender
                                      participantId:participantId
                                          algorithm:[self getAlgorithm:algorithm]
                                         keyProvider:keyProvider];
@@ -172,7 +173,8 @@
       return;
     }
     RTCFrameCryptor* frameCryptor =
-        [[RTCFrameCryptor alloc] initWithRtpReceiver:receiver
+        [[RTCFrameCryptor alloc] initWithFactory:self.peerConnectionFactory
+                                         rtpReceiver:receiver
                                        participantId:participantId
                                            algorithm:[self getAlgorithm:algorithm]
                                           keyProvider:keyProvider];
