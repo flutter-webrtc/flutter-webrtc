@@ -3,6 +3,7 @@
 --------------------------------------------
 [0.9.43] - 2023-09-25
 
+* [Windows] fix: fix Renderer bug for Windows.
 * [Native] fix: Use independent threads to process frame encryption/decryption
 * [Native] fix: Correct handle SIF frame
 * [Native] fix: Fix a fault tolerance judgment failure
