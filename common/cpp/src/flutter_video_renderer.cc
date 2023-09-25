@@ -154,10 +154,15 @@ void FlutterVideoRendererManager::VideoRendererDispose(
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
     it->second->SetVideoTrack(nullptr);
+#if defined(_WINDOWS)
     base_->textures_->UnregisterTexture(
         texture_id, [&, it] {
           renderers_.erase(it);
     });
+#else
+    base_->textures_->UnregisterTexture(texture_id);
+    renderers_.erase(it);
+#endif
     result->Success();
     return;
   }
