@@ -5,6 +5,7 @@
 
 * [iOS/macOS] fix: send message on non-platform thread.
 * [Windows] fix: fix setSrcObj with trackId for Windows.
+* [Windows] fix: fix "unlock of unowned mutex" error when call "captureFrame()" func on windows.
 
 [0.9.44] - 2023-09-25
 
