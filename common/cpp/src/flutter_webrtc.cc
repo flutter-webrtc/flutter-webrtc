@@ -20,10 +20,10 @@ void FlutterWebRTC::HandleMethodCall(
     const MethodCallProxy& method_call,
     std::unique_ptr<MethodResultProxy> result) {
   if (method_call.method_name().compare("initialize") == 0) {
-   const EncodableMap params =
-       GetValue<EncodableMap>(*method_call.arguments());
-   const EncodableMap options = findMap(params, "options");
-   result->Success();
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const EncodableMap options = findMap(params, "options");
+    result->Success();
   } else if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");
@@ -455,9 +455,10 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string stream_id = findString(params, "streamId");
     int64_t texture_id = findLongInt(params, "textureId");
-    const std::string ownerTag = findString(params, "ownerTag");
+    const std::string owner_tag = findString(params, "ownerTag");
+    const std::string track_id = findString(params, "trackId");
 
-    SetMediaStream(texture_id, stream_id, ownerTag);
+    VideoRendererSetSrcObject(texture_id, stream_id, owner_tag, track_id);
     result->Success();
   } else if (method_call.method_name().compare(
                  "mediaStreamTrackSwitchCamera") == 0) {
@@ -888,8 +889,7 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    RtpTransceiverSetDirection(pc, transceiverId, direction,
-                               std::move(result));
+    RtpTransceiverSetDirection(pc, transceiverId, direction, std::move(result));
   } else if (method_call.method_name().compare("setConfiguration") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -1114,7 +1114,8 @@ void FlutterWebRTC::HandleMethodCall(
 
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
-      result->Error("getSignalingState", "getSignalingState() peerConnection is null");
+      result->Error("getSignalingState",
+                    "getSignalingState() peerConnection is null");
       return;
     }
     EncodableMap state;
