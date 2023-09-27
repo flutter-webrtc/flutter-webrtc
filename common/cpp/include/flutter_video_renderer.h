@@ -14,12 +14,16 @@ namespace flutter_webrtc_plugin {
 using namespace libwebrtc;
 
 class FlutterVideoRenderer
-    : public RTCVideoRenderer<scoped_refptr<RTCVideoFrame>>, public RefCountInterface {
+    : public RTCVideoRenderer<scoped_refptr<RTCVideoFrame>>,
+      public RefCountInterface {
  public:
   FlutterVideoRenderer() = default;
   ~FlutterVideoRenderer();
 
-  void initialize(TextureRegistrar* registrar, BinaryMessenger* messenger, std::unique_ptr<flutter::TextureVariant> texture, int64_t texture_id);
+  void initialize(TextureRegistrar* registrar,
+                  BinaryMessenger* messenger,
+                  std::unique_ptr<flutter::TextureVariant> texture,
+                  int64_t texture_id);
 
   virtual const FlutterDesktopPixelBuffer* CopyPixelBuffer(size_t width,
                                                            size_t height) const;
@@ -61,12 +65,14 @@ class FlutterVideoRendererManager {
 
   void CreateVideoRendererTexture(std::unique_ptr<MethodResultProxy> result);
 
-  void SetMediaStream(int64_t texture_id,
-                      const std::string& stream_id,
-                      const std::string& peerConnectionId);
+  void VideoRendererSetSrcObject(int64_t texture_id,
+                                 const std::string& stream_id,
+                                 const std::string& owner_tag,
+                                 const std::string& track_id);
 
   void VideoRendererDispose(int64_t texture_id,
                             std::unique_ptr<MethodResultProxy> result);
+
  private:
   FlutterWebRTCBase* base_;
   std::map<int64_t, scoped_refptr<FlutterVideoRenderer>> renderers_;
