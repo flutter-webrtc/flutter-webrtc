@@ -33,7 +33,7 @@ void FlutterFrameCapturer::CaptureFrame(
   track_->AddRenderer(this);
   // Here waiting for catch_frame_ is set to true
   while(!catch_frame_){}
-  // Here the OnFrame method has to unlock the mutex
+  // Here unlock the mutex
   mutex_.unlock();
 
   mutex_.lock();
