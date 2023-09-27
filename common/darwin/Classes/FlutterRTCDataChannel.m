@@ -63,7 +63,7 @@
   NSEnumerator* enumerator = [self.eventQueue objectEnumerator];
   id event;
   while ((event = enumerator.nextObject) != nil) {
-    self.eventSink(event);
+    postEvent(sink, event);
   };
   self.eventQueue = nil;
   return nil;
@@ -149,7 +149,7 @@
 
 - (void)sendEvent:(id)event withChannel:(RTCDataChannel*)channel {
   if (channel.eventSink) {
-    channel.eventSink(event);
+    postEvent(channel.eventSink, event);
   } else {
     if (!channel.eventQueue) {
       channel.eventQueue = [NSMutableArray array];

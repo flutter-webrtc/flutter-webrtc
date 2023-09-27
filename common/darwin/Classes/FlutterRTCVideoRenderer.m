@@ -187,7 +187,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
       if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{
+        postEvent( strongSelf.eventSink, @{
           @"event" : @"didTextureChangeVideoSize",
           @"id" : @(strongSelf.textureId),
           @"width" : @(frame.width),
@@ -202,7 +202,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
       if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{
+        postEvent( strongSelf.eventSink,@{
           @"event" : @"didTextureChangeRotation",
           @"id" : @(strongSelf.textureId),
           @"rotation" : @(frame.rotation),
@@ -219,7 +219,7 @@
     [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
     if (!strongSelf->_isFirstFrameRendered) {
       if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{@"event" : @"didFirstFrameRendered"});
+        postEvent(strongSelf.eventSink, @{@"event" : @"didFirstFrameRendered"});
         strongSelf->_isFirstFrameRendered = true;
       }
     }
