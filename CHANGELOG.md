@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.44] - 2023-09-27
+
+* [iOS/macOS] fix: fix Renderer bug for Windows.
+
 [0.9.44] - 2023-09-25
 
 * [Windows] fix: fix Renderer bug for Windows.
