@@ -1,9 +1,10 @@
 # Changelog
 
 --------------------------------------------
-[0.9.44] - 2023-09-27
+[0.9.45] - 2023-09-27
 
-* [iOS/macOS] fix: fix Renderer bug for Windows.
+* [iOS/macOS] fix: send message on non-platform thread.
+* [Windows] fix: fix setSrcObj with trackId for Windows.
 
 [0.9.44] - 2023-09-25
 
