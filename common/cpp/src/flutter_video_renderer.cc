@@ -146,7 +146,7 @@ void FlutterVideoRendererManager::VideoRendererSetSrcObject(
         if (track_id == std::string()) {
           renderer->SetVideoTrack(video_tracks[0]);
         } else {
-          for (auto track : video_tracks) {
+          for (auto track : video_tracks.std_vector()) {
             if (track->id().std_string() == track_id) {
               renderer->SetVideoTrack(track);
               break;
