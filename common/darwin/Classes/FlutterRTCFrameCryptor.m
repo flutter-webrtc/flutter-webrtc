@@ -588,7 +588,7 @@
     didStateChangeWithParticipantId:(NSString*)participantId
                           withState:(FrameCryptionState)stateChanged {
   if (frameCryptor.eventSink) {
-    frameCryptor.eventSink(@{
+    postEvent(frameCryptor.eventSink, @{
       @"event" : @"frameCryptionStateChanged",
       @"participantId" : participantId,
       @"state" : [self stringFromState:stateChanged]
