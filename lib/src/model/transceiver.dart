@@ -30,8 +30,57 @@ class RtpTransceiverInit {
   /// Direction of an `RtpTransceiver` which will be created from this config.
   late TransceiverDirection direction;
 
+  /// [SendEncodingParameters] of an `RtpTransceiver` which will be created from
+  /// this config.
+  late List<SendEncodingParameters> sendEncodings = List.empty(growable: true);
+
   /// Converts this model to the [Map] expected by Flutter.
   Map<String, dynamic> toMap() {
-    return {'direction': direction.index};
+    return {
+      'direction': direction.index,
+      'sendEncodings':
+          sendEncodings.map((encoding) => encoding.toMap()).toList()
+    };
+  }
+}
+
+/// Encoding describing a single configuration of a codec for an RTCRtpSender.
+class SendEncodingParameters {
+  /// String which, if set, specifies an RTP stream ID (RID) to be sent using
+  /// the RID header extension.
+  SendEncodingParameters(this.rid, this.active);
+
+  /// String which, if set, specifies an RTP stream ID (RID) to be sent using
+  /// the RID header extension.
+  late String rid;
+
+  /// If true, the described encoding is currently actively being used.
+  late bool active;
+
+  /// Indicator of the maximum number of bits per second to allow for this
+  /// encoding.
+  int? maxBitrate;
+
+  /// Value specifying the maximum number of frames per second to allow for
+  /// this encoding.
+  double? maxFramerate;
+
+  /// Double-precision floating-point value specifying a factor by which to
+  /// scale down the video during encoding.
+  double? scaleResolutionDownBy;
+
+  /// Scalability mode describes layers within the media stream.
+  String? scalabilityMode;
+
+  /// Converts this model to the [Map] expected by Flutter.
+  Map<String, dynamic> toMap() {
+    return {
+      'rid': rid,
+      'active': active,
+      'maxBitrate': maxBitrate,
+      'maxFramerate': maxFramerate,
+      'scaleResolutionDownBy': scaleResolutionDownBy,
+      'scalabilityMode': scalabilityMode
+    };
   }
 }

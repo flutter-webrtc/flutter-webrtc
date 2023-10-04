@@ -1035,12 +1035,63 @@ impl RtpExtension {
     }
 }
 
+/// [RTCRtpTransceiverInit][0] representation.
+///
+/// [0]: https://w3.org/TR/webrtc#dictionary-rtcrtptransceiverinit-members
+pub struct RtpTransceiverInit(UniquePtr<webrtc::RtpTransceiverInit>);
+
+impl RtpTransceiverInit {
+    /// Creates a new [`RtpTransceiverInit`].
+    #[must_use]
+    pub fn new() -> Self {
+        Self(webrtc::create_default_rtp_transceiver_init())
+    }
+
+    /// Sets the [`direction`][0] property of this [`RtpTransceiverInit`].
+    ///
+    /// [0]: https://w3.org/TR/webrtc/#dom-rtcrtptransceiverinit-direction
+    pub fn set_direction(&mut self, direction: RtpTransceiverDirection) {
+        webrtc::set_rtp_transceiver_init_direction(self.0.pin_mut(), direction);
+    }
+
+    /// Adds the provided [`RtpEncodingParameters`] to this
+    /// [`RtpTransceiverInit`].
+    pub fn add_encoding(&mut self, encoding: &RtpEncodingParameters) {
+        webrtc::add_rtp_transceiver_init_send_encoding(
+            self.0.pin_mut(),
+            &encoding.0,
+        );
+    }
+}
+
+impl Default for RtpTransceiverInit {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+unsafe impl Sync for webrtc::RtpTransceiverInit {}
+unsafe impl Send for webrtc::RtpTransceiverInit {}
+
 /// [RTCRtpEncodingParameters][0] representation.
 ///
 /// [0]: https://w3.org/TR/webrtc#dom-rtcrtpencodingparameters
 pub struct RtpEncodingParameters(webrtc::RtpEncodingParametersContainer);
 
 impl RtpEncodingParameters {
+    /// Creates new [`RtpEncodingParameters`].
+    #[must_use]
+    pub fn new() -> Self {
+        Self(webrtc::create_rtp_encoding_parameters())
+    }
+
+    /// Sets the [`rid`][0] property of these [`RtpEncodingParameters`].
+    ///
+    /// [0]: https://w3.org/TR/webrtc/#dom-rtcrtpcodingparameters-rid
+    pub fn set_rid(&mut self, rid: String) {
+        webrtc::set_rtp_encoding_parameters_rid(self.0.ptr.pin_mut(), rid);
+    }
+
     /// Returns the [`active`][0] property of these [`RtpEncodingParameters`].
     ///
     /// [0]: https://w3.org/TR/webrtc#dom-rtcrtpencodingparameters-active
@@ -1049,33 +1100,68 @@ impl RtpEncodingParameters {
         webrtc::rtp_encoding_parameters_active(&self.0.ptr)
     }
 
-    /// Returns the [`maxBitrate`][0] of these [`RtpEncodingParameters`].
+    /// Sets the [`active`][0] property of these [`RtpEncodingParameters`].
+    ///
+    /// [0]: https://w3.org/TR/webrtc#dom-rtcrtpencodingparameters-active
+    pub fn set_active(&mut self, active: bool) {
+        webrtc::set_rtp_encoding_parameters_active(
+            self.0.ptr.pin_mut(),
+            active,
+        );
+    }
+
+    /// Returns the [`maxBitrate`][0] property of these
+    /// [`RtpEncodingParameters`].
     ///
     /// [0]: https://w3.org/TR/webrtc#dom-rtcrtpencodingparameters-maxbitrate
     #[must_use]
     pub fn max_bitrate(&self) -> Option<i32> {
-        webrtc::rtp_encoding_parameters_maxBitrate(&self.0.ptr).ok()
+        webrtc::rtp_encoding_parameters_max_bitrate(&self.0.ptr).ok()
+    }
+
+    /// Sets the [`maxBitrate`][0] property of these [`RtpEncodingParameters`].
+    ///
+    /// [0]: https://w3.org/TR/webrtc#dom-rtcrtpencodingparameters-maxbitrate
+    pub fn set_max_bitrate(&mut self, max_bitrate: i32) {
+        webrtc::set_rtp_encoding_parameters_max_bitrate(
+            self.0.ptr.pin_mut(),
+            max_bitrate,
+        );
     }
 
     /// Returns the `minBitrate` of these [`RtpEncodingParameters`].
     #[must_use]
     pub fn min_bitrate(&self) -> Option<i32> {
-        webrtc::rtp_encoding_parameters_minBitrate(&self.0.ptr).ok()
+        webrtc::rtp_encoding_parameters_min_bitrate(&self.0.ptr).ok()
     }
 
-    /// Returns the `maxFramerate` of these [`RtpEncodingParameters`].
+    /// Returns the [`maxFramerate`][0] property of these
+    /// [`RtpEncodingParameters`].
+    ///
+    /// [0]: https://w3.org/TR/webrtc/#dom-rtcrtpencodingparameters-maxframerate
     #[must_use]
     pub fn max_framerate(&self) -> Option<f64> {
-        webrtc::rtp_encoding_parameters_maxFramerate(&self.0.ptr).ok()
+        webrtc::rtp_encoding_parameters_max_framerate(&self.0.ptr).ok()
     }
 
-    /// Returns the `ssrc` of these [`RtpEncodingParameters`].
+    /// Sets the [`maxFramerate`][0] property of these
+    /// [`RtpEncodingParameters`].
+    ///
+    /// [0]: https://w3.org/TR/webrtc/#dom-rtcrtpencodingparameters-maxframerate
+    pub fn set_max_framerate(&mut self, max_framrate: f64) {
+        webrtc::set_rtp_encoding_parameters_max_framerate(
+            self.0.ptr.pin_mut(),
+            max_framrate,
+        );
+    }
+
+    /// Returns the `ssrc` property of these [`RtpEncodingParameters`].
     #[must_use]
     pub fn ssrc(&self) -> Option<i64> {
         webrtc::rtp_encoding_parameters_ssrc(&self.0.ptr).ok()
     }
 
-    /// Returns the [`scaleResolutionDownBy`][0] of these
+    /// Returns the [`scaleResolutionDownBy`][0] property of these
     /// [`RtpEncodingParameters`].
     ///
     /// [0]: https://tinyurl.com/scaleresolutiondownby
@@ -1084,7 +1170,41 @@ impl RtpEncodingParameters {
         webrtc::rtp_encoding_parameters_scale_resolution_down_by(&self.0.ptr)
             .ok()
     }
+
+    /// Sets the [`scaleResolutionDownBy`][0] property of these
+    /// [`RtpEncodingParameters`].
+    ///
+    /// [0]: https://tinyurl.com/scaleresolutiondownby
+    pub fn set_scale_resolution_down_by(
+        &mut self,
+        scale_resolution_down_by: f64,
+    ) {
+        webrtc::set_rtp_encoding_parameters_scale_resolution_down_by(
+            self.0.ptr.pin_mut(),
+            scale_resolution_down_by,
+        );
+    }
+
+    /// Sets the [`scalabilityMode`][0] property of these
+    /// [`RtpEncodingParameters`].
+    ///
+    /// [0]: https://tinyurl.com/5jckh3nw
+    pub fn set_scalability_mode(&mut self, scalability_mode: String) {
+        webrtc::set_rtp_encoding_parameters_scalability_mode(
+            self.0.ptr.pin_mut(),
+            scalability_mode,
+        );
+    }
 }
+
+impl Default for RtpEncodingParameters {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+unsafe impl Sync for webrtc::RtpEncodingParameters {}
+unsafe impl Send for webrtc::RtpEncodingParameters {}
 
 /// [RTCRtcpParameters][0] representation.
 ///
@@ -1293,13 +1413,10 @@ impl PeerConnectionInterface {
     pub fn add_transceiver(
         &mut self,
         media_type: MediaType,
-        direction: RtpTransceiverDirection,
+        init: &RtpTransceiverInit,
     ) -> RtpTransceiverInterface {
-        let inner = webrtc::add_transceiver(
-            self.inner.pin_mut(),
-            media_type,
-            direction,
-        );
+        let inner =
+            webrtc::add_transceiver(self.inner.pin_mut(), media_type, &init.0);
 
         RtpTransceiverInterface { inner, media_type }
     }

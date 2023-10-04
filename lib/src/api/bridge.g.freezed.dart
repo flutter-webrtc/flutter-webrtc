@@ -95,22 +95,22 @@ class _$GetMediaErrorCopyWithImpl<$Res, $Val extends GetMediaError>
 }
 
 /// @nodoc
-abstract class _$$GetMediaError_AudioCopyWith<$Res>
+abstract class _$$GetMediaError_AudioImplCopyWith<$Res>
     implements $GetMediaErrorCopyWith<$Res> {
-  factory _$$GetMediaError_AudioCopyWith(_$GetMediaError_Audio value,
-          $Res Function(_$GetMediaError_Audio) then) =
-      __$$GetMediaError_AudioCopyWithImpl<$Res>;
+  factory _$$GetMediaError_AudioImplCopyWith(_$GetMediaError_AudioImpl value,
+          $Res Function(_$GetMediaError_AudioImpl) then) =
+      __$$GetMediaError_AudioImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String field0});
 }
 
 /// @nodoc
-class __$$GetMediaError_AudioCopyWithImpl<$Res>
-    extends _$GetMediaErrorCopyWithImpl<$Res, _$GetMediaError_Audio>
-    implements _$$GetMediaError_AudioCopyWith<$Res> {
-  __$$GetMediaError_AudioCopyWithImpl(
-      _$GetMediaError_Audio _value, $Res Function(_$GetMediaError_Audio) _then)
+class __$$GetMediaError_AudioImplCopyWithImpl<$Res>
+    extends _$GetMediaErrorCopyWithImpl<$Res, _$GetMediaError_AudioImpl>
+    implements _$$GetMediaError_AudioImplCopyWith<$Res> {
+  __$$GetMediaError_AudioImplCopyWithImpl(_$GetMediaError_AudioImpl _value,
+      $Res Function(_$GetMediaError_AudioImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -118,7 +118,7 @@ class __$$GetMediaError_AudioCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$GetMediaError_Audio(
+    return _then(_$GetMediaError_AudioImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -129,8 +129,8 @@ class __$$GetMediaError_AudioCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$GetMediaError_Audio implements GetMediaError_Audio {
-  const _$GetMediaError_Audio(this.field0);
+class _$GetMediaError_AudioImpl implements GetMediaError_Audio {
+  const _$GetMediaError_AudioImpl(this.field0);
 
   @override
   final String field0;
@@ -144,7 +144,7 @@ class _$GetMediaError_Audio implements GetMediaError_Audio {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$GetMediaError_Audio &&
+            other is _$GetMediaError_AudioImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -154,8 +154,8 @@ class _$GetMediaError_Audio implements GetMediaError_Audio {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$GetMediaError_AudioCopyWith<_$GetMediaError_Audio> get copyWith =>
-      __$$GetMediaError_AudioCopyWithImpl<_$GetMediaError_Audio>(
+  _$$GetMediaError_AudioImplCopyWith<_$GetMediaError_AudioImpl> get copyWith =>
+      __$$GetMediaError_AudioImplCopyWithImpl<_$GetMediaError_AudioImpl>(
           this, _$identity);
 
   @override
@@ -223,33 +223,33 @@ class _$GetMediaError_Audio implements GetMediaError_Audio {
 
 abstract class GetMediaError_Audio implements GetMediaError {
   const factory GetMediaError_Audio(final String field0) =
-      _$GetMediaError_Audio;
+      _$GetMediaError_AudioImpl;
 
   @override
   String get field0;
   @override
   @JsonKey(ignore: true)
-  _$$GetMediaError_AudioCopyWith<_$GetMediaError_Audio> get copyWith =>
+  _$$GetMediaError_AudioImplCopyWith<_$GetMediaError_AudioImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$GetMediaError_VideoCopyWith<$Res>
+abstract class _$$GetMediaError_VideoImplCopyWith<$Res>
     implements $GetMediaErrorCopyWith<$Res> {
-  factory _$$GetMediaError_VideoCopyWith(_$GetMediaError_Video value,
-          $Res Function(_$GetMediaError_Video) then) =
-      __$$GetMediaError_VideoCopyWithImpl<$Res>;
+  factory _$$GetMediaError_VideoImplCopyWith(_$GetMediaError_VideoImpl value,
+          $Res Function(_$GetMediaError_VideoImpl) then) =
+      __$$GetMediaError_VideoImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String field0});
 }
 
 /// @nodoc
-class __$$GetMediaError_VideoCopyWithImpl<$Res>
-    extends _$GetMediaErrorCopyWithImpl<$Res, _$GetMediaError_Video>
-    implements _$$GetMediaError_VideoCopyWith<$Res> {
-  __$$GetMediaError_VideoCopyWithImpl(
-      _$GetMediaError_Video _value, $Res Function(_$GetMediaError_Video) _then)
+class __$$GetMediaError_VideoImplCopyWithImpl<$Res>
+    extends _$GetMediaErrorCopyWithImpl<$Res, _$GetMediaError_VideoImpl>
+    implements _$$GetMediaError_VideoImplCopyWith<$Res> {
+  __$$GetMediaError_VideoImplCopyWithImpl(_$GetMediaError_VideoImpl _value,
+      $Res Function(_$GetMediaError_VideoImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -257,7 +257,7 @@ class __$$GetMediaError_VideoCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$GetMediaError_Video(
+    return _then(_$GetMediaError_VideoImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -268,8 +268,8 @@ class __$$GetMediaError_VideoCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$GetMediaError_Video implements GetMediaError_Video {
-  const _$GetMediaError_Video(this.field0);
+class _$GetMediaError_VideoImpl implements GetMediaError_Video {
+  const _$GetMediaError_VideoImpl(this.field0);
 
   @override
   final String field0;
@@ -283,7 +283,7 @@ class _$GetMediaError_Video implements GetMediaError_Video {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$GetMediaError_Video &&
+            other is _$GetMediaError_VideoImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -293,8 +293,8 @@ class _$GetMediaError_Video implements GetMediaError_Video {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$GetMediaError_VideoCopyWith<_$GetMediaError_Video> get copyWith =>
-      __$$GetMediaError_VideoCopyWithImpl<_$GetMediaError_Video>(
+  _$$GetMediaError_VideoImplCopyWith<_$GetMediaError_VideoImpl> get copyWith =>
+      __$$GetMediaError_VideoImplCopyWithImpl<_$GetMediaError_VideoImpl>(
           this, _$identity);
 
   @override
@@ -362,13 +362,13 @@ class _$GetMediaError_Video implements GetMediaError_Video {
 
 abstract class GetMediaError_Video implements GetMediaError {
   const factory GetMediaError_Video(final String field0) =
-      _$GetMediaError_Video;
+      _$GetMediaError_VideoImpl;
 
   @override
   String get field0;
   @override
   @JsonKey(ignore: true)
-  _$$GetMediaError_VideoCopyWith<_$GetMediaError_Video> get copyWith =>
+  _$$GetMediaError_VideoImplCopyWith<_$GetMediaError_VideoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -434,20 +434,20 @@ class _$GetMediaResultCopyWithImpl<$Res, $Val extends GetMediaResult>
 }
 
 /// @nodoc
-abstract class _$$GetMediaResult_OkCopyWith<$Res> {
-  factory _$$GetMediaResult_OkCopyWith(
-          _$GetMediaResult_Ok value, $Res Function(_$GetMediaResult_Ok) then) =
-      __$$GetMediaResult_OkCopyWithImpl<$Res>;
+abstract class _$$GetMediaResult_OkImplCopyWith<$Res> {
+  factory _$$GetMediaResult_OkImplCopyWith(_$GetMediaResult_OkImpl value,
+          $Res Function(_$GetMediaResult_OkImpl) then) =
+      __$$GetMediaResult_OkImplCopyWithImpl<$Res>;
   @useResult
   $Res call({List<MediaStreamTrack> field0});
 }
 
 /// @nodoc
-class __$$GetMediaResult_OkCopyWithImpl<$Res>
-    extends _$GetMediaResultCopyWithImpl<$Res, _$GetMediaResult_Ok>
-    implements _$$GetMediaResult_OkCopyWith<$Res> {
-  __$$GetMediaResult_OkCopyWithImpl(
-      _$GetMediaResult_Ok _value, $Res Function(_$GetMediaResult_Ok) _then)
+class __$$GetMediaResult_OkImplCopyWithImpl<$Res>
+    extends _$GetMediaResultCopyWithImpl<$Res, _$GetMediaResult_OkImpl>
+    implements _$$GetMediaResult_OkImplCopyWith<$Res> {
+  __$$GetMediaResult_OkImplCopyWithImpl(_$GetMediaResult_OkImpl _value,
+      $Res Function(_$GetMediaResult_OkImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -455,7 +455,7 @@ class __$$GetMediaResult_OkCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$GetMediaResult_Ok(
+    return _then(_$GetMediaResult_OkImpl(
       null == field0
           ? _value._field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -466,8 +466,8 @@ class __$$GetMediaResult_OkCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$GetMediaResult_Ok implements GetMediaResult_Ok {
-  const _$GetMediaResult_Ok(final List<MediaStreamTrack> field0)
+class _$GetMediaResult_OkImpl implements GetMediaResult_Ok {
+  const _$GetMediaResult_OkImpl(final List<MediaStreamTrack> field0)
       : _field0 = field0;
 
   final List<MediaStreamTrack> _field0;
@@ -487,7 +487,7 @@ class _$GetMediaResult_Ok implements GetMediaResult_Ok {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$GetMediaResult_Ok &&
+            other is _$GetMediaResult_OkImpl &&
             const DeepCollectionEquality().equals(other._field0, _field0));
   }
 
@@ -498,8 +498,9 @@ class _$GetMediaResult_Ok implements GetMediaResult_Ok {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$GetMediaResult_OkCopyWith<_$GetMediaResult_Ok> get copyWith =>
-      __$$GetMediaResult_OkCopyWithImpl<_$GetMediaResult_Ok>(this, _$identity);
+  _$$GetMediaResult_OkImplCopyWith<_$GetMediaResult_OkImpl> get copyWith =>
+      __$$GetMediaResult_OkImplCopyWithImpl<_$GetMediaResult_OkImpl>(
+          this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -566,20 +567,20 @@ class _$GetMediaResult_Ok implements GetMediaResult_Ok {
 
 abstract class GetMediaResult_Ok implements GetMediaResult {
   const factory GetMediaResult_Ok(final List<MediaStreamTrack> field0) =
-      _$GetMediaResult_Ok;
+      _$GetMediaResult_OkImpl;
 
   @override
   List<MediaStreamTrack> get field0;
   @JsonKey(ignore: true)
-  _$$GetMediaResult_OkCopyWith<_$GetMediaResult_Ok> get copyWith =>
+  _$$GetMediaResult_OkImplCopyWith<_$GetMediaResult_OkImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$GetMediaResult_ErrCopyWith<$Res> {
-  factory _$$GetMediaResult_ErrCopyWith(_$GetMediaResult_Err value,
-          $Res Function(_$GetMediaResult_Err) then) =
-      __$$GetMediaResult_ErrCopyWithImpl<$Res>;
+abstract class _$$GetMediaResult_ErrImplCopyWith<$Res> {
+  factory _$$GetMediaResult_ErrImplCopyWith(_$GetMediaResult_ErrImpl value,
+          $Res Function(_$GetMediaResult_ErrImpl) then) =
+      __$$GetMediaResult_ErrImplCopyWithImpl<$Res>;
   @useResult
   $Res call({GetMediaError field0});
 
@@ -587,11 +588,11 @@ abstract class _$$GetMediaResult_ErrCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$GetMediaResult_ErrCopyWithImpl<$Res>
-    extends _$GetMediaResultCopyWithImpl<$Res, _$GetMediaResult_Err>
-    implements _$$GetMediaResult_ErrCopyWith<$Res> {
-  __$$GetMediaResult_ErrCopyWithImpl(
-      _$GetMediaResult_Err _value, $Res Function(_$GetMediaResult_Err) _then)
+class __$$GetMediaResult_ErrImplCopyWithImpl<$Res>
+    extends _$GetMediaResultCopyWithImpl<$Res, _$GetMediaResult_ErrImpl>
+    implements _$$GetMediaResult_ErrImplCopyWith<$Res> {
+  __$$GetMediaResult_ErrImplCopyWithImpl(_$GetMediaResult_ErrImpl _value,
+      $Res Function(_$GetMediaResult_ErrImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -599,7 +600,7 @@ class __$$GetMediaResult_ErrCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$GetMediaResult_Err(
+    return _then(_$GetMediaResult_ErrImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -618,8 +619,8 @@ class __$$GetMediaResult_ErrCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$GetMediaResult_Err implements GetMediaResult_Err {
-  const _$GetMediaResult_Err(this.field0);
+class _$GetMediaResult_ErrImpl implements GetMediaResult_Err {
+  const _$GetMediaResult_ErrImpl(this.field0);
 
   @override
   final GetMediaError field0;
@@ -633,7 +634,7 @@ class _$GetMediaResult_Err implements GetMediaResult_Err {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$GetMediaResult_Err &&
+            other is _$GetMediaResult_ErrImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -643,8 +644,8 @@ class _$GetMediaResult_Err implements GetMediaResult_Err {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$GetMediaResult_ErrCopyWith<_$GetMediaResult_Err> get copyWith =>
-      __$$GetMediaResult_ErrCopyWithImpl<_$GetMediaResult_Err>(
+  _$$GetMediaResult_ErrImplCopyWith<_$GetMediaResult_ErrImpl> get copyWith =>
+      __$$GetMediaResult_ErrImplCopyWithImpl<_$GetMediaResult_ErrImpl>(
           this, _$identity);
 
   @override
@@ -712,12 +713,12 @@ class _$GetMediaResult_Err implements GetMediaResult_Err {
 
 abstract class GetMediaResult_Err implements GetMediaResult {
   const factory GetMediaResult_Err(final GetMediaError field0) =
-      _$GetMediaResult_Err;
+      _$GetMediaResult_ErrImpl;
 
   @override
   GetMediaError get field0;
   @JsonKey(ignore: true)
-  _$$GetMediaResult_ErrCopyWith<_$GetMediaResult_Err> get copyWith =>
+  _$$GetMediaResult_ErrImplCopyWith<_$GetMediaResult_ErrImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -856,23 +857,23 @@ class _$PeerConnectionEventCopyWithImpl<$Res, $Val extends PeerConnectionEvent>
 }
 
 /// @nodoc
-abstract class _$$PeerConnectionEvent_PeerCreatedCopyWith<$Res> {
-  factory _$$PeerConnectionEvent_PeerCreatedCopyWith(
-          _$PeerConnectionEvent_PeerCreated value,
-          $Res Function(_$PeerConnectionEvent_PeerCreated) then) =
-      __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_PeerCreatedImplCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_PeerCreatedImplCopyWith(
+          _$PeerConnectionEvent_PeerCreatedImpl value,
+          $Res Function(_$PeerConnectionEvent_PeerCreatedImpl) then) =
+      __$$PeerConnectionEvent_PeerCreatedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({ArcPeerConnection peer});
 }
 
 /// @nodoc
-class __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_PeerCreatedImplCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res,
-        _$PeerConnectionEvent_PeerCreated>
-    implements _$$PeerConnectionEvent_PeerCreatedCopyWith<$Res> {
-  __$$PeerConnectionEvent_PeerCreatedCopyWithImpl(
-      _$PeerConnectionEvent_PeerCreated _value,
-      $Res Function(_$PeerConnectionEvent_PeerCreated) _then)
+        _$PeerConnectionEvent_PeerCreatedImpl>
+    implements _$$PeerConnectionEvent_PeerCreatedImplCopyWith<$Res> {
+  __$$PeerConnectionEvent_PeerCreatedImplCopyWithImpl(
+      _$PeerConnectionEvent_PeerCreatedImpl _value,
+      $Res Function(_$PeerConnectionEvent_PeerCreatedImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -880,7 +881,7 @@ class __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<$Res>
   $Res call({
     Object? peer = null,
   }) {
-    return _then(_$PeerConnectionEvent_PeerCreated(
+    return _then(_$PeerConnectionEvent_PeerCreatedImpl(
       peer: null == peer
           ? _value.peer
           : peer // ignore: cast_nullable_to_non_nullable
@@ -891,9 +892,9 @@ class __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PeerConnectionEvent_PeerCreated
+class _$PeerConnectionEvent_PeerCreatedImpl
     implements PeerConnectionEvent_PeerCreated {
-  const _$PeerConnectionEvent_PeerCreated({required this.peer});
+  const _$PeerConnectionEvent_PeerCreatedImpl({required this.peer});
 
   /// Rust side [`PeerConnection`].
   @override
@@ -908,7 +909,7 @@ class _$PeerConnectionEvent_PeerCreated
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PeerConnectionEvent_PeerCreated &&
+            other is _$PeerConnectionEvent_PeerCreatedImpl &&
             (identical(other.peer, peer) || other.peer == peer));
   }
 
@@ -918,9 +919,10 @@ class _$PeerConnectionEvent_PeerCreated
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PeerConnectionEvent_PeerCreatedCopyWith<_$PeerConnectionEvent_PeerCreated>
-      get copyWith => __$$PeerConnectionEvent_PeerCreatedCopyWithImpl<
-          _$PeerConnectionEvent_PeerCreated>(this, _$identity);
+  _$$PeerConnectionEvent_PeerCreatedImplCopyWith<
+          _$PeerConnectionEvent_PeerCreatedImpl>
+      get copyWith => __$$PeerConnectionEvent_PeerCreatedImplCopyWithImpl<
+          _$PeerConnectionEvent_PeerCreatedImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1062,33 +1064,34 @@ class _$PeerConnectionEvent_PeerCreated
 abstract class PeerConnectionEvent_PeerCreated implements PeerConnectionEvent {
   const factory PeerConnectionEvent_PeerCreated(
           {required final ArcPeerConnection peer}) =
-      _$PeerConnectionEvent_PeerCreated;
+      _$PeerConnectionEvent_PeerCreatedImpl;
 
   /// Rust side [`PeerConnection`].
   ArcPeerConnection get peer;
   @JsonKey(ignore: true)
-  _$$PeerConnectionEvent_PeerCreatedCopyWith<_$PeerConnectionEvent_PeerCreated>
+  _$$PeerConnectionEvent_PeerCreatedImplCopyWith<
+          _$PeerConnectionEvent_PeerCreatedImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PeerConnectionEvent_IceCandidateCopyWith<$Res> {
-  factory _$$PeerConnectionEvent_IceCandidateCopyWith(
-          _$PeerConnectionEvent_IceCandidate value,
-          $Res Function(_$PeerConnectionEvent_IceCandidate) then) =
-      __$$PeerConnectionEvent_IceCandidateCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_IceCandidateImplCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_IceCandidateImplCopyWith(
+          _$PeerConnectionEvent_IceCandidateImpl value,
+          $Res Function(_$PeerConnectionEvent_IceCandidateImpl) then) =
+      __$$PeerConnectionEvent_IceCandidateImplCopyWithImpl<$Res>;
   @useResult
   $Res call({String sdpMid, int sdpMlineIndex, String candidate});
 }
 
 /// @nodoc
-class __$$PeerConnectionEvent_IceCandidateCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_IceCandidateImplCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res,
-        _$PeerConnectionEvent_IceCandidate>
-    implements _$$PeerConnectionEvent_IceCandidateCopyWith<$Res> {
-  __$$PeerConnectionEvent_IceCandidateCopyWithImpl(
-      _$PeerConnectionEvent_IceCandidate _value,
-      $Res Function(_$PeerConnectionEvent_IceCandidate) _then)
+        _$PeerConnectionEvent_IceCandidateImpl>
+    implements _$$PeerConnectionEvent_IceCandidateImplCopyWith<$Res> {
+  __$$PeerConnectionEvent_IceCandidateImplCopyWithImpl(
+      _$PeerConnectionEvent_IceCandidateImpl _value,
+      $Res Function(_$PeerConnectionEvent_IceCandidateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -1098,7 +1101,7 @@ class __$$PeerConnectionEvent_IceCandidateCopyWithImpl<$Res>
     Object? sdpMlineIndex = null,
     Object? candidate = null,
   }) {
-    return _then(_$PeerConnectionEvent_IceCandidate(
+    return _then(_$PeerConnectionEvent_IceCandidateImpl(
       sdpMid: null == sdpMid
           ? _value.sdpMid
           : sdpMid // ignore: cast_nullable_to_non_nullable
@@ -1117,9 +1120,9 @@ class __$$PeerConnectionEvent_IceCandidateCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PeerConnectionEvent_IceCandidate
+class _$PeerConnectionEvent_IceCandidateImpl
     implements PeerConnectionEvent_IceCandidate {
-  const _$PeerConnectionEvent_IceCandidate(
+  const _$PeerConnectionEvent_IceCandidateImpl(
       {required this.sdpMid,
       required this.sdpMlineIndex,
       required this.candidate});
@@ -1160,7 +1163,7 @@ class _$PeerConnectionEvent_IceCandidate
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PeerConnectionEvent_IceCandidate &&
+            other is _$PeerConnectionEvent_IceCandidateImpl &&
             (identical(other.sdpMid, sdpMid) || other.sdpMid == sdpMid) &&
             (identical(other.sdpMlineIndex, sdpMlineIndex) ||
                 other.sdpMlineIndex == sdpMlineIndex) &&
@@ -1175,10 +1178,10 @@ class _$PeerConnectionEvent_IceCandidate
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PeerConnectionEvent_IceCandidateCopyWith<
-          _$PeerConnectionEvent_IceCandidate>
-      get copyWith => __$$PeerConnectionEvent_IceCandidateCopyWithImpl<
-          _$PeerConnectionEvent_IceCandidate>(this, _$identity);
+  _$$PeerConnectionEvent_IceCandidateImplCopyWith<
+          _$PeerConnectionEvent_IceCandidateImpl>
+      get copyWith => __$$PeerConnectionEvent_IceCandidateImplCopyWithImpl<
+          _$PeerConnectionEvent_IceCandidateImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1319,9 +1322,10 @@ class _$PeerConnectionEvent_IceCandidate
 
 abstract class PeerConnectionEvent_IceCandidate implements PeerConnectionEvent {
   const factory PeerConnectionEvent_IceCandidate(
-      {required final String sdpMid,
-      required final int sdpMlineIndex,
-      required final String candidate}) = _$PeerConnectionEvent_IceCandidate;
+          {required final String sdpMid,
+          required final int sdpMlineIndex,
+          required final String candidate}) =
+      _$PeerConnectionEvent_IceCandidateImpl;
 
   /// Media stream "identification-tag" defined in [RFC 5888] for the
   /// media component the discovered [RTCIceCandidate][1] is associated
@@ -1347,29 +1351,32 @@ abstract class PeerConnectionEvent_IceCandidate implements PeerConnectionEvent {
   /// [RFC 5245]: https://tools.ietf.org/html/rfc5245
   String get candidate;
   @JsonKey(ignore: true)
-  _$$PeerConnectionEvent_IceCandidateCopyWith<
-          _$PeerConnectionEvent_IceCandidate>
+  _$$PeerConnectionEvent_IceCandidateImplCopyWith<
+          _$PeerConnectionEvent_IceCandidateImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PeerConnectionEvent_IceGatheringStateChangeCopyWith<$Res> {
-  factory _$$PeerConnectionEvent_IceGatheringStateChangeCopyWith(
-          _$PeerConnectionEvent_IceGatheringStateChange value,
-          $Res Function(_$PeerConnectionEvent_IceGatheringStateChange) then) =
-      __$$PeerConnectionEvent_IceGatheringStateChangeCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_IceGatheringStateChangeImplCopyWith<
+    $Res> {
+  factory _$$PeerConnectionEvent_IceGatheringStateChangeImplCopyWith(
+          _$PeerConnectionEvent_IceGatheringStateChangeImpl value,
+          $Res Function(_$PeerConnectionEvent_IceGatheringStateChangeImpl)
+              then) =
+      __$$PeerConnectionEvent_IceGatheringStateChangeImplCopyWithImpl<$Res>;
   @useResult
   $Res call({IceGatheringState field0});
 }
 
 /// @nodoc
-class __$$PeerConnectionEvent_IceGatheringStateChangeCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_IceGatheringStateChangeImplCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res,
-        _$PeerConnectionEvent_IceGatheringStateChange>
-    implements _$$PeerConnectionEvent_IceGatheringStateChangeCopyWith<$Res> {
-  __$$PeerConnectionEvent_IceGatheringStateChangeCopyWithImpl(
-      _$PeerConnectionEvent_IceGatheringStateChange _value,
-      $Res Function(_$PeerConnectionEvent_IceGatheringStateChange) _then)
+        _$PeerConnectionEvent_IceGatheringStateChangeImpl>
+    implements
+        _$$PeerConnectionEvent_IceGatheringStateChangeImplCopyWith<$Res> {
+  __$$PeerConnectionEvent_IceGatheringStateChangeImplCopyWithImpl(
+      _$PeerConnectionEvent_IceGatheringStateChangeImpl _value,
+      $Res Function(_$PeerConnectionEvent_IceGatheringStateChangeImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -1377,7 +1384,7 @@ class __$$PeerConnectionEvent_IceGatheringStateChangeCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$PeerConnectionEvent_IceGatheringStateChange(
+    return _then(_$PeerConnectionEvent_IceGatheringStateChangeImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -1388,9 +1395,9 @@ class __$$PeerConnectionEvent_IceGatheringStateChangeCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PeerConnectionEvent_IceGatheringStateChange
+class _$PeerConnectionEvent_IceGatheringStateChangeImpl
     implements PeerConnectionEvent_IceGatheringStateChange {
-  const _$PeerConnectionEvent_IceGatheringStateChange(this.field0);
+  const _$PeerConnectionEvent_IceGatheringStateChangeImpl(this.field0);
 
   @override
   final IceGatheringState field0;
@@ -1404,7 +1411,7 @@ class _$PeerConnectionEvent_IceGatheringStateChange
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PeerConnectionEvent_IceGatheringStateChange &&
+            other is _$PeerConnectionEvent_IceGatheringStateChangeImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -1414,11 +1421,12 @@ class _$PeerConnectionEvent_IceGatheringStateChange
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PeerConnectionEvent_IceGatheringStateChangeCopyWith<
-          _$PeerConnectionEvent_IceGatheringStateChange>
+  _$$PeerConnectionEvent_IceGatheringStateChangeImplCopyWith<
+          _$PeerConnectionEvent_IceGatheringStateChangeImpl>
       get copyWith =>
-          __$$PeerConnectionEvent_IceGatheringStateChangeCopyWithImpl<
-              _$PeerConnectionEvent_IceGatheringStateChange>(this, _$identity);
+          __$$PeerConnectionEvent_IceGatheringStateChangeImplCopyWithImpl<
+                  _$PeerConnectionEvent_IceGatheringStateChangeImpl>(
+              this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1561,34 +1569,34 @@ abstract class PeerConnectionEvent_IceGatheringStateChange
     implements PeerConnectionEvent {
   const factory PeerConnectionEvent_IceGatheringStateChange(
           final IceGatheringState field0) =
-      _$PeerConnectionEvent_IceGatheringStateChange;
+      _$PeerConnectionEvent_IceGatheringStateChangeImpl;
 
   IceGatheringState get field0;
   @JsonKey(ignore: true)
-  _$$PeerConnectionEvent_IceGatheringStateChangeCopyWith<
-          _$PeerConnectionEvent_IceGatheringStateChange>
+  _$$PeerConnectionEvent_IceGatheringStateChangeImplCopyWith<
+          _$PeerConnectionEvent_IceGatheringStateChangeImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PeerConnectionEvent_IceCandidateErrorCopyWith<$Res> {
-  factory _$$PeerConnectionEvent_IceCandidateErrorCopyWith(
-          _$PeerConnectionEvent_IceCandidateError value,
-          $Res Function(_$PeerConnectionEvent_IceCandidateError) then) =
-      __$$PeerConnectionEvent_IceCandidateErrorCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_IceCandidateErrorImplCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_IceCandidateErrorImplCopyWith(
+          _$PeerConnectionEvent_IceCandidateErrorImpl value,
+          $Res Function(_$PeerConnectionEvent_IceCandidateErrorImpl) then) =
+      __$$PeerConnectionEvent_IceCandidateErrorImplCopyWithImpl<$Res>;
   @useResult
   $Res call(
       {String address, int port, String url, int errorCode, String errorText});
 }
 
 /// @nodoc
-class __$$PeerConnectionEvent_IceCandidateErrorCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_IceCandidateErrorImplCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res,
-        _$PeerConnectionEvent_IceCandidateError>
-    implements _$$PeerConnectionEvent_IceCandidateErrorCopyWith<$Res> {
-  __$$PeerConnectionEvent_IceCandidateErrorCopyWithImpl(
-      _$PeerConnectionEvent_IceCandidateError _value,
-      $Res Function(_$PeerConnectionEvent_IceCandidateError) _then)
+        _$PeerConnectionEvent_IceCandidateErrorImpl>
+    implements _$$PeerConnectionEvent_IceCandidateErrorImplCopyWith<$Res> {
+  __$$PeerConnectionEvent_IceCandidateErrorImplCopyWithImpl(
+      _$PeerConnectionEvent_IceCandidateErrorImpl _value,
+      $Res Function(_$PeerConnectionEvent_IceCandidateErrorImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -1600,7 +1608,7 @@ class __$$PeerConnectionEvent_IceCandidateErrorCopyWithImpl<$Res>
     Object? errorCode = null,
     Object? errorText = null,
   }) {
-    return _then(_$PeerConnectionEvent_IceCandidateError(
+    return _then(_$PeerConnectionEvent_IceCandidateErrorImpl(
       address: null == address
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
@@ -1627,9 +1635,9 @@ class __$$PeerConnectionEvent_IceCandidateErrorCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PeerConnectionEvent_IceCandidateError
+class _$PeerConnectionEvent_IceCandidateErrorImpl
     implements PeerConnectionEvent_IceCandidateError {
-  const _$PeerConnectionEvent_IceCandidateError(
+  const _$PeerConnectionEvent_IceCandidateErrorImpl(
       {required this.address,
       required this.port,
       required this.url,
@@ -1678,7 +1686,7 @@ class _$PeerConnectionEvent_IceCandidateError
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PeerConnectionEvent_IceCandidateError &&
+            other is _$PeerConnectionEvent_IceCandidateErrorImpl &&
             (identical(other.address, address) || other.address == address) &&
             (identical(other.port, port) || other.port == port) &&
             (identical(other.url, url) || other.url == url) &&
@@ -1695,10 +1703,10 @@ class _$PeerConnectionEvent_IceCandidateError
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PeerConnectionEvent_IceCandidateErrorCopyWith<
-          _$PeerConnectionEvent_IceCandidateError>
-      get copyWith => __$$PeerConnectionEvent_IceCandidateErrorCopyWithImpl<
-          _$PeerConnectionEvent_IceCandidateError>(this, _$identity);
+  _$$PeerConnectionEvent_IceCandidateErrorImplCopyWith<
+          _$PeerConnectionEvent_IceCandidateErrorImpl>
+      get copyWith => __$$PeerConnectionEvent_IceCandidateErrorImplCopyWithImpl<
+          _$PeerConnectionEvent_IceCandidateErrorImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1845,7 +1853,7 @@ abstract class PeerConnectionEvent_IceCandidateError
           required final String url,
           required final int errorCode,
           required final String errorText}) =
-      _$PeerConnectionEvent_IceCandidateError;
+      _$PeerConnectionEvent_IceCandidateErrorImpl;
 
   /// Local IP address used to communicate with the STUN or TURN server.
   String get address;
@@ -1875,35 +1883,35 @@ abstract class PeerConnectionEvent_IceCandidateError
   /// [1]: https://tinyurl.com/stun-parameters-6
   String get errorText;
   @JsonKey(ignore: true)
-  _$$PeerConnectionEvent_IceCandidateErrorCopyWith<
-          _$PeerConnectionEvent_IceCandidateError>
+  _$$PeerConnectionEvent_IceCandidateErrorImplCopyWith<
+          _$PeerConnectionEvent_IceCandidateErrorImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PeerConnectionEvent_NegotiationNeededCopyWith<$Res> {
-  factory _$$PeerConnectionEvent_NegotiationNeededCopyWith(
-          _$PeerConnectionEvent_NegotiationNeeded value,
-          $Res Function(_$PeerConnectionEvent_NegotiationNeeded) then) =
-      __$$PeerConnectionEvent_NegotiationNeededCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_NegotiationNeededImplCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_NegotiationNeededImplCopyWith(
+          _$PeerConnectionEvent_NegotiationNeededImpl value,
+          $Res Function(_$PeerConnectionEvent_NegotiationNeededImpl) then) =
+      __$$PeerConnectionEvent_NegotiationNeededImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class __$$PeerConnectionEvent_NegotiationNeededCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_NegotiationNeededImplCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res,
-        _$PeerConnectionEvent_NegotiationNeeded>
-    implements _$$PeerConnectionEvent_NegotiationNeededCopyWith<$Res> {
-  __$$PeerConnectionEvent_NegotiationNeededCopyWithImpl(
-      _$PeerConnectionEvent_NegotiationNeeded _value,
-      $Res Function(_$PeerConnectionEvent_NegotiationNeeded) _then)
+        _$PeerConnectionEvent_NegotiationNeededImpl>
+    implements _$$PeerConnectionEvent_NegotiationNeededImplCopyWith<$Res> {
+  __$$PeerConnectionEvent_NegotiationNeededImplCopyWithImpl(
+      _$PeerConnectionEvent_NegotiationNeededImpl _value,
+      $Res Function(_$PeerConnectionEvent_NegotiationNeededImpl) _then)
       : super(_value, _then);
 }
 
 /// @nodoc
 
-class _$PeerConnectionEvent_NegotiationNeeded
+class _$PeerConnectionEvent_NegotiationNeededImpl
     implements PeerConnectionEvent_NegotiationNeeded {
-  const _$PeerConnectionEvent_NegotiationNeeded();
+  const _$PeerConnectionEvent_NegotiationNeededImpl();
 
   @override
   String toString() {
@@ -1914,7 +1922,7 @@ class _$PeerConnectionEvent_NegotiationNeeded
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PeerConnectionEvent_NegotiationNeeded);
+            other is _$PeerConnectionEvent_NegotiationNeededImpl);
   }
 
   @override
@@ -2060,27 +2068,27 @@ class _$PeerConnectionEvent_NegotiationNeeded
 abstract class PeerConnectionEvent_NegotiationNeeded
     implements PeerConnectionEvent {
   const factory PeerConnectionEvent_NegotiationNeeded() =
-      _$PeerConnectionEvent_NegotiationNeeded;
+      _$PeerConnectionEvent_NegotiationNeededImpl;
 }
 
 /// @nodoc
-abstract class _$$PeerConnectionEvent_SignallingChangeCopyWith<$Res> {
-  factory _$$PeerConnectionEvent_SignallingChangeCopyWith(
-          _$PeerConnectionEvent_SignallingChange value,
-          $Res Function(_$PeerConnectionEvent_SignallingChange) then) =
-      __$$PeerConnectionEvent_SignallingChangeCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_SignallingChangeImplCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_SignallingChangeImplCopyWith(
+          _$PeerConnectionEvent_SignallingChangeImpl value,
+          $Res Function(_$PeerConnectionEvent_SignallingChangeImpl) then) =
+      __$$PeerConnectionEvent_SignallingChangeImplCopyWithImpl<$Res>;
   @useResult
   $Res call({SignalingState field0});
 }
 
 /// @nodoc
-class __$$PeerConnectionEvent_SignallingChangeCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_SignallingChangeImplCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res,
-        _$PeerConnectionEvent_SignallingChange>
-    implements _$$PeerConnectionEvent_SignallingChangeCopyWith<$Res> {
-  __$$PeerConnectionEvent_SignallingChangeCopyWithImpl(
-      _$PeerConnectionEvent_SignallingChange _value,
-      $Res Function(_$PeerConnectionEvent_SignallingChange) _then)
+        _$PeerConnectionEvent_SignallingChangeImpl>
+    implements _$$PeerConnectionEvent_SignallingChangeImplCopyWith<$Res> {
+  __$$PeerConnectionEvent_SignallingChangeImplCopyWithImpl(
+      _$PeerConnectionEvent_SignallingChangeImpl _value,
+      $Res Function(_$PeerConnectionEvent_SignallingChangeImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -2088,7 +2096,7 @@ class __$$PeerConnectionEvent_SignallingChangeCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$PeerConnectionEvent_SignallingChange(
+    return _then(_$PeerConnectionEvent_SignallingChangeImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2099,9 +2107,9 @@ class __$$PeerConnectionEvent_SignallingChangeCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PeerConnectionEvent_SignallingChange
+class _$PeerConnectionEvent_SignallingChangeImpl
     implements PeerConnectionEvent_SignallingChange {
-  const _$PeerConnectionEvent_SignallingChange(this.field0);
+  const _$PeerConnectionEvent_SignallingChangeImpl(this.field0);
 
   @override
   final SignalingState field0;
@@ -2115,7 +2123,7 @@ class _$PeerConnectionEvent_SignallingChange
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PeerConnectionEvent_SignallingChange &&
+            other is _$PeerConnectionEvent_SignallingChangeImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -2125,10 +2133,10 @@ class _$PeerConnectionEvent_SignallingChange
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PeerConnectionEvent_SignallingChangeCopyWith<
-          _$PeerConnectionEvent_SignallingChange>
-      get copyWith => __$$PeerConnectionEvent_SignallingChangeCopyWithImpl<
-          _$PeerConnectionEvent_SignallingChange>(this, _$identity);
+  _$$PeerConnectionEvent_SignallingChangeImplCopyWith<
+          _$PeerConnectionEvent_SignallingChangeImpl>
+      get copyWith => __$$PeerConnectionEvent_SignallingChangeImplCopyWithImpl<
+          _$PeerConnectionEvent_SignallingChangeImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2270,33 +2278,36 @@ class _$PeerConnectionEvent_SignallingChange
 abstract class PeerConnectionEvent_SignallingChange
     implements PeerConnectionEvent {
   const factory PeerConnectionEvent_SignallingChange(
-      final SignalingState field0) = _$PeerConnectionEvent_SignallingChange;
+      final SignalingState field0) = _$PeerConnectionEvent_SignallingChangeImpl;
 
   SignalingState get field0;
   @JsonKey(ignore: true)
-  _$$PeerConnectionEvent_SignallingChangeCopyWith<
-          _$PeerConnectionEvent_SignallingChange>
+  _$$PeerConnectionEvent_SignallingChangeImplCopyWith<
+          _$PeerConnectionEvent_SignallingChangeImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PeerConnectionEvent_IceConnectionStateChangeCopyWith<$Res> {
-  factory _$$PeerConnectionEvent_IceConnectionStateChangeCopyWith(
-          _$PeerConnectionEvent_IceConnectionStateChange value,
-          $Res Function(_$PeerConnectionEvent_IceConnectionStateChange) then) =
-      __$$PeerConnectionEvent_IceConnectionStateChangeCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_IceConnectionStateChangeImplCopyWith<
+    $Res> {
+  factory _$$PeerConnectionEvent_IceConnectionStateChangeImplCopyWith(
+          _$PeerConnectionEvent_IceConnectionStateChangeImpl value,
+          $Res Function(_$PeerConnectionEvent_IceConnectionStateChangeImpl)
+              then) =
+      __$$PeerConnectionEvent_IceConnectionStateChangeImplCopyWithImpl<$Res>;
   @useResult
   $Res call({IceConnectionState field0});
 }
 
 /// @nodoc
-class __$$PeerConnectionEvent_IceConnectionStateChangeCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_IceConnectionStateChangeImplCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res,
-        _$PeerConnectionEvent_IceConnectionStateChange>
-    implements _$$PeerConnectionEvent_IceConnectionStateChangeCopyWith<$Res> {
-  __$$PeerConnectionEvent_IceConnectionStateChangeCopyWithImpl(
-      _$PeerConnectionEvent_IceConnectionStateChange _value,
-      $Res Function(_$PeerConnectionEvent_IceConnectionStateChange) _then)
+        _$PeerConnectionEvent_IceConnectionStateChangeImpl>
+    implements
+        _$$PeerConnectionEvent_IceConnectionStateChangeImplCopyWith<$Res> {
+  __$$PeerConnectionEvent_IceConnectionStateChangeImplCopyWithImpl(
+      _$PeerConnectionEvent_IceConnectionStateChangeImpl _value,
+      $Res Function(_$PeerConnectionEvent_IceConnectionStateChangeImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -2304,7 +2315,7 @@ class __$$PeerConnectionEvent_IceConnectionStateChangeCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$PeerConnectionEvent_IceConnectionStateChange(
+    return _then(_$PeerConnectionEvent_IceConnectionStateChangeImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2315,9 +2326,9 @@ class __$$PeerConnectionEvent_IceConnectionStateChangeCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PeerConnectionEvent_IceConnectionStateChange
+class _$PeerConnectionEvent_IceConnectionStateChangeImpl
     implements PeerConnectionEvent_IceConnectionStateChange {
-  const _$PeerConnectionEvent_IceConnectionStateChange(this.field0);
+  const _$PeerConnectionEvent_IceConnectionStateChangeImpl(this.field0);
 
   @override
   final IceConnectionState field0;
@@ -2331,7 +2342,7 @@ class _$PeerConnectionEvent_IceConnectionStateChange
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PeerConnectionEvent_IceConnectionStateChange &&
+            other is _$PeerConnectionEvent_IceConnectionStateChangeImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -2341,11 +2352,12 @@ class _$PeerConnectionEvent_IceConnectionStateChange
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PeerConnectionEvent_IceConnectionStateChangeCopyWith<
-          _$PeerConnectionEvent_IceConnectionStateChange>
+  _$$PeerConnectionEvent_IceConnectionStateChangeImplCopyWith<
+          _$PeerConnectionEvent_IceConnectionStateChangeImpl>
       get copyWith =>
-          __$$PeerConnectionEvent_IceConnectionStateChangeCopyWithImpl<
-              _$PeerConnectionEvent_IceConnectionStateChange>(this, _$identity);
+          __$$PeerConnectionEvent_IceConnectionStateChangeImplCopyWithImpl<
+                  _$PeerConnectionEvent_IceConnectionStateChangeImpl>(
+              this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2488,33 +2500,33 @@ abstract class PeerConnectionEvent_IceConnectionStateChange
     implements PeerConnectionEvent {
   const factory PeerConnectionEvent_IceConnectionStateChange(
           final IceConnectionState field0) =
-      _$PeerConnectionEvent_IceConnectionStateChange;
+      _$PeerConnectionEvent_IceConnectionStateChangeImpl;
 
   IceConnectionState get field0;
   @JsonKey(ignore: true)
-  _$$PeerConnectionEvent_IceConnectionStateChangeCopyWith<
-          _$PeerConnectionEvent_IceConnectionStateChange>
+  _$$PeerConnectionEvent_IceConnectionStateChangeImplCopyWith<
+          _$PeerConnectionEvent_IceConnectionStateChangeImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PeerConnectionEvent_ConnectionStateChangeCopyWith<$Res> {
-  factory _$$PeerConnectionEvent_ConnectionStateChangeCopyWith(
-          _$PeerConnectionEvent_ConnectionStateChange value,
-          $Res Function(_$PeerConnectionEvent_ConnectionStateChange) then) =
-      __$$PeerConnectionEvent_ConnectionStateChangeCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_ConnectionStateChangeImplCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_ConnectionStateChangeImplCopyWith(
+          _$PeerConnectionEvent_ConnectionStateChangeImpl value,
+          $Res Function(_$PeerConnectionEvent_ConnectionStateChangeImpl) then) =
+      __$$PeerConnectionEvent_ConnectionStateChangeImplCopyWithImpl<$Res>;
   @useResult
   $Res call({PeerConnectionState field0});
 }
 
 /// @nodoc
-class __$$PeerConnectionEvent_ConnectionStateChangeCopyWithImpl<$Res>
+class __$$PeerConnectionEvent_ConnectionStateChangeImplCopyWithImpl<$Res>
     extends _$PeerConnectionEventCopyWithImpl<$Res,
-        _$PeerConnectionEvent_ConnectionStateChange>
-    implements _$$PeerConnectionEvent_ConnectionStateChangeCopyWith<$Res> {
-  __$$PeerConnectionEvent_ConnectionStateChangeCopyWithImpl(
-      _$PeerConnectionEvent_ConnectionStateChange _value,
-      $Res Function(_$PeerConnectionEvent_ConnectionStateChange) _then)
+        _$PeerConnectionEvent_ConnectionStateChangeImpl>
+    implements _$$PeerConnectionEvent_ConnectionStateChangeImplCopyWith<$Res> {
+  __$$PeerConnectionEvent_ConnectionStateChangeImplCopyWithImpl(
+      _$PeerConnectionEvent_ConnectionStateChangeImpl _value,
+      $Res Function(_$PeerConnectionEvent_ConnectionStateChangeImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -2522,7 +2534,7 @@ class __$$PeerConnectionEvent_ConnectionStateChangeCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$PeerConnectionEvent_ConnectionStateChange(
+    return _then(_$PeerConnectionEvent_ConnectionStateChangeImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2533,9 +2545,9 @@ class __$$PeerConnectionEvent_ConnectionStateChangeCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PeerConnectionEvent_ConnectionStateChange
+class _$PeerConnectionEvent_ConnectionStateChangeImpl
     implements PeerConnectionEvent_ConnectionStateChange {
-  const _$PeerConnectionEvent_ConnectionStateChange(this.field0);
+  const _$PeerConnectionEvent_ConnectionStateChangeImpl(this.field0);
 
   @override
   final PeerConnectionState field0;
@@ -2549,7 +2561,7 @@ class _$PeerConnectionEvent_ConnectionStateChange
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PeerConnectionEvent_ConnectionStateChange &&
+            other is _$PeerConnectionEvent_ConnectionStateChangeImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -2559,10 +2571,12 @@ class _$PeerConnectionEvent_ConnectionStateChange
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PeerConnectionEvent_ConnectionStateChangeCopyWith<
-          _$PeerConnectionEvent_ConnectionStateChange>
-      get copyWith => __$$PeerConnectionEvent_ConnectionStateChangeCopyWithImpl<
-          _$PeerConnectionEvent_ConnectionStateChange>(this, _$identity);
+  _$$PeerConnectionEvent_ConnectionStateChangeImplCopyWith<
+          _$PeerConnectionEvent_ConnectionStateChangeImpl>
+      get copyWith =>
+          __$$PeerConnectionEvent_ConnectionStateChangeImplCopyWithImpl<
+                  _$PeerConnectionEvent_ConnectionStateChangeImpl>(
+              this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2705,31 +2719,33 @@ abstract class PeerConnectionEvent_ConnectionStateChange
     implements PeerConnectionEvent {
   const factory PeerConnectionEvent_ConnectionStateChange(
           final PeerConnectionState field0) =
-      _$PeerConnectionEvent_ConnectionStateChange;
+      _$PeerConnectionEvent_ConnectionStateChangeImpl;
 
   PeerConnectionState get field0;
   @JsonKey(ignore: true)
-  _$$PeerConnectionEvent_ConnectionStateChangeCopyWith<
-          _$PeerConnectionEvent_ConnectionStateChange>
+  _$$PeerConnectionEvent_ConnectionStateChangeImplCopyWith<
+          _$PeerConnectionEvent_ConnectionStateChangeImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PeerConnectionEvent_TrackCopyWith<$Res> {
-  factory _$$PeerConnectionEvent_TrackCopyWith(
-          _$PeerConnectionEvent_Track value,
-          $Res Function(_$PeerConnectionEvent_Track) then) =
-      __$$PeerConnectionEvent_TrackCopyWithImpl<$Res>;
+abstract class _$$PeerConnectionEvent_TrackImplCopyWith<$Res> {
+  factory _$$PeerConnectionEvent_TrackImplCopyWith(
+          _$PeerConnectionEvent_TrackImpl value,
+          $Res Function(_$PeerConnectionEvent_TrackImpl) then) =
+      __$$PeerConnectionEvent_TrackImplCopyWithImpl<$Res>;
   @useResult
   $Res call({RtcTrackEvent field0});
 }
 
 /// @nodoc
-class __$$PeerConnectionEvent_TrackCopyWithImpl<$Res>
-    extends _$PeerConnectionEventCopyWithImpl<$Res, _$PeerConnectionEvent_Track>
-    implements _$$PeerConnectionEvent_TrackCopyWith<$Res> {
-  __$$PeerConnectionEvent_TrackCopyWithImpl(_$PeerConnectionEvent_Track _value,
-      $Res Function(_$PeerConnectionEvent_Track) _then)
+class __$$PeerConnectionEvent_TrackImplCopyWithImpl<$Res>
+    extends _$PeerConnectionEventCopyWithImpl<$Res,
+        _$PeerConnectionEvent_TrackImpl>
+    implements _$$PeerConnectionEvent_TrackImplCopyWith<$Res> {
+  __$$PeerConnectionEvent_TrackImplCopyWithImpl(
+      _$PeerConnectionEvent_TrackImpl _value,
+      $Res Function(_$PeerConnectionEvent_TrackImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -2737,7 +2753,7 @@ class __$$PeerConnectionEvent_TrackCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$PeerConnectionEvent_Track(
+    return _then(_$PeerConnectionEvent_TrackImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -2748,8 +2764,8 @@ class __$$PeerConnectionEvent_TrackCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PeerConnectionEvent_Track implements PeerConnectionEvent_Track {
-  const _$PeerConnectionEvent_Track(this.field0);
+class _$PeerConnectionEvent_TrackImpl implements PeerConnectionEvent_Track {
+  const _$PeerConnectionEvent_TrackImpl(this.field0);
 
   @override
   final RtcTrackEvent field0;
@@ -2763,7 +2779,7 @@ class _$PeerConnectionEvent_Track implements PeerConnectionEvent_Track {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PeerConnectionEvent_Track &&
+            other is _$PeerConnectionEvent_TrackImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -2773,9 +2789,9 @@ class _$PeerConnectionEvent_Track implements PeerConnectionEvent_Track {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PeerConnectionEvent_TrackCopyWith<_$PeerConnectionEvent_Track>
-      get copyWith => __$$PeerConnectionEvent_TrackCopyWithImpl<
-          _$PeerConnectionEvent_Track>(this, _$identity);
+  _$$PeerConnectionEvent_TrackImplCopyWith<_$PeerConnectionEvent_TrackImpl>
+      get copyWith => __$$PeerConnectionEvent_TrackImplCopyWithImpl<
+          _$PeerConnectionEvent_TrackImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2916,11 +2932,11 @@ class _$PeerConnectionEvent_Track implements PeerConnectionEvent_Track {
 
 abstract class PeerConnectionEvent_Track implements PeerConnectionEvent {
   const factory PeerConnectionEvent_Track(final RtcTrackEvent field0) =
-      _$PeerConnectionEvent_Track;
+      _$PeerConnectionEvent_TrackImpl;
 
   RtcTrackEvent get field0;
   @JsonKey(ignore: true)
-  _$$PeerConnectionEvent_TrackCopyWith<_$PeerConnectionEvent_Track>
+  _$$PeerConnectionEvent_TrackImplCopyWith<_$PeerConnectionEvent_TrackImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -3006,25 +3022,25 @@ class _$RtcIceCandidateStatsCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$RtcIceCandidateStats_LocalCopyWith<$Res>
+abstract class _$$RtcIceCandidateStats_LocalImplCopyWith<$Res>
     implements $RtcIceCandidateStatsCopyWith<$Res> {
-  factory _$$RtcIceCandidateStats_LocalCopyWith(
-          _$RtcIceCandidateStats_Local value,
-          $Res Function(_$RtcIceCandidateStats_Local) then) =
-      __$$RtcIceCandidateStats_LocalCopyWithImpl<$Res>;
+  factory _$$RtcIceCandidateStats_LocalImplCopyWith(
+          _$RtcIceCandidateStats_LocalImpl value,
+          $Res Function(_$RtcIceCandidateStats_LocalImpl) then) =
+      __$$RtcIceCandidateStats_LocalImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({IceCandidateStats field0});
 }
 
 /// @nodoc
-class __$$RtcIceCandidateStats_LocalCopyWithImpl<$Res>
+class __$$RtcIceCandidateStats_LocalImplCopyWithImpl<$Res>
     extends _$RtcIceCandidateStatsCopyWithImpl<$Res,
-        _$RtcIceCandidateStats_Local>
-    implements _$$RtcIceCandidateStats_LocalCopyWith<$Res> {
-  __$$RtcIceCandidateStats_LocalCopyWithImpl(
-      _$RtcIceCandidateStats_Local _value,
-      $Res Function(_$RtcIceCandidateStats_Local) _then)
+        _$RtcIceCandidateStats_LocalImpl>
+    implements _$$RtcIceCandidateStats_LocalImplCopyWith<$Res> {
+  __$$RtcIceCandidateStats_LocalImplCopyWithImpl(
+      _$RtcIceCandidateStats_LocalImpl _value,
+      $Res Function(_$RtcIceCandidateStats_LocalImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -3032,7 +3048,7 @@ class __$$RtcIceCandidateStats_LocalCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$RtcIceCandidateStats_Local(
+    return _then(_$RtcIceCandidateStats_LocalImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -3043,8 +3059,8 @@ class __$$RtcIceCandidateStats_LocalCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcIceCandidateStats_Local implements RtcIceCandidateStats_Local {
-  const _$RtcIceCandidateStats_Local(this.field0);
+class _$RtcIceCandidateStats_LocalImpl implements RtcIceCandidateStats_Local {
+  const _$RtcIceCandidateStats_LocalImpl(this.field0);
 
   @override
   final IceCandidateStats field0;
@@ -3058,7 +3074,7 @@ class _$RtcIceCandidateStats_Local implements RtcIceCandidateStats_Local {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcIceCandidateStats_Local &&
+            other is _$RtcIceCandidateStats_LocalImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -3068,9 +3084,9 @@ class _$RtcIceCandidateStats_Local implements RtcIceCandidateStats_Local {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcIceCandidateStats_LocalCopyWith<_$RtcIceCandidateStats_Local>
-      get copyWith => __$$RtcIceCandidateStats_LocalCopyWithImpl<
-          _$RtcIceCandidateStats_Local>(this, _$identity);
+  _$$RtcIceCandidateStats_LocalImplCopyWith<_$RtcIceCandidateStats_LocalImpl>
+      get copyWith => __$$RtcIceCandidateStats_LocalImplCopyWithImpl<
+          _$RtcIceCandidateStats_LocalImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -3137,36 +3153,36 @@ class _$RtcIceCandidateStats_Local implements RtcIceCandidateStats_Local {
 
 abstract class RtcIceCandidateStats_Local implements RtcIceCandidateStats {
   const factory RtcIceCandidateStats_Local(final IceCandidateStats field0) =
-      _$RtcIceCandidateStats_Local;
+      _$RtcIceCandidateStats_LocalImpl;
 
   @override
   IceCandidateStats get field0;
   @override
   @JsonKey(ignore: true)
-  _$$RtcIceCandidateStats_LocalCopyWith<_$RtcIceCandidateStats_Local>
+  _$$RtcIceCandidateStats_LocalImplCopyWith<_$RtcIceCandidateStats_LocalImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcIceCandidateStats_RemoteCopyWith<$Res>
+abstract class _$$RtcIceCandidateStats_RemoteImplCopyWith<$Res>
     implements $RtcIceCandidateStatsCopyWith<$Res> {
-  factory _$$RtcIceCandidateStats_RemoteCopyWith(
-          _$RtcIceCandidateStats_Remote value,
-          $Res Function(_$RtcIceCandidateStats_Remote) then) =
-      __$$RtcIceCandidateStats_RemoteCopyWithImpl<$Res>;
+  factory _$$RtcIceCandidateStats_RemoteImplCopyWith(
+          _$RtcIceCandidateStats_RemoteImpl value,
+          $Res Function(_$RtcIceCandidateStats_RemoteImpl) then) =
+      __$$RtcIceCandidateStats_RemoteImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({IceCandidateStats field0});
 }
 
 /// @nodoc
-class __$$RtcIceCandidateStats_RemoteCopyWithImpl<$Res>
+class __$$RtcIceCandidateStats_RemoteImplCopyWithImpl<$Res>
     extends _$RtcIceCandidateStatsCopyWithImpl<$Res,
-        _$RtcIceCandidateStats_Remote>
-    implements _$$RtcIceCandidateStats_RemoteCopyWith<$Res> {
-  __$$RtcIceCandidateStats_RemoteCopyWithImpl(
-      _$RtcIceCandidateStats_Remote _value,
-      $Res Function(_$RtcIceCandidateStats_Remote) _then)
+        _$RtcIceCandidateStats_RemoteImpl>
+    implements _$$RtcIceCandidateStats_RemoteImplCopyWith<$Res> {
+  __$$RtcIceCandidateStats_RemoteImplCopyWithImpl(
+      _$RtcIceCandidateStats_RemoteImpl _value,
+      $Res Function(_$RtcIceCandidateStats_RemoteImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -3174,7 +3190,7 @@ class __$$RtcIceCandidateStats_RemoteCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$RtcIceCandidateStats_Remote(
+    return _then(_$RtcIceCandidateStats_RemoteImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -3185,8 +3201,8 @@ class __$$RtcIceCandidateStats_RemoteCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcIceCandidateStats_Remote implements RtcIceCandidateStats_Remote {
-  const _$RtcIceCandidateStats_Remote(this.field0);
+class _$RtcIceCandidateStats_RemoteImpl implements RtcIceCandidateStats_Remote {
+  const _$RtcIceCandidateStats_RemoteImpl(this.field0);
 
   @override
   final IceCandidateStats field0;
@@ -3200,7 +3216,7 @@ class _$RtcIceCandidateStats_Remote implements RtcIceCandidateStats_Remote {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcIceCandidateStats_Remote &&
+            other is _$RtcIceCandidateStats_RemoteImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -3210,9 +3226,9 @@ class _$RtcIceCandidateStats_Remote implements RtcIceCandidateStats_Remote {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcIceCandidateStats_RemoteCopyWith<_$RtcIceCandidateStats_Remote>
-      get copyWith => __$$RtcIceCandidateStats_RemoteCopyWithImpl<
-          _$RtcIceCandidateStats_Remote>(this, _$identity);
+  _$$RtcIceCandidateStats_RemoteImplCopyWith<_$RtcIceCandidateStats_RemoteImpl>
+      get copyWith => __$$RtcIceCandidateStats_RemoteImplCopyWithImpl<
+          _$RtcIceCandidateStats_RemoteImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -3279,13 +3295,13 @@ class _$RtcIceCandidateStats_Remote implements RtcIceCandidateStats_Remote {
 
 abstract class RtcIceCandidateStats_Remote implements RtcIceCandidateStats {
   const factory RtcIceCandidateStats_Remote(final IceCandidateStats field0) =
-      _$RtcIceCandidateStats_Remote;
+      _$RtcIceCandidateStats_RemoteImpl;
 
   @override
   IceCandidateStats get field0;
   @override
   @JsonKey(ignore: true)
-  _$$RtcIceCandidateStats_RemoteCopyWith<_$RtcIceCandidateStats_Remote>
+  _$$RtcIceCandidateStats_RemoteImplCopyWith<_$RtcIceCandidateStats_RemoteImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -3413,11 +3429,11 @@ class _$RtcInboundRtpStreamMediaTypeCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$RtcInboundRtpStreamMediaType_AudioCopyWith<$Res> {
-  factory _$$RtcInboundRtpStreamMediaType_AudioCopyWith(
-          _$RtcInboundRtpStreamMediaType_Audio value,
-          $Res Function(_$RtcInboundRtpStreamMediaType_Audio) then) =
-      __$$RtcInboundRtpStreamMediaType_AudioCopyWithImpl<$Res>;
+abstract class _$$RtcInboundRtpStreamMediaType_AudioImplCopyWith<$Res> {
+  factory _$$RtcInboundRtpStreamMediaType_AudioImplCopyWith(
+          _$RtcInboundRtpStreamMediaType_AudioImpl value,
+          $Res Function(_$RtcInboundRtpStreamMediaType_AudioImpl) then) =
+      __$$RtcInboundRtpStreamMediaType_AudioImplCopyWithImpl<$Res>;
   @useResult
   $Res call(
       {bool? voiceActivityFlag,
@@ -3430,13 +3446,13 @@ abstract class _$$RtcInboundRtpStreamMediaType_AudioCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$RtcInboundRtpStreamMediaType_AudioCopyWithImpl<$Res>
+class __$$RtcInboundRtpStreamMediaType_AudioImplCopyWithImpl<$Res>
     extends _$RtcInboundRtpStreamMediaTypeCopyWithImpl<$Res,
-        _$RtcInboundRtpStreamMediaType_Audio>
-    implements _$$RtcInboundRtpStreamMediaType_AudioCopyWith<$Res> {
-  __$$RtcInboundRtpStreamMediaType_AudioCopyWithImpl(
-      _$RtcInboundRtpStreamMediaType_Audio _value,
-      $Res Function(_$RtcInboundRtpStreamMediaType_Audio) _then)
+        _$RtcInboundRtpStreamMediaType_AudioImpl>
+    implements _$$RtcInboundRtpStreamMediaType_AudioImplCopyWith<$Res> {
+  __$$RtcInboundRtpStreamMediaType_AudioImplCopyWithImpl(
+      _$RtcInboundRtpStreamMediaType_AudioImpl _value,
+      $Res Function(_$RtcInboundRtpStreamMediaType_AudioImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -3450,7 +3466,7 @@ class __$$RtcInboundRtpStreamMediaType_AudioCopyWithImpl<$Res>
     Object? totalAudioEnergy = freezed,
     Object? totalSamplesDuration = freezed,
   }) {
-    return _then(_$RtcInboundRtpStreamMediaType_Audio(
+    return _then(_$RtcInboundRtpStreamMediaType_AudioImpl(
       voiceActivityFlag: freezed == voiceActivityFlag
           ? _value.voiceActivityFlag
           : voiceActivityFlag // ignore: cast_nullable_to_non_nullable
@@ -3485,9 +3501,9 @@ class __$$RtcInboundRtpStreamMediaType_AudioCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcInboundRtpStreamMediaType_Audio
+class _$RtcInboundRtpStreamMediaType_AudioImpl
     implements RtcInboundRtpStreamMediaType_Audio {
-  const _$RtcInboundRtpStreamMediaType_Audio(
+  const _$RtcInboundRtpStreamMediaType_AudioImpl(
       {this.voiceActivityFlag,
       this.totalSamplesReceived,
       this.concealedSamples,
@@ -3562,7 +3578,7 @@ class _$RtcInboundRtpStreamMediaType_Audio
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcInboundRtpStreamMediaType_Audio &&
+            other is _$RtcInboundRtpStreamMediaType_AudioImpl &&
             (identical(other.voiceActivityFlag, voiceActivityFlag) ||
                 other.voiceActivityFlag == voiceActivityFlag) &&
             (identical(other.totalSamplesReceived, totalSamplesReceived) ||
@@ -3593,10 +3609,10 @@ class _$RtcInboundRtpStreamMediaType_Audio
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcInboundRtpStreamMediaType_AudioCopyWith<
-          _$RtcInboundRtpStreamMediaType_Audio>
-      get copyWith => __$$RtcInboundRtpStreamMediaType_AudioCopyWithImpl<
-          _$RtcInboundRtpStreamMediaType_Audio>(this, _$identity);
+  _$$RtcInboundRtpStreamMediaType_AudioImplCopyWith<
+          _$RtcInboundRtpStreamMediaType_AudioImpl>
+      get copyWith => __$$RtcInboundRtpStreamMediaType_AudioImplCopyWithImpl<
+          _$RtcInboundRtpStreamMediaType_AudioImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -3752,7 +3768,7 @@ abstract class RtcInboundRtpStreamMediaType_Audio
           final double? audioLevel,
           final double? totalAudioEnergy,
           final double? totalSamplesDuration}) =
-      _$RtcInboundRtpStreamMediaType_Audio;
+      _$RtcInboundRtpStreamMediaType_AudioImpl;
 
   /// Indicator whether the last RTP packet whose frame was delivered to
   /// the [RTCRtpReceiver]'s [MediaStreamTrack][1] for playout contained
@@ -3804,17 +3820,17 @@ abstract class RtcInboundRtpStreamMediaType_Audio
   /// [1]: https://w3.org/TR/webrtc-stats#dom-rtcaudiosourcestats
   double? get totalSamplesDuration;
   @JsonKey(ignore: true)
-  _$$RtcInboundRtpStreamMediaType_AudioCopyWith<
-          _$RtcInboundRtpStreamMediaType_Audio>
+  _$$RtcInboundRtpStreamMediaType_AudioImplCopyWith<
+          _$RtcInboundRtpStreamMediaType_AudioImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcInboundRtpStreamMediaType_VideoCopyWith<$Res> {
-  factory _$$RtcInboundRtpStreamMediaType_VideoCopyWith(
-          _$RtcInboundRtpStreamMediaType_Video value,
-          $Res Function(_$RtcInboundRtpStreamMediaType_Video) then) =
-      __$$RtcInboundRtpStreamMediaType_VideoCopyWithImpl<$Res>;
+abstract class _$$RtcInboundRtpStreamMediaType_VideoImplCopyWith<$Res> {
+  factory _$$RtcInboundRtpStreamMediaType_VideoImplCopyWith(
+          _$RtcInboundRtpStreamMediaType_VideoImpl value,
+          $Res Function(_$RtcInboundRtpStreamMediaType_VideoImpl) then) =
+      __$$RtcInboundRtpStreamMediaType_VideoImplCopyWithImpl<$Res>;
   @useResult
   $Res call(
       {int? framesDecoded,
@@ -3831,13 +3847,13 @@ abstract class _$$RtcInboundRtpStreamMediaType_VideoCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$RtcInboundRtpStreamMediaType_VideoCopyWithImpl<$Res>
+class __$$RtcInboundRtpStreamMediaType_VideoImplCopyWithImpl<$Res>
     extends _$RtcInboundRtpStreamMediaTypeCopyWithImpl<$Res,
-        _$RtcInboundRtpStreamMediaType_Video>
-    implements _$$RtcInboundRtpStreamMediaType_VideoCopyWith<$Res> {
-  __$$RtcInboundRtpStreamMediaType_VideoCopyWithImpl(
-      _$RtcInboundRtpStreamMediaType_Video _value,
-      $Res Function(_$RtcInboundRtpStreamMediaType_Video) _then)
+        _$RtcInboundRtpStreamMediaType_VideoImpl>
+    implements _$$RtcInboundRtpStreamMediaType_VideoImplCopyWith<$Res> {
+  __$$RtcInboundRtpStreamMediaType_VideoImplCopyWithImpl(
+      _$RtcInboundRtpStreamMediaType_VideoImpl _value,
+      $Res Function(_$RtcInboundRtpStreamMediaType_VideoImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -3855,7 +3871,7 @@ class __$$RtcInboundRtpStreamMediaType_VideoCopyWithImpl<$Res>
     Object? concealmentEvents = freezed,
     Object? framesReceived = freezed,
   }) {
-    return _then(_$RtcInboundRtpStreamMediaType_Video(
+    return _then(_$RtcInboundRtpStreamMediaType_VideoImpl(
       framesDecoded: freezed == framesDecoded
           ? _value.framesDecoded
           : framesDecoded // ignore: cast_nullable_to_non_nullable
@@ -3906,9 +3922,9 @@ class __$$RtcInboundRtpStreamMediaType_VideoCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcInboundRtpStreamMediaType_Video
+class _$RtcInboundRtpStreamMediaType_VideoImpl
     implements RtcInboundRtpStreamMediaType_Video {
-  const _$RtcInboundRtpStreamMediaType_Video(
+  const _$RtcInboundRtpStreamMediaType_VideoImpl(
       {this.framesDecoded,
       this.keyFramesDecoded,
       this.frameWidth,
@@ -4003,7 +4019,7 @@ class _$RtcInboundRtpStreamMediaType_Video
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcInboundRtpStreamMediaType_Video &&
+            other is _$RtcInboundRtpStreamMediaType_VideoImpl &&
             (identical(other.framesDecoded, framesDecoded) ||
                 other.framesDecoded == framesDecoded) &&
             (identical(other.keyFramesDecoded, keyFramesDecoded) ||
@@ -4046,10 +4062,10 @@ class _$RtcInboundRtpStreamMediaType_Video
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcInboundRtpStreamMediaType_VideoCopyWith<
-          _$RtcInboundRtpStreamMediaType_Video>
-      get copyWith => __$$RtcInboundRtpStreamMediaType_VideoCopyWithImpl<
-          _$RtcInboundRtpStreamMediaType_Video>(this, _$identity);
+  _$$RtcInboundRtpStreamMediaType_VideoImplCopyWith<
+          _$RtcInboundRtpStreamMediaType_VideoImpl>
+      get copyWith => __$$RtcInboundRtpStreamMediaType_VideoImplCopyWithImpl<
+          _$RtcInboundRtpStreamMediaType_VideoImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -4220,7 +4236,7 @@ abstract class RtcInboundRtpStreamMediaType_Video
       final int? pliCount,
       final int? sliCount,
       final int? concealmentEvents,
-      final int? framesReceived}) = _$RtcInboundRtpStreamMediaType_Video;
+      final int? framesReceived}) = _$RtcInboundRtpStreamMediaType_VideoImpl;
 
   /// Total number of frames correctly decoded for this RTP stream, i.e.
   /// frames that would be displayed if no frames are dropped.
@@ -4284,8 +4300,8 @@ abstract class RtcInboundRtpStreamMediaType_Video
   /// This metric is incremented when the complete frame is received.
   int? get framesReceived;
   @JsonKey(ignore: true)
-  _$$RtcInboundRtpStreamMediaType_VideoCopyWith<
-          _$RtcInboundRtpStreamMediaType_Video>
+  _$$RtcInboundRtpStreamMediaType_VideoImplCopyWith<
+          _$RtcInboundRtpStreamMediaType_VideoImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -4385,26 +4401,28 @@ class _$RtcMediaSourceStatsMediaTypeCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWith<
+abstract class _$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImplCopyWith<
     $Res> {
-  factory _$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWith(
-          _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats value,
-          $Res Function(_$RtcMediaSourceStatsMediaType_RtcVideoSourceStats)
+  factory _$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImplCopyWith(
+          _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl value,
+          $Res Function(_$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl)
               then) =
-      __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWithImpl<$Res>;
+      __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImplCopyWithImpl<
+          $Res>;
   @useResult
   $Res call({int? width, int? height, int? frames, double? framesPerSecond});
 }
 
 /// @nodoc
-class __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWithImpl<$Res>
+class __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImplCopyWithImpl<$Res>
     extends _$RtcMediaSourceStatsMediaTypeCopyWithImpl<$Res,
-        _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats>
+        _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl>
     implements
-        _$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWith<$Res> {
-  __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWithImpl(
-      _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats _value,
-      $Res Function(_$RtcMediaSourceStatsMediaType_RtcVideoSourceStats) _then)
+        _$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImplCopyWith<$Res> {
+  __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImplCopyWithImpl(
+      _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl _value,
+      $Res Function(_$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl)
+          _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -4415,7 +4433,7 @@ class __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWithImpl<$Res>
     Object? frames = freezed,
     Object? framesPerSecond = freezed,
   }) {
-    return _then(_$RtcMediaSourceStatsMediaType_RtcVideoSourceStats(
+    return _then(_$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl(
       width: freezed == width
           ? _value.width
           : width // ignore: cast_nullable_to_non_nullable
@@ -4438,9 +4456,9 @@ class __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats
+class _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl
     implements RtcMediaSourceStatsMediaType_RtcVideoSourceStats {
-  const _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats(
+  const _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl(
       {this.width, this.height, this.frames, this.framesPerSecond});
 
   /// Width (in pixels) of the last frame originating from the source.
@@ -4472,7 +4490,7 @@ class _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats &&
+            other is _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl &&
             (identical(other.width, width) || other.width == width) &&
             (identical(other.height, height) || other.height == height) &&
             (identical(other.frames, frames) || other.frames == frames) &&
@@ -4487,11 +4505,11 @@ class _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWith<
-          _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats>
+  _$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImplCopyWith<
+          _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl>
       get copyWith =>
-          __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWithImpl<
-                  _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats>(
+          __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImplCopyWithImpl<
+                  _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl>(
               this, _$identity);
 
   @override
@@ -4596,7 +4614,7 @@ abstract class RtcMediaSourceStatsMediaType_RtcVideoSourceStats
           final int? height,
           final int? frames,
           final double? framesPerSecond}) =
-      _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats;
+      _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl;
 
   /// Width (in pixels) of the last frame originating from the source.
   /// Before a frame has been produced this attribute is missing.
@@ -4614,19 +4632,20 @@ abstract class RtcMediaSourceStatsMediaType_RtcVideoSourceStats
   /// attribute is missing.
   double? get framesPerSecond;
   @JsonKey(ignore: true)
-  _$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsCopyWith<
-          _$RtcMediaSourceStatsMediaType_RtcVideoSourceStats>
+  _$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImplCopyWith<
+          _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWith<
+abstract class _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImplCopyWith<
     $Res> {
-  factory _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWith(
-          _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats value,
-          $Res Function(_$RtcMediaSourceStatsMediaType_RtcAudioSourceStats)
+  factory _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImplCopyWith(
+          _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl value,
+          $Res Function(_$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl)
               then) =
-      __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWithImpl<$Res>;
+      __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImplCopyWithImpl<
+          $Res>;
   @useResult
   $Res call(
       {double? audioLevel,
@@ -4637,14 +4656,15 @@ abstract class _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWith<
 }
 
 /// @nodoc
-class __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWithImpl<$Res>
+class __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImplCopyWithImpl<$Res>
     extends _$RtcMediaSourceStatsMediaTypeCopyWithImpl<$Res,
-        _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats>
+        _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl>
     implements
-        _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWith<$Res> {
-  __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWithImpl(
-      _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats _value,
-      $Res Function(_$RtcMediaSourceStatsMediaType_RtcAudioSourceStats) _then)
+        _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImplCopyWith<$Res> {
+  __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImplCopyWithImpl(
+      _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl _value,
+      $Res Function(_$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl)
+          _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -4656,7 +4676,7 @@ class __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWithImpl<$Res>
     Object? echoReturnLoss = freezed,
     Object? echoReturnLossEnhancement = freezed,
   }) {
-    return _then(_$RtcMediaSourceStatsMediaType_RtcAudioSourceStats(
+    return _then(_$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl(
       audioLevel: freezed == audioLevel
           ? _value.audioLevel
           : audioLevel // ignore: cast_nullable_to_non_nullable
@@ -4683,9 +4703,9 @@ class __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats
+class _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl
     implements RtcMediaSourceStatsMediaType_RtcAudioSourceStats {
-  const _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats(
+  const _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl(
       {this.audioLevel,
       this.totalAudioEnergy,
       this.totalSamplesDuration,
@@ -4727,7 +4747,7 @@ class _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats &&
+            other is _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl &&
             (identical(other.audioLevel, audioLevel) ||
                 other.audioLevel == audioLevel) &&
             (identical(other.totalAudioEnergy, totalAudioEnergy) ||
@@ -4748,11 +4768,11 @@ class _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWith<
-          _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats>
+  _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImplCopyWith<
+          _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl>
       get copyWith =>
-          __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWithImpl<
-                  _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats>(
+          __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImplCopyWithImpl<
+                  _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl>(
               this, _$identity);
 
   @override
@@ -4861,7 +4881,7 @@ abstract class RtcMediaSourceStatsMediaType_RtcAudioSourceStats
           final double? totalSamplesDuration,
           final double? echoReturnLoss,
           final double? echoReturnLossEnhancement}) =
-      _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats;
+      _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl;
 
   /// Audio level of the media source.
   double? get audioLevel;
@@ -4884,8 +4904,8 @@ abstract class RtcMediaSourceStatsMediaType_RtcAudioSourceStats
   /// [1]: https://w3.org/TR/mediacapture-streams#mediastreamtrack
   double? get echoReturnLossEnhancement;
   @JsonKey(ignore: true)
-  _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsCopyWith<
-          _$RtcMediaSourceStatsMediaType_RtcAudioSourceStats>
+  _$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImplCopyWith<
+          _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -4962,23 +4982,23 @@ class _$RtcOutboundRtpStreamStatsMediaTypeCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWith<$Res> {
-  factory _$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWith(
-          _$RtcOutboundRtpStreamStatsMediaType_Audio value,
-          $Res Function(_$RtcOutboundRtpStreamStatsMediaType_Audio) then) =
-      __$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWithImpl<$Res>;
+abstract class _$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWith<$Res> {
+  factory _$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWith(
+          _$RtcOutboundRtpStreamStatsMediaType_AudioImpl value,
+          $Res Function(_$RtcOutboundRtpStreamStatsMediaType_AudioImpl) then) =
+      __$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWithImpl<$Res>;
   @useResult
   $Res call({int? totalSamplesSent, bool? voiceActivityFlag});
 }
 
 /// @nodoc
-class __$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWithImpl<$Res>
+class __$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWithImpl<$Res>
     extends _$RtcOutboundRtpStreamStatsMediaTypeCopyWithImpl<$Res,
-        _$RtcOutboundRtpStreamStatsMediaType_Audio>
-    implements _$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWith<$Res> {
-  __$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWithImpl(
-      _$RtcOutboundRtpStreamStatsMediaType_Audio _value,
-      $Res Function(_$RtcOutboundRtpStreamStatsMediaType_Audio) _then)
+        _$RtcOutboundRtpStreamStatsMediaType_AudioImpl>
+    implements _$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWith<$Res> {
+  __$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWithImpl(
+      _$RtcOutboundRtpStreamStatsMediaType_AudioImpl _value,
+      $Res Function(_$RtcOutboundRtpStreamStatsMediaType_AudioImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -4987,7 +5007,7 @@ class __$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWithImpl<$Res>
     Object? totalSamplesSent = freezed,
     Object? voiceActivityFlag = freezed,
   }) {
-    return _then(_$RtcOutboundRtpStreamStatsMediaType_Audio(
+    return _then(_$RtcOutboundRtpStreamStatsMediaType_AudioImpl(
       totalSamplesSent: freezed == totalSamplesSent
           ? _value.totalSamplesSent
           : totalSamplesSent // ignore: cast_nullable_to_non_nullable
@@ -5002,9 +5022,9 @@ class __$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcOutboundRtpStreamStatsMediaType_Audio
+class _$RtcOutboundRtpStreamStatsMediaType_AudioImpl
     implements RtcOutboundRtpStreamStatsMediaType_Audio {
-  const _$RtcOutboundRtpStreamStatsMediaType_Audio(
+  const _$RtcOutboundRtpStreamStatsMediaType_AudioImpl(
       {this.totalSamplesSent, this.voiceActivityFlag});
 
   /// Total number of samples that have been sent over the RTP stream.
@@ -5025,7 +5045,7 @@ class _$RtcOutboundRtpStreamStatsMediaType_Audio
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcOutboundRtpStreamStatsMediaType_Audio &&
+            other is _$RtcOutboundRtpStreamStatsMediaType_AudioImpl &&
             (identical(other.totalSamplesSent, totalSamplesSent) ||
                 other.totalSamplesSent == totalSamplesSent) &&
             (identical(other.voiceActivityFlag, voiceActivityFlag) ||
@@ -5039,10 +5059,11 @@ class _$RtcOutboundRtpStreamStatsMediaType_Audio
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWith<
-          _$RtcOutboundRtpStreamStatsMediaType_Audio>
-      get copyWith => __$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWithImpl<
-          _$RtcOutboundRtpStreamStatsMediaType_Audio>(this, _$identity);
+  _$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWith<
+          _$RtcOutboundRtpStreamStatsMediaType_AudioImpl>
+      get copyWith =>
+          __$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWithImpl<
+              _$RtcOutboundRtpStreamStatsMediaType_AudioImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -5120,7 +5141,7 @@ abstract class RtcOutboundRtpStreamStatsMediaType_Audio
     implements RtcOutboundRtpStreamStatsMediaType {
   const factory RtcOutboundRtpStreamStatsMediaType_Audio(
           {final int? totalSamplesSent, final bool? voiceActivityFlag}) =
-      _$RtcOutboundRtpStreamStatsMediaType_Audio;
+      _$RtcOutboundRtpStreamStatsMediaType_AudioImpl;
 
   /// Total number of samples that have been sent over the RTP stream.
   int? get totalSamplesSent;
@@ -5129,29 +5150,29 @@ abstract class RtcOutboundRtpStreamStatsMediaType_Audio
   /// based on the presence of the V bit in the extension header.
   bool? get voiceActivityFlag;
   @JsonKey(ignore: true)
-  _$$RtcOutboundRtpStreamStatsMediaType_AudioCopyWith<
-          _$RtcOutboundRtpStreamStatsMediaType_Audio>
+  _$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWith<
+          _$RtcOutboundRtpStreamStatsMediaType_AudioImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWith<$Res> {
-  factory _$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWith(
-          _$RtcOutboundRtpStreamStatsMediaType_Video value,
-          $Res Function(_$RtcOutboundRtpStreamStatsMediaType_Video) then) =
-      __$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWithImpl<$Res>;
+abstract class _$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWith<$Res> {
+  factory _$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWith(
+          _$RtcOutboundRtpStreamStatsMediaType_VideoImpl value,
+          $Res Function(_$RtcOutboundRtpStreamStatsMediaType_VideoImpl) then) =
+      __$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWithImpl<$Res>;
   @useResult
   $Res call({int? frameWidth, int? frameHeight, double? framesPerSecond});
 }
 
 /// @nodoc
-class __$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWithImpl<$Res>
+class __$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWithImpl<$Res>
     extends _$RtcOutboundRtpStreamStatsMediaTypeCopyWithImpl<$Res,
-        _$RtcOutboundRtpStreamStatsMediaType_Video>
-    implements _$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWith<$Res> {
-  __$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWithImpl(
-      _$RtcOutboundRtpStreamStatsMediaType_Video _value,
-      $Res Function(_$RtcOutboundRtpStreamStatsMediaType_Video) _then)
+        _$RtcOutboundRtpStreamStatsMediaType_VideoImpl>
+    implements _$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWith<$Res> {
+  __$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWithImpl(
+      _$RtcOutboundRtpStreamStatsMediaType_VideoImpl _value,
+      $Res Function(_$RtcOutboundRtpStreamStatsMediaType_VideoImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -5161,7 +5182,7 @@ class __$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWithImpl<$Res>
     Object? frameHeight = freezed,
     Object? framesPerSecond = freezed,
   }) {
-    return _then(_$RtcOutboundRtpStreamStatsMediaType_Video(
+    return _then(_$RtcOutboundRtpStreamStatsMediaType_VideoImpl(
       frameWidth: freezed == frameWidth
           ? _value.frameWidth
           : frameWidth // ignore: cast_nullable_to_non_nullable
@@ -5180,9 +5201,9 @@ class __$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcOutboundRtpStreamStatsMediaType_Video
+class _$RtcOutboundRtpStreamStatsMediaType_VideoImpl
     implements RtcOutboundRtpStreamStatsMediaType_Video {
-  const _$RtcOutboundRtpStreamStatsMediaType_Video(
+  const _$RtcOutboundRtpStreamStatsMediaType_VideoImpl(
       {this.frameWidth, this.frameHeight, this.framesPerSecond});
 
   /// Width of the last encoded frame.
@@ -5225,7 +5246,7 @@ class _$RtcOutboundRtpStreamStatsMediaType_Video
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcOutboundRtpStreamStatsMediaType_Video &&
+            other is _$RtcOutboundRtpStreamStatsMediaType_VideoImpl &&
             (identical(other.frameWidth, frameWidth) ||
                 other.frameWidth == frameWidth) &&
             (identical(other.frameHeight, frameHeight) ||
@@ -5241,10 +5262,11 @@ class _$RtcOutboundRtpStreamStatsMediaType_Video
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWith<
-          _$RtcOutboundRtpStreamStatsMediaType_Video>
-      get copyWith => __$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWithImpl<
-          _$RtcOutboundRtpStreamStatsMediaType_Video>(this, _$identity);
+  _$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWith<
+          _$RtcOutboundRtpStreamStatsMediaType_VideoImpl>
+      get copyWith =>
+          __$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWithImpl<
+              _$RtcOutboundRtpStreamStatsMediaType_VideoImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -5324,7 +5346,7 @@ abstract class RtcOutboundRtpStreamStatsMediaType_Video
           {final int? frameWidth,
           final int? frameHeight,
           final double? framesPerSecond}) =
-      _$RtcOutboundRtpStreamStatsMediaType_Video;
+      _$RtcOutboundRtpStreamStatsMediaType_VideoImpl;
 
   /// Width of the last encoded frame.
   ///
@@ -5354,8 +5376,8 @@ abstract class RtcOutboundRtpStreamStatsMediaType_Video
   /// [1]: https://tinyurl.com/rrmkrfk
   double? get framesPerSecond;
   @JsonKey(ignore: true)
-  _$$RtcOutboundRtpStreamStatsMediaType_VideoCopyWith<
-          _$RtcOutboundRtpStreamStatsMediaType_Video>
+  _$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWith<
+          _$RtcOutboundRtpStreamStatsMediaType_VideoImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -5593,11 +5615,11 @@ class _$RtcStatsTypeCopyWithImpl<$Res, $Val extends RtcStatsType>
 }
 
 /// @nodoc
-abstract class _$$RtcStatsType_RtcMediaSourceStatsCopyWith<$Res> {
-  factory _$$RtcStatsType_RtcMediaSourceStatsCopyWith(
-          _$RtcStatsType_RtcMediaSourceStats value,
-          $Res Function(_$RtcStatsType_RtcMediaSourceStats) then) =
-      __$$RtcStatsType_RtcMediaSourceStatsCopyWithImpl<$Res>;
+abstract class _$$RtcStatsType_RtcMediaSourceStatsImplCopyWith<$Res> {
+  factory _$$RtcStatsType_RtcMediaSourceStatsImplCopyWith(
+          _$RtcStatsType_RtcMediaSourceStatsImpl value,
+          $Res Function(_$RtcStatsType_RtcMediaSourceStatsImpl) then) =
+      __$$RtcStatsType_RtcMediaSourceStatsImplCopyWithImpl<$Res>;
   @useResult
   $Res call({String? trackIdentifier, RtcMediaSourceStatsMediaType kind});
 
@@ -5605,12 +5627,13 @@ abstract class _$$RtcStatsType_RtcMediaSourceStatsCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$RtcStatsType_RtcMediaSourceStatsCopyWithImpl<$Res>
-    extends _$RtcStatsTypeCopyWithImpl<$Res, _$RtcStatsType_RtcMediaSourceStats>
-    implements _$$RtcStatsType_RtcMediaSourceStatsCopyWith<$Res> {
-  __$$RtcStatsType_RtcMediaSourceStatsCopyWithImpl(
-      _$RtcStatsType_RtcMediaSourceStats _value,
-      $Res Function(_$RtcStatsType_RtcMediaSourceStats) _then)
+class __$$RtcStatsType_RtcMediaSourceStatsImplCopyWithImpl<$Res>
+    extends _$RtcStatsTypeCopyWithImpl<$Res,
+        _$RtcStatsType_RtcMediaSourceStatsImpl>
+    implements _$$RtcStatsType_RtcMediaSourceStatsImplCopyWith<$Res> {
+  __$$RtcStatsType_RtcMediaSourceStatsImplCopyWithImpl(
+      _$RtcStatsType_RtcMediaSourceStatsImpl _value,
+      $Res Function(_$RtcStatsType_RtcMediaSourceStatsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -5619,7 +5642,7 @@ class __$$RtcStatsType_RtcMediaSourceStatsCopyWithImpl<$Res>
     Object? trackIdentifier = freezed,
     Object? kind = null,
   }) {
-    return _then(_$RtcStatsType_RtcMediaSourceStats(
+    return _then(_$RtcStatsType_RtcMediaSourceStatsImpl(
       trackIdentifier: freezed == trackIdentifier
           ? _value.trackIdentifier
           : trackIdentifier // ignore: cast_nullable_to_non_nullable
@@ -5642,9 +5665,9 @@ class __$$RtcStatsType_RtcMediaSourceStatsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcStatsType_RtcMediaSourceStats
+class _$RtcStatsType_RtcMediaSourceStatsImpl
     implements RtcStatsType_RtcMediaSourceStats {
-  const _$RtcStatsType_RtcMediaSourceStats(
+  const _$RtcStatsType_RtcMediaSourceStatsImpl(
       {this.trackIdentifier, required this.kind});
 
   /// Value of the [MediaStreamTrack][1]'s ID attribute.
@@ -5666,7 +5689,7 @@ class _$RtcStatsType_RtcMediaSourceStats
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcStatsType_RtcMediaSourceStats &&
+            other is _$RtcStatsType_RtcMediaSourceStatsImpl &&
             (identical(other.trackIdentifier, trackIdentifier) ||
                 other.trackIdentifier == trackIdentifier) &&
             (identical(other.kind, kind) || other.kind == kind));
@@ -5678,10 +5701,10 @@ class _$RtcStatsType_RtcMediaSourceStats
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcStatsType_RtcMediaSourceStatsCopyWith<
-          _$RtcStatsType_RtcMediaSourceStats>
-      get copyWith => __$$RtcStatsType_RtcMediaSourceStatsCopyWithImpl<
-          _$RtcStatsType_RtcMediaSourceStats>(this, _$identity);
+  _$$RtcStatsType_RtcMediaSourceStatsImplCopyWith<
+          _$RtcStatsType_RtcMediaSourceStatsImpl>
+      get copyWith => __$$RtcStatsType_RtcMediaSourceStatsImplCopyWithImpl<
+          _$RtcStatsType_RtcMediaSourceStatsImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -5923,7 +5946,7 @@ abstract class RtcStatsType_RtcMediaSourceStats implements RtcStatsType {
   const factory RtcStatsType_RtcMediaSourceStats(
           {final String? trackIdentifier,
           required final RtcMediaSourceStatsMediaType kind}) =
-      _$RtcStatsType_RtcMediaSourceStats;
+      _$RtcStatsType_RtcMediaSourceStatsImpl;
 
   /// Value of the [MediaStreamTrack][1]'s ID attribute.
   ///
@@ -5933,17 +5956,17 @@ abstract class RtcStatsType_RtcMediaSourceStats implements RtcStatsType {
   /// Fields which should be in these [`RtcStats`] based on their `kind`.
   RtcMediaSourceStatsMediaType get kind;
   @JsonKey(ignore: true)
-  _$$RtcStatsType_RtcMediaSourceStatsCopyWith<
-          _$RtcStatsType_RtcMediaSourceStats>
+  _$$RtcStatsType_RtcMediaSourceStatsImplCopyWith<
+          _$RtcStatsType_RtcMediaSourceStatsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcStatsType_RtcIceCandidateStatsCopyWith<$Res> {
-  factory _$$RtcStatsType_RtcIceCandidateStatsCopyWith(
-          _$RtcStatsType_RtcIceCandidateStats value,
-          $Res Function(_$RtcStatsType_RtcIceCandidateStats) then) =
-      __$$RtcStatsType_RtcIceCandidateStatsCopyWithImpl<$Res>;
+abstract class _$$RtcStatsType_RtcIceCandidateStatsImplCopyWith<$Res> {
+  factory _$$RtcStatsType_RtcIceCandidateStatsImplCopyWith(
+          _$RtcStatsType_RtcIceCandidateStatsImpl value,
+          $Res Function(_$RtcStatsType_RtcIceCandidateStatsImpl) then) =
+      __$$RtcStatsType_RtcIceCandidateStatsImplCopyWithImpl<$Res>;
   @useResult
   $Res call({RtcIceCandidateStats field0});
 
@@ -5951,13 +5974,13 @@ abstract class _$$RtcStatsType_RtcIceCandidateStatsCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$RtcStatsType_RtcIceCandidateStatsCopyWithImpl<$Res>
+class __$$RtcStatsType_RtcIceCandidateStatsImplCopyWithImpl<$Res>
     extends _$RtcStatsTypeCopyWithImpl<$Res,
-        _$RtcStatsType_RtcIceCandidateStats>
-    implements _$$RtcStatsType_RtcIceCandidateStatsCopyWith<$Res> {
-  __$$RtcStatsType_RtcIceCandidateStatsCopyWithImpl(
-      _$RtcStatsType_RtcIceCandidateStats _value,
-      $Res Function(_$RtcStatsType_RtcIceCandidateStats) _then)
+        _$RtcStatsType_RtcIceCandidateStatsImpl>
+    implements _$$RtcStatsType_RtcIceCandidateStatsImplCopyWith<$Res> {
+  __$$RtcStatsType_RtcIceCandidateStatsImplCopyWithImpl(
+      _$RtcStatsType_RtcIceCandidateStatsImpl _value,
+      $Res Function(_$RtcStatsType_RtcIceCandidateStatsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -5965,7 +5988,7 @@ class __$$RtcStatsType_RtcIceCandidateStatsCopyWithImpl<$Res>
   $Res call({
     Object? field0 = null,
   }) {
-    return _then(_$RtcStatsType_RtcIceCandidateStats(
+    return _then(_$RtcStatsType_RtcIceCandidateStatsImpl(
       null == field0
           ? _value.field0
           : field0 // ignore: cast_nullable_to_non_nullable
@@ -5984,9 +6007,9 @@ class __$$RtcStatsType_RtcIceCandidateStatsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcStatsType_RtcIceCandidateStats
+class _$RtcStatsType_RtcIceCandidateStatsImpl
     implements RtcStatsType_RtcIceCandidateStats {
-  const _$RtcStatsType_RtcIceCandidateStats(this.field0);
+  const _$RtcStatsType_RtcIceCandidateStatsImpl(this.field0);
 
   @override
   final RtcIceCandidateStats field0;
@@ -6000,7 +6023,7 @@ class _$RtcStatsType_RtcIceCandidateStats
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcStatsType_RtcIceCandidateStats &&
+            other is _$RtcStatsType_RtcIceCandidateStatsImpl &&
             (identical(other.field0, field0) || other.field0 == field0));
   }
 
@@ -6010,10 +6033,10 @@ class _$RtcStatsType_RtcIceCandidateStats
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcStatsType_RtcIceCandidateStatsCopyWith<
-          _$RtcStatsType_RtcIceCandidateStats>
-      get copyWith => __$$RtcStatsType_RtcIceCandidateStatsCopyWithImpl<
-          _$RtcStatsType_RtcIceCandidateStats>(this, _$identity);
+  _$$RtcStatsType_RtcIceCandidateStatsImplCopyWith<
+          _$RtcStatsType_RtcIceCandidateStatsImpl>
+      get copyWith => __$$RtcStatsType_RtcIceCandidateStatsImplCopyWithImpl<
+          _$RtcStatsType_RtcIceCandidateStatsImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -6253,21 +6276,22 @@ class _$RtcStatsType_RtcIceCandidateStats
 
 abstract class RtcStatsType_RtcIceCandidateStats implements RtcStatsType {
   const factory RtcStatsType_RtcIceCandidateStats(
-      final RtcIceCandidateStats field0) = _$RtcStatsType_RtcIceCandidateStats;
+          final RtcIceCandidateStats field0) =
+      _$RtcStatsType_RtcIceCandidateStatsImpl;
 
   RtcIceCandidateStats get field0;
   @JsonKey(ignore: true)
-  _$$RtcStatsType_RtcIceCandidateStatsCopyWith<
-          _$RtcStatsType_RtcIceCandidateStats>
+  _$$RtcStatsType_RtcIceCandidateStatsImplCopyWith<
+          _$RtcStatsType_RtcIceCandidateStatsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWith<$Res> {
-  factory _$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWith(
-          _$RtcStatsType_RtcOutboundRtpStreamStats value,
-          $Res Function(_$RtcStatsType_RtcOutboundRtpStreamStats) then) =
-      __$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWithImpl<$Res>;
+abstract class _$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWith<$Res> {
+  factory _$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWith(
+          _$RtcStatsType_RtcOutboundRtpStreamStatsImpl value,
+          $Res Function(_$RtcStatsType_RtcOutboundRtpStreamStatsImpl) then) =
+      __$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWithImpl<$Res>;
   @useResult
   $Res call(
       {String? trackId,
@@ -6280,13 +6304,13 @@ abstract class _$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWithImpl<$Res>
+class __$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWithImpl<$Res>
     extends _$RtcStatsTypeCopyWithImpl<$Res,
-        _$RtcStatsType_RtcOutboundRtpStreamStats>
-    implements _$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWith<$Res> {
-  __$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWithImpl(
-      _$RtcStatsType_RtcOutboundRtpStreamStats _value,
-      $Res Function(_$RtcStatsType_RtcOutboundRtpStreamStats) _then)
+        _$RtcStatsType_RtcOutboundRtpStreamStatsImpl>
+    implements _$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWith<$Res> {
+  __$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWithImpl(
+      _$RtcStatsType_RtcOutboundRtpStreamStatsImpl _value,
+      $Res Function(_$RtcStatsType_RtcOutboundRtpStreamStatsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -6298,7 +6322,7 @@ class __$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWithImpl<$Res>
     Object? packetsSent = freezed,
     Object? mediaSourceId = freezed,
   }) {
-    return _then(_$RtcStatsType_RtcOutboundRtpStreamStats(
+    return _then(_$RtcStatsType_RtcOutboundRtpStreamStatsImpl(
       trackId: freezed == trackId
           ? _value.trackId
           : trackId // ignore: cast_nullable_to_non_nullable
@@ -6334,9 +6358,9 @@ class __$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcStatsType_RtcOutboundRtpStreamStats
+class _$RtcStatsType_RtcOutboundRtpStreamStatsImpl
     implements RtcStatsType_RtcOutboundRtpStreamStats {
-  const _$RtcStatsType_RtcOutboundRtpStreamStats(
+  const _$RtcStatsType_RtcOutboundRtpStreamStatsImpl(
       {this.trackId,
       required this.mediaType,
       this.bytesSent,
@@ -6379,7 +6403,7 @@ class _$RtcStatsType_RtcOutboundRtpStreamStats
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcStatsType_RtcOutboundRtpStreamStats &&
+            other is _$RtcStatsType_RtcOutboundRtpStreamStatsImpl &&
             (identical(other.trackId, trackId) || other.trackId == trackId) &&
             (identical(other.mediaType, mediaType) ||
                 other.mediaType == mediaType) &&
@@ -6398,10 +6422,11 @@ class _$RtcStatsType_RtcOutboundRtpStreamStats
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWith<
-          _$RtcStatsType_RtcOutboundRtpStreamStats>
-      get copyWith => __$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWithImpl<
-          _$RtcStatsType_RtcOutboundRtpStreamStats>(this, _$identity);
+  _$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWith<
+          _$RtcStatsType_RtcOutboundRtpStreamStatsImpl>
+      get copyWith =>
+          __$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWithImpl<
+              _$RtcStatsType_RtcOutboundRtpStreamStatsImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -6644,11 +6669,12 @@ class _$RtcStatsType_RtcOutboundRtpStreamStats
 
 abstract class RtcStatsType_RtcOutboundRtpStreamStats implements RtcStatsType {
   const factory RtcStatsType_RtcOutboundRtpStreamStats(
-      {final String? trackId,
-      required final RtcOutboundRtpStreamStatsMediaType mediaType,
-      final int? bytesSent,
-      final int? packetsSent,
-      final String? mediaSourceId}) = _$RtcStatsType_RtcOutboundRtpStreamStats;
+          {final String? trackId,
+          required final RtcOutboundRtpStreamStatsMediaType mediaType,
+          final int? bytesSent,
+          final int? packetsSent,
+          final String? mediaSourceId}) =
+      _$RtcStatsType_RtcOutboundRtpStreamStatsImpl;
 
   /// ID of the stats object representing the current track attachment to
   /// the sender of the stream.
@@ -6672,17 +6698,17 @@ abstract class RtcStatsType_RtcOutboundRtpStreamStats implements RtcStatsType {
   /// the sender of the stream.
   String? get mediaSourceId;
   @JsonKey(ignore: true)
-  _$$RtcStatsType_RtcOutboundRtpStreamStatsCopyWith<
-          _$RtcStatsType_RtcOutboundRtpStreamStats>
+  _$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWith<
+          _$RtcStatsType_RtcOutboundRtpStreamStatsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcStatsType_RtcInboundRtpStreamStatsCopyWith<$Res> {
-  factory _$$RtcStatsType_RtcInboundRtpStreamStatsCopyWith(
-          _$RtcStatsType_RtcInboundRtpStreamStats value,
-          $Res Function(_$RtcStatsType_RtcInboundRtpStreamStats) then) =
-      __$$RtcStatsType_RtcInboundRtpStreamStatsCopyWithImpl<$Res>;
+abstract class _$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWith<$Res> {
+  factory _$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWith(
+          _$RtcStatsType_RtcInboundRtpStreamStatsImpl value,
+          $Res Function(_$RtcStatsType_RtcInboundRtpStreamStatsImpl) then) =
+      __$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWithImpl<$Res>;
   @useResult
   $Res call(
       {String? remoteId,
@@ -6698,13 +6724,13 @@ abstract class _$$RtcStatsType_RtcInboundRtpStreamStatsCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$RtcStatsType_RtcInboundRtpStreamStatsCopyWithImpl<$Res>
+class __$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWithImpl<$Res>
     extends _$RtcStatsTypeCopyWithImpl<$Res,
-        _$RtcStatsType_RtcInboundRtpStreamStats>
-    implements _$$RtcStatsType_RtcInboundRtpStreamStatsCopyWith<$Res> {
-  __$$RtcStatsType_RtcInboundRtpStreamStatsCopyWithImpl(
-      _$RtcStatsType_RtcInboundRtpStreamStats _value,
-      $Res Function(_$RtcStatsType_RtcInboundRtpStreamStats) _then)
+        _$RtcStatsType_RtcInboundRtpStreamStatsImpl>
+    implements _$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWith<$Res> {
+  __$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWithImpl(
+      _$RtcStatsType_RtcInboundRtpStreamStatsImpl _value,
+      $Res Function(_$RtcStatsType_RtcInboundRtpStreamStatsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -6719,7 +6745,7 @@ class __$$RtcStatsType_RtcInboundRtpStreamStatsCopyWithImpl<$Res>
     Object? jitterBufferEmittedCount = freezed,
     Object? mediaType = freezed,
   }) {
-    return _then(_$RtcStatsType_RtcInboundRtpStreamStats(
+    return _then(_$RtcStatsType_RtcInboundRtpStreamStatsImpl(
       remoteId: freezed == remoteId
           ? _value.remoteId
           : remoteId // ignore: cast_nullable_to_non_nullable
@@ -6771,9 +6797,9 @@ class __$$RtcStatsType_RtcInboundRtpStreamStatsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcStatsType_RtcInboundRtpStreamStats
+class _$RtcStatsType_RtcInboundRtpStreamStatsImpl
     implements RtcStatsType_RtcInboundRtpStreamStats {
-  const _$RtcStatsType_RtcInboundRtpStreamStats(
+  const _$RtcStatsType_RtcInboundRtpStreamStatsImpl(
       {this.remoteId,
       this.bytesReceived,
       this.packetsReceived,
@@ -6851,7 +6877,7 @@ class _$RtcStatsType_RtcInboundRtpStreamStats
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcStatsType_RtcInboundRtpStreamStats &&
+            other is _$RtcStatsType_RtcInboundRtpStreamStatsImpl &&
             (identical(other.remoteId, remoteId) ||
                 other.remoteId == remoteId) &&
             (identical(other.bytesReceived, bytesReceived) ||
@@ -6885,10 +6911,10 @@ class _$RtcStatsType_RtcInboundRtpStreamStats
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcStatsType_RtcInboundRtpStreamStatsCopyWith<
-          _$RtcStatsType_RtcInboundRtpStreamStats>
-      get copyWith => __$$RtcStatsType_RtcInboundRtpStreamStatsCopyWithImpl<
-          _$RtcStatsType_RtcInboundRtpStreamStats>(this, _$identity);
+  _$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWith<
+          _$RtcStatsType_RtcInboundRtpStreamStatsImpl>
+      get copyWith => __$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWithImpl<
+          _$RtcStatsType_RtcInboundRtpStreamStatsImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -7160,7 +7186,7 @@ abstract class RtcStatsType_RtcInboundRtpStreamStats implements RtcStatsType {
           final double? totalDecodeTime,
           final int? jitterBufferEmittedCount,
           final RtcInboundRtpStreamMediaType? mediaType}) =
-      _$RtcStatsType_RtcInboundRtpStreamStats;
+      _$RtcStatsType_RtcInboundRtpStreamStatsImpl;
 
   /// ID of the stats object representing the receiving track.
   String? get remoteId;
@@ -7213,17 +7239,17 @@ abstract class RtcStatsType_RtcInboundRtpStreamStats implements RtcStatsType {
   /// `media_type`.
   RtcInboundRtpStreamMediaType? get mediaType;
   @JsonKey(ignore: true)
-  _$$RtcStatsType_RtcInboundRtpStreamStatsCopyWith<
-          _$RtcStatsType_RtcInboundRtpStreamStats>
+  _$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWith<
+          _$RtcStatsType_RtcInboundRtpStreamStatsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcStatsType_RtcIceCandidatePairStatsCopyWith<$Res> {
-  factory _$$RtcStatsType_RtcIceCandidatePairStatsCopyWith(
-          _$RtcStatsType_RtcIceCandidatePairStats value,
-          $Res Function(_$RtcStatsType_RtcIceCandidatePairStats) then) =
-      __$$RtcStatsType_RtcIceCandidatePairStatsCopyWithImpl<$Res>;
+abstract class _$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWith<$Res> {
+  factory _$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWith(
+          _$RtcStatsType_RtcIceCandidatePairStatsImpl value,
+          $Res Function(_$RtcStatsType_RtcIceCandidatePairStatsImpl) then) =
+      __$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWithImpl<$Res>;
   @useResult
   $Res call(
       {RtcStatsIceCandidatePairState state,
@@ -7236,13 +7262,13 @@ abstract class _$$RtcStatsType_RtcIceCandidatePairStatsCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$RtcStatsType_RtcIceCandidatePairStatsCopyWithImpl<$Res>
+class __$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWithImpl<$Res>
     extends _$RtcStatsTypeCopyWithImpl<$Res,
-        _$RtcStatsType_RtcIceCandidatePairStats>
-    implements _$$RtcStatsType_RtcIceCandidatePairStatsCopyWith<$Res> {
-  __$$RtcStatsType_RtcIceCandidatePairStatsCopyWithImpl(
-      _$RtcStatsType_RtcIceCandidatePairStats _value,
-      $Res Function(_$RtcStatsType_RtcIceCandidatePairStats) _then)
+        _$RtcStatsType_RtcIceCandidatePairStatsImpl>
+    implements _$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWith<$Res> {
+  __$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWithImpl(
+      _$RtcStatsType_RtcIceCandidatePairStatsImpl _value,
+      $Res Function(_$RtcStatsType_RtcIceCandidatePairStatsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -7256,7 +7282,7 @@ class __$$RtcStatsType_RtcIceCandidatePairStatsCopyWithImpl<$Res>
     Object? currentRoundTripTime = freezed,
     Object? availableOutgoingBitrate = freezed,
   }) {
-    return _then(_$RtcStatsType_RtcIceCandidatePairStats(
+    return _then(_$RtcStatsType_RtcIceCandidatePairStatsImpl(
       state: null == state
           ? _value.state
           : state // ignore: cast_nullable_to_non_nullable
@@ -7291,9 +7317,9 @@ class __$$RtcStatsType_RtcIceCandidatePairStatsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcStatsType_RtcIceCandidatePairStats
+class _$RtcStatsType_RtcIceCandidatePairStatsImpl
     implements RtcStatsType_RtcIceCandidatePairStats {
-  const _$RtcStatsType_RtcIceCandidatePairStats(
+  const _$RtcStatsType_RtcIceCandidatePairStatsImpl(
       {required this.state,
       this.nominated,
       this.bytesSent,
@@ -7378,7 +7404,7 @@ class _$RtcStatsType_RtcIceCandidatePairStats
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcStatsType_RtcIceCandidatePairStats &&
+            other is _$RtcStatsType_RtcIceCandidatePairStatsImpl &&
             (identical(other.state, state) || other.state == state) &&
             (identical(other.nominated, nominated) ||
                 other.nominated == nominated) &&
@@ -7409,10 +7435,10 @@ class _$RtcStatsType_RtcIceCandidatePairStats
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcStatsType_RtcIceCandidatePairStatsCopyWith<
-          _$RtcStatsType_RtcIceCandidatePairStats>
-      get copyWith => __$$RtcStatsType_RtcIceCandidatePairStatsCopyWithImpl<
-          _$RtcStatsType_RtcIceCandidatePairStats>(this, _$identity);
+  _$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWith<
+          _$RtcStatsType_RtcIceCandidatePairStatsImpl>
+      get copyWith => __$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWithImpl<
+          _$RtcStatsType_RtcIceCandidatePairStatsImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -7674,7 +7700,7 @@ abstract class RtcStatsType_RtcIceCandidatePairStats implements RtcStatsType {
           final double? totalRoundTripTime,
           final double? currentRoundTripTime,
           final double? availableOutgoingBitrate}) =
-      _$RtcStatsType_RtcIceCandidatePairStats;
+      _$RtcStatsType_RtcIceCandidatePairStatsImpl;
 
   /// State of the checklist for the local and remote candidates in a
   /// pair.
@@ -7736,17 +7762,17 @@ abstract class RtcStatsType_RtcIceCandidatePairStats implements RtcStatsType {
   /// [1]: https://tinyurl.com/rfc72eh
   double? get availableOutgoingBitrate;
   @JsonKey(ignore: true)
-  _$$RtcStatsType_RtcIceCandidatePairStatsCopyWith<
-          _$RtcStatsType_RtcIceCandidatePairStats>
+  _$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWith<
+          _$RtcStatsType_RtcIceCandidatePairStatsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcStatsType_RtcTransportStatsCopyWith<$Res> {
-  factory _$$RtcStatsType_RtcTransportStatsCopyWith(
-          _$RtcStatsType_RtcTransportStats value,
-          $Res Function(_$RtcStatsType_RtcTransportStats) then) =
-      __$$RtcStatsType_RtcTransportStatsCopyWithImpl<$Res>;
+abstract class _$$RtcStatsType_RtcTransportStatsImplCopyWith<$Res> {
+  factory _$$RtcStatsType_RtcTransportStatsImplCopyWith(
+          _$RtcStatsType_RtcTransportStatsImpl value,
+          $Res Function(_$RtcStatsType_RtcTransportStatsImpl) then) =
+      __$$RtcStatsType_RtcTransportStatsImplCopyWithImpl<$Res>;
   @useResult
   $Res call(
       {int? packetsSent,
@@ -7757,12 +7783,13 @@ abstract class _$$RtcStatsType_RtcTransportStatsCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$RtcStatsType_RtcTransportStatsCopyWithImpl<$Res>
-    extends _$RtcStatsTypeCopyWithImpl<$Res, _$RtcStatsType_RtcTransportStats>
-    implements _$$RtcStatsType_RtcTransportStatsCopyWith<$Res> {
-  __$$RtcStatsType_RtcTransportStatsCopyWithImpl(
-      _$RtcStatsType_RtcTransportStats _value,
-      $Res Function(_$RtcStatsType_RtcTransportStats) _then)
+class __$$RtcStatsType_RtcTransportStatsImplCopyWithImpl<$Res>
+    extends _$RtcStatsTypeCopyWithImpl<$Res,
+        _$RtcStatsType_RtcTransportStatsImpl>
+    implements _$$RtcStatsType_RtcTransportStatsImplCopyWith<$Res> {
+  __$$RtcStatsType_RtcTransportStatsImplCopyWithImpl(
+      _$RtcStatsType_RtcTransportStatsImpl _value,
+      $Res Function(_$RtcStatsType_RtcTransportStatsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -7774,7 +7801,7 @@ class __$$RtcStatsType_RtcTransportStatsCopyWithImpl<$Res>
     Object? bytesReceived = freezed,
     Object? iceRole = freezed,
   }) {
-    return _then(_$RtcStatsType_RtcTransportStats(
+    return _then(_$RtcStatsType_RtcTransportStatsImpl(
       packetsSent: freezed == packetsSent
           ? _value.packetsSent
           : packetsSent // ignore: cast_nullable_to_non_nullable
@@ -7801,9 +7828,9 @@ class __$$RtcStatsType_RtcTransportStatsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcStatsType_RtcTransportStats
+class _$RtcStatsType_RtcTransportStatsImpl
     implements RtcStatsType_RtcTransportStats {
-  const _$RtcStatsType_RtcTransportStats(
+  const _$RtcStatsType_RtcTransportStatsImpl(
       {this.packetsSent,
       this.packetsReceived,
       this.bytesSent,
@@ -7850,7 +7877,7 @@ class _$RtcStatsType_RtcTransportStats
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcStatsType_RtcTransportStats &&
+            other is _$RtcStatsType_RtcTransportStatsImpl &&
             (identical(other.packetsSent, packetsSent) ||
                 other.packetsSent == packetsSent) &&
             (identical(other.packetsReceived, packetsReceived) ||
@@ -7869,9 +7896,10 @@ class _$RtcStatsType_RtcTransportStats
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcStatsType_RtcTransportStatsCopyWith<_$RtcStatsType_RtcTransportStats>
-      get copyWith => __$$RtcStatsType_RtcTransportStatsCopyWithImpl<
-          _$RtcStatsType_RtcTransportStats>(this, _$identity);
+  _$$RtcStatsType_RtcTransportStatsImplCopyWith<
+          _$RtcStatsType_RtcTransportStatsImpl>
+      get copyWith => __$$RtcStatsType_RtcTransportStatsImplCopyWithImpl<
+          _$RtcStatsType_RtcTransportStatsImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -8118,7 +8146,7 @@ abstract class RtcStatsType_RtcTransportStats implements RtcStatsType {
       final int? packetsReceived,
       final int? bytesSent,
       final int? bytesReceived,
-      final IceRole? iceRole}) = _$RtcStatsType_RtcTransportStats;
+      final IceRole? iceRole}) = _$RtcStatsType_RtcTransportStatsImpl;
 
   /// Total number of packets sent over this transport.
   int? get packetsSent;
@@ -8146,16 +8174,19 @@ abstract class RtcStatsType_RtcTransportStats implements RtcStatsType {
   /// [3]: https://w3.org/TR/webrtc#dom-rtcdtlstransport-icetransport
   IceRole? get iceRole;
   @JsonKey(ignore: true)
-  _$$RtcStatsType_RtcTransportStatsCopyWith<_$RtcStatsType_RtcTransportStats>
+  _$$RtcStatsType_RtcTransportStatsImplCopyWith<
+          _$RtcStatsType_RtcTransportStatsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWith<$Res> {
-  factory _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWith(
-          _$RtcStatsType_RtcRemoteInboundRtpStreamStats value,
-          $Res Function(_$RtcStatsType_RtcRemoteInboundRtpStreamStats) then) =
-      __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWithImpl<$Res>;
+abstract class _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsImplCopyWith<
+    $Res> {
+  factory _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsImplCopyWith(
+          _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl value,
+          $Res Function(_$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl)
+              then) =
+      __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsImplCopyWithImpl<$Res>;
   @useResult
   $Res call(
       {String? localId,
@@ -8167,13 +8198,14 @@ abstract class _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWithImpl<$Res>
+class __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsImplCopyWithImpl<$Res>
     extends _$RtcStatsTypeCopyWithImpl<$Res,
-        _$RtcStatsType_RtcRemoteInboundRtpStreamStats>
-    implements _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWith<$Res> {
-  __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWithImpl(
-      _$RtcStatsType_RtcRemoteInboundRtpStreamStats _value,
-      $Res Function(_$RtcStatsType_RtcRemoteInboundRtpStreamStats) _then)
+        _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl>
+    implements
+        _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsImplCopyWith<$Res> {
+  __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsImplCopyWithImpl(
+      _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl _value,
+      $Res Function(_$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -8186,7 +8218,7 @@ class __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWithImpl<$Res>
     Object? reportsReceived = freezed,
     Object? roundTripTimeMeasurements = freezed,
   }) {
-    return _then(_$RtcStatsType_RtcRemoteInboundRtpStreamStats(
+    return _then(_$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl(
       localId: freezed == localId
           ? _value.localId
           : localId // ignore: cast_nullable_to_non_nullable
@@ -8217,9 +8249,9 @@ class __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcStatsType_RtcRemoteInboundRtpStreamStats
+class _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl
     implements RtcStatsType_RtcRemoteInboundRtpStreamStats {
-  const _$RtcStatsType_RtcRemoteInboundRtpStreamStats(
+  const _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl(
       {this.localId,
       this.jitter,
       this.roundTripTime,
@@ -8286,7 +8318,7 @@ class _$RtcStatsType_RtcRemoteInboundRtpStreamStats
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcStatsType_RtcRemoteInboundRtpStreamStats &&
+            other is _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl &&
             (identical(other.localId, localId) || other.localId == localId) &&
             (identical(other.jitter, jitter) || other.jitter == jitter) &&
             (identical(other.roundTripTime, roundTripTime) ||
@@ -8307,11 +8339,12 @@ class _$RtcStatsType_RtcRemoteInboundRtpStreamStats
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWith<
-          _$RtcStatsType_RtcRemoteInboundRtpStreamStats>
+  _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsImplCopyWith<
+          _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl>
       get copyWith =>
-          __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWithImpl<
-              _$RtcStatsType_RtcRemoteInboundRtpStreamStats>(this, _$identity);
+          __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsImplCopyWithImpl<
+                  _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl>(
+              this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -8561,7 +8594,7 @@ abstract class RtcStatsType_RtcRemoteInboundRtpStreamStats
           final double? fractionLost,
           final int? reportsReceived,
           final int? roundTripTimeMeasurements}) =
-      _$RtcStatsType_RtcRemoteInboundRtpStreamStats;
+      _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl;
 
   /// [localId] is used for looking up the local
   /// [RTCOutboundRtpStreamStats][1] object for the same [SSRC].
@@ -8607,29 +8640,32 @@ abstract class RtcStatsType_RtcRemoteInboundRtpStreamStats
   /// [SSRC]: https://w3.org/TR/webrtc-stats#dfn-ssrc
   int? get roundTripTimeMeasurements;
   @JsonKey(ignore: true)
-  _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsCopyWith<
-          _$RtcStatsType_RtcRemoteInboundRtpStreamStats>
+  _$$RtcStatsType_RtcRemoteInboundRtpStreamStatsImplCopyWith<
+          _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWith<$Res> {
-  factory _$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWith(
-          _$RtcStatsType_RtcRemoteOutboundRtpStreamStats value,
-          $Res Function(_$RtcStatsType_RtcRemoteOutboundRtpStreamStats) then) =
-      __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWithImpl<$Res>;
+abstract class _$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImplCopyWith<
+    $Res> {
+  factory _$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImplCopyWith(
+          _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl value,
+          $Res Function(_$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl)
+              then) =
+      __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImplCopyWithImpl<$Res>;
   @useResult
   $Res call({String? localId, double? remoteTimestamp, int? reportsSent});
 }
 
 /// @nodoc
-class __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWithImpl<$Res>
+class __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImplCopyWithImpl<$Res>
     extends _$RtcStatsTypeCopyWithImpl<$Res,
-        _$RtcStatsType_RtcRemoteOutboundRtpStreamStats>
-    implements _$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWith<$Res> {
-  __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWithImpl(
-      _$RtcStatsType_RtcRemoteOutboundRtpStreamStats _value,
-      $Res Function(_$RtcStatsType_RtcRemoteOutboundRtpStreamStats) _then)
+        _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl>
+    implements
+        _$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImplCopyWith<$Res> {
+  __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImplCopyWithImpl(
+      _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl _value,
+      $Res Function(_$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -8639,7 +8675,7 @@ class __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWithImpl<$Res>
     Object? remoteTimestamp = freezed,
     Object? reportsSent = freezed,
   }) {
-    return _then(_$RtcStatsType_RtcRemoteOutboundRtpStreamStats(
+    return _then(_$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl(
       localId: freezed == localId
           ? _value.localId
           : localId // ignore: cast_nullable_to_non_nullable
@@ -8658,9 +8694,9 @@ class __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RtcStatsType_RtcRemoteOutboundRtpStreamStats
+class _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl
     implements RtcStatsType_RtcRemoteOutboundRtpStreamStats {
-  const _$RtcStatsType_RtcRemoteOutboundRtpStreamStats(
+  const _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl(
       {this.localId, this.remoteTimestamp, this.reportsSent});
 
   /// [localId] is used for looking up the local
@@ -8701,7 +8737,7 @@ class _$RtcStatsType_RtcRemoteOutboundRtpStreamStats
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcStatsType_RtcRemoteOutboundRtpStreamStats &&
+            other is _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl &&
             (identical(other.localId, localId) || other.localId == localId) &&
             (identical(other.remoteTimestamp, remoteTimestamp) ||
                 other.remoteTimestamp == remoteTimestamp) &&
@@ -8716,11 +8752,12 @@ class _$RtcStatsType_RtcRemoteOutboundRtpStreamStats
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWith<
-          _$RtcStatsType_RtcRemoteOutboundRtpStreamStats>
+  _$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImplCopyWith<
+          _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl>
       get copyWith =>
-          __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWithImpl<
-              _$RtcStatsType_RtcRemoteOutboundRtpStreamStats>(this, _$identity);
+          __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImplCopyWithImpl<
+                  _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl>(
+              this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -8964,9 +9001,10 @@ class _$RtcStatsType_RtcRemoteOutboundRtpStreamStats
 abstract class RtcStatsType_RtcRemoteOutboundRtpStreamStats
     implements RtcStatsType {
   const factory RtcStatsType_RtcRemoteOutboundRtpStreamStats(
-      {final String? localId,
-      final double? remoteTimestamp,
-      final int? reportsSent}) = _$RtcStatsType_RtcRemoteOutboundRtpStreamStats;
+          {final String? localId,
+          final double? remoteTimestamp,
+          final int? reportsSent}) =
+      _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl;
 
   /// [localId] is used for looking up the local
   /// [RTCInboundRtpStreamStats][1] object for the same [SSRC].
@@ -8994,33 +9032,33 @@ abstract class RtcStatsType_RtcRemoteOutboundRtpStreamStats
   /// [SSRC]: https://w3.org/TR/webrtc-stats#dfn-ssrc
   int? get reportsSent;
   @JsonKey(ignore: true)
-  _$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsCopyWith<
-          _$RtcStatsType_RtcRemoteOutboundRtpStreamStats>
+  _$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImplCopyWith<
+          _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RtcStatsType_UnimplementedCopyWith<$Res> {
-  factory _$$RtcStatsType_UnimplementedCopyWith(
-          _$RtcStatsType_Unimplemented value,
-          $Res Function(_$RtcStatsType_Unimplemented) then) =
-      __$$RtcStatsType_UnimplementedCopyWithImpl<$Res>;
+abstract class _$$RtcStatsType_UnimplementedImplCopyWith<$Res> {
+  factory _$$RtcStatsType_UnimplementedImplCopyWith(
+          _$RtcStatsType_UnimplementedImpl value,
+          $Res Function(_$RtcStatsType_UnimplementedImpl) then) =
+      __$$RtcStatsType_UnimplementedImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class __$$RtcStatsType_UnimplementedCopyWithImpl<$Res>
-    extends _$RtcStatsTypeCopyWithImpl<$Res, _$RtcStatsType_Unimplemented>
-    implements _$$RtcStatsType_UnimplementedCopyWith<$Res> {
-  __$$RtcStatsType_UnimplementedCopyWithImpl(
-      _$RtcStatsType_Unimplemented _value,
-      $Res Function(_$RtcStatsType_Unimplemented) _then)
+class __$$RtcStatsType_UnimplementedImplCopyWithImpl<$Res>
+    extends _$RtcStatsTypeCopyWithImpl<$Res, _$RtcStatsType_UnimplementedImpl>
+    implements _$$RtcStatsType_UnimplementedImplCopyWith<$Res> {
+  __$$RtcStatsType_UnimplementedImplCopyWithImpl(
+      _$RtcStatsType_UnimplementedImpl _value,
+      $Res Function(_$RtcStatsType_UnimplementedImpl) _then)
       : super(_value, _then);
 }
 
 /// @nodoc
 
-class _$RtcStatsType_Unimplemented implements RtcStatsType_Unimplemented {
-  const _$RtcStatsType_Unimplemented();
+class _$RtcStatsType_UnimplementedImpl implements RtcStatsType_Unimplemented {
+  const _$RtcStatsType_UnimplementedImpl();
 
   @override
   String toString() {
@@ -9031,7 +9069,7 @@ class _$RtcStatsType_Unimplemented implements RtcStatsType_Unimplemented {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RtcStatsType_Unimplemented);
+            other is _$RtcStatsType_UnimplementedImpl);
   }
 
   @override
@@ -9274,5 +9312,5 @@ class _$RtcStatsType_Unimplemented implements RtcStatsType_Unimplemented {
 }
 
 abstract class RtcStatsType_Unimplemented implements RtcStatsType {
-  const factory RtcStatsType_Unimplemented() = _$RtcStatsType_Unimplemented;
+  const factory RtcStatsType_Unimplemented() = _$RtcStatsType_UnimplementedImpl;
 }

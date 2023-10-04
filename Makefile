@@ -134,7 +134,7 @@ flutter.run:
 # Run Flutter plugin integration tests on the current host as desktop.
 #
 # Usage:
-#	make flutter.test [debug=(no|yes)]
+#	make flutter.test.desktop [debug=(no|yes)]
 
 flutter.test.desktop:
 	cd example/ && \
@@ -302,7 +302,8 @@ endif
 		--dart-output=lib/src/api/bridge.g.dart \
 		--skip-add-mod-to-lib \
 		--no-build-runner \
-		--dart-format-line-length=80
+		--dart-enums-style \
+		--inline-rust
 	flutter pub run build_runner build --delete-conflicting-outputs
 
 
@@ -392,6 +393,7 @@ endif
 swift.fmt:
 ifeq ($(dockerized),yes)
 	docker run --rm -v "$(PWD)":/app -w /app \
+		-u $(shell id -u):$(shell id -g) \
 		ghcr.io/nicklockwood/swiftformat:latest \
 			$(if $(call eq,$(check),yes),--lint,) ios/Classes/
 else

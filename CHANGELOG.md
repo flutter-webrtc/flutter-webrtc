@@ -11,6 +11,10 @@ All user visible changes to this project will be documented in this file. This p
 
 [Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.8.2...0.8.3)
 
+### Added
+
+- `RtpTransceiverInit.sendEncodings` field with `SendEncodingParameters`. ([#125])
+
 ### Changed
 
 - Refactor Audio Device Module to use [OpenAL] library for playout. ([#117])
@@ -21,6 +25,7 @@ All user visible changes to this project will be documented in this file. This p
 [#119]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/119
 [#120]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/120
 [#123]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/123
+[#125]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/125
 [116.0.5845.110]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/116.0.5845.110
 
 

@@ -65,6 +65,39 @@ abstract class MedeaFlutterWebrtcNative {
 
   FlutterRustBridgeTaskConstMeta get kCreateAnswerConstMeta;
 
+  /// Creates a new default [`RtpTransceiverInit`].
+  Future<ArcRtpTransceiverInit> createTransceiverInit({dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kCreateTransceiverInitConstMeta;
+
+  /// Sets the provided [`RtpTransceiverDirection`] to the [`RtpTransceiverInit`].
+  Future<void> setTransceiverInitDirection(
+      {required ArcRtpTransceiverInit init,
+      required RtpTransceiverDirection direction,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetTransceiverInitDirectionConstMeta;
+
+  /// Adds the provided [`RtpEncodingParameters`] to the [`RtpTransceiverInit`].
+  Future<void> addTransceiverInitSendEncoding(
+      {required ArcRtpTransceiverInit init,
+      required ArcRtpEncodingParameters encoding,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kAddTransceiverInitSendEncodingConstMeta;
+
+  /// Creates new [`RtpEncodingParameters`] with the provided settings.
+  Future<ArcRtpEncodingParameters> createEncodingParameters(
+      {required String rid,
+      required bool active,
+      int? maxBitrate,
+      double? maxFramerate,
+      double? scaleResolutionDownBy,
+      String? scalabilityMode,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kCreateEncodingParametersConstMeta;
+
   /// Changes the local description associated with the connection.
   Future<void> setLocalDescription(
       {required ArcPeerConnection peer,
@@ -89,7 +122,7 @@ abstract class MedeaFlutterWebrtcNative {
   Future<RtcRtpTransceiver> addTransceiver(
       {required ArcPeerConnection peer,
       required MediaType mediaType,
-      required RtpTransceiverDirection direction,
+      required ArcRtpTransceiverInit init,
       dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kAddTransceiverConstMeta;
@@ -286,9 +319,17 @@ abstract class MedeaFlutterWebrtcNative {
   ShareFnType get shareOpaqueArcPeerConnection;
   OpaqueTypeFinalizer get ArcPeerConnectionFinalizer;
 
+  DropFnType get dropOpaqueArcRtpEncodingParameters;
+  ShareFnType get shareOpaqueArcRtpEncodingParameters;
+  OpaqueTypeFinalizer get ArcRtpEncodingParametersFinalizer;
+
   DropFnType get dropOpaqueArcRtpTransceiver;
   ShareFnType get shareOpaqueArcRtpTransceiver;
   OpaqueTypeFinalizer get ArcRtpTransceiverFinalizer;
+
+  DropFnType get dropOpaqueArcRtpTransceiverInit;
+  ShareFnType get shareOpaqueArcRtpTransceiverInit;
+  OpaqueTypeFinalizer get ArcRtpTransceiverInitFinalizer;
 }
 
 @sealed
@@ -307,6 +348,22 @@ class ArcPeerConnection extends FrbOpaque {
 }
 
 @sealed
+class ArcRtpEncodingParameters extends FrbOpaque {
+  final MedeaFlutterWebrtcNative bridge;
+  ArcRtpEncodingParameters.fromRaw(int ptr, int size, this.bridge)
+      : super.unsafe(ptr, size);
+  @override
+  DropFnType get dropFn => bridge.dropOpaqueArcRtpEncodingParameters;
+
+  @override
+  ShareFnType get shareFn => bridge.shareOpaqueArcRtpEncodingParameters;
+
+  @override
+  OpaqueTypeFinalizer get staticFinalizer =>
+      bridge.ArcRtpEncodingParametersFinalizer;
+}
+
+@sealed
 class ArcRtpTransceiver extends FrbOpaque {
   final MedeaFlutterWebrtcNative bridge;
   ArcRtpTransceiver.fromRaw(int ptr, int size, this.bridge)
@@ -319,6 +376,22 @@ class ArcRtpTransceiver extends FrbOpaque {
 
   @override
   OpaqueTypeFinalizer get staticFinalizer => bridge.ArcRtpTransceiverFinalizer;
+}
+
+@sealed
+class ArcRtpTransceiverInit extends FrbOpaque {
+  final MedeaFlutterWebrtcNative bridge;
+  ArcRtpTransceiverInit.fromRaw(int ptr, int size, this.bridge)
+      : super.unsafe(ptr, size);
+  @override
+  DropFnType get dropFn => bridge.dropOpaqueArcRtpTransceiverInit;
+
+  @override
+  ShareFnType get shareFn => bridge.shareOpaqueArcRtpTransceiverInit;
+
+  @override
+  OpaqueTypeFinalizer get staticFinalizer =>
+      bridge.ArcRtpTransceiverInitFinalizer;
 }
 
 /// Nature and settings of the audio [`MediaStreamTrack`] returned by
@@ -351,17 +424,17 @@ enum BundlePolicy {
   /// [RTCBundlePolicy.balanced][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcbundlepolicy-balanced
-  Balanced,
+  balanced,
 
   /// [RTCBundlePolicy.max-bundle][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcbundlepolicy-max-bundle
-  MaxBundle,
+  maxBundle,
 
   /// [RTCBundlePolicy.max-compat][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcbundlepolicy-max-compat
-  MaxCompat,
+  maxCompat,
 }
 
 /// [RTCIceCandidateType] represents the type of the ICE candidate, as defined
@@ -373,24 +446,24 @@ enum CandidateType {
   /// Host candidate, as defined in [Section 4.1.1.1 of RFC 5245][1].
   ///
   /// [1]: https://tools.ietf.org/html/rfc5245#section-4.1.1.1
-  Host,
+  host,
 
   /// Server reflexive candidate, as defined in
   /// [Section 4.1.1.2 of RFC 5245][1].
   ///
   /// [1]: https://tools.ietf.org/html/rfc5245#section-4.1.1.2
-  Srflx,
+  srflx,
 
   /// Peer reflexive candidate, as defined in
   /// [Section 4.1.1.2 of RFC 5245][1].
   ///
   /// [1]: https://tools.ietf.org/html/rfc5245#section-4.1.1.2
-  Prflx,
+  prflx,
 
   /// Relay candidate, as defined in [Section 7.1.3.2.1 of RFC 5245][1].
   ///
   /// [1]: https://tools.ietf.org/html/rfc5245#section-7.1.3.2.1
-  Relay,
+  relay,
 }
 
 @freezed
@@ -493,32 +566,32 @@ enum IceConnectionState {
   /// [RTCIceConnectionState.checking][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-checking
-  Checking,
+  checking,
 
   /// [RTCIceConnectionState.connected][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-connected
-  Connected,
+  connected,
 
   /// [RTCIceConnectionState.completed][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-completed
-  Completed,
+  completed,
 
   /// [RTCIceConnectionState.failed][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-failed
-  Failed,
+  failed,
 
   /// [RTCIceConnectionState.disconnected][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-disconnected
-  Disconnected,
+  disconnected,
 
   /// [RTCIceConnectionState.closed][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtciceconnectionstate-closed
-  Closed,
+  closed,
 }
 
 /// [RTCIceGatheringState][1] representation.
@@ -533,12 +606,12 @@ enum IceGatheringState {
   /// [RTCIceGatheringState.gathering][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicegatheringstate-gathering
-  Gathering,
+  gathering,
 
   /// [RTCIceGatheringState.complete][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicegatheringstate-complete
-  Complete,
+  complete,
 }
 
 /// Variants of [ICE roles][1].
@@ -552,17 +625,17 @@ enum IceRole {
   /// been determined.
   ///
   /// [1]: https://tools.ietf.org/html/rfc5245#section-3
-  Unknown,
+  unknown,
 
   /// Controlling agent as defined by [Section 3 in RFC 5245][1].
   ///
   /// [1]: https://tools.ietf.org/html/rfc5245#section-3
-  Controlling,
+  controlling,
 
   /// Controlled agent as defined by [Section 3 in RFC 5245][1].
   ///
   /// [1]: https://tools.ietf.org/html/rfc5245#section-3
-  Controlled,
+  controlled,
 }
 
 /// [RTCIceTransportPolicy][1] representation.
@@ -577,20 +650,20 @@ enum IceTransportsType {
   /// [RTCIceTransportPolicy.all][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicetransportpolicy-all
-  All,
+  all,
 
   /// [RTCIceTransportPolicy.relay][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcicetransportpolicy-relay
-  Relay,
+  relay,
 
   /// ICE Agent can't use `typ host` candidates when this value is specified.
   ///
   /// Non-spec-compliant variant.
-  NoHost,
+  noHost,
 
   /// No ICE candidate offered.
-  None,
+  none,
 }
 
 /// Information describing a single media input or output device.
@@ -614,13 +687,13 @@ class MediaDeviceInfo {
 /// Possible kinds of media devices.
 enum MediaDeviceKind {
   /// Audio input device (for example, a microphone).
-  AudioInput,
+  audioInput,
 
   /// Audio output device (for example, a pair of headphones).
-  AudioOutput,
+  audioOutput,
 
   /// Video input device (for example, a webcam).
-  VideoInput,
+  videoInput,
 }
 
 /// Information describing a display.
@@ -686,10 +759,10 @@ class MediaStreamTrack {
 /// Possible media types of a [`MediaStreamTrack`].
 enum MediaType {
   /// Audio [`MediaStreamTrack`].
-  Audio,
+  audio,
 
   /// Video [`MediaStreamTrack`].
-  Video,
+  video,
 }
 
 @freezed
@@ -806,24 +879,24 @@ enum PeerConnectionState {
   /// either [`IceConnectionState::Checking`] or
   /// [`IceConnectionState::Connected`], and no transports are in the
   /// `failed` state.
-  Connecting,
+  connecting,
 
   /// Every ICE transport used by the connection is either in use (state
   /// `connected` or `completed`) or is closed (state `closed`). In addition,
   /// at least one transport is either `connected` or `completed`.
-  Connected,
+  connected,
 
   /// At least one of the ICE transports for the connection is in the
   /// `disconnected` state and none of the other transports are in the state
   /// `failed`, `connecting` or `checking`.
-  Disconnected,
+  disconnected,
 
   /// One or more of the ICE transports on the connection is in the `failed`
   /// state.
-  Failed,
+  failed,
 
   /// Peer connection is closed.
-  Closed,
+  closed,
 }
 
 /// Transport protocols used in [WebRTC].
@@ -833,12 +906,12 @@ enum Protocol {
   /// [Transmission Control Protocol][1].
   ///
   /// [1]: https://en.wikipedia.org/wiki/Transmission_Control_Protocol
-  Tcp,
+  tcp,
 
   /// [User Datagram Protocol][1].
   ///
   /// [1]: https://en.wikipedia.org/wiki/User_Datagram_Protocol
-  Udp,
+  udp,
 }
 
 /// [`PeerConnection`]'s configuration.
@@ -1221,21 +1294,21 @@ enum RtcStatsIceCandidatePairState {
   /// Check for this pair hasn't been performed, and it can't yet be performed
   /// until some other check succeeds, allowing this pair to unfreeze and move
   /// into the [`RtcStatsIceCandidatePairState::Waiting`] state.
-  Frozen,
+  frozen,
 
   /// Check has not been performed for this pair, and can be performed as soon
   /// as it is the highest-priority Waiting pair on the check list.
-  Waiting,
+  waiting,
 
   /// Check has been sent for this pair, but the transaction is in progress.
-  InProgress,
+  inProgress,
 
   /// Check for this pair was already done and failed, either never producing
   /// any response or producing an unrecoverable failure response.
-  Failed,
+  failed,
 
   /// Check for this pair was already done and produced a successful result.
-  Succeeded,
+  succeeded,
 }
 
 @freezed
@@ -1605,7 +1678,7 @@ enum RtpTransceiverDirection {
   ///
   /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
   /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-  SendRecv,
+  sendRecv,
 
   /// The [`RTCRtpTransceiver`]'s [RTCRtpSender] will offer to send RTP, and
   /// will send RTP if the remote peer accepts. The [`RTCRtpTransceiver`]'s
@@ -1614,7 +1687,7 @@ enum RtpTransceiverDirection {
   ///
   /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
   /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-  SendOnly,
+  sendOnly,
 
   /// The [`RTCRtpTransceiver`]'s [RTCRtpSender] will not offer to send RTP,
   /// and will not send RTP. The [`RTCRtpTransceiver`]'s [RTCRtpReceiver] will
@@ -1622,7 +1695,7 @@ enum RtpTransceiverDirection {
   ///
   /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
   /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-  RecvOnly,
+  recvOnly,
 
   /// The [`RTCRtpTransceiver`]'s [RTCRtpSender] will not offer to send RTP,
   /// and will not send RTP. The [`RTCRtpTransceiver`]'s [RTCRtpReceiver] will
@@ -1630,7 +1703,7 @@ enum RtpTransceiverDirection {
   ///
   /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
   /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-  Inactive,
+  inactive,
 
   /// The [`RTCRtpTransceiver`] will neither send nor receive RTP. It will
   /// generate a zero port in the offer. In answers, its [RTCRtpSender] will
@@ -1639,7 +1712,7 @@ enum RtpTransceiverDirection {
   ///
   /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
   /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-  Stopped,
+  stopped,
 }
 
 /// [RTCSdpType] representation.
@@ -1649,22 +1722,22 @@ enum SdpType {
   /// [RTCSdpType.offer][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcsdptype-offer
-  Offer,
+  offer,
 
   /// [RTCSdpType.pranswer][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcsdptype-pranswer
-  PrAnswer,
+  prAnswer,
 
   /// [RTCSdpType.answer][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcsdptype-answer
-  Answer,
+  answer,
 
   /// [RTCSdpType.rollback][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcsdptype-rollback
-  Rollback,
+  rollback,
 }
 
 /// [RTCSignalingState] representation.
@@ -1674,32 +1747,32 @@ enum SignalingState {
   /// [RTCSignalingState.stable][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcsignalingstate-stable
-  Stable,
+  stable,
 
   /// [RTCSignalingState.have-local-offer][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcsignalingstate-have-local-offer
-  HaveLocalOffer,
+  haveLocalOffer,
 
   /// [RTCSignalingState.have-local-pranswer][1] representation.
   ///
   /// [1]: https://tinyurl.com/have-local-pranswer
-  HaveLocalPrAnswer,
+  haveLocalPrAnswer,
 
   /// [RTCSignalingState.have-remote-offer][1] representation.
   ///
   /// [1]: https://tinyurl.com/have-remote-offer
-  HaveRemoteOffer,
+  haveRemoteOffer,
 
   /// [RTCSignalingState.have-remote-pranswer][1] representation.
   ///
   /// [1]: https://tinyurl.com/have-remote-pranswer
-  HaveRemotePrAnswer,
+  haveRemotePrAnswer,
 
   /// [RTCSignalingState.closed][1] representation.
   ///
   /// [1]: https://w3.org/TR/webrtc#dom-rtcsignalingstate-closed
-  Closed,
+  closed,
 }
 
 /// Indicator of the current state of a [`MediaStreamTrack`].
@@ -1707,7 +1780,7 @@ enum TrackEvent {
   /// Ended event of the [`MediaStreamTrack`] interface is fired when playback
   /// or streaming has stopped because the end of the media was reached or
   /// because no further data is available.
-  Ended,
+  ended,
 }
 
 /// Indicator of the current [MediaStreamTrackState][0] of a
@@ -1718,12 +1791,12 @@ enum TrackState {
   /// [MediaStreamTrackState.live][0] representation.
   ///
   /// [0]: https://tinyurl.com/w3mcs#idl-def-MediaStreamTrackState.live
-  Live,
+  live,
 
   /// [MediaStreamTrackState.ended][0] representation.
   ///
   /// [0]: https://tinyurl.com/w3mcs#idl-def-MediaStreamTrackState.ended
-  Ended,
+  ended,
 }
 
 /// Nature and settings of the video [`MediaStreamTrack`] returned by
@@ -1901,6 +1974,110 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
         argNames: ["peer", "voiceActivityDetection", "iceRestart", "useRtpMux"],
       );
 
+  Future<ArcRtpTransceiverInit> createTransceiverInit({dynamic hint}) {
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner.wire_create_transceiver_init(port_),
+      parseSuccessData: _wire2api_ArcRtpTransceiverInit,
+      constMeta: kCreateTransceiverInitConstMeta,
+      argValues: [],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kCreateTransceiverInitConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "create_transceiver_init",
+        argNames: [],
+      );
+
+  Future<void> setTransceiverInitDirection(
+      {required ArcRtpTransceiverInit init,
+      required RtpTransceiverDirection direction,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_ArcRtpTransceiverInit(init);
+    var arg1 = api2wire_rtp_transceiver_direction(direction);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_transceiver_init_direction(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetTransceiverInitDirectionConstMeta,
+      argValues: [init, direction],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetTransceiverInitDirectionConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_transceiver_init_direction",
+        argNames: ["init", "direction"],
+      );
+
+  Future<void> addTransceiverInitSendEncoding(
+      {required ArcRtpTransceiverInit init,
+      required ArcRtpEncodingParameters encoding,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_ArcRtpTransceiverInit(init);
+    var arg1 = _platform.api2wire_ArcRtpEncodingParameters(encoding);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_add_transceiver_init_send_encoding(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kAddTransceiverInitSendEncodingConstMeta,
+      argValues: [init, encoding],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kAddTransceiverInitSendEncodingConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "add_transceiver_init_send_encoding",
+        argNames: ["init", "encoding"],
+      );
+
+  Future<ArcRtpEncodingParameters> createEncodingParameters(
+      {required String rid,
+      required bool active,
+      int? maxBitrate,
+      double? maxFramerate,
+      double? scaleResolutionDownBy,
+      String? scalabilityMode,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_String(rid);
+    var arg1 = active;
+    var arg2 = _platform.api2wire_opt_box_autoadd_i32(maxBitrate);
+    var arg3 = _platform.api2wire_opt_box_autoadd_f64(maxFramerate);
+    var arg4 = _platform.api2wire_opt_box_autoadd_f64(scaleResolutionDownBy);
+    var arg5 = _platform.api2wire_opt_String(scalabilityMode);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner.wire_create_encoding_parameters(
+          port_, arg0, arg1, arg2, arg3, arg4, arg5),
+      parseSuccessData: _wire2api_ArcRtpEncodingParameters,
+      constMeta: kCreateEncodingParametersConstMeta,
+      argValues: [
+        rid,
+        active,
+        maxBitrate,
+        maxFramerate,
+        scaleResolutionDownBy,
+        scalabilityMode
+      ],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kCreateEncodingParametersConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "create_encoding_parameters",
+        argNames: [
+          "rid",
+          "active",
+          "maxBitrate",
+          "maxFramerate",
+          "scaleResolutionDownBy",
+          "scalabilityMode"
+        ],
+      );
+
   Future<void> setLocalDescription(
       {required ArcPeerConnection peer,
       required SdpType kind,
@@ -1952,17 +2129,17 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   Future<RtcRtpTransceiver> addTransceiver(
       {required ArcPeerConnection peer,
       required MediaType mediaType,
-      required RtpTransceiverDirection direction,
+      required ArcRtpTransceiverInit init,
       dynamic hint}) {
     var arg0 = _platform.api2wire_ArcPeerConnection(peer);
     var arg1 = api2wire_media_type(mediaType);
-    var arg2 = api2wire_rtp_transceiver_direction(direction);
+    var arg2 = _platform.api2wire_ArcRtpTransceiverInit(init);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
           _platform.inner.wire_add_transceiver(port_, arg0, arg1, arg2),
       parseSuccessData: _wire2api_rtc_rtp_transceiver,
       constMeta: kAddTransceiverConstMeta,
-      argValues: [peer, mediaType, direction],
+      argValues: [peer, mediaType, init],
       hint: hint,
     ));
   }
@@ -1970,7 +2147,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kAddTransceiverConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "add_transceiver",
-        argNames: ["peer", "mediaType", "direction"],
+        argNames: ["peer", "mediaType", "init"],
       );
 
   Future<List<RtcRtpTransceiver>> getTransceivers(
@@ -2469,12 +2646,26 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   OpaqueTypeFinalizer get ArcPeerConnectionFinalizer =>
       _platform.ArcPeerConnectionFinalizer;
 
+  DropFnType get dropOpaqueArcRtpEncodingParameters =>
+      _platform.inner.drop_opaque_ArcRtpEncodingParameters;
+  ShareFnType get shareOpaqueArcRtpEncodingParameters =>
+      _platform.inner.share_opaque_ArcRtpEncodingParameters;
+  OpaqueTypeFinalizer get ArcRtpEncodingParametersFinalizer =>
+      _platform.ArcRtpEncodingParametersFinalizer;
+
   DropFnType get dropOpaqueArcRtpTransceiver =>
       _platform.inner.drop_opaque_ArcRtpTransceiver;
   ShareFnType get shareOpaqueArcRtpTransceiver =>
       _platform.inner.share_opaque_ArcRtpTransceiver;
   OpaqueTypeFinalizer get ArcRtpTransceiverFinalizer =>
       _platform.ArcRtpTransceiverFinalizer;
+
+  DropFnType get dropOpaqueArcRtpTransceiverInit =>
+      _platform.inner.drop_opaque_ArcRtpTransceiverInit;
+  ShareFnType get shareOpaqueArcRtpTransceiverInit =>
+      _platform.inner.share_opaque_ArcRtpTransceiverInit;
+  OpaqueTypeFinalizer get ArcRtpTransceiverInitFinalizer =>
+      _platform.ArcRtpTransceiverInitFinalizer;
 
   void dispose() {
     _platform.dispose();
@@ -2485,8 +2676,16 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
     return ArcPeerConnection.fromRaw(raw[0], raw[1], this);
   }
 
+  ArcRtpEncodingParameters _wire2api_ArcRtpEncodingParameters(dynamic raw) {
+    return ArcRtpEncodingParameters.fromRaw(raw[0], raw[1], this);
+  }
+
   ArcRtpTransceiver _wire2api_ArcRtpTransceiver(dynamic raw) {
     return ArcRtpTransceiver.fromRaw(raw[0], raw[1], this);
+  }
+
+  ArcRtpTransceiverInit _wire2api_ArcRtpTransceiverInit(dynamic raw) {
+    return ArcRtpTransceiverInit.fromRaw(raw[0], raw[1], this);
   }
 
   String _wire2api_String(dynamic raw) {
@@ -3052,6 +3251,11 @@ int api2wire_bundle_policy(BundlePolicy raw) {
 }
 
 @protected
+double api2wire_f64(double raw) {
+  return raw;
+}
+
+@protected
 int api2wire_i32(int raw) {
   return raw;
 }
@@ -3103,9 +3307,25 @@ class MedeaFlutterWebrtcNativePlatform
   }
 
   @protected
+  wire_ArcRtpEncodingParameters api2wire_ArcRtpEncodingParameters(
+      ArcRtpEncodingParameters raw) {
+    final ptr = inner.new_ArcRtpEncodingParameters();
+    _api_fill_to_wire_ArcRtpEncodingParameters(raw, ptr);
+    return ptr;
+  }
+
+  @protected
   wire_ArcRtpTransceiver api2wire_ArcRtpTransceiver(ArcRtpTransceiver raw) {
     final ptr = inner.new_ArcRtpTransceiver();
     _api_fill_to_wire_ArcRtpTransceiver(raw, ptr);
+    return ptr;
+  }
+
+  @protected
+  wire_ArcRtpTransceiverInit api2wire_ArcRtpTransceiverInit(
+      ArcRtpTransceiverInit raw) {
+    final ptr = inner.new_ArcRtpTransceiverInit();
+    _api_fill_to_wire_ArcRtpTransceiverInit(raw, ptr);
     return ptr;
   }
 
@@ -3129,6 +3349,16 @@ class MedeaFlutterWebrtcNativePlatform
     final ptr = inner.new_box_autoadd_audio_constraints_0();
     _api_fill_to_wire_audio_constraints(raw, ptr.ref);
     return ptr;
+  }
+
+  @protected
+  ffi.Pointer<ffi.Double> api2wire_box_autoadd_f64(double raw) {
+    return inner.new_box_autoadd_f64_0(api2wire_f64(raw));
+  }
+
+  @protected
+  ffi.Pointer<ffi.Int32> api2wire_box_autoadd_i32(int raw) {
+    return inner.new_box_autoadd_i32_0(api2wire_i32(raw));
   }
 
   @protected
@@ -3185,6 +3415,16 @@ class MedeaFlutterWebrtcNativePlatform
   }
 
   @protected
+  ffi.Pointer<ffi.Double> api2wire_opt_box_autoadd_f64(double? raw) {
+    return raw == null ? ffi.nullptr : api2wire_box_autoadd_f64(raw);
+  }
+
+  @protected
+  ffi.Pointer<ffi.Int32> api2wire_opt_box_autoadd_i32(int? raw) {
+    return raw == null ? ffi.nullptr : api2wire_box_autoadd_i32(raw);
+  }
+
+  @protected
   ffi.Pointer<wire_VideoConstraints> api2wire_opt_box_autoadd_video_constraints(
       VideoConstraints? raw) {
     return raw == null
@@ -3210,10 +3450,18 @@ class MedeaFlutterWebrtcNativePlatform
       OpaqueTypeFinalizer(inner._drop_opaque_ArcPeerConnectionPtr);
   OpaqueTypeFinalizer get ArcPeerConnectionFinalizer =>
       _ArcPeerConnectionFinalizer;
+  late final OpaqueTypeFinalizer _ArcRtpEncodingParametersFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_ArcRtpEncodingParametersPtr);
+  OpaqueTypeFinalizer get ArcRtpEncodingParametersFinalizer =>
+      _ArcRtpEncodingParametersFinalizer;
   late final OpaqueTypeFinalizer _ArcRtpTransceiverFinalizer =
       OpaqueTypeFinalizer(inner._drop_opaque_ArcRtpTransceiverPtr);
   OpaqueTypeFinalizer get ArcRtpTransceiverFinalizer =>
       _ArcRtpTransceiverFinalizer;
+  late final OpaqueTypeFinalizer _ArcRtpTransceiverInitFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_ArcRtpTransceiverInitPtr);
+  OpaqueTypeFinalizer get ArcRtpTransceiverInitFinalizer =>
+      _ArcRtpTransceiverInitFinalizer;
 // Section: api_fill_to_wire
 
   void _api_fill_to_wire_ArcPeerConnection(
@@ -3221,8 +3469,18 @@ class MedeaFlutterWebrtcNativePlatform
     wireObj.ptr = apiObj.shareOrMove();
   }
 
+  void _api_fill_to_wire_ArcRtpEncodingParameters(
+      ArcRtpEncodingParameters apiObj, wire_ArcRtpEncodingParameters wireObj) {
+    wireObj.ptr = apiObj.shareOrMove();
+  }
+
   void _api_fill_to_wire_ArcRtpTransceiver(
       ArcRtpTransceiver apiObj, wire_ArcRtpTransceiver wireObj) {
+    wireObj.ptr = apiObj.shareOrMove();
+  }
+
+  void _api_fill_to_wire_ArcRtpTransceiverInit(
+      ArcRtpTransceiverInit apiObj, wire_ArcRtpTransceiverInit wireObj) {
     wireObj.ptr = apiObj.shareOrMove();
   }
 
@@ -3511,6 +3769,104 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
   late final _wire_create_answer = _wire_create_answerPtr.asFunction<
       void Function(int, wire_ArcPeerConnection, bool, bool, bool)>();
 
+  void wire_create_transceiver_init(
+    int port_,
+  ) {
+    return _wire_create_transceiver_init(
+      port_,
+    );
+  }
+
+  late final _wire_create_transceiver_initPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_create_transceiver_init');
+  late final _wire_create_transceiver_init =
+      _wire_create_transceiver_initPtr.asFunction<void Function(int)>();
+
+  void wire_set_transceiver_init_direction(
+    int port_,
+    wire_ArcRtpTransceiverInit init,
+    int direction,
+  ) {
+    return _wire_set_transceiver_init_direction(
+      port_,
+      init,
+      direction,
+    );
+  }
+
+  late final _wire_set_transceiver_init_directionPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, wire_ArcRtpTransceiverInit,
+              ffi.Int32)>>('wire_set_transceiver_init_direction');
+  late final _wire_set_transceiver_init_direction =
+      _wire_set_transceiver_init_directionPtr
+          .asFunction<void Function(int, wire_ArcRtpTransceiverInit, int)>();
+
+  void wire_add_transceiver_init_send_encoding(
+    int port_,
+    wire_ArcRtpTransceiverInit init,
+    wire_ArcRtpEncodingParameters encoding,
+  ) {
+    return _wire_add_transceiver_init_send_encoding(
+      port_,
+      init,
+      encoding,
+    );
+  }
+
+  late final _wire_add_transceiver_init_send_encodingPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, wire_ArcRtpTransceiverInit,
+                  wire_ArcRtpEncodingParameters)>>(
+      'wire_add_transceiver_init_send_encoding');
+  late final _wire_add_transceiver_init_send_encoding =
+      _wire_add_transceiver_init_send_encodingPtr.asFunction<
+          void Function(int, wire_ArcRtpTransceiverInit,
+              wire_ArcRtpEncodingParameters)>();
+
+  void wire_create_encoding_parameters(
+    int port_,
+    ffi.Pointer<wire_uint_8_list> rid,
+    bool active,
+    ffi.Pointer<ffi.Int32> max_bitrate,
+    ffi.Pointer<ffi.Double> max_framerate,
+    ffi.Pointer<ffi.Double> scale_resolution_down_by,
+    ffi.Pointer<wire_uint_8_list> scalability_mode,
+  ) {
+    return _wire_create_encoding_parameters(
+      port_,
+      rid,
+      active,
+      max_bitrate,
+      max_framerate,
+      scale_resolution_down_by,
+      scalability_mode,
+    );
+  }
+
+  late final _wire_create_encoding_parametersPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(
+                  ffi.Int64,
+                  ffi.Pointer<wire_uint_8_list>,
+                  ffi.Bool,
+                  ffi.Pointer<ffi.Int32>,
+                  ffi.Pointer<ffi.Double>,
+                  ffi.Pointer<ffi.Double>,
+                  ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_create_encoding_parameters');
+  late final _wire_create_encoding_parameters =
+      _wire_create_encoding_parametersPtr.asFunction<
+          void Function(
+              int,
+              ffi.Pointer<wire_uint_8_list>,
+              bool,
+              ffi.Pointer<ffi.Int32>,
+              ffi.Pointer<ffi.Double>,
+              ffi.Pointer<ffi.Double>,
+              ffi.Pointer<wire_uint_8_list>)>();
+
   void wire_set_local_description(
     int port_,
     wire_ArcPeerConnection peer,
@@ -3561,22 +3917,23 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
     int port_,
     wire_ArcPeerConnection peer,
     int media_type,
-    int direction,
+    wire_ArcRtpTransceiverInit init,
   ) {
     return _wire_add_transceiver(
       port_,
       peer,
       media_type,
-      direction,
+      init,
     );
   }
 
   late final _wire_add_transceiverPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Int64, wire_ArcPeerConnection, ffi.Int32,
-              ffi.Int32)>>('wire_add_transceiver');
-  late final _wire_add_transceiver = _wire_add_transceiverPtr
-      .asFunction<void Function(int, wire_ArcPeerConnection, int, int)>();
+              wire_ArcRtpTransceiverInit)>>('wire_add_transceiver');
+  late final _wire_add_transceiver = _wire_add_transceiverPtr.asFunction<
+      void Function(
+          int, wire_ArcPeerConnection, int, wire_ArcRtpTransceiverInit)>();
 
   void wire_get_transceivers(
     int port_,
@@ -4046,6 +4403,16 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
   late final _new_ArcPeerConnection =
       _new_ArcPeerConnectionPtr.asFunction<wire_ArcPeerConnection Function()>();
 
+  wire_ArcRtpEncodingParameters new_ArcRtpEncodingParameters() {
+    return _new_ArcRtpEncodingParameters();
+  }
+
+  late final _new_ArcRtpEncodingParametersPtr =
+      _lookup<ffi.NativeFunction<wire_ArcRtpEncodingParameters Function()>>(
+          'new_ArcRtpEncodingParameters');
+  late final _new_ArcRtpEncodingParameters = _new_ArcRtpEncodingParametersPtr
+      .asFunction<wire_ArcRtpEncodingParameters Function()>();
+
   wire_ArcRtpTransceiver new_ArcRtpTransceiver() {
     return _new_ArcRtpTransceiver();
   }
@@ -4055,6 +4422,16 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
           'new_ArcRtpTransceiver');
   late final _new_ArcRtpTransceiver =
       _new_ArcRtpTransceiverPtr.asFunction<wire_ArcRtpTransceiver Function()>();
+
+  wire_ArcRtpTransceiverInit new_ArcRtpTransceiverInit() {
+    return _new_ArcRtpTransceiverInit();
+  }
+
+  late final _new_ArcRtpTransceiverInitPtr =
+      _lookup<ffi.NativeFunction<wire_ArcRtpTransceiverInit Function()>>(
+          'new_ArcRtpTransceiverInit');
+  late final _new_ArcRtpTransceiverInit = _new_ArcRtpTransceiverInitPtr
+      .asFunction<wire_ArcRtpTransceiverInit Function()>();
 
   ffi.Pointer<wire_StringList> new_StringList_0(
     int len,
@@ -4080,6 +4457,34 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
   late final _new_box_autoadd_audio_constraints_0 =
       _new_box_autoadd_audio_constraints_0Ptr
           .asFunction<ffi.Pointer<wire_AudioConstraints> Function()>();
+
+  ffi.Pointer<ffi.Double> new_box_autoadd_f64_0(
+    double value,
+  ) {
+    return _new_box_autoadd_f64_0(
+      value,
+    );
+  }
+
+  late final _new_box_autoadd_f64_0Ptr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Double> Function(ffi.Double)>>(
+          'new_box_autoadd_f64_0');
+  late final _new_box_autoadd_f64_0 = _new_box_autoadd_f64_0Ptr
+      .asFunction<ffi.Pointer<ffi.Double> Function(double)>();
+
+  ffi.Pointer<ffi.Int32> new_box_autoadd_i32_0(
+    int value,
+  ) {
+    return _new_box_autoadd_i32_0(
+      value,
+    );
+  }
+
+  late final _new_box_autoadd_i32_0Ptr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Int32> Function(ffi.Int32)>>(
+          'new_box_autoadd_i32_0');
+  late final _new_box_autoadd_i32_0 = _new_box_autoadd_i32_0Ptr
+      .asFunction<ffi.Pointer<ffi.Int32> Function(int)>();
 
   ffi.Pointer<wire_MediaStreamConstraints>
       new_box_autoadd_media_stream_constraints_0() {
@@ -4176,6 +4581,37 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
       _share_opaque_ArcPeerConnectionPtr
           .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
 
+  void drop_opaque_ArcRtpEncodingParameters(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _drop_opaque_ArcRtpEncodingParameters(
+      ptr,
+    );
+  }
+
+  late final _drop_opaque_ArcRtpEncodingParametersPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'drop_opaque_ArcRtpEncodingParameters');
+  late final _drop_opaque_ArcRtpEncodingParameters =
+      _drop_opaque_ArcRtpEncodingParametersPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Void> share_opaque_ArcRtpEncodingParameters(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _share_opaque_ArcRtpEncodingParameters(
+      ptr,
+    );
+  }
+
+  late final _share_opaque_ArcRtpEncodingParametersPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(
+              ffi.Pointer<ffi.Void>)>>('share_opaque_ArcRtpEncodingParameters');
+  late final _share_opaque_ArcRtpEncodingParameters =
+      _share_opaque_ArcRtpEncodingParametersPtr
+          .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
+
   void drop_opaque_ArcRtpTransceiver(
     ffi.Pointer<ffi.Void> ptr,
   ) {
@@ -4204,6 +4640,37 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
               ffi.Pointer<ffi.Void>)>>('share_opaque_ArcRtpTransceiver');
   late final _share_opaque_ArcRtpTransceiver =
       _share_opaque_ArcRtpTransceiverPtr
+          .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
+
+  void drop_opaque_ArcRtpTransceiverInit(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _drop_opaque_ArcRtpTransceiverInit(
+      ptr,
+    );
+  }
+
+  late final _drop_opaque_ArcRtpTransceiverInitPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'drop_opaque_ArcRtpTransceiverInit');
+  late final _drop_opaque_ArcRtpTransceiverInit =
+      _drop_opaque_ArcRtpTransceiverInitPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Void> share_opaque_ArcRtpTransceiverInit(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _share_opaque_ArcRtpTransceiverInit(
+      ptr,
+    );
+  }
+
+  late final _share_opaque_ArcRtpTransceiverInitPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(
+              ffi.Pointer<ffi.Void>)>>('share_opaque_ArcRtpTransceiverInit');
+  late final _share_opaque_ArcRtpTransceiverInit =
+      _share_opaque_ArcRtpTransceiverInitPtr
           .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
 
   void free_WireSyncReturn(
@@ -4263,6 +4730,14 @@ final class wire_RtcConfiguration extends ffi.Struct {
 }
 
 final class wire_ArcPeerConnection extends ffi.Struct {
+  external ffi.Pointer<ffi.Void> ptr;
+}
+
+final class wire_ArcRtpTransceiverInit extends ffi.Struct {
+  external ffi.Pointer<ffi.Void> ptr;
+}
+
+final class wire_ArcRtpEncodingParameters extends ffi.Struct {
   external ffi.Pointer<ffi.Void> ptr;
 }
 

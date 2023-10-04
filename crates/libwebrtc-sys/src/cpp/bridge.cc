@@ -6,9 +6,6 @@
 #include <thread>
 
 #include "api/video/i420_buffer.h"
-#include "libwebrtc-sys/include/bridge.h"
-#include "libyuv.h"
-#include "modules/audio_device/include/audio_device_factory.h"
 #include "api/video_codecs/video_decoder_factory_template.h"
 #include "api/video_codecs/video_decoder_factory_template_dav1d_adapter.h"
 #include "api/video_codecs/video_decoder_factory_template_libvpx_vp8_adapter.h"
@@ -19,10 +16,12 @@
 #include "api/video_codecs/video_encoder_factory_template_libvpx_vp8_adapter.h"
 #include "api/video_codecs/video_encoder_factory_template_libvpx_vp9_adapter.h"
 #include "api/video_codecs/video_encoder_factory_template_open_h264_adapter.h"
-#include "pc/proxy.h"
+#include "libwebrtc-sys/include/bridge.h"
 #include "libwebrtc-sys/src/bridge.rs.h"
+#include "libyuv.h"
+#include "modules/audio_device/include/audio_device_factory.h"
+#include "pc/proxy.h"
 #include "test_audio_device_module.cc"
-
 
 namespace bridge {
 
@@ -82,12 +81,11 @@ std::unique_ptr<VideoTrackSourceInterface> create_fake_device_video_source(
 // audio renderer.
 std::unique_ptr<AudioDeviceModule> create_fake_audio_device_module(
     TaskQueueFactory& task_queue_factory) {
-  auto capture =
-      webrtc::CreatePulsedNoiseCapturer(1024, 8000, 1);
+  auto capture = webrtc::CreatePulsedNoiseCapturer(1024, 8000, 1);
   auto renderer = webrtc::CreateDiscardRenderer(8000, 1);
 
-  auto adm_fake = webrtc::CreateTestAdm(
-      &task_queue_factory, std::move(capture), std::move(renderer), 1);
+  auto adm_fake = webrtc::CreateTestAdm(&task_queue_factory, std::move(capture),
+                                        std::move(renderer), 1);
 
   return std::make_unique<AudioDeviceModule>(adm_fake);
 }
@@ -101,15 +99,15 @@ std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
     size_t height,
     size_t fps,
     uint32_t device) {
-    #if __APPLE__
-      auto dvc = signaling_thread.BlockingCall([width, height, fps, device] {
-        return MacCapturer::Create(width, height, fps, device);
-      });
-    #else
-      auto dvc = signaling_thread.BlockingCall([width, height, fps, device] {
-        return DeviceVideoCapturer::Create(width, height, fps, device);
-      });
-    #endif
+#if __APPLE__
+  auto dvc = signaling_thread.BlockingCall([width, height, fps, device] {
+    return MacCapturer::Create(width, height, fps, device);
+  });
+#else
+  auto dvc = signaling_thread.BlockingCall([width, height, fps, device] {
+    return DeviceVideoCapturer::Create(width, height, fps, device);
+  });
+#endif
 
   if (dvc == nullptr) {
     return nullptr;
@@ -129,10 +127,10 @@ std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     Thread& worker_thread,
     AudioLayer audio_layer,
     TaskQueueFactory& task_queue_factory) {
-  AudioDeviceModule adm = worker_thread.BlockingCall([audio_layer,
-                                                      &task_queue_factory] {
-    return ::OpenALPlayoutADM::Create(audio_layer, &task_queue_factory);
-  });
+  AudioDeviceModule adm =
+      worker_thread.BlockingCall([audio_layer, &task_queue_factory] {
+        return ::OpenALPlayoutADM::Create(audio_layer, &task_queue_factory);
+      });
 
   if (adm == nullptr) {
     return nullptr;
@@ -245,8 +243,9 @@ int32_t stop_playout(const AudioDeviceModule& audio_device_module) {
 }
 
 // Sets stereo availability of the specified playout device.
-int32_t stereo_playout_is_available(const AudioDeviceModule& audio_device_module,
-                                    bool available) {
+int32_t stereo_playout_is_available(
+    const AudioDeviceModule& audio_device_module,
+    bool available) {
   return audio_device_module->StereoPlayoutIsAvailable(&available);
 }
 
@@ -331,14 +330,11 @@ std::unique_ptr<VideoTrackSourceInterface> create_display_video_source(
     size_t width,
     size_t height,
     size_t fps) {
-
   rtc::scoped_refptr<ScreenVideoCapturer> capturer(
-      new rtc::RefCountedObject<ScreenVideoCapturer>(id, width,
-                                                     height, fps));
+      new rtc::RefCountedObject<ScreenVideoCapturer>(id, width, height, fps));
 
-  auto src = webrtc::CreateVideoTrackSourceProxy(&signaling_thread,
-                                                 &worker_thread,
-                                                 capturer.get());
+  auto src = webrtc::CreateVideoTrackSourceProxy(
+      &signaling_thread, &worker_thread, capturer.get());
 
   if (src == nullptr) {
     return nullptr;
@@ -366,9 +362,8 @@ std::unique_ptr<VideoTrackInterface> create_video_track(
     const PeerConnectionFactoryInterface& peer_connection_factory,
     rust::String id,
     const VideoTrackSourceInterface& video_source) {
-  auto track =
-      peer_connection_factory->CreateVideoTrack(std::string(id),
-                                                video_source.get());
+  auto track = peer_connection_factory->CreateVideoTrack(std::string(id),
+                                                         video_source.get());
 
   if (track == nullptr) {
     return nullptr;
@@ -382,9 +377,8 @@ std::unique_ptr<AudioTrackInterface> create_audio_track(
     const PeerConnectionFactoryInterface& peer_connection_factory,
     rust::String id,
     const AudioSourceInterface& audio_source) {
-  auto track =
-      peer_connection_factory->CreateAudioTrack(std::string(id),
-                                                audio_source.get());
+  auto track = peer_connection_factory->CreateAudioTrack(std::string(id),
+                                                         audio_source.get());
 
   if (track == nullptr) {
     return nullptr;
@@ -493,8 +487,7 @@ void video_frame_to_argb(const webrtc::VideoFrame& frame,
 
   libyuv::I420ToARGB(buffer->DataY(), buffer->StrideY(), buffer->DataU(),
                      buffer->StrideU(), buffer->DataV(), buffer->StrideV(),
-                     dst_argb, argb_stride, buffer->width(),
-                     buffer->height());
+                     dst_argb, argb_stride, buffer->width(), buffer->height());
 }
 
 // Creates a new `PeerConnectionFactoryInterface`.
@@ -504,23 +497,26 @@ std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
     const std::unique_ptr<Thread>& signaling_thread,
     const std::unique_ptr<AudioDeviceModule>& default_adm,
     const std::unique_ptr<AudioProcessing>& ap) {
-
   std::unique_ptr<webrtc::VideoEncoderFactory> video_encoder_factory =
       std::make_unique<webrtc::VideoEncoderFactoryTemplate<
-          webrtc::LibvpxVp8EncoderTemplateAdapter, webrtc::LibvpxVp9EncoderTemplateAdapter,
-          webrtc::OpenH264EncoderTemplateAdapter, webrtc::LibaomAv1EncoderTemplateAdapter>>();
+          webrtc::LibvpxVp8EncoderTemplateAdapter,
+          webrtc::LibvpxVp9EncoderTemplateAdapter,
+          webrtc::OpenH264EncoderTemplateAdapter,
+          webrtc::LibaomAv1EncoderTemplateAdapter>>();
   std::unique_ptr<webrtc::VideoDecoderFactory> video_decoder_factory =
       std::make_unique<webrtc::VideoDecoderFactoryTemplate<
-          webrtc::LibvpxVp8DecoderTemplateAdapter, webrtc::LibvpxVp9DecoderTemplateAdapter,
-          webrtc::OpenH264DecoderTemplateAdapter, webrtc::Dav1dDecoderTemplateAdapter>>();
+          webrtc::LibvpxVp8DecoderTemplateAdapter,
+          webrtc::LibvpxVp9DecoderTemplateAdapter,
+          webrtc::OpenH264DecoderTemplateAdapter,
+          webrtc::Dav1dDecoderTemplateAdapter>>();
 
   auto factory = webrtc::CreatePeerConnectionFactory(
       network_thread.get(), worker_thread.get(), signaling_thread.get(),
       default_adm ? *default_adm : nullptr,
       webrtc::CreateBuiltinAudioEncoderFactory(),
       webrtc::CreateBuiltinAudioDecoderFactory(),
-      std::move(video_encoder_factory),
-      std::move(video_decoder_factory), nullptr, ap ? *ap : nullptr);
+      std::move(video_encoder_factory), std::move(video_decoder_factory),
+      nullptr, ap ? *ap : nullptr);
 
   if (factory == nullptr) {
     return nullptr;
@@ -620,6 +616,32 @@ std::unique_ptr<RTCOfferAnswerOptions> create_rtc_offer_answer_options(
   return std::make_unique<RTCOfferAnswerOptions>(
       offer_to_receive_video, offer_to_receive_audio, voice_activity_detection,
       ice_restart, use_rtp_mux);
+}
+
+// Creates a new default `RtpTransceiverInit`.
+std::unique_ptr<RtpTransceiverInit> create_default_rtp_transceiver_init() {
+  return std::make_unique<RtpTransceiverInit>();
+}
+
+// Sets an `RtpTransceiverDirection` for the provided `RtpTransceiverInit`.
+void set_rtp_transceiver_init_direction(
+    RtpTransceiverInit& init,
+    webrtc::RtpTransceiverDirection direction) {
+  init.direction = direction;
+}
+
+// Adds an `RtpEncodingParameters` to the provided `RtpTransceiverInit`.
+void add_rtp_transceiver_init_send_encoding(
+    RtpTransceiverInit& init,
+    const RtpEncodingParametersContainer& params) {
+  init.send_encodings.push_back(*params.ptr);
+}
+
+// Creates new default `RtpEncodingParameters`.
+RtpEncodingParametersContainer create_rtp_encoding_parameters() {
+  RtpEncodingParametersContainer res = {
+      std::make_unique<webrtc::RtpEncodingParameters>()};
+  return res;
 }
 
 // Creates a new `CreateSessionDescriptionObserver` from the provided

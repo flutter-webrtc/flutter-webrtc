@@ -28,6 +28,42 @@ void main() {
     await trans.dispose();
   });
 
+  testWidgets('Add transceiver with simulcast', (WidgetTester tester) async {
+    var pc = await PeerConnection.create(IceTransportType.all, []);
+
+    var videoInit1 = RtpTransceiverInit(TransceiverDirection.sendOnly);
+
+    var p1 = SendEncodingParameters("h", true);
+    p1.maxBitrate = 1200 * 1024;
+    p1.maxFramerate = 30;
+    videoInit1.sendEncodings.add(p1);
+
+    var p2 = SendEncodingParameters("m", true);
+    p2.maxBitrate = 600 * 1024;
+    p2.maxFramerate = 30;
+    p2.scaleResolutionDownBy = 2;
+    videoInit1.sendEncodings.add(p2);
+
+    var p3 = SendEncodingParameters("l", true);
+    p3.maxBitrate = 300 * 1024;
+    p3.scaleResolutionDownBy = 4;
+    videoInit1.sendEncodings.add(p3);
+
+    var videoTrans1 = await pc.addTransceiver(MediaKind.video, videoInit1);
+    var response = await pc.createOffer();
+
+    expect(response.description.contains('a=mid:0'), isTrue);
+    expect(response.description.contains('m=video'), isTrue);
+    expect(response.description.contains('sendonly'), isTrue);
+    expect(response.description.contains('a=rid:h send'), isTrue);
+    expect(response.description.contains('a=rid:m send'), isTrue);
+    expect(response.description.contains('a=rid:l send'), isTrue);
+    expect(response.description.contains('a=simulcast:send h;m;l'), isTrue);
+
+    await pc.close();
+    await videoTrans1.dispose();
+  });
+
   testWidgets('Get transceivers', (WidgetTester tester) async {
     var pc = await PeerConnection.create(IceTransportType.all, []);
     var t1 = await pc.addTransceiver(

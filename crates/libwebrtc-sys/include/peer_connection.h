@@ -17,6 +17,7 @@ using SessionDescriptionInterface = webrtc::SessionDescriptionInterface;
 using RtpTransceiverInterface =
     rtc::scoped_refptr<webrtc::RtpTransceiverInterface>;
 using RtpTransceiverDirection = webrtc::RtpTransceiverDirection;
+using RtpTransceiverInit = webrtc::RtpTransceiverInit;
 
 struct TransceiverContainer;
 struct DynPeerConnectionEventsHandler;
@@ -214,7 +215,7 @@ void set_remote_description(PeerConnectionInterface& peer,
 std::unique_ptr<RtpTransceiverInterface> add_transceiver(
     PeerConnectionInterface& peer,
     cricket::MediaType media_type,
-    RtpTransceiverDirection direction);
+    const RtpTransceiverInit& init);
 
 // Returns a list of `RtpTransceiverInterface`s attached to the provided
 // `PeerConnectionInterface`.

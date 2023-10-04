@@ -221,12 +221,9 @@ void set_remote_description(PeerConnectionInterface& peer_connection_interface,
 std::unique_ptr<RtpTransceiverInterface> add_transceiver(
     PeerConnectionInterface& peer,
     cricket::MediaType media_type,
-    RtpTransceiverDirection direction) {
-  auto transceiver_init = webrtc::RtpTransceiverInit();
-  transceiver_init.direction = direction;
-
+    const RtpTransceiverInit& init) {
   return std::make_unique<RtpTransceiverInterface>(
-      peer->AddTransceiver(media_type, transceiver_init).MoveValue());
+      peer->AddTransceiver(media_type, init).MoveValue());
 }
 
 // Calls `PeerConnectionInterface->GetTransceivers`.

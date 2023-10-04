@@ -10,11 +10,11 @@
 #include "api/video_codecs/builtin_video_encoder_factory.h"
 #include "api/video_track_source_proxy_factory.h"
 #if __APPLE__
-  #include "libwebrtc-sys/include/device_info_mac.h"
-  #include "mac_capturer.h"
-  #include "device_info_mac.h"
+#include "device_info_mac.h"
+#include "libwebrtc-sys/include/device_info_mac.h"
+#include "mac_capturer.h"
 #else
-  #include "device_video_capturer.h"
+#include "device_video_capturer.h"
 #endif
 #include "modules/audio_device/include/audio_device.h"
 #include "modules/video_capture/video_capture_factory.h"
@@ -30,8 +30,8 @@
 #include "adm_proxy.h"
 
 #include "media/base/fake_frame_source.h"
-#include "pc/test/fake_video_track_source.h"
 #include "modules/audio_device/include/test_audio_device.h"
+#include "pc/test/fake_video_track_source.h"
 
 namespace bridge {
 
@@ -172,8 +172,9 @@ int32_t set_audio_recording_device(const AudioDeviceModule& audio_device_module,
 int32_t stop_playout(const AudioDeviceModule& audio_device_module);
 
 // Sets stereo availability of the specified playout device.
-int32_t stereo_playout_is_available(const AudioDeviceModule& audio_device_module,
-                                    bool available);
+int32_t stereo_playout_is_available(
+    const AudioDeviceModule& audio_device_module,
+    bool available);
 
 // Initializes the specified audio playout device.
 int32_t init_playout(const AudioDeviceModule& audio_device_module);
@@ -382,6 +383,21 @@ std::unique_ptr<RTCOfferAnswerOptions> create_rtc_offer_answer_options(
     bool voice_activity_detection,
     bool ice_restart,
     bool use_rtp_mux);
+
+// Creates a new default `RtpTransceiverInit`.
+std::unique_ptr<RtpTransceiverInit> create_default_rtp_transceiver_init();
+
+// Sets an `RtpTransceiverDirection` for the provided `RtpTransceiverInit`.
+void set_rtp_transceiver_init_direction(RtpTransceiverInit& init,
+                                        RtpTransceiverDirection direction);
+
+// Adds an `RtpEncodingParameters` to the provided `RtpTransceiverInit`.
+void add_rtp_transceiver_init_send_encoding(
+    RtpTransceiverInit& init,
+    const RtpEncodingParametersContainer& params);
+
+// Creates new default `RtpEncodingParameters`.
+RtpEncodingParametersContainer create_rtp_encoding_parameters();
 
 // Creates a new `CreateSessionDescriptionObserver` from the provided
 // `bridge::DynCreateSdpCallback`.

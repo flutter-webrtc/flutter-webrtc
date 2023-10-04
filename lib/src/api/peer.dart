@@ -440,7 +440,7 @@ class _PeerConnectionFFI extends PeerConnection {
       IceTransportType iceType, List<IceServer> iceServers) async {
     var cfg = ffi.RtcConfiguration(
         iceTransportPolicy: ffi.IceTransportsType.values[iceType.index],
-        bundlePolicy: ffi.BundlePolicy.MaxBundle,
+        bundlePolicy: ffi.BundlePolicy.maxBundle,
         iceServers: iceServers
             .map((server) => ffi.RtcIceServer(
                 urls: server.urls,
@@ -537,10 +537,27 @@ class _PeerConnectionFFI extends PeerConnection {
       MediaKind mediaType, RtpTransceiverInit init) async {
     _checkNotClosed();
 
+    var ffiInit = await api!.createTransceiverInit();
+    await api!.setTransceiverInitDirection(
+        init: ffiInit,
+        direction: ffi.RtpTransceiverDirection.values[init.direction.index]);
+
+    for (var encoding in init.sendEncodings) {
+      var ffiEncoding = await api!.createEncodingParameters(
+          rid: encoding.rid,
+          active: encoding.active,
+          maxBitrate: encoding.maxBitrate,
+          maxFramerate: encoding.maxFramerate,
+          scaleResolutionDownBy: encoding.scaleResolutionDownBy,
+          scalabilityMode: encoding.scalabilityMode);
+      await api!
+          .addTransceiverInitSendEncoding(init: ffiInit, encoding: ffiEncoding);
+    }
+
     var transceiver = RtpTransceiver.fromFFI(await api!.addTransceiver(
         peer: _peer!,
         mediaType: ffi.MediaType.values[mediaType.index],
-        direction: ffi.RtpTransceiverDirection.values[init.direction.index]));
+        init: ffiInit));
     _transceivers.add(transceiver);
 
     return transceiver;

@@ -1521,10 +1521,43 @@ pub(crate) mod webrtc {
 
     #[rustfmt::skip]
     unsafe extern "C++" {
+        pub type RtpTransceiverInit;
+
+        /// Creates a new default [`RtpTransceiverInit`].
+        #[must_use]
+        pub fn create_default_rtp_transceiver_init() -> UniquePtr<RtpTransceiverInit>;
+
+        /// Sets an [`RtpTransceiverDirection`] for the provided
+        /// [`RtpTransceiverInit`].
+        pub fn set_rtp_transceiver_init_direction(
+            init: Pin<&mut RtpTransceiverInit>,
+            direction: RtpTransceiverDirection
+        );
+
+        /// Adds an [`RtpEncodingParameters`] into the provided
+        /// [`RtpTransceiverInit`].
+        pub fn add_rtp_transceiver_init_send_encoding(
+            init: Pin<&mut RtpTransceiverInit>,
+            encoding: &RtpEncodingParametersContainer
+        );
+
+        /// Creates new default [`RtpEncodingParameters`].
+        #[must_use]
+        pub fn create_rtp_encoding_parameters() -> RtpEncodingParametersContainer;
+    }
+
+    #[rustfmt::skip]
+    unsafe extern "C++" {
         include!("libwebrtc-sys/include/rtp_encoding_parameters.h");
 
         #[namespace = "webrtc"]
         pub type RtpEncodingParameters;
+
+        /// Sets the `rid` of the provided [`RtpEncodingParameters`].
+        pub fn set_rtp_encoding_parameters_rid(
+            encoding: Pin<&mut RtpEncodingParameters>,
+            rid: String
+        );
 
         /// Returns the `active` of the provided [`RtpEncodingParameters`].
         #[must_use]
@@ -1532,17 +1565,29 @@ pub(crate) mod webrtc {
             encoding: &RtpEncodingParameters,
         ) -> bool;
 
+        /// Sets the `active` of the provided [`RtpEncodingParameters`].
+        pub fn set_rtp_encoding_parameters_active(
+            encoding: Pin<&mut RtpEncodingParameters>,
+            active: bool
+        );
+
         /// Returns the `maxBitrate` of the provided [`RtpEncodingParameters`].
         ///
         /// [`Result::Err`] means [`None`].
-        pub fn rtp_encoding_parameters_maxBitrate(
+        pub fn rtp_encoding_parameters_max_bitrate(
             encoding: &RtpEncodingParameters,
         ) -> Result<i32>;
+
+        /// Sets the `maxBitrate` of the provided [`RtpEncodingParameters`].
+        pub fn set_rtp_encoding_parameters_max_bitrate(
+            encoding: Pin<&mut RtpEncodingParameters>,
+            max_bitrate: i32
+        );
 
         /// Returns the `minBitrate` of the provided [`RtpEncodingParameters`].
         ///
         /// [`Result::Err`] means [`None`].
-        pub fn rtp_encoding_parameters_minBitrate(
+        pub fn rtp_encoding_parameters_min_bitrate(
             encoding: &RtpEncodingParameters,
         ) -> Result<i32>;
 
@@ -1550,9 +1595,15 @@ pub(crate) mod webrtc {
         /// [`RtpEncodingParameters`].
         ///
         /// [`Result::Err`] means [`None`].
-        pub fn rtp_encoding_parameters_maxFramerate(
+        pub fn rtp_encoding_parameters_max_framerate(
             encoding: &RtpEncodingParameters,
         ) -> Result<f64>;
+
+        /// Sets the `maxFramerate` of the provided [`RtpEncodingParameters`].
+        pub fn set_rtp_encoding_parameters_max_framerate(
+            encoding: Pin<&mut RtpEncodingParameters>,
+            max_framrate: f64
+        );
 
         /// Returns the `ssrc` of the provided [`RtpEncodingParameters`].
         ///
@@ -1568,6 +1619,20 @@ pub(crate) mod webrtc {
         pub fn rtp_encoding_parameters_scale_resolution_down_by(
             encoding: &RtpEncodingParameters,
         ) -> Result<f64>;
+
+        /// Sets the `scale_resolution_down_by` of the provided
+        /// [`RtpEncodingParameters`].
+        pub fn set_rtp_encoding_parameters_scale_resolution_down_by(
+            encoding: Pin<&mut RtpEncodingParameters>,
+            scale_resolution_down_by: f64
+        );
+
+        /// Sets the `scalability_mode` of the provided
+        /// [`RtpEncodingParameters`].
+        pub fn set_rtp_encoding_parameters_scalability_mode(
+            encoding: Pin<&mut RtpEncodingParameters>,
+            scalability_mode: String
+        );
     }
 
     #[rustfmt::skip]
@@ -2031,7 +2096,7 @@ pub(crate) mod webrtc {
         pub fn add_transceiver(
             peer_connection_interface: Pin<&mut PeerConnectionInterface>,
             media_type: MediaType,
-            direction: RtpTransceiverDirection
+            init: &RtpTransceiverInit
         ) -> UniquePtr<RtpTransceiverInterface>;
 
         /// Returns a sequence of [`RtpTransceiverInterface`] objects

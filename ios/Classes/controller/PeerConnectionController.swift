@@ -143,8 +143,30 @@ class PeerConnectionController {
       let mediaType = argsMap!["mediaType"] as? Int
       let initArgs = argsMap!["init"] as? [String: Any]
       let direction = initArgs!["direction"] as? Int
+      let argEncodings = initArgs!["sendEncodings"] as? [[String: Any]]
+      var sendEncodings: [Encoding] = []
+
+      for e in argEncodings! {
+        let rid = e["rid"] as? String
+        let active = e["active"] as? Bool
+        let maxBitrate = e["maxBitrate"] as? Int
+        let maxFramerate = e["maxFramerate"] as? Double
+        let scaleResolutionDownBy = e["scaleResolutionDownBy"] as? Double
+
+        sendEncodings.append(Encoding(
+          rid: rid!,
+          active: active!,
+          maxBitrate: maxBitrate,
+          maxFramerate: maxFramerate,
+          scaleResolutionDownBy: scaleResolutionDownBy
+        ))
+      }
+
       let transceiverInit =
-        TransceiverInit(direction: TransceiverDirection(rawValue: direction!)!)
+        TransceiverInit(
+          direction: TransceiverDirection(rawValue: direction!)!,
+          encodings: sendEncodings
+        )
       let transceiver = RtpTransceiverController(
         messenger: self.messenger,
         transceiver: self.peer.addTransceiver(

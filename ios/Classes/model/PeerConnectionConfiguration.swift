@@ -5,15 +5,25 @@ class TransceiverInit {
   /// Direction of the transceiver, created from this configuration.
   private var direction: TransceiverDirection
 
+  /// Sequence containing parameters for sending RTP encodings of media.
+  private var encodings: [Encoding]
+
   /// Initializes a new `TransceiverInit` configuration with the provided data.
-  init(direction: TransceiverDirection) {
+  init(direction: TransceiverDirection, encodings: [Encoding]) {
     self.direction = direction
+    self.encodings = encodings
   }
 
   /// Converts this `RtpTransceiverInit` into an `RTCRtpTransceiverInit`.
   func intoWebRtc() -> RTCRtpTransceiverInit {
     let conf = RTCRtpTransceiverInit()
+
     conf.direction = self.direction.intoWebRtc()
+    conf.sendEncodings = self.encodings
+      .map { (encoding: Encoding) -> RTCRtpEncodingParameters in
+        encoding.intoWebRtc()
+      }
+
     return conf
   }
 }
