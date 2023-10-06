@@ -228,7 +228,7 @@ abstract class RtcStatsType {
   static RtcStatsType? fromFFI(ffi.RtcStatsType stats) {
     switch (stats.runtimeType.toString().substring(2)) // Skip '_$' prefix.
     {
-      case 'RtcStatsType_RtcMediaSourceStats':
+      case 'RtcStatsType_RtcMediaSourceStatsImpl':
         {
           var source = (stats as ffi.RtcStatsType_RtcMediaSourceStats);
           if (source.kind
@@ -245,39 +245,39 @@ abstract class RtcStatsType {
           }
         }
 
-      case 'RtcStatsType_RtcIceCandidateStats':
+      case 'RtcStatsType_RtcIceCandidateStatsImpl':
         {
           return RtcIceCandidateStats.fromFFI(
               stats as ffi.RtcStatsType_RtcIceCandidateStats);
         }
 
-      case 'RtcStatsType_RtcOutboundRtpStreamStats':
+      case 'RtcStatsType_RtcOutboundRtpStreamStatsImpl':
         {
           return RtcOutboundRtpStreamStats.fromFFI(
               stats as ffi.RtcStatsType_RtcOutboundRtpStreamStats);
         }
 
-      case 'RtcStatsType_RtcInboundRtpStreamStats':
+      case 'RtcStatsType_RtcInboundRtpStreamStatsImpl':
         {
           return RtcInboundRtpStreamStats.fromFFI(
               stats as ffi.RtcStatsType_RtcInboundRtpStreamStats);
         }
-      case 'RtcStatsType_RtcTransportStats':
+      case 'RtcStatsType_RtcTransportStatsImpl':
         {
           return RtcTransportStats.fromFFI(
               stats as ffi.RtcStatsType_RtcTransportStats);
         }
-      case 'RtcStatsType_RtcRemoteInboundRtpStreamStats':
+      case 'RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl':
         {
           return RtcRemoteInboundRtpStreamStats.fromFFI(
               stats as ffi.RtcStatsType_RtcRemoteInboundRtpStreamStats);
         }
-      case 'RtcStatsType_RtcRemoteOutboundRtpStreamStats':
+      case 'RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl':
         {
           return RtcRemoteOutboundRtpStreamStats.fromFFI(
               stats as ffi.RtcStatsType_RtcRemoteOutboundRtpStreamStats);
         }
-      case 'RtcStatsType_RtcIceCandidatePairStats':
+      case 'RtcStatsType_RtcIceCandidatePairStatsImpl':
         {
           return RtcIceCandidatePairStats.fromFFI(
               stats as ffi.RtcStatsType_RtcIceCandidatePairStats);
