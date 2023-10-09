@@ -159,7 +159,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
               decoration: const BoxDecoration(color: Colors.black54),
-              child: VideoView(_localRenderer, mirror: true, autoRotate: false),
+              child: VideoView(_localRenderer, mirror: true),
             ),
           );
         },

@@ -39,13 +39,24 @@ abstract class NativeVideoRenderer extends VideoRenderer {
   late MethodChannel _chan;
 
   @override
-  int get videoWidth => value.width.toInt();
+  int get videoWidth {
+    if (isDesktop) {
+      return value.width.toInt();
+    }
+    return value.rotation % 180 == 0
+        ? value.width.toInt()
+        : value.height.toInt();
+  }
 
   @override
-  int get videoHeight => value.height.toInt();
-
-  @override
-  int get quarterTurnsRotation => value.quarterTurnsRotation;
+  int get videoHeight {
+    if (isDesktop) {
+      return value.height.toInt();
+    }
+    return value.rotation % 180 == 0
+        ? value.height.toInt()
+        : value.width.toInt();
+  }
 
   @override
   int? get textureId => _textureId;
@@ -63,16 +74,24 @@ abstract class NativeVideoRenderer extends VideoRenderer {
   void eventListener(dynamic event) {
     final dynamic map = event;
     switch (map['event']) {
-      case 'onTextureChangeRotation':
-        value =
-            value.copyWith(rotation: map['rotation'], renderVideo: renderVideo);
-        onResize?.call();
-        break;
-      case 'onTextureChangeVideoSize':
+      case 'onTextureChange':
+        var rotation = map['rotation'];
+        var width = 0.0 + map['width'];
+        var height = 0.0 + map['height'];
+
+        var newWidth = rotation % 180 == 0 ? width : height;
+        var newHeight = rotation % 180 == 0 ? height : width;
+
+        width = newWidth;
+        height = newHeight;
+
         value = value.copyWith(
-            width: 0.0 + map['width'],
-            height: 0.0 + map['height'],
-            renderVideo: renderVideo);
+          rotation: rotation,
+          width: width,
+          height: height,
+          renderVideo: renderVideo,
+        );
+
         onResize?.call();
         break;
       case 'onFirstFrameRendered':

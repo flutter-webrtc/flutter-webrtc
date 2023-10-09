@@ -142,28 +142,20 @@ void TextureVideoRenderer::OnFrame(VideoFrame frame) {
     pixel_buffer_->height = 0;
     first_frame_rendered = true;
   }
-  if (rotation_ != frame.rotation) {
+  if (last_frame_size_.width != frame.width ||
+      last_frame_size_.height != frame.height || rotation_ != frame.rotation) {
     if (event_sink_) {
       EncodableMap params;
-      params[EncodableValue("event")] = "onTextureChangeRotation";
+      params[EncodableValue("event")] = "onTextureChange";
       params[EncodableValue("id")] = EncodableValue(texture_id_);
+      params[EncodableValue("width")] = EncodableValue((int32_t) frame.width);
+      params[EncodableValue("height")] =
+          EncodableValue((int32_t) frame.height);
       params[EncodableValue("rotation")] =
           EncodableValue((int32_t) frame.rotation);
       event_sink_->Success(EncodableValue(params));
     }
     rotation_ = frame.rotation;
-  }
-  if (last_frame_size_.width != frame.width ||
-      last_frame_size_.height != frame.height) {
-    if (event_sink_) {
-      EncodableMap params;
-      params[EncodableValue("event")] = "onTextureChangeVideoSize";
-      params[EncodableValue("id")] = EncodableValue(texture_id_);
-      params[EncodableValue("width")] = EncodableValue((int32_t) frame.width);
-      params[EncodableValue("height")] =
-          EncodableValue((int32_t) frame.height);
-      event_sink_->Success(EncodableValue(params));
-    }
     last_frame_size_ = {frame.width, frame.height};
   }
   mutex_.lock();

@@ -16,7 +16,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_rust_bridge: 1.81.0  # should be the same as in `Cargo.lock`
-  freezed_annotation: ^2.2.0
+  freezed_annotation: ^2.4.1
   meta: ^1.8.0
   uuid: ^3.0.7
 dev_dependencies:
@@ -25,7 +25,7 @@ dev_dependencies:
   flutter_lints: ^2.0.1
   flutter_test:
     sdk: flutter
-  freezed: ^2.2.1
+  freezed: ^2.4.3
   import_sorter: ^4.6.0
 
 flutter:

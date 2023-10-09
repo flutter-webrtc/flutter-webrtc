@@ -80,28 +80,18 @@ class TextureVideoRenderer {
       }
       first_frame_rendered = true;
     }
-    if (rotation_ != frame.rotation) {
+    if (!texture_->frame_ ||
+        height_ != frame.height ||
+        width_ != frame.width ||
+        rotation_ != frame.rotation) {
       if (send_events_) {
         g_autoptr(FlValue) map = fl_value_new_map();
 
         fl_value_set_string_take(
-            map, "event", fl_value_new_string("onTextureChangeRotation"));
+            map, "event", fl_value_new_string("onTextureChange"));
         fl_value_set_string_take(map, "id", fl_value_new_int(texture_id_));
         fl_value_set_string_take(map, "rotation",
                                  fl_value_new_int((int32_t)frame.rotation));
-
-        fl_event_channel_send(event_channel_, map, nullptr, nullptr);
-      }
-      rotation_ = frame.rotation;
-    }
-    if (!texture_->frame_ ||
-        texture_->frame_->buffer_size != frame.buffer_size) {
-      if (send_events_) {
-        g_autoptr(FlValue) map = fl_value_new_map();
-
-        fl_value_set_string_take(
-            map, "event", fl_value_new_string("onTextureChangeVideoSize"));
-        fl_value_set_string_take(map, "id", fl_value_new_int(texture_id_));
         fl_value_set_string_take(map, "width",
                                  fl_value_new_int((int32_t)frame.width));
         fl_value_set_string_take(map, "height",
@@ -109,6 +99,9 @@ class TextureVideoRenderer {
 
         fl_event_channel_send(event_channel_, map, nullptr, nullptr);
       }
+      width_ = frame.width;
+      height_ = frame.height;
+      rotation_ = frame.rotation;
     }
 
     texture_->mutex.lock();
@@ -149,6 +142,12 @@ class TextureVideoRenderer {
 
   // Rotation of the current `VideoFrame`.
   int32_t rotation_ = 0;
+
+  // Height of the current `VideoFrame`.
+  size_t height_ = 0;
+
+  // Width of the current `VideoFrame`.
+  size_t width_ = 0;
 };
 
 class FrameHandler : public OnFrameCallbackInterface {

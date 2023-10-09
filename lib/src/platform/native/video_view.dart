@@ -2,17 +2,17 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../api/peer.dart';
 import '../video_renderer.dart';
 
 class VideoView extends StatelessWidget {
-  const VideoView(
+  VideoView(
     this._renderer, {
     Key? key,
     this.objectFit = VideoViewObjectFit.contain,
     this.mirror = false,
     this.enableContextMenu = true,
     this.filterQuality = FilterQuality.low,
-    this.autoRotate = true,
   }) : super(key: key);
 
   final VideoRenderer _renderer;
@@ -20,7 +20,7 @@ class VideoView extends StatelessWidget {
   final bool mirror;
   final bool enableContextMenu;
   final FilterQuality filterQuality;
-  final bool autoRotate;
+  final bool _autoRotate = isDesktop;
 
   NativeVideoRenderer get videoRenderer => _renderer as NativeVideoRenderer;
 
@@ -46,31 +46,29 @@ class VideoView extends StatelessWidget {
               valueListenable: videoRenderer,
               builder:
                   (BuildContext context, RTCVideoValue value, Widget? child) {
-                var sizedBox = SizedBox(
+                Widget result = SizedBox(
                   width: constraints.maxHeight * value.aspectRatio,
                   height: constraints.maxHeight,
                   child: child,
                 );
-                if (autoRotate) {
-                  return RotatedBox(
-                    quarterTurns: value.quarterTurnsRotation,
-                    child: sizedBox,
+                if (_autoRotate) {
+                  result = RotatedBox(
+                    quarterTurns: (value.rotation / 90).round(),
+                    child: result,
                   );
-                } else {
-                  return sizedBox;
                 }
+                return Transform(
+                    transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
+                    alignment: FractionalOffset.center,
+                    child: result);
               },
-              child: Transform(
-                transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
-                alignment: FractionalOffset.center,
-                child: videoRenderer.textureId != null &&
-                        videoRenderer.srcObject != null
-                    ? Texture(
-                        textureId: videoRenderer.textureId!,
-                        filterQuality: filterQuality,
-                      )
-                    : Container(),
-              ),
+              child: videoRenderer.textureId != null &&
+                      videoRenderer.srcObject != null
+                  ? Texture(
+                      textureId: videoRenderer.textureId!,
+                      filterQuality: filterQuality,
+                    )
+                  : Container(),
             ),
           ),
         ),

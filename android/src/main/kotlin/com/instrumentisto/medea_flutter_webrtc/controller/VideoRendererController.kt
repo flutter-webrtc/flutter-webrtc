@@ -43,18 +43,14 @@ class VideoRendererController(
             eventSink?.success(mapOf("event" to "onFirstFrameRendered", "id" to id))
           }
 
-          override fun onTextureChangeVideoSize(id: Long, height: Int, width: Int) {
+          override fun onTextureChangeVideoSize(id: Long, height: Int, width: Int, rotation: Int) {
             eventSink?.success(
                 mapOf(
-                    "event" to "onTextureChangeVideoSize",
+                    "event" to "onTextureChange",
                     "id" to id,
                     "width" to width,
-                    "height" to height))
-          }
-
-          override fun onTextureChangeRotation(id: Long, rotation: Int) {
-            eventSink?.success(
-                mapOf("event" to "onTextureChangeRotation", "id" to id, "rotation" to rotation))
+                    "height" to height,
+                    "rotation" to rotation))
           }
         })
   }

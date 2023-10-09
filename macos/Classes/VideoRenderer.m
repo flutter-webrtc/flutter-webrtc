@@ -92,31 +92,22 @@ void on_frame_caller(void* handler, Frame frame) {
         _firstFrameRendered = true;
     }
     NSNumber* frameRotation = [NSNumber numberWithInt:frame.rotation];
-    if (_rotation != frameRotation) {
+    bool isFrameWidthChanged = _frameWidth != frame.width;
+    bool isFrameHeightChanged = _frameHeight != frame.height;
+    if (isFrameWidthChanged || isFrameHeightChanged || _rotation != frameRotation) {
+        _frameWidth = frame.width;
+        _frameHeight = frame.height;
         if (_eventSink != nil) {
             NSDictionary* map = @{
-                @"event" : @"onTextureChangeRotation",
+                @"event" : @"onTextureChange",
                 @"id" : _textureId,
+                @"width" : [NSNumber numberWithLong:frame.width],
+                @"height" : [NSNumber numberWithLong:frame.height],
                 @"rotation" : frameRotation,
             };
             _eventSink(map);
         }
         _rotation = frameRotation;
-    }
-    bool isFrameWidthChanged = _frameWidth != frame.width;
-    bool isFrameHeightChanged = _frameHeight != frame.height;
-    if (isFrameWidthChanged || isFrameHeightChanged) {
-        _frameWidth = frame.width;
-        _frameHeight = frame.height;
-        if (_eventSink != nil) {
-            NSDictionary* map = @{
-                @"event" : @"onTextureChangeVideoSize",
-                @"id" : _textureId,
-                @"width" : [NSNumber numberWithLong:frame.width],
-                @"height" : [NSNumber numberWithLong:frame.height],
-            };
-            _eventSink(map);
-        }
     }
 
     __weak TextureVideoRenderer* weakSelf = self;

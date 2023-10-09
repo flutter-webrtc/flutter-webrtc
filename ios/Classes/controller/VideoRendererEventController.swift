@@ -21,21 +21,13 @@ class VideoRendererEventController: VideoRendererEvent {
     ])
   }
 
-  /// Sends an `onTextureChangeVideoSize` event to Flutter side.
-  func onTextureChangeVideoSize(id: Int64, height: Int32, width: Int32) {
+  /// Sends an `onTextureChange` event to Flutter side.
+  func onTextureChange(id: Int64, height: Int32, width: Int32, rotation: Int) {
     self.eventController.sendEvent(data: [
-      "event": "onTextureChangeVideoSize",
+      "event": "onTextureChange",
       "id": id,
       "width": width,
       "height": height,
-    ])
-  }
-
-  /// Sends an `onTextureChangeRotation` event to Flutter side.
-  func onTextureChangeRotation(id: Int64, rotation: Int) {
-    self.eventController.sendEvent(data: [
-      "event": "onTextureChangeRotation",
-      "id": id,
       "rotation": rotation,
     ])
   }

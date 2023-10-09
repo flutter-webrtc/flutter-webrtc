@@ -85,7 +85,7 @@ class SurfaceTextureRenderer(name: String) : EglRenderer(name) {
           frameRotation != frame.rotation) {
         if (rendererEvents != null) {
           rendererEvents!!.onFrameResolutionChanged(
-              frame.buffer.width, frame.buffer.height, frame.rotation)
+              frame.rotatedWidth, frame.rotatedHeight, frame.rotation)
         }
         rotatedFrameWidth = frame.rotatedWidth
         rotatedFrameHeight = frame.rotatedHeight

@@ -53,16 +53,9 @@ class FlutterRtcVideoRenderer(textureRegistry: TextureRegistry) {
        * @param id Unique ID of the texture which produced this event.
        * @param height New height of the video.
        * @param width New width of the video.
-       */
-      fun onTextureChangeVideoSize(id: Long, height: Int, width: Int)
-
-      /**
-       * Notifies about video rotation change.
-       *
-       * @param id Unique ID of the texture producing this event.
        * @param rotation New rotation of the video.
        */
-      fun onTextureChangeRotation(id: Long, rotation: Int)
+      fun onTextureChangeVideoSize(id: Long, height: Int, width: Int, rotation: Int)
     }
   }
 
@@ -137,18 +130,12 @@ class FlutterRtcVideoRenderer(textureRegistry: TextureRegistry) {
       }
 
       override fun onFrameResolutionChanged(newWidth: Int, newHeight: Int, newRotation: Int) {
-        if (newWidth != width || newHeight != height) {
+        if (newWidth != width || newHeight != height || newRotation != rotation) {
           width = newWidth
           height = newHeight
-          Handler(Looper.getMainLooper()).post {
-            eventListener?.onTextureChangeVideoSize(id, height, width)
-          }
-        }
-
-        if (newRotation != rotation) {
           rotation = newRotation
           Handler(Looper.getMainLooper()).post {
-            eventListener?.onTextureChangeRotation(id, rotation)
+            eventListener?.onTextureChangeVideoSize(id, height, width, rotation)
           }
         }
       }

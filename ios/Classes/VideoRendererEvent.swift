@@ -12,12 +12,6 @@ protocol VideoRendererEvent {
   ///   - `id`: Unique ID of the texture which produced this event.
   ///   - `height`: New height of the video.
   ///   - `width`: New width of the video.
-  func onTextureChangeVideoSize(id: Int64, height: Int32, width: Int32)
-
-  /// Notifies about video rotation change.
-  ///
-  /// - Parameters:
-  ///   - `id`: Unique ID of the texture producing this event.
   ///   - `rotation`: New rotation of the video.
-  func onTextureChangeRotation(id: Int64, rotation: Int)
+  func onTextureChange(id: Int64, height: Int32, width: Int32, rotation: Int)
 }

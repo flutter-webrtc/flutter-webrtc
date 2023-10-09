@@ -247,8 +247,7 @@ class _LoopbackState extends State<Loopback> {
                 width: MediaQuery.of(context).size.width / 2,
                 height: MediaQuery.of(context).size.height,
                 decoration: const BoxDecoration(color: Colors.black54),
-                child:
-                    VideoView(_localRenderer, mirror: true, autoRotate: false),
+                child: VideoView(_localRenderer, mirror: true),
               ),
               Container(
                 margin: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
