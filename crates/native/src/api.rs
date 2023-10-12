@@ -17,7 +17,8 @@ use crate::{
 
 // Re-exporting since it is used in the generated code.
 pub use crate::{
-    PeerConnection, RtpEncodingParameters, RtpTransceiver, RtpTransceiverInit,
+    renderer::TextureEvent, PeerConnection, RtpEncodingParameters,
+    RtpTransceiver, RtpTransceiverInit,
 };
 
 lazy_static::lazy_static! {
@@ -1939,9 +1940,9 @@ pub fn set_transceiver_init_direction(
 #[allow(clippy::needless_pass_by_value)]
 pub fn add_transceiver_init_send_encoding(
     init: RustOpaque<Arc<RtpTransceiverInit>>,
-    encoding: RustOpaque<Arc<RtpEncodingParameters>>,
+    enc: RustOpaque<Arc<RtpEncodingParameters>>,
 ) {
-    init.add_encoding(&encoding);
+    init.add_encoding(&enc);
 }
 
 /// Creates new [`RtpEncodingParameters`] with the provided settings.
@@ -2238,11 +2239,13 @@ pub fn set_on_device_changed(cb: StreamSink<()>) -> anyhow::Result<()> {
 /// `callback_ptr` argument should be a pointer to an [`UniquePtr`] pointing to
 /// an [`OnFrameCallbackInterface`].
 pub fn create_video_sink(
+    cb: StreamSink<TextureEvent>,
     sink_id: i64,
     track_id: String,
     callback_ptr: u64,
+    texture_id: i64,
 ) -> anyhow::Result<()> {
-    let handler = FrameHandler::new(callback_ptr as _);
+    let handler = FrameHandler::new(callback_ptr as _, cb.into(), texture_id);
 
     WEBRTC
         .lock()

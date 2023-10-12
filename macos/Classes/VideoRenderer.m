@@ -22,18 +22,11 @@ void on_frame_caller(void* handler, Frame frame) {
     self->_pixelBufferRef = nil;
     self->_registry = registry;
     self->_bufferSize = 0;
-    self->_frameWidth = 0;
-    self->_frameHeight = 0;
 
     int64_t tid = [registry registerTexture:self];
     self->_tid = tid;
     NSNumber* textureId = [NSNumber numberWithLong:tid];
-    NSString* channelName = [NSString
-        stringWithFormat:@"FlutterWebRtc/VideoRendererEvent/%@", textureId];
-    _eventChannel = [FlutterEventChannel eventChannelWithName:channelName
-                                              binaryMessenger:messenger];
     self->_textureId = textureId;
-    [_eventChannel setStreamHandler:self];
 
     __weak TextureVideoRenderer* weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -47,7 +40,6 @@ void on_frame_caller(void* handler, Frame frame) {
 
 // Resets this `TextureVideoRenderer`.
 - (void)resetRenderer {
-    self->_firstFrameRendered = false;
 }
 
 // Releases `PixelBuffer` of this `TextureVideoRenderer`.
@@ -81,35 +73,6 @@ void on_frame_caller(void* handler, Frame frame) {
     drop_frame(frame.frame);
     CVPixelBufferUnlockBaseAddress(_pixelBufferRef, 0);
 
-    if (!_firstFrameRendered) {
-        if (_eventSink != nil) {
-            NSDictionary* map = @{
-                @"event" : @"onFirstFrameRendered",
-                @"id" : self->_textureId,
-            };
-            _eventSink(map);
-        }
-        _firstFrameRendered = true;
-    }
-    NSNumber* frameRotation = [NSNumber numberWithInt:frame.rotation];
-    bool isFrameWidthChanged = _frameWidth != frame.width;
-    bool isFrameHeightChanged = _frameHeight != frame.height;
-    if (isFrameWidthChanged || isFrameHeightChanged || _rotation != frameRotation) {
-        _frameWidth = frame.width;
-        _frameHeight = frame.height;
-        if (_eventSink != nil) {
-            NSDictionary* map = @{
-                @"event" : @"onTextureChange",
-                @"id" : _textureId,
-                @"width" : [NSNumber numberWithLong:frame.width],
-                @"height" : [NSNumber numberWithLong:frame.height],
-                @"rotation" : frameRotation,
-            };
-            _eventSink(map);
-        }
-        _rotation = frameRotation;
-    }
-
     __weak TextureVideoRenderer* weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
       __strong TextureVideoRenderer* strongSelf = weakSelf;
@@ -126,7 +89,6 @@ void on_frame_caller(void* handler, Frame frame) {
 
 // Frees `EventSink` of this `TextureVideoRenderer`.
 - (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
-    _eventSink = nil;
     return nil;
 }
 
@@ -134,7 +96,6 @@ void on_frame_caller(void* handler, Frame frame) {
 - (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
                                        eventSink:
                                            (nonnull FlutterEventSink)sink {
-    _eventSink = sink;
     return nil;
 }
 

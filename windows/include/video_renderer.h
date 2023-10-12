@@ -57,28 +57,11 @@ class TextureVideoRenderer {
   int64_t texture_id() { return texture_id_; }
 
  private:
-  // Struct which describes `VideoFrame`'s dimensions.
-  struct FrameSize {
-    size_t width;
-    size_t height;
-  };
-
-  // `FrameSize` of the last processed `VideoFrame`.
-  FrameSize last_frame_size_ = {0, 0};
-
   // Indicates if at least one `VideoFrame` has been rendered.
   bool first_frame_rendered = false;
 
   // Object keeping track of external textures.
   TextureRegistrar* registrar_;
-
-  // Named channel for communicating with the Flutter application using
-  // asynchronous event streams.
-  std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
-
-  // Event callback. Events to be sent to the Flutter application act as clients
-  // of this interface for sending events.
-  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
 
   // ID of the Flutter texture.
   int64_t texture_id_ = -1;
@@ -99,9 +82,6 @@ class TextureVideoRenderer {
   // Protects the `frame_`, `pixel_buffer_` and `argb_buffer_` fields that are
   // accessed from multiple threads.
   std::mutex mutex_;
-
-  // Rotation of the current `VideoFrame`.
-  int32_t rotation_ = 0;
 };
 
 // Manager storing and managing all the `TextureVideoRenderer`s.

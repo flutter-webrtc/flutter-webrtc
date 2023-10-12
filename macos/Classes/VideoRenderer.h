@@ -24,20 +24,11 @@ typedef struct Frame {
 // `FlutterEventChannel` of this `TextureVideoRenderer`.
 @property(nonatomic, strong, nullable) FlutterEventChannel* eventChannel;
 
-// Flag indicating the first frame was rendered.
-@property(nonatomic) bool firstFrameRendered;
-
 // `FlutterTextureRegistry` of this `TextureVideoRenderer`.
 @property(nonatomic, weak) id<FlutterTextureRegistry> registry;
 
 // ID of this `TextureVideoRenderer`.
 @property(nonatomic, strong, nullable) NSNumber* textureId;
-
-// Rotation of the last rendered `Frame` by this `TextureVideoRenderer`.
-@property(nonatomic, strong, nullable) NSNumber* rotation;
-
-// `FlutterEventSink` of this `TextureVideoRenderer`.
-@property(nonatomic, strong, nullable) FlutterEventSink eventSink;
 
 // ID of the `FlutterTexture` registered in the `FlutterTextureRegistry`.
 @property(nonatomic) int64_t tid;
@@ -49,11 +40,6 @@ typedef struct Frame {
 // Buffer size of the last rendered `Frame` by this `TextureVideoRenderer`.
 @property(nonatomic) size_t bufferSize;
 
-// Width of the last rendered `Frame` by this `TextureVideoRenderer`.
-@property(nonatomic) size_t frameWidth;
-
-// Height of the last rendered `Frame` by this `TextureVideoRenderer`.
-@property(nonatomic) size_t frameHeight;
 
 - (instancetype)init:(id<FlutterTextureRegistry>)registry
            messenger:(id<FlutterBinaryMessenger>)messenger;

@@ -29,11 +29,11 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
-  instrumentisto-libwebrtc-bin: f780c8c0bfb3d4df2279c678fa6b3971917af3bf
+  instrumentisto-libwebrtc-bin: 5fc9b7e7a46cc626c3f264022669f11e36de2053
   integration_test: 13825b8a9334a850581300559b8839134b124670
   libyuv-iOS: 5a154ccc84ec754029886ecb607512731fe30640
-  medea_flutter_webrtc: ba8933d74f0b720684dd1b619b963b6e70633d23
+  medea_flutter_webrtc: ceb980f10dbbe7e9050ebb69a42a8f7c3e4bf8a3
 
 PODFILE CHECKSUM: be3ab4e988bb308d23906be69146fcbef66fac55
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.12.1

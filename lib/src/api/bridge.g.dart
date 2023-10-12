@@ -81,7 +81,7 @@ abstract class MedeaFlutterWebrtcNative {
   /// Adds the provided [`RtpEncodingParameters`] to the [`RtpTransceiverInit`].
   Future<void> addTransceiverInitSendEncoding(
       {required ArcRtpTransceiverInit init,
-      required ArcRtpEncodingParameters encoding,
+      required ArcRtpEncodingParameters enc,
       dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kAddTransceiverInitSendEncodingConstMeta;
@@ -302,10 +302,11 @@ abstract class MedeaFlutterWebrtcNative {
   ///
   /// `callback_ptr` argument should be a pointer to an [`UniquePtr`] pointing to
   /// an [`OnFrameCallbackInterface`].
-  Future<void> createVideoSink(
+  Stream<TextureEvent> createVideoSink(
       {required int sinkId,
       required String trackId,
       required int callbackPtr,
+      required int textureId,
       dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kCreateVideoSinkConstMeta;
@@ -1775,6 +1776,30 @@ enum SignalingState {
   closed,
 }
 
+@freezed
+sealed class TextureEvent with _$TextureEvent {
+  /// The height, width, or rotation have changed.
+  const factory TextureEvent.onTextureChange({
+    /// Id of the texture.
+    required int textureId,
+
+    /// Width of the last processed frame.
+    required int width,
+
+    /// Height of the last processed frame.
+    required int height,
+
+    /// Rotation of the last processed frame.
+    required int rotation,
+  }) = TextureEvent_OnTextureChange;
+
+  /// First frame event.
+  const factory TextureEvent.onFirstFrameRendered({
+    /// Id of the texture.
+    required int textureId,
+  }) = TextureEvent_OnFirstFrameRendered;
+}
+
 /// Indicator of the current state of a [`MediaStreamTrack`].
 enum TrackEvent {
   /// Ended event of the [`MediaStreamTrack`] interface is fired when playback
@@ -2014,16 +2039,16 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
 
   Future<void> addTransceiverInitSendEncoding(
       {required ArcRtpTransceiverInit init,
-      required ArcRtpEncodingParameters encoding,
+      required ArcRtpEncodingParameters enc,
       dynamic hint}) {
     var arg0 = _platform.api2wire_ArcRtpTransceiverInit(init);
-    var arg1 = _platform.api2wire_ArcRtpEncodingParameters(encoding);
+    var arg1 = _platform.api2wire_ArcRtpEncodingParameters(enc);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) => _platform.inner
           .wire_add_transceiver_init_send_encoding(port_, arg0, arg1),
       parseSuccessData: _wire2api_unit,
       constMeta: kAddTransceiverInitSendEncodingConstMeta,
-      argValues: [init, encoding],
+      argValues: [init, enc],
       hint: hint,
     ));
   }
@@ -2031,7 +2056,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kAddTransceiverInitSendEncodingConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "add_transceiver_init_send_encoding",
-        argNames: ["init", "encoding"],
+        argNames: ["init", "enc"],
       );
 
   Future<ArcRtpEncodingParameters> createEncodingParameters(
@@ -2598,20 +2623,22 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
         argNames: [],
       );
 
-  Future<void> createVideoSink(
+  Stream<TextureEvent> createVideoSink(
       {required int sinkId,
       required String trackId,
       required int callbackPtr,
+      required int textureId,
       dynamic hint}) {
     var arg0 = _platform.api2wire_i64(sinkId);
     var arg1 = _platform.api2wire_String(trackId);
     var arg2 = _platform.api2wire_u64(callbackPtr);
-    return _platform.executeNormal(FlutterRustBridgeTask(
+    var arg3 = _platform.api2wire_i64(textureId);
+    return _platform.executeStream(FlutterRustBridgeTask(
       callFfi: (port_) =>
-          _platform.inner.wire_create_video_sink(port_, arg0, arg1, arg2),
-      parseSuccessData: _wire2api_unit,
+          _platform.inner.wire_create_video_sink(port_, arg0, arg1, arg2, arg3),
+      parseSuccessData: _wire2api_texture_event,
       constMeta: kCreateVideoSinkConstMeta,
-      argValues: [sinkId, trackId, callbackPtr],
+      argValues: [sinkId, trackId, callbackPtr, textureId],
       hint: hint,
     ));
   }
@@ -2619,7 +2646,7 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kCreateVideoSinkConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "create_video_sink",
-        argNames: ["sinkId", "trackId", "callbackPtr"],
+        argNames: ["sinkId", "trackId", "callbackPtr", "textureId"],
       );
 
   Future<void> disposeVideoSink({required int sinkId, dynamic hint}) {
@@ -3207,6 +3234,24 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
 
   SignalingState _wire2api_signaling_state(dynamic raw) {
     return SignalingState.values[raw as int];
+  }
+
+  TextureEvent _wire2api_texture_event(dynamic raw) {
+    switch (raw[0]) {
+      case 0:
+        return TextureEvent_OnTextureChange(
+          textureId: _wire2api_i64(raw[1]),
+          width: _wire2api_i32(raw[2]),
+          height: _wire2api_i32(raw[3]),
+          rotation: _wire2api_i32(raw[4]),
+        );
+      case 1:
+        return TextureEvent_OnFirstFrameRendered(
+          textureId: _wire2api_i64(raw[1]),
+        );
+      default:
+        throw Exception("unreachable");
+    }
   }
 
   TrackEvent _wire2api_track_event(dynamic raw) {
@@ -3806,12 +3851,12 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
   void wire_add_transceiver_init_send_encoding(
     int port_,
     wire_ArcRtpTransceiverInit init,
-    wire_ArcRtpEncodingParameters encoding,
+    wire_ArcRtpEncodingParameters enc,
   ) {
     return _wire_add_transceiver_init_send_encoding(
       port_,
       init,
-      encoding,
+      enc,
     );
   }
 
@@ -4361,21 +4406,23 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
     int sink_id,
     ffi.Pointer<wire_uint_8_list> track_id,
     int callback_ptr,
+    int texture_id,
   ) {
     return _wire_create_video_sink(
       port_,
       sink_id,
       track_id,
       callback_ptr,
+      texture_id,
     );
   }
 
   late final _wire_create_video_sinkPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Int64, ffi.Int64, ffi.Pointer<wire_uint_8_list>,
-              ffi.Uint64)>>('wire_create_video_sink');
+              ffi.Uint64, ffi.Int64)>>('wire_create_video_sink');
   late final _wire_create_video_sink = _wire_create_video_sinkPtr.asFunction<
-      void Function(int, int, ffi.Pointer<wire_uint_8_list>, int)>();
+      void Function(int, int, ffi.Pointer<wire_uint_8_list>, int, int)>();
 
   void wire_dispose_video_sink(
     int port_,

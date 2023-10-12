@@ -1,6 +1,100 @@
 //! Implementations and definitions of the renderers API for C and C++ APIs.
 
+use libwebrtc_sys as sys;
+
+use crate::stream_sink::StreamSink;
+
 pub use frame_handler::FrameHandler;
+
+/// Frame change events.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(i32)]
+pub enum TextureEvent {
+    /// Height, width, or rotation have changed.
+    OnTextureChange {
+        /// ID of the texture.
+        texture_id: i64,
+
+        /// Width of the last processed frame.
+        width: i32,
+
+        /// Height of the last processed frame.
+        height: i32,
+
+        /// Rotation of the last processed frame.
+        rotation: i32,
+    },
+
+    /// First frame event.
+    OnFirstFrameRendered {
+        /// ID of the texture.
+        texture_id: i64,
+    },
+}
+
+/// Notifier of Dart side about any [`sys::VideoFrame`] dimensions changes.
+struct TextureEventNotifier {
+    /// Sink to send asynchronous data back to Dart.
+    sink: StreamSink<TextureEvent>,
+
+    /// Indicator whether any frames were rendered for the given texture.
+    first_frame_rendered: bool,
+
+    /// ID of the texture.
+    texture_id: i64,
+
+    /// Width of the last processed frame.
+    width: i32,
+
+    /// Height of the last processed frame.
+    height: i32,
+
+    /// Rotation of the last processed frame.
+    rotation: sys::VideoRotation,
+}
+
+impl TextureEventNotifier {
+    /// Creates a new [`TextureEventNotifier`].
+    fn new(sink: StreamSink<TextureEvent>, texture_id: i64) -> Self {
+        Self {
+            sink,
+            first_frame_rendered: false,
+            width: 0,
+            height: 0,
+            rotation: sys::VideoRotation::kVideoRotation_0,
+            texture_id,
+        }
+    }
+
+    /// Passes the provided [`sys::VideoFrame`] to Dart side events.
+    fn on_frame(&mut self, frame: &cxx::UniquePtr<sys::VideoFrame>) {
+        let height = frame.height();
+        let width = frame.width();
+        let rotation = frame.rotation();
+
+        if !self.first_frame_rendered {
+            self.first_frame_rendered = true;
+            self.sink.add(TextureEvent::OnFirstFrameRendered {
+                texture_id: self.texture_id,
+            });
+        }
+
+        if self.height != height
+            || self.width != width
+            || self.rotation != rotation
+        {
+            self.height = height;
+            self.width = width;
+            self.rotation = rotation;
+            self.sink.add(TextureEvent::OnTextureChange {
+                texture_id: self.texture_id,
+                width,
+                height,
+                rotation: rotation.repr,
+            });
+        }
+    }
+}
 
 #[cfg(not(target_os = "macos"))]
 /// Definitions and implementation of a handler for C++ API [`sys::VideoFrame`]s
@@ -10,21 +104,39 @@ mod frame_handler {
     use derive_more::From;
     use libwebrtc_sys as sys;
 
+    use crate::{
+        renderer::{TextureEvent, TextureEventNotifier},
+        stream_sink::StreamSink,
+    };
+
     pub use cpp_api_bindings::{OnFrameCallbackInterface, VideoFrame};
 
     /// Handler for a [`sys::VideoFrame`]s renderer.
-    pub struct FrameHandler(UniquePtr<OnFrameCallbackInterface>);
+    pub struct FrameHandler {
+        inner: UniquePtr<OnFrameCallbackInterface>,
+        event_tx: TextureEventNotifier,
+    }
 
     impl FrameHandler {
         /// Returns new [`FrameHandler`] with the provided [`sys::VideoFrame`]s
         /// receiver.
-        pub fn new(handler: *mut OnFrameCallbackInterface) -> Self {
-            unsafe { Self(UniquePtr::from_raw(handler)) }
+        pub fn new(
+            handler: *mut OnFrameCallbackInterface,
+            sink: StreamSink<TextureEvent>,
+            texture_id: i64,
+        ) -> Self {
+            unsafe {
+                Self {
+                    inner: UniquePtr::from_raw(handler),
+                    event_tx: TextureEventNotifier::new(sink, texture_id),
+                }
+            }
         }
 
         /// Passes provided [`sys::VideoFrame`] to the C++ side listener.
         pub fn on_frame(&mut self, frame: UniquePtr<sys::VideoFrame>) {
-            self.0.pin_mut().on_frame(VideoFrame::from(frame));
+            self.event_tx.on_frame(&frame);
+            self.inner.pin_mut().on_frame(VideoFrame::from(frame));
         }
     }
 
@@ -132,12 +244,20 @@ mod frame_handler {
     use cxx::UniquePtr;
     use libwebrtc_sys as sys;
 
+    use crate::{
+        renderer::{TextureEvent, TextureEventNotifier},
+        stream_sink::StreamSink,
+    };
+
     /// Handler for a [`sys::VideoFrame`]s renderer.
-    pub struct FrameHandler(*const ());
+    pub struct FrameHandler {
+        inner: *const (),
+        event_tx: TextureEventNotifier,
+    }
 
     impl Drop for FrameHandler {
         fn drop(&mut self) {
-            unsafe { drop_handler(self.0) };
+            unsafe { drop_handler(self.inner) };
         }
     }
 
@@ -164,23 +284,32 @@ mod frame_handler {
     impl FrameHandler {
         /// Returns new [`FrameHandler`] with the provided [`sys::VideoFrame`]s
         /// receiver.
-        pub fn new(handler: *const ()) -> Self {
-            Self(handler)
+        pub fn new(
+            handler: *const (),
+            sink: StreamSink<TextureEvent>,
+            texture_id: i64,
+        ) -> Self {
+            Self {
+                inner: handler,
+                event_tx: TextureEventNotifier::new(sink, texture_id),
+            }
         }
 
         /// Passes the provided [`sys::VideoFrame`] to the C side listener.
-        #[allow(clippy::cast_sign_loss)]
-        pub fn on_frame(&self, frame: UniquePtr<sys::VideoFrame>) {
+        #[allow(clippy::cast_sign_loss, clippy::too_many_lines)]
+        pub fn on_frame(&mut self, frame: UniquePtr<sys::VideoFrame>) {
             let height = frame.height();
             let width = frame.width();
 
             assert!(height >= 0, "VideoFrame has a negative height");
             assert!(width >= 0, "VideoFrame has a negative width");
 
+            self.event_tx.on_frame(&frame);
+
             let buffer_size = width * height * 4;
             unsafe {
                 on_frame_caller(
-                    self.0,
+                    self.inner,
                     Frame {
                         height: height as usize,
                         width: width as usize,

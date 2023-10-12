@@ -551,7 +551,7 @@ class _PeerConnectionFFI extends PeerConnection {
           scaleResolutionDownBy: encoding.scaleResolutionDownBy,
           scalabilityMode: encoding.scalabilityMode);
       await api!
-          .addTransceiverInitSendEncoding(init: ffiInit, encoding: ffiEncoding);
+          .addTransceiverInitSendEncoding(init: ffiInit, enc: ffiEncoding);
     }
 
     var transceiver = RtpTransceiver.fromFFI(await api!.addTransceiver(

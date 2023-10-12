@@ -1,4 +1,3 @@
-#![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(
     non_camel_case_types,
     unused,
@@ -14,12 +13,12 @@
 
 use crate::api::*;
 use core::panic::UnwindSafe;
-use flutter_rust_bridge::rust2dart::IntoIntoDart;
-use flutter_rust_bridge::*;
-use std::ffi::c_void;
-use std::sync::Arc;
+use flutter_rust_bridge::{rust2dart::IntoIntoDart, *};
+use std::{ffi::c_void, sync::Arc};
 
 // Section: imports
+
+use crate::renderer::TextureEvent;
 
 // Section: wire functions
 
@@ -178,7 +177,7 @@ fn wire_set_transceiver_init_direction_impl(
 fn wire_add_transceiver_init_send_encoding_impl(
     port_: MessagePort,
     init: impl Wire2Api<RustOpaque<Arc<RtpTransceiverInit>>> + UnwindSafe,
-    encoding: impl Wire2Api<RustOpaque<Arc<RtpEncodingParameters>>> + UnwindSafe,
+    enc: impl Wire2Api<RustOpaque<Arc<RtpEncodingParameters>>> + UnwindSafe,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, ()>(
         WrapInfo {
@@ -188,9 +187,9 @@ fn wire_add_transceiver_init_send_encoding_impl(
         },
         move || {
             let api_init = init.wire2api();
-            let api_encoding = encoding.wire2api();
+            let api_enc = enc.wire2api();
             move |task_callback| {
-                Ok(add_transceiver_init_send_encoding(api_init, api_encoding))
+                Ok(add_transceiver_init_send_encoding(api_init, api_enc))
             }
         },
     )
@@ -704,19 +703,27 @@ fn wire_create_video_sink_impl(
     sink_id: impl Wire2Api<i64> + UnwindSafe,
     track_id: impl Wire2Api<String> + UnwindSafe,
     callback_ptr: impl Wire2Api<u64> + UnwindSafe,
+    texture_id: impl Wire2Api<i64> + UnwindSafe,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, ()>(
         WrapInfo {
             debug_name: "create_video_sink",
             port: Some(port_),
-            mode: FfiCallMode::Normal,
+            mode: FfiCallMode::Stream,
         },
         move || {
             let api_sink_id = sink_id.wire2api();
             let api_track_id = track_id.wire2api();
             let api_callback_ptr = callback_ptr.wire2api();
+            let api_texture_id = texture_id.wire2api();
             move |task_callback| {
-                create_video_sink(api_sink_id, api_track_id, api_callback_ptr)
+                create_video_sink(
+                    task_callback.stream_sink::<_, TextureEvent>(),
+                    api_sink_id,
+                    api_track_id,
+                    api_callback_ptr,
+                    api_texture_id,
+                )
             }
         },
     )
@@ -1590,6 +1597,35 @@ impl rust2dart::IntoIntoDart<SignalingState> for SignalingState {
     }
 }
 
+impl support::IntoDart for TextureEvent {
+    fn into_dart(self) -> support::DartAbi {
+        match self {
+            Self::OnTextureChange {
+                texture_id,
+                width,
+                height,
+                rotation,
+            } => vec![
+                0.into_dart(),
+                texture_id.into_into_dart().into_dart(),
+                width.into_into_dart().into_dart(),
+                height.into_into_dart().into_dart(),
+                rotation.into_into_dart().into_dart(),
+            ],
+            Self::OnFirstFrameRendered { texture_id } => {
+                vec![1.into_dart(), texture_id.into_into_dart().into_dart()]
+            }
+        }
+        .into_dart()
+    }
+}
+impl support::IntoDartExceptPrimitive for TextureEvent {}
+impl rust2dart::IntoIntoDart<TextureEvent> for TextureEvent {
+    fn into_into_dart(self) -> Self {
+        self
+    }
+}
+
 impl support::IntoDart for TrackEvent {
     fn into_dart(self) -> support::DartAbi {
         match self {
@@ -1624,7 +1660,8 @@ impl rust2dart::IntoIntoDart<TrackState> for TrackState {
 // Section: executor
 
 support::lazy_static! {
-    pub static ref FLUTTER_RUST_BRIDGE_HANDLER: support::DefaultHandler = Default::default();
+    pub static ref FLUTTER_RUST_BRIDGE_HANDLER: support::DefaultHandler =
+        Default::default();
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -1712,9 +1749,9 @@ mod io {
     pub extern "C" fn wire_add_transceiver_init_send_encoding(
         port_: i64,
         init: wire_ArcRtpTransceiverInit,
-        encoding: wire_ArcRtpEncodingParameters,
+        enc: wire_ArcRtpEncodingParameters,
     ) {
-        wire_add_transceiver_init_send_encoding_impl(port_, init, encoding)
+        wire_add_transceiver_init_send_encoding_impl(port_, init, enc)
     }
 
     #[no_mangle]
@@ -1966,8 +2003,15 @@ mod io {
         sink_id: i64,
         track_id: *mut wire_uint_8_list,
         callback_ptr: u64,
+        texture_id: i64,
     ) {
-        wire_create_video_sink_impl(port_, sink_id, track_id, callback_ptr)
+        wire_create_video_sink_impl(
+            port_,
+            sink_id,
+            track_id,
+            callback_ptr,
+            texture_id,
+        )
     }
 
     #[no_mangle]

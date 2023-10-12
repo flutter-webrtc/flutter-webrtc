@@ -21,7 +21,6 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
   renderers_[texture_id] = std::move(texture);
   EncodableMap params;
   params[EncodableValue("textureId")] = EncodableValue(texture_id);
-  params[EncodableValue("channelId")] = EncodableValue(texture_id);
 
   result->Success(EncodableValue(params));
 }
@@ -79,26 +78,6 @@ TextureVideoRenderer::TextureVideoRenderer(TextureRegistrar* registrar,
           }));
 
   texture_id_ = registrar_->RegisterTexture(texture_.get());
-
-  std::string event_channel =
-      "FlutterWebRtc/VideoRendererEvent/" + std::to_string(texture_id_);
-  event_channel_.reset(new EventChannel<EncodableValue>(
-      messenger, event_channel, &StandardMethodCodec::GetInstance()));
-
-  auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
-      [&](const flutter::EncodableValue* arguments,
-          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
-          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-        event_sink_ = std::move(events);
-        return nullptr;
-      },
-      [&](const flutter::EncodableValue* arguments)
-          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-        event_sink_ = nullptr;
-        return nullptr;
-      });
-
-  event_channel_->SetStreamHandler(std::move(handler));
 }
 
 // Constructs and returns `FlutterDesktopPixelBuffer` from the current
@@ -131,32 +110,10 @@ FlutterDesktopPixelBuffer* TextureVideoRenderer::CopyPixelBuffer(size_t width,
 // about a new frame being ready for polling.
 void TextureVideoRenderer::OnFrame(VideoFrame frame) {
   if (!first_frame_rendered) {
-    if (event_sink_) {
-      EncodableMap params;
-      params[EncodableValue("event")] = "onFirstFrameRendered";
-      params[EncodableValue("id")] = EncodableValue(texture_id_);
-      event_sink_->Success(EncodableValue(params));
-    }
     pixel_buffer_.reset(new FlutterDesktopPixelBuffer());
     pixel_buffer_->width = 0;
     pixel_buffer_->height = 0;
     first_frame_rendered = true;
-  }
-  if (last_frame_size_.width != frame.width ||
-      last_frame_size_.height != frame.height || rotation_ != frame.rotation) {
-    if (event_sink_) {
-      EncodableMap params;
-      params[EncodableValue("event")] = "onTextureChange";
-      params[EncodableValue("id")] = EncodableValue(texture_id_);
-      params[EncodableValue("width")] = EncodableValue((int32_t) frame.width);
-      params[EncodableValue("height")] =
-          EncodableValue((int32_t) frame.height);
-      params[EncodableValue("rotation")] =
-          EncodableValue((int32_t) frame.rotation);
-      event_sink_->Success(EncodableValue(params));
-    }
-    rotation_ = frame.rotation;
-    last_frame_size_ = {frame.width, frame.height};
   }
   mutex_.lock();
   frame_.emplace(std::move(frame));
@@ -170,7 +127,6 @@ void TextureVideoRenderer::ResetRenderer() {
   frame_.reset();
   mutex_.unlock();
   frame_ = std::nullopt;
-  last_frame_size_ = {0, 0};
   first_frame_rendered = false;
 }
 

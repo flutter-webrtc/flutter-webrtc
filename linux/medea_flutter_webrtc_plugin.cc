@@ -32,78 +32,16 @@ class TextureVideoRenderer {
         reinterpret_cast<int64_t>(FL_TEXTURE(texture_));
 
     texture_id_ = texture_->texture_id;
-
-    g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
-
-    g_autoptr(FlEventChannel) channel = fl_event_channel_new(
-        messenger,
-        ("FlutterWebRtc/VideoRendererEvent/" + std::to_string(texture_id_))
-            .c_str(),
-        FL_METHOD_CODEC(codec));
-    event_channel_ = channel;
-
-    fl_event_channel_set_stream_handlers(
-        channel,
-        [](FlEventChannel* channel, FlValue* args, gpointer user_data) {
-          bool* send_events = (bool*)user_data;
-          *send_events = true;
-          FlMethodErrorResponse* res = nullptr;
-          return res;
-        },
-        [](FlEventChannel* channel, FlValue* args, gpointer user_data) {
-          bool* send_events = (bool*)user_data;
-          *send_events = false;
-          FlMethodErrorResponse* res = nullptr;
-          return res;
-        },
-        &send_events_, NULL);
   }
 
   void ResetRenderer() {
     const std::lock_guard<std::mutex> lock(texture_->mutex);
 
     texture_->frame_.reset();
-    first_frame_rendered = false;
   }
 
   // Called when a new `VideoFrame` is produced by the underlying source.
   void OnFrame(VideoFrame frame) {
-    if (!first_frame_rendered) {
-      if (send_events_) {
-        g_autoptr(FlValue) map = fl_value_new_map();
-
-        fl_value_set_string_take(map, "event",
-                                 fl_value_new_string("onFirstFrameRendered"));
-        fl_value_set_string_take(map, "id", fl_value_new_int(texture_id_));
-
-        fl_event_channel_send(event_channel_, map, nullptr, nullptr);
-      }
-      first_frame_rendered = true;
-    }
-    if (!texture_->frame_ ||
-        height_ != frame.height ||
-        width_ != frame.width ||
-        rotation_ != frame.rotation) {
-      if (send_events_) {
-        g_autoptr(FlValue) map = fl_value_new_map();
-
-        fl_value_set_string_take(
-            map, "event", fl_value_new_string("onTextureChange"));
-        fl_value_set_string_take(map, "id", fl_value_new_int(texture_id_));
-        fl_value_set_string_take(map, "rotation",
-                                 fl_value_new_int((int32_t)frame.rotation));
-        fl_value_set_string_take(map, "width",
-                                 fl_value_new_int((int32_t)frame.width));
-        fl_value_set_string_take(map, "height",
-                                 fl_value_new_int((int32_t)frame.height));
-
-        fl_event_channel_send(event_channel_, map, nullptr, nullptr);
-      }
-      width_ = frame.width;
-      height_ = frame.height;
-      rotation_ = frame.rotation;
-    }
-
     texture_->mutex.lock();
     texture_->frame_.emplace(std::move(frame));
     texture_->mutex.unlock();
@@ -121,33 +59,14 @@ class TextureVideoRenderer {
   VideoTexture* texture() { return texture_; }
 
  private:
-  // Named channel for communicating with the Flutter application using
-  // asynchronous event streams.
-  FlEventChannel* event_channel_;
-
   // Pointer to the `VideoTexture` that is passed to the Flutter texture.
   VideoTexture* texture_ = 0;
-
-  // Flag indicating Flutter events subscription.
-  bool send_events_ = false;
-
-  // Indicator whether at least one `VideoFrame` has been rendered.
-  bool first_frame_rendered = false;
 
   // Object keeping track of external textures.
   FlTextureRegistrar* registrar_ = 0;
 
   // ID of the Flutter texture.
   int64_t texture_id_ = -1;
-
-  // Rotation of the current `VideoFrame`.
-  int32_t rotation_ = 0;
-
-  // Height of the current `VideoFrame`.
-  size_t height_ = 0;
-
-  // Width of the current `VideoFrame`.
-  size_t width_ = 0;
 };
 
 class FrameHandler : public OnFrameCallbackInterface {
@@ -181,8 +100,6 @@ class FlutterVideoRendererManager {
 
     g_autoptr(FlValue) map = fl_value_new_map();
     fl_value_set_string_take(map, "textureId",
-                             fl_value_new_int((int64_t)texture_id));
-    fl_value_set_string_take(map, "channelId",
                              fl_value_new_int((int64_t)texture_id));
     (*response) = FL_METHOD_RESPONSE(fl_method_success_response_new(map));
   }
