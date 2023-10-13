@@ -190,6 +190,7 @@ fn get_path_to_openal() -> anyhow::Result<PathBuf> {
 /// Downloads and compiles OpenAL dynamic library.
 ///
 /// Copies OpenAL headers and compiled library to the required locations.
+#[allow(clippy::too_many_lines)]
 fn compile_openal() -> anyhow::Result<()> {
     let openal_version = OPENAL_URL.split('/').last().unwrap();
     let manifest_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
@@ -249,18 +250,20 @@ fn compile_openal() -> anyhow::Result<()> {
     )
     .unwrap();
 
+    let mut cmake_cmd = Command::new("cmake");
+    cmake_cmd.current_dir(&openal_src_path).args([
+        ".",
+        ".",
+        "-DCMAKE_BUILD_TYPE=Release",
+    ]);
+    #[cfg(target_os = "macos")]
+    cmake_cmd.arg("-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64");
+    drop(cmake_cmd.output()?);
+
     drop(
         Command::new("cmake")
             .current_dir(&openal_src_path)
-            .arg(".")
-            .arg(".")
-            .output()?,
-    );
-    drop(
-        Command::new("cmake")
-            .current_dir(&openal_src_path)
-            .arg("--build")
-            .arg(".")
+            .args(["--build", ".", "--config", "Release"])
             .output()?,
     );
 
@@ -285,11 +288,11 @@ fn compile_openal() -> anyhow::Result<()> {
         }
         "x86_64-pc-windows-msvc" => {
             fs::copy(
-                openal_src_path.join("Debug").join("OpenAL32.dll"),
+                openal_src_path.join("Release").join("OpenAL32.dll"),
                 openal_path.join("OpenAL32.dll"),
             )?;
             fs::copy(
-                openal_src_path.join("Debug").join("OpenAL32.lib"),
+                openal_src_path.join("Release").join("OpenAL32.lib"),
                 openal_path.join("OpenAL32.lib"),
             )?;
             let path = manifest_path
@@ -297,7 +300,10 @@ fn compile_openal() -> anyhow::Result<()> {
                 .join(get_target()?.as_str())
                 .join("release")
                 .join("OpenAL32.lib");
-            fs::copy(openal_src_path.join("Debug").join("OpenAL32.lib"), path)?;
+            fs::copy(
+                openal_src_path.join("Release").join("OpenAL32.lib"),
+                path,
+            )?;
         }
         _ => (),
     }
