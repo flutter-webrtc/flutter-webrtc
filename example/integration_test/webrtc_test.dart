@@ -64,6 +64,47 @@ void main() {
     await videoTrans1.dispose();
   });
 
+  testWidgets('Correct codecs', (WidgetTester tester) async {
+    var server = IceServer(['stun:stun.l.google.com:19302']);
+    var pc1 = await PeerConnection.create(IceTransportType.all, [server]);
+
+    var videoTransceiver = await pc1.addTransceiver(
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
+
+    var offer = (await pc1.createOffer()).description;
+
+    var codecs = ['VP8/90000', 'VP9/90000', 'AV1/90000'];
+    if (!Platform.isAndroid) {
+      codecs.add('H264/90000');
+    }
+
+    for (var codec in codecs) {
+      var reg = RegExp(r'a=rtpmap:\d{2,3} ' + codec);
+      expect(offer.contains(reg), isTrue);
+
+      var rtpmaps = reg
+          .allMatches(offer)
+          .map((e) => RegExp(r'\d{2,3}').firstMatch(e[0]!)![0]!);
+
+      for (var rtpmap in rtpmaps) {
+        var fbPref = 'a=rtcp-fb:$rtpmap ';
+
+        for (var fb in [
+          'goog-remb',
+          'transport-cc',
+          'ccm fir',
+          'nack',
+          'nack pli',
+        ]) {
+          expect(offer.contains(fbPref + fb), isTrue);
+        }
+      }
+    }
+
+    await pc1.close();
+    await videoTransceiver.dispose();
+  });
+
   testWidgets('Get transceivers', (WidgetTester tester) async {
     var pc = await PeerConnection.create(IceTransportType.all, []);
     var t1 = await pc.addTransceiver(
