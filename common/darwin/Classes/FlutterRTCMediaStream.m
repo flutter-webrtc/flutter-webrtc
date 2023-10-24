@@ -467,6 +467,8 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
                    : videoDevice.position == AVCaptureDevicePositionFront ? @"user"
                                                                           : @"unspecified";
     }
+      
+    [videoSource adaptOutputFormatToWidth:(int)targetWidth height:(int)targetHeight  fps:(int)targetFps];
 
     videoTrack.settings = @{
       @"deviceId" : videoDeviceId,

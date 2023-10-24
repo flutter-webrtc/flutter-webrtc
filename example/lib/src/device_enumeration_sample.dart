@@ -397,7 +397,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
                   child: Text('Select Video Size ($_selectedVideoSize)'),
                 ),
                 PopupMenuDivider(),
-                ...['320x240', '640x480', '1280x720', '1920x1080']
+                ...['320x180', '640x360', '1280x720', '1920x1080']
                     .map((fps) => PopupMenuItem<String>(
                           value: fps,
                           child: Text(fps),
