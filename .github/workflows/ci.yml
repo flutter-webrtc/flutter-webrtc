@@ -266,7 +266,7 @@ jobs:
 
       - name: Start iOS simulator
         id: simulator
-        uses: futureware-tech/simulator-action@v2
+        uses: futureware-tech/simulator-action@v3
         with:
           os_version: '>=13.0'
           os: iOS
