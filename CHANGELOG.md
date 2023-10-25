@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.9.46] - 2023-10-25
+
+fix: Crop video output size to target settings. (#1472)
+fi: Fix bluetooth sco not stopping after room disconnect (#1475)
+
 [0.9.45] - 2023-09-27
 
 * [iOS/macOS] fix: send message on non-platform thread.
