@@ -24,6 +24,10 @@
 #include "system_wrappers/include/sleep.h"
 #include "third_party/libyuv/include/libyuv.h"
 
+#if __APPLE__
+#include "mouse_cursor_monitor_mac.h"
+#endif
+
 // Maximum allow CPU consumption for the frame capturing thread.
 const int maxCpuConsumptionPercentage = 50;
 
@@ -35,17 +39,17 @@ webrtc::DesktopCaptureOptions CreateDesktopCaptureOptions() {
   webrtc::DesktopCaptureOptions options =
       webrtc::DesktopCaptureOptions::CreateDefault();
 
-  #ifdef WEBRTC_MAC
-    options.set_allow_iosurface(true);
-  #endif
-  #ifdef WEBRTC_WIN
-    options.set_allow_directx_capturer(true);
-  #endif
+#ifdef WEBRTC_MAC
+  options.set_allow_iosurface(true);
+#endif
+#ifdef WEBRTC_WIN
+  options.set_allow_directx_capturer(true);
+#endif
 
   return options;
 }
 
-}
+}  // namespace
 
 // Fills the provided `SourceList` with all available screens that can be
 // used by this `ScreenVideoCapturer`.
@@ -75,12 +79,22 @@ ScreenVideoCapturer::ScreenVideoCapturer(
           std::unique_ptr<webrtc::DesktopCapturer> screen_capturer(
               webrtc::DesktopCapturer::CreateScreenCapturer(options));
           if (screen_capturer && screen_capturer->SelectSource(source_id)) {
-            capturer_.reset(new webrtc::DesktopAndCursorComposer(
-                std::move(screen_capturer), options));
+            capturer_ = webrtc::DesktopAndCursorComposer::
+                CreateWithoutMouseCursorMonitor(std::move(screen_capturer));
+            mouse_monitor_ = webrtc::MouseCursorMonitor::Create(options);
+
+#if __APPLE__
+            mouse_monitor_ = std::make_unique<bridge::MouseCursorMonitorMac>(
+                std::move(mouse_monitor_));
+#endif
+
+            capturer_->Start(this);
+            mouse_monitor_->Init(
+                this, webrtc::MouseCursorMonitor::SHAPE_AND_POSITION);
           }
 
-          capturer_->Start(this);
-          while (CaptureProcess()) {}
+          while (CaptureProcess()) {
+          }
         },
         "ScreenCaptureThread",
         rtc::ThreadAttributes().SetPriority(rtc::ThreadPriority::kHigh));
@@ -103,13 +117,15 @@ bool ScreenVideoCapturer::CaptureProcess() {
     return false;
   }
 
-  #ifdef WEBRTC_MAC
-    CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
-  #endif
+#ifdef WEBRTC_MAC
+  CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+#endif
 
   int64_t started_time = rtc::TimeMillis();
   capturer_->CaptureFrame();
-  int last_capture_duration = (int) (rtc::TimeMillis() - started_time);
+  mouse_monitor_->Capture();
+
+  int last_capture_duration = (int)(rtc::TimeMillis() - started_time);
   int capture_period =
       std::max((last_capture_duration * 100) / maxCpuConsumptionPercentage,
                requested_frame_duration_);
@@ -135,7 +151,6 @@ void ScreenVideoCapturer::OnCaptureResult(
   bool success = result == webrtc::DesktopCapturer::Result::SUCCESS;
 
   if (!success) {
-
     RTC_LOG(LS_ERROR) << "The desktop capturer has failed.";
     return;
   }
@@ -185,10 +200,10 @@ void ScreenVideoCapturer::OnCaptureResult(
         output_frame_.reset(new webrtc::BasicDesktopFrame(output_size));
       }
       webrtc::DesktopRect output_rect;
-      if ((float) output_size.width() / (float) output_size.height() <
-          (float) frame->size().width() / (float) frame->size().height()) {
+      if ((float)output_size.width() / (float)output_size.height() <
+          (float)frame->size().width() / (float)frame->size().height()) {
         int32_t output_height = frame->size().height() * output_size.width() /
-            frame->size().width();
+                                frame->size().width();
         if (output_height > output_size.height())
           output_height = output_size.height();
         const int32_t margin_y = (output_size.height() - output_height) / 2;
@@ -196,7 +211,7 @@ void ScreenVideoCapturer::OnCaptureResult(
             0, margin_y, output_size.width(), output_height + margin_y);
       } else {
         int32_t output_width = frame->size().width() * output_size.height() /
-            frame->size().height();
+                               frame->size().height();
         if (output_width > output_size.width())
           output_width = output_size.width();
         const int32_t margin_x = (output_size.width() - output_width) / 2;
@@ -217,22 +232,22 @@ void ScreenVideoCapturer::OnCaptureResult(
     }
 
     if (libyuv::ARGBToI420(
-        output_data, output_stride, dst_buffer.get()->MutableDataY(),
-        dst_buffer.get()->StrideY(), dst_buffer.get()->MutableDataU(),
-        dst_buffer.get()->StrideU(), dst_buffer.get()->MutableDataV(),
-        dst_buffer.get()->StrideV(), output_size.width(),
-        output_size.height()) < 0) {
+            output_data, output_stride, dst_buffer.get()->MutableDataY(),
+            dst_buffer.get()->StrideY(), dst_buffer.get()->MutableDataU(),
+            dst_buffer.get()->StrideU(), dst_buffer.get()->MutableDataV(),
+            dst_buffer.get()->StrideV(), output_size.width(),
+            output_size.height()) < 0) {
       RTC_LOG(LS_ERROR) << "ConvertToI420 Failed";
       return;
     }
   }
 
   webrtc::VideoFrame captureFrame = webrtc::VideoFrame::Builder()
-      .set_video_frame_buffer(dst_buffer)
-      .set_timestamp_rtp(0)
-      .set_timestamp_ms(rtc::TimeMillis())
-      .set_rotation(webrtc::kVideoRotation_0)
-      .build();
+                                        .set_video_frame_buffer(dst_buffer)
+                                        .set_timestamp_rtp(0)
+                                        .set_timestamp_ms(rtc::TimeMillis())
+                                        .set_rotation(webrtc::kVideoRotation_0)
+                                        .build();
 
   OnFrame(captureFrame);
 }
@@ -255,4 +270,17 @@ webrtc::MediaSourceInterface::SourceState ScreenVideoCapturer::state() const {
 // Always returns `false`.
 bool ScreenVideoCapturer::remote() const {
   return false;
+}
+
+// Called in response to `Capture()` when the cursor shape has changed.
+void ScreenVideoCapturer::OnMouseCursor(webrtc::MouseCursor* cursor) {
+  capturer_->OnMouseCursor(cursor);
+}
+
+// Called in response to `Capture()`.
+//
+// `position` indicates cursor absolute position.
+void ScreenVideoCapturer::OnMouseCursorPosition(
+    const webrtc::DesktopVector& position) {
+  capturer_->OnMouseCursorPosition(position);
 }
