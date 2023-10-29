@@ -1,6 +1,29 @@
 # Changelog
 
 --------------------------------------------
+[0.9.46] - 2023-10-25
+
+* [iOS/macOS] fix: Crop video output size to target settings. (#1472)
+* [Android] fix: Fix bluetooth sco not stopping after room disconnect (#1475)
+
+[0.9.45] - 2023-09-27
+
+* [iOS/macOS] fix: send message on non-platform thread.
+* [Windows] fix: fix setSrcObj with trackId for Windows.
+* [Windows] fix: fix "unlock of unowned mutex" error when call "captureFrame()" func on windows.
+
+[0.9.44] - 2023-09-25
+
+* [Windows] fix: fix Renderer bug for Windows.
+* [Native] fix: Use independent threads to process frame encryption/decryption
+* [Native] fix: Correct handle SIF frame
+* [Native] fix: Fix a fault tolerance judgment failure
+
+[0.9.43] - 2023-09-20
+
+* [Native] fix: send frame cryptor events from signaling thread.
+* [Native] fix: h264 freeze when using E2EE.
+
 [0.9.42+hotfix.1] - 2023-09-15
 
 * [Windows/Linux] fix: fix cannot start vp8/h264 encoder correctly.

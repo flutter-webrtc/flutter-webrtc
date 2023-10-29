@@ -397,7 +397,7 @@
     didChangeSignalingState:(RTCSignalingState)newState {
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(@{@"event" : @"signalingState", @"state" : [self stringForSignalingState:newState]});
+    postEvent(eventSink, @{@"event" : @"signalingState", @"state" : [self stringForSignalingState:newState]});
   }
 }
 
@@ -410,7 +410,7 @@
 
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(@{
+    postEvent(eventSink, @{
       @"event" : @"onAddTrack",
       @"streamId" : streamId,
       @"trackId" : track.trackId,
@@ -433,7 +433,7 @@
   NSString* streamId = stream.streamId;
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(@{
+    postEvent(eventSink, @{
       @"event" : @"onRemoveTrack",
       @"streamId" : streamId,
       @"trackId" : track.trackId,
@@ -488,7 +488,7 @@
 
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(@{
+    postEvent(eventSink, @{
       @"event" : @"onAddStream",
       @"streamId" : streamId,
       @"audioTracks" : audioTracks,
@@ -515,7 +515,7 @@
 
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(@{
+    postEvent(eventSink, @{
       @"event" : @"onRemoveStream",
       @"streamId" : streamId,
     });
@@ -525,7 +525,7 @@
 - (void)peerConnectionShouldNegotiate:(RTCPeerConnection*)peerConnection {
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(@{
+    postEvent(eventSink, @{
       @"event" : @"onRenegotiationNeeded",
     });
   }
@@ -535,7 +535,7 @@
     didChangeIceConnectionState:(RTCIceConnectionState)newState {
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(@{
+    postEvent(eventSink, @{
       @"event" : @"iceConnectionState",
       @"state" : [self stringForICEConnectionState:newState]
     });
@@ -546,8 +546,7 @@
     didChangeIceGatheringState:(RTCIceGatheringState)newState {
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(
-        @{@"event" : @"iceGatheringState", @"state" : [self stringForICEGatheringState:newState]});
+    postEvent(eventSink, @{@"event" : @"iceGatheringState", @"state" : [self stringForICEGatheringState:newState]});
   }
 }
 
@@ -555,7 +554,7 @@
     didGenerateIceCandidate:(RTCIceCandidate*)candidate {
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(@{
+    postEvent(eventSink, @{
       @"event" : @"onCandidate",
       @"candidate" : @{
         @"candidate" : candidate.sdp,
@@ -592,7 +591,7 @@
     [eventChannel setStreamHandler:dataChannel];
     FlutterEventSink eventSink = peerConnection.eventSink;
     if (eventSink) {
-      eventSink(@{
+      postEvent(eventSink, @{
         @"event" : @"didOpenDataChannel",
         @"id" : dataChannelId,
         @"label" : dataChannel.label,
@@ -607,7 +606,7 @@
     didChangeConnectionState:(RTCPeerConnectionState)newState {
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(@{
+    postEvent(eventSink, @{
       @"event" : @"peerConnectionState",
       @"state" : [self stringForPeerConnectionState:newState]
     });
@@ -654,7 +653,7 @@
     if ([rtpReceiver.track.kind isEqualToString:@"audio"]) {
       [self ensureAudioSession];
     }
-    eventSink(event);
+    postEvent(eventSink, event);
   }
 }
 
@@ -671,7 +670,7 @@
                changeReason:(NSString*)reason {
   FlutterEventSink eventSink = peerConnection.eventSink;
   if (eventSink) {
-    eventSink(@{
+    postEvent(eventSink, @{
       @"event" : @"onSelectedCandidatePairChanged",
       @"local" : @{
         @"candidate" : local.sdp,

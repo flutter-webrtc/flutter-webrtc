@@ -181,7 +181,8 @@ public class FlutterRTCFrameCryptor {
         if(type.equals("sender")) {
             RtpSender rtpSender = pco.getRtpSenderById(rtpSenderId);
 
-            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpSender(rtpSender,
+            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpSender(stateProvider.getPeerConnectionFactory(),
+                    rtpSender,
                     participantId,
                     frameCryptorAlgorithmFromInt(algorithm),
                     keyProvider);
@@ -196,7 +197,8 @@ public class FlutterRTCFrameCryptor {
         } else if(type.equals("receiver")) {
             RtpReceiver rtpReceiver = pco.getRtpReceiverById(rtpReceiverId);
 
-            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpReceiver(rtpReceiver,
+            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpReceiver(stateProvider.getPeerConnectionFactory(),
+                    rtpReceiver,
                     participantId,
                     frameCryptorAlgorithmFromInt(algorithm),
                     keyProvider);

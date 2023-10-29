@@ -21,14 +21,21 @@ void FlutterFrameCapturer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
   }
 
   frame_ = frame.get()->Copy();
-  mutex_.unlock();
+  catch_frame_ = true;
 }
 
 void FlutterFrameCapturer::CaptureFrame(
     std::unique_ptr<MethodResultProxy> result) {
   mutex_.lock();
+  // Here init catch_frame_ flag
+  catch_frame_ = false;
+
   track_->AddRenderer(this);
-  // Here the OnFrame method has to unlock the mutex
+  // Here waiting for catch_frame_ is set to true
+  while(!catch_frame_){}
+  // Here unlock the mutex
+  mutex_.unlock();
+
   mutex_.lock();
   track_->RemoveRenderer(this);
 
