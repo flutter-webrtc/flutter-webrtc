@@ -587,6 +587,7 @@ fn wire_microphone_volume_impl(port_: MessagePort) {
 fn wire_dispose_track_impl(
     port_: MessagePort,
     track_id: impl Wire2Api<String> + UnwindSafe,
+    peer_id: impl Wire2Api<Option<u64>> + UnwindSafe,
     kind: impl Wire2Api<MediaType> + UnwindSafe,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, ()>(
@@ -597,14 +598,18 @@ fn wire_dispose_track_impl(
         },
         move || {
             let api_track_id = track_id.wire2api();
+            let api_peer_id = peer_id.wire2api();
             let api_kind = kind.wire2api();
-            move |task_callback| Ok(dispose_track(api_track_id, api_kind))
+            move |task_callback| {
+                Ok(dispose_track(api_track_id, api_peer_id, api_kind))
+            }
         },
     )
 }
 fn wire_track_state_impl(
     port_: MessagePort,
     track_id: impl Wire2Api<String> + UnwindSafe,
+    peer_id: impl Wire2Api<Option<u64>> + UnwindSafe,
     kind: impl Wire2Api<MediaType> + UnwindSafe,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, TrackState>(
@@ -615,14 +620,18 @@ fn wire_track_state_impl(
         },
         move || {
             let api_track_id = track_id.wire2api();
+            let api_peer_id = peer_id.wire2api();
             let api_kind = kind.wire2api();
-            move |task_callback| track_state(api_track_id, api_kind)
+            move |task_callback| {
+                track_state(api_track_id, api_peer_id, api_kind)
+            }
         },
     )
 }
 fn wire_set_track_enabled_impl(
     port_: MessagePort,
     track_id: impl Wire2Api<String> + UnwindSafe,
+    peer_id: impl Wire2Api<Option<u64>> + UnwindSafe,
     kind: impl Wire2Api<MediaType> + UnwindSafe,
     enabled: impl Wire2Api<bool> + UnwindSafe,
 ) {
@@ -634,10 +643,16 @@ fn wire_set_track_enabled_impl(
         },
         move || {
             let api_track_id = track_id.wire2api();
+            let api_peer_id = peer_id.wire2api();
             let api_kind = kind.wire2api();
             let api_enabled = enabled.wire2api();
             move |task_callback| {
-                set_track_enabled(api_track_id, api_kind, api_enabled)
+                set_track_enabled(
+                    api_track_id,
+                    api_peer_id,
+                    api_kind,
+                    api_enabled,
+                )
             }
         },
     )
@@ -645,6 +660,7 @@ fn wire_set_track_enabled_impl(
 fn wire_clone_track_impl(
     port_: MessagePort,
     track_id: impl Wire2Api<String> + UnwindSafe,
+    peer_id: impl Wire2Api<Option<u64>> + UnwindSafe,
     kind: impl Wire2Api<MediaType> + UnwindSafe,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, MediaStreamTrack>(
@@ -655,13 +671,17 @@ fn wire_clone_track_impl(
         },
         move || {
             let api_track_id = track_id.wire2api();
+            let api_peer_id = peer_id.wire2api();
             let api_kind = kind.wire2api();
-            move |task_callback| clone_track(api_track_id, api_kind)
+            move |task_callback| {
+                clone_track(api_track_id, api_peer_id, api_kind)
+            }
         },
     )
 }
 fn wire_register_track_observer_impl(
     port_: MessagePort,
+    peer_id: impl Wire2Api<Option<u64>> + UnwindSafe,
     track_id: impl Wire2Api<String> + UnwindSafe,
     kind: impl Wire2Api<MediaType> + UnwindSafe,
 ) {
@@ -672,11 +692,13 @@ fn wire_register_track_observer_impl(
             mode: FfiCallMode::Stream,
         },
         move || {
+            let api_peer_id = peer_id.wire2api();
             let api_track_id = track_id.wire2api();
             let api_kind = kind.wire2api();
             move |task_callback| {
                 register_track_observer(
                     task_callback.stream_sink::<_, TrackEvent>(),
+                    api_peer_id,
                     api_track_id,
                     api_kind,
                 )
@@ -701,6 +723,7 @@ fn wire_set_on_device_changed_impl(port_: MessagePort) {
 fn wire_create_video_sink_impl(
     port_: MessagePort,
     sink_id: impl Wire2Api<i64> + UnwindSafe,
+    peer_id: impl Wire2Api<Option<u64>> + UnwindSafe,
     track_id: impl Wire2Api<String> + UnwindSafe,
     callback_ptr: impl Wire2Api<u64> + UnwindSafe,
     texture_id: impl Wire2Api<i64> + UnwindSafe,
@@ -713,6 +736,7 @@ fn wire_create_video_sink_impl(
         },
         move || {
             let api_sink_id = sink_id.wire2api();
+            let api_peer_id = peer_id.wire2api();
             let api_track_id = track_id.wire2api();
             let api_callback_ptr = callback_ptr.wire2api();
             let api_texture_id = texture_id.wire2api();
@@ -720,6 +744,7 @@ fn wire_create_video_sink_impl(
                 create_video_sink(
                     task_callback.stream_sink::<_, TextureEvent>(),
                     api_sink_id,
+                    api_peer_id,
                     api_track_id,
                     api_callback_ptr,
                     api_texture_id,
@@ -1055,6 +1080,7 @@ impl support::IntoDart for MediaStreamTrack {
     fn into_dart(self) -> support::DartAbi {
         vec![
             self.id.into_into_dart().into_dart(),
+            self.peer_id.into_dart(),
             self.device_id.into_into_dart().into_dart(),
             self.kind.into_into_dart().into_dart(),
             self.enabled.into_into_dart().into_dart(),
@@ -1950,46 +1976,51 @@ mod io {
     pub extern "C" fn wire_dispose_track(
         port_: i64,
         track_id: *mut wire_uint_8_list,
+        peer_id: *mut u64,
         kind: i32,
     ) {
-        wire_dispose_track_impl(port_, track_id, kind)
+        wire_dispose_track_impl(port_, track_id, peer_id, kind)
     }
 
     #[no_mangle]
     pub extern "C" fn wire_track_state(
         port_: i64,
         track_id: *mut wire_uint_8_list,
+        peer_id: *mut u64,
         kind: i32,
     ) {
-        wire_track_state_impl(port_, track_id, kind)
+        wire_track_state_impl(port_, track_id, peer_id, kind)
     }
 
     #[no_mangle]
     pub extern "C" fn wire_set_track_enabled(
         port_: i64,
         track_id: *mut wire_uint_8_list,
+        peer_id: *mut u64,
         kind: i32,
         enabled: bool,
     ) {
-        wire_set_track_enabled_impl(port_, track_id, kind, enabled)
+        wire_set_track_enabled_impl(port_, track_id, peer_id, kind, enabled)
     }
 
     #[no_mangle]
     pub extern "C" fn wire_clone_track(
         port_: i64,
         track_id: *mut wire_uint_8_list,
+        peer_id: *mut u64,
         kind: i32,
     ) {
-        wire_clone_track_impl(port_, track_id, kind)
+        wire_clone_track_impl(port_, track_id, peer_id, kind)
     }
 
     #[no_mangle]
     pub extern "C" fn wire_register_track_observer(
         port_: i64,
+        peer_id: *mut u64,
         track_id: *mut wire_uint_8_list,
         kind: i32,
     ) {
-        wire_register_track_observer_impl(port_, track_id, kind)
+        wire_register_track_observer_impl(port_, peer_id, track_id, kind)
     }
 
     #[no_mangle]
@@ -2001,6 +2032,7 @@ mod io {
     pub extern "C" fn wire_create_video_sink(
         port_: i64,
         sink_id: i64,
+        peer_id: *mut u64,
         track_id: *mut wire_uint_8_list,
         callback_ptr: u64,
         texture_id: i64,
@@ -2008,6 +2040,7 @@ mod io {
         wire_create_video_sink_impl(
             port_,
             sink_id,
+            peer_id,
             track_id,
             callback_ptr,
             texture_id,
@@ -2083,6 +2116,11 @@ mod io {
     pub extern "C" fn new_box_autoadd_rtc_configuration_0(
     ) -> *mut wire_RtcConfiguration {
         support::new_leak_box_ptr(wire_RtcConfiguration::new_with_null_ptr())
+    }
+
+    #[no_mangle]
+    pub extern "C" fn new_box_autoadd_u64_0(value: u64) -> *mut u64 {
+        support::new_leak_box_ptr(value)
     }
 
     #[no_mangle]
@@ -2259,6 +2297,11 @@ mod io {
         fn wire2api(self) -> RtcConfiguration {
             let wrap = unsafe { support::box_from_leak_ptr(self) };
             Wire2Api::<RtcConfiguration>::wire2api(*wrap).into()
+        }
+    }
+    impl Wire2Api<u64> for *mut u64 {
+        fn wire2api(self) -> u64 {
+            unsafe { *support::box_from_leak_ptr(self) }
         }
     }
     impl Wire2Api<VideoConstraints> for *mut wire_VideoConstraints {

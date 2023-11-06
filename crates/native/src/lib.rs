@@ -30,7 +30,7 @@ use dashmap::DashMap;
 use libwebrtc_sys as sys;
 use threadpool::ThreadPool;
 
-use crate::video_sink::Id as VideoSinkId;
+use crate::{user_media::TrackOrigin, video_sink::Id as VideoSinkId};
 
 #[doc(inline)]
 pub use crate::{
@@ -58,9 +58,9 @@ pub(crate) fn next_id() -> u64 {
 struct Webrtc {
     video_device_info: VideoDeviceInfo,
     video_sources: HashMap<VideoDeviceId, Arc<VideoSource>>,
-    video_tracks: Arc<DashMap<VideoTrackId, VideoTrack>>,
+    video_tracks: Arc<DashMap<(VideoTrackId, TrackOrigin), VideoTrack>>,
     audio_source: Option<Arc<sys::AudioSourceInterface>>,
-    audio_tracks: Arc<DashMap<AudioTrackId, AudioTrack>>,
+    audio_tracks: Arc<DashMap<(AudioTrackId, TrackOrigin), AudioTrack>>,
     video_sinks: HashMap<VideoSinkId, VideoSink>,
     ap: sys::AudioProcessing,
 

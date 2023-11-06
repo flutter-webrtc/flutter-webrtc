@@ -3,7 +3,9 @@ use cxx::UniquePtr;
 use derive_more::{AsMut, AsRef};
 use libwebrtc_sys as sys;
 
-use crate::{renderer::FrameHandler, VideoTrackId, Webrtc};
+use crate::{
+    renderer::FrameHandler, user_media::TrackOrigin, VideoTrackId, Webrtc,
+};
 
 impl Webrtc {
     /// Creates a new [`VideoSink`].
@@ -11,6 +13,7 @@ impl Webrtc {
         &mut self,
         sink_id: i64,
         track_id: String,
+        track_origin: TrackOrigin,
         handler: FrameHandler,
     ) -> anyhow::Result<()> {
         self.dispose_video_sink(sink_id);
@@ -22,11 +25,12 @@ impl Webrtc {
                 OnFrameCallback(handler),
             )),
             track_id: track_id.clone(),
+            track_origin: track_origin.clone(),
         };
 
         let mut track = self
             .video_tracks
-            .get_mut(&track_id)
+            .get_mut(&(track_id.clone(), track_origin))
             .ok_or_else(|| anyhow!("Cannot find track with ID `{track_id}`"))?;
         track.add_video_sink(&mut sink);
 
@@ -38,7 +42,10 @@ impl Webrtc {
     /// Destroys a [`VideoSink`] by the given ID.
     pub fn dispose_video_sink(&mut self, sink_id: i64) {
         if let Some(sink) = self.video_sinks.remove(&Id(sink_id)) {
-            if let Some(mut track) = self.video_tracks.get_mut(&sink.track_id) {
+            if let Some(mut track) = self
+                .video_tracks
+                .get_mut(&(sink.track_id.clone(), sink.track_origin.clone()))
+            {
                 track.remove_video_sink(sink);
             }
         }
@@ -62,6 +69,10 @@ pub struct VideoSink {
 
     /// ID of the [`VideoTrack`] attached to this [`VideoSink`].
     track_id: VideoTrackId,
+
+    /// Origin (local or remote) of the [`VideoTrack`] attached to this
+    /// [`VideoSink`].
+    track_origin: TrackOrigin,
 }
 
 impl VideoSink {

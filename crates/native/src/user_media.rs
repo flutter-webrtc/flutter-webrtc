@@ -11,7 +11,9 @@ use sys::TrackEventObserver;
 use xxhash::xxh3::xxh3_64;
 
 use crate::{
-    api, devices, next_id, pc::RtpTransceiver, stream_sink::StreamSink,
+    api, devices, next_id,
+    pc::{PeerConnectionId, RtpTransceiver},
+    stream_sink::StreamSink,
     PeerConnection, VideoSink, VideoSinkId, Webrtc,
 };
 
@@ -66,7 +68,13 @@ impl Webrtc {
 
         if let Err(err) = inner_get_media() {
             for track in tracks {
-                self.dispose_track(track.id, track.kind);
+                self.dispose_track(
+                    TrackOrigin::from(
+                        track.peer_id.map(PeerConnectionId::from),
+                    ),
+                    track.id,
+                    track.kind,
+                );
             }
 
             Err(err)
@@ -76,12 +84,18 @@ impl Webrtc {
     }
 
     /// Disposes a [`VideoTrack`] or [`AudioTrack`] by the provided `track_id`.
-    pub fn dispose_track(&mut self, track_id: String, kind: api::MediaType) {
+    pub fn dispose_track(
+        &mut self,
+        track_origin: TrackOrigin,
+        track_id: String,
+        kind: api::MediaType,
+    ) {
         #[allow(clippy::mutable_key_type)] // false positive
         let senders = match kind {
             api::MediaType::Audio => {
-                if let Some((_, track)) =
-                    self.audio_tracks.remove(&AudioTrackId::from(track_id))
+                if let Some((_, track)) = self
+                    .audio_tracks
+                    .remove(&(AudioTrackId::from(track_id), track_origin))
                 {
                     if let MediaTrackSource::Local(src) = track.source {
                         if Arc::strong_count(&src) == 2 {
@@ -96,8 +110,9 @@ impl Webrtc {
                 }
             }
             api::MediaType::Video => {
-                if let Some((_, mut track)) =
-                    self.video_tracks.remove(&VideoTrackId::from(track_id))
+                if let Some((_, mut track)) = self
+                    .video_tracks
+                    .remove(&(VideoTrackId::from(track_id), track_origin))
                 {
                     for id in track.sinks.clone() {
                         if let Some(sink) = self.video_sinks.remove(&id) {
@@ -137,7 +152,8 @@ impl Webrtc {
 
         let api_track = api::MediaStreamTrack::from(&track);
 
-        self.video_tracks.insert(track.id.clone(), track);
+        self.video_tracks
+            .insert((track.id.clone(), TrackOrigin::Local), track);
 
         Ok(api_track)
     }
@@ -242,12 +258,17 @@ impl Webrtc {
         let device_id =
             self.audio_device_module.current_device_id.clone().unwrap();
 
-        let track =
-            AudioTrack::new(&self.peer_connection_factory, source, device_id)?;
+        let track = AudioTrack::new(
+            &self.peer_connection_factory,
+            source,
+            device_id,
+            TrackOrigin::Local,
+        )?;
 
         let api_track = api::MediaStreamTrack::from(&track);
 
-        self.audio_tracks.insert(track.id.clone(), track);
+        self.audio_tracks
+            .insert((track.id.clone(), TrackOrigin::Local), track);
 
         Ok(api_track)
     }
@@ -317,13 +338,14 @@ impl Webrtc {
     pub fn track_state(
         &self,
         id: String,
+        track_origin: TrackOrigin,
         kind: api::MediaType,
     ) -> anyhow::Result<api::TrackState> {
         Ok(match kind {
             api::MediaType::Audio => {
                 let id = AudioTrackId::from(id);
                 self.audio_tracks
-                    .get(&id)
+                    .get(&(id.clone(), track_origin))
                     .ok_or_else(|| {
                         anyhow!("Cannot find audio track with ID `{id}`")
                     })?
@@ -332,7 +354,7 @@ impl Webrtc {
             api::MediaType::Video => {
                 let id = VideoTrackId::from(id);
                 self.video_tracks
-                    .get(&id)
+                    .get(&(id.clone(), track_origin))
                     .ok_or_else(|| {
                         anyhow!("Cannot find video track with ID `{id}`")
                     })?
@@ -347,23 +369,30 @@ impl Webrtc {
     pub fn set_track_enabled(
         &self,
         id: String,
+        track_origin: TrackOrigin,
         kind: api::MediaType,
         enabled: bool,
     ) -> anyhow::Result<()> {
         match kind {
             api::MediaType::Audio => {
                 let id = AudioTrackId::from(id);
-                let track = self.audio_tracks.get(&id).ok_or_else(|| {
-                    anyhow!("Cannot find track with ID `{id}`")
-                })?;
+                let track = self
+                    .audio_tracks
+                    .get(&(id.clone(), track_origin))
+                    .ok_or_else(|| {
+                        anyhow!("Cannot find track with ID `{id}`")
+                    })?;
 
                 track.set_enabled(enabled);
             }
             api::MediaType::Video => {
                 let id = VideoTrackId::from(id);
-                let track = self.video_tracks.get(&id).ok_or_else(|| {
-                    anyhow!("Cannot find track with ID `{id}`")
-                })?;
+                let track = self
+                    .video_tracks
+                    .get(&(id.clone(), track_origin))
+                    .ok_or_else(|| {
+                        anyhow!("Cannot find track with ID `{id}`")
+                    })?;
 
                 track.set_enabled(enabled);
             }
@@ -373,9 +402,11 @@ impl Webrtc {
     }
 
     /// Clones the specified [`api::MediaStreamTrack`].
+    #[allow(clippy::too_many_lines)]
     pub fn clone_track(
         &mut self,
         id: String,
+        track_origin: TrackOrigin,
         kind: api::MediaType,
     ) -> anyhow::Result<api::MediaStreamTrack> {
         match kind {
@@ -383,7 +414,7 @@ impl Webrtc {
                 let id = AudioTrackId::from(id);
                 let source = self
                     .audio_tracks
-                    .get(&id)
+                    .get(&(id.clone(), track_origin))
                     .map(|track| match &track.source {
                         MediaTrackSource::Local(source) => {
                             MediaTrackSource::Local(Arc::clone(source))
@@ -404,12 +435,10 @@ impl Webrtc {
                         Ok(self.create_audio_track(source)?)
                     }
                     MediaTrackSource::Remote { mid, peer } => {
-                        let mut transceivers = peer
-                            .upgrade()
-                            .ok_or_else(|| {
-                                anyhow!("`PeerConnection` has been disposed")
-                            })?
-                            .get_transceivers();
+                        let peer = peer.upgrade().ok_or_else(|| {
+                            anyhow!("`PeerConnection` has been disposed")
+                        })?;
+                        let mut transceivers = peer.get_transceivers();
 
                         transceivers.retain(|transceiver| {
                             transceiver.mid().unwrap() == mid
@@ -424,7 +453,7 @@ impl Webrtc {
 
                         let track = AudioTrack::wrap_remote(
                             transceivers.get(0).unwrap(),
-                            peer,
+                            &peer,
                         );
 
                         Ok(api::MediaStreamTrack::from(&track))
@@ -435,7 +464,7 @@ impl Webrtc {
                 let id = VideoTrackId::from(id);
                 let source = self
                     .video_tracks
-                    .get(&id)
+                    .get(&(id.clone(), track_origin))
                     .map(|track| match &track.source {
                         MediaTrackSource::Local(source) => {
                             MediaTrackSource::Local(Arc::clone(source))
@@ -456,12 +485,10 @@ impl Webrtc {
                         Ok(self.create_video_track(source)?)
                     }
                     MediaTrackSource::Remote { mid, peer } => {
-                        let mut transceivers = peer
-                            .upgrade()
-                            .ok_or_else(|| {
-                                anyhow!("`PeerConnection` has been disposed")
-                            })?
-                            .get_transceivers();
+                        let peer = peer.upgrade().ok_or_else(|| {
+                            anyhow!("`PeerConnection` has been disposed")
+                        })?;
+                        let mut transceivers = peer.get_transceivers();
                         transceivers.retain(|transceiver| {
                             transceiver.mid().unwrap() == mid
                         });
@@ -475,7 +502,7 @@ impl Webrtc {
 
                         let track = VideoTrack::wrap_remote(
                             transceivers.get(0).unwrap(),
-                            peer,
+                            &peer,
                         );
 
                         Ok(api::MediaStreamTrack::from(&track))
@@ -494,6 +521,7 @@ impl Webrtc {
     pub fn register_track_observer(
         &self,
         id: String,
+        track_origin: TrackOrigin,
         kind: api::MediaType,
         cb: StreamSink<api::TrackEvent>,
     ) -> anyhow::Result<()> {
@@ -501,8 +529,10 @@ impl Webrtc {
         match kind {
             api::MediaType::Audio => {
                 let id = AudioTrackId::from(id);
-                let mut track =
-                    self.audio_tracks.get_mut(&id).ok_or_else(|| {
+                let mut track = self
+                    .audio_tracks
+                    .get_mut(&(id.clone(), track_origin))
+                    .ok_or_else(|| {
                         anyhow!("Cannot find track with ID `{id}`")
                     })?;
 
@@ -511,8 +541,10 @@ impl Webrtc {
             }
             api::MediaType::Video => {
                 let id = VideoTrackId::from(id);
-                let mut track =
-                    self.video_tracks.get_mut(&id).ok_or_else(|| {
+                let mut track = self
+                    .video_tracks
+                    .get_mut(&(id.clone(), track_origin))
+                    .ok_or_else(|| {
                         anyhow!("Cannot find track with ID `{id}`")
                     })?;
 
@@ -885,6 +917,25 @@ impl AudioDeviceModule {
     }
 }
 
+/// Indicates whether some track is a local track obtained via
+/// [getUserMedia()][1]/[getDisplayMedia()][2] call or a remote received in a
+/// [ontrack][3] callback.
+///
+/// [1]: https://w3.org/TR/mediacapture-streams#dom-mediadevices-getusermedia
+/// [2]: https://w3.org/TR/screen-capture/#dom-mediadevices-getdisplaymedia
+/// [3]: https://w3.org/TR/webrtc/#dom-rtcpeerconnection-ontrack
+#[derive(Clone, Debug, Eq, From, Hash, PartialEq)]
+pub enum TrackOrigin {
+    Local,
+    Remote(PeerConnectionId),
+}
+
+impl From<Option<PeerConnectionId>> for TrackOrigin {
+    fn from(value: Option<PeerConnectionId>) -> Self {
+        value.map_or(Self::Local, Self::Remote)
+    }
+}
+
 /// Possible kinds of media track's source.
 enum MediaTrackSource<T> {
     Local(Arc<T>),
@@ -899,6 +950,9 @@ enum MediaTrackSource<T> {
 pub struct VideoTrack {
     /// ID of this [`VideoTrack`].
     pub id: VideoTrackId,
+
+    /// Indicator whether this is a remote or a local track.
+    track_origin: TrackOrigin,
 
     /// Underlying [`sys::VideoTrackInterface`].
     #[as_ref]
@@ -931,6 +985,7 @@ impl VideoTrack {
             kind: api::MediaType::Video,
             sinks: Vec::new(),
             senders: HashMap::new(),
+            track_origin: TrackOrigin::Local,
         })
     }
 
@@ -938,7 +993,7 @@ impl VideoTrack {
     /// [`VideoTrack`].
     pub(crate) fn wrap_remote(
         transceiver: &sys::RtpTransceiverInterface,
-        peer: Weak<PeerConnection>,
+        peer: &Arc<PeerConnection>,
     ) -> Self {
         let receiver = transceiver.receiver();
         let track = receiver.track();
@@ -949,11 +1004,12 @@ impl VideoTrack {
             // at this point.
             source: MediaTrackSource::Remote {
                 mid: transceiver.mid().unwrap(),
-                peer,
+                peer: Arc::downgrade(peer),
             },
             kind: api::MediaType::Video,
             sinks: Vec::new(),
             senders: HashMap::new(),
+            track_origin: TrackOrigin::Remote(peer.id()),
         }
     }
 
@@ -997,6 +1053,10 @@ impl From<&VideoTrack> for api::MediaStreamTrack {
             },
             kind: track.kind,
             enabled: true,
+            peer_id: match track.track_origin {
+                TrackOrigin::Local => None,
+                TrackOrigin::Remote(peer_id) => Some(peer_id.into()),
+            },
         }
     }
 }
@@ -1006,6 +1066,9 @@ impl From<&VideoTrack> for api::MediaStreamTrack {
 pub struct AudioTrack {
     /// ID of this [`AudioTrack`].
     pub id: AudioTrackId,
+
+    /// Indicator whether this is a remote or a local track.
+    track_origin: TrackOrigin,
 
     /// Underlying [`sys::AudioTrackInterface`].
     #[as_ref]
@@ -1035,6 +1098,7 @@ impl AudioTrack {
         pc: &sys::PeerConnectionFactoryInterface,
         src: Arc<sys::AudioSourceInterface>,
         device_id: AudioDeviceId,
+        track_origin: TrackOrigin,
     ) -> anyhow::Result<Self> {
         let id = AudioTrackId(next_id().to_string());
         Ok(Self {
@@ -1044,6 +1108,7 @@ impl AudioTrack {
             kind: api::MediaType::Audio,
             device_id,
             senders: HashMap::new(),
+            track_origin,
         })
     }
 
@@ -1051,7 +1116,7 @@ impl AudioTrack {
     /// [`AudioTrack`].
     pub(crate) fn wrap_remote(
         transceiver: &sys::RtpTransceiverInterface,
-        peer: Weak<PeerConnection>,
+        peer: &Arc<PeerConnection>,
     ) -> Self {
         let receiver = transceiver.receiver();
         let track = receiver.track();
@@ -1062,11 +1127,12 @@ impl AudioTrack {
             // at this point.
             source: MediaTrackSource::Remote {
                 mid: transceiver.mid().unwrap(),
-                peer,
+                peer: Arc::downgrade(peer),
             },
             kind: api::MediaType::Audio,
             device_id: AudioDeviceId::from("remote"),
             senders: HashMap::new(),
+            track_origin: TrackOrigin::Remote(peer.id()),
         }
     }
 
@@ -1095,6 +1161,10 @@ impl From<&AudioTrack> for api::MediaStreamTrack {
             device_id: track.device_id.to_string(),
             kind: track.kind,
             enabled: true,
+            peer_id: match track.track_origin {
+                TrackOrigin::Local => None,
+                TrackOrigin::Remote(peer_id) => Some(peer_id.into()),
+            },
         }
     }
 }

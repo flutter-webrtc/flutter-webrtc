@@ -9317,7 +9317,7 @@ abstract class RtcStatsType_Unimplemented implements RtcStatsType {
 
 /// @nodoc
 mixin _$TextureEvent {
-  /// Id of the texture.
+  /// ID of the texture.
   int get textureId => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
@@ -9464,7 +9464,7 @@ class _$TextureEvent_OnTextureChangeImpl
       required this.height,
       required this.rotation});
 
-  /// Id of the texture.
+  /// ID of the texture.
   @override
   final int textureId;
 
@@ -9590,7 +9590,7 @@ abstract class TextureEvent_OnTextureChange implements TextureEvent {
 
   @override
 
-  /// Id of the texture.
+  /// ID of the texture.
   int get textureId;
 
   /// Width of the last processed frame.
@@ -9650,7 +9650,7 @@ class _$TextureEvent_OnFirstFrameRenderedImpl
     implements TextureEvent_OnFirstFrameRendered {
   const _$TextureEvent_OnFirstFrameRenderedImpl({required this.textureId});
 
-  /// Id of the texture.
+  /// ID of the texture.
   @override
   final int textureId;
 
@@ -9756,7 +9756,7 @@ abstract class TextureEvent_OnFirstFrameRendered implements TextureEvent {
 
   @override
 
-  /// Id of the texture.
+  /// ID of the texture.
   int get textureId;
   @override
   @JsonKey(ignore: true)
