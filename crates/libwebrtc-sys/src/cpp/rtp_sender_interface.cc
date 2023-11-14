@@ -36,4 +36,19 @@ bool replace_sender_audio_track(
   }
 }
 
+// Sets the provided `RtpParameters` for the provided `RtpSenderInterface`.
+rust::String rtp_sender_set_parameters(
+    const RtpSenderInterface& sender,
+    const webrtc::RtpParameters& parameters) {
+  rust::String error;
+
+  webrtc::RTCError result = sender->SetParameters(parameters);
+
+  if (!result.ok()) {
+    error = result.message();
+  }
+
+  return error;
+}
+
 }  // namespace bridge

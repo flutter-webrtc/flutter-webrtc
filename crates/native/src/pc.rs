@@ -17,8 +17,9 @@ use once_cell::sync::OnceCell;
 use threadpool::ThreadPool;
 
 use crate::{
-    api, next_id, stream_sink::StreamSink, user_media::TrackOrigin, AudioTrack,
-    AudioTrackId, VideoTrack, VideoTrackId, Webrtc,
+    api, api::RtpTransceiverInit, next_id, stream_sink::StreamSink,
+    user_media::TrackOrigin, AudioTrack, AudioTrackId, VideoTrack,
+    VideoTrackId, Webrtc,
 };
 
 impl Webrtc {
@@ -439,16 +440,12 @@ impl PeerConnection {
     pub fn add_transceiver(
         this: RustOpaque<Arc<Self>>,
         media_type: sys::MediaType,
-        init: &RustOpaque<Arc<RtpTransceiverInit>>,
+        init: api::RtpTransceiverInit,
     ) -> anyhow::Result<api::RtcRtpTransceiver> {
         let (mid, direction, transceiver) = {
             let mut peer = this.inner.lock().unwrap();
 
-            let transceiver = {
-                let init = init.0.lock().unwrap();
-
-                peer.add_transceiver(media_type, &init)
-            };
+            let transceiver = peer.add_transceiver(media_type, &(init.into()));
             let index = peer.get_transceivers().len() - 1;
 
             (
@@ -575,58 +572,56 @@ impl PeerConnection {
     }
 }
 
-/// Wrapper around a [`sys::RtpTransceiverInit`].
-pub struct RtpTransceiverInit(Arc<Mutex<sys::RtpTransceiverInit>>);
+/// Wrapper around [`sys::RtpParameters`].
+pub struct RtpParameters(Arc<Mutex<sys::RtpParameters>>);
 
-impl RtpTransceiverInit {
-    /// Creates a new [`RtpTransceiverInit`].
+impl RtpParameters {
+    /// Returns [`api::RtcRtpEncodingParameters`].
+    ///
+    /// # Panics
+    ///
+    /// If the [`Mutex`] guarding the [`sys::RtpParameters`] is poisoned.
     #[must_use]
-    pub fn new() -> Self {
-        Self(Arc::new(Mutex::new(sys::RtpTransceiverInit::new())))
+    pub fn get_encodings(&self) -> Vec<sys::RtpEncodingParameters> {
+        self.0.lock().unwrap().encodings()
     }
 
-    /// Sets a provided [`api::RtpTransceiverDirection`] to this
-    /// [`RtpTransceiverInit`].
+    /// Sets the provided [`api::RtcRtpEncodingParameters`].
     ///
     /// # Panics
     ///
-    /// If the [`Mutex`] guarding the [`sys::RtpTransceiverInit`] is poisoned.
-    pub fn set_direction(&self, direction: api::RtpTransceiverDirection) {
-        self.0.lock().unwrap().set_direction(direction.into());
-    }
-
-    /// Adds a provided [`RtpEncodingParameters`] to this
-    /// [`RtpTransceiverInit`].
-    ///
-    /// # Panics
-    ///
-    /// If the [`Mutex`] guarding the [`sys::RtpTransceiverInit`] or the
-    /// [`sys::RtpEncodingParameters`] is poisoned.
-    pub fn add_encoding(
-        &self,
-        encoding: &RustOpaque<Arc<RtpEncodingParameters>>,
-    ) {
+    /// If the [`Mutex`] guarding the [`sys::RtpParameters`] is poisoned.
+    fn update_encoding(&self, encoding: &RtpEncodingParameters) {
         self.0
             .lock()
             .unwrap()
-            .add_encoding(&encoding.0.lock().unwrap());
+            .set_encodings(&encoding.0.lock().unwrap());
     }
 }
 
-impl Default for RtpTransceiverInit {
-    fn default() -> Self {
-        Self::new()
+impl From<api::RtpTransceiverInit> for sys::RtpTransceiverInit {
+    fn from(v: RtpTransceiverInit) -> Self {
+        let mut init = sys::RtpTransceiverInit::new();
+
+        init.set_direction(v.direction.into());
+
+        for e in v.send_encodings {
+            let enc = RtpEncodingParameters::from(e);
+            init.add_encoding(&enc.0.lock().unwrap());
+        }
+
+        init
     }
 }
 
-/// Wrapper around a [`sys::RtpEncodingParameters`].
-pub struct RtpEncodingParameters(Arc<Mutex<sys::RtpEncodingParameters>>);
+/// Wrapper around [`sys::RtpEncodingParameters`].
+pub struct RtpEncodingParameters(Mutex<sys::RtpEncodingParameters>);
 
 impl RtpEncodingParameters {
-    /// Creates a new [`RtpEncodingParameters`].
+    /// Creates new [`RtpEncodingParameters`].
     #[must_use]
     pub fn new() -> Self {
-        Self(Arc::new(Mutex::new(sys::RtpEncodingParameters::new())))
+        Self(Mutex::new(sys::RtpEncodingParameters::new()))
     }
 
     /// Sets a provided `rid` to this [`RtpEncodingParameters`].
@@ -700,6 +695,45 @@ impl RtpEncodingParameters {
 impl Default for RtpEncodingParameters {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl From<api::RtcRtpEncodingParameters> for RtpEncodingParameters {
+    fn from(v: api::RtcRtpEncodingParameters) -> Self {
+        let api::RtcRtpEncodingParameters {
+            rid,
+            active,
+            max_bitrate,
+            max_framerate,
+            scale_resolution_down_by,
+            scalability_mode,
+        } = v;
+
+        let e = RtpEncodingParameters::new();
+
+        e.set_rid(rid);
+        e.set_active(active);
+
+        if let Some(b) = max_bitrate {
+            e.set_max_bitrate(b);
+        }
+        if let Some(f) = max_framerate {
+            e.set_max_framerate(f);
+        }
+        if let Some(r) = scale_resolution_down_by {
+            e.set_scale_resolution_down_by(r);
+        }
+        if let Some(m) = scalability_mode {
+            e.set_scalability_mode(m);
+        }
+
+        e
+    }
+}
+
+impl From<sys::RtpEncodingParameters> for RtpEncodingParameters {
+    fn from(val: sys::RtpEncodingParameters) -> Self {
+        Self(Mutex::new(val))
     }
 }
 
@@ -827,6 +861,69 @@ impl RtpTransceiver {
     #[must_use]
     pub fn media_type(&self) -> sys::MediaType {
         self.inner.lock().unwrap().media_type()
+    }
+
+    /// Returns [`RtpParameters`] from this [`RtpTransceiver`]'s `sender`.
+    ///
+    /// # Panics
+    ///
+    /// If the [`Mutex`] guarding the [`sys::RtpTransceiverInterface`] is
+    /// poisoned.
+    #[must_use]
+    pub fn sender_get_parameters(&self) -> RtpParameters {
+        RtpParameters(Arc::new(Mutex::new(
+            self.inner.lock().unwrap().sender().get_parameters(),
+        )))
+    }
+
+    /// Sets the provided [`RtpParameters`] into this [`RtpTransceiver`]'s
+    /// `sender`.
+    ///
+    /// # Errors
+    ///
+    /// If the underlying engine errors.
+    ///
+    /// # Panics
+    ///
+    /// If the [`Mutex`] guarding the [`sys::RtpTransceiverInterface`] is
+    /// poisoned.
+    pub fn sender_set_parameters(
+        &self,
+        params: api::RtcRtpSendParameters,
+    ) -> anyhow::Result<()> {
+        for (api, sys) in params.encodings {
+            let api::RtcRtpEncodingParameters {
+                rid,
+                active,
+                max_bitrate,
+                max_framerate,
+                scale_resolution_down_by,
+                scalability_mode,
+            } = api;
+
+            sys.set_rid(rid);
+            sys.set_active(active);
+            if let Some(b) = max_bitrate {
+                sys.set_max_bitrate(b);
+            }
+            if let Some(f) = max_framerate {
+                sys.set_max_framerate(f);
+            }
+            if let Some(r) = scale_resolution_down_by {
+                sys.set_scale_resolution_down_by(r);
+            }
+            if let Some(m) = scalability_mode {
+                sys.set_scalability_mode(m);
+            }
+
+            params.inner.update_encoding(&sys);
+        }
+
+        self.inner
+            .lock()
+            .unwrap()
+            .sender()
+            .set_parameters(&params.inner.0.lock().unwrap())
     }
 
     /// Irreversibly marks this [`RtpTransceiver`] as stopping, unless it's

@@ -33,21 +33,16 @@ void main() {
 
     var videoInit1 = RtpTransceiverInit(TransceiverDirection.sendOnly);
 
-    var p1 = SendEncodingParameters("h", true);
-    p1.maxBitrate = 1200 * 1024;
-    p1.maxFramerate = 30;
-    videoInit1.sendEncodings.add(p1);
+    var h = SendEncodingParameters.create("h", true,
+        maxBitrate: 1200 * 1024, maxFramerate: 30);
+    var m = SendEncodingParameters.create("m", true,
+        maxBitrate: 600 * 1024, maxFramerate: 30, scaleResolutionDownBy: 2);
+    var l = SendEncodingParameters.create("l", true,
+        maxBitrate: 300 * 1024, scaleResolutionDownBy: 4);
 
-    var p2 = SendEncodingParameters("m", true);
-    p2.maxBitrate = 600 * 1024;
-    p2.maxFramerate = 30;
-    p2.scaleResolutionDownBy = 2;
-    videoInit1.sendEncodings.add(p2);
-
-    var p3 = SendEncodingParameters("l", true);
-    p3.maxBitrate = 300 * 1024;
-    p3.scaleResolutionDownBy = 4;
-    videoInit1.sendEncodings.add(p3);
+    videoInit1.sendEncodings.add(h);
+    videoInit1.sendEncodings.add(m);
+    videoInit1.sendEncodings.add(l);
 
     var videoTrans1 = await pc.addTransceiver(MediaKind.video, videoInit1);
     var response = await pc.createOffer();
@@ -59,6 +54,106 @@ void main() {
     expect(response.description.contains('a=rid:m send'), isTrue);
     expect(response.description.contains('a=rid:l send'), isTrue);
     expect(response.description.contains('a=simulcast:send h;m;l'), isTrue);
+
+    var params = await videoTrans1.sender.getParameters();
+
+    expect(params.encodings.length, 3);
+
+    expect(params.encodings[0].rid, h.rid);
+    expect(params.encodings[0].active, h.active);
+    expect(params.encodings[0].maxBitrate, h.maxBitrate);
+    expect(params.encodings[0].scaleResolutionDownBy, h.scaleResolutionDownBy);
+
+    expect(params.encodings[1].rid, m.rid);
+    expect(params.encodings[1].active, m.active);
+    expect(params.encodings[1].maxBitrate, m.maxBitrate);
+    expect(params.encodings[1].scaleResolutionDownBy, m.scaleResolutionDownBy);
+
+    expect(params.encodings[2].rid, l.rid);
+    expect(params.encodings[2].active, l.active);
+    expect(params.encodings[2].maxBitrate, l.maxBitrate);
+    expect(params.encodings[2].scaleResolutionDownBy, l.scaleResolutionDownBy);
+
+    await pc.close();
+    await videoTrans1.dispose();
+  });
+
+  testWidgets('Get/set sender parameters', (WidgetTester tester) async {
+    var pc = await PeerConnection.create(IceTransportType.all, []);
+
+    var videoInit1 = RtpTransceiverInit(TransceiverDirection.sendOnly);
+
+    var h = SendEncodingParameters.create("h", true,
+        maxBitrate: 1200 * 1024, maxFramerate: 30);
+    var m = SendEncodingParameters.create("m", true,
+        maxBitrate: 600 * 1024, maxFramerate: 20, scaleResolutionDownBy: 2);
+    var l = SendEncodingParameters.create("l", true,
+        maxBitrate: 300 * 1024, maxFramerate: 10, scaleResolutionDownBy: 4);
+
+    videoInit1.sendEncodings.add(h);
+    videoInit1.sendEncodings.add(m);
+    videoInit1.sendEncodings.add(l);
+
+    var videoTrans1 = await pc.addTransceiver(MediaKind.video, videoInit1);
+
+    var parameters = await videoTrans1.sender.getParameters();
+
+    // assert initial values
+    expect(parameters.encodings[0].rid, h.rid);
+    expect(parameters.encodings[0].active, h.active);
+    expect(parameters.encodings[0].maxFramerate, h.maxFramerate);
+    expect(parameters.encodings[0].maxBitrate, h.maxBitrate);
+    expect(parameters.encodings[0].scalabilityMode, h.scalabilityMode);
+    expect(
+        parameters.encodings[0].scaleResolutionDownBy, h.scaleResolutionDownBy);
+
+    expect(parameters.encodings[1].rid, m.rid);
+    expect(parameters.encodings[1].active, m.active);
+    expect(parameters.encodings[1].maxFramerate, m.maxFramerate);
+    expect(parameters.encodings[1].maxBitrate, m.maxBitrate);
+    expect(parameters.encodings[1].scalabilityMode, m.scalabilityMode);
+    expect(
+        parameters.encodings[1].scaleResolutionDownBy, m.scaleResolutionDownBy);
+
+    expect(parameters.encodings[2].rid, l.rid);
+    expect(parameters.encodings[2].active, l.active);
+    expect(parameters.encodings[2].maxFramerate, l.maxFramerate);
+    expect(parameters.encodings[2].maxBitrate, l.maxBitrate);
+    expect(parameters.encodings[2].scalabilityMode, l.scalabilityMode);
+    expect(
+        parameters.encodings[2].scaleResolutionDownBy, l.scaleResolutionDownBy);
+
+    // set new values
+    parameters.encodings[0].maxFramerate = 25;
+    parameters.encodings[0].maxBitrate = 800 * 1024;
+    parameters.encodings[0].scaleResolutionDownBy = 2;
+
+    parameters.encodings[1].maxFramerate = 15;
+    parameters.encodings[1].maxBitrate = 400 * 1024;
+    parameters.encodings[1].scaleResolutionDownBy = 4;
+
+    parameters.encodings[2].maxFramerate = 5;
+    parameters.encodings[2].maxBitrate = 200 * 1024;
+    parameters.encodings[2].scaleResolutionDownBy = 8;
+
+    await videoTrans1.sender.setParameters(parameters);
+    var parameters2 = await videoTrans1.sender.getParameters();
+
+    // assert new values
+    expect(parameters2.encodings[0].active, true);
+    expect(parameters2.encodings[0].maxFramerate, 25);
+    expect(parameters2.encodings[0].maxBitrate, 800 * 1024);
+    expect(parameters2.encodings[0].scaleResolutionDownBy, 2);
+
+    expect(parameters2.encodings[1].active, true);
+    expect(parameters2.encodings[1].maxFramerate, 15);
+    expect(parameters2.encodings[1].maxBitrate, 400 * 1024);
+    expect(parameters2.encodings[1].scaleResolutionDownBy, 4);
+
+    expect(parameters2.encodings[2].active, true);
+    expect(parameters2.encodings[2].maxFramerate, 5);
+    expect(parameters2.encodings[2].maxBitrate, 200 * 1024);
+    expect(parameters2.encodings[2].scaleResolutionDownBy, 8);
 
     await pc.close();
     await videoTrans1.dispose();

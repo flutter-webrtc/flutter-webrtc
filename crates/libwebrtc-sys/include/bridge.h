@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BRIDGE_H_
+#define BRIDGE_H_
 
 #include <functional>
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
@@ -572,3 +573,5 @@ std::unique_ptr<webrtc::IceCandidateInterface> create_ice_candidate(
     rust::String& error);
 
 }  // namespace bridge
+
+#endif // BRIDGE_H_

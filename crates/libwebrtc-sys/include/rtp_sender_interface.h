@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BRIDGE_RTP_SENDER_INTERFACE_H_
+#define BRIDGE_RTP_SENDER_INTERFACE_H_
 
 #include "bridge.h"
 
@@ -24,4 +25,10 @@ bool replace_sender_audio_track(
     const RtpSenderInterface& sender,
     const std::unique_ptr<AudioTrackInterface>& track);
 
+// Sets the provided `RtpParameters` for the provided `RtpSenderInterface`.
+rust::String rtp_sender_set_parameters(const RtpSenderInterface& sender,
+                                       const webrtc::RtpParameters& parameters);
+
 }  // namespace bridge
+
+#endif // BRIDGE_RTP_SENDER_INTERFACE_H_

@@ -1,5 +1,5 @@
-#ifndef MAC_CAPTURER_H_
-#define MAC_CAPTURER_H_
+#ifndef BRIDGE_MAC_CAPTURER_H_
+#define BRIDGE_MAC_CAPTURER_H_
 
 #include <memory>
 #include <string>
@@ -75,4 +75,4 @@ class MacCapturer : public rtc::AdaptedVideoTrackSource,
   RTCVideoSourceAdapter* adapter_;
 };
 
-#endif  // MAC_CAPTURER_H_
+#endif // BRIDGE_MAC_CAPTURER_H_

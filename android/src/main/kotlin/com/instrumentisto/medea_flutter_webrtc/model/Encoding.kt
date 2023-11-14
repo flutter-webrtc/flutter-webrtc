@@ -29,7 +29,7 @@ data class Encoding(
           map["rid"] as String,
           map["active"] as Boolean,
           map["maxBitrate"] as Int?,
-          map["maxFramerate"] as Double?,
+          (map["maxFramerate"] as Int?)?.toDouble(),
           map["scaleResolutionDownBy"] as Double?)
     }
   }

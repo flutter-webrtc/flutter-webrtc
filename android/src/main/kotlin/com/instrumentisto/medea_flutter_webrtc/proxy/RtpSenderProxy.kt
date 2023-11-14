@@ -1,6 +1,7 @@
 package com.instrumentisto.medea_flutter_webrtc.proxy
 
 import com.instrumentisto.medea_flutter_webrtc.exception.ReplaceSenderTrackException
+import org.webrtc.RtpParameters
 import org.webrtc.RtpSender
 
 /**
@@ -41,6 +42,20 @@ class RtpSenderProxy(sender: RtpSender) : Proxy<RtpSender>(sender) {
     if (!isSuccessful) {
       throw ReplaceSenderTrackException()
     }
+  }
+
+  /** Returns [RtpParameters] of the underlying [RtpSender]. */
+  fun getParameters(): RtpParameters {
+    return obj.parameters
+  }
+
+  /**
+   * Sets [RtpParameters] of the underlying [RtpSender] with the provided one.
+   *
+   * @return [Boolean] indicating whether parameters has been set.
+   */
+  fun setParameters(params: RtpParameters): Boolean {
+    return obj.setParameters(params)
   }
 
   /**

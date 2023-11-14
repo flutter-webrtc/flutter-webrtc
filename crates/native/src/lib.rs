@@ -10,6 +10,7 @@ mod api;
     clippy::wildcard_imports,
     let_underscore_drop
 )]
+#[rustfmt::skip]
 mod bridge_generated;
 mod devices;
 mod pc;
@@ -35,8 +36,7 @@ use crate::{user_media::TrackOrigin, video_sink::Id as VideoSinkId};
 #[doc(inline)]
 pub use crate::{
     pc::{
-        PeerConnection, RtpEncodingParameters, RtpTransceiver,
-        RtpTransceiverInit,
+        PeerConnection, RtpEncodingParameters, RtpParameters, RtpTransceiver,
     },
     user_media::{
         AudioDeviceId, AudioDeviceModule, AudioTrack, AudioTrackId,

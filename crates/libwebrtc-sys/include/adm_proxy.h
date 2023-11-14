@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BRIDGE_ADM_PROXY_H_
+#define BRIDGE_ADM_PROXY_H_
 
 #include "modules/audio_device/include/audio_device.h"
 #include "pc/proxy.h"
@@ -75,3 +76,5 @@ PROXY_CONSTMETHOD0(int32_t, GetPlayoutUnderrunCount)
 #endif  // WEBRTC_IOS
 END_PROXY_MAP(AudioDeviceModule)
 }  // namespace webrtc
+
+#endif // BRIDGE_ADM_PROXY_H_

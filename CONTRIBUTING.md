@@ -17,7 +17,7 @@ We love contributions from everyone, whether it's raising an issue, reporting a 
 
 ### Rust
 
-**All [Rust] source code must be formatted with [rustfmt] and linted with [Clippy] linter** (see `cargo.fmt` and `cargo.lint` commands in [`Makefile`]), customized by project settings ([`.rustfmt.toml`](.rustfmt.toml) and [`.clippy.toml`](.clippy.toml) files).
+**All [Rust] source code must be formatted with [rustfmt] and linted with [Clippy] linter** (see `cargo.fmt` and `cargo.lint` commands in [`Makefile`]), customized by project settings ([`.rustfmt.toml`](.nightly.rustfmt.toml) and [`.clippy.toml`](.clippy.toml) files).
 
 Additional rules, not handled by [rustfmt] and [Clippy] are described below.
 

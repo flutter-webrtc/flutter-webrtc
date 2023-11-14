@@ -16,7 +16,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef BRIDGE_SCREEN_VIDEO_CAPTURER_H_
+#define BRIDGE_SCREEN_VIDEO_CAPTURER_H_
 
 #include "media/base/adapted_video_track_source.h"
 #include "modules/desktop_capture/desktop_and_cursor_composer.h"
@@ -112,3 +113,5 @@ class ScreenVideoCapturer : public rtc::AdaptedVideoTrackSource,
   // Flag signaling the `capture_thread_` to stop.
   std::atomic<bool> quit_;
 };
+
+#endif // BRIDGE_SCREEN_VIDEO_CAPTURER_H_

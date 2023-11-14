@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BRIDGE_RTP_CODEC_PARAMETERS_H_
+#define BRIDGE_RTP_CODEC_PARAMETERS_H_
 
 #include "bridge.h"
 
@@ -24,3 +25,5 @@ int32_t rtp_codec_parameters_clock_rate(
     const webrtc::RtpCodecParameters& codec);
 
 }  // namespace bridge
+
+#endif // BRIDGE_RTP_CODEC_PARAMETERS_H_

@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 
+import '/src/api/parameters.dart';
 import '/src/platform/track.dart';
 import 'bridge.g.dart' as ffi;
 import 'channel.dart';
@@ -31,6 +32,12 @@ abstract class RtpSender {
 
   /// Disposes this [RtpSender].
   Future<void> dispose();
+
+  /// Returns [RtpParameters] of this [RtpSender].
+  Future<RtpParameters> getParameters();
+
+  /// Sets the provided [RtpParameters].
+  Future<void> setParameters(RtpParameters parameters);
 }
 
 /// [MethodChannel]-based implementation of a [RtpSender].
@@ -53,6 +60,18 @@ class _RtpSenderChannel extends RtpSender {
   Future<void> dispose() async {
     await _chan.invokeMethod('dispose');
   }
+
+  @override
+  Future<RtpParameters> getParameters() async {
+    dynamic parameters = await _chan.invokeMethod('getParameters');
+
+    return RtpParameters.fromMap(parameters);
+  }
+
+  @override
+  Future<void> setParameters(RtpParameters parameters) async {
+    await _chan.invokeListMethod('setParameters', parameters.toMap());
+  }
 }
 
 /// FFI-based implementation of a [RtpSender].
@@ -74,5 +93,17 @@ class _RtpSenderFFI extends RtpSender {
   @override
   Future<void> dispose() async {
     // no-op for FFI implementation
+  }
+
+  @override
+  Future<RtpParameters> getParameters() async {
+    return RtpParameters.fromFFI(
+        await api!.senderGetParameters(transceiver: _transceiver));
+  }
+
+  @override
+  Future<void> setParameters(RtpParameters parameters) async {
+    await api!.senderSetParameters(
+        transceiver: _transceiver, params: parameters.toFFI());
   }
 }

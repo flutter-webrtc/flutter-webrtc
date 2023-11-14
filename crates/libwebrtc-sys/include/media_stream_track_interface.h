@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BRIDGE_MEDIA_STREAM_TRACK_INTERFACE_H_
+#define BRIDGE_MEDIA_STREAM_TRACK_INTERFACE_H_
 
 #include "bridge.h"
 
@@ -31,3 +32,5 @@ media_stream_track_interface_downcast_audio_track(
     std::unique_ptr<MediaStreamTrackInterface> track);
 
 }  // namespace bridge
+
+#endif // BRIDGE_MEDIA_STREAM_TRACK_INTERFACE_H_

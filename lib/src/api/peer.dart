@@ -537,27 +537,14 @@ class _PeerConnectionFFI extends PeerConnection {
       MediaKind mediaType, RtpTransceiverInit init) async {
     _checkNotClosed();
 
-    var ffiInit = await api!.createTransceiverInit();
-    await api!.setTransceiverInitDirection(
-        init: ffiInit,
-        direction: ffi.RtpTransceiverDirection.values[init.direction.index]);
-
-    for (var encoding in init.sendEncodings) {
-      var ffiEncoding = await api!.createEncodingParameters(
-          rid: encoding.rid,
-          active: encoding.active,
-          maxBitrate: encoding.maxBitrate,
-          maxFramerate: encoding.maxFramerate,
-          scaleResolutionDownBy: encoding.scaleResolutionDownBy,
-          scalabilityMode: encoding.scalabilityMode);
-      await api!
-          .addTransceiverInitSendEncoding(init: ffiInit, enc: ffiEncoding);
-    }
-
     var transceiver = RtpTransceiver.fromFFI(await api!.addTransceiver(
         peer: _peer!,
         mediaType: ffi.MediaType.values[mediaType.index],
-        init: ffiInit));
+        init: ffi.RtpTransceiverInit(
+            direction: ffi.RtpTransceiverDirection.values[init.direction.index],
+            sendEncodings:
+                init.sendEncodings.map((e) => e.toFFI().$1).toList())));
+
     _transceivers.add(transceiver);
 
     return transceiver;

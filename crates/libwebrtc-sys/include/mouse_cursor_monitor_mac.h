@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BRIDGE_MOUSE_CURSOR_MONITOR_MAC_H_
+#define BRIDGE_MOUSE_CURSOR_MONITOR_MAC_H_
 
 #if __APPLE__
 
@@ -30,4 +31,6 @@ class MouseCursorMonitorMac : public webrtc::MouseCursorMonitor {
 
 }  // namespace bridge
 
-#endif
+#endif // __APPLE__
+
+#endif // BRIDGE_MOUSE_CURSOR_MONITOR_MAC_H_

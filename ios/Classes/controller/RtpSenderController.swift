@@ -47,6 +47,51 @@ class RtpSenderController {
 
       self.rtpSender.replaceTrack(t: track)
       result(nil)
+    case "getParameters":
+      let encodings = self.rtpSender.getParameters().encodings
+        .map { enc -> [String: Any] in
+          [
+            "rid": enc.rid,
+            "active": enc.isActive,
+            "maxBitrate": enc.maxBitrateBps,
+            "maxFramerate": enc.maxFramerate,
+            "scaleResolutionDownBy": enc.scaleResolutionDownBy,
+          ]
+        }
+
+      result(["encodings": encodings])
+    case "setParameters":
+      let params = self.rtpSender.getParameters()
+      let encodings = argsMap!["encodings"] as? [[String: Any]]?
+
+      for e in encodings!! {
+        let rid = e["rid"] as! String
+        let enc = params.encodings.first(where: { $0.rid == rid })
+        if enc == nil {
+          result(FlutterError(
+            code: "SenderError",
+            message: "Could not set parameters: failed to find encoding with rid = " +
+              rid,
+            details: nil
+          ))
+          return
+        }
+
+        enc!.isActive = e["active"] as! Bool
+        if let maxBitrate = e["maxBitrate"] as? Int {
+          enc!.maxBitrateBps = NSNumber(value: maxBitrate)
+        }
+        if let maxFramerate = e["maxFramerate"] as? Double {
+          enc!.maxFramerate = NSNumber(value: maxFramerate)
+        }
+        if let scaleResolutionDownBy = e["scaleResolutionDownBy"] as? Double {
+          enc!.scaleResolutionDownBy = NSNumber(value: scaleResolutionDownBy)
+        }
+      }
+
+      self.rtpSender.setParameters(params: params)
+
+      result(nil)
     case "dispose":
       self.channel.setMethodCallHandler(nil)
       result(nil)

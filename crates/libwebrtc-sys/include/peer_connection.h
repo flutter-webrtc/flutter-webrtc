@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BRIDGE_PEER_CONNECTION_H_
+#define BRIDGE_PEER_CONNECTION_H_
 
 #include <functional>
 #include <optional>
@@ -239,3 +240,5 @@ void peer_connection_get_stats(const PeerConnectionInterface& peer,
                                rust::Box<DynRTCStatsCollectorCallback> cb);
 
 }  // namespace bridge
+
+#endif // BRIDGE_PEER_CONNECTION_H_

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BRIDGE_RTP_RECEIVER_INTERFACE_H_
+#define BRIDGE_RTP_RECEIVER_INTERFACE_H_
 
 #include "bridge.h"
 
@@ -17,3 +18,5 @@ std::unique_ptr<webrtc::RtpParameters> rtp_receiver_parameters(
     const RtpReceiverInterface& receiver);
 
 }  // namespace bridge
+
+#endif // BRIDGE_RTP_RECEIVER_INTERFACE_H_

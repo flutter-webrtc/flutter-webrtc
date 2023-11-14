@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BRIDGE_DEVICE_INFO_MAC_H_
+#define BRIDGE_DEVICE_INFO_MAC_H_
 
 #include "modules/video_capture/device_info_impl.h"
 #include "rtp_encoding_parameters.h"
@@ -41,8 +42,10 @@ class DeviceInfoMac : public webrtc::videocapturemodule::DeviceInfoImpl {
  protected:
   AVCaptureDevice* device;
 };
-#endif
+#endif // __OBJC__
 
 // Creates a new `DeviceInfo`.
 std::unique_ptr<webrtc::VideoCaptureModule::DeviceInfo>
 create_device_info_mac();
+
+#endif // BRIDGE_DEVICE_INFO_MAC_H_

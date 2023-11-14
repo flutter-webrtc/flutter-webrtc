@@ -1,6 +1,5 @@
-#include "stats.h"
-#include <stdexcept>
 #include "libwebrtc-sys/src/bridge.rs.h"
+#include "stats.h"
 
 namespace bridge {
 

@@ -134,7 +134,7 @@ flutter.run:
 # Run Flutter plugin integration tests on the current host as desktop.
 #
 # Usage:
-#	make flutter.test.desktop [debug=(no|yes)]
+#	make flutter.test.desktop
 
 flutter.test.desktop:
 	cd example/ && \
@@ -272,7 +272,8 @@ ifeq ($(dockerized),yes)
 		ghcr.io/instrumentisto/rust:$(RUST_NIGHTLY_VER) \
 			make cargo.fmt check=$(check) dockerized=no
 else
-	cargo +nightly fmt --all $(if $(call eq,$(check),yes),-- --check,)
+	cargo +nightly fmt --all -- --config-path=.nightly.rustfmt.toml \
+		$(if $(call eq,$(check),yes),--check,)
 endif
 
 
@@ -423,7 +424,7 @@ docs.rust: cargo.doc
 
 test.cargo: cargo.test
 
-test.flutter: flutter.test
+test.flutter: flutter.test.desktop flutter.test.mobile
 
 
 
@@ -437,8 +438,8 @@ test.flutter: flutter.test
         	cargo.test \
         docs.rust \
         flutter.analyze flutter.clean flutter.build flutter.fmt flutter.pub \
-        	flutter.run flutter.test \
+        	flutter.run flutter.test.desktop flutter.test.mobile \
         kt.fmt \
         rustup.targets \
         swift.fmt \
-        test.cargo test.flutter.desktop test.flutter.mobile
+        test.cargo test.flutter

@@ -19,15 +19,26 @@ class RtpSenderProxy {
     self.sender.senderId
   }
 
-  /// Replaces the `MediaStreamTrackProxy` of the underlying `RtpSender` with
+  /// Replaces the `MediaStreamTrackProxy` of the underlying `RTCRtpSender` with
   /// the provided one.
   func replaceTrack(t: MediaStreamTrackProxy?) {
     self.track = t
     self.sender.track = t?.obj()
   }
 
+  /// Returns `RTCRtpParameters` of the underlying `RTCRtpSender`.
+  func getParameters() -> RTCRtpParameters {
+    return self.sender.parameters
+  }
+
+  /// Sets `RTCRtpParameters` of the underlying `RTCRtpSender` with the provided
+  /// one.
+  func setParameters(params: RTCRtpParameters) {
+    self.sender.parameters = params
+  }
+
   /// Synchronizes the `MediaStreamTrackProxy` of this `RtpSenderProxy` with the
-  /// underlying `RtpSender`.
+  /// underlying `RTCRtpSender`.
   func syncMediaStreamTrack() {
     let newTrack = self.sender.track
     if newTrack == nil {
