@@ -225,7 +225,11 @@ void FlutterWebRTC::HandleMethodCall(
                                       findString(constraints, "sdp").c_str(),
                                       &error);
 
-    SetLocalDescription(description.get(), pc, std::move(result));
+    if (description.get() != nullptr) {
+      SetLocalDescription(description.get(), pc, std::move(result));
+    } else {
+      result->Error("setLocalDescriptionFailed", "Invalid type or sdp");
+    }
   } else if (method_call.method_name().compare("setRemoteDescription") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -248,7 +252,11 @@ void FlutterWebRTC::HandleMethodCall(
                                       findString(constraints, "sdp").c_str(),
                                       &error);
 
-    SetRemoteDescription(description.get(), pc, std::move(result));
+    if (description.get() != nullptr) {
+      SetRemoteDescription(description.get(), pc, std::move(result));
+    } else {
+      result->Error("setRemoteDescriptionFailed", "Invalid type or sdp");
+    }
   } else if (method_call.method_name().compare("addCandidate") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -266,13 +274,22 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     SdpParseError error;
+    std::string candidate = findString(constraints, "candidate");
+    if (candidate.empty()) {
+      LOG_DEBUG("addCandidate, add end-of-candidates");
+      result->Success();
+      return;
+    }
     int sdpMLineIndex = findInt(constraints, "sdpMLineIndex");
     scoped_refptr<RTCIceCandidate> rtc_candidate = RTCIceCandidate::Create(
-        findString(constraints, "candidate").c_str(),
-        findString(constraints, "sdpMid").c_str(),
+        candidate.c_str(), findString(constraints, "sdpMid").c_str(),
         sdpMLineIndex == -1 ? 0 : sdpMLineIndex, &error);
 
-    AddIceCandidate(rtc_candidate.get(), pc, std::move(result));
+    if (rtc_candidate.get() != nullptr) {
+      AddIceCandidate(rtc_candidate.get(), pc, std::move(result));
+    } else {
+      result->Error("addCandidateFailed", "Invalid candidate");
+    }
   } else if (method_call.method_name().compare("getStats") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
