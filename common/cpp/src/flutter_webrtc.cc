@@ -276,7 +276,7 @@ void FlutterWebRTC::HandleMethodCall(
     SdpParseError error;
     std::string candidate = findString(constraints, "candidate");
     if (candidate.empty()) {
-      LOG_DEBUG("addCandidate, add end-of-candidates");
+      // received the end-of-candidates
       result->Success();
       return;
     }
