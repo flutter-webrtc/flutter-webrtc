@@ -48,8 +48,8 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   @override
   set srcObject(MediaStream? stream) {
     if (textureId == null) throw 'Call initialize before setting the stream';
-
     _srcObject = stream;
+    Exception? error;
     WebRTC.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
       'textureId': textureId,
       'streamId': stream?.id ?? '',
@@ -58,13 +58,17 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       value = (stream == null)
           ? RTCVideoValue.empty
           : value.copyWith(renderVideo: renderVideo);
-    });
+    }).catchError((e) {
+      error =
+          Exception('Failed to RTCVideoRenderer::setSrcObject: ${e.message}');
+    }, test: (e) => e is PlatformException);
+    if (error != null) throw error!;
   }
 
   void setSrcObject({MediaStream? stream, String? trackId}) {
     if (textureId == null) throw 'Call initialize before setting the stream';
-
     _srcObject = stream;
+    Exception? error;
     WebRTC.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
       'textureId': textureId,
       'streamId': stream?.id ?? '',
@@ -74,7 +78,11 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       value = (stream == null)
           ? RTCVideoValue.empty
           : value.copyWith(renderVideo: renderVideo);
-    });
+    }).catchError((e) {
+      error = Exception(
+          'Failed to RTCVideoRenderer::setSrcObject: ${e.message} with trackId: $trackId');
+    }, test: (e) => e is PlatformException);
+    if (error != null) throw error!;
   }
 
   @override
@@ -82,11 +90,16 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     await _eventSubscription?.cancel();
     _eventSubscription = null;
     if (_textureId != null) {
-      await WebRTC.invokeMethod('videoRendererDispose', <String, dynamic>{
-        'textureId': _textureId,
-      });
-      _textureId = null;
+      try {
+        await WebRTC.invokeMethod('videoRendererDispose', <String, dynamic>{
+          'textureId': _textureId,
+        });
+        _textureId = null;
+      } on PlatformException catch (e) {
+        throw 'Failed to RTCVideoRenderer::dispose: ${e.message}';
+      }
     }
+
     return super.dispose();
   }
 
