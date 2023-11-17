@@ -371,7 +371,11 @@ pub mod linux_device_change {
         //!
         //! [libudev]: https://freedesktop.org/software/systemd/man/libudev.html
 
-        use std::{io, os::unix::prelude::AsRawFd, sync::atomic::Ordering};
+        use std::{
+            io,
+            os::{fd::BorrowedFd, unix::prelude::AsRawFd},
+            sync::atomic::Ordering,
+        };
 
         use libudev::EventType;
         use nix::poll::{ppoll, PollFd, PollFlags};
@@ -386,7 +390,11 @@ pub mod linux_device_change {
             monitor.match_subsystem("video4linux")?;
             let mut socket = monitor.listen()?;
 
-            let fds = PollFd::new(socket.as_raw_fd(), PollFlags::POLLIN);
+            // SAFETY: This this safe, because `fd` doesn't outlive the
+            //         `socket`.
+            let socket_fd =
+                unsafe { BorrowedFd::borrow_raw(socket.as_raw_fd()) };
+            let fds = PollFd::new(&socket_fd, PollFlags::POLLIN);
             loop {
                 ppoll(&mut [fds], None, None)?;
 

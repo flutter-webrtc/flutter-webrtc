@@ -2356,10 +2356,18 @@ pub(crate) mod webrtc {
 
         /// Converts the provided [`webrtc::VideoFrame`] pixels to the `ABGR`
         /// scheme and writes the result to the provided `buffer`.
+        ///
+        /// # Safety
+        ///
+        /// Caller must ensure that the provided `buffer` is large enough.
         pub unsafe fn video_frame_to_abgr(frame: &VideoFrame, buffer: *mut u8);
 
         /// Converts the provided [`webrtc::VideoFrame`] pixels to the `ARGB`
         /// scheme and writes the result to the provided `buffer`.
+        ///
+        /// # Safety
+        ///
+        /// Caller must ensure that the provided `buffer` is large enough.
         pub unsafe fn video_frame_to_argb(
             frame: &VideoFrame,
             argb_stride: i32,

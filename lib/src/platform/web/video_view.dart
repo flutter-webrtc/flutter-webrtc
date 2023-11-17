@@ -8,12 +8,12 @@ import 'video_renderer.dart';
 class VideoView extends StatefulWidget {
   const VideoView(
     this._renderer, {
-    Key? key,
+    super.key,
     this.objectFit = VideoViewObjectFit.contain,
     this.mirror = false,
     this.enableContextMenu = true,
     this.filterQuality = FilterQuality.low,
-  }) : super(key: key);
+  });
 
   final VideoRenderer _renderer;
   final VideoViewObjectFit objectFit;

@@ -7,11 +7,11 @@ import '../api/bridge.g.dart' as ffi;
 /// If the provided [value] is a [String] then parses it as hexadecimal.
 int? tryParse(dynamic value) {
   switch (value.runtimeType) {
-    case int:
+    case const (int):
       {
         return value;
       }
-    case String:
+    case const (String):
       {
         return int.tryParse(value, radix: 16);
       }
@@ -582,31 +582,29 @@ abstract class RtcIceCandidateStats extends RtcStatsType {
 /// Local [RtcIceCandidateStats].
 class RtcLocalIceCandidateStats extends RtcIceCandidateStats {
   RtcLocalIceCandidateStats(
-    String? transportId,
-    String? address,
-    int? port,
-    Protocol protocol,
-    CandidateType candidateType,
-    int? priority,
-    String? url,
-    Protocol? relayProtocol,
-  ) : super(transportId, address, port, protocol, candidateType, priority, url,
-            relayProtocol);
+    super.transportId,
+    super.address,
+    super.port,
+    super.protocol,
+    super.candidateType,
+    super.priority,
+    super.url,
+    super.relayProtocol,
+  );
 }
 
 /// Remote [RtcIceCandidateStats].
 class RtcRemoteIceCandidateStats extends RtcIceCandidateStats {
   RtcRemoteIceCandidateStats(
-    String? transportId,
-    String? address,
-    int? port,
-    Protocol protocol,
-    CandidateType candidateType,
-    int? priority,
-    String? url,
-    Protocol? relayProtocol,
-  ) : super(transportId, address, port, protocol, candidateType, priority, url,
-            relayProtocol);
+    super.transportId,
+    super.address,
+    super.port,
+    super.protocol,
+    super.candidateType,
+    super.priority,
+    super.url,
+    super.relayProtocol,
+  );
 }
 
 abstract class RtcOutboundRtpStreamStatsMediaType {}
