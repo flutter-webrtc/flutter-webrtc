@@ -18,6 +18,8 @@ class _LoopbackState extends State<Loopback> {
   List<MediaStreamTrack>? _tracks;
 
   PeerConnection? _pc1;
+  RtpTransceiver? _audioTxTr;
+
   PeerConnection? _pc2;
 
   final _localRenderer = createVideoRenderer();
@@ -93,7 +95,7 @@ class _LoopbackState extends State<Loopback> {
       var vtrans = await _pc1?.addTransceiver(
           MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
 
-      var atrans = await _pc1?.addTransceiver(
+      _audioTxTr = await _pc1?.addTransceiver(
           MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendOnly));
 
       var offer = await _pc1?.createOffer();
@@ -117,7 +119,7 @@ class _LoopbackState extends State<Loopback> {
       await vtrans?.sender.replaceTrack(
           _tracks!.firstWhere((track) => track.kind() == MediaKind.video));
 
-      await atrans?.sender.replaceTrack(
+      await _audioTxTr?.sender.replaceTrack(
           _tracks!.firstWhere((track) => track.kind() == MediaKind.audio));
     } catch (e) {
       print(e.toString());
@@ -155,12 +157,31 @@ class _LoopbackState extends State<Loopback> {
     }
   }
 
+  void _setInputAudioId(String id) async {
+    for (var track in _tracks!) {
+      if (track.kind() == MediaKind.audio) {
+        await track.stop();
+        await track.dispose();
+      }
+    }
+    _tracks!.removeWhere((item) => item.kind() == MediaKind.audio);
+
+    var caps = DeviceConstraints();
+    caps.audio.mandatory = AudioConstraints();
+    caps.audio.mandatory!.deviceId = id;
+
+    var newTrack = (await getUserMedia(caps))[0];
+    await _audioTxTr!.sender.replaceTrack(newTrack);
+
+    _tracks!.add(newTrack);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'GetUserMedia API Test. ${_inCalling ? (_microIsAvailable ? 'Micro volume: $_volume .' : 'Microphone is not available!') : ''}'),
+            'GetUserMedia API Test. ${_inCalling ? (_microIsAvailable ? 'Micro volume: $_volume .' : 'Micro volume is not available') : ''}'),
         actions: _inCalling
             ? <Widget>[
                 IconButton(
@@ -213,6 +234,26 @@ class _LoopbackState extends State<Loopback> {
                         .firstWhere((track) => track.kind() == MediaKind.video)
                         .setEnabled(_cam);
                   },
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (id) {
+                    _setInputAudioId(id);
+                  },
+                  itemBuilder: (BuildContext context) {
+                    if (_mediaDevicesList != null) {
+                      return _mediaDevicesList!
+                          .where((device) =>
+                              device.kind == MediaDeviceKind.audioinput)
+                          .map((device) {
+                        return PopupMenuItem<String>(
+                          value: device.deviceId,
+                          child: Text(device.label),
+                        );
+                      }).toList();
+                    }
+                    return [];
+                  },
+                  icon: const Icon(Icons.mic),
                 ),
                 PopupMenuButton<String>(
                   onSelected: (id) {
