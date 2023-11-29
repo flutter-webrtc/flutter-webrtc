@@ -36,7 +36,7 @@ struct KeyProviderOptions {
 class KeyProvider : public RefCountInterface {
  public:
   LIB_WEBRTC_API static scoped_refptr<KeyProvider> Create(KeyProviderOptions*);
-  
+
   virtual bool SetSharedKey(int index, vector<uint8_t> key) = 0;
 
   virtual vector<uint8_t> RatchetSharedKey(int key_index) = 0;
@@ -44,8 +44,7 @@ class KeyProvider : public RefCountInterface {
   virtual vector<uint8_t> ExportSharedKey(int key_index) = 0;
 
   /// Set the key at the given index.
-  virtual bool SetKey(const string participant_id,
-                      int index,
+  virtual bool SetKey(const string participant_id, int index,
                       vector<uint8_t> key) = 0;
 
   virtual vector<uint8_t> RatchetKey(const string participant_id,
@@ -99,7 +98,7 @@ class RTCFrameCryptor : public RefCountInterface {
   virtual const string participant_id() const = 0;
 
   virtual void RegisterRTCFrameCryptorObserver(
-       scoped_refptr<RTCFrameCryptorObserver> observer) = 0;
+      scoped_refptr<RTCFrameCryptorObserver> observer) = 0;
 
   virtual void DeRegisterRTCFrameCryptorObserver() = 0;
 
