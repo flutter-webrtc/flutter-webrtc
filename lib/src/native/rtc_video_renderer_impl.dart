@@ -48,8 +48,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
   @override
   set srcObject(MediaStream? stream) {
-    if (_disposed)
+    if (_disposed) {
       throw 'Can\'t set srcObject: The RTCVideoRenderer is disposed';
+    }
     if (textureId == null) throw 'Call initialize before setting the stream';
     _srcObject = stream;
     WebRTC.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
@@ -66,8 +67,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   }
 
   Future<void> setSrcObject({MediaStream? stream, String? trackId}) async {
-    if (_disposed)
+    if (_disposed) {
       throw 'Can\'t set srcObject: The RTCVideoRenderer is disposed';
+    }
     if (_textureId == null) throw 'Call initialize before setting the stream';
     _srcObject = stream;
     var oldTextureId = _textureId;
