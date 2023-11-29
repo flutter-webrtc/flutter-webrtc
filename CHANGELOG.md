@@ -1,7 +1,7 @@
 # Changelog
 
 --------------------------------------------
-[0.9.47] - 2023-10-29
+[0.9.47] - 2023-11-29
 
 * [Windows/Linux] fix: Check the invalid value of candidate and session description. (#1484)
 * [Windows/Linux/macOS] fix: screen sharing issue for desktop.
