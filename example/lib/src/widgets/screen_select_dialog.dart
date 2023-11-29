@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -20,12 +21,14 @@ class ThumbnailWidget extends StatefulWidget {
 
 class _ThumbnailWidgetState extends State<ThumbnailWidget> {
   final List<StreamSubscription> _subscriptions = [];
-
+  Uint8List? _thumbnail;
   @override
   void initState() {
     super.initState();
     _subscriptions.add(widget.source.onThumbnailChanged.stream.listen((event) {
-      setState(() {});
+      setState(() {
+        _thumbnail = event;
+      });
     }));
     _subscriptions.add(widget.source.onNameChanged.stream.listen((event) {
       setState(() {});
@@ -55,9 +58,9 @@ class _ThumbnailWidgetState extends State<ThumbnailWidget> {
               print('Selected source id => ${widget.source.id}');
               widget.onTap(widget.source);
             },
-            child: widget.source.thumbnail != null
+            child: _thumbnail != null
                 ? Image.memory(
-                    widget.source.thumbnail!,
+                    _thumbnail!,
                     gaplessPlayback: true,
                     alignment: Alignment.center,
                   )
@@ -190,8 +193,8 @@ class ScreenSelectDialog extends Dialog {
                           Container(
                             constraints: BoxConstraints.expand(height: 24),
                             child: TabBar(
-                                onTap: (value) => Future.delayed(
-                                        Duration(milliseconds: 300), () {
+                                onTap: (value) =>
+                                    Future.delayed(Duration.zero, () {
                                       _sourceType = value == 0
                                           ? SourceType.Screen
                                           : SourceType.Window;
