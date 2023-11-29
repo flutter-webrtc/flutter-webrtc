@@ -3,7 +3,6 @@
 
 #include "base/refcount.h"
 #include "base/scoped_ref_ptr.h"
-
 #include "rtc_rtp_parameters.h"
 #include "rtc_types.h"
 

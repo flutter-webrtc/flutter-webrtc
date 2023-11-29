@@ -82,9 +82,7 @@ class string {
   }
 };
 
-inline std::string to_std_string(const string& str) {
-  return str.std_string();
-}
+inline std::string to_std_string(const string& str) { return str.std_string(); }
 
 template <typename T>
 class identity {
@@ -244,8 +242,7 @@ class map {
   }*/
 
   template <typename K2, typename KC, typename V2, typename VC>
-  static my_pair* to_array(const std::map<K2, V2>& m,
-                           KC convertKey,
+  static my_pair* to_array(const std::map<K2, V2>& m, KC convertKey,
                            VC convertValue) {
     my_pair* data = new my_pair[m.size()];
     my_pair* dp = data;
@@ -278,8 +275,7 @@ class map {
       : m_vec(to_array(m, identity<K>(), identity<V>()), m.size()) {}
 
   template <typename K2, typename KC, typename V2, typename VC>
-  map(const std::map<K2, V2>& m,
-      KC convertKey = identity<K>(),
+  map(const std::map<K2, V2>& m, KC convertKey = identity<K>(),
       VC convertValue = identity<V>())
       : m_vec(to_array(m, convertKey, convertValue), m.size()) {}
 
@@ -320,8 +316,7 @@ class map {
   const my_pair* get(K2 key, int (*cmp)(K2, const K&)) const {
     for (size_t i = 0; i < m_vec.size(); ++i) {
       const my_pair* dp = m_vec.data() + i;
-      if (!cmp(key, dp->key))
-        return dp;
+      if (!cmp(key, dp->key)) return dp;
     }
     return 0;
   }
@@ -428,14 +423,12 @@ class local_ptr {
       : m_ptr(0), m_destroy(0) {}  // copying does not persist value
   local_ptr& operator=(const local_ptr&) { return *this; }
   ~local_ptr() {
-    if (m_ptr)
-      m_destroy(m_ptr);
+    if (m_ptr) m_destroy(m_ptr);
   }
   const T* get() const { return m_ptr; }
   T* get() { return m_ptr; }
   void set(T* ptr, void (*dtor)(T*)) {
-    if (m_ptr)
-      m_destroy(m_ptr);
+    if (m_ptr) m_destroy(m_ptr);
     m_ptr = ptr;
     m_destroy = dtor;
   }
