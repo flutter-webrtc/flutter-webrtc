@@ -422,7 +422,7 @@
     return;
   }
 
-  NSDate* newKey = [keyProvider ratchetKey:participantId withIndex:[keyIndex intValue]];
+  NSData* newKey = [keyProvider ratchetKey:participantId withIndex:[keyIndex intValue]];
   result(@{@"result" : newKey});
 }
 

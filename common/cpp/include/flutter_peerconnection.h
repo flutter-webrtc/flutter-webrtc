@@ -110,7 +110,7 @@ class FlutterPeerConnection {
                          std::unique_ptr<MethodResultProxy> result);
 
   void RtpSenderSetStream(RTCPeerConnection* pc,
-                          std::list<std::string> streamIds,
+                          std::vector<std::string> streamIds,
                           std::string rtpSenderId,
                           std::unique_ptr<MethodResultProxy> result);
 
@@ -180,7 +180,7 @@ class FlutterPeerConnection {
 
   void AddTrack(RTCPeerConnection* pc,
                 scoped_refptr<RTCMediaTrack> track,
-                std::list<std::string> streamIds,
+                std::vector<std::string> streamIds,
                 std::unique_ptr<MethodResultProxy> result);
 
   void RemoveTrack(RTCPeerConnection* pc,
@@ -190,6 +190,19 @@ class FlutterPeerConnection {
  private:
   FlutterWebRTCBase* base_;
 };
+
+std::string RTCMediaTypeToString(RTCMediaType type);
+
+std::string transceiverDirectionString(RTCRtpTransceiverDirection direction);
+
+const char* iceConnectionStateString(RTCIceConnectionState state);
+
+const char* signalingStateString(RTCSignalingState state);
+
+const char* peerConnectionStateString(RTCPeerConnectionState state);
+
+const char* iceGatheringStateString(RTCIceGatheringState state);
+
 }  // namespace flutter_webrtc_plugin
 
 #endif  // !FLUTTER_WEBRTC_RTC_PEER_CONNECTION_HXX

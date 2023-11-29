@@ -817,7 +817,7 @@ NSDictionary<NSString*, NSString*>* stringToParameters(NSString* str) {
     codec.clockRate = c[@"clockRate"];
     codec.kind = mediaTypeFromString([kindAndName[0] lowercaseString]);
     codec.name = kindAndName[1];
-    if (c[@"sdpFmtpLine"] != nil) {
+    if (c[@"sdpFmtpLine"] != nil && ![((NSString*)c[@"sdpFmtpLine"]) isEqualToString:@""]) {
       codec.parameters = stringToParameters((NSString*)c[@"sdpFmtpLine"]);
     }
     if (c[@"channels"] != nil) {

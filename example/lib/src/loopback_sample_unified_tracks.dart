@@ -24,6 +24,8 @@ const List<String> videoCodecList = <String>['VP8', 'VP9', 'H264', 'AV1'];
 class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   String audioDropdownValue = audioCodecList.first;
   String videoDropdownValue = videoCodecList.first;
+  RTCRtpCapabilities? acaps;
+  RTCRtpCapabilities? vcaps;
   MediaStream? _localStream;
   RTCPeerConnection? _localPeerConnection;
   RTCPeerConnection? _remotePeerConnection;
@@ -41,7 +43,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   bool _videoDecrypt = false;
   List<MediaDeviceInfo>? _mediaDevicesList;
   String? _senderParticipantId;
-  final FrameCryptorFactory _frameCyrptorFactory = FrameCryptorFactory.instance;
+  final FrameCryptorFactory _frameCyrptorFactory = frameCryptorFactory;
   KeyProvider? _keyProvider;
   final Map<String, FrameCryptor> _frameCyrptors = {};
   Timer? _timer;
@@ -167,50 +169,33 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void initLocalConnection() async {
     if (_localPeerConnection != null) return;
     try {
-      _localPeerConnection =
-          await createPeerConnection(_configuration, _constraints);
+      var pc = await createPeerConnection(_configuration, _constraints);
 
-      _localPeerConnection!.onSignalingState = _onLocalSignalingState;
-      _localPeerConnection!.onIceGatheringState = _onLocalIceGatheringState;
-      _localPeerConnection!.onIceConnectionState = _onLocalIceConnectionState;
-      _localPeerConnection!.onConnectionState = _onLocalPeerConnectionState;
-      _localPeerConnection!.onIceCandidate = _onLocalCandidate;
-      _localPeerConnection!.onRenegotiationNeeded = _onLocalRenegotiationNeeded;
+      pc.onSignalingState = (state) async {
+        var state2 = await pc.getSignalingState();
+        print('local pc: onSignalingState($state), state2($state2)');
+      };
+
+      pc.onIceGatheringState = (state) async {
+        var state2 = await pc.getIceGatheringState();
+        print('local pc: onIceGatheringState($state), state2($state2)');
+      };
+      pc.onIceConnectionState = (state) async {
+        var state2 = await pc.getIceConnectionState();
+        print('local pc: onIceConnectionState($state), state2($state2)');
+      };
+      pc.onConnectionState = (state) async {
+        var state2 = await pc.getConnectionState();
+        print('local pc: onConnectionState($state), state2($state2)');
+      };
+
+      pc.onIceCandidate = _onLocalCandidate;
+      pc.onRenegotiationNeeded = _onLocalRenegotiationNeeded;
+
+      _localPeerConnection = pc;
     } catch (e) {
       print(e.toString());
     }
-  }
-
-  void _onLocalSignalingState(RTCSignalingState state) {
-    print('localSignalingState: $state');
-  }
-
-  void _onRemoteSignalingState(RTCSignalingState state) {
-    print('remoteSignalingState: $state');
-  }
-
-  void _onLocalIceGatheringState(RTCIceGatheringState state) {
-    print('localIceGatheringState: $state');
-  }
-
-  void _onRemoteIceGatheringState(RTCIceGatheringState state) {
-    print('remoteIceGatheringState: $state');
-  }
-
-  void _onLocalIceConnectionState(RTCIceConnectionState state) {
-    print('localIceConnectionState: $state');
-  }
-
-  void _onRemoteIceConnectionState(RTCIceConnectionState state) {
-    print('remoteIceConnectionState: $state');
-  }
-
-  void _onLocalPeerConnectionState(RTCPeerConnectionState state) {
-    print('localPeerConnectionState: $state');
-  }
-
-  void _onRemotePeerConnectionState(RTCPeerConnectionState state) {
-    print('remotePeerConnectionState: $state');
   }
 
   void _onLocalCandidate(RTCIceCandidate localCandidate) async {
@@ -274,27 +259,40 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
     _keyProvider ??=
         await _frameCyrptorFactory.createDefaultKeyProvider(keyProviderOptions);
-    var acaps = await getRtpSenderCapabilities('audio');
-    print('sender audio capabilities: ${acaps.toMap()}');
+    acaps = await getRtpSenderCapabilities('audio');
+    print('sender audio capabilities: ${acaps!.toMap()}');
 
-    var vcaps = await getRtpSenderCapabilities('video');
-    print('sender video capabilities: ${vcaps.toMap()}');
+    vcaps = await getRtpSenderCapabilities('video');
+    print('sender video capabilities: ${vcaps!.toMap()}');
 
     if (_remotePeerConnection != null) return;
 
     try {
-      _remotePeerConnection =
-          await createPeerConnection(_configuration, _constraints);
+      var pc = await createPeerConnection(_configuration, _constraints);
 
-      _remotePeerConnection!.onTrack = _onTrack;
-      _remotePeerConnection!.onSignalingState = _onRemoteSignalingState;
-      _remotePeerConnection!.onIceGatheringState = _onRemoteIceGatheringState;
-      _remotePeerConnection!.onIceConnectionState = _onRemoteIceConnectionState;
-      _remotePeerConnection!.onConnectionState = _onRemotePeerConnectionState;
-      _remotePeerConnection!.onIceCandidate = _onRemoteCandidate;
-      _remotePeerConnection!.onRenegotiationNeeded =
-          _onRemoteRenegotiationNeeded;
+      pc.onTrack = _onTrack;
 
+      pc.onSignalingState = (state) async {
+        var state2 = await pc.getSignalingState();
+        print('remote pc: onSignalingState($state), state2($state2)');
+      };
+
+      pc.onIceGatheringState = (state) async {
+        var state2 = await pc.getIceGatheringState();
+        print('remote pc: onIceGatheringState($state), state2($state2)');
+      };
+      pc.onIceConnectionState = (state) async {
+        var state2 = await pc.getIceConnectionState();
+        print('remote pc: onIceConnectionState($state), state2($state2)');
+      };
+      pc.onConnectionState = (state) async {
+        var state2 = await pc.getConnectionState();
+        print('remote pc: onConnectionState($state), state2($state2)');
+      };
+
+      pc.onIceCandidate = _onRemoteCandidate;
+      pc.onRenegotiationNeeded = _onRemoteRenegotiationNeeded;
+      _remotePeerConnection = pc;
       await _negotiate();
     } catch (e) {
       print(e.toString());
@@ -459,45 +457,15 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
     var transceivers = await _localPeerConnection?.getTransceivers();
     transceivers?.forEach((transceiver) {
-      if (transceiver.sender.track == null) return;
-      print('transceiver: ${transceiver.sender.track!.kind!}');
-      var codecCapability = RTCRtpCodecCapability(
-        mimeType: 'video/VP8',
-        clockRate: 90000,
-      );
-      switch (videoDropdownValue) {
-        case 'VP8':
-          codecCapability = RTCRtpCodecCapability(
-            mimeType: 'video/VP8',
-            clockRate: 90000,
-          );
-          break;
-        case 'VP9':
-          codecCapability = RTCRtpCodecCapability(
-            mimeType: 'video/VP9',
-            clockRate: 90000,
-          );
-          break;
-        case 'AV1':
-          codecCapability = RTCRtpCodecCapability(
-            mimeType: 'video/AV1',
-            clockRate: 90000,
-          );
-          break;
-        case 'H264':
-          codecCapability = RTCRtpCodecCapability(
-            mimeType: 'video/H264',
-            clockRate: 90000,
-            sdpFmtpLine:
-                'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f',
-          );
-          break;
-      }
-      transceiver.setCodecPreferences([
-        codecCapability,
-      ]);
+      if (transceiver.sender.senderId != _videoSender?.senderId) return;
+      var codecs = vcaps?.codecs
+              ?.where((element) => element.mimeType
+                  .toLowerCase()
+                  .contains(videoDropdownValue.toLowerCase()))
+              .toList() ??
+          [];
+      transceiver.setCodecPreferences(codecs);
     });
-
     await _negotiate();
 
     setState(() {
@@ -552,48 +520,14 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     await _addOrReplaceAudioTracks();
     var transceivers = await _localPeerConnection?.getTransceivers();
     transceivers?.forEach((transceiver) {
-      if (transceiver.sender.track == null) return;
-      var codecCapability = RTCRtpCodecCapability(
-        mimeType: 'audio/OPUS',
-        clockRate: 48000,
-        channels: 1,
-      );
-      switch (audioDropdownValue) {
-        case 'OPUS':
-          codecCapability = RTCRtpCodecCapability(
-            mimeType: 'audio/OPUS',
-            clockRate: 48000,
-            channels: 1,
-          );
-          break;
-        case 'ISAC':
-          codecCapability = RTCRtpCodecCapability(
-            mimeType: 'audio/ISAC',
-            clockRate: 16000,
-          );
-          break;
-        case 'G722':
-          codecCapability = RTCRtpCodecCapability(
-            mimeType: 'audio/G722',
-            clockRate: 16000,
-          );
-          break;
-        case 'PCMU':
-          codecCapability = RTCRtpCodecCapability(
-            mimeType: 'audio/PCMU',
-            clockRate: 8000,
-          );
-          break;
-        case 'PCMA':
-          codecCapability = RTCRtpCodecCapability(
-            mimeType: 'audio/PCMA',
-            clockRate: 8000,
-          );
-          break;
-      }
-      transceiver.setCodecPreferences([
-        codecCapability,
-      ]);
+      if (transceiver.sender.senderId != _audioSender?.senderId) return;
+      var codecs = acaps?.codecs
+              ?.where((element) => element.mimeType
+                  .toLowerCase()
+                  .contains(audioDropdownValue.toLowerCase()))
+              .toList() ??
+          [];
+      transceiver.setCodecPreferences(codecs);
     });
     await _negotiate();
 

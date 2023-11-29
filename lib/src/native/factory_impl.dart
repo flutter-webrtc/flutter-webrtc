@@ -1,12 +1,13 @@
 import 'dart:async';
 
-import 'package:flutter_webrtc/src/native/mediadevices_impl.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../desktop_capturer.dart';
 import 'desktop_capturer_impl.dart';
+import 'frame_cryptor_impl.dart';
 import 'media_recorder_impl.dart';
 import 'media_stream_impl.dart';
+import 'mediadevices_impl.dart';
 import 'navigator_impl.dart';
 import 'rtc_peerconnection_impl.dart';
 import 'rtc_video_renderer_impl.dart';
@@ -63,6 +64,10 @@ class RTCFactoryNative extends RTCFactory {
   Navigator get navigator => NavigatorNative.instance;
 
   @override
+  FrameCryptorFactory get frameCryptorFactory =>
+      FrameCryptorFactoryImpl.instance;
+
+  @override
   Future<RTCRtpCapabilities> getRtpReceiverCapabilities(String kind) async {
     final response = await WebRTC.invokeMethod(
       'getRtpReceiverCapabilities',
@@ -113,3 +118,5 @@ Navigator get navigator => RTCFactoryNative.instance.navigator;
 DesktopCapturer get desktopCapturer => DesktopCapturerNative.instance;
 
 MediaDevices get mediaDevices => MediaDeviceNative.instance;
+
+FrameCryptorFactory get frameCryptorFactory => FrameCryptorFactoryImpl.instance;

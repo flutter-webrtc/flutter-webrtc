@@ -85,9 +85,9 @@
   [newRep setSize:NSSizeToCGSize(outputSize.size)];
   NSDictionary<NSBitmapImageRepPropertyKey, id>* quality = @{NSImageCompressionFactor : @1.0f};
   if ([[_path pathExtension] isEqualToString:@"jpg"]) {
-    imageData = [newRep representationUsingType:NSJPEGFileType properties:quality];
+    imageData = [newRep representationUsingType:NSBitmapImageFileTypeJPEG properties:quality];
   } else {
-    imageData = [newRep representationUsingType:NSPNGFileType properties:quality];
+    imageData = [newRep representationUsingType:NSBitmapImageFileTypePNG properties:quality];
   }
 #endif
   CGImageRelease(cgImage);

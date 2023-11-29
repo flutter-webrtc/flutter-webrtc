@@ -6,7 +6,6 @@ pubspec.lock
 example/ios/Podfile.lock
 GeneratedPluginRegistrant.java
 example/android/.gradle
-example/android/gradle*
 WorkspaceSettings.xcsettings
 example/.flutter-plugins
 example/android/local.properties

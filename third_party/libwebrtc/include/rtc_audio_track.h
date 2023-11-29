@@ -12,11 +12,11 @@ namespace libwebrtc {
  * This class is a subclass of the RTCMediaTrack class, which provides a base
  * interface for all media tracks in WebRTC.
  */
-class RTCAudioTrack : public RTCMediaTrack { 
+class RTCAudioTrack : public RTCMediaTrack {
  public:
   // volume in [0-10]
   virtual void SetVolume(double volume) = 0;
-  
+
  protected:
   /**
    * The destructor for the RTCAudioTrack class.

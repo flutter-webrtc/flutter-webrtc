@@ -1,6 +1,93 @@
 # Changelog
 
 --------------------------------------------
+[0.9.41] - 2023-08-30
+
+* [Android] feat: Add more control over android audio options.
+
+[0.9.40] - 2023-08-16
+
+* [Windows/Linux] fix: nullptr checking for sender/receiver for getStats.
+
+[0.9.39] - 2023-08-14
+
+* [Dart/Native] feat: add async methods for getting pc states.
+
+[0.9.38] - 2023-08-11
+
+* [Android] fix: Expose helper to clearCommunicationDevice on AudioManager.AUDIOFOCUS_LOSS
+* [Android] feat: support force SW codec list for android, and disable HW codec for VP9 by default.
+* [Android] fix: issue for audio device switch (#1417)
+* [Android/iOS] feat: Added setZoom method to support camera zooming while streaming. (#1412).
+
+[0.9.37] - 2023-08-07
+
+* [Native] fix: Skip set_sdp_fmtp_line if sdpFmtpLine is empty.
+* [Android] fix: fix android earpiece not being replaced after wired headset is disconnected.
+* [Dart] fix: partially rebuild RTCVideoView when renderVideo value changes.
+* [Android] feat: expose android audio modes.
+* [Android] feat: support forceSWCodec for Android.
+* [Linux] fix: add $ORIGIN to rpath.
+
+[0.9.36] - 2023-07-13
+
+* [Native] upgrade libwebrtc to m114.5735.02.
+* [Windows/Linux] Add implementation to MediaStreamTrack.captureFrame() for linux/windows.
+* [Darwin/Android] Support to ignore network adapters used for ICE on Android, iOS and macOS.
+
+[0.9.35] - 2023-06-30
+
+* [iOS] feat: expose audio mode for ios.
+* [Darwin] fix: compiler warning for Darwin.
+* [Dart] Fix setMicrophoneMute() not awaitable.
+* [Native] Update libwebrtc to m114.
+* [Dart/Web] Separate frame cryptor to dart-webrtc.
+
+[0.9.34] - 2023-06-14
+
+* [Web] fix facingMode for flutter web mobile.
+
+[0.9.33] - 2023-06-08
+
+* [Android] fix frame drops for android.
+
+[0.9.32] - 2023-05-30
+
+* [Android] fix issue for get user audio.
+* [Android] fix getStats throw LinkedHasMap exception.
+
+[0.9.31] - 2023-05-23
+
+* [Darwin] Improve iOS/macOS H264 encoder (Upgrade to WebRTC-SDK M104.5112.17).
+
+[0.9.30+hotfix.2] - 2023-05-18
+
+* [Windows/Linux] fix bug for eventchannel proxy.
+* [Windows/Linux] fix: crash for pc.close/dispose on win/linux. (#1360)
+
+[0.9.30+hotfix.1] - 2023-05-17
+
+* [Windows/Linux] Fix compiler error.
+
+[0.9.30] - 2023-05-16
+
+* [Darwin] Handle exceptions for frame rate settings for darinw. (#1351)
+* [Android] Fix bluetooth device enumerate. (#1349)
+* [Darwin/Android/Windows/Linux] Added maxIPv6Networks configuration (#1350)
+* [iOS] Fix: broadcast extension not found fallback logic (#1347)
+* [Android] Move the call of capturer.stopCapture() outside the main thread to avoid blocking of flutter method call.
+* [Windows/Linux] Fix the crash issue of video room (#1343)
+
+[0.9.29+hotfix.1] - 2023-05-08
+
+* [Android] fix: application context null when app is terminated.
+* [Android/iOS] feat: add way to enable speaker but prefer bluetooth.
+
+[0.9.28] - 2023-05-08
+
+* [Windows/Linux] fix: use the correct transceiver id.
+* [Windows/Linux] fix: Support restart camera for Windows/Linux.
+
 [0.9.27] - 2023-04-27
 
 * [Darwin/Android/Windows/Linux] feat: framecryptor.

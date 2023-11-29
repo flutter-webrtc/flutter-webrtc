@@ -2,30 +2,137 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
-  test:
-    name: Test on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+  dart-format-and-analyze-check:
+    name: Dart Format Check
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
           java-version: '12.x'
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: Dart Format Check
+        run: dart format lib/ test/ --set-exit-if-changed
+      - name: Import Sorter Check
+        run: flutter pub run import_sorter:main --no-comments --exit-if-changed
+      - name: Dart Analyze Check
+        run: flutter analyze
+      - name: Dart Test Check
+        run: flutter test
+
+  build-for-android:
+    name: Build for Flutter Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: Build for Android
+        working-directory: ./example
+        run: flutter build apk
+
+  build-for-ios:
+    name: Build for Flutter iOS
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: Build for iOS
+        working-directory: ./example
+        run: flutter build ios --release --no-codesign
+
+  build-for-windows:
+    name: Build for flutter Windows
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v1
         with:
-          flutter-version: '3.0.2'
           channel: 'stable'
-      - run: flutter packages get
-      - run: flutter format lib/ test/ --set-exit-if-changed
-      - run: flutter pub run import_sorter:main --no-comments --exit-if-changed
-      - run: flutter analyze
-      - run: flutter test
-  
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: Build for Windows
+        working-directory: ./example
+        run: flutter build windows --release
+
+  build-for-macos:
+    name: Build for flutter macOS
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: Build for macOS
+        working-directory: ./example
+        run: flutter build macos --release
+
+  build-for-linux:
+    name: Build for Flutter Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: Run apt update
+        run: sudo apt-get update
+      - name: Install ninja-build libgtk-3-dev
+        run: sudo apt-get install -y ninja-build libgtk-3-dev
+      - name: Build for Linux
+        working-directory: ./example
+        run: flutter build linux
+
+  build-for-web:
+    name: Build for Flutter Web
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: build for Web
+        working-directory: ./example
+        run: flutter build web

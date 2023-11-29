@@ -83,11 +83,12 @@ class EventChannelProxyImpl : public EventChannelProxy {
             sink_->Success(event);
           }
           event_queue_.clear();
+          on_listen_called_ = true;
           return nullptr;
         },
         [&](const EncodableValue* arguments)
             -> std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> {
-          sink_.reset();
+          on_listen_called_ = false;
           return nullptr;
         });
 
@@ -97,7 +98,7 @@ class EventChannelProxyImpl : public EventChannelProxy {
   virtual ~EventChannelProxyImpl() {}
 
   void Success(const EncodableValue& event, bool cache_event = true) override {
-    if (sink_) {
+    if (on_listen_called_) {
       sink_->Success(event);
     } else {
       if (cache_event) {
@@ -110,6 +111,7 @@ class EventChannelProxyImpl : public EventChannelProxy {
   std::unique_ptr<EventChannel> channel_;
   std::unique_ptr<EventSink> sink_;
   std::list<EncodableValue> event_queue_;
+  bool on_listen_called_ = false;
 };
 
 std::unique_ptr<EventChannelProxy> EventChannelProxy::Create(

@@ -51,15 +51,17 @@ NSArray<RTCDesktopSource*>* _captureSources;
   if (useBroadcastExtension) {
     NSString* extension =
         [[[NSBundle mainBundle] infoDictionary] valueForKey:kRTCScreenSharingExtension];
-    if (extension) {
-      RPSystemBroadcastPickerView* picker = [[RPSystemBroadcastPickerView alloc] init];
-      picker.preferredExtension = extension;
-      picker.showsMicrophoneButton = false;
 
-      SEL selector = NSSelectorFromString(@"buttonPressed:");
-      if ([picker respondsToSelector:selector]) {
-        [picker performSelector:selector withObject:nil];
-      }
+    RPSystemBroadcastPickerView* picker = [[RPSystemBroadcastPickerView alloc] init];
+    picker.showsMicrophoneButton = false;
+    if (extension) {
+      picker.preferredExtension = extension;
+    } else {
+      NSLog(@"Not able to find the %@ key", kRTCScreenSharingExtension);
+    }
+    SEL selector = NSSelectorFromString(@"buttonPressed:");
+    if ([picker respondsToSelector:selector]) {
+      [picker performSelector:selector withObject:nil];
     }
   }
 #endif
@@ -270,7 +272,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
   NSRect imageRect = NSMakeRect(0.0, 0.0, width, height);
 
   [newImage lockFocus];
-  [sourceImage drawInRect:thumbnailRect fromRect:imageRect operation:NSCompositeCopy fraction:1.0];
+    [sourceImage drawInRect:thumbnailRect fromRect:imageRect operation:NSCompositingOperationCopy fraction:1.0];
   [newImage unlockFocus];
 
   return newImage;

@@ -75,6 +75,8 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   @override
   Future<bool> switchCamera() => Helper.switchCamera(this);
 
+  Future<void> setZoom(double zoomLevel) => Helper.setZoom(this, zoomLevel);
+
   @Deprecated('Use Helper.setSpeakerphoneOn instead')
   @override
   void enableSpeakerphone(bool enable) async {
