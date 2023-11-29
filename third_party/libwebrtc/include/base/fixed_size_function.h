@@ -56,29 +56,24 @@ struct fixed_function_vtable<construct_type::copy_and_move, Ret, Args...>
 
 }  // namespace details
 
-template <typename Function,
-          size_t MaxSize = 128,
+template <typename Function, size_t MaxSize = 128,
           construct_type ConstructStrategy = construct_type::copy_and_move>
 class fixed_size_function;
 
-template <typename Ret,
-          typename... Args,
-          size_t MaxSize,
+template <typename Ret, typename... Args, size_t MaxSize,
           construct_type ConstructStrategy>
 class fixed_size_function<Ret(Args...), MaxSize, ConstructStrategy> {
  public:
   // Compile-time information
 
   using is_copyable =
-      std::integral_constant<bool,
-                             ConstructStrategy == construct_type::copy ||
-                                 ConstructStrategy ==
-                                     construct_type::copy_and_move>;
+      std::integral_constant<bool, ConstructStrategy == construct_type::copy ||
+                                       ConstructStrategy ==
+                                           construct_type::copy_and_move>;
   using is_movable =
-      std::integral_constant<bool,
-                             ConstructStrategy == construct_type::move ||
-                                 ConstructStrategy ==
-                                     construct_type::copy_and_move>;
+      std::integral_constant<bool, ConstructStrategy == construct_type::move ||
+                                       ConstructStrategy ==
+                                           construct_type::copy_and_move>;
 
   using result_type = Ret;
 
