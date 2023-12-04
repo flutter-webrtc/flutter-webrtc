@@ -170,6 +170,16 @@ class _NativeMediaStreamTrackChannel extends NativeMediaStreamTrack {
   FacingMode? facingMode() {
     return _facingMode;
   }
+
+  @override
+  Future<int?> height() async {
+    return await _chan.invokeMethod('height');
+  }
+
+  @override
+  Future<int?> width() async {
+    return await _chan.invokeMethod('width');
+  }
 }
 
 /// FFI-based implementation of a [NativeMediaStreamTrack].
@@ -240,6 +250,23 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   }
 
   @override
+  FacingMode? facingMode() {
+    return null;
+  }
+
+  @override
+  Future<int?> height() async {
+    return await api!.trackHeight(
+        trackId: _id, peerId: _peerId, kind: ffi.MediaType.values[_kind.index]);
+  }
+
+  @override
+  Future<int?> width() async {
+    return await api!.trackWidth(
+        trackId: _id, peerId: _peerId, kind: ffi.MediaType.values[_kind.index]);
+  }
+
+  @override
   Future<void> stop() async {
     if (!_stopped) {
       _onEnded = null;
@@ -250,10 +277,5 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
           kind: ffi.MediaType.values[_kind.index]);
     }
     _stopped = true;
-  }
-
-  @override
-  FacingMode? facingMode() {
-    return null;
   }
 }

@@ -6,6 +6,9 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Controller of [MediaStreamTrackProxy] functional.
@@ -54,6 +57,12 @@ class MediaStreamTrackController(
       }
       "state" -> {
         result.success(track.state.value)
+      }
+      "width" -> {
+        GlobalScope.launch(Dispatchers.Main) { result.success(track.width()) }
+      }
+      "height" -> {
+        GlobalScope.launch(Dispatchers.Main) { result.success(track.height()) }
       }
       "stop" -> {
         track.stop()

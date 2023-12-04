@@ -5,7 +5,10 @@ import com.instrumentisto.medea_flutter_webrtc.TrackRepository
 import com.instrumentisto.medea_flutter_webrtc.model.FacingMode
 import com.instrumentisto.medea_flutter_webrtc.model.MediaStreamTrackState
 import com.instrumentisto.medea_flutter_webrtc.model.MediaType
+import kotlinx.coroutines.CompletableDeferred
 import org.webrtc.MediaStreamTrack
+import org.webrtc.VideoSink
+import org.webrtc.VideoTrack
 
 /**
  * Wrapper around a [MediaStreamTrack].
@@ -37,6 +40,18 @@ class MediaStreamTrackProxy(
   /** Indicator whether the underlying [MediaStreamTrack] had been disposed. */
   private var disposed: Boolean = false
 
+  /** [VideoSink] that tracks height and width changes. */
+  private lateinit var sink: VideoSink
+
+  /** Provides asynchronous wait for [width] and [height] initialization. */
+  private val fetchDimensions = CompletableDeferred<Unit>()
+
+  /** Video width */
+  @Volatile private var width: Int = 0
+
+  /** Video height */
+  @Volatile private var height: Int = 0
+
   /** [MediaType] of the underlying [MediaStreamTrack]. */
   val kind: MediaType =
       when (obj.kind()) {
@@ -63,6 +78,36 @@ class MediaStreamTrackProxy(
 
   init {
     TrackRepository.addTrack(this)
+
+    if (kind == MediaType.VIDEO) {
+      sink = VideoSink { frame ->
+        width = frame.buffer.width
+        height = frame.buffer.height
+        fetchDimensions.complete(Unit)
+      }
+      (obj as VideoTrack).addSink(sink)
+
+      addOnSyncListener { (obj as VideoTrack).addSink(sink) }
+    }
+  }
+
+  /** Returns the video [width] of the track. */
+  suspend fun width(): Int? {
+    if (kind == MediaType.AUDIO) {
+      return null
+    }
+
+    fetchDimensions.await()
+    return width
+  }
+
+  /** Returns the video [height] of the track. */
+  suspend fun height(): Int? {
+    if (kind == MediaType.AUDIO) {
+      return null
+    }
+    fetchDimensions.await()
+    return height
   }
 
   /** Sets the [disposed] property to `true`. */

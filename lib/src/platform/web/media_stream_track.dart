@@ -79,4 +79,16 @@ class WebMediaStreamTrack extends MediaStreamTrack {
     }
     return null;
   }
+
+  @override
+  Future<int?> height() {
+    var settings = jsTrack.getSettings();
+    return settings['height'];
+  }
+
+  @override
+  Future<int?> width() {
+    var settings = jsTrack.getSettings();
+    return settings['width'];
+  }
 }

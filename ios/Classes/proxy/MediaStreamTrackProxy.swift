@@ -20,6 +20,52 @@ class MediaStreamTrackProxy: Equatable {
   /// Subscribers for `onEnded` callback of this `MediaStreamTrackProxy`.
   private var onEndedSubscribers: [() -> Void] = []
 
+  /// `RTCVideoRenderer` that tracks video track height and width changes.
+  private var dimensionsSink: VideoTrackDimensionsSink?
+
+  /// `RTCVideoRenderer` that tracks video track height and width changes.
+  class VideoTrackDimensionsSink: NSObject, RTCVideoRenderer {
+    /// Lock that protects width and height.
+    let cond = NSCondition()
+
+    /// Latest video frame width.
+    var width: Int?
+
+    /// Latest video frame height.
+    var height: Int?
+
+    /// Blocks current thread until width and height values are set, should
+    /// be called before accessing these values to ensure correct
+    /// synchronization.
+    func waitForVideoDimensions() {
+      self.cond.lock()
+      while self.width == nil || self.height == nil {
+        self.cond.wait()
+      }
+      self.cond.unlock()
+    }
+
+    /// Fetches width and height values
+    func renderFrame(_ renderFrame: RTCVideoFrame?) {
+      let width = Int(renderFrame!.buffer.width)
+      let height = Int(renderFrame!.buffer.height)
+
+      if height == 0 || width == 0 {
+        return
+      }
+
+      self.cond.lock()
+
+      self.width = width
+      self.height = height
+
+      self.cond.broadcast()
+      self.cond.unlock()
+    }
+
+    func setSize(_: CGSize) {}
+  }
+
   /// Initializes a new `MediaStreamTrackProxy` based on the provided data.
   init(
     track: RTCMediaStreamTrack,
@@ -32,6 +78,12 @@ class MediaStreamTrackProxy: Equatable {
     }
     self.track = track
     MediaStreamTrackStore.tracks[track.trackId] = self
+
+    if track.kind == "video" {
+      self.dimensionsSink = VideoTrackDimensionsSink()
+      let videoTrack = self.track as! RTCVideoTrack
+      videoTrack.add(self.dimensionsSink!)
+    }
   }
 
   /// Compares two `MediaStreamTrackProxy`s based on underlying
@@ -71,6 +123,32 @@ class MediaStreamTrackProxy: Equatable {
       return MediaType.video
     default:
       abort()
+    }
+  }
+
+  /// Returns latest frame width if this is a video track or nil otherwise.
+  func getWidth() async -> Int? {
+    if self.dimensionsSink == nil {
+      return nil
+    } else {
+      let task = Task.detached {
+        self.dimensionsSink!.waitForVideoDimensions()
+        return self.dimensionsSink!.width!
+      }
+      return await task.get()
+    }
+  }
+
+  /// Returns latest frame height if this is a video track or nil otherwise.
+  func getHeight() async -> Int? {
+    if self.dimensionsSink == nil {
+      return nil
+    } else {
+      let task = Task.detached {
+        self.dimensionsSink!.waitForVideoDimensions()
+        return self.dimensionsSink!.height!
+      }
+      return await task.get()
     }
   }
 

@@ -398,9 +398,8 @@ pub mod linux_device_change {
             loop {
                 ppoll(&mut [fds], None, None)?;
 
-                let event = match socket.receive_event() {
-                    Some(evt) => evt,
-                    None => continue,
+                let Some(event) = socket.receive_event() else {
+                    continue;
                 };
 
                 if matches!(

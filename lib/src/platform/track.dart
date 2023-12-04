@@ -57,4 +57,14 @@ abstract class MediaStreamTrack {
 
   /// Returns [FacingMode] of this [MediaStreamTrack].
   FacingMode? facingMode();
+
+  /// Returns [width] of this [MediaStreamTrack].
+  ///
+  /// [width]: https://w3.org/TR/mediacapture-streams#dfn-width
+  Future<int?> width();
+
+  /// Returns [height] of this [MediaStreamTrack].
+  ///
+  /// [height]: https://w3.org/TR/mediacapture-streams#dfn-height
+  Future<int?> height();
 }

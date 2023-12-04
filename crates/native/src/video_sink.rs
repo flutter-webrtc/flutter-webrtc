@@ -25,7 +25,7 @@ impl Webrtc {
                 OnFrameCallback(handler),
             )),
             track_id: track_id.clone(),
-            track_origin: track_origin.clone(),
+            track_origin,
         };
 
         let mut track = self
@@ -44,7 +44,7 @@ impl Webrtc {
         if let Some(sink) = self.video_sinks.remove(&Id(sink_id)) {
             if let Some(mut track) = self
                 .video_tracks
-                .get_mut(&(sink.track_id.clone(), sink.track_origin.clone()))
+                .get_mut(&(sink.track_id.clone(), sink.track_origin))
             {
                 track.remove_video_sink(sink);
             }
@@ -76,6 +76,22 @@ pub struct VideoSink {
 }
 
 impl VideoSink {
+    /// Creates a new [`VideoSink`].
+    #[must_use]
+    pub fn new(
+        id: i64,
+        sink: sys::VideoSinkInterface,
+        track_id: VideoTrackId,
+        track_origin: TrackOrigin,
+    ) -> Self {
+        Self {
+            id: Id(id),
+            inner: sink,
+            track_id,
+            track_origin,
+        }
+    }
+
     /// Returns an [`Id`] of this [`VideoSink`].
     #[must_use]
     pub fn id(&self) -> Id {

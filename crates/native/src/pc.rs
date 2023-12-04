@@ -3,7 +3,7 @@ use std::{
     mem,
     sync::{
         atomic::{AtomicBool, Ordering},
-        mpsc, Arc, Mutex, Weak,
+        mpsc, Arc, Mutex, OnceLock, Weak,
     },
 };
 
@@ -13,7 +13,6 @@ use dashmap::DashMap;
 use derive_more::{Display, From, Into};
 use flutter_rust_bridge::RustOpaque;
 use libwebrtc_sys as sys;
-use once_cell::sync::OnceCell;
 use threadpool::ThreadPool;
 
 use crate::{
@@ -273,7 +272,7 @@ impl PeerConnection {
         configuration: api::RtcConfiguration,
         pool: ThreadPool,
     ) -> anyhow::Result<Arc<Self>> {
-        let obs_peer = Arc::new(OnceCell::new());
+        let obs_peer = Arc::new(OnceLock::new());
         let observer = sys::PeerConnectionObserver::new(Box::new(
             PeerConnectionObserver {
                 observer: Arc::new(Mutex::new(observer)),
@@ -1055,7 +1054,7 @@ struct PeerConnectionObserver {
     ///
     /// Tasks with [`InnerPeer`] must be offloaded to a separate [`ThreadPool`],
     /// so the signalling thread wouldn't be blocked.
-    peer: Arc<OnceCell<Weak<PeerConnection>>>,
+    peer: Arc<OnceLock<Weak<PeerConnection>>>,
 
     /// Map of the remote [`VideoTrack`]s shared with the [`crate::Webrtc`].
     video_tracks: Arc<DashMap<(VideoTrackId, TrackOrigin), VideoTrack>>,
@@ -1163,9 +1162,7 @@ impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
             let audio_tracks = Arc::clone(&self.audio_tracks);
 
             move || {
-                let peer = if let Some(peer) = peer.get().unwrap().upgrade() {
-                    peer
-                } else {
+                let Some(peer) = peer.get().unwrap().upgrade() else {
                     // `peer` is already dropped on the Rust side, so just don't
                     // do anything.
                     return;
@@ -1175,10 +1172,9 @@ impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
                 let track = match transceiver.media_type() {
                     sys::MediaType::MEDIA_TYPE_AUDIO => {
                         let track_id = AudioTrackId::from(track_id);
-                        if audio_tracks.contains_key(&(
-                            track_id.clone(),
-                            track_origin.clone(),
-                        )) {
+                        if audio_tracks
+                            .contains_key(&(track_id.clone(), track_origin))
+                        {
                             return;
                         }
 
@@ -1191,10 +1187,9 @@ impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
                     }
                     sys::MediaType::MEDIA_TYPE_VIDEO => {
                         let track_id = VideoTrackId::from(track_id);
-                        if video_tracks.contains_key(&(
-                            track_id.clone(),
-                            track_origin.clone(),
-                        )) {
+                        if video_tracks
+                            .contains_key(&(track_id.clone(), track_origin))
+                        {
                             return;
                         }
 

@@ -15,20 +15,24 @@ class VideoRendererEventController: VideoRendererEvent {
 
   /// Sends an `onFirstFrameRendered` event to Flutter side.
   func onFirstFrameRendered(id: Int64) {
-    self.eventController.sendEvent(data: [
-      "event": "onFirstFrameRendered",
-      "id": id,
-    ])
+    DispatchQueue.main.async {
+      self.eventController.sendEvent(data: [
+        "event": "onFirstFrameRendered",
+        "id": id,
+      ])
+    }
   }
 
   /// Sends an `onTextureChange` event to Flutter side.
   func onTextureChange(id: Int64, height: Int32, width: Int32, rotation: Int) {
-    self.eventController.sendEvent(data: [
-      "event": "onTextureChange",
-      "id": id,
-      "width": width,
-      "height": height,
-      "rotation": rotation,
-    ])
+    DispatchQueue.main.async {
+      self.eventController.sendEvent(data: [
+        "event": "onTextureChange",
+        "id": id,
+        "width": width,
+        "height": height,
+        "rotation": rotation,
+      ])
+    }
   }
 }

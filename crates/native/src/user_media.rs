@@ -1,13 +1,14 @@
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
-    sync::{Arc, Weak},
+    sync::{Arc, RwLock, Weak},
 };
 
 use anyhow::{anyhow, bail, Context};
 use derive_more::{AsRef, Display, From, Into};
-use libwebrtc_sys as sys;
-use sys::TrackEventObserver;
+use libwebrtc_sys::{self as sys, OnFrameCallback, TrackEventObserver};
+// TODO: Use `std::sync::OnceLock` instead, once it support `.wait()` API.
+use once_cell::sync::OnceCell;
 use xxhash::xxh3::xxh3_64;
 
 use crate::{
@@ -119,12 +120,12 @@ impl Webrtc {
                             track.remove_video_sink(sink);
                         }
                     }
-                    if let MediaTrackSource::Local(src) = track.source {
-                        if Arc::strong_count(&src) == 2 {
+                    if let MediaTrackSource::Local(src) = &track.source {
+                        if Arc::strong_count(src) == 2 {
                             self.video_sources.remove(&src.device_id);
                         };
                     }
-                    track.senders
+                    track.senders.clone()
                 } else {
                     return;
                 }
@@ -301,11 +302,9 @@ impl Webrtc {
             }
         };
 
-        let device_index = if let Some(index) =
+        let Some(device_index) =
             self.get_index_of_audio_recording_device(&device_id)?
-        {
-            index
-        } else {
+        else {
             bail!(
                 "Cannot find audio device with the specified ID `{device_id}`",
             );
@@ -361,6 +360,50 @@ impl Webrtc {
                     .state()
             }
         })
+    }
+
+    /// Returns the [width] property of the media track by its ID and origin.
+    ///
+    /// Blocks until the [width] is initialized.
+    ///
+    /// [width]: https://w3.org/TR/mediacapture-streams#dfn-width
+    pub fn track_width(
+        &self,
+        id: String,
+        track_origin: TrackOrigin,
+    ) -> anyhow::Result<i32> {
+        let id = VideoTrackId::from(id);
+
+        Ok(*self
+            .video_tracks
+            .get(&(id.clone(), track_origin))
+            .ok_or_else(|| anyhow!("Cannot find video track with ID `{id}`"))?
+            .width
+            .wait()
+            .read()
+            .unwrap())
+    }
+
+    /// Returns the [height] property of the media track by its ID and origin.
+    ///
+    /// Blocks until the [height] is initialized.
+    ///
+    /// [height]: https://w3.org/TR/mediacapture-streams#dfn-height
+    pub fn track_height(
+        &self,
+        id: String,
+        track_origin: TrackOrigin,
+    ) -> anyhow::Result<i32> {
+        let id = VideoTrackId::from(id);
+
+        Ok(*self
+            .video_tracks
+            .get(&(id.clone(), track_origin))
+            .ok_or_else(|| anyhow!("Cannot find video track with ID `{id}`"))?
+            .height
+            .wait()
+            .read()
+            .unwrap())
     }
 
     /// Changes the [enabled][1] property of the media track by its ID.
@@ -924,7 +967,7 @@ impl AudioDeviceModule {
 /// [1]: https://w3.org/TR/mediacapture-streams#dom-mediadevices-getusermedia
 /// [2]: https://w3.org/TR/screen-capture/#dom-mediadevices-getdisplaymedia
 /// [3]: https://w3.org/TR/webrtc/#dom-rtcpeerconnection-ontrack
-#[derive(Clone, Debug, Eq, From, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, From, Hash, PartialEq)]
 pub enum TrackOrigin {
     Local,
     Remote(PeerConnectionId),
@@ -969,6 +1012,36 @@ pub struct VideoTrack {
 
     /// Peers and transceivers sending this [`VideoTrack`].
     pub senders: HashMap<Arc<PeerConnection>, HashSet<Arc<RtpTransceiver>>>,
+
+    /// Tracks changes in video `height` and `width`.
+    sink: Option<VideoSink>,
+
+    /// Video width.
+    width: Arc<OnceCell<RwLock<i32>>>,
+
+    /// Video height.
+    height: Arc<OnceCell<RwLock<i32>>>,
+}
+
+/// Tracks changes in video `height` and `width`.
+struct VideoFormatSink {
+    /// Video width.
+    width: Arc<OnceCell<RwLock<i32>>>,
+
+    /// Video height.
+    height: Arc<OnceCell<RwLock<i32>>>,
+}
+
+impl OnFrameCallback for VideoFormatSink {
+    fn on_frame(&mut self, frame: cxx::UniquePtr<sys::VideoFrame>) {
+        if self.width.get().is_none() {
+            self.width.set(RwLock::from(frame.width())).unwrap();
+            self.height.set(RwLock::from(frame.height())).unwrap();
+        } else {
+            *self.width.get().unwrap().write().unwrap() = frame.width();
+            *self.height.get().unwrap().write().unwrap() = frame.height();
+        }
+    }
 }
 
 impl VideoTrack {
@@ -978,15 +1051,39 @@ impl VideoTrack {
         src: Arc<VideoSource>,
     ) -> anyhow::Result<Self> {
         let id = VideoTrackId(next_id().to_string());
-        Ok(Self {
+        let track_origin = TrackOrigin::Local;
+
+        let width = Arc::new(OnceCell::new());
+        let height = Arc::new(OnceCell::new());
+        let mut sink = VideoSink::new(
+            i64::try_from(next_id()).unwrap(),
+            sys::VideoSinkInterface::create_forwarding(Box::new(
+                VideoFormatSink {
+                    width: Arc::clone(&width),
+                    height: Arc::clone(&height),
+                },
+            )),
+            id.clone(),
+            track_origin,
+        );
+
+        let mut res = Self {
             id: id.clone(),
             inner: pc.create_video_track(id.into(), &src.inner)?,
             source: MediaTrackSource::Local(src),
             kind: api::MediaType::Video,
             sinks: Vec::new(),
             senders: HashMap::new(),
-            track_origin: TrackOrigin::Local,
-        })
+            width,
+            height,
+            sink: None,
+            track_origin,
+        };
+
+        res.add_video_sink(&mut sink);
+        res.sink = Some(sink);
+
+        Ok(res)
     }
 
     /// Wraps the track of the `transceiver.receiver.track()` into a
@@ -997,7 +1094,25 @@ impl VideoTrack {
     ) -> Self {
         let receiver = transceiver.receiver();
         let track = receiver.track();
-        Self {
+        let track_origin = TrackOrigin::Remote(peer.id());
+
+        let width = Arc::new(OnceCell::new());
+        width.set(RwLock::from(0)).unwrap();
+        let height = Arc::new(OnceCell::new());
+        height.set(RwLock::from(0)).unwrap();
+        let mut sink = VideoSink::new(
+            i64::try_from(next_id()).unwrap(),
+            sys::VideoSinkInterface::create_forwarding(Box::new(
+                VideoFormatSink {
+                    width: Arc::clone(&width),
+                    height: Arc::clone(&height),
+                },
+            )),
+            VideoTrackId(track.id().clone()),
+            track_origin,
+        );
+
+        let mut res = Self {
             id: VideoTrackId(track.id()),
             inner: track.try_into().unwrap(),
             // Safe to unwrap since transceiver is guaranteed to be negotiated
@@ -1009,8 +1124,16 @@ impl VideoTrack {
             kind: api::MediaType::Video,
             sinks: Vec::new(),
             senders: HashMap::new(),
-            track_origin: TrackOrigin::Remote(peer.id()),
-        }
+            width,
+            height,
+            sink: None,
+            track_origin,
+        };
+
+        res.add_video_sink(&mut sink);
+        res.sink = Some(sink);
+
+        res
     }
 
     /// Adds the provided [`VideoSink`] to this [`VideoTrack`].
@@ -1040,6 +1163,13 @@ impl VideoTrack {
     #[must_use]
     pub fn state(&self) -> api::TrackState {
         self.inner.state().into()
+    }
+}
+
+impl Drop for VideoTrack {
+    fn drop(&mut self) {
+        let sink = self.sink.take().unwrap();
+        self.remove_video_sink(sink);
     }
 }
 

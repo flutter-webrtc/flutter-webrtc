@@ -20,6 +20,9 @@ class MediaStreamTrackController {
   /// Controller of the `eventChannel` management.
   private var eventController: EventController
 
+  /// Indicator whether this controller is disposed.
+  private var isDisposed: Bool = false
+
   /// Initializes a new `MediaStreamTrackController` for the provided
   /// `MediaStreamTrackProxy`.
   init(messenger: FlutterBinaryMessenger, track: MediaStreamTrackProxy) {
@@ -54,7 +57,7 @@ class MediaStreamTrackController {
 
   /// Handles all the supported Flutter method calls for the controlled
   /// `MediaStreamTrackProxy`.
-  func onMethodCall(call: FlutterMethodCall, result: FlutterResult) {
+  func onMethodCall(call: FlutterMethodCall, result: @escaping FlutterResult) {
     let argsMap = call.arguments as? [String: Any]
     switch call.method {
     case "setEnabled":
@@ -79,8 +82,23 @@ class MediaStreamTrackController {
         result(error)
       }
     case "dispose":
+      self.isDisposed = true
       self.channel.setMethodCallHandler(nil)
       result(nil)
+    case "width":
+      Task {
+        var width = await self.track.getWidth()
+        if !self.isDisposed {
+          result(width)
+        }
+      }
+    case "height":
+      Task {
+        var height = await self.track.getHeight()
+        if !self.isDisposed {
+          result(height)
+        }
+      }
     default:
       result(FlutterMethodNotImplemented)
     }

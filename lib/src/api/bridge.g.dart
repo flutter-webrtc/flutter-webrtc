@@ -252,6 +252,33 @@ abstract class MedeaFlutterWebrtcNative {
 
   FlutterRustBridgeTaskConstMeta get kTrackStateConstMeta;
 
+  /// Returns the [height] property of the media track by its ID and
+  /// [`MediaType`].
+  ///
+  /// Blocks until the [height] is initialized.
+  ///
+  /// [height]: https://w3.org/TR/mediacapture-streams#dfn-height
+  Future<int?> trackHeight(
+      {required String trackId,
+      int? peerId,
+      required MediaType kind,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kTrackHeightConstMeta;
+
+  /// Returns the [width] property of the media track by its ID and [`MediaType`].
+  ///
+  /// Blocks until the [width] is initialized.
+  ///
+  /// [width]: https://w3.org/TR/mediacapture-streams#dfn-height
+  Future<int?> trackWidth(
+      {required String trackId,
+      int? peerId,
+      required MediaType kind,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kTrackWidthConstMeta;
+
   /// Changes the [enabled][1] property of the [`MediaStreamTrack`] by its ID and
   /// [`MediaType`].
   ///
@@ -390,7 +417,7 @@ class ArcRtpTransceiver extends FrbOpaque {
 }
 
 /// Nature and settings of the audio [`MediaStreamTrack`] returned by
-/// [`Webrtc::get_users_media()`].
+/// [`Webrtc::get_media()`].
 class AudioConstraints {
   /// Identifier of the device generating the content of the
   /// [`MediaStreamTrack`].
@@ -707,7 +734,7 @@ class MediaDisplayInfo {
 
 /// [MediaStreamConstraints], used to instruct what sort of
 /// [`MediaStreamTrack`]s to include in the [`MediaStream`] returned by
-/// [`Webrtc::get_users_media()`].
+/// [`Webrtc::get_media()`].
 ///
 /// [1]: https://w3.org/TR/mediacapture-streams#dom-mediastreamconstraints
 class MediaStreamConstraints {
@@ -1902,7 +1929,7 @@ enum TrackState {
 }
 
 /// Nature and settings of the video [`MediaStreamTrack`] returned by
-/// [`Webrtc::get_users_media()`].
+/// [`Webrtc::get_media()`].
 class VideoConstraints {
   /// Identifier of the device generating the content of the
   /// [`MediaStreamTrack`].
@@ -2596,6 +2623,56 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   FlutterRustBridgeTaskConstMeta get kTrackStateConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "track_state",
+        argNames: ["trackId", "peerId", "kind"],
+      );
+
+  Future<int?> trackHeight(
+      {required String trackId,
+      int? peerId,
+      required MediaType kind,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_String(trackId);
+    var arg1 = _platform.api2wire_opt_box_autoadd_u64(peerId);
+    var arg2 = api2wire_media_type(kind);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_track_height(port_, arg0, arg1, arg2),
+      parseSuccessData: _wire2api_opt_box_autoadd_i32,
+      parseErrorData: _wire2api_FrbAnyhowException,
+      constMeta: kTrackHeightConstMeta,
+      argValues: [trackId, peerId, kind],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kTrackHeightConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "track_height",
+        argNames: ["trackId", "peerId", "kind"],
+      );
+
+  Future<int?> trackWidth(
+      {required String trackId,
+      int? peerId,
+      required MediaType kind,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_String(trackId);
+    var arg1 = _platform.api2wire_opt_box_autoadd_u64(peerId);
+    var arg2 = api2wire_media_type(kind);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_track_width(port_, arg0, arg1, arg2),
+      parseSuccessData: _wire2api_opt_box_autoadd_i32,
+      parseErrorData: _wire2api_FrbAnyhowException,
+      constMeta: kTrackWidthConstMeta,
+      argValues: [trackId, peerId, kind],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kTrackWidthConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "track_width",
         argNames: ["trackId", "peerId", "kind"],
       );
 
@@ -4484,6 +4561,50 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
           ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>,
               ffi.Pointer<ffi.Uint64>, ffi.Int32)>>('wire_track_state');
   late final _wire_track_state = _wire_track_statePtr.asFunction<
+      void Function(
+          int, ffi.Pointer<wire_uint_8_list>, ffi.Pointer<ffi.Uint64>, int)>();
+
+  void wire_track_height(
+    int port_,
+    ffi.Pointer<wire_uint_8_list> track_id,
+    ffi.Pointer<ffi.Uint64> peer_id,
+    int kind,
+  ) {
+    return _wire_track_height(
+      port_,
+      track_id,
+      peer_id,
+      kind,
+    );
+  }
+
+  late final _wire_track_heightPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<ffi.Uint64>, ffi.Int32)>>('wire_track_height');
+  late final _wire_track_height = _wire_track_heightPtr.asFunction<
+      void Function(
+          int, ffi.Pointer<wire_uint_8_list>, ffi.Pointer<ffi.Uint64>, int)>();
+
+  void wire_track_width(
+    int port_,
+    ffi.Pointer<wire_uint_8_list> track_id,
+    ffi.Pointer<ffi.Uint64> peer_id,
+    int kind,
+  ) {
+    return _wire_track_width(
+      port_,
+      track_id,
+      peer_id,
+      kind,
+    );
+  }
+
+  late final _wire_track_widthPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<ffi.Uint64>, ffi.Int32)>>('wire_track_width');
+  late final _wire_track_width = _wire_track_widthPtr.asFunction<
       void Function(
           int, ffi.Pointer<wire_uint_8_list>, ffi.Pointer<ffi.Uint64>, int)>();
 

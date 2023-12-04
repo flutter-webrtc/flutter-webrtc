@@ -1012,6 +1012,44 @@ void main() {
     }
   });
 
+  testWidgets('Video dimensions', (WidgetTester tester) async {
+    // iOS simulator does not have camera
+    if (!Platform.isIOS) {
+      var caps = DeviceConstraints();
+      caps.video.mandatory = DeviceVideoConstraints();
+      caps.video.mandatory!.width = 640;
+      caps.video.mandatory!.height = 480;
+
+      var track = (await getUserMedia(caps))[0];
+
+      var w = await track.width();
+      var h = await track.height();
+
+      expect(w, equals(640));
+      expect(h, equals(480));
+
+      await track.dispose();
+    }
+
+    // Desktop only, since screen sharing is unimplemented on mobile platforms.
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      var caps = DisplayConstraints();
+      caps.video.mandatory = DeviceVideoConstraints();
+      caps.video.mandatory!.width = 320;
+      caps.video.mandatory!.height = 240;
+
+      var track = (await getDisplayMedia(caps))[0];
+
+      var w = await track.width();
+      var h = await track.height();
+
+      expect(w, equals(320));
+      expect(h, equals(240));
+
+      await track.dispose();
+    }
+  });
+
   testWidgets('on_track when peer has transceiver.',
       (WidgetTester tester) async {
     var pc1 = await PeerConnection.create(IceTransportType.all, []);

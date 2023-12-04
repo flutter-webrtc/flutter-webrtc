@@ -1599,7 +1599,7 @@ pub struct MediaDisplayInfo {
 
 /// [MediaStreamConstraints], used to instruct what sort of
 /// [`MediaStreamTrack`]s to include in the [`MediaStream`] returned by
-/// [`Webrtc::get_users_media()`].
+/// [`Webrtc::get_media()`].
 ///
 /// [1]: https://w3.org/TR/mediacapture-streams#dom-mediastreamconstraints
 #[derive(Debug)]
@@ -1612,7 +1612,7 @@ pub struct MediaStreamConstraints {
 }
 
 /// Nature and settings of the video [`MediaStreamTrack`] returned by
-/// [`Webrtc::get_users_media()`].
+/// [`Webrtc::get_media()`].
 #[derive(Debug)]
 pub struct VideoConstraints {
     /// Identifier of the device generating the content of the
@@ -1636,7 +1636,7 @@ pub struct VideoConstraints {
 }
 
 /// Nature and settings of the audio [`MediaStreamTrack`] returned by
-/// [`Webrtc::get_users_media()`].
+/// [`Webrtc::get_media()`].
 #[derive(Debug)]
 pub struct AudioConstraints {
     /// Identifier of the device generating the content of the
@@ -2258,6 +2258,53 @@ pub fn track_state(
         .lock()
         .unwrap()
         .track_state(track_id, track_origin, kind)
+}
+
+/// Returns the [height] property of the media track by its ID and
+/// [`MediaType`].
+///
+/// Blocks until the [height] is initialized.
+///
+/// [height]: https://w3.org/TR/mediacapture-streams#dfn-height
+pub fn track_height(
+    track_id: String,
+    peer_id: Option<u64>,
+    kind: MediaType,
+) -> anyhow::Result<Option<i32>> {
+    if kind == MediaType::Audio {
+        return Ok(None);
+    }
+
+    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
+
+    WEBRTC
+        .lock()
+        .unwrap()
+        .track_height(track_id, track_origin)
+        .map(Some)
+}
+
+/// Returns the [width] property of the media track by its ID and [`MediaType`].
+///
+/// Blocks until the [width] is initialized.
+///
+/// [width]: https://w3.org/TR/mediacapture-streams#dfn-height
+pub fn track_width(
+    track_id: String,
+    peer_id: Option<u64>,
+    kind: MediaType,
+) -> anyhow::Result<Option<i32>> {
+    if kind == MediaType::Audio {
+        return Ok(None);
+    }
+
+    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
+
+    WEBRTC
+        .lock()
+        .unwrap()
+        .track_width(track_id, track_origin)
+        .map(Some)
 }
 
 /// Changes the [enabled][1] property of the [`MediaStreamTrack`] by its ID and
