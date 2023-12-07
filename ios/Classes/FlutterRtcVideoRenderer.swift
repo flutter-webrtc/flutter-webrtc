@@ -251,20 +251,29 @@ class FlutterRtcVideoRenderer: NSObject, FlutterTexture, RTCVideoRenderer {
     }
 
     let buffer = self.correctRotation(frame: renderFrame!)
-    let isFrameWidthChanged = self.frameWidth != renderFrame!.buffer.width
-    let isFrameHeightChanged = self.frameHeight != renderFrame!.buffer.height
+    let isFrameWidthChanged = self.frameWidth != buffer.width
+    let isFrameHeightChanged = self.frameHeight != buffer.height
+    let isFrameRotationChanged = self.frameRotation != rotation
+
     if isFrameWidthChanged
       || isFrameHeightChanged
-      || self.frameRotation != rotation
+      || isFrameRotationChanged
     {
-      self.frameWidth = renderFrame!.buffer.width
-      self.frameHeight = renderFrame!.buffer.height
-      self.broadcastEventObserver().onTextureChange(
-        id: self.textureId,
-        height: self.frameHeight,
-        width: self.frameWidth,
-        rotation: self.frameRotation
-      )
+      self.frameWidth = buffer.width
+      self.frameHeight = buffer.height
+      self.frameRotation = rotation
+
+      let frameWidth = self.frameWidth
+      let frameHeight = self.frameHeight
+
+      DispatchQueue.main.async {
+        self.broadcastEventObserver().onTextureChange(
+          id: self.textureId,
+          height: frameHeight,
+          width: frameWidth,
+          rotation: rotation
+        )
+      }
     }
 
     if self.pixelBuffer == nil {
@@ -296,8 +305,10 @@ class FlutterRtcVideoRenderer: NSObject, FlutterTexture, RTCVideoRenderer {
     )
 
     if !self.isFirstFrameRendered {
-      self.broadcastEventObserver().onFirstFrameRendered(id: self.textureId)
       self.isFirstFrameRendered = true
+      DispatchQueue.main.async {
+        self.broadcastEventObserver().onFirstFrameRendered(id: self.textureId)
+      }
     }
     self.rendererLock.unlock()
 

@@ -23,7 +23,7 @@ use walkdir::{DirEntry, WalkDir};
 /// [`libwebrtc-bin`]: https://github.com/instrumentisto/libwebrtc-bin
 static LIBWEBRTC_URL: &str =
     "https://github.com/instrumentisto/libwebrtc-bin/releases/download\
-                                                    /116.0.5845.110";
+                                                    /118.0.5993.88";
 
 /// URL for downloading `openal-soft` source code.
 static OPENAL_URL: &str =
@@ -72,6 +72,7 @@ fn main() -> anyhow::Result<()> {
     }
     #[cfg(target_os = "macos")]
     {
+        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.11");
         build
             .include(libpath.join("include/sdk/objc/base"))
             .include(libpath.join("include/sdk/objc"));
@@ -120,19 +121,19 @@ fn get_target() -> anyhow::Result<String> {
 fn get_expected_libwebrtc_hash() -> anyhow::Result<&'static str> {
     Ok(match get_target()?.as_str() {
         "aarch64-unknown-linux-gnu" => {
-            "1f14e07148664dc9a2eb92538fc59f426494fef1d3c7ad7ae207ba242d746c83"
+            "e3329d2ffc0a2f9da08a95576c5d9435a9f99f2de5796fd099cd4b42aa974f4a"
         }
         "x86_64-unknown-linux-gnu" => {
-            "c136d65e50cb87fe1ca60229aa142f475fd1c7efdf74241c5b425a383dbe2a12"
+            "a1c67f60296ac21e9c070e6db06eea3d09e469df50e4a42150cea66af664f4a8"
         }
         "aarch64-apple-darwin" => {
-            "9cba5075537d20660a16b7598f7a7ddeb81c4bf972e53e5dd8ea242ac28a663e"
+            "4ac40757d53ce93d4b5e4e2bbec258f67bd0ec72f49c012e8faf9c68765a9d5f"
         }
         "x86_64-apple-darwin" => {
-            "43281abbc8dd85af563c1efaefdae30028f2ed507a358fc8974d78c8abc4ee24"
+            "724c560e6d97e64556f29e59d765a050e48296662e24d84dd851b3e6722a3dce"
         }
         "x86_64-pc-windows-msvc" => {
-            "7692e98789656ec4a3b291eb5d5cf56462be70f4f438c171fa76b5c45db2351d"
+            "238edc94d379e103e69420cf2732a4c13c01b86be34c9c12589c86ef83bd38d3"
         }
         arch => return Err(anyhow::anyhow!("Unsupported target: {arch}")),
     })

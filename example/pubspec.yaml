@@ -16,6 +16,11 @@ dependencies:
   medea_flutter_webrtc:
     path: ../
 
+dependency_overrides:
+  # Pinned until `gql-dart` updates to 4 version:
+  # https://github.com/gql-dart/gql/blob/master/links/gql_websocket_link/pubspec.yaml#L13
+  uuid: ^3.0.7
+
 dev_dependencies:
   build_runner: ^2.1.10
   flutter_driver:

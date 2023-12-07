@@ -2,7 +2,7 @@ name: medea_flutter_webrtc
 description: >
   Flutter WebRTC plugin for Android/iOS/macOS/Linux/Windows/Web, based on
   GoogleWebRTC, designed for and used in Medea Jason WebRTC client.
-version: 0.8.3-dev
+version: 0.9.0
 homepage: https://github.com/instrumentisto/medea-flutter-webrtc
 
 environment:
@@ -27,6 +27,11 @@ dev_dependencies:
     sdk: flutter
   freezed: ^2.4.3
   import_sorter: ^4.6.0
+
+dependency_overrides:
+  # Pinned until `gql-dart` updates to 4 version:
+  # https://github.com/gql-dart/gql/blob/master/links/gql_websocket_link/pubspec.yaml#L13
+  uuid: ^3.0.7
 
 flutter:
   plugin:

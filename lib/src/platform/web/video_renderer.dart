@@ -209,6 +209,7 @@ class WebVideoRenderer extends VideoRenderer {
       _subscriptions.add(
         element.onCanPlay.listen((dynamic _) {
           _updateAllValues();
+          onCanPlay?.call();
         }),
       );
 

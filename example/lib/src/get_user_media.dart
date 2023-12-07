@@ -42,6 +42,12 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
 
   void initRenderers() async {
     await _localRenderer.initialize();
+
+    _localRenderer.onCanPlay = () => {print('onCanPlay fired')};
+    _localRenderer.onResize = () => {
+          print('resize: width = ${_localRenderer.videoWidth}, '
+              'height = ${_localRenderer.videoHeight}')
+        };
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.

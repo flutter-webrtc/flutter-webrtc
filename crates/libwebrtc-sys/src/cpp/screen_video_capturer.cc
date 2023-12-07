@@ -93,8 +93,11 @@ ScreenVideoCapturer::ScreenVideoCapturer(
                 this, webrtc::MouseCursorMonitor::SHAPE_AND_POSITION);
           }
 
-          while (CaptureProcess()) {
-          }
+          while (CaptureProcess()) {}
+
+          output_frame_.reset();
+          previous_frame_size_.set(0, 0);
+          capturer_.reset();
         },
         "ScreenCaptureThread",
         rtc::ThreadAttributes().SetPriority(rtc::ThreadPriority::kHigh));
@@ -106,9 +109,6 @@ ScreenVideoCapturer::~ScreenVideoCapturer() {
     quit_ = true;
     capture_thread_.Finalize();
   }
-  output_frame_.reset();
-  previous_frame_size_.set(0, 0);
-  capturer_.reset();
 }
 
 // Captures a `webrtc::DesktopFrame`.
