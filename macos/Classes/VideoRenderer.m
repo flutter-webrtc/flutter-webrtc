@@ -2,8 +2,7 @@
 
 // Drops the provided `TextureVideoRenderer`.
 void drop_handler(void* handler) {
-    TextureVideoRenderer* renderer =
-        (__bridge_transfer TextureVideoRenderer*)handler;
+    CFBridgingRelease(handler);
 }
 
 // Passes the provided `Frame` from Rust side to the specified
@@ -141,7 +140,7 @@ void on_frame_caller(void* handler, Frame frame) {
     NSNumber* textureId = arguments[@"textureId"];
 
     TextureVideoRenderer* renderer = _renderers[textureId];
-    [_registry unregisterTexture:[textureId intValue]];
+    [_registry unregisterTexture:[textureId longValue]];
     [_renderers removeObjectForKey:textureId];
     result(@{});
 }
@@ -155,6 +154,9 @@ void on_frame_caller(void* handler, Frame frame) {
     TextureVideoRenderer* renderer = _renderers[textureId];
 
     int64_t rendererPtr = (int64_t)renderer;
+    // Leaking the pointer which will be freed by Rust calling the
+    // `drop_handler()` function.
+    CFBridgingRetain(renderer);
     result(@{
         @"handler_ptr" : [NSNumber numberWithLong:rendererPtr],
     });

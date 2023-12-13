@@ -6,6 +6,20 @@ All user visible changes to this project will be documented in this file. This p
 
 
 
+## [0.9.1] · 2023-??-??
+[0.9.1]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.9.1
+
+[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.9.0...0.9.1)
+
+### Fixed
+
+- Double free when [macOS] video renderer is reused for different tracks. ([#139])
+
+[#139]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/139
+
+
+
+
 ## [0.9.0] · 2023-12-07
 [0.9.0]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.9.0
 
