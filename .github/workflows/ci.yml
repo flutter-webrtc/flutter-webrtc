@@ -157,7 +157,7 @@ jobs:
       - run: make cargo.build platform=${{ matrix.platform }} debug=no
       - run: make flutter.build platform=${{ matrix.platform }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.platform }}
           path: ${{ matrix.platform }}/rust/
@@ -190,7 +190,7 @@ jobs:
       - run: make cargo.build platform=linux debug=no
       - run: make flutter.build platform=linux
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: build-linux
           path: linux/rust/
