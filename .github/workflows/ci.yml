@@ -381,17 +381,17 @@ jobs:
       - uses: subosito/flutter-action@v2
         if: ${{ steps.skip.outputs.no == 'true' }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: build-linux
           path: linux/rust/
         if: ${{ steps.skip.outputs.no == 'true' }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: build-macos
           path: macos/rust/
         if: ${{ steps.skip.outputs.no == 'true' }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: build-windows
           path: windows/rust/
