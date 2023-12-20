@@ -79,7 +79,7 @@ class MediaStreamTrackController {
           .asFlutterResult()
         )
       } catch {
-        result(error)
+        result(getFlutterError(error))
       }
     case "dispose":
       self.isDisposed = true

@@ -76,7 +76,7 @@ class PeerConnectionController {
           let sdp = try await self.peer.createOffer()
           self.sendResultFromTask(result, sdp.asFlutterResult())
         } catch {
-          self.sendResultFromTask(result, error)
+          self.sendResultFromTask(result, getFlutterError(error))
         }
       }
     case "createAnswer":
@@ -101,7 +101,7 @@ class PeerConnectionController {
           try await self.peer.setLocalDescription(description: desc)
           self.sendResultFromTask(result, nil)
         } catch {
-          self.sendResultFromTask(result, error)
+          self.sendResultFromTask(result, getFlutterError(error))
         }
       }
     case "setRemoteDescription":
@@ -118,7 +118,7 @@ class PeerConnectionController {
           )
           self.sendResultFromTask(result, nil)
         } catch {
-          self.sendResultFromTask(result, error)
+          self.sendResultFromTask(result, getFlutterError(error))
         }
       }
     case "addIceCandidate":
@@ -136,7 +136,7 @@ class PeerConnectionController {
           )
           self.sendResultFromTask(result, nil)
         } catch {
-          self.sendResultFromTask(result, error)
+          self.sendResultFromTask(result, getFlutterError(error))
         }
       }
     case "addTransceiver":
