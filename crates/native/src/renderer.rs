@@ -278,6 +278,7 @@ mod frame_handler {
         pub buffer_size: usize,
 
         /// Actual [`sys::VideoFrame`].
+        #[allow(clippy::struct_field_names)]
         pub frame: *mut sys::VideoFrame,
     }
 
