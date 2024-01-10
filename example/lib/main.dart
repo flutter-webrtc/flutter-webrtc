@@ -9,6 +9,7 @@ import 'src/get_user_media.dart'
     if (dart.library.html) 'src/get_user_media_sample_web.dart';
 import 'src/loopback.dart';
 import 'src/on_device_change.dart';
+import 'src/video_codec_info.dart';
 import 'src/route_item.dart';
 
 void main() {
@@ -114,6 +115,15 @@ class _MyAppState extends State<MyApp> {
                 MaterialPageRoute(
                     builder: (BuildContext context) =>
                         const OnDeviceChangeNotifierSample()));
+          }),
+      RouteItem(
+          title: 'Video Codec Info',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) =>
+                        const VideoCodecInfoSample()));
           }),
     ];
   }

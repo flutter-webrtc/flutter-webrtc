@@ -6,10 +6,14 @@ All user visible changes to this project will be documented in this file. This p
 
 
 
-## [0.9.1] · 2023-??-??
-[0.9.1]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.9.1
+## [0.10.0] · 2023-??-??
+[0.10.0]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.10.0
 
-[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.9.0...0.9.1)
+[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.9.0...0.10.0)
+
+### Added
+
+- `PeerConnection.videoDecoders()` and `PeerConnection.videoEncoders()` methods enumerating available video codecs and their capability of hardware acceleration. ([#144])
 
 ### Fixed
 
@@ -19,6 +23,7 @@ All user visible changes to this project will be documented in this file. This p
 
 [#139]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/139
 [#142]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/142
+[#144]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/144
 
 
 

@@ -181,7 +181,7 @@ class _LoopbackState extends State<Loopback> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'GetUserMedia API Test. ${_inCalling ? (_microIsAvailable ? 'Micro volume: $_volume .' : 'Micro volume is not available') : ''}'),
+            'WebRTC loopback test. ${_inCalling ? (_microIsAvailable ? 'Micro volume: $_volume .' : 'Micro volume is not available') : ''}'),
         actions: _inCalling
             ? <Widget>[
                 IconButton(

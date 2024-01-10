@@ -200,6 +200,31 @@ void main() {
     await videoTransceiver.dispose();
   });
 
+  testWidgets('Video codec info', (WidgetTester tester) async {
+    // Desktop only.
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      var decoders = await PeerConnection.videoDecoders();
+      expect(decoders.where((dec) => dec.codec == VideoCodec.VP8).length,
+          isNonZero);
+      expect(decoders.where((dec) => dec.codec == VideoCodec.VP9).length,
+          isNonZero);
+      expect(decoders.where((dec) => dec.codec == VideoCodec.AV1).length,
+          isNonZero);
+      expect(decoders.where((dec) => dec.codec == VideoCodec.H264).length,
+          isNonZero);
+
+      var encoders = await PeerConnection.videoEncoders();
+      expect(encoders.where((enc) => enc.codec == VideoCodec.VP8).length,
+          isNonZero);
+      expect(encoders.where((enc) => enc.codec == VideoCodec.VP9).length,
+          isNonZero);
+      expect(encoders.where((enc) => enc.codec == VideoCodec.AV1).length,
+          isNonZero);
+      expect(encoders.where((enc) => enc.codec == VideoCodec.H264).length,
+          isNonZero);
+    }
+  });
+
   testWidgets('Get transceivers', (WidgetTester tester) async {
     var pc = await PeerConnection.create(IceTransportType.all, []);
     var t1 = await pc.addTransceiver(

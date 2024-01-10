@@ -1,3 +1,5 @@
+import '../api/bridge.g.dart' as ffi;
+
 /// ICE transport which should be used by some peer connection.
 enum IceTransportType {
   /// Offer all types of ICE candidates.
@@ -158,4 +160,59 @@ enum PeerConnectionState {
 
   /// Peer connection is closed.
   closed,
+}
+
+/// Supported video codecs.
+enum VideoCodec {
+  /// [AV1] AOMedia Video 1.
+  ///
+  /// [AV1]: https://en.wikipedia.org/wiki/AV1
+  // ignore: constant_identifier_names
+  AV1,
+
+  /// [H.264] Advanced Video Coding (AVC).
+  ///
+  /// [H.264]: https://en.wikipedia.org/wiki/Advanced_Video_Coding
+  // ignore: constant_identifier_names
+  H264,
+
+  /// [H.265] High Efficiency Video Coding (HEVC).
+  ///
+  /// [H.265]: https://en.wikipedia.org/wiki/High_Efficiency_Video_Coding
+  // ignore: constant_identifier_names
+  H265,
+
+  /// [VP8] codec.
+  ///
+  /// [VP8]: https://en.wikipedia.org/wiki/VP8
+  // ignore: constant_identifier_names
+  VP8,
+
+  /// [VP9] codec.
+  ///
+  /// [VP9]: https://en.wikipedia.org/wiki/VP9
+  // ignore: constant_identifier_names
+  VP9,
+}
+
+/// [VideoCodec] info for encoding/decoding in a peer connection.
+class VideoCodecInfo {
+  /// Indicator whether hardware acceleration should be used.
+  bool isHardwareAccelerated = false;
+
+  /// [VideoCodec] to be used for encoding/decoding.
+  VideoCodec codec;
+
+  VideoCodecInfo(this.isHardwareAccelerated, this.codec);
+
+  static VideoCodecInfo fromFFI(ffi.VideoCodecInfo vc) {
+    VideoCodec mediaCodec = VideoCodec.values
+        .firstWhere((el) => el.name.toLowerCase() == vc.codec.name);
+    return VideoCodecInfo(vc.isHardwareAccelerated, mediaCodec);
+  }
+
+  static VideoCodecInfo fromMap(dynamic info) {
+    VideoCodec mediaCodec = VideoCodec.values[info['codec']];
+    return VideoCodecInfo(info['isHardwareAccelerated'], mediaCodec);
+  }
 }

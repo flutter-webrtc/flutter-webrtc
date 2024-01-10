@@ -54,6 +54,50 @@ class PeerConnectionFactoryController {
         messenger: self.messenger, peer: self.peerFactory.create(conf: conf)
       )
       result(peer.asFlutterResult())
+    case "videoEncoders":
+      let res = [
+        VideoCodecInfo(
+          isHardwareAccelerated: false,
+          codec: VideoCodec.VP8
+        ),
+        VideoCodecInfo(
+          isHardwareAccelerated: false,
+          codec: VideoCodec.VP9
+        ),
+        VideoCodecInfo(
+          isHardwareAccelerated: false,
+          codec: VideoCodec.AV1
+        ),
+        VideoCodecInfo(
+          isHardwareAccelerated: true,
+          codec: VideoCodec.H264
+        ),
+      ].map {
+        $0.asFlutterResult()
+      }
+      result(res)
+    case "videoDecoders":
+      let res = [
+        VideoCodecInfo(
+          isHardwareAccelerated: false,
+          codec: VideoCodec.VP8
+        ),
+        VideoCodecInfo(
+          isHardwareAccelerated: false,
+          codec: VideoCodec.VP9
+        ),
+        VideoCodecInfo(
+          isHardwareAccelerated: false,
+          codec: VideoCodec.AV1
+        ),
+        VideoCodecInfo(
+          isHardwareAccelerated: true,
+          codec: VideoCodec.H264
+        ),
+      ].map {
+        $0.asFlutterResult()
+      }
+      result(res)
     case "dispose":
       self.channel.setMethodCallHandler(nil)
       result(nil)

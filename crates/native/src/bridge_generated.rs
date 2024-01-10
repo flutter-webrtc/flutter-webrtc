@@ -24,6 +24,26 @@ use crate::renderer::TextureEvent;
 
 // Section: wire functions
 
+fn wire_video_encoders_impl(port_: MessagePort) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, Vec<VideoCodecInfo>, _>(
+        WrapInfo {
+            debug_name: "video_encoders",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || move |task_callback| Result::<_, ()>::Ok(video_encoders()),
+    )
+}
+fn wire_video_decoders_impl(port_: MessagePort) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, Vec<VideoCodecInfo>, _>(
+        WrapInfo {
+            debug_name: "video_decoders",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || move |task_callback| Result::<_, ()>::Ok(video_decoders()),
+    )
+}
 fn wire_enable_fake_media_impl(port_: MessagePort) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, (), _>(
         WrapInfo {
@@ -1643,6 +1663,41 @@ impl rust2dart::IntoIntoDart<TrackState> for TrackState {
     }
 }
 
+impl support::IntoDart for VideoCodec {
+    fn into_dart(self) -> support::DartAbi {
+        match self {
+            Self::AV1 => 0,
+            Self::H264 => 1,
+            Self::H265 => 2,
+            Self::VP8 => 3,
+            Self::VP9 => 4,
+        }
+        .into_dart()
+    }
+}
+impl support::IntoDartExceptPrimitive for VideoCodec {}
+impl rust2dart::IntoIntoDart<VideoCodec> for VideoCodec {
+    fn into_into_dart(self) -> Self {
+        self
+    }
+}
+
+impl support::IntoDart for VideoCodecInfo {
+    fn into_dart(self) -> support::DartAbi {
+        vec![
+            self.is_hardware_accelerated.into_into_dart().into_dart(),
+            self.codec.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl support::IntoDartExceptPrimitive for VideoCodecInfo {}
+impl rust2dart::IntoIntoDart<VideoCodecInfo> for VideoCodecInfo {
+    fn into_into_dart(self) -> Self {
+        self
+    }
+}
+
 // Section: executor
 
 support::lazy_static! {
@@ -1653,6 +1708,16 @@ support::lazy_static! {
 mod io {
     use super::*;
     // Section: wire functions
+
+    #[no_mangle]
+    pub extern "C" fn wire_video_encoders(port_: i64) {
+        wire_video_encoders_impl(port_)
+    }
+
+    #[no_mangle]
+    pub extern "C" fn wire_video_decoders(port_: i64) {
+        wire_video_decoders_impl(port_)
+    }
 
     #[no_mangle]
     pub extern "C" fn wire_enable_fake_media(port_: i64) {

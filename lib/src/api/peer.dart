@@ -71,6 +71,24 @@ abstract class PeerConnection {
     }
   }
 
+  /// Returns all [VideoCodecInfo]s of the supported video encoders.
+  static Future<List<VideoCodecInfo>> videoEncoders() async {
+    if (isDesktop) {
+      return await _PeerConnectionFFI.videoEncoders();
+    } else {
+      return await _PeerConnectionChannel.videoEncoders();
+    }
+  }
+
+  /// Returns all [VideoCodecInfo]s of the supported video decoders.
+  static Future<List<VideoCodecInfo>> videoDecoders() async {
+    if (isDesktop) {
+      return await _PeerConnectionFFI.videoDecoders();
+    } else {
+      return await _PeerConnectionChannel.videoDecoders();
+    }
+  }
+
   /// Indicator whether the [close] was called.
   bool _closed = false;
 
@@ -241,6 +259,24 @@ class _PeerConnectionChannel extends PeerConnection {
     });
 
     return _PeerConnectionChannel._fromMap(res);
+  }
+
+  /// Returns all [VideoCodecInfo]s of the supported video encoders.
+  static Future<List<VideoCodecInfo>> videoEncoders() async {
+    dynamic res =
+        await _peerConnectionFactoryMethodChannel.invokeMethod('videoEncoders');
+    res as List<dynamic>;
+
+    return res.map((info) => VideoCodecInfo.fromMap(info)).toList();
+  }
+
+  /// Returns all [VideoCodecInfo]s of the supported video decoders.
+  static Future<List<VideoCodecInfo>> videoDecoders() async {
+    dynamic res =
+        await _peerConnectionFactoryMethodChannel.invokeMethod('videoDecoders');
+    res as List<dynamic>;
+
+    return res.map((info) => VideoCodecInfo.fromMap(info)).toList();
   }
 
   /// Listener for the all [PeerConnection] events received from the native
@@ -474,6 +510,18 @@ class _PeerConnectionFFI extends PeerConnection {
     if (_closed) {
       throw StateError('Use PeerConnection after close');
     }
+  }
+
+  /// Returns all [VideoCodecInfo]s of the supported video encoders.
+  static Future<List<VideoCodecInfo>> videoEncoders() async {
+    var res = await api!.videoEncoders();
+    return res.map((info) => VideoCodecInfo.fromFFI(info)).toList();
+  }
+
+  /// Returns all [VideoCodecInfo]s of the supported video decoders.
+  static Future<List<VideoCodecInfo>> videoDecoders() async {
+    var res = await api!.videoDecoders();
+    return res.map((info) => VideoCodecInfo.fromFFI(info)).toList();
   }
 
   /// Listener for the all [PeerConnection] events received from the native

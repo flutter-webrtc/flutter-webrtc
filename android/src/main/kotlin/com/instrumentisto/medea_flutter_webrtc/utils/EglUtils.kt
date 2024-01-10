@@ -22,9 +22,8 @@ object EglUtils {
     private set
 
   @JvmStatic
-  val rootEglBaseContext: EglBase.Context?
+  val rootEglBaseContext: EglBase.Context
     get() {
-      val eglBase = rootEglBase
-      return eglBase?.eglBaseContext
+      return rootEglBase!!.eglBaseContext
     }
 }

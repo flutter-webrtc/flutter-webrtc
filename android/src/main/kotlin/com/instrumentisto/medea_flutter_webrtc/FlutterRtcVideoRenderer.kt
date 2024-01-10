@@ -88,7 +88,7 @@ class FlutterRtcVideoRenderer(textureRegistry: TextureRegistry) {
       track?.removeSink(renderer)
 
       if (track == null) {
-        val sharedContext = EglUtils.rootEglBaseContext!!
+        val sharedContext = EglUtils.rootEglBaseContext
         renderer.release()
         rendererEventsListener = rendererEventsListener()
         renderer.init(sharedContext, rendererEventsListener)
