@@ -223,14 +223,6 @@ impl AudioDeviceModule {
         Ok(Self(ptr))
     }
 
-    /// Creates a new fake [`AudioDeviceModule`], that will not try to access
-    /// real media devices, but will generate pulsed noise.
-    pub fn create_fake(task_queue_factory: &mut TaskQueueFactory) -> Self {
-        Self(webrtc::create_fake_audio_device_module(
-            task_queue_factory.0.pin_mut(),
-        ))
-    }
-
     /// Initializes the current [`AudioDeviceModule`].
     pub fn init(&self) -> anyhow::Result<()> {
         let result = webrtc::init_audio_device_module(&self.0);
@@ -298,18 +290,41 @@ impl AudioDeviceModule {
         Ok((name, guid))
     }
 
-    /// Sets the recording audio device according to the given `index`.
-    pub fn set_recording_device(&self, index: u16) -> anyhow::Result<()> {
-        let result = webrtc::set_audio_recording_device(&self.0, index);
+    /// Creates a new fake [`AudioSourceInterface`].
+    pub fn create_fake_audio_source(
+        &self,
+    ) -> anyhow::Result<AudioSourceInterface> {
+        let ptr = webrtc::create_fake_audio_source();
 
-        if result != 0 {
+        if ptr.is_null() {
             bail!(
-                "`AudioDeviceModule::SetRecordingDevice()` failed with \
-                 `{result}` code",
+                "`null` pointer returned from \
+                 `webrtc::PeerConnectionFactoryInterface\
+                  ::CreateFakeAudioSource()`",
             );
         }
+        Ok(AudioSourceInterface(ptr))
+    }
 
-        Ok(())
+    /// Creates a new [`AudioSourceInterface`].
+    pub fn create_audio_source(
+        &self,
+        device_index: u16,
+    ) -> anyhow::Result<AudioSourceInterface> {
+        let ptr = webrtc::create_audio_source(&self.0, device_index);
+
+        if ptr.is_null() {
+            bail!(
+                "`null` pointer returned from \
+                 `webrtc::PeerConnectionFactoryInterface::CreateAudioSource()`",
+            );
+        }
+        Ok(AudioSourceInterface(ptr))
+    }
+
+    /// Disposes the [`AudioSourceInterface`] with the provided `device_id`.
+    pub fn dispose_audio_source(&self, device_id: String) {
+        webrtc::dispose_audio_source(&self.0, device_id);
     }
 
     /// Sets the playout audio device according to the given `index`.
@@ -1606,20 +1621,6 @@ impl PeerConnectionFactoryInterface {
         })
     }
 
-    /// Creates a new [`AudioSourceInterface`], which provides sound recording
-    /// from native platform.
-    pub fn create_audio_source(&self) -> anyhow::Result<AudioSourceInterface> {
-        let ptr = webrtc::create_audio_source(&self.0);
-
-        if ptr.is_null() {
-            bail!(
-                "`null` pointer returned from \
-                 `webrtc::PeerConnectionFactoryInterface::CreateAudioSource()`",
-            );
-        }
-        Ok(AudioSourceInterface(ptr))
-    }
-
     /// Creates a new [`VideoTrackInterface`] sourced by the provided
     /// [`VideoTrackSourceInterface`].
     pub fn create_video_track(
@@ -1993,13 +1994,6 @@ impl AudioTrackInterface {
             obs.0.pin_mut(),
         );
         self.observers.push(obs);
-    }
-
-    /// Returns the [`AudioSourceInterface`] attached to this
-    /// [`AudioTrackInterface`].
-    #[must_use]
-    pub fn source(&self) -> AudioSourceInterface {
-        AudioSourceInterface(webrtc::get_audio_track_source(&self.inner))
     }
 
     /// Returns the [readyState][0] property of this [`AudioTrackInterface`].

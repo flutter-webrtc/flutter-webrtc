@@ -90,9 +90,9 @@ using VideoRotation = webrtc::VideoRotation;
 using RtpTransceiverDirection = webrtc::RtpTransceiverDirection;
 using TrackState = webrtc::MediaStreamTrackInterface::TrackState;
 
-using AudioDeviceModule = rtc::scoped_refptr<webrtc::AudioDeviceModule>;
+using AudioDeviceModule = rtc::scoped_refptr<ExtendedADM>;
 using AudioProcessing = rtc::scoped_refptr<webrtc::AudioProcessing>;
-using AudioSourceInterface = rtc::scoped_refptr<webrtc::AudioSourceInterface>;
+using AudioSourceInterface = rtc::scoped_refptr<LocalAudioSource>;
 using AudioTrackInterface = rtc::scoped_refptr<webrtc::AudioTrackInterface>;
 using MediaStreamInterface = rtc::scoped_refptr<webrtc::MediaStreamInterface>;
 using PeerConnectionFactoryInterface =
@@ -109,10 +109,6 @@ using MediaStreamTrackInterface =
 std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     Thread& worker_thread,
     AudioLayer audio_layer,
-    TaskQueueFactory& task_queue_factory);
-
-// Creates a new fake `AudioDeviceModule`.
-std::unique_ptr<AudioDeviceModule> create_fake_audio_device_module(
     TaskQueueFactory& task_queue_factory);
 
 // Initializes the native audio parts required for each platform.
@@ -162,12 +158,6 @@ int32_t recording_device_name(const AudioDeviceModule& audio_device_module,
                               int16_t index,
                               rust::String& name,
                               rust::String& guid);
-
-// Specifies which microphone to use for recording audio using an index
-// retrieved by the corresponding enumeration method which is
-// `AudiDeviceModule::RecordingDeviceName`.
-int32_t set_audio_recording_device(const AudioDeviceModule& audio_device_module,
-                                   uint16_t index);
 
 // Stops playout of audio on the specified device.
 int32_t stop_playout(const AudioDeviceModule& audio_device_module);
@@ -249,7 +239,15 @@ std::unique_ptr<VideoTrackSourceInterface> create_display_video_source(
 
 // Creates a new `AudioSourceInterface`.
 std::unique_ptr<AudioSourceInterface> create_audio_source(
-    const PeerConnectionFactoryInterface& peer_connection_factory);
+    const AudioDeviceModule& audio_device_module,
+    uint16_t device_index);
+
+// Disposes the `AudioSourceInterface` with the provided device ID.
+void dispose_audio_source(const AudioDeviceModule& audio_device_module,
+                          rust::String device_id);
+
+// Creates a new fake `AudioSourceInterface`.
+std::unique_ptr<AudioSourceInterface> create_fake_audio_source();
 
 // Creates a new `VideoTrackInterface`.
 std::unique_ptr<VideoTrackInterface> create_video_track(
@@ -574,4 +572,4 @@ std::unique_ptr<webrtc::IceCandidateInterface> create_ice_candidate(
 
 }  // namespace bridge
 
-#endif // BRIDGE_H_
+#endif  // BRIDGE_H_

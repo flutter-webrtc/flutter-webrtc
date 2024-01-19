@@ -39,9 +39,9 @@ pub use crate::{
         PeerConnection, RtpEncodingParameters, RtpParameters, RtpTransceiver,
     },
     user_media::{
-        AudioDeviceId, AudioDeviceModule, AudioTrack, AudioTrackId,
-        MediaStreamId, VideoDeviceId, VideoDeviceInfo, VideoSource, VideoTrack,
-        VideoTrackId,
+        AudioDeviceId, AudioDeviceModule, AudioSource, AudioTrack,
+        AudioTrackId, MediaStreamId, VideoDeviceId, VideoDeviceInfo,
+        VideoSource, VideoTrack, VideoTrackId,
     },
     video_sink::VideoSink,
 };
@@ -59,7 +59,7 @@ struct Webrtc {
     video_device_info: VideoDeviceInfo,
     video_sources: HashMap<VideoDeviceId, Arc<VideoSource>>,
     video_tracks: Arc<DashMap<(VideoTrackId, TrackOrigin), VideoTrack>>,
-    audio_source: Option<Arc<sys::AudioSourceInterface>>,
+    audio_sources: HashMap<AudioDeviceId, Arc<AudioSource>>,
     audio_tracks: Arc<DashMap<(AudioTrackId, TrackOrigin), AudioTrack>>,
     video_sinks: HashMap<VideoSinkId, VideoSink>,
     ap: sys::AudioProcessing,
@@ -88,15 +88,11 @@ impl Webrtc {
         let mut signaling_thread = sys::Thread::create(false)?;
         signaling_thread.start()?;
 
-        let audio_device_module = if api::is_fake_media() {
-            AudioDeviceModule::new_fake(&mut task_queue_factory)
-        } else {
-            AudioDeviceModule::new(
-                &mut worker_thread,
-                sys::AudioLayer::kPlatformDefaultAudio,
-                &mut task_queue_factory,
-            )?
-        };
+        let audio_device_module = AudioDeviceModule::new(
+            &mut worker_thread,
+            sys::AudioLayer::kPlatformDefaultAudio,
+            &mut task_queue_factory,
+        )?;
 
         let ap = sys::AudioProcessing::new()?;
         let peer_connection_factory =
@@ -118,7 +114,7 @@ impl Webrtc {
             peer_connection_factory,
             video_sources: HashMap::new(),
             video_tracks: Arc::new(DashMap::new()),
-            audio_source: None,
+            audio_sources: HashMap::new(),
             audio_tracks: Arc::new(DashMap::new()),
             video_sinks: HashMap::new(),
             callback_pool: ThreadPool::new(4),

@@ -1,21 +1,26 @@
 #ifndef BRIDGE_ADM_PROXY_H_
 #define BRIDGE_ADM_PROXY_H_
 
+#include "adm.h"
 #include "modules/audio_device/include/audio_device.h"
 #include "pc/proxy.h"
 
 namespace webrtc {
 
-using AudioDeviceModuleInterface = AudioDeviceModule;
+using ExtendedADMInterface = ExtendedADM;
 
 // Define proxy for `AudioDeviceModule`.
-BEGIN_PRIMARY_PROXY_MAP(AudioDeviceModule)
+BEGIN_PRIMARY_PROXY_MAP(ExtendedADM)
 PROXY_PRIMARY_THREAD_DESTRUCTOR()
 PROXY_CONSTMETHOD1(int32_t, ActiveAudioLayer, AudioDeviceModule::AudioLayer*)
 PROXY_METHOD1(int32_t, RegisterAudioCallback, AudioTransport*)
 PROXY_METHOD0(int32_t, Init)
 PROXY_METHOD0(int32_t, Terminate)
 PROXY_CONSTMETHOD0(bool, Initialized)
+PROXY_METHOD1(rtc::scoped_refptr<bridge::LocalAudioSource>,
+              CreateAudioSource,
+              uint32_t)
+PROXY_METHOD1(void, DisposeAudioSource, std::string)
 PROXY_METHOD0(int16_t, PlayoutDevices)
 PROXY_METHOD0(int16_t, RecordingDevices)
 PROXY_METHOD3(int32_t, PlayoutDeviceName, uint16_t, char*, char*)
@@ -71,10 +76,10 @@ PROXY_METHOD1(int32_t, EnableBuiltInAGC, bool)
 PROXY_METHOD1(int32_t, EnableBuiltInNS, bool)
 PROXY_CONSTMETHOD0(int32_t, GetPlayoutUnderrunCount)
 #if defined(WEBRTC_IOS)
-  PROXY_CONSTMETHOD1(int, GetPlayoutAudioParameters, AudioParameters*)
-  PROXY_CONSTMETHOD1(int, GetRecordAudioParameters, AudioParameters*)
+PROXY_CONSTMETHOD1(int, GetPlayoutAudioParameters, AudioParameters*)
+PROXY_CONSTMETHOD1(int, GetRecordAudioParameters, AudioParameters*)
 #endif  // WEBRTC_IOS
-END_PROXY_MAP(AudioDeviceModule)
+END_PROXY_MAP(ExtendedADM)
 }  // namespace webrtc
 
-#endif // BRIDGE_ADM_PROXY_H_
+#endif  // BRIDGE_ADM_PROXY_H_

@@ -17,11 +17,11 @@
 #include "api/video_codecs/video_encoder_factory_template_libvpx_vp9_adapter.h"
 #include "api/video_codecs/video_encoder_factory_template_open_h264_adapter.h"
 #include "libwebrtc-sys/include/bridge.h"
+#include "libwebrtc-sys/include/local_audio_source.h"
 #include "libwebrtc-sys/src/bridge.rs.h"
 #include "libyuv.h"
 #include "modules/audio_device/include/audio_device_factory.h"
 #include "pc/proxy.h"
-#include "test_audio_device_module.cc"
 
 namespace bridge {
 
@@ -77,19 +77,6 @@ std::unique_ptr<VideoTrackSourceInterface> create_fake_device_video_source(
   return std::make_unique<VideoTrackSourceInterface>(proxied);
 }
 
-// Creates a new fake `AudioDeviceModule` with `PulsedNoiseCapturer` and without
-// audio renderer.
-std::unique_ptr<AudioDeviceModule> create_fake_audio_device_module(
-    TaskQueueFactory& task_queue_factory) {
-  auto capture = webrtc::CreatePulsedNoiseCapturer(1024, 8000, 1);
-  auto renderer = webrtc::CreateDiscardRenderer(8000, 1);
-
-  auto adm_fake = webrtc::CreateTestAdm(&task_queue_factory, std::move(capture),
-                                        std::move(renderer), 1);
-
-  return std::make_unique<AudioDeviceModule>(adm_fake);
-}
-
 // Creates a new `DeviceVideoCapturer` with the specified constraints and
 // calls `CreateVideoTrackSourceProxy()`.
 std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
@@ -127,17 +114,17 @@ std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     Thread& worker_thread,
     AudioLayer audio_layer,
     TaskQueueFactory& task_queue_factory) {
-  AudioDeviceModule adm =
-      worker_thread.BlockingCall([audio_layer, &task_queue_factory] {
-        return ::OpenALAudioDeviceModule::Create(audio_layer, &task_queue_factory);
-      });
+  AudioDeviceModule adm = worker_thread.BlockingCall([audio_layer,
+                                                      &task_queue_factory] {
+    return ::OpenALAudioDeviceModule::Create(audio_layer, &task_queue_factory);
+  });
 
   if (adm == nullptr) {
     return nullptr;
   }
 
   AudioDeviceModule proxied =
-      webrtc::AudioDeviceModuleProxy::Create(&worker_thread, adm);
+      webrtc::ExtendedADMProxy::Create(&worker_thread, adm);
 
   return std::make_unique<AudioDeviceModule>(proxied);
 }
@@ -229,12 +216,6 @@ int32_t recording_device_name(const AudioDeviceModule& audio_device_module,
   guid = guid_buff;
 
   return result;
-}
-
-// Calls `AudioDeviceModule->SetRecordingDevice()` with the provided arguments.
-int32_t set_audio_recording_device(const AudioDeviceModule& audio_device_module,
-                                   uint16_t index) {
-  return audio_device_module->SetRecordingDevice(index);
 }
 
 // Stops playout of audio on the specified device.
@@ -343,18 +324,28 @@ std::unique_ptr<VideoTrackSourceInterface> create_display_video_source(
   return std::make_unique<VideoTrackSourceInterface>(src);
 }
 
-// Calls `PeerConnectionFactoryInterface->CreateAudioSource()` with empty
-// `AudioOptions`.
+// Creates a new `AudioSource` with the provided `AudioDeviceModule`.
 std::unique_ptr<AudioSourceInterface> create_audio_source(
-    const PeerConnectionFactoryInterface& peer_connection_factory) {
-  auto src =
-      peer_connection_factory->CreateAudioSource(cricket::AudioOptions());
-
+    const AudioDeviceModule& audio_device_module,
+    uint16_t device_index) {
+  auto src = audio_device_module->CreateAudioSource(device_index);
   if (src == nullptr) {
     return nullptr;
   }
 
   return std::make_unique<AudioSourceInterface>(src);
+}
+
+// Disposes the `AudioSourceInterface` with the provided device ID.
+void dispose_audio_source(const AudioDeviceModule& audio_device_module,
+                          rust::String device_id) {
+  audio_device_module->DisposeAudioSource(std::string(device_id));
+}
+
+// Creates a new fake `AudioSource`.
+std::unique_ptr<AudioSourceInterface> create_fake_audio_source() {
+  return std::make_unique<AudioSourceInterface>(
+      bridge::LocalAudioSource::Create(cricket::AudioOptions()));
 }
 
 // Calls `PeerConnectionFactoryInterface->CreateVideoTrack`.
@@ -699,12 +690,6 @@ bool rtcp_parameters_reduced_size(const webrtc::RtcpParameters& rtcp) {
 std::unique_ptr<VideoTrackSourceInterface> get_video_track_source(
     const VideoTrackInterface& track) {
   return std::make_unique<VideoTrackSourceInterface>(track->GetSource());
-}
-
-// Returns the `AudioSourceInterface` of the provided `AudioTrackInterface`.
-std::unique_ptr<AudioSourceInterface> get_audio_track_source(
-    const AudioTrackInterface& track) {
-  return std::make_unique<AudioSourceInterface>(track->GetSource());
 }
 
 // Calls `IceCandidateInterface->ToString`.

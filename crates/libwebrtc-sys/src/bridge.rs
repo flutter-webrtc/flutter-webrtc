@@ -1226,12 +1226,6 @@ pub(crate) mod webrtc {
             task_queue_factory: Pin<&mut TaskQueueFactory>,
         ) -> UniquePtr<AudioDeviceModule>;
 
-        /// Creates a new fake [`AudioDeviceModule`], that will not try to
-        /// access real media devices, but will generate pulsed noise.
-        pub fn create_fake_audio_device_module(
-            task_queue_factory: Pin<&mut TaskQueueFactory>,
-        ) -> UniquePtr<AudioDeviceModule>;
-
         /// Initializes the given [`AudioDeviceModule`].
         pub fn init_audio_device_module(
             audio_device_module: &AudioDeviceModule,
@@ -1300,14 +1294,6 @@ pub(crate) mod webrtc {
             index: i16,
             name: &mut String,
             id: &mut String,
-        ) -> i32;
-
-        /// Specifies which microphone to use for recording audio using an index
-        /// retrieved by the corresponding enumeration method which is
-        /// [`AudiDeviceModule::RecordingDeviceName`].
-        pub fn set_audio_recording_device(
-            audio_device_module: &AudioDeviceModule,
-            index: u16,
         ) -> i32;
 
         /// Stops playout of audio on the given device.
@@ -2226,8 +2212,18 @@ pub(crate) mod webrtc {
 
         /// Creates a new [`AudioSourceInterface`].
         pub fn create_audio_source(
-            peer_connection_factory: &PeerConnectionFactoryInterface,
+            audio_device_module: &AudioDeviceModule,
+            device_index: u16,
         ) -> UniquePtr<AudioSourceInterface>;
+
+        /// Disposes the [`AudioSourceInterface`] with the provided `device_id`.
+        pub fn dispose_audio_source(
+            audio_device_module: &AudioDeviceModule,
+            device_id: String,
+        );
+
+        /// Creates a new fake [`AudioSourceInterface`].
+        pub fn create_fake_audio_source() -> UniquePtr<AudioSourceInterface>;
 
         /// Creates a new [`VideoTrackInterface`].
         pub fn create_video_track(
@@ -2254,13 +2250,6 @@ pub(crate) mod webrtc {
             peer_connection_factory: &MediaStreamInterface,
             track: &VideoTrackInterface,
         ) -> bool;
-
-        /// Returns the `AudioSourceInterface` of the provided
-        /// [`AudioTrackInterface`].
-        #[must_use]
-        pub fn get_audio_track_source(
-            track: &AudioTrackInterface,
-        ) -> UniquePtr<AudioSourceInterface>;
 
         /// Returns the `VideoTrackSourceInterface` of the provided
         /// [`VideoTrackInterface`].

@@ -51,17 +51,11 @@ impl Webrtc {
                         api::GetMediaError::Audio(err.to_string())
                     })?;
                 let track = self
-                    .create_audio_track(src)
-                    .map_err(|err| api::GetMediaError::Audio(err.to_string()));
-                if let Err(err) = track {
-                    if Arc::get_mut(self.audio_source.as_mut().unwrap())
-                        .is_some()
-                    {
-                        self.audio_source.take();
-                    }
-                    return Err(err);
-                }
-                tracks.push(track?);
+                    .create_audio_track(src.0.clone(), Arc::clone(&src.1))
+                    .map_err(|err| {
+                        api::GetMediaError::Audio(err.to_string())
+                    })?;
+                tracks.push(track);
             }
 
             Ok(())
@@ -100,9 +94,9 @@ impl Webrtc {
                 {
                     if let MediaTrackSource::Local(src) = track.source {
                         if Arc::strong_count(&src) == 2 {
-                            self.audio_source.take();
-                            // TODO: We should make `AudioDeviceModule` to stop
-                            //       recording.
+                            self.audio_sources.remove(&track.device_id);
+                            self.audio_device_module
+                                .dispose_audio_source(&track.device_id);
                         };
                     }
                     track.senders
@@ -252,17 +246,13 @@ impl Webrtc {
     /// [`sys::AudioSourceInterface`].
     fn create_audio_track(
         &mut self,
+        device_id: AudioDeviceId,
         source: Arc<sys::AudioSourceInterface>,
     ) -> anyhow::Result<api::MediaStreamTrack> {
-        // PANIC: If there is a `sys::AudioSourceInterface` then we are sure
-        //        that `current_device_id` is set in the `AudioDeviceModule`.
-        let device_id =
-            self.audio_device_module.current_device_id.clone().unwrap();
-
         let track = AudioTrack::new(
             &self.peer_connection_factory,
-            source,
             device_id,
+            source,
             TrackOrigin::Local,
         )?;
 
@@ -279,27 +269,17 @@ impl Webrtc {
     fn get_or_create_audio_source(
         &mut self,
         caps: &api::AudioConstraints,
-    ) -> anyhow::Result<Arc<sys::AudioSourceInterface>> {
+    ) -> anyhow::Result<Arc<AudioSource>> {
         let device_id = if let Some(device_id) = caps.device_id.clone() {
             AudioDeviceId(device_id)
         } else {
-            // No device ID is provided so just pick the currently used.
-            if self.audio_device_module.current_device_id.is_none() {
-                // `AudioDeviceModule` is not capturing anything at the moment,
-                // so we will use first available device (with `0` index).
-                if self.audio_device_module.recording_devices() < 1 {
-                    bail!("Cannot find any available audio input device");
-                }
-
-                AudioDeviceId(
-                    self.audio_device_module.recording_device_name(0)?.1,
-                )
-            } else {
-                // PANIC: If there is a `sys::AudioSourceInterface` then we are
-                //        sure that `current_device_id` is set in the
-                //        `AudioDeviceModule`.
-                self.audio_device_module.current_device_id.clone().unwrap()
+            // `AudioDeviceModule` is not capturing anything at the moment,
+            // so we will use first available device (with `0` index).
+            if self.audio_device_module.recording_devices() < 1 {
+                bail!("Cannot find any available audio input device");
             }
+
+            AudioDeviceId(self.audio_device_module.recording_device_name(0)?.1)
         };
 
         let Some(device_index) =
@@ -310,19 +290,17 @@ impl Webrtc {
             );
         };
 
-        if Some(&device_id)
-            != self.audio_device_module.current_device_id.as_ref()
-        {
-            self.audio_device_module
-                .set_recording_device(device_id, device_index)?;
-        }
-
-        let src = if let Some(src) = self.audio_source.as_ref() {
+        let src = if let Some(src) = self.audio_sources.get(&device_id) {
             Arc::clone(src)
         } else {
-            let src =
-                Arc::new(self.peer_connection_factory.create_audio_source()?);
-            self.audio_source.replace(Arc::clone(&src));
+            let src = Arc::new(AudioSource(
+                device_id.clone(),
+                Arc::new(
+                    self.audio_device_module
+                        .create_audio_source(device_index)?,
+                ),
+            ));
+            self.audio_sources.insert(device_id, Arc::clone(&src));
 
             src
         };
@@ -455,28 +433,30 @@ impl Webrtc {
         match kind {
             api::MediaType::Audio => {
                 let id = AudioTrackId::from(id);
-                let source = self
+                let (device_id, source) = self
                     .audio_tracks
                     .get(&(id.clone(), track_origin))
-                    .map(|track| match &track.source {
-                        MediaTrackSource::Local(source) => {
-                            MediaTrackSource::Local(Arc::clone(source))
-                        }
-                        MediaTrackSource::Remote { mid, peer } => {
-                            MediaTrackSource::Remote {
-                                mid: mid.to_string(),
-                                peer: peer.clone(),
+                    .map(|track| {
+                        let source = match &track.source {
+                            MediaTrackSource::Local(source) => {
+                                MediaTrackSource::Local(Arc::clone(source))
                             }
-                        }
+                            MediaTrackSource::Remote { mid, peer } => {
+                                MediaTrackSource::Remote {
+                                    mid: mid.to_string(),
+                                    peer: peer.clone(),
+                                }
+                            }
+                        };
+                        (track.device_id.clone(), source)
                     })
                     .ok_or_else(|| {
                         anyhow!("Cannot find track with ID `{id}`")
                     })?;
 
                 match source {
-                    MediaTrackSource::Local(source) => {
-                        Ok(self.create_audio_track(source)?)
-                    }
+                    MediaTrackSource::Local(source) => Ok(self
+                        .create_audio_track(device_id, Arc::clone(&source))?),
                     MediaTrackSource::Remote { mid, peer } => {
                         let peer = peer.upgrade().ok_or_else(|| {
                             anyhow!("`PeerConnection` has been disposed")
@@ -681,13 +661,6 @@ pub struct AudioDeviceModule {
     /// [`sys::AudioDeviceModule`] backing this [`AudioDeviceModule`].
     #[as_ref]
     inner: sys::AudioDeviceModule,
-
-    /// ID of the audio input device currently used by this
-    /// [`sys::AudioDeviceModule`].
-    ///
-    /// [`None`] if the [`AudioDeviceModule`] was not used yet to record data
-    /// from the audio input device.
-    current_device_id: Option<AudioDeviceId>,
 }
 
 impl AudioDeviceModule {
@@ -709,33 +682,7 @@ impl AudioDeviceModule {
         )?;
         inner.init()?;
 
-        let mut adm = Self {
-            inner,
-            current_device_id: None,
-        };
-        if adm.recording_devices() > 0 {
-            adm.set_recording_device(
-                AudioDeviceId(adm.recording_device_name(0)?.1),
-                0,
-            )?;
-        }
-        Ok(adm)
-    }
-
-    /// Creates a new [`AudioDeviceModule`] according to the passed
-    /// [`sys::AudioLayer`].
-    ///
-    /// # Errors
-    ///
-    /// If could not find any available recording device.
-    pub fn new_fake(task_queue_factory: &mut sys::TaskQueueFactory) -> Self {
-        let inner = sys::AudioDeviceModule::create_fake(task_queue_factory);
-        drop(inner.init());
-
-        Self {
-            inner,
-            current_device_id: None,
-        }
+        Ok(Self { inner })
     }
 
     /// Returns the `(label, id)` tuple for the given audio playout device
@@ -821,24 +768,25 @@ impl AudioDeviceModule {
         }
     }
 
-    /// Changes the recording device for this [`AudioDeviceModule`].
+    /// Creates a new [`sys::AudioSourceInterface`] based on the provided
+    /// `device_index`.
     ///
     /// # Errors
     ///
-    /// If [`sys::AudioDeviceModule::set_recording_device()`] call fails.
-    pub fn set_recording_device(
+    /// If [`sys::AudioDeviceModule::recording_devices()`] call fails.
+    pub fn create_audio_source(
         &mut self,
-        id: AudioDeviceId,
-        index: u16,
-    ) -> anyhow::Result<()> {
-        self.inner.set_recording_device(index)?;
-        self.current_device_id.replace(id);
-
-        if !self.inner.microphone_is_initialized() {
-            self.inner.init_microphone()?;
+        device_index: u16,
+    ) -> anyhow::Result<sys::AudioSourceInterface> {
+        if api::is_fake_media() {
+            self.inner.create_fake_audio_source()
+        } else {
+            self.inner.create_audio_source(device_index)
         }
+    }
 
-        Ok(())
+    pub fn dispose_audio_source(&mut self, device_id: &AudioDeviceId) {
+        self.inner.dispose_audio_source(device_id.to_string());
     }
 
     /// Sets the microphone system volume according to the given level in
@@ -1226,8 +1174,8 @@ impl AudioTrack {
     /// returns an error.
     pub fn new(
         pc: &sys::PeerConnectionFactoryInterface,
-        src: Arc<sys::AudioSourceInterface>,
         device_id: AudioDeviceId,
+        src: Arc<sys::AudioSourceInterface>,
         track_origin: TrackOrigin,
     ) -> anyhow::Result<Self> {
         let id = AudioTrackId(next_id().to_string());
@@ -1298,6 +1246,9 @@ impl From<&AudioTrack> for api::MediaStreamTrack {
         }
     }
 }
+
+/// [`sys::AudioSourceInterface`] wrapper.
+pub struct AudioSource(AudioDeviceId, Arc<sys::AudioSourceInterface>);
 
 /// [`sys::VideoTrackSourceInterface`] wrapper.
 pub struct VideoSource {
