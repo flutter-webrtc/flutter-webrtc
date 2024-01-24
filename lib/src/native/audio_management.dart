@@ -21,6 +21,10 @@ class NativeAudioManagement {
     );
   }
 
+  static Future<void> ensureAudioSession() async {
+    await WebRTC.invokeMethod('ensureAudioSession');
+  }
+
   static Future<void> setSpeakerphoneOnButPreferBluetooth() async {
     await WebRTC.invokeMethod('enableSpeakerphoneButPreferBluetooth');
   }
@@ -36,7 +40,7 @@ class NativeAudioManagement {
           'trackId': track.id,
           'volume': volume,
           'peerConnectionId':
-              track is MediaStreamTrackNative ? track.peerConnectionId : null
+          track is MediaStreamTrackNative ? track.peerConnectionId : null
         });
       }
     }
@@ -44,8 +48,8 @@ class NativeAudioManagement {
     return Future.value();
   }
 
-  static Future<void> setMicrophoneMute(
-      bool mute, MediaStreamTrack track) async {
+  static Future<void> setMicrophoneMute(bool mute,
+      MediaStreamTrack track) async {
     if (track.kind != 'audio') {
       throw 'The is not an audio track => $track';
     }
