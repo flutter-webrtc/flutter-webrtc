@@ -67,8 +67,8 @@ class Helper {
     return Future.value(true);
   }
 
-  static Future<void> setZoom(MediaStreamTrack videoTrack,
-      double zoomLevel) async {
+  static Future<void> setZoom(
+      MediaStreamTrack videoTrack, double zoomLevel) async {
     if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
       await WebRTC.invokeMethod(
         'mediaStreamTrackSetZoom',
@@ -142,7 +142,7 @@ class Helper {
   /// Must be set before initiating a WebRTC session and cannot be changed
   /// mid session.
   static Future<void> setAndroidAudioConfiguration(
-      AndroidAudioConfiguration androidAudioConfiguration) =>
+          AndroidAudioConfiguration androidAudioConfiguration) =>
       AndroidNativeAudioManagement.setAndroidAudioConfiguration(
           androidAudioConfiguration);
 
@@ -152,13 +152,13 @@ class Helper {
 
   /// Set the audio configuration for iOS
   static Future<void> setAppleAudioConfiguration(
-      AppleAudioConfiguration appleAudioConfiguration) =>
+          AppleAudioConfiguration appleAudioConfiguration) =>
       AppleNativeAudioManagement.setAppleAudioConfiguration(
           appleAudioConfiguration);
 
   /// Set the audio configuration for iOS
   static Future<void> setAppleAudioIOMode(AppleAudioIOMode mode,
-      {bool preferSpeakerOutput = false}) =>
+          {bool preferSpeakerOutput = false}) =>
       AppleNativeAudioManagement.setAppleAudioConfiguration(
           AppleNativeAudioManagement.getAppleAudioConfigurationForMode(mode,
               preferSpeakerOutput: preferSpeakerOutput));
