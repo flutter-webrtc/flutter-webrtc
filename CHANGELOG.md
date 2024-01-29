@@ -21,11 +21,14 @@ All user visible changes to this project will be documented in this file. This p
 - Double free when [macOS] video renderer is reused for different tracks. ([#139])
 - [Swift] exceptions not being propagated to [Dart] side on [iOS]. ([#142])
 - Segfault when switching to external camera on [macOS]. ([#142])
+- Unexpected audio category on `setOutputAudioId` call on [iOS]. ([#146])
+- Race condition bug on `setOutputAudioId` call on [Android]. ([#146])
 
 [#139]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/139
 [#142]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/142
 [#144]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/144
 [#145]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/145
+[#146]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/146
 
 
 

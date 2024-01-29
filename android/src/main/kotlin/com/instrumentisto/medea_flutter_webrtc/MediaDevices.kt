@@ -21,6 +21,9 @@ import com.instrumentisto.medea_flutter_webrtc.proxy.VideoMediaTrackSource
 import com.instrumentisto.medea_flutter_webrtc.utils.EglUtils
 import java.util.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 import org.webrtc.*
 
 /**
@@ -90,6 +93,15 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
 
   /** [CompletableDeferred] being resolved once Bluetooth SCO request is completed. */
   private var bluetoothScoDeferred: CompletableDeferred<Unit>? = null
+
+  /** [Mutex] ensuring only one call to [setOutputAudioId] can be executed at the time. */
+  private var setOutputAudioMutex: Mutex = Mutex()
+
+  /** [CompletableDeferred] being resolved once Bluetooth SCO is completely stopped. */
+  private var stopBluetoothScoDeferred: CompletableDeferred<Unit>? = null
+
+  /** Indicator whether bluetooth SCO is connected. */
+  private var scoAudioStateConnected: Boolean = false
 
   companion object {
     /** Observer of [MediaDevices] events. */
@@ -206,17 +218,20 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
   }
 
   /**
-   * Cancels Bluetooth SCO request.
+   * Stops Bluetooth SCO.
    *
    * Throws [GetUserMediaException] from [setOutputAudioId] for enabling Bluetooth SCO (if
    * [MediaDevices] has ongoing request).
    */
-  private fun cancelBluetoothSco() {
+  private suspend fun stopBluetoothSco() {
+    stopBluetoothScoDeferred = CompletableDeferred()
+    audioManager.stopBluetoothSco()
+    stopBluetoothScoDeferred?.await()
+    audioManager.isBluetoothScoOn = false
     bluetoothScoDeferred?.completeExceptionally(
         GetUserMediaException(
             "Bluetooth headset connection request was cancelled", GetUserMediaException.Kind.Audio))
-    audioManager.stopBluetoothSco()
-    audioManager.isBluetoothScoOn = false
+    bluetoothScoDeferred = null
   }
 
   /**
@@ -225,42 +240,51 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
    * @param deviceId Identifier for the output audio device to be selected.
    */
   suspend fun setOutputAudioId(deviceId: String) {
-    val audioManager = state.getAudioManager()
-    when (deviceId) {
-      EAR_SPEAKER_DEVICE_ID -> {
-        cancelBluetoothSco()
-        audioManager.isSpeakerphoneOn = false
-      }
-      SPEAKERPHONE_DEVICE_ID -> {
-        cancelBluetoothSco()
-        audioManager.isSpeakerphoneOn = true
-      }
-      BLUETOOTH_HEADSET_DEVICE_ID -> {
-        val deviceIdBefore = selectedAudioOutputId
-        selectedAudioOutputId = deviceId
-        if (isBluetoothHeadsetConnected) {
-          if (bluetoothScoDeferred == null) {
-            isBluetoothScoFailed = false
-            Log.d(
-                "FlutterWebRtcDebug",
-                "Bluetooth headset was selected. Trying to start Bluetooth SCO...")
-            bluetoothScoDeferred = CompletableDeferred()
-            audioManager.startBluetoothSco()
+    setOutputAudioMutex.withLock {
+      val audioManager = state.getAudioManager()
+      when (deviceId) {
+        EAR_SPEAKER_DEVICE_ID -> {
+          if (scoAudioStateConnected) {
+            stopBluetoothSco()
           }
-          try {
-            bluetoothScoDeferred?.await()
-          } catch (e: Exception) {
-            selectedAudioOutputId = deviceIdBefore
-            audioManager.stopBluetoothSco()
-            isBluetoothScoFailed = true
-            throw e
+          audioManager.isSpeakerphoneOn = false
+        }
+        SPEAKERPHONE_DEVICE_ID -> {
+          if (scoAudioStateConnected) {
+            stopBluetoothSco()
           }
-        } else {
+          audioManager.isSpeakerphoneOn = true
+        }
+        BLUETOOTH_HEADSET_DEVICE_ID -> {
+          if (scoAudioStateConnected) {
+            return
+          }
+          val deviceIdBefore = selectedAudioOutputId
+          selectedAudioOutputId = deviceId
+          if (isBluetoothHeadsetConnected) {
+            if (bluetoothScoDeferred == null) {
+              isBluetoothScoFailed = false
+              Log.d(
+                  "FlutterWebRtcDebug",
+                  "Bluetooth headset was selected. Trying to start Bluetooth SCO...")
+              bluetoothScoDeferred = CompletableDeferred()
+              audioManager.startBluetoothSco()
+            }
+            try {
+              withTimeout(10000L) { bluetoothScoDeferred?.await() }
+            } catch (e: Exception) {
+              selectedAudioOutputId = deviceIdBefore
+              audioManager.stopBluetoothSco()
+              isBluetoothScoFailed = true
+              throw e
+            }
+          } else {
+            throw IllegalArgumentException("Unknown output device: $deviceId")
+          }
+        }
+        else -> {
           throw IllegalArgumentException("Unknown output device: $deviceId")
         }
-      }
-      else -> {
-        throw IllegalArgumentException("Unknown output device: $deviceId")
       }
     }
   }
@@ -440,26 +464,28 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
         val state =
             intent.getIntExtra(
                 AudioManager.EXTRA_SCO_AUDIO_STATE, AudioManager.SCO_AUDIO_STATE_DISCONNECTED)
-        if (selectedAudioOutputId == BLUETOOTH_HEADSET_DEVICE_ID) {
-          when (state) {
-            AudioManager.SCO_AUDIO_STATE_CONNECTED -> {
-              Log.d("FlutterWebRtcDebug", "SCO connected")
-              isBluetoothScoFailed = false
-              bluetoothScoDeferred?.complete(Unit)
-              bluetoothScoDeferred = null
-              audioManager.isBluetoothScoOn = true
-              audioManager.isSpeakerphoneOn = false
-            }
-            AudioManager.SCO_AUDIO_STATE_DISCONNECTED -> {
-              Log.d("FlutterWebRtcDebug", "SCO disconnected")
-              isBluetoothScoFailed = true
-              bluetoothScoDeferred?.completeExceptionally(
-                  GetUserMediaException(
-                      "Bluetooth headset is unavailable at this moment",
-                      GetUserMediaException.Kind.Audio))
-              bluetoothScoDeferred = null
-              Handler(Looper.getMainLooper()).post { eventBroadcaster().onDeviceChange() }
-            }
+        when (state) {
+          AudioManager.SCO_AUDIO_STATE_CONNECTED -> {
+            Log.d("FlutterWebRtcDebug", "SCO connected")
+            scoAudioStateConnected = true
+            isBluetoothScoFailed = false
+            bluetoothScoDeferred?.complete(Unit)
+            bluetoothScoDeferred = null
+            audioManager.isBluetoothScoOn = true
+            audioManager.isSpeakerphoneOn = false
+          }
+          AudioManager.SCO_AUDIO_STATE_DISCONNECTED -> {
+            Log.d("FlutterWebRtcDebug", "SCO disconnected")
+            scoAudioStateConnected = false
+            isBluetoothScoFailed = true
+            stopBluetoothScoDeferred?.complete(Unit)
+            stopBluetoothScoDeferred = null
+            bluetoothScoDeferred?.completeExceptionally(
+                GetUserMediaException(
+                    "Bluetooth headset is unavailable at this moment",
+                    GetUserMediaException.Kind.Audio))
+            bluetoothScoDeferred = null
+            Handler(Looper.getMainLooper()).post { eventBroadcaster().onDeviceChange() }
           }
         }
       }

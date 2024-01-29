@@ -46,6 +46,10 @@ class MediaDevices {
   /// Switches current audio output device to a device with the provided ID.
   func setOutputAudioId(id: String) {
     let session = AVAudioSession.sharedInstance()
+    try! AVAudioSession.sharedInstance().setCategory(
+      AVAudioSession.Category.playAndRecord,
+      options: AVAudioSession.CategoryOptions.allowBluetooth
+    )
     if id == "speaker" {
       self.setBuiltInMicAsInput()
       try! AVAudioSession.sharedInstance().overrideOutputAudioPort(.speaker)
