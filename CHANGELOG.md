@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.9.48] - 2024-02-05
+
+
+
 [0.9.47] - 2023-11-29
 
 * [Windows/Linux] fix: Check the invalid value of candidate and session description. (#1484)
