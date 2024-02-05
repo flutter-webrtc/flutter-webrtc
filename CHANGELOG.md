@@ -3,7 +3,9 @@
 --------------------------------------------
 [0.9.48] - 2024-02-05
 
-
+* [Android] bump version for libwebrtc.
+* [iOS] Supports ensureAudioSsession method for iOS only. (#1514)
+* [Android] fix android wrong display size. (#1508).
 
 [0.9.47] - 2023-11-29
 
