@@ -488,6 +488,48 @@ void FlutterWebRTC::HandleMethodCall(
     const std::string track_id = findString(params, "trackId");
     MediaStreamTrackSwitchCamera(track_id, std::move(result));
   } else if (method_call.method_name().compare("setVolume") == 0) {
+    auto args = method_call.arguments();
+    if (!args) {
+      result->Error("Bad Arguments", "setVolume() Null arguments received");
+      return;
+    }
+
+    const EncodableMap params = GetValue<EncodableMap>(*args);
+    const std::string trackId = findString(params, "trackId");
+    const std::optional<double> volume = maybeFindDouble(params, "volume");
+
+    if (trackId.empty()) {
+      result->Error("Bad Arguments", "setVolume() Empty track provided");
+      return;
+    }
+
+    if (!volume.has_value()) {
+      result->Error("Bad Arguments", "setVolume() No volume provided");
+      return;
+    }
+
+    if (volume.value() < 0) {
+      result->Error("Bad Arguments", "setVolume() Volume must be positive");
+      return;
+    }
+
+    RTCMediaTrack* track = MediaTrackForId(trackId);
+    if (nullptr == track) {
+      result->Error("setVolume", "setVolume() Unable to find provided track");
+      return;
+    }
+
+    std::string kind = track->kind().std_string();
+    if (0 != kind.compare("audio")) {
+      result->Error("setVolume",
+                    "setVolume() Only audio tracks can have volume set");
+      return;
+    }
+
+    auto audioTrack = static_cast<RTCAudioTrack*>(track);
+    audioTrack->SetVolume(volume.value());
+
+    result->Success();
   } else if (method_call.method_name().compare("getLocalDescription") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
