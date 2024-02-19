@@ -683,6 +683,28 @@ fn wire_register_track_observer_impl(
         },
     )
 }
+fn wire_set_audio_level_observer_enabled_impl(
+    port_: MessagePort,
+    track_id: impl Wire2Api<String> + UnwindSafe,
+    peer_id: impl Wire2Api<Option<u64>> + UnwindSafe,
+    enabled: impl Wire2Api<bool> + UnwindSafe,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, (), _>(
+        WrapInfo {
+            debug_name: "set_audio_level_observer_enabled",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_track_id = track_id.wire2api();
+            let api_peer_id = peer_id.wire2api();
+            let api_enabled = enabled.wire2api();
+            move |task_callback| {
+                set_audio_level_observer_enabled(api_track_id, api_peer_id, api_enabled)
+            }
+        },
+    )
+}
 fn wire_set_on_device_changed_impl(port_: MessagePort) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, (), _>(
         WrapInfo {
@@ -1635,7 +1657,11 @@ impl rust2dart::IntoIntoDart<TextureEvent> for TextureEvent {
 impl support::IntoDart for TrackEvent {
     fn into_dart(self) -> support::DartAbi {
         match self {
-            Self::Ended => 0,
+            Self::Ended => vec![0.into_dart()],
+            Self::AudioLevelUpdated(field0) => {
+                vec![1.into_dart(), field0.into_into_dart().into_dart()]
+            }
+            Self::TrackCreated => vec![2.into_dart()],
         }
         .into_dart()
     }
@@ -2005,6 +2031,16 @@ mod io {
         kind: i32,
     ) {
         wire_register_track_observer_impl(port_, peer_id, track_id, kind)
+    }
+
+    #[no_mangle]
+    pub extern "C" fn wire_set_audio_level_observer_enabled(
+        port_: i64,
+        track_id: *mut wire_uint_8_list,
+        peer_id: *mut u64,
+        enabled: bool,
+    ) {
+        wire_set_audio_level_observer_enabled_impl(port_, track_id, peer_id, enabled)
     }
 
     #[no_mangle]

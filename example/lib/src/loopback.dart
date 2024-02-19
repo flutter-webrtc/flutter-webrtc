@@ -29,6 +29,7 @@ class _LoopbackState extends State<Loopback> {
   bool _cam = true;
   int _volume = -1;
   bool _microIsAvailable = false;
+  double currentAudioLevel = 0.0;
 
   @override
   void initState() {
@@ -116,11 +117,18 @@ class _LoopbackState extends State<Loopback> {
         await _pc1?.addIceCandidate(candidate);
       });
 
+      var audioTrack =
+          _tracks!.firstWhere((track) => track.kind() == MediaKind.audio);
+      audioTrack.onAudioLevelChanged((volume) {
+        setState(() {
+          currentAudioLevel = volume / 100;
+        });
+      });
+
       await vtrans?.sender.replaceTrack(
           _tracks!.firstWhere((track) => track.kind() == MediaKind.video));
 
-      await _audioTxTr?.sender.replaceTrack(
-          _tracks!.firstWhere((track) => track.kind() == MediaKind.audio));
+      await _audioTxTr?.sender.replaceTrack(audioTrack);
     } catch (e) {
       print(e.toString());
     }
@@ -171,6 +179,11 @@ class _LoopbackState extends State<Loopback> {
     caps.audio.mandatory!.deviceId = id;
 
     var newTrack = (await getUserMedia(caps))[0];
+    newTrack.onAudioLevelChanged((volume) {
+      setState(() {
+        currentAudioLevel = volume / 100;
+      });
+    });
     await _audioTxTr!.sender.replaceTrack(newTrack);
 
     _tracks!.add(newTrack);
@@ -281,24 +294,30 @@ class _LoopbackState extends State<Loopback> {
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
-              child: Row(
-            children: [
-              Container(
-                margin: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                width: MediaQuery.of(context).size.width / 2,
-                height: MediaQuery.of(context).size.height,
-                decoration: const BoxDecoration(color: Colors.black54),
-                child: VideoView(_localRenderer, mirror: true),
-              ),
-              Container(
-                margin: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                width: MediaQuery.of(context).size.width / 2,
-                height: MediaQuery.of(context).size.height,
-                decoration: const BoxDecoration(color: Colors.black54),
-                child: VideoView(_remoteRenderer, mirror: true),
-              ),
-            ],
-          ));
+              child: Column(children: [
+            Row(
+              children: [
+                Container(
+                  margin: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                  width: MediaQuery.of(context).size.width / 2,
+                  height: MediaQuery.of(context).size.height - 66,
+                  decoration: const BoxDecoration(color: Colors.black54),
+                  child: VideoView(_localRenderer, mirror: true),
+                ),
+                Container(
+                  margin: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                  width: MediaQuery.of(context).size.width / 2,
+                  height: MediaQuery.of(context).size.height - 66,
+                  decoration: const BoxDecoration(color: Colors.black54),
+                  child: VideoView(_remoteRenderer, mirror: true),
+                ),
+              ],
+            ),
+            LinearProgressIndicator(
+              value: currentAudioLevel,
+              minHeight: 10.0,
+            ),
+          ]));
         },
       ),
       floatingActionButton: FloatingActionButton(

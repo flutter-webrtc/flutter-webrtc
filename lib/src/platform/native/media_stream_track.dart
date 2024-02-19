@@ -10,9 +10,9 @@ import '/src/api/channel.dart';
 abstract class NativeMediaStreamTrack extends MediaStreamTrack {
   /// Creates a [NativeMediaStreamTrack] basing on the [Map] received from the
   /// native side.
-  static NativeMediaStreamTrack from(dynamic map) {
+  static Future<NativeMediaStreamTrack> from(dynamic map) async {
     if (isDesktop) {
-      return _NativeMediaStreamTrackFFI(map);
+      return await _NativeMediaStreamTrackFFI.create(map);
     } else {
       return _NativeMediaStreamTrackChannel.fromMap(map);
     }
@@ -184,6 +184,21 @@ class _NativeMediaStreamTrackChannel extends NativeMediaStreamTrack {
 
 /// FFI-based implementation of a [NativeMediaStreamTrack].
 class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
+  /// Subscriber for audio level updates of this track.
+  OnAudioLevelChangedCallback? _onAudioLevelChanged;
+
+  /// [Completer] used to await for the [ffi.TrackCreated] event after creating
+  /// a new [MediaStreamTrack].
+  final Completer _initialized = Completer();
+
+  /// Creates a new [MediaStreamTrack] from the provided [ffi.MediaStreamTrack].
+  static Future<_NativeMediaStreamTrackFFI> create(
+      ffi.MediaStreamTrack track) async {
+    var ffiTrack = _NativeMediaStreamTrackFFI(track);
+    await ffiTrack._initialized.future;
+    return ffiTrack;
+  }
+
   /// Creates a [NativeMediaStreamTrack] basing on the provided
   /// [ffi.MediaStreamTrack].
   _NativeMediaStreamTrackFFI(ffi.MediaStreamTrack track) {
@@ -197,10 +212,33 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
             trackId: track.id,
             kind: ffi.MediaType.values[_kind.index])
         .listen((event) {
-      if (_onEnded != null) {
-        _onEnded!();
+      if (event is ffi.TrackEvent_AudioLevelUpdated) {
+        _onAudioLevelChanged?.call(event.field0);
+      } else if (event is ffi.TrackEvent_Ended) {
+        _onEnded?.call();
+      } else if (event is ffi.TrackEvent_TrackCreated) {
+        _initialized.complete();
       }
     });
+  }
+
+  @override
+  void onAudioLevelChanged(OnAudioLevelChangedCallback? cb) {
+    api!.setAudioLevelObserverEnabled(
+      peerId: _peerId,
+      trackId: _id,
+      enabled: cb != null,
+    );
+    _onAudioLevelChanged = cb;
+  }
+
+  @override
+  bool isOnAudioLevelAvailable() {
+    if (_kind != MediaKind.audio || _deviceId == 'remote') {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   @override
@@ -222,7 +260,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   Future<void> dispose() async {
-    // no-op for FFI implementation
+    await stop();
   }
 
   @override

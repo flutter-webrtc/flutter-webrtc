@@ -30,6 +30,12 @@ pub trait TrackEventCallback {
     fn on_ended(&mut self);
 }
 
+/// Handler of audio level updates from an [`AudioSourceInterface`].
+pub trait AudioSourceOnAudioLevelChangeCallback {
+    /// Called once a new audio level update occurs.
+    fn on_audio_level_change(&self, volume: f32);
+}
+
 /// Completion callback for a [`CreateSessionDescriptionObserver`], used to call
 /// [`PeerConnectionInterface::create_offer()`] and
 /// [`PeerConnectionInterface::create_answer()`].
@@ -1795,6 +1801,29 @@ unsafe impl Sync for webrtc::VideoTrackSourceInterface {}
 /// It can be later used to create a [`AudioTrackInterface`] with
 /// [`PeerConnectionFactoryInterface::create_audio_track()`].
 pub struct AudioSourceInterface(UniquePtr<webrtc::AudioSourceInterface>);
+
+impl AudioSourceInterface {
+    /// Subscribes the provided [`AudioSourceOnAudioLevelChangeCallback`] to any
+    /// audio level updates of this [`AudioSourceInterface`].
+    ///
+    /// Only one [`AudioSourceOnAudioLevelChangeCallback`] at a time is
+    /// supported.
+    pub fn subscribe(
+        &self,
+        cb: Box<dyn AudioSourceOnAudioLevelChangeCallback>,
+    ) {
+        webrtc::audio_source_register_audio_level_observer(
+            Box::new(cb),
+            &self.0,
+        );
+    }
+
+    /// Unsubscribes the provided [`AudioSourceAudioLevelObserver`] from
+    /// this [`AudioSourceInterface`].
+    pub fn unsubscribe(&self) {
+        webrtc::audio_source_unregister_audio_level_observer(&self.0);
+    }
+}
 
 unsafe impl Send for webrtc::AudioSourceInterface {}
 unsafe impl Sync for webrtc::AudioSourceInterface {}

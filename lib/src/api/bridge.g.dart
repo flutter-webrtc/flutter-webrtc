@@ -320,6 +320,16 @@ abstract class MedeaFlutterWebrtcNative {
 
   FlutterRustBridgeTaskConstMeta get kRegisterTrackObserverConstMeta;
 
+  /// Enables or disables audio level observer of the [`AudioTrack`]
+  /// with a provided `id`.
+  Future<void> setAudioLevelObserverEnabled(
+      {required String trackId,
+      int? peerId,
+      required bool enabled,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetAudioLevelObserverEnabledConstMeta;
+
   /// Sets the provided [`OnDeviceChangeCallback`] as the callback to be called
   /// whenever a set of available media devices changes.
   ///
@@ -1914,12 +1924,20 @@ sealed class TextureEvent with _$TextureEvent {
   }) = TextureEvent_OnFirstFrameRendered;
 }
 
-/// Indicator of the current state of a [`MediaStreamTrack`].
-enum TrackEvent {
+@freezed
+sealed class TrackEvent with _$TrackEvent {
   /// Ended event of the [`MediaStreamTrack`] interface is fired when playback
   /// or streaming has stopped because the end of the media was reached or
   /// because no further data is available.
-  ended,
+  const factory TrackEvent.ended() = TrackEvent_Ended;
+
+  /// Event which indicates that new audio level occurred.
+  const factory TrackEvent.audioLevelUpdated(
+    int field0,
+  ) = TrackEvent_AudioLevelUpdated;
+
+  /// Event which indicates that [`MediaStreamTrack`] completely initialized.
+  const factory TrackEvent.trackCreated() = TrackEvent_TrackCreated;
 }
 
 /// Indicator of the current [MediaStreamTrackState][0] of a
@@ -2839,6 +2857,31 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
         argNames: ["peerId", "trackId", "kind"],
       );
 
+  Future<void> setAudioLevelObserverEnabled(
+      {required String trackId,
+      int? peerId,
+      required bool enabled,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_String(trackId);
+    var arg1 = _platform.api2wire_opt_box_autoadd_u64(peerId);
+    var arg2 = enabled;
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_audio_level_observer_enabled(port_, arg0, arg1, arg2),
+      parseSuccessData: _wire2api_unit,
+      parseErrorData: _wire2api_FrbAnyhowException,
+      constMeta: kSetAudioLevelObserverEnabledConstMeta,
+      argValues: [trackId, peerId, enabled],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetAudioLevelObserverEnabledConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_audio_level_observer_enabled",
+        argNames: ["trackId", "peerId", "enabled"],
+      );
+
   Stream<void> setOnDeviceChanged({dynamic hint}) {
     return _platform.executeStream(FlutterRustBridgeTask(
       callFfi: (port_) => _platform.inner.wire_set_on_device_changed(port_),
@@ -3549,7 +3592,18 @@ class MedeaFlutterWebrtcNativeImpl implements MedeaFlutterWebrtcNative {
   }
 
   TrackEvent _wire2api_track_event(dynamic raw) {
-    return TrackEvent.values[raw as int];
+    switch (raw[0]) {
+      case 0:
+        return TrackEvent_Ended();
+      case 1:
+        return TrackEvent_AudioLevelUpdated(
+          _wire2api_u32(raw[1]),
+        );
+      case 2:
+        return TrackEvent_TrackCreated();
+      default:
+        throw Exception("unreachable");
+    }
   }
 
   TrackState _wire2api_track_state(dynamic raw) {
@@ -4815,6 +4869,32 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
       _wire_register_track_observerPtr.asFunction<
           void Function(int, ffi.Pointer<ffi.Uint64>,
               ffi.Pointer<wire_uint_8_list>, int)>();
+
+  void wire_set_audio_level_observer_enabled(
+    int port_,
+    ffi.Pointer<wire_uint_8_list> track_id,
+    ffi.Pointer<ffi.Uint64> peer_id,
+    bool enabled,
+  ) {
+    return _wire_set_audio_level_observer_enabled(
+      port_,
+      track_id,
+      peer_id,
+      enabled,
+    );
+  }
+
+  late final _wire_set_audio_level_observer_enabledPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Int64,
+              ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<ffi.Uint64>,
+              ffi.Bool)>>('wire_set_audio_level_observer_enabled');
+  late final _wire_set_audio_level_observer_enabled =
+      _wire_set_audio_level_observer_enabledPtr.asFunction<
+          void Function(int, ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<ffi.Uint64>, bool)>();
 
   void wire_set_on_device_changed(
     int port_,

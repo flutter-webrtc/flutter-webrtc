@@ -716,6 +716,8 @@ OpenALAudioDeviceModule::CreateAudioSource(uint32_t device_index) {
   recorder->StartCapture();
   auto source = recorder->GetSource();
   _recorders[deviceId] = std::move(recorder);
+  ensureThreadStarted();
+  startCaptureOnThread();
 
   return source;
 }
@@ -767,6 +769,9 @@ void OpenALAudioDeviceModule::processRecordingQueued() {
 }
 
 void OpenALAudioDeviceModule::startCaptureOnThread() {
+  if (_data && _data->recording) {
+    return;
+  }
   _data->_recordingThread->Start();
   _data->_recordingThread->PostTask([=]() {
     std::lock_guard<std::recursive_mutex> lk(_recording_mutex);
@@ -831,7 +836,6 @@ bool OpenALAudioDeviceModule::RecordingIsInitialized() const {
 }
 
 int32_t OpenALAudioDeviceModule::StartRecording() {
-  startCaptureOnThread();
   return 0;
 }
 

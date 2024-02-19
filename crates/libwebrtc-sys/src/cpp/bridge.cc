@@ -792,6 +792,33 @@ void set_track_observer_audio_track(TrackEventObserver& obs,
   obs.set_track(track);
 }
 
+// Registers the provided observer in the provided `LocalAudioSource` to receive
+// audio level updates.
+//
+// Previous observer will be disposed. Only one observer at a time is supported.
+void audio_source_register_audio_level_observer(
+    rust::Box<bridge::DynAudioSourceOnAudioLevelChangeCallback> cb,
+    const AudioSourceInterface& audio_source) {
+  LocalAudioSource* local_audio_source =
+      dynamic_cast<LocalAudioSource*>(audio_source.get());
+  if (local_audio_source) {
+    local_audio_source->RegisterAudioLevelObserver(std::move(cb));
+  }
+}
+
+// Unregisters audio level observer from the provided `LocalAudioSource`.
+//
+// `LocalAudioSource` will not calculate audio level after calling this
+// function.
+void audio_source_unregister_audio_level_observer(
+    const AudioSourceInterface& audio_source) {
+  LocalAudioSource* local_audio_source =
+      dynamic_cast<LocalAudioSource*>(audio_source.get());
+  if (local_audio_source) {
+    local_audio_source->UnregisterAudioLevelObserver();
+  }
+}
+
 // Calls `VideoTrackInterface->RegisterObserver`.
 void video_track_register_observer(VideoTrackInterface& track,
                                    TrackEventObserver& obs) {

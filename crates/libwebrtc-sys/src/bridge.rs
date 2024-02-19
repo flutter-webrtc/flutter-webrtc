@@ -5,8 +5,9 @@ use cxx::{CxxString, CxxVector, UniquePtr};
 use derive_more::{Deref, DerefMut};
 
 use crate::{
-    AddIceCandidateCallback, CreateSdpCallback, IceCandidateInterface,
-    OnFrameCallback, PeerConnectionEventsHandler, RTCStatsCollectorCallback,
+    AddIceCandidateCallback, AudioSourceOnAudioLevelChangeCallback,
+    CreateSdpCallback, IceCandidateInterface, OnFrameCallback,
+    PeerConnectionEventsHandler, RTCStatsCollectorCallback,
     RtpReceiverInterface, RtpTransceiverInterface, SetDescriptionCallback,
     TrackEventCallback,
 };
@@ -31,6 +32,10 @@ type DynRTCStatsCollectorCallback = Box<dyn RTCStatsCollectorCallback>;
 
 /// [`TrackEventCallback`] transferable to the C++ side.
 type DynTrackEventCallback = Box<dyn TrackEventCallback>;
+
+/// [`AudioSourceOnAudioLevelChangeCallback`] transferable to the C++ side.
+type DynAudioSourceOnAudioLevelChangeCallback =
+    Box<dyn AudioSourceOnAudioLevelChangeCallback>;
 
 /// [`Option`]`<`[`i32`]`>` transferable to the C++ side.
 #[derive(Deref, DerefMut)]
@@ -2222,6 +2227,26 @@ pub(crate) mod webrtc {
             device_id: String,
         );
 
+        /// Registers the provided observer in the provided
+        /// [`AudioSourceInterface`], so any audio level updates will be passes
+        /// to this observer.
+        ///
+        /// Previous observer will be disposed. Only one observer at a time is
+        /// supported.
+        pub fn audio_source_register_audio_level_observer(
+            obs: Box<DynAudioSourceOnAudioLevelChangeCallback>,
+            audio_source: &AudioSourceInterface,
+        );
+
+        /// Unregisters audio level observer from the provided
+        /// [`AudioSourceInterface`].
+        ///
+        /// [`AudioSourceInterface`] will not calculate audio level after
+        /// calling this function.
+        pub fn audio_source_unregister_audio_level_observer(
+            audio_source: &AudioSourceInterface,
+        );
+
         /// Creates a new fake [`AudioSourceInterface`].
         pub fn create_fake_audio_source() -> UniquePtr<AudioSourceInterface>;
 
@@ -2514,6 +2539,17 @@ pub(crate) mod webrtc {
         ///
         /// [1]: https://tinyurl.com/w3-streams#event-mediastreamtrack-ended
         fn on_ended(cb: &mut DynTrackEventCallback);
+    }
+
+    extern "Rust" {
+        pub type DynAudioSourceOnAudioLevelChangeCallback;
+
+        /// Called once the `LocalAudioSource` produces a new audio level
+        /// update.
+        fn on_audio_level_change(
+            cb: &mut DynAudioSourceOnAudioLevelChangeCallback,
+            volume: f32,
+        );
     }
 
     extern "Rust" {
@@ -2883,6 +2919,15 @@ pub fn on_remove_track(
 /// [1]: https://w3.org/TR/mediacapture-streams#event-mediastreamtrack-ended
 pub fn on_ended(cb: &mut DynTrackEventCallback) {
     cb.on_ended();
+}
+
+/// Notifies the provided [`DynAudioSourceOnAudioLevelChangeCallback`] about an
+/// audio level update.
+pub fn on_audio_level_change(
+    cb: &mut DynAudioSourceOnAudioLevelChangeCallback,
+    volume: f32,
+) {
+    cb.on_audio_level_change(volume);
 }
 
 /// Creates a new [`StringPair`].

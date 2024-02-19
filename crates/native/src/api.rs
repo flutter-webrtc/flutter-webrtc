@@ -1097,6 +1097,13 @@ pub enum TrackEvent {
     /// or streaming has stopped because the end of the media was reached or
     /// because no further data is available.
     Ended,
+
+    /// Event indicating an audio level change in the [`MediaStreamTrack`].
+    AudioLevelUpdated(u32),
+
+    /// Event indicating that the [`MediaStreamTrack`] has completely
+    /// initialized and can be used on Flutter side.
+    TrackCreated,
 }
 
 /// [RTCIceGatheringState][1] representation.
@@ -2446,6 +2453,21 @@ pub fn register_track_observer(
         track_origin,
         kind,
         cb.into(),
+    )
+}
+
+/// Enables or disables audio level observing of the audio [`MediaStreamTrack`]
+/// with the provided `track_id`.
+pub fn set_audio_level_observer_enabled(
+    track_id: String,
+    peer_id: Option<u64>,
+    enabled: bool,
+) -> anyhow::Result<()> {
+    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
+    WEBRTC.lock().unwrap().set_audio_level_observer_enabled(
+        track_id,
+        track_origin,
+        enabled,
     )
 }
 

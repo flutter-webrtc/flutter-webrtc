@@ -281,7 +281,7 @@ class _PeerConnectionChannel extends PeerConnection {
 
   /// Listener for the all [PeerConnection] events received from the native
   /// side.
-  void eventListener(dynamic event) {
+  Future<void> eventListener(dynamic event) async {
     dynamic e = event;
 
     switch (e['event']) {
@@ -320,7 +320,7 @@ class _PeerConnectionChannel extends PeerConnection {
       case 'onTrack':
         dynamic track = e['track'];
         dynamic transceiver = e['transceiver'];
-        _onTrack?.call(NativeMediaStreamTrack.from(track),
+        _onTrack?.call(await NativeMediaStreamTrack.from(track),
             RtpTransceiver.fromMap(transceiver));
         break;
     }
@@ -526,7 +526,7 @@ class _PeerConnectionFFI extends PeerConnection {
 
   /// Listener for the all [PeerConnection] events received from the native
   /// side.
-  void eventListener(ffi.PeerConnectionEvent event) {
+  Future<void> eventListener(ffi.PeerConnectionEvent event) async {
     if (event is ffi.PeerConnectionEvent_PeerCreated) {
       _peer = event.peer;
       _initialized.complete();
@@ -563,7 +563,7 @@ class _PeerConnectionFFI extends PeerConnection {
       _onConnectionStateChange?.call(_connectionState);
       return;
     } else if (event is ffi.PeerConnectionEvent_Track) {
-      _onTrack?.call(NativeMediaStreamTrack.from(event.field0.track),
+      _onTrack?.call(await NativeMediaStreamTrack.from(event.field0.track),
           RtpTransceiver.fromFFI(event.field0.transceiver));
       return;
     }
