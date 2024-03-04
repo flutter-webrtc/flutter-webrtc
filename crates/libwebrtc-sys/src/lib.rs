@@ -358,12 +358,11 @@ impl AudioDeviceModule {
         Ok(())
     }
 
-    /// Sets stereo availability of this playout device.
-    pub fn stereo_playout_is_available(
-        &self,
-        available: bool,
-    ) -> anyhow::Result<()> {
-        let result = webrtc::stereo_playout_is_available(&self.0, available);
+    /// Indicates whether stereo playout is available.
+    pub fn stereo_playout_is_available(&self) -> anyhow::Result<bool> {
+        let mut is_available = false;
+        let result =
+            webrtc::stereo_playout_is_available(&self.0, &mut is_available);
 
         if result != 0 {
             bail!(
@@ -372,7 +371,7 @@ impl AudioDeviceModule {
             );
         }
 
-        Ok(())
+        Ok(is_available)
     }
 
     /// Initializes this audio playout device.

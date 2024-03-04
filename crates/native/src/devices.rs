@@ -279,7 +279,6 @@ impl Webrtc {
             let adm = &self.audio_device_module;
             adm.stop_playout()?;
             adm.set_playout_device(index)?;
-            adm.stereo_playout_is_available(false)?;
             adm.init_playout()?;
             adm.start_playout()?;
             Ok(())

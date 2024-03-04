@@ -902,16 +902,14 @@ impl AudioDeviceModule {
         self.inner.stop_playout()
     }
 
-    /// Sets stereo availability of this playout [`AudioDeviceModule`].
+    /// Indicates whether stereo is available in this playout
+    /// [`AudioDeviceModule`].
     ///
     /// # Errors
     ///
     /// If [`sys::AudioDeviceModule::stereo_playout_is_available()`] call fails.
-    pub fn stereo_playout_is_available(
-        &self,
-        available: bool,
-    ) -> anyhow::Result<()> {
-        self.inner.stereo_playout_is_available(available)
+    pub fn stereo_playout_is_available(&self) -> anyhow::Result<bool> {
+        self.inner.stereo_playout_is_available()
     }
 
     /// Initializes this playout [`AudioDeviceModule`].

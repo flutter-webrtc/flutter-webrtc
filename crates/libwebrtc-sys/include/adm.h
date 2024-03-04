@@ -217,8 +217,6 @@ class OpenALAudioDeviceModule : public ExtendedADM {
 
   std::unique_ptr<webrtc::AudioDeviceBuffer> audio_device_buffer_ = nullptr;
 
-  rtc::Thread* _thread = nullptr;
-
   std::recursive_mutex _recording_mutex;
   bool _recordingInitialized = false;
   bool _microphoneInitialized = false;

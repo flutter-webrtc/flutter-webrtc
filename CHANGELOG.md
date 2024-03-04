@@ -24,6 +24,7 @@ All user visible changes to this project will be documented in this file. This p
 - Segfault when switching to external camera on [macOS]. ([#142])
 - Unexpected audio category on `setOutputAudioId` call on [iOS]. ([#146])
 - Race condition bug on `setOutputAudioId` call on [Android]. ([#146])
+- Race condition bug on input/output device switch on desktop platforms. ([#151])
 
 [#139]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/139
 [#142]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/142
@@ -31,6 +32,7 @@ All user visible changes to this project will be documented in this file. This p
 [#145]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/145
 [#146]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/146
 [#149]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/149
+[#151]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/151
 
 
 

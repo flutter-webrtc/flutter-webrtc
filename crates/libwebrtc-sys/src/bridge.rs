@@ -1307,7 +1307,7 @@ pub(crate) mod webrtc {
         /// Sets stereo availability of the given playout device.
         pub fn stereo_playout_is_available(
             audio_device_module: &AudioDeviceModule,
-            available: bool,
+            is_available: &mut bool,
         ) -> i32;
 
         /// Initializes the given audio playout device.

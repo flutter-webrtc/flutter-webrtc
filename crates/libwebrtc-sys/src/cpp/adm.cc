@@ -57,6 +57,7 @@ using ALEVENTPROCSOFT = void (*)(ALenum eventType,
                                  void* userParam);
 using ALEVENTCALLBACKSOFT = void (*)(ALEVENTPROCSOFT callback, void* userParam);
 using ALCSETTHREADCONTEXT = ALCboolean (*)(ALCcontext* context);
+using ALCGETTHREADCONTEXT = ALCcontext* (*)();
 using ALGETSOURCEI64VSOFT = void (*)(ALuint source,
                                      ALenum param,
                                      AL_INT64_TYPE* values);
@@ -67,6 +68,7 @@ using ALCGETINTEGER64VSOFT = void (*)(ALCdevice* device,
 
 ALEVENTCALLBACKSOFT alEventCallbackSOFT /* = nullptr*/;
 ALCSETTHREADCONTEXT alcSetThreadContext /* = nullptr*/;
+ALCGETTHREADCONTEXT alcGetThreadContext /* = nullptr*/;
 ALGETSOURCEI64VSOFT alGetSourcei64vSOFT /* = nullptr*/;
 ALCGETINTEGER64VSOFT alcGetInteger64vSOFT /* = nullptr*/;
 
@@ -91,6 +93,7 @@ struct OpenALAudioDeviceModule::Data {
   std::int64_t lastExactDeviceTimeWhen = 0;
   bool playing = false;
   bool recording = false;
+  bool playingQueued = false;
 };
 
 bool OpenALAudioDeviceModule::Initialized() const {
@@ -105,9 +108,16 @@ int32_t OpenALAudioDeviceModule::Init() {
 
   alcSetThreadContext =
       (ALCSETTHREADCONTEXT)alcGetProcAddress(nullptr, "alcSetThreadContext");
+  alcGetThreadContext =
+      (ALCGETTHREADCONTEXT)alcGetProcAddress(nullptr, "alcGetThreadContext");
+
   if (!alcSetThreadContext) {
     return -1;
   }
+  if (!alcGetThreadContext) {
+    return -1;
+  }
+
   alEventCallbackSOFT =
       (ALEVENTCALLBACKSOFT)alcGetProcAddress(nullptr, "alEventCallbackSOFT");
 
@@ -264,10 +274,11 @@ int OpenALAudioDeviceModule::restartPlayout() {
   stopPlayingOnThread();
   closePlayoutDevice();
   if (!validatePlayoutDeviceId()) {
-    _data->_playoutThread->BlockingCall([this] {
-      _data->playing = true;
-      _playoutFailed = true;
-    });
+    std::lock_guard<std::recursive_mutex> lk(_playout_mutex);
+
+    _data->playing = true;
+    _playoutFailed = true;
+
     return 0;
   }
   _playoutFailed = false;
@@ -332,7 +343,6 @@ int32_t OpenALAudioDeviceModule::StopPlayout() {
   if (_data) {
     stopPlayingOnThread();
     audio_device_buffer_->StopPlayout();
-    _data->_playoutThread->Stop();
     if (!_data->recording) {
       _data = nullptr;
     }
@@ -449,24 +459,17 @@ void OpenALAudioDeviceModule::openPlayoutDevice() {
     return;
   }
 
-  _data->_playoutThread->PostTask(
-      [=]() { alcSetThreadContext(_playoutContext); });
+  _data->_playoutThread->PostTask([=]() {
+    std::lock_guard<std::recursive_mutex> lk(_playout_mutex);
+
+    alcSetThreadContext(_playoutContext);
+  });
 }
 
 void OpenALAudioDeviceModule::ensureThreadStarted() {
-  if (_data) {
-    return;
+  if (!_data) {
+    _data = std::make_unique<Data>();
   }
-
-  _thread = rtc::Thread::Current();
-  if (_thread && !_thread->IsOwned()) {
-    _thread->UnwrapCurrent();
-    _thread = nullptr;
-  }
-
-  _data = std::make_unique<Data>();
-  processPlayoutQueued();
-  processRecordingQueued();
 }
 
 void OpenALAudioDeviceModule::processPlayoutQueued() {
@@ -474,8 +477,14 @@ void OpenALAudioDeviceModule::processPlayoutQueued() {
       [=] {
         std::lock_guard<std::recursive_mutex> lk(_playout_mutex);
 
-        processPlayout();
+        if (alcGetThreadContext()) {
+          processPlayout();
+        }
         processPlayoutQueued();
+
+        // If this thread is quitting, then the task was not scheduled and must
+        // be rescheduled when the thread will be restarted.
+        _data->playingQueued = !rtc::Thread::Current()->IsQuitting();
       },
       webrtc::TimeDelta::Millis(10));
 }
@@ -507,14 +516,6 @@ bool OpenALAudioDeviceModule::clearProcessedBuffer() {
   }
 }
 
-void OpenALAudioDeviceModule::clearProcessedBuffers() {
-  while (true) {
-    if (!clearProcessedBuffer()) {
-      break;
-    }
-  }
-}
-
 void OpenALAudioDeviceModule::unqueueAllBuffers() {
   alSourcei(_data->source, AL_BUFFER, AL_NONE);
   std::fill(_data->queuedBuffers.begin(), _data->queuedBuffers.end(), false);
@@ -535,7 +536,11 @@ bool OpenALAudioDeviceModule::processPlayout() {
   const auto wasPlaying = playing();
 
   if (wasPlaying) {
-    clearProcessedBuffers();
+    while (true) {
+      if (!clearProcessedBuffer()) {
+        break;
+      }
+    }
   } else {
     unqueueAllBuffers();
   }
@@ -659,10 +664,11 @@ void OpenALAudioDeviceModule::startPlayingOnThread() {
       _data->exactDeviceTimeCounter = 0;
       _data->lastExactDeviceTime = 0;
       _data->lastExactDeviceTimeWhen = 0;
+    }
 
-      const auto bufferSize = kPlayoutPart * sizeof(int16_t) * _playoutChannels;
-
-      ensureThreadStarted();
+    if (!_data->playingQueued) {
+      _data->playingQueued = true;
+      processPlayoutQueued();
     }
   });
 }
@@ -769,16 +775,15 @@ void OpenALAudioDeviceModule::processRecordingQueued() {
 }
 
 void OpenALAudioDeviceModule::startCaptureOnThread() {
+  std::lock_guard<std::recursive_mutex> lk(_recording_mutex);
+
   if (_data && _data->recording) {
     return;
   }
   _data->_recordingThread->Start();
-  _data->_recordingThread->PostTask([=]() {
-    std::lock_guard<std::recursive_mutex> lk(_recording_mutex);
+  _data->recording = true;
 
-    _data->recording = true;
-    processRecordingQueued();
-  });
+  processRecordingQueued();
 }
 
 int16_t OpenALAudioDeviceModule::RecordingDevices() {

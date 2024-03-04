@@ -320,8 +320,8 @@ abstract class MedeaFlutterWebrtcNative {
 
   FlutterRustBridgeTaskConstMeta get kRegisterTrackObserverConstMeta;
 
-  /// Enables or disables audio level observer of the [`AudioTrack`]
-  /// with a provided `id`.
+  /// Enables or disables audio level observing of the audio [`MediaStreamTrack`]
+  /// with the provided `track_id`.
   Future<void> setAudioLevelObserverEnabled(
       {required String trackId,
       int? peerId,
@@ -1931,12 +1931,13 @@ sealed class TrackEvent with _$TrackEvent {
   /// because no further data is available.
   const factory TrackEvent.ended() = TrackEvent_Ended;
 
-  /// Event which indicates that new audio level occurred.
+  /// Event indicating an audio level change in the [`MediaStreamTrack`].
   const factory TrackEvent.audioLevelUpdated(
     int field0,
   ) = TrackEvent_AudioLevelUpdated;
 
-  /// Event which indicates that [`MediaStreamTrack`] completely initialized.
+  /// Event indicating that the [`MediaStreamTrack`] has completely
+  /// initialized and can be used on Flutter side.
   const factory TrackEvent.trackCreated() = TrackEvent_TrackCreated;
 }
 
