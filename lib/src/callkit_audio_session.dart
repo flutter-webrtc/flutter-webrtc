@@ -1,23 +1,17 @@
-import 'package:flutter/services.dart';
-
 import '../flutter_webrtc.dart';
 
 Future<void> callKitConfigureAudioSession() async {
-  MethodChannel channel = WebRTC.methodChannel();
-  await channel.invokeMethod('callKitConfigureAudioSession');
+  WebRTC.invokeMethod('callKitConfigureAudioSession');
 }
 
 Future<void> callKitReleaseAudioSession() async {
-  MethodChannel channel = WebRTC.methodChannel();
-  await channel.invokeMethod('callKitReleaseAudioSession');
+   WebRTC.invokeMethod('callKitReleaseAudioSession');
 }
 
 Future<void> callKitStartAudio() async {
-  MethodChannel channel = WebRTC.methodChannel();
-  await channel.invokeMethod('callKitStartAudio');
+  WebRTC.invokeMethod('callKitStartAudio');
 }
 
 Future<void> callKitStopAudio() async {
-  MethodChannel channel = WebRTC.methodChannel();
-  await channel.invokeMethod('callKitStopAudio');
+  WebRTC.invokeMethod('callKitStopAudio');
 }
