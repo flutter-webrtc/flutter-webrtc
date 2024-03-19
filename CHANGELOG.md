@@ -1,6 +1,23 @@
 # Changelog
 
 --------------------------------------------
+[0.9.48+hotfix.1] - 2024-02-05
+
+* [Android] bump version for libwebrtc.
+
+[0.9.48] - 2024-02-05
+
+* [Android] bump version for libwebrtc.
+* [iOS] Supports ensureAudioSsession method for iOS only. (#1514)
+* [Android] fix android wrong display size. (#1508).
+
+[0.9.47] - 2023-11-29
+
+* [Windows/Linux] fix: Check the invalid value of candidate and session description. (#1484)
+* [Windows/Linux/macOS] fix: screen sharing issue for desktop.
+* [Web] fix: platformViewRegistry getter is deprecated (#1485)
+* [Dart] Throw exception for set src object (#1491).
+
 [0.9.46] - 2023-10-25
 
 * [iOS/macOS] fix: Crop video output size to target settings. (#1472)

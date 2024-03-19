@@ -856,6 +856,10 @@ void postEvent(FlutterEventSink sink, id _Nullable event) {
     [AudioUtils setSpeakerphoneOn:_speakerOn];
     result(nil);
   }
+  else if ([@"ensureAudioSession" isEqualToString:call.method]) {
+    [self ensureAudioSession];
+    result(nil);
+  }
   else if ([@"enableSpeakerphoneButPreferBluetooth" isEqualToString:call.method]) {
     [AudioUtils setSpeakerphoneOnButPreferBluetooth];
     result(nil);

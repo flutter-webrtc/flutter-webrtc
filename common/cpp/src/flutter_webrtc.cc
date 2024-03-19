@@ -225,7 +225,11 @@ void FlutterWebRTC::HandleMethodCall(
                                       findString(constraints, "sdp").c_str(),
                                       &error);
 
-    SetLocalDescription(description.get(), pc, std::move(result));
+    if (description.get() != nullptr) {
+      SetLocalDescription(description.get(), pc, std::move(result));
+    } else {
+      result->Error("setLocalDescriptionFailed", "Invalid type or sdp");
+    }
   } else if (method_call.method_name().compare("setRemoteDescription") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -248,7 +252,11 @@ void FlutterWebRTC::HandleMethodCall(
                                       findString(constraints, "sdp").c_str(),
                                       &error);
 
-    SetRemoteDescription(description.get(), pc, std::move(result));
+    if (description.get() != nullptr) {
+      SetRemoteDescription(description.get(), pc, std::move(result));
+    } else {
+      result->Error("setRemoteDescriptionFailed", "Invalid type or sdp");
+    }
   } else if (method_call.method_name().compare("addCandidate") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -266,13 +274,22 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     SdpParseError error;
+    std::string candidate = findString(constraints, "candidate");
+    if (candidate.empty()) {
+      // received the end-of-candidates
+      result->Success();
+      return;
+    }
     int sdpMLineIndex = findInt(constraints, "sdpMLineIndex");
     scoped_refptr<RTCIceCandidate> rtc_candidate = RTCIceCandidate::Create(
-        findString(constraints, "candidate").c_str(),
-        findString(constraints, "sdpMid").c_str(),
+        candidate.c_str(), findString(constraints, "sdpMid").c_str(),
         sdpMLineIndex == -1 ? 0 : sdpMLineIndex, &error);
 
-    AddIceCandidate(rtc_candidate.get(), pc, std::move(result));
+    if (rtc_candidate.get() != nullptr) {
+      AddIceCandidate(rtc_candidate.get(), pc, std::move(result));
+    } else {
+      result->Error("addCandidateFailed", "Invalid candidate");
+    }
   } else if (method_call.method_name().compare("getStats") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -471,6 +488,48 @@ void FlutterWebRTC::HandleMethodCall(
     const std::string track_id = findString(params, "trackId");
     MediaStreamTrackSwitchCamera(track_id, std::move(result));
   } else if (method_call.method_name().compare("setVolume") == 0) {
+    auto args = method_call.arguments();
+    if (!args) {
+      result->Error("Bad Arguments", "setVolume() Null arguments received");
+      return;
+    }
+
+    const EncodableMap params = GetValue<EncodableMap>(*args);
+    const std::string trackId = findString(params, "trackId");
+    const std::optional<double> volume = maybeFindDouble(params, "volume");
+
+    if (trackId.empty()) {
+      result->Error("Bad Arguments", "setVolume() Empty track provided");
+      return;
+    }
+
+    if (!volume.has_value()) {
+      result->Error("Bad Arguments", "setVolume() No volume provided");
+      return;
+    }
+
+    if (volume.value() < 0) {
+      result->Error("Bad Arguments", "setVolume() Volume must be positive");
+      return;
+    }
+
+    RTCMediaTrack* track = MediaTrackForId(trackId);
+    if (nullptr == track) {
+      result->Error("setVolume", "setVolume() Unable to find provided track");
+      return;
+    }
+
+    std::string kind = track->kind().std_string();
+    if (0 != kind.compare("audio")) {
+      result->Error("setVolume",
+                    "setVolume() Only audio tracks can have volume set");
+      return;
+    }
+
+    auto audioTrack = static_cast<RTCAudioTrack*>(track);
+    audioTrack->SetVolume(volume.value());
+
+    result->Success();
   } else if (method_call.method_name().compare("getLocalDescription") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");

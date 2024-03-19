@@ -74,8 +74,7 @@ class RTCDataChannel : public RefCountInterface {
    * The data buffer, its size, and a boolean indicating whether the data is
    * binary are passed as parameters.
    */
-  virtual void Send(const uint8_t* data,
-                    uint32_t size,
+  virtual void Send(const uint8_t* data, uint32_t size,
                     bool binary = false) = 0;
 
   /**

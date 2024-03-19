@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
-import 'dart:ui' as ui;
+import 'dart:ui_web' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -151,7 +151,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     value = value.copyWith(renderVideo: renderVideo);
   }
 
-  void setSrcObject({MediaStream? stream, String? trackId}) {
+  Future<void> setSrcObject({MediaStream? stream, String? trackId}) async {
     if (stream == null) {
       findHtmlView()?.srcObject = null;
       _audioElement?.srcObject = null;

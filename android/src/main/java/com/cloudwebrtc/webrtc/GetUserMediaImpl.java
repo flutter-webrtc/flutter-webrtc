@@ -8,6 +8,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
@@ -28,9 +29,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import android.provider.MediaStore;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Range;
 import android.util.SparseArray;
+import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -520,9 +523,13 @@ class GetUserMediaImpl {
                         WindowManager wm =
                                 (WindowManager) applicationContext.getSystemService(Context.WINDOW_SERVICE);
 
+                        Display display = wm.getDefaultDisplay();
+                        Point size = new Point();
+                        display.getRealSize(size);
+
                         VideoCapturerInfo info = new VideoCapturerInfo();
-                        info.width = wm.getDefaultDisplay().getWidth();
-                        info.height = wm.getDefaultDisplay().getHeight();
+                        info.width= size.x;
+                        info.height = size.y;
                         info.fps = DEFAULT_FPS;
                         info.isScreenCapture = true;
                         info.capturer = videoCapturer;
