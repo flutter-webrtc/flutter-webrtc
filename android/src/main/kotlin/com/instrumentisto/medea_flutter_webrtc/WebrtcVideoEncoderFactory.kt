@@ -1,5 +1,6 @@
 package com.instrumentisto.medea_flutter_webrtc
 
+import org.webrtc.CodecSupport
 import org.webrtc.EglBase
 import org.webrtc.HardwareVideoEncoderFactory
 import org.webrtc.SoftwareVideoEncoderFactory
@@ -44,6 +45,14 @@ class WebrtcVideoEncoderFactory
     codecs.addAll(getSWCodecs())
 
     return codecs.toTypedArray()
+  }
+
+  override fun queryCodecSupport(codecInfo: VideoCodecInfo, scalability: String): CodecSupport {
+    val support = hwFactory.queryCodecSupport(codecInfo, scalability)
+    if (support.is_supported) {
+      return support
+    }
+    return swFactory.queryCodecSupport(codecInfo, scalability)
   }
 
   /** Enumerates the list of video codecs that can be hardware-accelerated. */

@@ -86,9 +86,15 @@ void main() {
     var h = SendEncodingParameters.create("h", true,
         maxBitrate: 1200 * 1024, maxFramerate: 30);
     var m = SendEncodingParameters.create("m", true,
-        maxBitrate: 600 * 1024, maxFramerate: 20, scaleResolutionDownBy: 2);
+        maxBitrate: 600 * 1024,
+        maxFramerate: 20,
+        scaleResolutionDownBy: 2,
+        scalabilityMode: "L2T2");
     var l = SendEncodingParameters.create("l", true,
-        maxBitrate: 300 * 1024, maxFramerate: 10, scaleResolutionDownBy: 4);
+        maxBitrate: 300 * 1024,
+        maxFramerate: 10,
+        scaleResolutionDownBy: 4,
+        scalabilityMode: "L1T2");
 
     videoInit1.sendEncodings.add(h);
     videoInit1.sendEncodings.add(m);
@@ -127,10 +133,12 @@ void main() {
     parameters.encodings[0].maxFramerate = 25;
     parameters.encodings[0].maxBitrate = 800 * 1024;
     parameters.encodings[0].scaleResolutionDownBy = 2;
+    parameters.encodings[0].scalabilityMode = "S3T3";
 
     parameters.encodings[1].maxFramerate = 15;
     parameters.encodings[1].maxBitrate = 400 * 1024;
     parameters.encodings[1].scaleResolutionDownBy = 4;
+    parameters.encodings[1].scalabilityMode = "L2T1";
 
     parameters.encodings[2].maxFramerate = 5;
     parameters.encodings[2].maxBitrate = 200 * 1024;
@@ -144,16 +152,19 @@ void main() {
     expect(parameters2.encodings[0].maxFramerate, 25);
     expect(parameters2.encodings[0].maxBitrate, 800 * 1024);
     expect(parameters2.encodings[0].scaleResolutionDownBy, 2);
+    expect(parameters2.encodings[0].scalabilityMode, "S3T3");
 
     expect(parameters2.encodings[1].active, true);
     expect(parameters2.encodings[1].maxFramerate, 15);
     expect(parameters2.encodings[1].maxBitrate, 400 * 1024);
     expect(parameters2.encodings[1].scaleResolutionDownBy, 4);
+    expect(parameters2.encodings[1].scalabilityMode, "L2T1");
 
     expect(parameters2.encodings[2].active, true);
     expect(parameters2.encodings[2].maxFramerate, 5);
     expect(parameters2.encodings[2].maxBitrate, 200 * 1024);
     expect(parameters2.encodings[2].scaleResolutionDownBy, 8);
+    expect(parameters2.encodings[2].scalabilityMode, "L1T2");
 
     await pc.close();
     await videoTrans1.dispose();
@@ -201,7 +212,6 @@ void main() {
   });
 
   testWidgets('Video codec info', (WidgetTester tester) async {
-    // Desktop only.
     if (!Platform.isAndroid && !Platform.isIOS) {
       var decoders = await PeerConnection.videoDecoders();
       expect(decoders.where((dec) => dec.codec == VideoCodec.VP8).length,
@@ -223,6 +233,62 @@ void main() {
       expect(encoders.where((enc) => enc.codec == VideoCodec.H264).length,
           isNonZero);
     }
+  });
+
+  testWidgets('Get capabilities', (WidgetTester tester) async {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      var pc = await PeerConnection.create(IceTransportType.all, []);
+      var t1 = await pc.addTransceiver(
+          MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+
+      var capabilities = await t1.sender.getCapabilities(MediaKind.video);
+
+      expect(
+          capabilities.codecs
+              .where((cap) => cap.mimeType == 'video/H264')
+              .firstOrNull,
+          isNotNull);
+      expect(
+          capabilities.codecs
+              .where((cap) => cap.mimeType == 'video/VP9')
+              .firstOrNull,
+          isNotNull);
+      expect(
+          capabilities.codecs
+              .where((cap) => cap.mimeType == 'video/VP8')
+              .firstOrNull,
+          isNotNull);
+      expect(
+          capabilities.codecs
+              .where((cap) => cap.mimeType == 'video/AV1')
+              .firstOrNull,
+          isNotNull);
+    }
+  });
+
+  testWidgets('SetCodecPreferences', (WidgetTester tester) async {
+    var pc = await PeerConnection.create(IceTransportType.all, []);
+    var vtrans = await pc.addTransceiver(
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+
+    var capabilities = await vtrans.sender.getCapabilities(MediaKind.video);
+
+    var names = capabilities.codecs.map((c) => c.name).toList();
+    expect(names.contains("VP9"), isTrue);
+    expect(names.contains("VP8"), isTrue);
+
+    var h264Preferences = capabilities.codecs.where((element) {
+      return element.name == 'VP8';
+    }).toList();
+
+    await vtrans.setCodecPreferences(h264Preferences);
+
+    var offer = await pc.createOffer();
+
+    expect(offer.description.contains("VP8"), isTrue);
+    expect(offer.description.contains("H264"), isFalse);
+    expect(offer.description.contains("VP9"), isFalse);
+    expect(offer.description.contains("AV1"), isFalse);
   });
 
   testWidgets('Get transceivers', (WidgetTester tester) async {

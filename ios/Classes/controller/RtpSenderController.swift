@@ -56,6 +56,7 @@ class RtpSenderController {
             "maxBitrate": enc.maxBitrateBps,
             "maxFramerate": enc.maxFramerate,
             "scaleResolutionDownBy": enc.scaleResolutionDownBy,
+            "scalabilityMode": enc.scalabilityMode,
           ]
         }
 
@@ -86,6 +87,9 @@ class RtpSenderController {
         }
         if let scaleResolutionDownBy = e["scaleResolutionDownBy"] as? Double {
           enc!.scaleResolutionDownBy = NSNumber(value: scaleResolutionDownBy)
+        }
+        if let scalabilityMode = e["scalabilityMode"] as? String {
+          enc!.scalabilityMode = scalabilityMode
         }
       }
 

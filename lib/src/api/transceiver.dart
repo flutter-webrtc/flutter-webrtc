@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 
+import 'package:medea_flutter_webrtc/src/model/capability.dart';
 import '/src/model/transceiver.dart';
 import 'bridge.g.dart' as ffi;
 import 'channel.dart';
@@ -48,6 +49,10 @@ abstract class RtpTransceiver {
 
   /// Changes the [TransceiverDirection] of this [RtpTransceiver].
   Future<void> setDirection(TransceiverDirection direction);
+
+  /// Changes the preferred [RtpTransceiver] codecs to the [provided] list of
+  /// [RtpCodecCapability]s.
+  Future<void> setCodecPreferences(List<RtpCodecCapability> codecs);
 
   /// Changes the receive direction of this [RtpTransceiver].
   ///
@@ -111,6 +116,12 @@ class _RtpTransceiverChannel extends RtpTransceiver {
   }
 
   @override
+  Future<void> setCodecPreferences(List<RtpCodecCapability> codecs) async {
+    await _chan.invokeMethod('setCodecPreferences',
+        {'codecs': codecs.map((c) => c.toMap()).toList()});
+  }
+
+  @override
   Future<TransceiverDirection> getDirection() async {
     return TransceiverDirection
         .values[await _chan.invokeMethod('getDirection')];
@@ -171,6 +182,25 @@ class _RtpTransceiverFFI extends RtpTransceiver {
     await api!.setTransceiverDirection(
         transceiver: _transceiver,
         direction: ffi.RtpTransceiverDirection.values[direction.index]);
+  }
+
+  @override
+  Future<void> setCodecPreferences(List<RtpCodecCapability> codecs) async {
+    var ffiCodecs = codecs.map((c) {
+      var params = c.parameters.entries.map((e) => (e.key, e.value)).toList();
+      return ffi.RtpCodecCapability(
+          clockRate: c.clockRate,
+          numChannels: c.numChannels,
+          preferredPayloadType: c.preferredPayloadType,
+          scalabilityModes: List.empty(),
+          mimeType: c.mimeType,
+          name: c.name,
+          kind: ffi.MediaType.values[c.kind.index],
+          parameters: params,
+          feedback: List.empty());
+    }).toList();
+    await api!
+        .setCodecPreferences(transceiver: _transceiver, codecs: ffiCodecs);
   }
 
   @override

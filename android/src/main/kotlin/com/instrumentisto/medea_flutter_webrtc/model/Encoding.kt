@@ -17,6 +17,7 @@ data class Encoding(
     var maxBitrate: Int?,
     var maxFramerate: Double?,
     var scaleResolutionDownBy: Double?,
+    var scalabilityMode: String?,
 ) {
   companion object {
     /**
@@ -30,7 +31,8 @@ data class Encoding(
           map["active"] as Boolean,
           map["maxBitrate"] as Int?,
           (map["maxFramerate"] as Int?)?.toDouble(),
-          map["scaleResolutionDownBy"] as Double?)
+          map["scaleResolutionDownBy"] as Double?,
+          map["scalabilityMode"] as String?)
     }
   }
 
@@ -43,6 +45,8 @@ data class Encoding(
     var encoding: WEncoding = WEncoding(rid, active, scaleResolutionDownBy)
     encoding.maxBitrateBps = maxBitrate
     encoding.maxFramerate = maxFramerate?.toInt()
+    encoding.scalabilityMode = scalabilityMode
+
     return encoding
   }
 }

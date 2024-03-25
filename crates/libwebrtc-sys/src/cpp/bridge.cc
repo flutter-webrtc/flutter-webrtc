@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -748,6 +749,167 @@ RtpTransceiverDirection get_transceiver_direction(
   return transceiver->direction();
 }
 
+// Returns the sender `RtpCapabilities` of the provided `MediaType`.
+std::unique_ptr<RtpCapabilities> get_rtp_sender_capabilities(
+    const PeerConnectionFactoryInterface& peer_connection_factory,
+    MediaType kind) {
+  return std::make_unique<RtpCapabilities>(
+      peer_connection_factory->GetRtpSenderCapabilities(kind));
+}
+
+// Returns the `RtpCodecCapability` of the provided `RtpCapabilities`.
+rust::Vec<RtpCodecCapabilityContainer> rtp_capabilities_codecs(
+    const RtpCapabilities& capabilty) {
+  rust::Vec<RtpCodecCapabilityContainer> result;
+  for (int i = 0; i < capabilty.codecs.size(); ++i) {
+    RtpCodecCapabilityContainer capability = {
+        std::make_unique<RtpCodecCapability>(capabilty.codecs[i])};
+    result.push_back(std::move(capability));
+  }
+  return std::move(result);
+}
+
+// Returns the `RtpHeaderExtensionCapability` of the provided `RtpCapabilities`.
+rust::Vec<RtpHeaderExtensionCapabilityContainer>
+rtp_capabilities_header_extensions(const RtpCapabilities& capabilty) {
+  rust::Vec<RtpHeaderExtensionCapabilityContainer> result;
+  for (int i = 0; i < capabilty.header_extensions.size(); ++i) {
+    RtpHeaderExtensionCapabilityContainer header_extensions = {
+        std::make_unique<RtpHeaderExtensionCapability>(
+            capabilty.header_extensions[i])};
+    result.push_back(std::move(header_extensions));
+  }
+  return std::move(result);
+}
+
+// Returns the `uri` of the provided `RtpHeaderExtensionCapability`.
+std::unique_ptr<std::string> header_extensions_uri(
+    const RtpHeaderExtensionCapability& header_extensions) {
+  return std::make_unique<std::string>(header_extensions.uri);
+}
+
+// Returns the `preferred_id` of the provided `RtpHeaderExtensionCapability`.
+rust::Box<bridge::OptionI32> header_extensions_preferred_id(
+    const RtpHeaderExtensionCapability& header_extensions) {
+  auto preferred_id = init_option_i32();
+
+  if (header_extensions.preferred_id) {
+    preferred_id->set_value(header_extensions.preferred_id.value());
+  }
+  return preferred_id;
+}
+
+// Returns the `preferred_encrypted` of the provided
+// `RtpHeaderExtensionCapability`.
+bool header_extensions_preferred_encrypted(
+    const RtpHeaderExtensionCapability& header_extensions) {
+  return header_extensions.preferred_encrypt;
+}
+
+// Returns the `direction` of the provided `RtpHeaderExtensionCapability`.
+RtpTransceiverDirection header_extensions_direction(
+    const RtpHeaderExtensionCapability& header_extensions) {
+  return header_extensions.direction;
+}
+
+// Returns the `payload_type` of the provided `RtpCodecCapability`.
+rust::Box<bridge::OptionI32> preferred_payload_type(
+    const RtpCodecCapability& capabilty) {
+  auto preferred_payload_type = init_option_i32();
+
+  if (capabilty.preferred_payload_type) {
+    preferred_payload_type->set_value(capabilty.preferred_payload_type.value());
+  }
+  return preferred_payload_type;
+}
+
+// Returns the `scalability_modes` of the provided `RtpCodecCapability`.
+rust::Vec<ScalabilityMode> scalability_modes(
+    const RtpCodecCapability& capabilty) {
+  rust::Vec<ScalabilityMode> result;
+  for (int i = 0; i < capabilty.scalability_modes.size(); ++i) {
+    result.push_back(capabilty.scalability_modes[i]);
+  }
+  return result;
+}
+
+// Returns the `mime_type` of the provided `RtpCodecCapability`.
+std::unique_ptr<std::string> rtc_codec_mime_type(
+    const RtpCodecCapability& capabilty) {
+  return std::make_unique<std::string>(capabilty.mime_type());
+}
+
+// Returns the `name` of the provided `RtpCodecCapability`.
+std::unique_ptr<std::string> rtc_codec_name(
+    const RtpCodecCapability& capabilty) {
+  return std::make_unique<std::string>(capabilty.name);
+}
+
+// Returns the `kind` of the provided `RtpCodecCapability`.
+MediaType rtc_codec_kind(const RtpCodecCapability& capabilty) {
+  return capabilty.kind;
+}
+
+// Returns the `clock_rate` of the provided `RtpCodecCapability`
+rust::Box<bridge::OptionI32> rtc_codec_clock_rate(
+    const RtpCodecCapability& capabilty) {
+  auto clock_rate = init_option_i32();
+
+  if (capabilty.clock_rate) {
+    clock_rate->set_value(capabilty.clock_rate.value());
+  }
+  return clock_rate;
+}
+
+// Returns the `num_channels` of the provided `RtpCodecCapability`.
+rust::Box<bridge::OptionI32> rtc_codec_num_channels(
+    const RtpCodecCapability& capabilty) {
+  auto num_channels = init_option_i32();
+
+  if (capabilty.num_channels) {
+    num_channels->set_value(capabilty.num_channels.value());
+  }
+  return num_channels;
+}
+
+// Returns the `parameters` of the provided `RtpCodecCapability`.
+std::unique_ptr<std::vector<StringPair>> rtc_codec_parameters(
+    const RtpCodecCapability& capabilty) {
+  std::vector<StringPair> result;
+  for (auto const& p : capabilty.parameters) {
+    result.push_back(new_string_pair(p.first, p.second));
+  }
+  return std::make_unique<std::vector<StringPair>>(result);
+}
+
+// Returns the `rtcp_feedback` of the provided `RtpCodecCapability`.
+rust::Vec<RtcpFeedbackContainer> rtc_codec_rtcp_feedback(
+    const RtpCodecCapability& capabilty) {
+  rust::Vec<RtcpFeedbackContainer> result;
+  for (int i = 0; i < capabilty.rtcp_feedback.size(); ++i) {
+    RtcpFeedbackContainer feedback = {
+        std::make_unique<webrtc::RtcpFeedback>(capabilty.rtcp_feedback[i])};
+    result.push_back(std::move(feedback));
+  }
+  return std::move(result);
+}
+
+// Returns the `type` of the provided `RtcpFeedback`.
+RtcpFeedbackType rtcp_feedback_type(const RtcpFeedback& feedback) {
+  return feedback.type;
+}
+
+// Returns the `message_type` of the provided `RtcpFeedback`.
+rust::Box<bridge::OptionRtcpFeedbackMessageType> rtcp_feedback_message_type(
+    const RtcpFeedback& feedback) {
+  auto message_type = init_option_rtcp_feedback_message_type();
+
+  if (feedback.message_type) {
+    message_type->set_value(feedback.message_type.value());
+  }
+  return message_type;
+}
+
 // Calls `RtpTransceiverInterface->SetDirectionWithError()`.
 rust::String set_transceiver_direction(
     const RtpTransceiverInterface& transceiver,
@@ -847,6 +1009,47 @@ void audio_track_unregister_observer(AudioTrackInterface& track,
 std::unique_ptr<RtpSenderInterface> transceiver_sender(
     const RtpTransceiverInterface& transceiver) {
   return std::make_unique<RtpSenderInterface>(transceiver->sender());
+}
+
+// Changes the preferred `RtpTransceiverInterface` codecs to the provided
+// `Vec<RtpCodecCapability>`.
+void set_codec_preferences(const RtpTransceiverInterface& transceiver,
+                           rust::Vec<RtpCodecCapabilityContainer> codecs) {
+  RtpCodecCapability* array = new RtpCodecCapability[codecs.size()];
+  for (int i = 0; i < codecs.size(); ++i) {
+    array[i] = *codecs[i].ptr.get();
+  }
+  rtc::ArrayView<RtpCodecCapability> rtp_codecs(array, codecs.size());
+  transceiver->SetCodecPreferences(rtp_codecs);
+}
+
+// Creates a new `RtpCodecCapability`.
+std::unique_ptr<RtpCodecCapability> create_codec_capability(
+    int preferred_payload_type,
+    rust::String name,
+    MediaType kind,
+    int clock_rate,
+    int num_channels,
+    rust::Vec<StringPair> parameters) {
+  RtpCodecCapability codec;
+  if (clock_rate > 0) {
+    codec.preferred_payload_type = preferred_payload_type;
+  }
+  codec.name = std::string(name);
+  codec.kind = kind;
+  if (clock_rate > 0) {
+    codec.clock_rate = clock_rate;
+  }
+  if (num_channels > 0) {
+    codec.num_channels = num_channels;
+  }
+  std::map<std::string, std::string> map;
+  for (int i = 0; i < parameters.size(); ++i) {
+    map[std::string(parameters[i].first)] = std::string(parameters[i].second);
+  }
+
+  codec.parameters = map;
+  return std::make_unique<RtpCodecCapability>(codec);
 }
 
 // Returns the `receiver` of the provided `RtpTransceiverInterface`.

@@ -1,10 +1,16 @@
 import 'package:flutter/services.dart';
 
+import 'package:medea_flutter_webrtc/src/model/track.dart';
+import '../model/capability.dart';
 import '/src/api/parameters.dart';
 import '/src/platform/track.dart';
 import 'bridge.g.dart' as ffi;
 import 'channel.dart';
 import 'peer.dart';
+
+/// [MethodChannel] used for the messaging with a native side.
+final _peerConnectionFactoryMethodChannel =
+    methodChannel('PeerConnectionFactory', 0);
 
 /// [RTCSender][1] implementation.
 ///
@@ -38,6 +44,9 @@ abstract class RtpSender {
 
   /// Sets the provided [RtpParameters].
   Future<void> setParameters(RtpParameters parameters);
+
+  /// [RtpCapabilities] of an RTP sender of the specified [MediaKind].
+  Future<RtpCapabilities> getCapabilities(MediaKind kind);
 }
 
 /// [MethodChannel]-based implementation of a [RtpSender].
@@ -72,6 +81,13 @@ class _RtpSenderChannel extends RtpSender {
   Future<void> setParameters(RtpParameters parameters) async {
     await _chan.invokeListMethod('setParameters', parameters.toMap());
   }
+
+  @override
+  Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
+    var map = await _peerConnectionFactoryMethodChannel
+        .invokeMethod('getRtpSenderCapabilities', {'kind': kind.index});
+    return RtpCapabilities.fromMap(map);
+  }
 }
 
 /// FFI-based implementation of a [RtpSender].
@@ -105,5 +121,11 @@ class _RtpSenderFFI extends RtpSender {
   Future<void> setParameters(RtpParameters parameters) async {
     await api!.senderSetParameters(
         transceiver: _transceiver, params: parameters.toFFI());
+  }
+
+  @override
+  Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
+    return RtpCapabilities.fromFFI(await api!
+        .getRtpSenderCapabilities(kind: ffi.MediaType.values[kind.index]));
   }
 }

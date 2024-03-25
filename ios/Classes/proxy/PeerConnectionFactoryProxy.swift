@@ -19,6 +19,41 @@ class PeerConnectionFactoryProxy {
     self.factory = state.getPeerFactory()
   }
 
+  /// Returns sender capabilities of this factory.
+  func rtpSenderCapabilities(kind: RTCRtpMediaType) -> RtpCapabilities {
+    var capabilities = self.factory
+      .rtpSenderCapabilities(for: kind)
+
+    return RtpCapabilities(
+      codecs: capabilities.codecs.map { codec -> CodecCapability in
+        var preferredPayloadType: Int = (codec.preferredPayloadType != nil) ?
+          Int(codec.preferredPayloadType!) : 0
+        var kind = MediaType.fromWebRtc(kind: codec.kind)
+        var clockRate = (codec.clockRate != nil) ? Int(codec.clockRate!) : 0
+        var numChannels: Int? = (codec.numChannels != nil) ?
+          Int(codec.numChannels!) : nil
+        return CodecCapability(
+          preferredPayloadType: preferredPayloadType,
+          name: codec.name,
+          kind: kind,
+          clockRate: clockRate,
+          numChannels: numChannels,
+          parameters: codec.parameters,
+          mimeType: codec.mimeType
+        )
+      },
+      headerExtensions: capabilities.header_extensions
+        .map { header -> HeaderExtensionCapability in
+          var preferredId = Int(header.preferred_id)
+          return HeaderExtensionCapability(
+            uri: header.uri,
+            preferredId: preferredId,
+            preferredEncrypted: header.preferred_encrypt
+          )
+        }
+    )
+  }
+
   /// Creates a new `PeerConnectionProxy` based on the provided
   /// `PeerConnectionConfiguration`.
   func create(conf: PeerConnectionConfiguration) -> PeerConnectionProxy {

@@ -54,6 +54,27 @@ pub fn init_option_i32() -> Box<OptionI32> {
     Box::new(OptionI32(None))
 }
 
+/// [`Option`]`<`[`RtcpFeedbackMessageType`]`>` transferable to the C++ side.
+#[derive(Deref, DerefMut)]
+pub struct OptionRtcpFeedbackMessageType(
+    Option<crate::RtcpFeedbackMessageType>,
+);
+
+impl OptionRtcpFeedbackMessageType {
+    /// Sets this [`Option`]`<`[`RtcpFeedbackMessageType`]`>`
+    /// to [`Some`]`(value)`.
+    fn set_value(&mut self, value: crate::RtcpFeedbackMessageType) {
+        self.0 = Some(value);
+    }
+}
+
+/// Creates an empty Rust [`Option`]`<`[`RtcpFeedbackMessageType`]`>` value.
+#[allow(clippy::unnecessary_box_returns)] // required for FFI
+pub fn init_option_rtcp_feedback_message_type(
+) -> Box<OptionRtcpFeedbackMessageType> {
+    Box::new(OptionRtcpFeedbackMessageType(None))
+}
+
 /// [`Option`]`<`[`String`]`>` transferable to the C++ side.
 #[derive(Deref, DerefMut)]
 pub struct OptionString(Option<String>);
@@ -653,6 +674,220 @@ pub(crate) mod webrtc {
         stats: UniquePtr<RTCStats>,
     }
 
+    /// [ScalabilityMode][0] representation.
+    ///
+    /// [0]: https://tinyurl.com/35ae3mbe
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(u8)]
+    pub enum ScalabilityMode {
+        /// [ScalabilityMode.L1T1][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L1T1*
+        kL1T1 = 0,
+
+        /// [ScalabilityMode.L1T2][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L1T2*
+        kL1T2,
+
+        /// [ScalabilityMode.L1T3][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L1T3*
+        kL1T3,
+
+        /// [ScalabilityMode.L2T1][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L2T1*
+        kL2T1,
+
+        /// [ScalabilityMode.L2T1h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L2T1*
+        kL2T1h,
+
+        /// [ScalabilityMode.L2T1_KEY][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L2T1_KEY*
+        kL2T1_KEY,
+
+        /// [ScalabilityMode.L2T2][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L2T2h*
+        kL2T2,
+
+        /// [ScalabilityMode.L2T2h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L2T2*
+        kL2T2h,
+
+        /// [ScalabilityMode.L2T2_KEY][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L2T2_KEY*
+        kL2T2_KEY,
+
+        /// [ScalabilityMode.L2T2_KEY_SHIFT][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L2T2_KEY_SHIFT*
+        kL2T2_KEY_SHIFT,
+
+        /// [ScalabilityMode.L2T3][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L2T3*
+        kL2T3,
+
+        /// [ScalabilityMode.L2T3h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L2T3*
+        kL2T3h,
+
+        /// [ScalabilityMode.L2T3_KEY][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L2T3_KEY*
+        kL2T3_KEY,
+
+        /// [ScalabilityMode.L3T1][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L3T1*
+        kL3T1,
+
+        /// [ScalabilityMode.L3T1h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L3T1*
+        kL3T1h,
+
+        /// [ScalabilityMode.L3T1_KEY][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L3T1_KEY*
+        kL3T1_KEY,
+
+        /// [ScalabilityMode.L3T2][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L3T2h*
+        kL3T2,
+
+        /// [ScalabilityMode.L3T2h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L3T2*
+        kL3T2h,
+
+        /// [ScalabilityMode.L3T2_KEY][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L3T2_KEY*
+        kL3T2_KEY,
+
+        /// [ScalabilityMode.kL3T3][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#kL3T3*
+        kL3T3,
+
+        /// [ScalabilityMode.kL3T3h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#kL3T3*
+        kL3T3h,
+
+        /// [ScalabilityMode.kL3T3_KEY][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#L3T3_KEY*
+        kL3T3_KEY,
+
+        /// [ScalabilityMode.kS2T1][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#kS2T1*
+        kS2T1,
+
+        /// [ScalabilityMode.kS2T1h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#kS2T1*
+        kS2T1h,
+
+        /// [ScalabilityMode.kS2T2][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#kS2T2*
+        kS2T2,
+
+        /// [ScalabilityMode.kS2T2h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#kS2T2*
+        kS2T2h,
+
+        /// [ScalabilityMode.S2T3][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#S2T3h*
+        kS2T3,
+
+        /// [ScalabilityMode.S2T3h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#S2T3*
+        kS2T3h,
+
+        /// [ScalabilityMode.S3T1h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#S3T1*
+        kS3T1,
+
+        /// [ScalabilityMode.S3T1h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#S3T1*
+        kS3T1h,
+
+        /// [ScalabilityMode.S3T2][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#S3T2*
+        kS3T2,
+
+        /// [ScalabilityMode.S3T2h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#S3T2*
+        kS3T2h,
+
+        /// [ScalabilityMode.S3T3][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#S3T3*
+        kS3T3,
+
+        /// [ScalabilityMode.S3T3h][0] mode.
+        ///
+        /// [0]: https://w3.org/TR/webrtc-svc#S3T3*
+        kS3T3h,
+    }
+
+    /// Possible types of an [`RtcpFeedback`].
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    pub enum RtcpFeedbackType {
+        /// Codec control messages.
+        CCM,
+
+        /// Loss notification feedback.
+        LNTF,
+
+        /// Negative acknowledgemen.
+        NACK,
+
+        /// Receiver estimated maximum bitrate.
+        REMB,
+
+        /// Transport wide congestion control.
+        TRANSPORT_CC,
+    }
+
+    /// Possible message types of an [`RtcpFeedback`].
+    ///
+    /// This enum is used only when an [`RtcpFeedback`] type is
+    /// [`RtcpFeedbackType::NACK`] or [`RtcpFeedbackType::CCM`].
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    pub enum RtcpFeedbackMessageType {
+        /// Equivalent to `{ type: "nack", parameter: undefined }` in ORTC.
+        GENERIC_NACK,
+
+        /// Usable with [`RtcpFeedbackType::NACK`].
+        PLI,
+
+        /// Usable with [`RtcpFeedbackType::CCM`].
+        FIR,
+    }
+
     /// [MediaStreamTrackState][0] representation.
     ///
     /// [0]: https://w3.org/TR/mediacapture-streams#dom-mediastreamtrackstate
@@ -974,6 +1209,30 @@ pub(crate) mod webrtc {
     struct TransceiverContainer {
         /// Wrapped [`RtpTransceiverInterface`].
         pub ptr: UniquePtr<RtpTransceiverInterface>,
+    }
+
+    // TODO: Remove once `cxx` crate allows using pointers to opaque types in
+    //       vectors: https://github.com/dtolnay/cxx/issues/741
+    /// Wrapper for an [`RtpCodecCapability`] that can be used in Rust/C++
+    /// vectors.
+    struct RtpCodecCapabilityContainer {
+        pub ptr: UniquePtr<RtpCodecCapability>,
+    }
+
+    // TODO: Remove once `cxx` crate allows using pointers to opaque types in
+    //       vectors: https://github.com/dtolnay/cxx/issues/741
+    /// Wrapper for an [`RtcpFeedback`] that can be used in Rust/C++
+    /// vectors.
+    struct RtcpFeedbackContainer {
+        pub ptr: UniquePtr<RtcpFeedback>,
+    }
+
+    // TODO: Remove once `cxx` crate allows using pointers to opaque types in
+    //       vectors: https://github.com/dtolnay/cxx/issues/741
+    /// Wrapper for an [`RtpHeaderExtensionCapability`]
+    /// that can be used in Rust/C++ vectors.
+    struct RtpHeaderExtensionCapabilityContainer {
+        pub ptr: UniquePtr<RtpHeaderExtensionCapability>,
     }
 
     // TODO: Remove once `cxx` crate allows using pointers to opaque types in
@@ -1718,6 +1977,13 @@ pub(crate) mod webrtc {
         pub type RTCOfferAnswerOptions;
         pub type RtpTransceiverDirection;
         pub type RtpTransceiverInterface;
+        pub type RtpCodecCapability;
+        pub type RtcpFeedback;
+        pub type RtcpFeedbackType;
+        pub type RtcpFeedbackMessageType;
+        pub type ScalabilityMode;
+        pub type RtpCapabilities;
+        pub type RtpHeaderExtensionCapability;
         pub type SdpType;
         pub type SessionDescriptionInterface;
         pub type SetLocalDescriptionObserver;
@@ -1901,6 +2167,7 @@ pub(crate) mod webrtc {
         pub type OptionF64;
         pub type OptionI32;
         pub type OptionBool;
+        pub type OptionRtcpFeedbackMessageType;
         pub type OptionU32;
         pub type OptionString;
 
@@ -1939,6 +2206,18 @@ pub(crate) mod webrtc {
 
         /// Sets the provided [`Option`]`<`[`String`]`>` to [`Some`]`(value)`.
         pub fn set_value(self: &mut OptionString, value: String);
+
+        /// Creates an empty Rust [`Option`]`<`[`RtcpFeedbackMessageType`]`>`
+        /// value.
+        pub fn init_option_rtcp_feedback_message_type(
+        ) -> Box<OptionRtcpFeedbackMessageType>;
+
+        /// Sets the specified [`Option`]`<`[`RtcpFeedbackMessageType`]`>`
+        /// to [`Some`]`(value)`.
+        pub fn set_value(
+            self: &mut OptionRtcpFeedbackMessageType,
+            value: RtcpFeedbackMessageType,
+        );
     }
 
     #[rustfmt::skip]
@@ -2160,12 +2439,143 @@ pub(crate) mod webrtc {
             transceiver: &RtpTransceiverInterface
         ) -> UniquePtr<RtpSenderInterface>;
 
+        /// Creates a new [`RtpCodecCapability`].
+        pub fn create_codec_capability(
+            preferred_payload_type: i32,
+            name: String,
+            kind: MediaType,
+            clock_rate: i32,
+            num_channels: i32,
+            parameters: Vec<StringPair>,
+        ) -> UniquePtr<RtpCodecCapability>;
+
+        /// Changes the preferred [`RtpTransceiverInterface`] codecs to the
+        /// provided [`Vec`]`<`[`RtpCodecCapability`]`>`.
+        pub fn set_codec_preferences(
+            transceiver: &RtpTransceiverInterface,
+            codecs: Vec<RtpCodecCapabilityContainer>,
+        );
+
         /// Returns the [`RtpReceiverInterface`] of the provided
         /// [`RtpTransceiverInterface`].
         #[must_use]
         pub fn transceiver_receiver(
             transceiver: &RtpTransceiverInterface,
         ) -> UniquePtr<RtpReceiverInterface>;
+
+        /// Returns the [`RtpCapabilities`] of the provided
+        /// [`PeerConnectionFactoryInterface`].
+        #[must_use]
+        pub fn get_rtp_sender_capabilities(
+            peer_connection_factory: &PeerConnectionFactoryInterface,
+            kind: MediaType,
+        ) -> UniquePtr<RtpCapabilities>;
+
+        /// Returns the [`RtpCodecCapabilityContainer`] of the provided
+        /// [`RtpCapabilities`].
+        #[must_use]
+        pub fn rtp_capabilities_codecs(
+            capability: &RtpCapabilities,
+        ) -> Vec<RtpCodecCapabilityContainer>;
+
+        /// Returns the [`RtpHeaderExtensionCapability`] of the provided
+        /// [`RtpCapabilities`].
+        #[must_use]
+        pub fn rtp_capabilities_header_extensions(
+            capability: &RtpCapabilities,
+        ) -> Vec<RtpHeaderExtensionCapabilityContainer>;
+
+        /// Returns the `payload_type` of the provided [`RtpCodecCapability`].
+        #[must_use]
+        pub fn preferred_payload_type(
+            capability: &RtpCodecCapability,
+        ) -> Box<OptionI32>;
+
+        /// Returns the [`ScalabilityMode`]'s of the provided
+        /// [`RtpCodecCapability`].
+        #[must_use]
+        pub fn scalability_modes(
+            capability: &RtpCodecCapability,
+        ) -> Vec<ScalabilityMode>;
+
+        /// Returns the `mime_type` of the provided [`RtpCodecCapability`].
+        #[must_use]
+        pub fn rtc_codec_mime_type(
+            capability: &RtpCodecCapability,
+        ) -> UniquePtr<CxxString>;
+
+        /// Returns the `name` of the provided [`RtpCodecCapability`].
+        #[must_use]
+        pub fn rtc_codec_name(
+            capability: &RtpCodecCapability,
+        ) -> UniquePtr<CxxString>;
+
+        /// Returns the `kind` of the provided [`RtpCodecCapability`].
+        #[must_use]
+        pub fn rtc_codec_kind(capability: &RtpCodecCapability) -> MediaType;
+
+        /// Returns the `clock_rate` of the provided [`RtpCodecCapability`].
+        #[must_use]
+        pub fn rtc_codec_clock_rate(
+            capability: &RtpCodecCapability,
+        ) -> Box<OptionI32>;
+
+        /// Returns the `num_channels` of the provided [`RtpCodecCapability`].
+        #[must_use]
+        pub fn rtc_codec_num_channels(
+            capability: &RtpCodecCapability,
+        ) -> Box<OptionI32>;
+
+        /// Returns the `parameters` of the provided [`RtpCodecCapability`].
+        #[must_use]
+        pub fn rtc_codec_parameters(
+            capability: &RtpCodecCapability,
+        ) -> UniquePtr<CxxVector<StringPair>>;
+
+        /// Returns the [`RtcpFeedback`]'s of the provided
+        /// [`RtpCodecCapability`].
+        #[must_use]
+        pub fn rtc_codec_rtcp_feedback(
+            capability: &RtpCodecCapability,
+        ) -> Vec<RtcpFeedbackContainer>;
+
+        /// Returns the [`RtcpFeedbackType`] of the provided [`RtcpFeedback`].
+        #[must_use]
+        pub fn rtcp_feedback_type(feedback: &RtcpFeedback) -> RtcpFeedbackType;
+
+        /// Returns the `message_type` as [`Option<RtcpFeedbackMessageType>`] of
+        /// the provided [`RtcpFeedback`].
+        #[must_use]
+        pub fn rtcp_feedback_message_type(
+            feedback: &RtcpFeedback,
+        ) -> Box<OptionRtcpFeedbackMessageType>;
+
+        /// Returns the `uri` of the provided [`RtpHeaderExtensionCapability`].
+        #[must_use]
+        pub fn header_extensions_uri(
+            header_extensions: &RtpHeaderExtensionCapability,
+        ) -> UniquePtr<CxxString>;
+
+        /// Returns the `preferred_id` of the provided
+        /// [`RtpHeaderExtensionCapability`].
+        #[must_use]
+        pub fn header_extensions_preferred_id(
+            header_extensions: &RtpHeaderExtensionCapability,
+        ) -> Box<OptionI32>;
+
+        /// Returns the `preferred_encrypted` of the provided
+        /// [`RtpHeaderExtensionCapability`].
+        #[must_use]
+        pub fn header_extensions_preferred_encrypted(
+            header_extensions: &RtpHeaderExtensionCapability,
+        ) -> bool;
+
+        /// Returns the [`RtpTransceiverDirection`] of the provided
+        /// [`RtpHeaderExtensionCapability`].
+        #[must_use]
+        pub fn header_extensions_direction(
+            header_extensions: &RtpHeaderExtensionCapability,
+        ) -> RtpTransceiverDirection;
     }
 
     unsafe extern "C++" {

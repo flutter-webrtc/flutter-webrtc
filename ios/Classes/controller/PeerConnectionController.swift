@@ -152,13 +152,15 @@ class PeerConnectionController {
         let maxBitrate = e["maxBitrate"] as? Int
         let maxFramerate = e["maxFramerate"] as? Double
         let scaleResolutionDownBy = e["scaleResolutionDownBy"] as? Double
+        let scalabilityMode = e["scalabilityMode"] as? String
 
         sendEncodings.append(Encoding(
           rid: rid!,
           active: active!,
           maxBitrate: maxBitrate,
           maxFramerate: maxFramerate,
-          scaleResolutionDownBy: scaleResolutionDownBy
+          scaleResolutionDownBy: scaleResolutionDownBy,
+          scalabilityMode: scalabilityMode
         ))
       }
 
@@ -167,14 +169,19 @@ class PeerConnectionController {
           direction: TransceiverDirection(rawValue: direction!)!,
           encodings: sendEncodings
         )
-      let transceiver = RtpTransceiverController(
-        messenger: self.messenger,
-        transceiver: self.peer.addTransceiver(
-          mediaType: MediaType(rawValue: mediaType!)!,
-          transceiverInit: transceiverInit
+
+      do {
+        let transceiver = try RtpTransceiverController(
+          messenger: self.messenger,
+          transceiver: self.peer.addTransceiver(
+            mediaType: MediaType(rawValue: mediaType!)!,
+            transceiverInit: transceiverInit
+          )
         )
-      )
-      result(transceiver.asFlutterResult())
+        result(transceiver.asFlutterResult())
+      } catch {
+        result(getFlutterError(error))
+      }
     case "getTransceivers":
       result(
         self.peer.getTransceivers().map {

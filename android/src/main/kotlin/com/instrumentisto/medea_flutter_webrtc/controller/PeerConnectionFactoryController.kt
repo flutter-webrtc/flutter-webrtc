@@ -4,12 +4,14 @@ import com.instrumentisto.medea_flutter_webrtc.State
 import com.instrumentisto.medea_flutter_webrtc.model.IceServer
 import com.instrumentisto.medea_flutter_webrtc.model.IceTransportType
 import com.instrumentisto.medea_flutter_webrtc.model.PeerConnectionConfiguration
+import com.instrumentisto.medea_flutter_webrtc.model.RtpCapabilities
 import com.instrumentisto.medea_flutter_webrtc.model.VideoCodec
 import com.instrumentisto.medea_flutter_webrtc.model.VideoCodecInfo
 import com.instrumentisto.medea_flutter_webrtc.proxy.PeerConnectionFactoryProxy
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import org.webrtc.MediaStreamTrack
 
 /**
  * Controller of creating new [PeerConnectionController]s by a [PeerConnectionFactoryProxy].
@@ -52,6 +54,16 @@ class PeerConnectionFactoryController(private val messenger: BinaryMessenger, st
         val newPeer = factory.create(PeerConnectionConfiguration(iceServers, iceTransportType))
         val peerController = PeerConnectionController(messenger, newPeer)
         result.success(peerController.asFlutterResult())
+      }
+      "getRtpSenderCapabilities" -> {
+        val kind: Int? = call.argument("kind")
+        val capabilities =
+            RtpCapabilities.fromWebRtc(
+                factory
+                    .state
+                    .getPeerConnectionFactory()
+                    .getRtpSenderCapabilities(MediaStreamTrack.MediaType.values()[kind!!]))
+        result.success(capabilities.asFlutterResult())
       }
       "videoEncoders" -> {
         val map = hashMapOf<VideoCodec, VideoCodecInfo>()

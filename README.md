@@ -2,7 +2,7 @@ Medea Flutter-WebRTC
 ====================
 
 [![pub](https://img.shields.io/pub/v/medea_flutter_webrtc "pub")](https://pub.dev/packages/medea_flutter_webrtc)
-[![libwebrtc](https://img.shields.io/badge/libwebrtc-118.0.5993.88-blue "libwebrtc")](https://github.com/instrumentisto/libwebrtc-bin/releases/tag/118.0.5993.88)
+[![libwebrtc](https://img.shields.io/badge/libwebrtc-122.0.6261.94-blue "libwebrtc")](https://github.com/instrumentisto/libwebrtc-bin/releases/tag/122.0.6261.94)
 [![OpenAL](https://img.shields.io/badge/OpenAL-1.23.1-blue "OpenAL")](https://github.com/kcat/openal-soft/releases/tag/1.23.1)
 
 [Changelog](https://github.com/instrumentisto/medea-flutter-webrtc/blob/main/CHANGELOG.md)

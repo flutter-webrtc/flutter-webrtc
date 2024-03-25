@@ -1,5 +1,7 @@
 package com.instrumentisto.medea_flutter_webrtc.controller
 
+import com.instrumentisto.medea_flutter_webrtc.model.CodecCapability
+import com.instrumentisto.medea_flutter_webrtc.model.MediaType
 import com.instrumentisto.medea_flutter_webrtc.model.RtpTransceiverDirection
 import com.instrumentisto.medea_flutter_webrtc.proxy.RtpTransceiverProxy
 import io.flutter.plugin.common.BinaryMessenger
@@ -32,6 +34,22 @@ class RtpTransceiverController(
       "setDirection" -> {
         val direction = RtpTransceiverDirection.fromInt(call.argument("direction")!!)
         transceiver.setDirection(direction)
+        result.success(null)
+      }
+      "setCodecPreferences" -> {
+        val args: List<Map<String, Any>> = call.argument("codecs") ?: listOf()
+        val codecs =
+            args.map {
+              CodecCapability(
+                  it["preferredPayloadType"] as Int,
+                  it["name"] as String,
+                  MediaType.fromInt(it["kind"] as Int),
+                  it["clockRate"] as Int,
+                  it["numChannels"] as Int?,
+                  it["parameters"] as Map<String, String>,
+                  it["mimeType"] as String)
+            }
+        transceiver.setCodecPreferences(codecs)
         result.success(null)
       }
       "setRecv" -> {

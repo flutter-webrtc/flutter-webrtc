@@ -44,7 +44,8 @@ abstract class SendEncodingParameters {
     return _SendEncodingParametersChannel(e['rid'], e['active'],
         maxBitrate: e['maxBitrate'],
         maxFramerate: (e['maxFramerate'] as int?)?.toDouble(),
-        scaleResolutionDownBy: e['scaleResolutionDownBy']);
+        scaleResolutionDownBy: e['scaleResolutionDownBy'],
+        scalabilityMode: e['scalabilityMode']);
   }
 
   /// [RTP stream ID (RID)][0] to be sent using the RID header extension.

@@ -46,6 +46,7 @@ class RtpSenderController(messenger: BinaryMessenger, private val sender: RtpSen
                   "maxBitrate" to enc.maxBitrateBps,
                   "maxFramerate" to enc.maxFramerate,
                   "scaleResolutionDownBy" to enc.scaleResolutionDownBy,
+                  "scalabilityMode" to enc.scalabilityMode,
               )
             }
 
@@ -70,10 +71,12 @@ class RtpSenderController(messenger: BinaryMessenger, private val sender: RtpSen
           enc.maxBitrateBps = e["maxBitrate"] as Int?
           enc.maxFramerate = e["maxFramerate"] as Int?
           enc.scaleResolutionDownBy = e["scaleResolutionDownBy"] as Double?
+          enc.scalabilityMode = e["scalabilityMode"] as String?
         }
 
         if (!sender.setParameters(params)) {
           result.error("SenderException", "Could not set parameters", null)
+          return
         }
 
         result.success(null)

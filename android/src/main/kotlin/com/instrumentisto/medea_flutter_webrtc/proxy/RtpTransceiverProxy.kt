@@ -1,5 +1,6 @@
 package com.instrumentisto.medea_flutter_webrtc.proxy
 
+import com.instrumentisto.medea_flutter_webrtc.model.CodecCapability
 import com.instrumentisto.medea_flutter_webrtc.model.RtpTransceiverDirection
 import org.webrtc.RtpTransceiver
 
@@ -62,6 +63,26 @@ class RtpTransceiverProxy(obj: RtpTransceiver) : Proxy<RtpTransceiver>(obj) {
     }
 
     obj.direction = direction.intoWebRtc()
+  }
+
+  /** Changes the preferred [RtpTransceiver] codecs to the providded [List<CodecCapability>]. */
+  fun setCodecPreferences(codecs: List<CodecCapability>) {
+    var webrtcCodecs =
+        codecs.map {
+          var capability = org.webrtc.RtpCapabilities.CodecCapability()
+          capability.clockRate = it.clockRate
+          capability.name = it.name
+          capability.kind = it.kind.intoWebRtc()
+          capability.clockRate = it.clockRate
+          capability.numChannels = it.numChannels
+          capability.mimeType = it.mimeType
+          capability.parameters = it.parameters
+          capability.preferredPayloadType = it.preferredPayloadType
+
+          capability
+        }
+
+    obj.setCodecPreferences(webrtcCodecs)
   }
 
   /** Sets receive of the underlying [RtpTransceiver]. */

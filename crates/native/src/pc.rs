@@ -16,9 +16,11 @@ use libwebrtc_sys as sys;
 use threadpool::ThreadPool;
 
 use crate::{
-    api, api::RtpTransceiverInit, next_id, stream_sink::StreamSink,
-    user_media::TrackOrigin, AudioTrack, AudioTrackId, VideoTrack,
-    VideoTrackId, Webrtc,
+    api::{self, RtpCodecCapability, RtpTransceiverInit},
+    next_id,
+    stream_sink::StreamSink,
+    user_media::TrackOrigin,
+    AudioTrack, AudioTrackId, VideoTrack, VideoTrackId, Webrtc,
 };
 
 impl Webrtc {
@@ -765,6 +767,30 @@ impl RtpTransceiver {
         direction: api::RtpTransceiverDirection,
     ) -> anyhow::Result<()> {
         self.inner.lock().unwrap().set_direction(direction.into())
+    }
+
+    /// Changes the preferred [`RtpTransceiver`] codecs to the provided
+    /// [`Vec`]`<`[`RtpCodecCapability`]`>`.
+    ///
+    /// # Panics
+    ///
+    /// If the [`Mutex`] guarding the [`sys::RtpTransceiverInterface`] is
+    /// poisoned.
+    pub fn set_codec_preferences(&self, codecs: Vec<RtpCodecCapability>) {
+        let codecs = codecs
+            .into_iter()
+            .map(|c| {
+                sys::RtpCodecCapability::new(
+                    c.preferred_payload_type,
+                    c.name,
+                    c.kind.into(),
+                    c.clock_rate,
+                    c.num_channels,
+                    c.parameters,
+                )
+            })
+            .collect();
+        self.inner.lock().unwrap().set_codec_preferences(codecs);
     }
 
     /// Changes the receive direction of this [`RtpTransceiver`].

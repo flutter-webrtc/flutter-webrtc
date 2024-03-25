@@ -55,8 +55,8 @@ class WebrtcVideoDecoderFactory
   override fun getSupportedCodecs(): Array<VideoCodecInfo> {
     val codecs = LinkedHashSet<VideoCodecInfo>()
 
-    codecs.addAll(getHWCodecs())
     codecs.addAll(getSWCodecs())
+    codecs.addAll(getHWCodecs())
 
     return codecs.toTypedArray()
   }
