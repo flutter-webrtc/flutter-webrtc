@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_util' as jsutil;
-import 'dart:ui_web' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
