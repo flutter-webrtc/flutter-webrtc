@@ -345,6 +345,12 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyProvider(
   auto failureTolerance = findInt(keyProviderOptions, "failureTolerance");
   options.failure_tolerance = failureTolerance;
 
+  auto keyRingSize = findInt(keyProviderOptions, "keyRingSize");
+  options.key_ring_size = keyRingSize;
+
+  auto discardFrameWhenCryptorNotReady = findBoolean(keyProviderOptions, "discardFrameWhenCryptorNotReady");
+  options.discard_frame_when_cryptor_not_ready = discardFrameWhenCryptorNotReady;
+
   auto keyProvider = libwebrtc::KeyProvider::Create(&options);
   if (nullptr == keyProvider.get()) {
     result->Error("FrameCryptorFactoryCreateKeyProviderFailed",
