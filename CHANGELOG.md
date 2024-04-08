@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.10.0] - 2024-04-08
+
+* [Web] move to package:web.
+
 [0.9.48+hotfix.1] - 2024-02-05
 
 * [Android] bump version for libwebrtc.

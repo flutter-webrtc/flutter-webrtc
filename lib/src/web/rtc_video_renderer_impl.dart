@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:js_interop';
-import 'package:web/web.dart' as web;
 import 'dart:js_util' as jsutil;
 import 'dart:ui_web' as ui;
 
@@ -8,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:dart_webrtc/dart_webrtc.dart';
+import 'package:web/web.dart' as web;
 
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
