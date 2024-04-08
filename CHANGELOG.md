@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.10.1] - 2024-04-08
+
+* [Web] fix renderer issue for web.
+
 [0.10.0] - 2024-04-08
 
 * [Web] move to package:web.
