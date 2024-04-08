@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_util' as jsutil;
+import 'dart:ui_web' as web_ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -213,7 +214,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   }
 
   web.VideoElement? findHtmlView() {
-    return videoElement;
+    final element = web.document.getElementById(_elementIdForVideo);
+    if (null != element) return element as web.VideoElement;
+    return null;
   }
 
   @override
@@ -250,62 +253,62 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     return false;
   }
 
-  web.VideoElement? videoElement;
-
   @override
   Future<void> initialize() async {
-    // ignore: undefined_prefixed_name
-    for (var s in _subscriptions) {
-      s.cancel();
-    }
-    _subscriptions.clear();
+    web_ui.platformViewRegistry.registerViewFactory(viewType, (int viewId) {
+      for (var s in _subscriptions) {
+        s.cancel();
+      }
+      _subscriptions.clear();
 
-    final element = web.VideoElement()
-      ..autoplay = true
-      ..muted = true
-      ..controls = false
-      ..srcObject = _videoStream
-      ..id = _elementIdForVideo
-      ..setAttribute('playsinline', 'true');
+      final element = web.VideoElement()
+        ..autoplay = true
+        ..muted = true
+        ..controls = false
+        ..srcObject = _videoStream
+        ..id = _elementIdForVideo
+        ..setAttribute('playsinline', 'true');
 
-    _applyDefaultVideoStyles(element);
+      _applyDefaultVideoStyles(element);
 
-    _subscriptions.add(
-      element.onCanPlay.listen((dynamic _) {
-        _updateAllValues();
-      }),
-    );
+      _subscriptions.add(
+        element.onCanPlay.listen((dynamic _) {
+          _updateAllValues();
+        }),
+      );
 
-    _subscriptions.add(
-      element.onResize.listen((dynamic _) {
-        _updateAllValues();
-        onResize?.call();
-      }),
-    );
+      _subscriptions.add(
+        element.onResize.listen((dynamic _) {
+          _updateAllValues();
+          onResize?.call();
+        }),
+      );
 
-    // The error event fires when some form of error occurs while attempting to load or perform the media.
-    _subscriptions.add(
-      element.onError.listen((web.Event _) {
-        // The Event itself (_) doesn't contain info about the actual error.
-        // We need to look at the HTMLMediaElement.error.
-        // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
-        final error = element.error;
-        print('RTCVideoRenderer: videoElement.onError, ${error.toString()}');
-        throw PlatformException(
-          code: _kErrorValueToErrorName[error!.code]!,
-          message: error.message != '' ? error.message : _kDefaultErrorMessage,
-          details: _kErrorValueToErrorDescription[error.code],
-        );
-      }),
-    );
+      // The error event fires when some form of error occurs while attempting to load or perform the media.
+      _subscriptions.add(
+        element.onError.listen((web.Event _) {
+          // The Event itself (_) doesn't contain info about the actual error.
+          // We need to look at the HTMLMediaElement.error.
+          // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
+          final error = element.error;
+          print('RTCVideoRenderer: videoElement.onError, ${error.toString()}');
+          throw PlatformException(
+            code: _kErrorValueToErrorName[error!.code]!,
+            message:
+                error.message != '' ? error.message : _kDefaultErrorMessage,
+            details: _kErrorValueToErrorDescription[error.code],
+          );
+        }),
+      );
 
-    _subscriptions.add(
-      element.onEnded.listen((dynamic _) {
-        // print('RTCVideoRenderer: videoElement.onEnded');
-      }),
-    );
+      _subscriptions.add(
+        element.onEnded.listen((dynamic _) {
+          // print('RTCVideoRenderer: videoElement.onEnded');
+        }),
+      );
 
-    videoElement = element;
+      return element;
+    });
   }
 
   void _applyDefaultVideoStyles(web.VideoElement element) {
