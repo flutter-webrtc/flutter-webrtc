@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.10.2] - 2024-04-08
+
+* [Native/Web] feat: add keyRingSize/discardFrameWhenCryptorNotReady to KeyProviderOptions.
+
 [0.10.1] - 2024-04-08
 
 * [Web] fix renderer issue for web.
