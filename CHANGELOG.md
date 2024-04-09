@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.10.3] - 2024-04-09
+
+* [iOS/macOS] Fix compilation warning for iOS/macOS.
+
 [0.10.2] - 2024-04-08
 
 * [Native/Web] feat: add keyRingSize/discardFrameWhenCryptorNotReady to KeyProviderOptions.
