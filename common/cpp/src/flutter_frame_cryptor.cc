@@ -48,7 +48,8 @@ void FlutterFrameCryptorObserver::OnFrameCryptionStateChanged(
 
 bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
     const MethodCallProxy& method_call,
-    std::unique_ptr<MethodResultProxy> result) {
+    std::unique_ptr<MethodResultProxy> result,
+    std::unique_ptr<MethodResultProxy> *outResult) {
   const std::string& method_name = method_call.method_name();
   if (!method_call.arguments()) {
     result->Error("Bad Arguments", "Null arguments received");
@@ -102,7 +103,8 @@ bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
     KeyProviderDispose(params, std::move(result));
     return true;
   }
-
+  
+  *outResult = std::move(result);
   return false;
 }
 
