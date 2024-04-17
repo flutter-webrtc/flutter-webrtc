@@ -8,6 +8,7 @@ export 'src/api/transceiver.dart' if (dart.library.html) 'none.dart';
 export 'src/api/parameters.dart' if (dart.library.html) 'none.dart';
 export 'src/api/send_encoding_parameters.dart'
     if (dart.library.html) 'none.dart';
+export 'src/model/capability.dart' if (dart.library.html) 'none.dart';
 export 'src/model/constraints.dart' if (dart.library.html) 'none.dart';
 export 'src/model/constraints.dart' show FacingMode;
 export 'src/model/device.dart' if (dart.library.html) 'none.dart';

@@ -46,11 +46,24 @@ abstract class RtpSender {
   Future<void> setParameters(RtpParameters parameters);
 
   /// [RtpCapabilities] of an RTP sender of the specified [MediaKind].
-  Future<RtpCapabilities> getCapabilities(MediaKind kind);
+  static Future<RtpCapabilities> getCapabilities(MediaKind kind) {
+    if (isDesktop) {
+      return _RtpSenderFFI.getCapabilities(kind);
+    } else {
+      return _RtpSenderChannel.getCapabilities(kind);
+    }
+  }
 }
 
 /// [MethodChannel]-based implementation of a [RtpSender].
 class _RtpSenderChannel extends RtpSender {
+  /// [RtpCapabilities] of an RTP sender of the specified [MediaKind].
+  static Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
+    var map = await _peerConnectionFactoryMethodChannel
+        .invokeMethod('getRtpSenderCapabilities', {'kind': kind.index});
+    return RtpCapabilities.fromMap(map);
+  }
+
   /// Creates an [RtpSender] basing on the [Map] received from the native side.
   _RtpSenderChannel.fromMap(dynamic map) {
     _chan = methodChannel('RtpSender', map['channelId']);
@@ -81,17 +94,16 @@ class _RtpSenderChannel extends RtpSender {
   Future<void> setParameters(RtpParameters parameters) async {
     await _chan.invokeListMethod('setParameters', parameters.toMap());
   }
-
-  @override
-  Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
-    var map = await _peerConnectionFactoryMethodChannel
-        .invokeMethod('getRtpSenderCapabilities', {'kind': kind.index});
-    return RtpCapabilities.fromMap(map);
-  }
 }
 
 /// FFI-based implementation of a [RtpSender].
 class _RtpSenderFFI extends RtpSender {
+  /// [RtpCapabilities] of an RTP sender of the specified [MediaKind].
+  static Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
+    return RtpCapabilities.fromFFI(await api!
+        .getRtpSenderCapabilities(kind: ffi.MediaType.values[kind.index]));
+  }
+
   /// Native side peer connection.
   final ffi.ArcPeerConnection _peer;
 
@@ -121,11 +133,5 @@ class _RtpSenderFFI extends RtpSender {
   Future<void> setParameters(RtpParameters parameters) async {
     await api!.senderSetParameters(
         transceiver: _transceiver, params: parameters.toFFI());
-  }
-
-  @override
-  Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
-    return RtpCapabilities.fromFFI(await api!
-        .getRtpSenderCapabilities(kind: ffi.MediaType.values[kind.index]));
   }
 }
