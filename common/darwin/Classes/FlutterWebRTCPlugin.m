@@ -90,6 +90,7 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
   id _messenger;
   id _textures;
   BOOL _speakerOn;
+  BOOL _speakerOnButPreferBluetooth;
   AVAudioSessionPort _preferredInput;
 }
 
@@ -135,6 +136,7 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
     _textures = textures;
     _messenger = messenger;
     _speakerOn = NO;
+    _speakerOnButPreferBluetooth = NO;
     _eventChannel = eventChannel;
 #if TARGET_OS_IPHONE
     _preferredInput = AVAudioSessionPortHeadphones;
@@ -851,6 +853,7 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
     NSDictionary* argsMap = call.arguments;
     NSNumber* enable = argsMap[@"enable"];
     _speakerOn = enable.boolValue;
+    _speakerOnButPreferBluetooth = NO;
     [AudioUtils setSpeakerphoneOn:_speakerOn];
     result(nil);
   }
@@ -859,6 +862,8 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
     result(nil);
   }
   else if ([@"enableSpeakerphoneButPreferBluetooth" isEqualToString:call.method]) {
+    _speakerOn = YES;
+    _speakerOnButPreferBluetooth = YES;
     [AudioUtils setSpeakerphoneOnButPreferBluetooth];
     result(nil);
   }
@@ -1364,7 +1369,11 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
 - (void)ensureAudioSession {
 #if TARGET_OS_IPHONE
   [AudioUtils ensureAudioSessionWithRecording:[self hasLocalAudioTrack]];
-  [AudioUtils setSpeakerphoneOn:_speakerOn];
+  if (_speakerOnButPreferBluetooth) {
+    [AudioUtils setSpeakerphoneOnButPreferBluetooth];
+  } else {
+    [AudioUtils setSpeakerphoneOn:_speakerOn];
+  }
 #endif
 }
 
