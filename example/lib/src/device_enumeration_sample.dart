@@ -35,8 +35,9 @@ class DeviceEnumerationSample extends StatefulWidget {
 
 class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   MediaStream? _localStream;
-  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
-  final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+  MediaStream? _remoteStream;
+  RTCVideoPlatformViewController? _localRenderer;
+  RTCVideoPlatformViewController? _remoteRenderer;
   bool _inCalling = false;
 
   List<MediaDeviceInfo> _devices = [];
@@ -76,8 +77,8 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   void deactivate() {
     super.deactivate();
     _stop();
-    _localRenderer.dispose();
-    _remoteRenderer.dispose();
+    _localRenderer?.dispose();
+    _remoteRenderer?.dispose();
     navigator.mediaDevices.ondevicechange = null;
   }
 
@@ -91,7 +92,8 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
 
     pc2?.onTrack = (event) {
       if (event.track.kind == 'video') {
-        _remoteRenderer.srcObject = event.streams[0];
+        _remoteRenderer?.srcObject = event.streams[0];
+        _remoteStream = event.streams[0];
         setState(() {});
       }
     };
@@ -198,7 +200,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     if (!_inCalling) {
       return;
     }
-    await _localRenderer.audioOutput(deviceId!);
+    await _localRenderer?.audioOutput(deviceId!);
   }
 
   var _speakerphoneOn = false;
@@ -216,7 +218,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     }
     // 2) replace track.
     // stop old track.
-    _localRenderer.srcObject = null;
+    _localRenderer?.srcObject = null;
 
     _localStream?.getTracks().forEach((track) async {
       await track.stop();
@@ -238,7 +240,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
       },
     });
     _localStream = newLocalStream;
-    _localRenderer.srcObject = _localStream;
+    _localRenderer?.srcObject = _localStream;
     // replace track.
     var newTrack = _localStream?.getVideoTracks().first;
     print('track.settings ' + newTrack!.getSettings().toString());
@@ -253,8 +255,8 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   }
 
   Future<void> initRenderers() async {
-    await _localRenderer.initialize();
-    await _remoteRenderer.initialize();
+    await _localRenderer?.initialize();
+    await _remoteRenderer?.initialize();
   }
 
   Future<void> _start() async {
@@ -273,7 +275,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
           'frameRate': _selectedVideoFPS,
         },
       });
-      _localRenderer.srcObject = _localStream;
+      _localRenderer?.srcObject = _localStream;
       _inCalling = true;
 
       await initPCs();
@@ -298,8 +300,8 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
       });
       await _localStream?.dispose();
       _localStream = null;
-      _localRenderer.srcObject = null;
-      _remoteRenderer.srcObject = null;
+      _localRenderer?.srcObject = null;
+      _remoteRenderer?.srcObject = null;
       senders.clear();
       _inCalling = false;
       await stopPCs();
@@ -420,15 +422,24 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
                       child: Container(
                         margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                         decoration: BoxDecoration(color: Colors.black54),
-                        child: RTCVideoView(_localRenderer),
+                        child: RTCVideoPlatFormView(
+                          onViewReady: (p0) {
+                            _localRenderer = p0;
+                            _localRenderer?.srcObject = _localStream;
+                          },
+                        ),
                       ),
                     ),
                     Expanded(
                       child: Container(
-                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                        decoration: BoxDecoration(color: Colors.black54),
-                        child: RTCVideoView(_remoteRenderer),
-                      ),
+                          margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                          decoration: BoxDecoration(color: Colors.black54),
+                          child: RTCVideoPlatFormView(
+                            onViewReady: (p0) {
+                              _remoteRenderer = p0;
+                              _remoteRenderer?.srcObject = _remoteStream;
+                            },
+                          )),
                     ),
                   ],
                 )),
