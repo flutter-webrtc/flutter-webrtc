@@ -18,7 +18,7 @@ class GetUserMediaSample extends StatefulWidget {
 
 class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   MediaStream? _localStream;
-  final _localRenderer = RTCVideoRenderer();
+  RTCVideoPlatformViewController? _localRenderer;
   bool _inCalling = false;
   bool _isTorchOn = false;
   MediaRecorder? _mediaRecorder;
@@ -43,12 +43,12 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     if (_inCalling) {
       _hangUp();
     }
-    _localRenderer.dispose();
+    _localRenderer?.dispose();
     navigator.mediaDevices.ondevicechange = null;
   }
 
   void initRenderers() async {
-    await _localRenderer.initialize();
+    await _localRenderer?.initialize();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -71,7 +71,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       var stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
       _localStream = stream;
-      _localRenderer.srcObject = _localStream;
+      _localRenderer?.srcObject = _localStream;
     } catch (e) {
       print(e.toString());
     }
@@ -88,7 +88,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
         _localStream?.getTracks().forEach((track) => track.stop());
       }
       await _localStream?.dispose();
-      _localRenderer.srcObject = null;
+      _localRenderer?.srcObject = null;
       setState(() {
         _inCalling = false;
       });
@@ -243,7 +243,12 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                   setZoom(details.scale);
                 }
               },
-              child: RTCVideoView(_localRenderer, mirror: true),
+              child: RTCVideoPlatFormView(
+                onViewReady: (p0) {
+                  _localRenderer = p0;
+                  _localRenderer?.srcObject = _localStream;
+                },
+              ),
             ),
           ));
         },
@@ -257,6 +262,6 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   }
 
   void _selectAudioOutput(String deviceId) {
-    _localRenderer.audioOutput(deviceId);
+    _localRenderer?.audioOutput(deviceId);
   }
 }

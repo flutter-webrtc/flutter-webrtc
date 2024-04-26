@@ -6,6 +6,8 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
 #import "FlutterRTCFrameCryptor.h"
+#import "FlutterRTCVideoPlatformViewFactory.h"
+#import "FlutterRTCVideoPlatformViewController.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/RTCFieldTrials.h>
@@ -92,6 +94,7 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
   BOOL _speakerOn;
   BOOL _speakerOnButPreferBluetooth;
   AVAudioSessionPort _preferredInput;
+  FLutterRTCVideoPlatformViewFactory *_platformViewFactory;
 }
 
 @synthesize messenger = _messenger;
@@ -142,6 +145,8 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
     _preferredInput = AVAudioSessionPortHeadphones;
     self.viewController = viewController;
 #endif
+    _platformViewFactory  = [[FLutterRTCVideoPlatformViewFactory alloc] initWithMessenger:messenger];
+      [registrar registerViewFactory:_platformViewFactory withId:FLutterRTCVideoPlatformViewFactoryID];
   }
 
   NSDictionary* fieldTrials = @{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue};
@@ -754,7 +759,49 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
     }
     [self rendererSetSrcObject:render stream:videoTrack];
     result(nil);
-  } else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {
+  } else if ([@"videoPlatformViewRendererSetSrcObject" isEqualToString:call.method]) {
+      NSDictionary* argsMap = call.arguments;
+      NSNumber* viewId = argsMap[@"viewId"];
+      FlutterRTCVideoPlatformViewController* render = _platformViewFactory.renders[viewId];
+      NSString* streamId = argsMap[@"streamId"];
+      NSString* ownerTag = argsMap[@"ownerTag"];
+      NSString* trackId = argsMap[@"trackId"];
+      if (!render) {
+        result([FlutterError errorWithCode:@"videoRendererSetSrcObject: render is nil"
+                                   message:nil
+                                   details:nil]);
+        return;
+      }
+      RTCMediaStream* stream = nil;
+      RTCVideoTrack* videoTrack = nil;
+      if ([ownerTag isEqualToString:@"local"]) {
+        stream = _localStreams[streamId];
+      }
+      if (!stream) {
+        stream = [self streamForId:streamId peerConnectionId:ownerTag];
+      }
+      if (stream) {
+        NSArray* videoTracks = stream ? stream.videoTracks : nil;
+        videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
+        for (RTCVideoTrack* track in videoTracks) {
+          if ([track.trackId isEqualToString:trackId]) {
+            videoTrack = track;
+          }
+        }
+        if (!videoTrack) {
+          NSLog(@"Not found video track for RTCMediaStream: %@", streamId);
+        }
+      }
+      render.videoTrack = videoTrack;
+      result(nil);
+    } else if ([@"videoPlatformViewRendererDispose" isEqualToString:call.method]) {
+      NSDictionary* argsMap = call.arguments;
+      NSNumber* viewId = argsMap[@"viewId"];
+      FlutterRTCVideoPlatformViewController* render = _platformViewFactory.renders[viewId];
+      render.videoTrack = nil;
+      [_platformViewFactory.renders removeObjectForKey:viewId];
+      result(nil);
+    } else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
     RTCMediaStreamTrack* track = self.localTracks[trackId];
