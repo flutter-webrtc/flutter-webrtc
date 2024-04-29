@@ -6,9 +6,10 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
 #import "FlutterRTCFrameCryptor.h"
+#if TARGET_OS_IPHONE
 #import "FlutterRTCVideoPlatformViewFactory.h"
 #import "FlutterRTCVideoPlatformViewController.h"
-
+#endif
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/RTCFieldTrials.h>
 #import <WebRTC/WebRTC.h>
@@ -94,7 +95,9 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
   BOOL _speakerOn;
   BOOL _speakerOnButPreferBluetooth;
   AVAudioSessionPort _preferredInput;
+#if TARGET_OS_IPHONE
   FLutterRTCVideoPlatformViewFactory *_platformViewFactory;
+#endif
 }
 
 @synthesize messenger = _messenger;
@@ -144,9 +147,9 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
 #if TARGET_OS_IPHONE
     _preferredInput = AVAudioSessionPortHeadphones;
     self.viewController = viewController;
-#endif
     _platformViewFactory  = [[FLutterRTCVideoPlatformViewFactory alloc] initWithMessenger:messenger];
-      [registrar registerViewFactory:_platformViewFactory withId:FLutterRTCVideoPlatformViewFactoryID];
+    [registrar registerViewFactory:_platformViewFactory withId:FLutterRTCVideoPlatformViewFactoryID];
+#endif
   }
 
   NSDictionary* fieldTrials = @{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue};
@@ -759,7 +762,9 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
     }
     [self rendererSetSrcObject:render stream:videoTrack];
     result(nil);
-  } else if ([@"videoPlatformViewRendererSetSrcObject" isEqualToString:call.method]) {
+  }
+#if TARGET_OS_IPHONE
+  else if ([@"videoPlatformViewRendererSetSrcObject" isEqualToString:call.method]) {
       NSDictionary* argsMap = call.arguments;
       NSNumber* viewId = argsMap[@"viewId"];
       FlutterRTCVideoPlatformViewController* render = _platformViewFactory.renders[viewId];
@@ -801,7 +806,9 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
       render.videoTrack = nil;
       [_platformViewFactory.renders removeObjectForKey:viewId];
       result(nil);
-    } else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {
+    }
+#endif
+     else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
     RTCMediaStreamTrack* track = self.localTracks[trackId];
