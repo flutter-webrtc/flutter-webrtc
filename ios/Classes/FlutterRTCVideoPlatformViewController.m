@@ -9,7 +9,6 @@
     CGSize _frameSize;
     CGSize _renderSize;
     RTCVideoRotation _rotation;
-    dispatch_queue_t _syncQueue;
 }
 
 @synthesize messenger = _messenger;
@@ -33,7 +32,6 @@
             eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/PlatformViewId%lld", viewId]
                  binaryMessenger:messenger];
         [_eventChannel setStreamHandler:self];
-        _syncQueue = dispatch_queue_create("com.github.flutter-webrtc.PlatformViewQueue", DISPATCH_QUEUE_SERIAL);
     }
     
     return self;
@@ -91,18 +89,17 @@
     _rotation = frame.rotation;
   }
 
-  dispatch_sync(_syncQueue, ^{
-    [_videoView.videoRenderer renderFrame:frame];
-    if (!_isFirstFrameRendered) {
-        if (self.eventSink) {
-          postEvent(self.eventSink, @{@"event" : @"didFirstFrameRendered"});
-        }
-        self->_isFirstFrameRendered = true;
-        dispatch_sync(dispatch_get_main_queue(), ^{
-            [self updateVisible:YES];
-        });
-   }
-  });
+
+  [_videoView.videoRenderer renderFrame:frame];
+  if (!_isFirstFrameRendered) {
+    if (self.eventSink) {
+      postEvent(self.eventSink, @{@"event" : @"didFirstFrameRendered"});
+    }
+    self->_isFirstFrameRendered = true;
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        [self updateVisible:YES];
+    });
+  }
 }
 
 /**
@@ -114,9 +111,7 @@
   if (size.width != _frameSize.width || size.height != _frameSize.height) {
     _frameSize = size;
   }
-  dispatch_sync(_syncQueue, ^{
-    [_videoView.videoRenderer setSize:size];
-  });
+  [_videoView.videoRenderer setSize:size];
 }
 
 #pragma mark - FlutterStreamHandler methods
