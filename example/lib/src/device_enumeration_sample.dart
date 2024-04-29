@@ -423,6 +423,9 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
                         margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                         decoration: BoxDecoration(color: Colors.black54),
                         child: RTCVideoPlatFormView(
+                          objectFit: RTCVideoViewObjectFit
+                              .RTCVideoViewObjectFitContain,
+                          mirror: true,
                           onViewReady: (p0) {
                             _localRenderer = p0;
                             _localRenderer?.srcObject = _localStream;

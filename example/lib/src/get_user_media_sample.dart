@@ -244,6 +244,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                 }
               },
               child: RTCVideoPlatFormView(
+                objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+                mirror: true,
                 onViewReady: (p0) {
                   _localRenderer = p0;
                   _localRenderer?.srcObject = _localStream;

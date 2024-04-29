@@ -9,6 +9,7 @@
     CGSize _frameSize;
     CGSize _renderSize;
     RTCVideoRotation _rotation;
+    dispatch_queue_t _syncQueue;
 }
 
 @synthesize messenger = _messenger;
@@ -32,6 +33,7 @@
             eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/PlatformViewId%lld", viewId]
                  binaryMessenger:messenger];
         [_eventChannel setStreamHandler:self];
+        _syncQueue = dispatch_queue_create("com.github.flutter-webrtc.PlatformViewQueue", DISPATCH_QUEUE_SERIAL);
     }
     
     return self;
@@ -47,60 +49,60 @@
     return;
   }
   _videoTrack = videoTrack;
+  _isFirstFrameRendered = NO;
+  if(videoTrack == nil) {
+    [self updateVisible:NO];
+  }
   if(!oldValue) {
     [oldValue removeRenderer:(id<RTCVideoRenderer>)self];
-    [self renderFrame:nil];
   }
   if(videoTrack) {
     [videoTrack addRenderer:(id<RTCVideoRenderer>)self];
   }
 }
 
+-(void)updateVisible:(bool)visible {
+    [_videoView setHidden:!visible];
+}
+
 #pragma mark - RTCVideoRenderer methods
 - (void)renderFrame:(RTCVideoFrame*)frame {
-  __weak FlutterRTCVideoPlatformViewController* weakSelf = self;
+
   if (_renderSize.width != frame.width || _renderSize.height != frame.height) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        FlutterRTCVideoPlatformViewController* strongSelf = weakSelf;
-      if (strongSelf.eventSink) {
-        postEvent( strongSelf.eventSink, @{
+      if (self.eventSink) {
+        postEvent( self.eventSink, @{
           @"event" : @"didPlatformViewChangeVideoSize",
-          @"id" : @(strongSelf.viewId),
+          @"id" : @(self.viewId),
           @"width" : @(frame.width),
           @"height" : @(frame.height),
         });
       }
-    });
     _renderSize = CGSizeMake(frame.width, frame.height);
   }
 
   if (frame.rotation != _rotation) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        FlutterRTCVideoPlatformViewController* strongSelf = weakSelf;
-      if (strongSelf.eventSink) {
-        postEvent( strongSelf.eventSink,@{
+      if (self.eventSink) {
+        postEvent( self.eventSink,@{
           @"event" : @"didPlatformViewChangeRotation",
-          @"id" : @(strongSelf.viewId),
+          @"id" : @(self.viewId),
           @"rotation" : @(frame.rotation),
         });
       }
-    });
-
     _rotation = frame.rotation;
   }
 
-  // Notify the Flutter new pixelBufferRef to be ready.
-  dispatch_async(dispatch_get_main_queue(), ^{
-      FlutterRTCVideoPlatformViewController* strongSelf = weakSelf;
-    if (!strongSelf->_isFirstFrameRendered) {
-      if (strongSelf.eventSink) {
-        postEvent(strongSelf.eventSink, @{@"event" : @"didFirstFrameRendered"});
-        strongSelf->_isFirstFrameRendered = true;
-      }
-    }
+  dispatch_sync(_syncQueue, ^{
+    [_videoView.videoRenderer renderFrame:frame];
+    if (!_isFirstFrameRendered) {
+        if (self.eventSink) {
+          postEvent(self.eventSink, @{@"event" : @"didFirstFrameRendered"});
+        }
+        self->_isFirstFrameRendered = true;
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            [self updateVisible:YES];
+        });
+   }
   });
-    
-  [_videoView.videoRenderer renderFrame:frame];
 }
 
 /**
@@ -112,8 +114,9 @@
   if (size.width != _frameSize.width || size.height != _frameSize.height) {
     _frameSize = size;
   }
-    
-  [_videoView.videoRenderer setSize:size];
+  dispatch_sync(_syncQueue, ^{
+    [_videoView.videoRenderer setSize:size];
+  });
 }
 
 #pragma mark - FlutterStreamHandler methods
