@@ -74,15 +74,7 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
         onPlatformViewCreated: onPlatformViewCreated,
       );
     }
-    /*
-    else if (defaultTargetPlatform == TargetPlatform.android) {
-      return AndroidView(
-        viewType: viewType,
-        onPlatformViewCreated: onPlatformViewCreated,
-      );
-    } 
-    */
-    return Text('$defaultTargetPlatform is not yet supported by this plugin.');
+    return Text('RTCVideoPlatformView only support for iOS.');
   }
 
   Future<void> onPlatformViewCreated(int id) async {
