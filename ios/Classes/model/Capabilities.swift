@@ -7,12 +7,12 @@ class HeaderExtensionCapability {
   var uri: String
 
   /// Preferred value of ID that goes in the packet.
-  var preferredId: Int
+  var preferredId: Int?
 
   /// If `true`, it's preferred that the value in the header is encrypted.
   var preferredEncrypted: Bool
 
-  init(uri: String, preferredId: Int, preferredEncrypted: Bool) {
+  init(uri: String, preferredId: Int?, preferredEncrypted: Bool) {
     self.uri = uri
     self.preferredId = preferredId
     self.preferredEncrypted = preferredEncrypted

@@ -2220,6 +2220,7 @@ pub(crate) mod webrtc {
         );
     }
 
+    #[allow(dead_code)]
     #[rustfmt::skip]
     unsafe extern "C++" {
         pub type RTCMediaSourceStats;

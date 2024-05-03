@@ -8,18 +8,27 @@ enum MediaType: Int {
   /// Video media.
   case video
 
-  static func fromWebRtc(kind: RTCRtpMediaType)
-    -> MediaType
-  {
+  /// Converts the provided `RTCRtpMediaType` into a `MediaType`.
+  static func fromWebRtc(kind: RTCRtpMediaType) -> MediaType? {
     switch kind {
     case .audio:
       return MediaType.audio
     case .video:
       return MediaType.video
-    case .data:
+    default:
+      return nil
+    }
+  }
+
+  /// Creates this `RTCRTPMediaType` from `String`.
+  static func fromString(kind: String) -> MediaType? {
+    switch kind {
+    case "audio":
+      return MediaType.audio
+    case "video":
       return MediaType.video
-    case .unsupported:
-      return MediaType.video
+    default:
+      return nil
     }
   }
 
@@ -30,6 +39,16 @@ enum MediaType: Int {
       return RTCRtpMediaType.audio
     case .video:
       return RTCRtpMediaType.video
+    }
+  }
+
+  /// Converts this `MediaType` into a `String`.
+  func toString() -> String {
+    switch self {
+    case .audio:
+      return "audio"
+    case .video:
+      return "video"
     }
   }
 }
