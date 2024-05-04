@@ -222,7 +222,6 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
 #endif
 }
 
-<<<<<<< HEAD
 - (void)initialize:(NSArray*)networkIgnoreMask {
     // RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
     if (!_peerConnectionFactory) {
