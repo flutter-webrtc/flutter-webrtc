@@ -117,8 +117,10 @@ class GetUserMediaImpl {
     private final SparseArray<MediaRecorderImpl> mediaRecorders = new SparseArray<>();
     private AudioDeviceInfo preferredInput = null;
     private boolean isTorchOn;
+    private Intent mediaProjectionData = null;
 
     public void screenRequestPermissions(ResultReceiver resultReceiver) {
+        mediaProjectionData = null;
         final Activity activity = stateProvider.getActivity();
         if (activity == null) {
             // Activity went away, nothing we can do.
@@ -143,6 +145,22 @@ class GetUserMediaImpl {
         } catch (IllegalStateException ise) {
 
         }
+    }
+
+    public void requestCapturePermission(final Result result) {
+        screenRequestPermissions(
+                new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                    @Override
+                    protected void onReceiveResult(int requestCode, Bundle resultData) {
+                        int resultCode = resultData.getInt(GRANT_RESULTS);
+                        if (resultCode == Activity.RESULT_OK) {
+                            mediaProjectionData = resultData.getParcelable(PROJECTION_DATA);
+                            result.success(true);
+                        } else {
+                            result.success(false);
+                        }
+                    }
+                });
     }
 
     public static class ScreenRequestPermissionsFragment extends Fragment {
@@ -477,116 +495,121 @@ class GetUserMediaImpl {
 
     void getDisplayMedia(
             final ConstraintsMap constraints, final Result result, final MediaStream mediaStream) {
+        if (mediaProjectionData == null) {
+            screenRequestPermissions(
+                    new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                        @Override
+                        protected void onReceiveResult(int requestCode, Bundle resultData) {
+                            Intent mediaProjectionData = resultData.getParcelable(PROJECTION_DATA);
+                            int resultCode = resultData.getInt(GRANT_RESULTS);
 
-        screenRequestPermissions(
-                new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                    @Override
-                    protected void onReceiveResult(int requestCode, Bundle resultData) {
-
-                        /* Create ScreenCapture */
-                        int resultCode = resultData.getInt(GRANT_RESULTS);
-                        Intent mediaProjectionData = resultData.getParcelable(PROJECTION_DATA);
-
-                        if (resultCode != Activity.RESULT_OK) {
-                            resultError("screenRequestPermissions", "User didn't give permission to capture the screen.", result);
-                            return;
-                        }
-
-                        MediaStreamTrack[] tracks = new MediaStreamTrack[1];
-                        VideoCapturer videoCapturer = null;
-                        videoCapturer =
-                                new OrientationAwareScreenCapturer(
-                                        mediaProjectionData,
-                                        new MediaProjection.Callback() {
-                                            @Override
-                                            public void onStop() {
-                                                super.onStop();
-                                                // After Huawei P30 and Android 10 version test, the onstop method is called, which will not affect the next process, 
-                                                // and there is no need to call the resulterror method
-                                                //resultError("MediaProjection.Callback()", "User revoked permission to capture the screen.", result);
-                                            }
-                                        });
-                        if (videoCapturer == null) {
-                            resultError("screenRequestPermissions", "GetDisplayMediaFailed, User revoked permission to capture the screen.", result);
-                            return;
-                        }
-
-                        PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
-                        VideoSource videoSource = pcFactory.createVideoSource(true);
-
-                        String threadName = Thread.currentThread().getName() + "_texture_screen_thread";
-                        SurfaceTextureHelper surfaceTextureHelper =
-                                SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
-                        videoCapturer.initialize(
-                                surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
-
-                        WindowManager wm =
-                                (WindowManager) applicationContext.getSystemService(Context.WINDOW_SERVICE);
-
-                        Display display = wm.getDefaultDisplay();
-                        Point size = new Point();
-                        display.getRealSize(size);
-
-                        VideoCapturerInfo info = new VideoCapturerInfo();
-                        info.width= size.x;
-                        info.height = size.y;
-                        info.fps = DEFAULT_FPS;
-                        info.isScreenCapture = true;
-                        info.capturer = videoCapturer;
-
-                        videoCapturer.startCapture(info.width, info.height, info.fps);
-                        Log.d(TAG, "OrientationAwareScreenCapturer.startCapture: " + info.width + "x" + info.height + "@" + info.fps);
-
-                        String trackId = stateProvider.getNextTrackUUID();
-                        mVideoCapturers.put(trackId, info);
-
-                        tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
-
-                        ConstraintsArray audioTracks = new ConstraintsArray();
-                        ConstraintsArray videoTracks = new ConstraintsArray();
-                        ConstraintsMap successResult = new ConstraintsMap();
-
-                        for (MediaStreamTrack track : tracks) {
-                            if (track == null) {
-                                continue;
+                            if (resultCode != Activity.RESULT_OK) {
+                                resultError("screenRequestPermissions", "User didn't give permission to capture the screen.", result);
+                                return;
                             }
-
-                            String id = track.id();
-
-                            if (track instanceof AudioTrack) {
-                                mediaStream.addTrack((AudioTrack) track);
-                            } else {
-                                mediaStream.addTrack((VideoTrack) track);
-                            }
-                            stateProvider.putLocalTrack(id, track);
-
-                            ConstraintsMap track_ = new ConstraintsMap();
-                            String kind = track.kind();
-
-                            track_.putBoolean("enabled", track.enabled());
-                            track_.putString("id", id);
-                            track_.putString("kind", kind);
-                            track_.putString("label", kind);
-                            track_.putString("readyState", track.state().toString());
-                            track_.putBoolean("remote", false);
-
-                            if (track instanceof AudioTrack) {
-                                audioTracks.pushMap(track_);
-                            } else {
-                                videoTracks.pushMap(track_);
-                            }
+                            getDisplayMedia(result, mediaStream, mediaProjectionData);
                         }
+                    });
+        } else {
+            getDisplayMedia(result, mediaStream, mediaProjectionData);
+        }
+    }
 
-                        String streamId = mediaStream.getId();
+    private void getDisplayMedia(final Result result, final MediaStream mediaStream, final Intent mediaProjectionData) {
+        /* Create ScreenCapture */
+        MediaStreamTrack[] tracks = new MediaStreamTrack[1];
+        VideoCapturer videoCapturer = null;
+        videoCapturer =
+                new OrientationAwareScreenCapturer(
+                        mediaProjectionData,
+                        new MediaProjection.Callback() {
+                            @Override
+                            public void onStop() {
+                                super.onStop();
+                                // After Huawei P30 and Android 10 version test, the onstop method is called, which will not affect the next process,
+                                // and there is no need to call the resulterror method
+                                //resultError("MediaProjection.Callback()", "User revoked permission to capture the screen.", result);
+                            }
+                        });
+        if (videoCapturer == null) {
+            resultError("screenRequestPermissions", "GetDisplayMediaFailed, User revoked permission to capture the screen.", result);
+            return;
+        }
 
-                        Log.d(TAG, "MediaStream id: " + streamId);
-                        stateProvider.putLocalStream(streamId, mediaStream);
-                        successResult.putString("streamId", streamId);
-                        successResult.putArray("audioTracks", audioTracks.toArrayList());
-                        successResult.putArray("videoTracks", videoTracks.toArrayList());
-                        result.success(successResult.toMap());
-                    }
-                });
+        PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
+        VideoSource videoSource = pcFactory.createVideoSource(true);
+
+        String threadName = Thread.currentThread().getName() + "_texture_screen_thread";
+        SurfaceTextureHelper surfaceTextureHelper =
+                SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
+        videoCapturer.initialize(
+                surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
+
+        WindowManager wm =
+                (WindowManager) applicationContext.getSystemService(Context.WINDOW_SERVICE);
+
+        Display display = wm.getDefaultDisplay();
+        Point size = new Point();
+        display.getRealSize(size);
+
+        VideoCapturerInfo info = new VideoCapturerInfo();
+        info.width = size.x;
+        info.height = size.y;
+        info.fps = DEFAULT_FPS;
+        info.isScreenCapture = true;
+        info.capturer = videoCapturer;
+
+        videoCapturer.startCapture(info.width, info.height, info.fps);
+        Log.d(TAG, "OrientationAwareScreenCapturer.startCapture: " + info.width + "x" + info.height + "@" + info.fps);
+
+        String trackId = stateProvider.getNextTrackUUID();
+        mVideoCapturers.put(trackId, info);
+
+        tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
+
+        ConstraintsArray audioTracks = new ConstraintsArray();
+        ConstraintsArray videoTracks = new ConstraintsArray();
+        ConstraintsMap successResult = new ConstraintsMap();
+
+        for (MediaStreamTrack track : tracks) {
+            if (track == null) {
+                continue;
+            }
+
+            String id = track.id();
+
+            if (track instanceof AudioTrack) {
+                mediaStream.addTrack((AudioTrack) track);
+            } else {
+                mediaStream.addTrack((VideoTrack) track);
+            }
+            stateProvider.putLocalTrack(id, track);
+
+            ConstraintsMap track_ = new ConstraintsMap();
+            String kind = track.kind();
+
+            track_.putBoolean("enabled", track.enabled());
+            track_.putString("id", id);
+            track_.putString("kind", kind);
+            track_.putString("label", kind);
+            track_.putString("readyState", track.state().toString());
+            track_.putBoolean("remote", false);
+
+            if (track instanceof AudioTrack) {
+                audioTracks.pushMap(track_);
+            } else {
+                videoTracks.pushMap(track_);
+            }
+        }
+
+        String streamId = mediaStream.getId();
+
+        Log.d(TAG, "MediaStream id: " + streamId);
+        stateProvider.putLocalStream(streamId, mediaStream);
+        successResult.putString("streamId", streamId);
+        successResult.putArray("audioTracks", audioTracks.toArrayList());
+        successResult.putArray("videoTracks", videoTracks.toArrayList());
+        result.success(successResult.toMap());
     }
 
     /**

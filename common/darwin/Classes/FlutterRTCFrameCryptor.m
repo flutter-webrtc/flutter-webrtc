@@ -349,13 +349,19 @@
   NSNumber* failureTolerance = keyProviderOptions[@"failureTolerance"];
 
   FlutterStandardTypedData* uncryptedMagicBytes = keyProviderOptions[@"uncryptedMagicBytes"];
+
+  NSNumber* keyRingSize = keyProviderOptions[@"keyRingSize"];
+
+  NSNumber* discardFrameWhenCryptorNotReady = keyProviderOptions[@"discardFrameWhenCryptorNotReady"];
   
   RTCFrameCryptorKeyProvider* keyProvider =
       [[RTCFrameCryptorKeyProvider alloc] initWithRatchetSalt:ratchetSalt.data
                                            ratchetWindowSize:[ratchetWindowSize intValue]
                                                sharedKeyMode:[sharedKey boolValue]
                                          uncryptedMagicBytes: uncryptedMagicBytes != nil ? uncryptedMagicBytes.data : nil
-                                            failureTolerance:failureTolerance != nil ? [failureTolerance intValue] : -1];
+                                            failureTolerance:failureTolerance != nil ? [failureTolerance intValue] : -1
+                                                 keyRingSize:keyRingSize != nil ? [keyRingSize intValue] : 0
+                             discardFrameWhenCryptorNotReady:discardFrameWhenCryptorNotReady != nil ? [discardFrameWhenCryptorNotReady boolValue] : NO];
   self.keyProviders[keyProviderId] = keyProvider;
   result(@{@"keyProviderId" : keyProviderId});
 }

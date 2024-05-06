@@ -137,7 +137,7 @@
                        dstUV:dstUV
                  dstStrideUV:(int)dstUVStride
                        width:i420Buffer.width
-                       width:i420Buffer.height];
+                      height:i420Buffer.height];
   } else {
     uint8_t* dst = CVPixelBufferGetBaseAddress(outputPixelBuffer);
     const size_t bytesPerRow = CVPixelBufferGetBytesPerRow(outputPixelBuffer);
