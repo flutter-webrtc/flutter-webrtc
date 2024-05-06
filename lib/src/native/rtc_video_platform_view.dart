@@ -25,7 +25,6 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
 
   @override
   void dispose() {
-    _controller?.dispose();
     super.dispose();
   }
 
@@ -49,7 +48,8 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
               : BoxFit.cover,
           child: Center(
             child: SizedBox(
-              width: constraints.maxHeight * 1.0,
+              width: constraints.maxHeight *
+                  (_controller?.value.aspectRatio ?? 1.0),
               height: constraints.maxHeight,
               child: Transform(
                 transform: Matrix4.identity()
@@ -81,5 +81,12 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
     final controller = RTCVideoPlatformViewController(id);
     _controller = controller;
     widget.onViewReady?.call(controller);
+    controller.onFirstFrameRendered = () {
+      setState(() {});
+    };
+    controller.onResize = () {
+      setState(() {});
+    };
+    await _controller?.initialize();
   }
 }

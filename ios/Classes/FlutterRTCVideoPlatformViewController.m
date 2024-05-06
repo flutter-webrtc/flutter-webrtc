@@ -47,7 +47,10 @@
     return;
   }
   _videoTrack = videoTrack;
-  _isFirstFrameRendered = NO;
+  _isFirstFrameRendered = false;
+  _frameSize = CGSizeZero;
+  _renderSize = CGSizeZero;
+  _rotation = -1;
   if(videoTrack == nil) {
     [self updateVisible:NO];
   }

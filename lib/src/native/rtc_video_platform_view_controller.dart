@@ -50,6 +50,7 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
     }
     if (_viewId == null) throw 'Call initialize before setting the stream';
     _srcObject = stream;
+    _reset();
     WebRTC.invokeMethod(
         'videoPlatformViewRendererSetSrcObject', <String, dynamic>{
       'viewId': _viewId,
@@ -100,13 +101,12 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
           'viewId': _viewId,
         });
         _viewId = null;
-        _disposed = true;
       } on PlatformException catch (e) {
         throw 'Failed to RTCVideoPlatformController::dispose: ${e.message}';
       }
     }
-
-    return super.dispose();
+    _disposed = true;
+    super.dispose();
   }
 
   void eventListener(dynamic event) {
@@ -143,6 +143,11 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
 
   @override
   bool get muted => _srcObject?.getAudioTracks()[0].muted ?? true;
+
+  void _reset() {
+    value = value.copyWith(
+        width: 0.0, height: 0.0, renderVideo: false, rotation: 0);
+  }
 
   @override
   set muted(bool mute) {
