@@ -1,6 +1,13 @@
 # Changelog
 
 --------------------------------------------
+[0.10.4] - 2024-05-06
+
+* [iOS/macOS] chore: update swift webrtc sdks to 114.5735.10 (#1576)
+* [Android] fix: actually call selectAudioOutput in enableSpeakerButPreferBluetooth
+* [iOS] fix: remember speakerphone mode for ensureAudioSession (#1568)
+* [Windows/Linux] Fix handling of unimplemented method (#1563)
+
 [0.10.3] - 2024-04-09
 
 * [iOS/macOS] Fix compilation warning for iOS/macOS.
