@@ -2,16 +2,17 @@
 
 @implementation FlutterRTCVideoPlatformView {
     CGSize _videoSize;
+    RTCMTLVideoView *_videoView;
 }
 
 @synthesize videoRenderer = _videoRenderer;
 
 - (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
-        RTCMTLVideoView *videoView = [[RTC_OBJC_TYPE(RTCMTLVideoView) alloc] initWithFrame:CGRectZero];
-        videoView.delegate = self;
-        videoView.videoContentMode = UIViewContentModeScaleAspectFit;
-        _videoRenderer = videoView;
+        _videoView = [[RTC_OBJC_TYPE(RTCMTLVideoView) alloc] initWithFrame:CGRectZero];
+        _videoView.delegate = self;
+        _videoRenderer = _videoView;
+        self.opaque = NO;
         [self addSubview:_videoRenderer];
     }
     return self;
@@ -20,6 +21,15 @@
 - (void)layoutSubviews {
     CGRect bounds = self.bounds;
     _videoRenderer.frame = bounds;
+}
+
+-(void)setObjectFit:(NSNumber *)index {
+    if ([index intValue] == 0) {
+        _videoView.videoContentMode = UIViewContentModeScaleAspectFit;
+    } else if([index intValue] == 1) {
+        // for Cover mode
+        _videoView.videoContentMode = UIViewContentModeCenter;
+    }
 }
 
 #pragma mark - RTC_OBJC_TYPE(RTCVideoViewDelegate)

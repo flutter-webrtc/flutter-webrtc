@@ -12,4 +12,6 @@
 
 - (instancetype)initWithFrame:(CGRect)frame;
 
+-(void)setObjectFit:(NSNumber *)index;
+
 @end

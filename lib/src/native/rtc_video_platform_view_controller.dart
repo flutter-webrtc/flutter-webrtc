@@ -179,4 +179,20 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
     }
     return true;
   }
+
+  Future<void> updateObjectFit(RTCVideoViewObjectFit objectFit) async {
+    if (_disposed) {
+      throw 'Can\'t set objectFit: The RTCVideoPlatformController is disposed';
+    }
+    if (_viewId == null) throw 'Call initialize before setting the objectFit';
+    try {
+      await WebRTC.invokeMethod(
+          'videoPlatformViewRendererSetObjectFit', <String, dynamic>{
+        'viewId': _viewId,
+        'objectFit': objectFit.index,
+      });
+    } on PlatformException catch (e) {
+      throw 'Got exception for RTCVideoPlatformController::setObjectFit: ${e.message}';
+    }
+  }
 }

@@ -18,10 +18,15 @@
     return self;
 }
 
+- (NSObject<FlutterMessageCodec>*)createArgsCodec {
+  return [FlutterStandardMessageCodec sharedInstance];
+}
+
 - (NSObject<FlutterPlatformView>*)createWithFrame:(CGRect)frame
                                    viewIdentifier:(int64_t)viewId
                                         arguments:(id _Nullable)args {
-    FlutterRTCVideoPlatformViewController * render = [[FlutterRTCVideoPlatformViewController alloc] initWithMessenger:_messenger viewIdentifier:viewId frame:frame];
+    NSNumber *fit = args[@"objectFit"];
+    FlutterRTCVideoPlatformViewController * render = [[FlutterRTCVideoPlatformViewController alloc] initWithMessenger:_messenger viewIdentifier:viewId frame:frame objectFit:fit];
     self.renders[@(viewId)] = render;
     return render;
 }

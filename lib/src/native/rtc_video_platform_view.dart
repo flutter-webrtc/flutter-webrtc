@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
@@ -38,7 +39,11 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
   Widget _buildVideoView(BuildContext context, BoxConstraints constraints) {
     return Center(
       child: Container(
-        width: constraints.maxWidth,
+        width: constraints.maxWidth *
+            (widget.objectFit ==
+                    RTCVideoViewObjectFit.RTCVideoViewObjectFitCover
+                ? _controller?.value.aspectRatio ?? 1.0
+                : 1.0),
         height: constraints.maxHeight,
         child: FittedBox(
           clipBehavior: Clip.hardEdge,
@@ -48,16 +53,13 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
               : BoxFit.cover,
           child: Center(
             child: SizedBox(
-              width: constraints.maxHeight *
-                  (_controller?.value.aspectRatio ?? 1.0),
+              width: constraints.maxWidth,
               height: constraints.maxHeight,
               child: Transform(
                 transform: Matrix4.identity()
                   ..rotateY(widget.mirror ? -pi : 0.0),
                 alignment: FractionalOffset.center,
-                child: RepaintBoundary(
-                  child: _buildNativeView(),
-                ),
+                child: _buildNativeView(),
               ),
             ),
           ),
@@ -72,21 +74,25 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
       return UiKitView(
         viewType: viewType,
         onPlatformViewCreated: onPlatformViewCreated,
+        creationParams: <String, dynamic>{
+          'objectFit': widget.objectFit.index,
+        },
+        creationParamsCodec: const StandardMessageCodec(),
       );
     }
     return Text('RTCVideoPlatformView only support for iOS.');
+  }
+
+  void reBuildView() {
+    setState(() {});
   }
 
   Future<void> onPlatformViewCreated(int id) async {
     final controller = RTCVideoPlatformViewController(id);
     _controller = controller;
     widget.onViewReady?.call(controller);
-    controller.onFirstFrameRendered = () {
-      setState(() {});
-    };
-    controller.onResize = () {
-      setState(() {});
-    };
+    controller.onFirstFrameRendered = reBuildView;
+    controller.onResize = reBuildView;
     await _controller?.initialize();
   }
 }

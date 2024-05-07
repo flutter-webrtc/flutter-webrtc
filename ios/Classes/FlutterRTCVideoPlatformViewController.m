@@ -17,7 +17,8 @@
 
 - (instancetype)initWithMessenger:(NSObject<FlutterBinaryMessenger>*)messenger
                    viewIdentifier:(int64_t)viewId
-                            frame:(CGRect)frame {
+                            frame:(CGRect)frame
+                        objectFit:(NSNumber * _Nonnull)fit {
     self = [super init];
     if (self) {
         _isFirstFrameRendered = false;
@@ -26,6 +27,7 @@
         _rotation = -1;
         _messenger = messenger;
         _videoView = [[FlutterRTCVideoPlatformView alloc] initWithFrame:frame];
+        [_videoView setObjectFit:fit];
         _viewId = viewId;
         /*Create Event Channel.*/
         _eventChannel = [FlutterEventChannel
@@ -51,19 +53,12 @@
   _frameSize = CGSizeZero;
   _renderSize = CGSizeZero;
   _rotation = -1;
-  if(videoTrack == nil) {
-    [self updateVisible:NO];
-  }
   if(!oldValue) {
     [oldValue removeRenderer:(id<RTCVideoRenderer>)self];
   }
   if(videoTrack) {
     [videoTrack addRenderer:(id<RTCVideoRenderer>)self];
   }
-}
-
--(void)updateVisible:(bool)visible {
-    [_videoView setHidden:!visible];
 }
 
 #pragma mark - RTCVideoRenderer methods
@@ -99,9 +94,6 @@
       postEvent(self.eventSink, @{@"event" : @"didFirstFrameRendered"});
     }
     self->_isFirstFrameRendered = true;
-    dispatch_sync(dispatch_get_main_queue(), ^{
-        [self updateVisible:YES];
-    });
   }
 }
 
