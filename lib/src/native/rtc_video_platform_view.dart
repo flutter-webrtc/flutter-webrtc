@@ -27,6 +27,9 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
 
   @override
   void dispose() {
+    _controller?.onFirstFrameRendered = null;
+    _controller?.onResize = null;
+    _controller = null;
     super.dispose();
   }
 
@@ -85,7 +88,9 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
   }
 
   void reBuildView() {
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> onPlatformViewCreated(int id) async {

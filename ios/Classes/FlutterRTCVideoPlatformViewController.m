@@ -50,9 +50,6 @@
   }
   _videoTrack = videoTrack;
   _isFirstFrameRendered = false;
-  _frameSize = CGSizeZero;
-  _renderSize = CGSizeZero;
-  _rotation = -1;
   if(!oldValue) {
     [oldValue removeRenderer:(id<RTCVideoRenderer>)self];
   }
@@ -64,7 +61,7 @@
 #pragma mark - RTCVideoRenderer methods
 - (void)renderFrame:(RTCVideoFrame*)frame {
 
-  if (_renderSize.width != frame.width || _renderSize.height != frame.height) {
+  if (_renderSize.width != frame.width || _renderSize.height != frame.height || !_isFirstFrameRendered) {
       if (self.eventSink) {
         postEvent( self.eventSink, @{
           @"event" : @"didPlatformViewChangeVideoSize",
@@ -76,7 +73,7 @@
     _renderSize = CGSizeMake(frame.width, frame.height);
   }
 
-  if (frame.rotation != _rotation) {
+  if (frame.rotation != _rotation || _isFirstFrameRendered) {
       if (self.eventSink) {
         postEvent( self.eventSink,@{
           @"event" : @"didPlatformViewChangeRotation",
