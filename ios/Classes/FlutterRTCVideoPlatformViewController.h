@@ -20,6 +20,6 @@
 
 -(void)setObjectFit:(NSNumber  * _Nonnull)index;
 
-- (UIView* _Nonnull)view;
+-(UIView* _Nonnull)view;
 
 @end

@@ -10,6 +10,7 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
         _videoView = [[RTC_OBJC_TYPE(RTCMTLVideoView) alloc] initWithFrame:CGRectZero];
+        _videoView.videoContentMode = UIViewContentModeScaleAspectFit;
         _videoView.delegate = self;
         _videoRenderer = _videoView;
         self.opaque = NO;

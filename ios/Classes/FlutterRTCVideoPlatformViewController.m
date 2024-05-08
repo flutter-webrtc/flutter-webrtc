@@ -73,7 +73,7 @@
     _renderSize = CGSizeMake(frame.width, frame.height);
   }
 
-  if (frame.rotation != _rotation || _isFirstFrameRendered) {
+  if (frame.rotation != _rotation || !_isFirstFrameRendered) {
       if (self.eventSink) {
         postEvent( self.eventSink,@{
           @"event" : @"didPlatformViewChangeRotation",
