@@ -1591,7 +1591,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     String facing = info.facing == 1 ? "front" : "back";
     params.putString("label",
             "Camera " + index + ", Facing " + facing + ", Orientation " + info.orientation);
-    params.putString("deviceId", "camera-" + index);
+    params.putString("deviceId", "" + index);
     params.putString("facing", facing);
     params.putString("kind", "videoinput");
     params.putString("groupId", "camera");
