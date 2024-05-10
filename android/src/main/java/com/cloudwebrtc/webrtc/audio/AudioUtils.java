@@ -1,10 +1,14 @@
 package com.cloudwebrtc.webrtc.audio;
 
 import android.media.AudioAttributes;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+
+import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 
 public class AudioUtils {
 
@@ -199,5 +203,64 @@ public class AudioUtils {
 
         return contentType;
 
+    }
+
+    static public String getAudioDeviceId(AudioDeviceInfo device) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return "audio-1";
+        } else {
+
+            String address = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ? "" : device.getAddress();
+            String deviceId = "" + device.getId();
+            if (device.getType() == AudioDeviceInfo.TYPE_BUILTIN_MIC) {
+                deviceId =   "microphone-" + address;
+            }
+            if (device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET) {
+                deviceId = "wired-headset";
+            }
+            if (device.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
+                deviceId = "bluetooth";
+            }
+            return deviceId;
+        }
+    }
+
+    static public String getAudioGroupId(AudioDeviceInfo device) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return "microphone";
+        } else {
+            String groupId = "" + device.getType();
+            if (device.getType() == AudioDeviceInfo.TYPE_BUILTIN_MIC) {
+                groupId = "microphone";
+            }
+            if (device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET) {
+                groupId = "wired-headset";
+            }
+            if (device.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
+                groupId = "bluetooth";
+            }
+            return groupId;
+        }
+    }
+
+    static public String getAudioDeviceLabel(AudioDeviceInfo device) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return "Audio";
+        } else {
+            String address = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ? "" : device.getAddress();
+            String label = device.getProductName().toString();
+            if (device.getType() == AudioDeviceInfo.TYPE_BUILTIN_MIC) {
+                label = "Built-in Microphone (" + address + ")";
+            }
+
+            if (device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET) {
+                label = "Wired Headset Microphone";
+            }
+
+            if (device.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
+                label = device.getProductName().toString();
+            }
+            return label;
+        }
     }
 }
