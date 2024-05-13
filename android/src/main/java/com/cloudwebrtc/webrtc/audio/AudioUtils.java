@@ -8,8 +8,6 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
-
 public class AudioUtils {
 
     private static final String TAG = "AudioUtils";
