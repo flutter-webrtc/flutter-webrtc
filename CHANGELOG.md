@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.10.6] - 2024-05-13
+
+* [Web] Some important fixes for web.
+
 [0.10.5] - 2024-05-13
 
 * [Android] fix: make MediaDeviceInfo (Audio deviceId, label, groupId) consistent. (#1583)
