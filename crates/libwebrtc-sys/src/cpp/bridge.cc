@@ -114,10 +114,14 @@ std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
 std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     Thread& worker_thread,
     AudioLayer audio_layer,
-    TaskQueueFactory& task_queue_factory) {
+    TaskQueueFactory& task_queue_factory,
+    const AudioProcessing& ap) {
   AudioDeviceModule adm = worker_thread.BlockingCall([audio_layer,
-                                                      &task_queue_factory] {
-    return ::OpenALAudioDeviceModule::Create(audio_layer, &task_queue_factory);
+                                                      &task_queue_factory,
+                                                      &ap] {
+    return ::OpenALAudioDeviceModule::Create(audio_layer,
+                                             &task_queue_factory,
+                                             ap.get());
   });
 
   if (adm == nullptr) {
@@ -249,9 +253,14 @@ int32_t set_audio_playout_device(const AudioDeviceModule& audio_device_module,
 
 // Calls `AudioProcessingBuilder().Create()`.
 std::unique_ptr<AudioProcessing> create_audio_processing() {
-  auto ap = webrtc::AudioProcessingBuilder().Create();
+  webrtc::AudioProcessing::Config apm_config;
+  apm_config.echo_canceller.enabled = true;
+  apm_config.echo_canceller.mobile_mode = false;
+  apm_config.gain_controller1.enabled = true;
+  apm_config.gain_controller1.enable_limiter = true;
 
-  return std::make_unique<AudioProcessing>(ap);
+  auto apm = webrtc::AudioProcessingBuilder().SetConfig(apm_config).Create();
+  return std::make_unique<AudioProcessing>(apm);
 }
 
 // Calls `AudioProcessing->set_output_will_be_muted()`.
@@ -346,7 +355,7 @@ void dispose_audio_source(const AudioDeviceModule& audio_device_module,
 // Creates a new fake `AudioSource`.
 std::unique_ptr<AudioSourceInterface> create_fake_audio_source() {
   return std::make_unique<AudioSourceInterface>(
-      bridge::LocalAudioSource::Create(cricket::AudioOptions()));
+      bridge::LocalAudioSource::Create(cricket::AudioOptions(), nullptr));
 }
 
 // Calls `PeerConnectionFactoryInterface->CreateVideoTrack`.
@@ -1159,6 +1168,39 @@ int64_t display_source_id(const DisplaySource& source) {
 // Returns a `title` of the provided `DesktopCapturer::Source`.
 std::unique_ptr<std::string> display_source_title(const DisplaySource& source) {
   return std::make_unique<std::string>(source.title);
+}
+
+// Creates a new `AudioProcessingConfig`.
+std::unique_ptr<AudioProcessingConfig> create_audio_processing_config() {
+  webrtc::AudioProcessing::Config apm_config;
+  apm_config.echo_canceller.enabled = true;
+  apm_config.echo_canceller.mobile_mode = false;
+  apm_config.gain_controller1.enabled = true;
+  apm_config.gain_controller1.mode ==
+      webrtc::AudioProcessing::Config::GainController1::kAdaptiveDigital;
+  apm_config.gain_controller1.enable_limiter = true;
+  return std::make_unique<AudioProcessingConfig>(apm_config);
+}
+
+// Enables/disables AGC (auto gain control) in the provided
+// `AudioProcessingConfig`.
+void config_gain_controller1_set_enabled(AudioProcessingConfig& config,
+                                         bool enabled) {
+  config.gain_controller1.enabled = enabled;
+  config.gain_controller1.analog_gain_controller.enabled = enabled;
+}
+
+// Returns `AudioProcessingConfig` of the provided `AudioProcessing`.
+std::unique_ptr<AudioProcessingConfig> audio_processing_get_config(
+    const AudioProcessing& ap) {
+  return std::make_unique<AudioProcessingConfig>(ap->GetConfig());
+}
+
+// Applies the provided  `AudioProcessingConfig` to the provided
+// `AudioProcessing`.
+void audio_processing_apply_config(const AudioProcessing& ap,
+                                   const AudioProcessingConfig& config) {
+  ap->ApplyConfig(config);
 }
 
 }  // namespace bridge

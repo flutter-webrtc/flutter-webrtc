@@ -120,12 +120,15 @@ using RtcpFeedbackMessageType = webrtc::RtcpFeedbackMessageType;
 using ScalabilityMode = webrtc::ScalabilityMode;
 using RtpCapabilities = webrtc::RtpCapabilities;
 using RtpHeaderExtensionCapability = webrtc::RtpHeaderExtensionCapability;
+using RuntimeSetting = webrtc::AudioProcessing::RuntimeSetting;
+using AudioProcessingConfig = webrtc::AudioProcessing::Config;
 
 // Creates a new proxied `AudioDeviceModule` for the given `AudioLayer`.
 std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     Thread& worker_thread,
     AudioLayer audio_layer,
-    TaskQueueFactory& task_queue_factory);
+    TaskQueueFactory& task_queue_factory,
+    const AudioProcessing& ap);
 
 // Initializes the native audio parts required for each platform.
 int32_t init_audio_device_module(const AudioDeviceModule& audio_device_module);
@@ -686,6 +689,23 @@ std::unique_ptr<webrtc::IceCandidateInterface> create_ice_candidate(
     int sdp_mline_index,
     rust::Str candidate,
     rust::String& error);
+
+// Creates a new `AudioProcessingConfig`.
+std::unique_ptr<AudioProcessingConfig> create_audio_processing_config();
+
+// Applies the provided  `AudioProcessingConfig` to the provided
+// `AudioProcessing`.
+void audio_processing_apply_config(const AudioProcessing& ap,
+                                   const AudioProcessingConfig& config);
+
+// Returns `AudioProcessingConfig` of the provided `AudioProcessing`.
+std::unique_ptr<AudioProcessingConfig> audio_processing_get_config(
+    const AudioProcessing& ap);
+
+// Enables/disables AGC (auto gain control) in the provided
+// `AudioProcessingConfig`.
+void config_gain_controller1_set_enabled(AudioProcessingConfig& config,
+                                         bool enabled);
 
 }  // namespace bridge
 

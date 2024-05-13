@@ -1488,6 +1488,7 @@ pub(crate) mod webrtc {
             worker_thread: Pin<&mut Thread>,
             audio_layer: AudioLayer,
             task_queue_factory: Pin<&mut TaskQueueFactory>,
+            ap: &AudioProcessing,
         ) -> UniquePtr<AudioDeviceModule>;
 
         /// Initializes the given [`AudioDeviceModule`].
@@ -1586,6 +1587,7 @@ pub(crate) mod webrtc {
 
     unsafe extern "C++" {
         pub type AudioProcessing;
+        pub type AudioProcessingConfig;
 
         /// Creates a new [`AudioProcessing`].
         pub fn create_audio_processing() -> UniquePtr<AudioProcessing>;
@@ -1597,6 +1599,30 @@ pub(crate) mod webrtc {
         /// will be muted or in some other way not used. This hints the
         /// underlying AGC, AEC, NS processors to halt.
         pub fn set_output_will_be_muted(ap: &AudioProcessing, muted: bool);
+
+        /// Creates a new [`AudioProcessingConfig`].
+        pub fn create_audio_processing_config(
+        ) -> UniquePtr<AudioProcessingConfig>;
+
+        /// Returns [`AudioProcessingConfig`] of the provided
+        /// [`AudioProcessing`].
+        pub fn audio_processing_get_config(
+            ap: &AudioProcessing,
+        ) -> UniquePtr<AudioProcessingConfig>;
+
+        /// Enables/disables AGC (auto gain control) in the provided
+        /// [`AudioProcessingConfig`].
+        pub fn config_gain_controller1_set_enabled(
+            config: Pin<&mut AudioProcessingConfig>,
+            enabled: bool,
+        );
+
+        /// Applies the provided [`AudioProcessingConfig`] to the provided
+        /// [`AudioProcessing`].
+        pub fn audio_processing_apply_config(
+            ap: &AudioProcessing,
+            config: &AudioProcessingConfig,
+        );
     }
 
     unsafe extern "C++" {

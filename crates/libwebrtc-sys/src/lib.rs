@@ -217,11 +217,15 @@ impl AudioDeviceModule {
         worker_thread: &mut Thread,
         audio_layer: AudioLayer,
         task_queue_factory: &mut TaskQueueFactory,
+        audio_processing: Option<&AudioProcessing>,
     ) -> anyhow::Result<Self> {
         let ptr = webrtc::create_audio_device_module(
             worker_thread.0.pin_mut(),
             audio_layer,
             task_queue_factory.0.pin_mut(),
+            &audio_processing
+                .unwrap_or(&AudioProcessing(UniquePtr::null()))
+                .0,
         );
 
         if ptr.is_null() {
@@ -501,6 +505,23 @@ unsafe impl Sync for webrtc::AudioDeviceModule {}
 /// voice processing components designed for real-time communications software.
 pub struct AudioProcessing(UniquePtr<webrtc::AudioProcessing>);
 
+/// Representation of an audio processing config.
+pub struct AudioProcessingConfig(UniquePtr<webrtc::AudioProcessingConfig>);
+
+impl Default for AudioProcessingConfig {
+    fn default() -> Self {
+        Self(webrtc::create_audio_processing_config())
+    }
+}
+
+impl AudioProcessingConfig {
+    /// Enables/disables AGC (auto gain control) in this
+    /// [`AudioProcessingConfig`].
+    pub fn set_gain_controller_enabled(&mut self, enabled: bool) {
+        webrtc::config_gain_controller1_set_enabled(self.0.pin_mut(), enabled);
+    }
+}
+
 impl AudioProcessing {
     /// Creates a new [`AudioProcessing`].
     pub fn new() -> anyhow::Result<Self> {
@@ -520,6 +541,18 @@ impl AudioProcessing {
     /// NS processors to halt.
     pub fn set_output_will_be_muted(&self, muted: bool) {
         webrtc::set_output_will_be_muted(&self.0, muted);
+    }
+
+    /// Returns [`AudioProcessingConfig`] of this [`AudioProcessing`].
+    #[must_use]
+    pub fn config(&self) -> AudioProcessingConfig {
+        AudioProcessingConfig(webrtc::audio_processing_get_config(&self.0))
+    }
+
+    /// Applies the provided [`AudioProcessingConfig`] to this
+    /// [`AudioProcessing`].
+    pub fn apply_config(&self, config: &AudioProcessingConfig) {
+        webrtc::audio_processing_apply_config(&self.0, &config.0);
     }
 }
 

@@ -73,6 +73,7 @@ impl DeviceState {
             &mut thread,
             sys::AudioLayer::kPlatformDefaultAudio,
             tq,
+            None,
         )?;
 
         let vdi = sys::VideoDeviceInfo::create()?;

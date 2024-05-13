@@ -164,9 +164,11 @@ int32_t OpenALAudioDeviceModule::ActiveAudioLayer(
 
 rtc::scoped_refptr<OpenALAudioDeviceModule> OpenALAudioDeviceModule::Create(
     AudioLayer audio_layer,
-    webrtc::TaskQueueFactory* task_queue_factory) {
+    webrtc::TaskQueueFactory* task_queue_factory,
+    webrtc::AudioProcessing* audio_processing) {
   auto adm = rtc::make_ref_counted<OpenALAudioDeviceModule>();
 
+  adm->audio_processing_ = audio_processing;
   adm->audio_device_buffer_ =
       std::make_unique<webrtc::AudioDeviceBuffer>(task_queue_factory);
 
@@ -711,17 +713,17 @@ rtc::scoped_refptr<bridge::LocalAudioSource>
 OpenALAudioDeviceModule::CreateAudioSource(uint32_t device_index) {
   std::lock_guard<std::recursive_mutex> lk(_recording_mutex);
 
-  std::string deviceId;
+  std::string device_id;
   const auto result = DeviceName(ALC_CAPTURE_DEVICE_SPECIFIER, device_index,
-                                 nullptr, &deviceId);
+                                 nullptr, &device_id);
   if (result != 0) {
     return nullptr;
   }
 
-  auto recorder = std::make_unique<AudioDeviceRecorder>(deviceId);
+  auto recorder = std::make_unique<AudioDeviceRecorder>(device_id, audio_processing_);
   recorder->StartCapture();
   auto source = recorder->GetSource();
-  _recorders[deviceId] = std::move(recorder);
+  _recorders[device_id] = std::move(recorder);
   ensureThreadStarted();
   startCaptureOnThread();
 

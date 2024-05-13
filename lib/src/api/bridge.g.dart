@@ -466,8 +466,13 @@ class AudioConstraints {
   ///           tracks.
   final String? deviceId;
 
+  /// Indicator whether the audio volume level should be automatically tuned
+  /// to maintain a steady overall volume level.
+  final bool? autoGainControl;
+
   const AudioConstraints({
     this.deviceId,
+    this.autoGainControl,
   });
 }
 
@@ -4279,6 +4284,11 @@ class MedeaFlutterWebrtcNativePlatform
   }
 
   @protected
+  ffi.Pointer<ffi.Bool> api2wire_box_autoadd_bool(bool raw) {
+    return inner.new_box_autoadd_bool_0(api2wire_bool(raw));
+  }
+
+  @protected
   ffi.Pointer<ffi.Double> api2wire_box_autoadd_f64(double raw) {
     return inner.new_box_autoadd_f64_0(api2wire_f64(raw));
   }
@@ -4436,6 +4446,11 @@ class MedeaFlutterWebrtcNativePlatform
   }
 
   @protected
+  ffi.Pointer<ffi.Bool> api2wire_opt_box_autoadd_bool(bool? raw) {
+    return raw == null ? ffi.nullptr : api2wire_box_autoadd_bool(raw);
+  }
+
+  @protected
   ffi.Pointer<ffi.Double> api2wire_opt_box_autoadd_f64(double? raw) {
     return raw == null ? ffi.nullptr : api2wire_box_autoadd_f64(raw);
   }
@@ -4536,6 +4551,8 @@ class MedeaFlutterWebrtcNativePlatform
   void _api_fill_to_wire_audio_constraints(
       AudioConstraints apiObj, wire_AudioConstraints wireObj) {
     wireObj.device_id = api2wire_opt_String(apiObj.deviceId);
+    wireObj.auto_gain_control =
+        api2wire_opt_box_autoadd_bool(apiObj.autoGainControl);
   }
 
   void _api_fill_to_wire_box_autoadd_audio_constraints(
@@ -5666,6 +5683,20 @@ class MedeaFlutterWebrtcNativeWire implements FlutterRustBridgeWireBase {
       _new_box_autoadd_audio_constraints_0Ptr
           .asFunction<ffi.Pointer<wire_AudioConstraints> Function()>();
 
+  ffi.Pointer<ffi.Bool> new_box_autoadd_bool_0(
+    bool value,
+  ) {
+    return _new_box_autoadd_bool_0(
+      value,
+    );
+  }
+
+  late final _new_box_autoadd_bool_0Ptr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Bool> Function(ffi.Bool)>>(
+          'new_box_autoadd_bool_0');
+  late final _new_box_autoadd_bool_0 = _new_box_autoadd_bool_0Ptr
+      .asFunction<ffi.Pointer<ffi.Bool> Function(bool)>();
+
   ffi.Pointer<ffi.Double> new_box_autoadd_f64_0(
     double value,
   ) {
@@ -6226,6 +6257,8 @@ final class wire_RtcRtpSendParameters extends ffi.Struct {
 
 final class wire_AudioConstraints extends ffi.Struct {
   external ffi.Pointer<wire_uint_8_list> device_id;
+
+  external ffi.Pointer<ffi.Bool> auto_gain_control;
 }
 
 final class wire_VideoConstraints extends ffi.Struct {

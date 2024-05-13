@@ -88,13 +88,18 @@ impl Webrtc {
         let mut signaling_thread = sys::Thread::create(false)?;
         signaling_thread.start()?;
 
+        let ap = sys::AudioProcessing::new()?;
+        let mut config = ap.config();
+        config.set_gain_controller_enabled(true);
+        ap.apply_config(&config);
+
         let audio_device_module = AudioDeviceModule::new(
             &mut worker_thread,
             sys::AudioLayer::kPlatformDefaultAudio,
             &mut task_queue_factory,
+            Some(&ap),
         )?;
 
-        let ap = sys::AudioProcessing::new()?;
         let peer_connection_factory =
             sys::PeerConnectionFactoryInterface::create(
                 None,

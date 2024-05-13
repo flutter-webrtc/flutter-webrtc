@@ -2373,6 +2373,11 @@ mod io {
     }
 
     #[no_mangle]
+    pub extern "C" fn new_box_autoadd_bool_0(value: bool) -> *mut bool {
+        support::new_leak_box_ptr(value)
+    }
+
+    #[no_mangle]
     pub extern "C" fn new_box_autoadd_f64_0(value: f64) -> *mut f64 {
         support::new_leak_box_ptr(value)
     }
@@ -2625,6 +2630,7 @@ mod io {
         fn wire2api(self) -> AudioConstraints {
             AudioConstraints {
                 device_id: self.device_id.wire2api(),
+                auto_gain_control: self.auto_gain_control.wire2api(),
             }
         }
     }
@@ -2633,6 +2639,11 @@ mod io {
         fn wire2api(self) -> AudioConstraints {
             let wrap = unsafe { support::box_from_leak_ptr(self) };
             Wire2Api::<AudioConstraints>::wire2api(*wrap).into()
+        }
+    }
+    impl Wire2Api<bool> for *mut bool {
+        fn wire2api(self) -> bool {
+            unsafe { *support::box_from_leak_ptr(self) }
         }
     }
     impl Wire2Api<f64> for *mut f64 {
@@ -2913,6 +2924,7 @@ mod io {
     #[derive(Clone)]
     pub struct wire_AudioConstraints {
         device_id: *mut wire_uint_8_list,
+        auto_gain_control: *mut bool,
     }
 
     #[repr(C)]
@@ -3125,6 +3137,7 @@ mod io {
         fn new_with_null_ptr() -> Self {
             Self {
                 device_id: core::ptr::null_mut(),
+                auto_gain_control: core::ptr::null_mut(),
             }
         }
     }

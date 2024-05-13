@@ -11,6 +11,7 @@ use derive_more::{AsRef, Display, From, Into};
 use libwebrtc_sys as sys;
 // TODO: Use `std::sync::OnceLock` instead, once it support `.wait()` API.
 use once_cell::sync::OnceCell;
+use sys::AudioProcessing;
 use xxhash::xxh3::xxh3_64;
 
 use crate::{
@@ -48,6 +49,7 @@ impl Webrtc {
             }
 
             if let Some(audio) = constraints.audio {
+                self.set_audio_processing_config(&audio);
                 let src = self
                     .get_or_create_audio_source(&audio)
                     .map_err(|e| api::GetMediaError::Audio(e.to_string()))?;
@@ -259,6 +261,15 @@ impl Webrtc {
             .insert((track.id.clone(), TrackOrigin::Local), track);
 
         Ok(api_track)
+    }
+
+    /// Sets [`api::AudioConstraints`] for this [`Webrtc`] session.
+    fn set_audio_processing_config(&mut self, caps: &api::AudioConstraints) {
+        if let Some(auto_gain_control) = caps.auto_gain_control {
+            let mut config = self.ap.config();
+            config.set_gain_controller_enabled(auto_gain_control);
+            self.ap.apply_config(&config);
+        }
     }
 
     /// Creates a new [`sys::AudioSourceInterface`] based on the given
@@ -699,11 +710,13 @@ impl AudioDeviceModule {
         worker_thread: &mut sys::Thread,
         audio_layer: sys::AudioLayer,
         task_queue_factory: &mut sys::TaskQueueFactory,
+        ap: Option<&AudioProcessing>,
     ) -> anyhow::Result<Self> {
         let inner = sys::AudioDeviceModule::create_proxy(
             worker_thread,
             audio_layer,
             task_queue_factory,
+            ap,
         )?;
         inner.init()?;
 

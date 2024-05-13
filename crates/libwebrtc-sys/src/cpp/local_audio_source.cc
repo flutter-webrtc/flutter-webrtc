@@ -14,8 +14,10 @@ float calculate_audio_level(int16_t* data, int size) {
 }
 
 rtc::scoped_refptr<LocalAudioSource> LocalAudioSource::Create(
-    cricket::AudioOptions audio_options) {
+    cricket::AudioOptions audio_options,
+    std::optional<webrtc::AudioProcessing*> audio_processing) {
   auto source = rtc::make_ref_counted<LocalAudioSource>();
+  source->audio_processing_ = audio_processing;
   source->_options = audio_options;
   return source;
 }
@@ -54,8 +56,21 @@ void LocalAudioSource::OnData(const void* audio_data,
   }
 
   for (auto* sink : sinks_) {
-    sink->OnData(audio_data, bits_per_sample, sample_rate, number_of_channels,
-                 number_of_frames);
+    audio_frame_.UpdateFrame(
+        0, (const int16_t*)audio_data, sample_rate / 100, sample_rate,
+        webrtc::AudioFrame::SpeechType::kNormalSpeech,
+        webrtc::AudioFrame::VADActivity::kVadUnknown, number_of_channels);
+    if (*audio_processing_) {
+      webrtc::StreamConfig input_config(sample_rate, number_of_channels);
+      webrtc::StreamConfig output_config(sample_rate, number_of_channels);
+
+      int result =
+          (*audio_processing_)
+              ->ProcessStream(audio_frame_.data(), input_config, output_config,
+                              audio_frame_.mutable_data());
+    }
+    sink->OnData(audio_frame_.data(), bits_per_sample, sample_rate,
+                 number_of_channels, number_of_frames);
   }
 }
 

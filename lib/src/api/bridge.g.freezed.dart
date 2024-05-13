@@ -141,7 +141,7 @@ class _$GetMediaError_AudioImpl implements GetMediaError_Audio {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$GetMediaError_AudioImpl &&
@@ -280,7 +280,7 @@ class _$GetMediaError_VideoImpl implements GetMediaError_Video {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$GetMediaError_VideoImpl &&
@@ -484,7 +484,7 @@ class _$GetMediaResult_OkImpl implements GetMediaResult_Ok {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$GetMediaResult_OkImpl &&
@@ -631,7 +631,7 @@ class _$GetMediaResult_ErrImpl implements GetMediaResult_Err {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$GetMediaResult_ErrImpl &&
@@ -906,7 +906,7 @@ class _$PeerConnectionEvent_PeerCreatedImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PeerConnectionEvent_PeerCreatedImpl &&
@@ -1160,7 +1160,7 @@ class _$PeerConnectionEvent_IceCandidateImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PeerConnectionEvent_IceCandidateImpl &&
@@ -1408,7 +1408,7 @@ class _$PeerConnectionEvent_IceGatheringStateChangeImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PeerConnectionEvent_IceGatheringStateChangeImpl &&
@@ -1683,7 +1683,7 @@ class _$PeerConnectionEvent_IceCandidateErrorImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PeerConnectionEvent_IceCandidateErrorImpl &&
@@ -1919,7 +1919,7 @@ class _$PeerConnectionEvent_NegotiationNeededImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PeerConnectionEvent_NegotiationNeededImpl);
@@ -2120,7 +2120,7 @@ class _$PeerConnectionEvent_SignallingChangeImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PeerConnectionEvent_SignallingChangeImpl &&
@@ -2339,7 +2339,7 @@ class _$PeerConnectionEvent_IceConnectionStateChangeImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PeerConnectionEvent_IceConnectionStateChangeImpl &&
@@ -2558,7 +2558,7 @@ class _$PeerConnectionEvent_ConnectionStateChangeImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PeerConnectionEvent_ConnectionStateChangeImpl &&
@@ -2776,7 +2776,7 @@ class _$PeerConnectionEvent_TrackImpl implements PeerConnectionEvent_Track {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PeerConnectionEvent_TrackImpl &&
@@ -3071,7 +3071,7 @@ class _$RtcIceCandidateStats_LocalImpl implements RtcIceCandidateStats_Local {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcIceCandidateStats_LocalImpl &&
@@ -3213,7 +3213,7 @@ class _$RtcIceCandidateStats_RemoteImpl implements RtcIceCandidateStats_Remote {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcIceCandidateStats_RemoteImpl &&
@@ -3575,7 +3575,7 @@ class _$RtcInboundRtpStreamMediaType_AudioImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcInboundRtpStreamMediaType_AudioImpl &&
@@ -4016,7 +4016,7 @@ class _$RtcInboundRtpStreamMediaType_VideoImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcInboundRtpStreamMediaType_VideoImpl &&
@@ -4487,7 +4487,7 @@ class _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl &&
@@ -4744,7 +4744,7 @@ class _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl &&
@@ -5042,7 +5042,7 @@ class _$RtcOutboundRtpStreamStatsMediaType_AudioImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcOutboundRtpStreamStatsMediaType_AudioImpl &&
@@ -5243,7 +5243,7 @@ class _$RtcOutboundRtpStreamStatsMediaType_VideoImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcOutboundRtpStreamStatsMediaType_VideoImpl &&
@@ -5686,7 +5686,7 @@ class _$RtcStatsType_RtcMediaSourceStatsImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcStatsType_RtcMediaSourceStatsImpl &&
@@ -6020,7 +6020,7 @@ class _$RtcStatsType_RtcIceCandidateStatsImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcStatsType_RtcIceCandidateStatsImpl &&
@@ -6400,7 +6400,7 @@ class _$RtcStatsType_RtcOutboundRtpStreamStatsImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcStatsType_RtcOutboundRtpStreamStatsImpl &&
@@ -6874,7 +6874,7 @@ class _$RtcStatsType_RtcInboundRtpStreamStatsImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcStatsType_RtcInboundRtpStreamStatsImpl &&
@@ -7401,7 +7401,7 @@ class _$RtcStatsType_RtcIceCandidatePairStatsImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcStatsType_RtcIceCandidatePairStatsImpl &&
@@ -7874,7 +7874,7 @@ class _$RtcStatsType_RtcTransportStatsImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcStatsType_RtcTransportStatsImpl &&
@@ -8315,7 +8315,7 @@ class _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl &&
@@ -8734,7 +8734,7 @@ class _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl &&
@@ -9066,7 +9066,7 @@ class _$RtcStatsType_UnimplementedImpl implements RtcStatsType_Unimplemented {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$RtcStatsType_UnimplementedImpl);
@@ -9486,7 +9486,7 @@ class _$TextureEvent_OnTextureChangeImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TextureEvent_OnTextureChangeImpl &&
@@ -9660,7 +9660,7 @@ class _$TextureEvent_OnFirstFrameRenderedImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TextureEvent_OnFirstFrameRenderedImpl &&
@@ -9859,7 +9859,7 @@ class _$TrackEvent_EndedImpl implements TrackEvent_Ended {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType && other is _$TrackEvent_EndedImpl);
   }
@@ -9989,7 +9989,7 @@ class _$TrackEvent_AudioLevelUpdatedImpl
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TrackEvent_AudioLevelUpdatedImpl &&
@@ -10117,7 +10117,7 @@ class _$TrackEvent_TrackCreatedImpl implements TrackEvent_TrackCreated {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TrackEvent_TrackCreatedImpl);

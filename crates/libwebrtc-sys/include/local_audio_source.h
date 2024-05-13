@@ -5,10 +5,12 @@
 #include <mutex>
 #include <optional>
 
+#include "api/audio/audio_frame.h"
 #include "api/audio_options.h"
 #include "api/media_stream_interface.h"
 #include "api/notifier.h"
 #include "api/scoped_refptr.h"
+#include "modules/audio_processing/include/audio_processing.h"
 #include "rust/cxx.h"
 
 namespace bridge {
@@ -21,7 +23,8 @@ class LocalAudioSource : public webrtc::Notifier<webrtc::AudioSourceInterface> {
  public:
   // Creates a new `LocalAudioSource`.
   static rtc::scoped_refptr<LocalAudioSource> Create(
-      cricket::AudioOptions audio_options);
+      cricket::AudioOptions audio_options,
+      std::optional<webrtc::AudioProcessing*> audio_processing);
 
   SourceState state() const override { return kLive; }
   bool remote() const override { return false; }
@@ -50,6 +53,8 @@ class LocalAudioSource : public webrtc::Notifier<webrtc::AudioSourceInterface> {
   cricket::AudioOptions _options;
   std::recursive_mutex sink_lock_;
   std::list<webrtc::AudioTrackSinkInterface*> sinks_;
+  webrtc::AudioFrame audio_frame_;
+  std::optional<webrtc::AudioProcessing*> audio_processing_;
 
   // Rust side callback that audio level changes are forwarded to.
   std::optional<rust::Box<bridge::DynAudioSourceOnAudioLevelChangeCallback>>
