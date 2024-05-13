@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.10.5] - 2024-05-13
+
+* [Android] fix: make MediaDeviceInfo (Audio deviceId, label, groupId) consistent. (#1583)
+
 [0.10.4] - 2024-05-06
 
 * [iOS/macOS] chore: update swift webrtc sdks to 114.5735.10 (#1576)
