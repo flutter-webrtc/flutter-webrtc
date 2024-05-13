@@ -6,7 +6,7 @@ import com.twilio.audioswitch.AudioDevice;
 
 public enum AudioDeviceKind {
     BLUETOOTH("bluetooth", AudioDevice.BluetoothHeadset.class),
-    WIRED_HEADSET("headset", AudioDevice.WiredHeadset.class),
+    WIRED_HEADSET("wired-headset", AudioDevice.WiredHeadset.class),
     SPEAKER("speaker", AudioDevice.Speakerphone.class),
     EARPIECE("earpiece", AudioDevice.Earpiece.class);
 

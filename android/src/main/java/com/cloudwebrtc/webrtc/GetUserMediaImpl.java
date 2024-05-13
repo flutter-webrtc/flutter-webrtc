@@ -41,6 +41,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
+import com.cloudwebrtc.webrtc.audio.AudioUtils;
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.AudioSamplesInterceptor;
 import com.cloudwebrtc.webrtc.record.MediaRecorderImpl;
@@ -375,7 +376,7 @@ class GetUserMediaImpl {
 
         if (deviceId != null) {
             try {
-                setPreferredInputDevice(Integer.parseInt(deviceId));
+                setPreferredInputDevice(deviceId);
             } catch (Exception e) {
                 Log.e(TAG, "setPreferredInputDevice failed", e);
             }
@@ -1291,12 +1292,18 @@ class GetUserMediaImpl {
     }
 
     @RequiresApi(api = VERSION_CODES.M)
-    void setPreferredInputDevice(int i) {
+    void setPreferredInputDevice(String deviceId) {
         android.media.AudioManager audioManager = ((android.media.AudioManager) applicationContext.getSystemService(Context.AUDIO_SERVICE));
         final AudioDeviceInfo[] devices = audioManager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS);
-        if (devices.length > i) {
-            preferredInput = devices[i];
-            audioDeviceModule.setPreferredInputDevice(preferredInput);
+        if (devices.length > 0) {
+            for (int i = 0; i < devices.length; i++) {
+                AudioDeviceInfo device = devices[i];
+                if(deviceId.equals(AudioUtils.getAudioDeviceId(device))) {
+                    preferredInput = device;
+                    audioDeviceModule.setPreferredInputDevice(preferredInput);
+                    return;
+                }
+            }
         }
     }
 
