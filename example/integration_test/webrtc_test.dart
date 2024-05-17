@@ -209,48 +209,64 @@ void main() {
   });
 
   testWidgets('Video codec info', (WidgetTester tester) async {
+    var decoders = await PeerConnection.videoDecoders();
+    expect(
+        decoders.where((dec) => dec.codec == VideoCodec.VP8).length, isNonZero);
+    expect(
+        decoders.where((dec) => dec.codec == VideoCodec.VP9).length, isNonZero);
+    expect(
+        decoders.where((dec) => dec.codec == VideoCodec.AV1).length, isNonZero);
     if (!Platform.isAndroid && !Platform.isIOS) {
-      var decoders = await PeerConnection.videoDecoders();
-      expect(decoders.where((dec) => dec.codec == VideoCodec.VP8).length,
-          isNonZero);
-      expect(decoders.where((dec) => dec.codec == VideoCodec.VP9).length,
-          isNonZero);
-      expect(decoders.where((dec) => dec.codec == VideoCodec.AV1).length,
-          isNonZero);
-      expect(decoders.where((dec) => dec.codec == VideoCodec.H264).length,
-          isNonZero);
+      expect(
+          decoders.where((dec) => dec.codec == VideoCodec.H264).length, isZero);
+      expect(
+          decoders.where((enc) => enc.codec == VideoCodec.H265).length, isZero);
+    }
 
-      var encoders = await PeerConnection.videoEncoders();
-      expect(encoders.where((enc) => enc.codec == VideoCodec.VP8).length,
-          isNonZero);
-      expect(encoders.where((enc) => enc.codec == VideoCodec.VP9).length,
-          isNonZero);
-      expect(encoders.where((enc) => enc.codec == VideoCodec.AV1).length,
-          isNonZero);
-      expect(encoders.where((enc) => enc.codec == VideoCodec.H264).length,
-          isNonZero);
+    var encoders = await PeerConnection.videoEncoders();
+    expect(
+        encoders.where((enc) => enc.codec == VideoCodec.VP8).length, isNonZero);
+    expect(
+        encoders.where((enc) => enc.codec == VideoCodec.VP9).length, isNonZero);
+    expect(
+        encoders.where((enc) => enc.codec == VideoCodec.AV1).length, isNonZero);
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      expect(
+          encoders.where((enc) => enc.codec == VideoCodec.H264).length, isZero);
+      expect(
+          encoders.where((enc) => enc.codec == VideoCodec.H265).length, isZero);
     }
   });
 
   testWidgets('Get capabilities', (WidgetTester tester) async {
-    if (!Platform.isAndroid && !Platform.isIOS) {
-      var capabilities = await RtpSender.getCapabilities(MediaKind.video);
+    var capabilities = await RtpSender.getCapabilities(MediaKind.video);
 
+    expect(
+        capabilities.codecs
+            .where((cap) => cap.mimeType == 'video/VP9')
+            .firstOrNull,
+        isNotNull);
+    expect(
+        capabilities.codecs
+            .where((cap) => cap.mimeType == 'video/VP8')
+            .firstOrNull,
+        isNotNull);
+    expect(
+        capabilities.codecs
+            .where((cap) => cap.mimeType == 'video/AV1')
+            .firstOrNull,
+        isNotNull);
+    if (!Platform.isAndroid && !Platform.isIOS) {
       expect(
           capabilities.codecs
-              .where((cap) => cap.mimeType == 'video/VP9')
+              .where((cap) => cap.mimeType == 'video/H264')
               .firstOrNull,
-          isNotNull);
+          isNull);
       expect(
           capabilities.codecs
-              .where((cap) => cap.mimeType == 'video/VP8')
+              .where((cap) => cap.mimeType == 'video/H265')
               .firstOrNull,
-          isNotNull);
-      expect(
-          capabilities.codecs
-              .where((cap) => cap.mimeType == 'video/AV1')
-              .firstOrNull,
-          isNotNull);
+          isNull);
     }
   });
 
@@ -266,6 +282,11 @@ void main() {
     var names = capabilities.codecs.map((c) => c.name).toList();
     expect(names.contains("VP9"), isTrue);
     expect(names.contains("VP8"), isTrue);
+    expect(names.contains("AV1"), isTrue);
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      expect(names.contains("H264"), isFalse);
+      expect(names.contains("H265"), isFalse);
+    }
 
     var vp8Preferences = capabilities.codecs.where((element) {
       return element.name == 'VP8';

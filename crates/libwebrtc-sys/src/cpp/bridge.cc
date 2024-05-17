@@ -11,12 +11,10 @@
 #include "api/video_codecs/video_decoder_factory_template_dav1d_adapter.h"
 #include "api/video_codecs/video_decoder_factory_template_libvpx_vp8_adapter.h"
 #include "api/video_codecs/video_decoder_factory_template_libvpx_vp9_adapter.h"
-#include "api/video_codecs/video_decoder_factory_template_open_h264_adapter.h"
 #include "api/video_codecs/video_encoder_factory_template.h"
 #include "api/video_codecs/video_encoder_factory_template_libaom_av1_adapter.h"
 #include "api/video_codecs/video_encoder_factory_template_libvpx_vp8_adapter.h"
 #include "api/video_codecs/video_encoder_factory_template_libvpx_vp9_adapter.h"
-#include "api/video_codecs/video_encoder_factory_template_open_h264_adapter.h"
 #include "libwebrtc-sys/include/bridge.h"
 #include "libwebrtc-sys/include/local_audio_source.h"
 #include "libwebrtc-sys/src/bridge.rs.h"
@@ -502,13 +500,11 @@ std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
       std::make_unique<webrtc::VideoEncoderFactoryTemplate<
           webrtc::LibvpxVp8EncoderTemplateAdapter,
           webrtc::LibvpxVp9EncoderTemplateAdapter,
-          webrtc::OpenH264EncoderTemplateAdapter,
           webrtc::LibaomAv1EncoderTemplateAdapter>>();
   std::unique_ptr<webrtc::VideoDecoderFactory> video_decoder_factory =
       std::make_unique<webrtc::VideoDecoderFactoryTemplate<
           webrtc::LibvpxVp8DecoderTemplateAdapter,
           webrtc::LibvpxVp9DecoderTemplateAdapter,
-          webrtc::OpenH264DecoderTemplateAdapter,
           webrtc::Dav1dDecoderTemplateAdapter>>();
 
   auto factory = webrtc::CreatePeerConnectionFactory(

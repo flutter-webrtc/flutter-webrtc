@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
 
@@ -9,7 +11,6 @@ class VideoCodecInfoSample extends StatefulWidget {
 }
 
 class _State extends State<VideoCodecInfoSample> {
-  int count = 0;
   String text = '';
 
   @override
@@ -20,7 +21,7 @@ class _State extends State<VideoCodecInfoSample> {
   }
 
   void _renderState() async {
-    count++;
+    var senderCaps = await RtpSender.getCapabilities(MediaKind.video);
     var encoders = await PeerConnection.videoEncoders();
     var decoders = await PeerConnection.videoDecoders();
 
@@ -32,6 +33,12 @@ class _State extends State<VideoCodecInfoSample> {
       codecs += '\n';
       for (var dec in decoders) {
         codecs += 'Decoder: ${dec.codec} HW: ${dec.isHardwareAccelerated}\n';
+      }
+
+      codecs += '\n';
+      for (var c in senderCaps.codecs) {
+        codecs += 'Sender Codec: ${c.kind} ${c.name} ${c.mimeType} '
+            '${json.encode(c.parameters)}\n';
       }
 
       text = codecs;

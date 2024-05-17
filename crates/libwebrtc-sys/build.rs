@@ -52,8 +52,7 @@ fn main() -> anyhow::Result<()> {
         .include(libpath.join("include"))
         .include(libpath.join("include/third_party/abseil-cpp"))
         .include(libpath.join("include/third_party/libyuv/include"))
-        .flag("-DNOMINMAX")
-        .flag("-DWEBRTC_USE_H264");
+        .flag("-DNOMINMAX");
 
     #[cfg(target_os = "windows")]
     build.flag("-DNDEBUG");

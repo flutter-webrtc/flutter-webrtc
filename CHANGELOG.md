@@ -22,6 +22,7 @@ All user visible changes to this project will be documented in this file. This p
 ### Changed
 
 - Upgraded [libwebrtc] to [123.0.6312.105] version. ([#155])
+- Disable [H264] software encoders and decoders. ([#153])
 
 ### Fixed
 
@@ -40,6 +41,7 @@ All user visible changes to this project will be documented in this file. This p
 [#146]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/146
 [#149]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/149
 [#151]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/151
+[#153]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/153
 [#155]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/155
 [#156]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/156
 [123.0.6312.105]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/123.0.6312.105
@@ -214,11 +216,12 @@ See [changelog in upstream repository](https://github.com/flutter-webrtc/flutter
 [Android]: https://www.android.com
 [Dart]: https://dart.dev
 [Flutter]: https://www.flutter.dev
-[iOS]: https://www.apple.com/ios
-[libwebrtc]: https://github.com/instrumentisto/libwebrtc-bin
+[H264]: https://bloggeek.me/webrtcglossary/h-264/
 [Linux]: https://www.linux.org
-[macOS]: https://www.apple.com/macos
 [OpenAL]: https://github.com/kcat/openal-soft
 [Semantic Versioning 2.0.0]: https://semver.org
 [Swift]: https://developer.apple.com/swift
 [Windows]: https://www.microsoft.com/windows
+[iOS]: https://www.apple.com/ios
+[libwebrtc]: https://github.com/instrumentisto/libwebrtc-bin
+[macOS]: https://www.apple.com/macos
