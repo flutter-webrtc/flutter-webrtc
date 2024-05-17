@@ -113,13 +113,13 @@ std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     Thread& worker_thread,
     AudioLayer audio_layer,
     TaskQueueFactory& task_queue_factory,
-    const AudioProcessing& ap) {
+    const std::unique_ptr<AudioProcessing>& ap) {
   AudioDeviceModule adm = worker_thread.BlockingCall([audio_layer,
                                                       &task_queue_factory,
                                                       &ap] {
     return ::OpenALAudioDeviceModule::Create(audio_layer,
                                              &task_queue_factory,
-                                             ap.get());
+                                             ap);
   });
 
   if (adm == nullptr) {

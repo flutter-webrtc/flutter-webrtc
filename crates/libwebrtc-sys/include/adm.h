@@ -76,7 +76,7 @@ class OpenALAudioDeviceModule : public ExtendedADM {
   static rtc::scoped_refptr<OpenALAudioDeviceModule> Create(
       AudioLayer audio_layer,
       webrtc::TaskQueueFactory* task_queue_factory,
-      webrtc::AudioProcessing* audio_processing);
+      const std::unique_ptr<rtc::scoped_refptr<webrtc::AudioProcessing>>& audio_processing);
 
   // Main initialization and termination.
   int32_t Init() override;

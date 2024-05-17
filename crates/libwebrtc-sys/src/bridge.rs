@@ -1488,7 +1488,7 @@ pub(crate) mod webrtc {
             worker_thread: Pin<&mut Thread>,
             audio_layer: AudioLayer,
             task_queue_factory: Pin<&mut TaskQueueFactory>,
-            ap: &AudioProcessing,
+            ap: &UniquePtr<AudioProcessing>,
         ) -> UniquePtr<AudioDeviceModule>;
 
         /// Initializes the given [`AudioDeviceModule`].

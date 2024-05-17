@@ -165,10 +165,14 @@ int32_t OpenALAudioDeviceModule::ActiveAudioLayer(
 rtc::scoped_refptr<OpenALAudioDeviceModule> OpenALAudioDeviceModule::Create(
     AudioLayer audio_layer,
     webrtc::TaskQueueFactory* task_queue_factory,
-    webrtc::AudioProcessing* audio_processing) {
+    const std::unique_ptr<rtc::scoped_refptr<webrtc::AudioProcessing>>& audio_processing) {
   auto adm = rtc::make_ref_counted<OpenALAudioDeviceModule>();
 
-  adm->audio_processing_ = audio_processing;
+  if (!audio_processing.get()) {
+    adm->audio_processing_ = nullptr;
+  } else {
+    adm->audio_processing_ = audio_processing.get()->get();
+  }
   adm->audio_device_buffer_ =
       std::make_unique<webrtc::AudioDeviceBuffer>(task_queue_factory);
 
@@ -843,6 +847,12 @@ bool OpenALAudioDeviceModule::RecordingIsInitialized() const {
 }
 
 int32_t OpenALAudioDeviceModule::StartRecording() {
+  for (const auto& [_, recorder] : _recorders) {
+    recorder->StartCapture();
+  }
+  ensureThreadStarted();
+  startCaptureOnThread();
+
   return 0;
 }
 

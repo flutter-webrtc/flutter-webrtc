@@ -128,7 +128,7 @@ std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     Thread& worker_thread,
     AudioLayer audio_layer,
     TaskQueueFactory& task_queue_factory,
-    const AudioProcessing& ap);
+    const std::unique_ptr<AudioProcessing>& ap);
 
 // Initializes the native audio parts required for each platform.
 int32_t init_audio_device_module(const AudioDeviceModule& audio_device_module);
