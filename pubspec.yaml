@@ -14,6 +14,9 @@ dependencies:
   path_provider: ^2.0.2
   web: ^0.5.1
   webrtc_interface: ^1.2.0
+  cupertino_icons: ^1.0.3
+  shared_preferences: ^2.0.7
+  http: ^0.13.3
 
 dev_dependencies:
   flutter_test:

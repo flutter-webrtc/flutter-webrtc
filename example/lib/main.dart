@@ -1,58 +1,38 @@
 import 'dart:core';
 
-import 'package:flutter/foundation.dart'
-    show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
-import 'package:flutter_background/flutter_background.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:flutter_webrtc_example/src/capture_frame_sample.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'src/device_enumeration_sample.dart';
-import 'src/get_display_media_sample.dart';
-import 'src/get_user_media_sample.dart'
-    if (dart.library.html) 'src/get_user_media_sample_web.dart';
-import 'src/loopback_data_channel_sample.dart';
-import 'src/loopback_sample_unified_tracks.dart';
+import 'src/call_sample/call_sample.dart';
+import 'src/call_sample/data_channel_sample.dart';
 import 'src/route_item.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  if (WebRTC.platformIsDesktop) {
-    debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
-  } else if (WebRTC.platformIsAndroid) {
-    //startForegroundService();
-  }
-  runApp(MyApp());
-}
-
-Future<bool> startForegroundService() async {
-  final androidConfig = FlutterBackgroundAndroidConfig(
-    notificationTitle: 'Title of the notification',
-    notificationText: 'Text of the notification',
-    notificationImportance: AndroidNotificationImportance.Default,
-    notificationIcon: AndroidResource(
-        name: 'background_icon',
-        defType: 'drawable'), // Default is ic_launcher from folder mipmap
-  );
-  await FlutterBackground.initialize(androidConfig: androidConfig);
-  return FlutterBackground.enableBackgroundExecution();
-}
+void main() => runApp(new MyApp());
 
 class MyApp extends StatefulWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  _MyAppState createState() => new _MyAppState();
+}
+
+enum DialogDemoAction {
+  cancel,
+  connect,
 }
 
 class _MyAppState extends State<MyApp> {
-  late List<RouteItem> items;
+  List<RouteItem> items = [];
+  String _server = '';
+  late SharedPreferences _prefs;
 
+  bool _datachannel = false;
   @override
-  void initState() {
+  initState() {
     super.initState();
+    _initData();
     _initItems();
   }
 
-  ListBody _buildRow(context, item) {
+  _buildRow(context, item) {
     return ListBody(children: <Widget>[
       ListTile(
         title: Text(item.title),
@@ -66,7 +46,6 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       home: Scaffold(
           appBar: AppBar(
             title: Text('Flutter-WebRTC example'),
@@ -81,59 +60,79 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  void _initItems() {
+  _initData() async {
+    _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _server = _prefs.getString('server') ?? 'demo.cloudwebrtc.com';
+    });
+  }
+
+  void showDemoDialog<T>(
+      {required BuildContext context, required Widget child}) {
+    showDialog<T>(
+      context: context,
+      builder: (BuildContext context) => child,
+    ).then<void>((T? value) {
+      // The value passed to Navigator.pop() or null.
+      if (value != null) {
+        if (value == DialogDemoAction.connect) {
+          _prefs.setString('server', _server);
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (BuildContext context) => _datachannel
+                      ? DataChannelSample(host: _server)
+                      : CallSample(host: _server)));
+        }
+      }
+    });
+  }
+
+  _showAddressDialog(context) {
+    showDemoDialog<DialogDemoAction>(
+        context: context,
+        child: AlertDialog(
+            title: const Text('Enter server address:'),
+            content: TextField(
+              onChanged: (String text) {
+                setState(() {
+                  _server = text;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: _server,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            actions: <Widget>[
+              TextButton(
+                  child: const Text('CANCEL'),
+                  onPressed: () {
+                    Navigator.pop(context, DialogDemoAction.cancel);
+                  }),
+              TextButton(
+                  child: const Text('CONNECT'),
+                  onPressed: () {
+                    Navigator.pop(context, DialogDemoAction.connect);
+                  })
+            ]));
+  }
+
+  _initItems() {
     items = <RouteItem>[
       RouteItem(
-          title: 'GetUserMedia',
+          title: 'P2P Call Sample',
+          subtitle: 'P2P Call Sample.',
           push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) => GetUserMediaSample()));
+            _datachannel = false;
+            _showAddressDialog(context);
           }),
       RouteItem(
-          title: 'Device Enumeration',
+          title: 'Data Channel Sample',
+          subtitle: 'P2P Data Channel.',
           push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        DeviceEnumerationSample()));
-          }),
-      RouteItem(
-          title: 'GetDisplayMedia',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        GetDisplayMediaSample()));
-          }),
-      RouteItem(
-          title: 'LoopBack Sample (Unified Tracks)',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        LoopBackSampleUnifiedTracks()));
-          }),
-      RouteItem(
-          title: 'DataChannelLoopBackSample',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        DataChannelLoopBackSample()));
-          }),
-      RouteItem(
-          title: 'Capture Frame',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) => CaptureFrameSample()));
+            _datachannel = true;
+            _showAddressDialog(context);
           }),
     ];
   }
