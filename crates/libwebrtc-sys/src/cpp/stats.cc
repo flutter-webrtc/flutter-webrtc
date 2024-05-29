@@ -101,21 +101,6 @@ RTCOutboundRTPStreamStatsWrap cast_to_rtc_outbound_rtp_stream_stats(
       track_id->set_value(rust::String(*cast->remote_id));
     }
 
-    auto frame_width = init_option_u32();
-    if (cast->frame_width.has_value()) {
-      frame_width->set_value(*cast->frame_width);
-    }
-
-    auto frame_height = init_option_u32();
-    if (cast->frame_width.has_value()) {
-      frame_width->set_value(*cast->frame_width);
-    }
-
-    auto frames_per_second = init_option_f64();
-    if (cast->frames_per_second.has_value()) {
-      frames_per_second->set_value(*cast->frames_per_second);
-    }
-
     auto bytes_sent = init_option_u64();
     if (cast->bytes_sent.has_value()) {
       bytes_sent->set_value(*cast->bytes_sent);
@@ -131,7 +116,27 @@ RTCOutboundRTPStreamStatsWrap cast_to_rtc_outbound_rtp_stream_stats(
       media_source_id->set_value(rust::String(*cast->media_source_id));
     }
 
-    MediaKind kind = MediaKind::Video;
+    auto frame_width = init_option_u32();
+    auto frame_height = init_option_u32();
+    auto frames_per_second = init_option_f64();
+    MediaKind kind;
+    if (*cast->kind == "audio") {
+      kind = MediaKind::Audio;
+    } else {
+      kind = MediaKind::Video;
+
+      if (cast->frame_width.has_value()) {
+        frame_width->set_value(*cast->frame_width);
+      }
+
+      if (cast->frame_height.has_value()) {
+        frame_height->set_value(*cast->frame_height);
+      }
+
+      if (cast->frames_per_second.has_value()) {
+        frames_per_second->set_value(*cast->frames_per_second);
+      }
+    }
 
     return RTCOutboundRTPStreamStatsWrap{
         std::move(track_id),          kind,
@@ -246,22 +251,22 @@ RTCInboundRTPStreamStatsWrap cast_to_rtc_inbound_rtp_stream_stats(
       if (cast->frames_received.has_value()) {
         frames_received->set_value(*cast->frames_received);
       }
+    }
 
-      if (cast->bytes_received.has_value()) {
-        bytes_received->set_value(*cast->bytes_received);
-      }
+    if (cast->bytes_received.has_value()) {
+      bytes_received->set_value(*cast->bytes_received);
+    }
 
-      if (cast->packets_received.has_value()) {
-        packets_received->set_value(*cast->packets_received);
-      }
+    if (cast->packets_received.has_value()) {
+      packets_received->set_value(*cast->packets_received);
+    }
 
-      if (cast->total_decode_time.has_value()) {
-        total_decode_time->set_value(*cast->total_decode_time);
-      }
-      if (cast->jitter_buffer_emitted_count.has_value()) {
-        jitter_buffer_emitted_count->set_value(
-            *cast->jitter_buffer_emitted_count);
-      }
+    if (cast->total_decode_time.has_value()) {
+      total_decode_time->set_value(*cast->total_decode_time);
+    }
+    if (cast->jitter_buffer_emitted_count.has_value()) {
+      jitter_buffer_emitted_count->set_value(
+          *cast->jitter_buffer_emitted_count);
     }
 
     return RTCInboundRTPStreamStatsWrap{

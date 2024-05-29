@@ -693,12 +693,12 @@ class RtcOutboundRtpStreamStats extends RtcStatsType {
       ffi.RtcStatsType_RtcOutboundRtpStreamStats stats) {
     RtcOutboundRtpStreamStatsMediaType? mediaType;
     var kind = stats.mediaType.runtimeType.toString().substring(2);
-    if (kind == 'RtcOutboundRtpStreamStatsKind_Audio') {
+    if (kind == 'RtcOutboundRtpStreamStatsMediaType_AudioImpl') {
       var cast =
           stats.mediaType as ffi.RtcOutboundRtpStreamStatsMediaType_Audio;
       mediaType = RtcOutboundRtpStreamStatsAudio(
           cast.totalSamplesSent, cast.voiceActivityFlag);
-    } else if (kind == 'RtcOutboundRtpStreamStatsKind_Video') {
+    } else if (kind == 'RtcOutboundRtpStreamStatsMediaType_VideoImpl') {
       var cast =
           stats.mediaType as ffi.RtcOutboundRtpStreamStatsMediaType_Video;
       mediaType = RtcOutboundRtpStreamStatsVideo(
@@ -919,7 +919,7 @@ class RtcInboundRtpStreamStats extends RtcStatsType {
       ffi.RtcStatsType_RtcInboundRtpStreamStats stats) {
     RtcInboundRtpStreamMediaType? mediaType;
     var type = stats.mediaType.runtimeType.toString().substring(2);
-    if (type == 'RtcInboundRtpStreamMediaType_Audio') {
+    if (type == 'RtcInboundRtpStreamMediaType_AudioImpl') {
       var cast = stats.mediaType as ffi.RtcInboundRtpStreamMediaType_Audio;
       mediaType = RtcInboundRtpStreamAudio(
           cast.totalSamplesReceived,
@@ -929,7 +929,7 @@ class RtcInboundRtpStreamStats extends RtcStatsType {
           cast.totalAudioEnergy,
           cast.totalSamplesDuration,
           cast.voiceActivityFlag);
-    } else if (type == 'RtcInboundRtpStreamMediaType_Video') {
+    } else if (type == 'RtcInboundRtpStreamMediaType_VideoImpl') {
       var cast = stats.mediaType as ffi.RtcInboundRtpStreamMediaType_Video;
       mediaType = RtcInboundRtpStreamVideo(
         cast.framesDecoded,
