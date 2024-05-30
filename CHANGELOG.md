@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.10.7] - 2024-05-30
+
+* [iOS] feat: add PlatformView Renderer for iOS. (#1569)
+* [iOS] fix: audio session control for iOS. (#1590)
+
 [0.10.6] - 2024-05-13
 
 * [Web] Some important fixes for web.
