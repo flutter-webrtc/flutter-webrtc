@@ -28,6 +28,7 @@ data class RtcStats(
 
   /** Converts these [RtcStats] into a [Map] which can be returned to the Flutter side. */
   fun asFlutterResult(): Map<String, Any> {
-    return mapOf("id" to id, "timestampUs" to timestampUs, "kind" to kind, "type" to type)
+    var report = mapOf("id" to id, "timestampUs" to timestampUs, "type" to type)
+    return report + kind
   }
 }

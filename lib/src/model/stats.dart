@@ -54,8 +54,7 @@ class RtcStats {
 
   /// Creates [RTCStats] basing on the [Map] received from the native side.
   static RtcStats? fromMap(dynamic stats) {
-    stats['kind']['type'] = stats['type'];
-    var kind = RtcStatsType.fromMap(stats['kind']);
+    var kind = RtcStatsType.fromMap(stats);
     if (kind == null) {
       return null;
     } else {

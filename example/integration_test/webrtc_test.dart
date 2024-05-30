@@ -1186,10 +1186,6 @@ void main() {
   });
 
   testWidgets('Peer connection get stats.', (WidgetTester tester) async {
-    // TODO: Support stats for iOS platform.
-    if (Platform.isIOS) {
-      return;
-    }
     var pc1 = await PeerConnection.create(IceTransportType.all, []);
     var pc2 = await PeerConnection.create(IceTransportType.all, []);
 

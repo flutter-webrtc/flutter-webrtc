@@ -139,6 +139,15 @@ class PeerConnectionController {
           self.sendResultFromTask(result, getFlutterError(error))
         }
       }
+    case "getStats":
+      Task {
+        do {
+          let report = try await self.peer.getStats()
+          self.sendResultFromTask(result, report.asFlutterResult())
+        } catch {
+          self.sendResultFromTask(result, getFlutterError(error))
+        }
+      }
     case "addTransceiver":
       let mediaType = argsMap!["mediaType"] as? Int
       let initArgs = argsMap!["init"] as? [String: Any]
