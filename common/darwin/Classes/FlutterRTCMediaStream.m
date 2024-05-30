@@ -413,6 +413,10 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     }
   }
 
+  if(targetFps == 0) {
+    targetFps = 30;
+  }
+
   if (videoDevice) {
     RTCVideoSource* videoSource = [self.peerConnectionFactory videoSource];
     if (self.videoCapturer) {
