@@ -796,7 +796,7 @@ NSDictionary<NSString*, NSString*>* stringToParameters(NSString* str) {
             for(NSString* key in capCodec.parameters) {
                 NSString *value = [capCodec.parameters objectForKey:key];
                 NSString *value2 = [parameters objectForKey:key];
-                if([value isNotEqualTo:value2]) {
+                if(![value isEqualToString:value2]) {
                     matched = NO;
                 }
             }
