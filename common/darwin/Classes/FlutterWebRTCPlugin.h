@@ -38,7 +38,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 @property(nonatomic, strong) NSMutableDictionary<NSString*, RTCFrameCryptorKeyProvider*>* _Nullable keyProviders;
 
 #if TARGET_OS_IPHONE
-@property(nonatomic, retain) UIViewController* viewController; /*for broadcast or ReplayKit */
+@property(nonatomic, retain) UIViewController* _Nullable viewController; /*for broadcast or ReplayKit */
 #endif
 
 @property(nonatomic, strong) FlutterEventSink _Nullable eventSink;
@@ -46,6 +46,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 @property(nonatomic, strong) RTCCameraVideoCapturer* _Nullable videoCapturer;
 @property(nonatomic, strong) FlutterRTCFrameCapturer* _Nullable frameCapturer;
 @property(nonatomic, strong) AVAudioSessionPort _Nullable preferredInput;
+
 @property(nonatomic) BOOL _usingFrontCamera;
 @property(nonatomic) NSInteger _lastTargetWidth;
 @property(nonatomic) NSInteger _lastTargetHeight;
