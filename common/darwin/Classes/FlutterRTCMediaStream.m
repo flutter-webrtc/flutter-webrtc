@@ -43,11 +43,13 @@ typedef void (^NavigatorUserMediaErrorCallback)(NSString* errorType, NSString* e
  */
 typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 
+- (NSDictionary*)defaultVideoConstraints {
+    return @{@"minWidth" : @"1280", @"minHeight" : @"720", @"minFrameRate" : @"30"};
+}
+
 - (RTCMediaConstraints*)defaultMediaStreamConstraints {
-  NSDictionary* mandatoryConstraints =
-      @{@"minWidth" : @"1280", @"minHeight" : @"720", @"minFrameRate" : @"30"};
   RTCMediaConstraints* constraints =
-      [[RTCMediaConstraints alloc] initWithMandatoryConstraints:mandatoryConstraints
+      [[RTCMediaConstraints alloc] initWithMandatoryConstraints:[self defaultVideoConstraints]
                                             optionalConstraints:nil];
   return constraints;
 }
@@ -359,6 +361,10 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     }
   }
 
+  if ([videoConstraints isKindOfClass:[NSNumber class]]) {
+    videoConstraints = @{@"mandatory": [self defaultVideoConstraints]};
+  }
+
   NSInteger targetWidth = 0;
   NSInteger targetHeight = 0;
   NSInteger targetFps = 0;
@@ -411,10 +417,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
         targetFps = possibleFps;
       }
     }
-  }
-
-  if(targetFps == 0) {
-    targetFps = 30;
   }
 
   if (videoDevice) {
