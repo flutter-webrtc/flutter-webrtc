@@ -203,20 +203,11 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
   NSInteger routeChangeReason =
       [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
-  switch (routeChangeReason) {
-    case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
-      if (session.isActive) {
-        [AudioUtils selectAudioInput:_preferredInput];
-      }
-      break;
-    }
-    default:
-      break;
-  }
-
   if (self.eventSink &&
       (routeChangeReason == AVAudioSessionRouteChangeReasonNewDeviceAvailable ||
-       routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable)) {
+       routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable ||
+       routeChangeReason == AVAudioSessionRouteChangeReasonCategoryChange ||
+       routeChangeReason == AVAudioSessionRouteChangeReasonOverride)) {
     postEvent(self.eventSink, @{@"event" : @"onDeviceChange"});
   }
 #endif
@@ -855,6 +846,7 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
     _speakerOn = enable.boolValue;
     _speakerOnButPreferBluetooth = NO;
     [AudioUtils setSpeakerphoneOn:_speakerOn];
+    postEvent(self.eventSink, @{@"event" : @"onDeviceChange"});
     result(nil);
   }
   else if ([@"ensureAudioSession" isEqualToString:call.method]) {
@@ -1369,11 +1361,6 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
 - (void)ensureAudioSession {
 #if TARGET_OS_IPHONE
   [AudioUtils ensureAudioSessionWithRecording:[self hasLocalAudioTrack]];
-  if (_speakerOnButPreferBluetooth) {
-    [AudioUtils setSpeakerphoneOnButPreferBluetooth];
-  } else {
-    [AudioUtils setSpeakerphoneOn:_speakerOn];
-  }
 #endif
 }
 
