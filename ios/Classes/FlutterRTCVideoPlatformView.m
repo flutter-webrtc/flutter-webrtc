@@ -29,7 +29,8 @@
         _videoView.videoContentMode = UIViewContentModeScaleAspectFit;
     } else if([index intValue] == 1) {
         // for Cover mode
-        _videoView.videoContentMode = UIViewContentModeCenter;
+        _videoView.contentMode = UIViewContentModeScaleAspectFit;
+        _videoView.videoContentMode = UIViewContentModeScaleAspectFill;
     }
 }
 
