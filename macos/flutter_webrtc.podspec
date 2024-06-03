@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_webrtc'
-  s.version          = '0.9.36'
+  s.version          = '0.10.7'
   s.summary          = 'Flutter WebRTC plugin for macOS.'
   s.description      = <<-DESC
 A new flutter plugin project.
@@ -15,6 +15,6 @@ A new flutter plugin project.
   s.source_files     = ['Classes/**/*']
 
   s.dependency 'FlutterMacOS'
-  s.dependency 'WebRTC-SDK', '114.5735.10'
-  s.osx.deployment_target = '10.13'
+  s.dependency 'WebRTC-SDK', '125.6422.00'
+  s.osx.deployment_target = '10.15'
 end
