@@ -1,6 +1,12 @@
 # Changelog
 
 --------------------------------------------
+[0.10.8] - 2024-06-05
+
+* [iOS] fix(platform_view): fit cover works wrong (#1593)
+* [iOS/macOS] fix: Fix the issue that the video is not displayed when using 'video': true (#1592)
+* [Web] bump dart_webrtc to 1.4.6.
+
 [0.10.7] - 2024-05-30
 
 * [iOS] feat: add PlatformView Renderer for iOS. (#1569)
