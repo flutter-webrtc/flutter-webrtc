@@ -654,8 +654,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             audioChannel = AudioChannel.values()[(Integer) call.argument("audioChannel")];
           }
           Integer recorderId = call.argument("recorderId");
+          Integer rotation = call.argument("rotation");
           if (videoTrack != null || audioChannel != null) {
-            getUserMediaImpl.startRecordingToFile(path, recorderId, videoTrack, audioChannel);
+            getUserMediaImpl.startRecordingToFile(path, recorderId, videoTrack, audioChannel, rotation);
             result.success(null);
           } else {
             resultError("startRecordToFile", "No tracks", result);
@@ -663,6 +664,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         } catch (Exception e) {
           resultError("startRecordToFile", e.getMessage(), result);
         }
+        break;
+      case "changeRecorderTrack":
+        String videoTrackId = call.argument("videoTrackId");
+        Integer recorderId = call.argument("recorderId");
+        MediaStreamTrack track = getTrackForId(videoTrackId);
+        if (track instanceof VideoTrack) {
+          getUserMediaImpl.changeRecorderTrack((VideoTrack) track, recorderId);
+        }
+        result.success(null);
         break;
       case "stopRecordToFile":
         Integer recorderId = call.argument("recorderId");
