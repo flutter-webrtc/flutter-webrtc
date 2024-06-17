@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.11.0] - 2024-06-17
+
+* [Native] upgrade libwebrtc to m125.6422.
+
 [0.10.8] - 2024-06-05
 
 * [iOS] fix(platform_view): fit cover works wrong (#1593)
