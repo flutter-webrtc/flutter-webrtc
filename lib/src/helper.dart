@@ -130,6 +130,25 @@ class Helper {
     return navigator.mediaDevices.getUserMedia(mediaConstraints);
   }
 
+  static Future<void> stopVideoCapturer(MediaStreamTrack videoTrack) async {
+    if (WebRTC.platformIsAndroid) {
+      await WebRTC.invokeMethod(
+        'stopVideoCapturer',
+        <String, dynamic>{'trackId': videoTrack.id},
+      );
+    } else {
+      throw Exception('stopVideoCapturer only support for Android');
+    }
+  }
+
+  static Future<void> reStartVideoCapturer(MediaStreamTrack videoTrack) async {
+    if (WebRTC.platformIsAndroid) {
+      await WebRTC.invokeMethod('reStartCamera');
+    } else {
+      throw Exception('reStartVideoCapturer only support for Android');
+    }
+  }
+
   /// Set the volume for Flutter native
   static Future<void> setVolume(double volume, MediaStreamTrack track) =>
       NativeAudioManagement.setVolume(volume, track);
