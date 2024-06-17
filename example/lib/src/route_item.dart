@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'dart:core';
 
-typedef void RouteCallback(BuildContext context);
+typedef RouteCallback = void Function(BuildContext context);
 
 class RouteItem {
   RouteItem({
     required this.title,
-    required this.subtitle,
-    required this.push,
+    this.subtitle,
+    this.push,
   });
 
   final String title;
-  final String subtitle;
-  final RouteCallback push;
+  final String? subtitle;
+  final RouteCallback? push;
 }
