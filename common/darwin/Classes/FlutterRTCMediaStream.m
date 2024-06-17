@@ -905,7 +905,10 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
       return device;
     }
   }
-  return captureDevices[0];
+  if(captureDevices.count > 0) {
+    return captureDevices[0];
+  }
+  return nil;
 }
 
 - (AVCaptureDeviceFormat*)selectFormatForDevice:(AVCaptureDevice*)device

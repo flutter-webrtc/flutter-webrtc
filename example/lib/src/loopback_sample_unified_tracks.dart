@@ -581,7 +581,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       if (fromConnection) {
         await _connectionRemoveTrack(track);
       }
-      await _localStream!.removeTrack(track);
+      try {
+        await _localStream!.removeTrack(track);
+      } catch (e) {
+        print(e.toString());
+      }
       await track.stop();
     }
   }
@@ -593,7 +597,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       if (fromConnection) {
         await _connectionRemoveTrack(track);
       }
-      await _localStream!.removeTrack(track);
+      try {
+        await _localStream!.removeTrack(track);
+      } catch (e) {
+        print(e.toString());
+      }
       await track.stop();
     }
   }
