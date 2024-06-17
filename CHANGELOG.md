@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.11.1] - 2024-06-17
+
+* [macOS] Downgrade macOS system dependencies to 10.14.
+
 [0.11.0] - 2024-06-17
 
 * [Native] upgrade libwebrtc to m125.6422.
