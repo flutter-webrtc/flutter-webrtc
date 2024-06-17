@@ -141,7 +141,7 @@ class Helper {
     }
   }
 
-  static Future<void> reStartVideoCapturer(MediaStreamTrack videoTrack) async {
+  static Future<void> reStartVideoCapturer() async {
     if (WebRTC.platformIsAndroid) {
       await WebRTC.invokeMethod('reStartCamera');
     } else {
