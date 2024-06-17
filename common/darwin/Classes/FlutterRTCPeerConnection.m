@@ -692,14 +692,12 @@
     didRemoveIceCandidates:(NSArray<RTCIceCandidate*>*)candidates {
 }
 
-RTCRtpMediaType mediaTypeFromString(NSString* kind) {
-  RTCRtpMediaType mediaType = RTCRtpMediaTypeUnsupported;
+NSString* mediaTypeFromString(NSString* kind) {
+  NSString* mediaType = kRTCMediaStreamTrackKindAudio;
   if ([kind isEqualToString:@"audio"]) {
-    mediaType = RTCRtpMediaTypeAudio;
+    mediaType = kRTCMediaStreamTrackKindAudio;
   } else if ([kind isEqualToString:@"video"]) {
-    mediaType = RTCRtpMediaTypeVideo;
-  } else if ([kind isEqualToString:@"data"]) {
-    mediaType = RTCRtpMediaTypeData;
+    mediaType = kRTCMediaStreamTrackKindVideo;
   }
   return mediaType;
 }
@@ -734,7 +732,7 @@ NSDictionary<NSString*, NSString*>* stringToParameters(NSString* str) {
                                           result:(nonnull FlutterResult)result {
   NSString* kind = argsMap[@"kind"];
   RTCRtpCapabilities* caps =
-      [self.peerConnectionFactory rtpReceiverCapabilitiesFor:mediaTypeFromString(kind)];
+    [self.peerConnectionFactory rtpReceiverCapabilitiesForKind:mediaTypeFromString(kind)];
   NSMutableArray* codecsMap = [NSMutableArray array];
   for (RTCRtpCodecCapability* c in caps.codecs) {
     if ([kind isEqualToString:@"audio"]) {
@@ -763,7 +761,7 @@ NSDictionary<NSString*, NSString*>* stringToParameters(NSString* str) {
                                         result:(nonnull FlutterResult)result {
   NSString* kind = argsMap[@"kind"];
   RTCRtpCapabilities* caps =
-      [self.peerConnectionFactory rtpSenderCapabilitiesFor:mediaTypeFromString(kind)];
+      [self.peerConnectionFactory rtpSenderCapabilitiesForKind:mediaTypeFromString(kind)];
   NSMutableArray* codecsMap = [NSMutableArray array];
   for (RTCRtpCodecCapability* c in caps.codecs) {
     if ([kind isEqualToString:@"audio"]) {
@@ -788,6 +786,28 @@ NSDictionary<NSString*, NSString*>* stringToParameters(NSString* str) {
   });
 }
 
+-(RTC_OBJC_TYPE(RTCRtpCodecCapability) *) findCodecCapability:(NSString *)kind
+                                                        codec:(NSString *)codec
+                                                   parameters:(NSDictionary<NSString*, NSString*>*)parameters {
+    RTCRtpCapabilities* caps = [self.peerConnectionFactory rtpSenderCapabilitiesForKind: [kind isEqualToString:@"video"]? kRTCMediaStreamTrackKindVideo : kRTCMediaStreamTrackKindAudio];
+    for(RTCRtpCodecCapability* capCodec in caps.codecs) {
+        if([capCodec.name isEqualToString:codec] && [capCodec.kind isEqualToString:kind]) {
+            BOOL matched = YES;
+            for(NSString* key in capCodec.parameters) {
+                NSString *value = [capCodec.parameters objectForKey:key];
+                NSString *value2 = [parameters objectForKey:key];
+                if(![value isEqualToString:value2]) {
+                    matched = NO;
+                }
+            }
+            if(matched) {
+                return capCodec;
+            }
+        }
+    }
+    return nil;
+}
+
 - (void)transceiverSetCodecPreferences:(nonnull NSDictionary*)argsMap
                                 result:(nonnull FlutterResult)result {
   NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -810,19 +830,18 @@ NSDictionary<NSString*, NSString*>* stringToParameters(NSString* str) {
   id codecs = argsMap[@"codecs"];
   NSMutableArray* codecCaps = [NSMutableArray array];
   for (id c in codecs) {
-    NSLog(@"codec %@", c);
     NSArray* kindAndName = [c[@"mimeType"] componentsSeparatedByString:@"/"];
-    RTCRtpCodecCapability* codec = [[RTCRtpCodecCapability alloc] init];
-    codec.clockRate = c[@"clockRate"];
-    codec.kind = mediaTypeFromString([kindAndName[0] lowercaseString]);
-    codec.name = kindAndName[1];
+    NSString* kind = [kindAndName[0] lowercaseString];
+    NSString* name = kindAndName[1];
+    NSLog(@"codec %@/%@", kind, name);
+    NSDictionary<NSString*, NSString*>* parameters = nil;
     if (c[@"sdpFmtpLine"] != nil && ![((NSString*)c[@"sdpFmtpLine"]) isEqualToString:@""]) {
-      codec.parameters = stringToParameters((NSString*)c[@"sdpFmtpLine"]);
+        parameters = stringToParameters((NSString*)c[@"sdpFmtpLine"]);
     }
-    if (c[@"channels"] != nil) {
-      codec.numChannels = c[@"channels"];
+    RTCRtpCodecCapability * codec = [self findCodecCapability:kind codec:name parameters:parameters];
+    if(codec != nil) {
+        [codecCaps addObject:codec];
     }
-    [codecCaps addObject:codec];
   }
   [transcevier setCodecPreferences:codecCaps];
   result(nil);
