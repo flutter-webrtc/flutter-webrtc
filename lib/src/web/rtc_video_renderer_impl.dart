@@ -9,6 +9,9 @@ import 'package:flutter/services.dart';
 import 'package:dart_webrtc/dart_webrtc.dart';
 import 'package:web/web.dart' as web;
 
+const bool useHtmlElementView =
+    bool.fromEnvironment("WEBRTC_USE_HTML_ELEMENT_VIEW", defaultValue: false);
+
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
 const Map<int, String> _kErrorValueToErrorName = {
@@ -255,6 +258,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
   @override
   Future<void> initialize() async {
+    bool isVisible = useHtmlElementView;
     web_ui.platformViewRegistry.registerViewFactory(viewType, (int viewId) {
       for (var s in _subscriptions) {
         s.cancel();
@@ -268,6 +272,11 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
         ..srcObject = _videoStream
         ..id = _elementIdForVideo
         ..setAttribute('playsinline', 'true');
+
+      if (!isVisible) {
+        element.style.pointerEvents = "none";
+        element.style.opacity = "0";
+      }
 
       _applyDefaultVideoStyles(element);
 
@@ -308,7 +317,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       );
 
       return element;
-    });
+    }, isVisible: isVisible);
   }
 
   void _applyDefaultVideoStyles(web.HTMLVideoElement element) {
