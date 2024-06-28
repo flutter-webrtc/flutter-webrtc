@@ -386,7 +386,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           RtpSender audioSender = null;
           for (RtpSender sender : peerConnection.getSenders()) {
 
-            if (sender.track().kind().equals("audio")) {
+            if (sender != null && sender.track() != null && sender.track().kind().equals("audio")) {
               audioSender = sender;
             }
           }
