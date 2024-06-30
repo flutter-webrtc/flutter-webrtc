@@ -21,10 +21,6 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
   String _dc2Status = '';
 
   bool _inCalling = false;
-  @override
-  void initState() {
-    super.initState();
-  }
 
   void _makeCall() async {
     if (_pc1 != null || _pc2 != null) return;
