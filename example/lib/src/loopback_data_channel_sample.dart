@@ -126,23 +126,20 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
       appBar: AppBar(
         title: Text('Data Channel Test'),
       ),
-      body: OrientationBuilder(
-        builder: (context, orientation) {
-          return Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('(caller)data channel 1:\n'),
-              Container(
-                child: Text(_dc1Status),
-              ),
-              Text('\n\n(callee)data channel 2:\n'),
-              Container(
-                child: Text(_dc2Status),
-              ),
-            ],
-          ));
-        },
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('(caller)data channel 1:\n'),
+            Container(
+              child: Text(_dc1Status),
+            ),
+            Text('\n\n(callee)data channel 2:\n'),
+            Container(
+              child: Text(_dc2Status),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _inCalling ? _hangUp : _makeCall,
