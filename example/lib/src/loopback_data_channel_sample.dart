@@ -21,10 +21,6 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
   String _dataChannel2Status = '';
 
   bool _inCalling = false;
-  @override
-  void initState() {
-    super.initState();
-  }
 
   void _makeCall() async {
     if (_peerConnection1 != null || _peerConnection2 != null) return;
@@ -133,23 +129,20 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
       appBar: AppBar(
         title: Text('Data Channel Test'),
       ),
-      body: OrientationBuilder(
-        builder: (context, orientation) {
-          return Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('(caller)data channel 1:\n'),
-              Container(
-                child: Text(_dataChannel1Status),
-              ),
-              Text('\n\n(callee)data channel 2:\n'),
-              Container(
-                child: Text(_dataChannel2Status),
-              ),
-            ],
-          ));
-        },
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('(caller)data channel 1:\n'),
+            Container(
+              child: Text(_dataChannel1Status),
+            ),
+            Text('\n\n(callee)data channel 2:\n'),
+            Container(
+              child: Text(_dataChannel2Status),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _inCalling ? _hangUp : _makeCall,
