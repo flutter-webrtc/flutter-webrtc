@@ -51,8 +51,8 @@ class RTCMediaConstraints : public RefCountInterface {
   LIB_WEBRTC_API static const char* kEnableVideoSuspendBelowMinBitrate;
   // googSuspendBelowMinBitrate
   // Constraint to enable combined audio+video bandwidth estimation.
-  //LIB_WEBRTC_API static const char*
-  //    kCombinedAudioVideoBwe;  // googCombinedAudioVideoBwe
+  LIB_WEBRTC_API static const char*
+      kCombinedAudioVideoBwe;  // googCombinedAudioVideoBwe
   LIB_WEBRTC_API static const char*
       kScreencastMinBitrate;  // googScreencastMinBitrate
   LIB_WEBRTC_API static const char*

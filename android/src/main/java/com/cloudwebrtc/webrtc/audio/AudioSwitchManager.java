@@ -269,8 +269,6 @@ public class AudioSwitchManager {
 
         if (audioDevice == null) {
             selectAudioOutput(AudioDevice.Speakerphone.class);
-        } else {
-            selectAudioOutput(audioDevice.getClass());
         }
     }
 

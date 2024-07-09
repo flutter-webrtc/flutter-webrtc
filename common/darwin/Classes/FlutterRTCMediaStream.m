@@ -43,13 +43,11 @@ typedef void (^NavigatorUserMediaErrorCallback)(NSString* errorType, NSString* e
  */
 typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 
-- (NSDictionary*)defaultVideoConstraints {
-    return @{@"minWidth" : @"1280", @"minHeight" : @"720", @"minFrameRate" : @"30"};
-}
-
 - (RTCMediaConstraints*)defaultMediaStreamConstraints {
+  NSDictionary* mandatoryConstraints =
+      @{@"minWidth" : @"1280", @"minHeight" : @"720", @"minFrameRate" : @"30"};
   RTCMediaConstraints* constraints =
-      [[RTCMediaConstraints alloc] initWithMandatoryConstraints:[self defaultVideoConstraints]
+      [[RTCMediaConstraints alloc] initWithMandatoryConstraints:mandatoryConstraints
                                             optionalConstraints:nil];
   return constraints;
 }
@@ -102,11 +100,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     }
   }
 
-#if !defined(TARGET_OS_IPHONE)
   if (audioDeviceId != nil) {
     [self selectAudioInput:audioDeviceId result:nil];
   }
-#endif
 
   NSString* trackId = [[NSUUID UUID] UUIDString];
   RTCAudioTrack* audioTrack = [self.peerConnectionFactory audioTrackWithTrackId:trackId];
@@ -359,10 +355,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
         videoDevice = [self findDeviceForPosition:position];
       }
     }
-  }
-
-  if ([videoConstraints isKindOfClass:[NSNumber class]]) {
-    videoConstraints = @{@"mandatory": [self defaultVideoConstraints]};
   }
 
   NSInteger targetWidth = 0;
@@ -628,22 +620,22 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     }];
   }
 #if TARGET_OS_IPHONE
-
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
   for (AVAudioSessionPortDescription* port in session.session.availableInputs) {
     // NSLog(@"input portName: %@, type %@", port.portName,port.portType);
     [sources addObject:@{
+      @"facing" : @"",
       @"deviceId" : port.UID,
       @"label" : port.portName,
       @"groupId" : port.portType,
       @"kind" : @"audioinput",
     }];
   }
-
   for (AVAudioSessionPortDescription* port in session.currentRoute.outputs) {
     // NSLog(@"output portName: %@, type %@", port.portName,port.portType);
     if (session.currentRoute.outputs.count == 1 && ![port.UID isEqualToString:@"Speaker"]) {
       [sources addObject:@{
+        @"facing" : @"",
         @"deviceId" : @"Speaker",
         @"label" : @"Speaker",
         @"groupId" : @"Speaker",
@@ -651,6 +643,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
       }];
     }
     [sources addObject:@{
+      @"facing" : @"",
       @"deviceId" : port.UID,
       @"label" : port.portName,
       @"groupId" : port.portType,
@@ -664,6 +657,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   NSArray* inputDevices = [audioDeviceModule inputDevices];
   for (RTCIODevice* device in inputDevices) {
     [sources addObject:@{
+      @"facing" : @"",
       @"deviceId" : device.deviceId,
       @"label" : device.name,
       @"kind" : @"audioinput",
@@ -673,6 +667,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   NSArray* outputDevices = [audioDeviceModule outputDevices];
   for (RTCIODevice* device in outputDevices) {
     [sources addObject:@{
+      @"facing" : @"",
       @"deviceId" : device.deviceId,
       @"label" : device.name,
       @"kind" : @"audiooutput",
@@ -905,10 +900,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
       return device;
     }
   }
-  if(captureDevices.count > 0) {
-    return captureDevices[0];
-  }
-  return nil;
+  return captureDevices[0];
 }
 
 - (AVCaptureDeviceFormat*)selectFormatForDevice:(AVCaptureDevice*)device

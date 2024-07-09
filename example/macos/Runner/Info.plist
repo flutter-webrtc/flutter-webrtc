@@ -20,8 +20,6 @@
 	<string>$(PRODUCT_NAME) Camera Usage!</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>$(PRODUCT_NAME) Microphone Usage!</string>
-    <key>NSCameraUseContinuityCameraDeviceType</key>
-    <string>$(PRODUCT_NAME) Continuity Camera Usage!</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleVersion</key>

@@ -168,8 +168,8 @@ internal class SimulcastVideoEncoderFactoryWrapper(
             return future.get()
         }
 
-        override fun createNative(webrtcEnvRef: Long): Long {
-            val future = executor.submit(Callable { return@Callable encoder.createNative(webrtcEnvRef) })
+        override fun createNativeVideoEncoder(): Long {
+            val future = executor.submit(Callable { return@Callable encoder.createNativeVideoEncoder() })
             return future.get()
         }
 
