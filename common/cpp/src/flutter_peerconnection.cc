@@ -936,9 +936,6 @@ EncodableMap statsToMap(const scoped_refptr<MediaRTCStats>& stats) {
   auto members = stats->Members();
   for (int i = 0; i < members.size(); i++) {
     auto member = members[i];
-    if (!member->IsDefined()) {
-      continue;
-    }
     switch (member->GetType()) {
       case RTCStatsMember::Type::kBool:
         values[EncodableValue(member->GetName().std_string())] =
