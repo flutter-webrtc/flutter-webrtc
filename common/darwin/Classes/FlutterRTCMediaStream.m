@@ -3,6 +3,37 @@
 #import "FlutterRTCFrameCapturer.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
+#import <Foundation/Foundation.h>
+#import "CustomCapturerDelegate.h"
+#import "WebRTCService.h"
+#import "Processor.h"
+@implementation CustomCapturerDelegate
+
+- (instancetype)initWithVideoSource:(RTCVideoSource *)videoSource {
+    self = [super init];
+    if (self) {
+        _videoSource = videoSource;
+    }
+    return self;
+}
+
+- (void)capturer:(RTCVideoCapturer *)capturer didCaptureVideoFrame:(RTCVideoFrame *)frame {
+    WebRTCService *webrtcService = [WebRTCService sharedInstance];
+    if ([webrtcService getProcessor]) {
+        // Process the frame using your Processor instance
+        RTCVideoFrame *processedFrame = [[webrtcService getProcessor] applyEffect:frame];
+        // Pass the processed frame to the video source
+        if (self.videoSource) {
+            [self.videoSource capturer:capturer didCaptureVideoFrame:processedFrame];
+        } 
+    } else {
+        if (self.videoSource) {
+            [self.videoSource capturer:capturer didCaptureVideoFrame:frame];
+        } 
+    }
+}
+
+@end
 
 @implementation RTCMediaStreamTrack (Flutter)
 
@@ -416,7 +447,11 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     if (self.videoCapturer) {
       [self.videoCapturer stopCapture];
     }
-    self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
+    CustomCapturerDelegate *customDelegate = [[CustomCapturerDelegate alloc] initWithVideoSource:videoSource];
+    self.customDelegate = [[CustomCapturerDelegate alloc] initWithVideoSource:videoSource];
+    self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:customDelegate];
+    self.videoCapturer.delegate = self.customDelegate;
+    // self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
     AVCaptureDeviceFormat* selectedFormat = [self selectFormatForDevice:videoDevice
                                                             targetWidth:targetWidth
                                                            targetHeight:targetHeight];

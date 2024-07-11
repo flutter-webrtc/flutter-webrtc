@@ -72,6 +72,9 @@ import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
+import org.webrtc.VideoFrame;
+import org.webrtc.CapturerObserver;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -758,8 +761,38 @@ class GetUserMediaImpl {
         String threadName = Thread.currentThread().getName() + "_texture_camera_thread";
         SurfaceTextureHelper surfaceTextureHelper =
                 SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
-        videoCapturer.initialize(
-                surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
+                CapturerObserver customCapturerObserver = new CapturerObserver() {
+                    WebRTCService webRTCService = WebRTCService.getInstance();
+                    @Override
+                    public void onCapturerStarted(boolean success) {
+                        Log.d(TAG, "Capturer started: " + success);
+                        videoSource.getCapturerObserver().onCapturerStarted(success);
+                    }
+        
+                    @Override
+                    public void onCapturerStopped() {
+                        Log.d(TAG, "Capturer stopped");
+                        videoSource.getCapturerObserver().onCapturerStopped();
+                    }
+        
+                    @Override
+                    public void onFrameCaptured(VideoFrame frame) {
+                        if(webRTCService.getProcessor() != null && frame != null){
+                            VideoFrame processedFrame = webRTCService.getProcessor().applyEffect(frame);
+                            if(processedFrame != null){
+                                videoSource.getCapturerObserver().onFrameCaptured(processedFrame);
+                            }else{
+                                videoSource.getCapturerObserver().onFrameCaptured(frame);
+                            }
+                        } else{
+                            videoSource.getCapturerObserver().onFrameCaptured(frame);
+                        }
+                    }
+                };
+        
+                videoCapturer.initialize(surfaceTextureHelper, applicationContext, customCapturerObserver);
+        // videoCapturer.initialize(
+        //         surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
 
         VideoCapturerInfo info = new VideoCapturerInfo();
 

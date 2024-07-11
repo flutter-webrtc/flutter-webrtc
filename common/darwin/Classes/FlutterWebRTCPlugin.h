@@ -7,6 +7,7 @@
 #import <Foundation/Foundation.h>
 #import <WebRTC/WebRTC.h>
 
+@class CustomCapturerDelegate;
 @class FlutterRTCVideoRenderer;
 @class FlutterRTCFrameCapturer;
 
@@ -44,6 +45,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 @property(nonatomic, strong) FlutterEventSink _Nullable eventSink;
 @property(nonatomic, strong) NSObject<FlutterBinaryMessenger>* _Nonnull messenger;
 @property(nonatomic, strong) RTCCameraVideoCapturer* _Nullable videoCapturer;
+@property(nonatomic, strong) CustomCapturerDelegate* _Nullable customDelegate;
 @property(nonatomic, strong) FlutterRTCFrameCapturer* _Nullable frameCapturer;
 @property(nonatomic, strong) AVAudioSessionPort _Nullable preferredInput;
 @property(nonatomic) BOOL _usingFrontCamera;
