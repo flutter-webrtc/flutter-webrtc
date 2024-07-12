@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.11.3] - 2024-07-12
+
+* Bump version for libwebrtc.
+
 [0.11.2] - 2024-07-09
 
 * [Windows] fix crash for windows.
