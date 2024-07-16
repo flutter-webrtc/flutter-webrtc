@@ -2,7 +2,7 @@
 # To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html
 #
 Pod::Spec.new do |s|
-  s.name             = 'flutter_webrtc'
+  s.name             = 'videosdk_webrtc'
   s.version          = '0.10.3'
   s.summary          = 'Flutter WebRTC plugin for iOS.'
   s.description      = <<-DESC
