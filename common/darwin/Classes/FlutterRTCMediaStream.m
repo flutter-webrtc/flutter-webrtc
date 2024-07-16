@@ -6,7 +6,7 @@
 #import <Foundation/Foundation.h>
 #import "CustomCapturerDelegate.h"
 #import "WebRTCService.h"
-#import "Processor.h"
+#import "VideoProcessor.h"
 @implementation CustomCapturerDelegate
 
 - (instancetype)initWithVideoSource:(RTCVideoSource *)videoSource {
@@ -19,12 +19,16 @@
 
 - (void)capturer:(RTCVideoCapturer *)capturer didCaptureVideoFrame:(RTCVideoFrame *)frame {
     WebRTCService *webrtcService = [WebRTCService sharedInstance];
-    if ([webrtcService getProcessor]) {
+    if ([webrtcService getVideoProcessor]) {
         // Process the frame using your Processor instance
-        RTCVideoFrame *processedFrame = [[webrtcService getProcessor] applyEffect:frame];
-        // Pass the processed frame to the video source
+        RTCVideoFrame *processedFrame = [[webrtcService getVideoProcessor] onFrameReceived:frame];
+        // Pass the processed frame to the video source, or the original frame if processedFrame is nil
         if (self.videoSource) {
-            [self.videoSource capturer:capturer didCaptureVideoFrame:processedFrame];
+            if (processedFrame) {
+                [self.videoSource capturer:capturer didCaptureVideoFrame:processedFrame];
+            } else {
+                [self.videoSource capturer:capturer didCaptureVideoFrame:frame];
+            }
         } 
     } else {
         if (self.videoSource) {

@@ -1,6 +1,6 @@
 package com.cloudwebrtc.webrtc;
 
-import com.cloudwebrtc.webrtc.Processor;
+import com.cloudwebrtc.webrtc.VideoProcessor;
 import android.util.Log;
 
 public class WebRTCService {
@@ -8,11 +8,10 @@ public class WebRTCService {
     private static final String TAG = "WebRTCService";
     private static WebRTCService instance;
     
-    private Processor processor;
+    private VideoProcessor videoProcessor;
 
     // Private constructor to prevent instantiation from outside
     private WebRTCService() {
-        Log.d(TAG, "WebRTCService instance created");
         // Initialization logic if any
     }
 
@@ -25,14 +24,13 @@ public class WebRTCService {
     }
 
     // Method to set the VideoProcessor
-    public void setProcessor(Processor processor) {
-        Log.d(TAG, "Processor Set successfully");
-        this.processor = processor;
+    public void setVideoProcessor(VideoProcessor videoProcessor) {
+        this.videoProcessor = videoProcessor;
     }
 
     // Method to get the current VideoProcessor
-    public Processor getProcessor() {
-        return processor;
+    public VideoProcessor getVideoProcessor() {
+        return videoProcessor;
     }
 
     // Other methods related to WebRTC service can be added here

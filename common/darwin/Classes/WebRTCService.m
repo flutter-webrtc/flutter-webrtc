@@ -9,7 +9,6 @@ static WebRTCService *instance = nil;
 - (instancetype)initPrivate {
     self = [super init];
     if (self) {
-        NSLog(@"WebRTCService instance created");
         // Initialization logic if any
     }
     return self;
@@ -25,14 +24,13 @@ static WebRTCService *instance = nil;
 }
 
 // Method to set the Processor
-- (void)setProcessor:(Processor *)processor {
-    NSLog(@"Processor Set successfully");
-    _processor = processor;
+- (void)setVideoProcessor:(VideoProcessor *)videoProcessor {
+    _videoProcessor = videoProcessor;
 }
 
 // Method to get the current Processor
-- (Processor *)getProcessor {
-    return _processor;
+- (VideoProcessor *)getVideoProcessor {
+    return _videoProcessor;
 }
 
 @end

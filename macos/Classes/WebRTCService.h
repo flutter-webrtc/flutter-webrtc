@@ -1,17 +1,18 @@
+
 #import <Foundation/Foundation.h>
-#import "Processor.h" // Import Processor header file
+#import "VideoProcessor.h" // Import Processor header file
 
 @interface WebRTCService : NSObject
 
-@property (nonatomic, strong) Processor *processor;
+@property (nonatomic, strong) VideoProcessor *videoProcessor;
 
 // Singleton instance method
 + (instancetype)sharedInstance;
 
 // Method to set the Processor
-- (void)setProcessor:(Processor *)processor;
+- (void)setVideoProcessor:(VideoProcessor *)videoProcessor;
 
 // Method to get the current Processor
-- (Processor *)getProcessor;
+- (VideoProcessor *)getVideoProcessor;
 
 @end
