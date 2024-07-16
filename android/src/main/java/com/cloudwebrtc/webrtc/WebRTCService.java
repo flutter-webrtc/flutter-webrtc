@@ -1,6 +1,6 @@
 package com.cloudwebrtc.webrtc;
 
-import com.cloudwebrtc.webrtc.VideoProcessor;
+import live.videosdk.webrtc.VideoProcessor;
 import android.util.Log;
 
 public class WebRTCService {
