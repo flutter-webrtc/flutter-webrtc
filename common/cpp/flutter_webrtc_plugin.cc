@@ -73,6 +73,6 @@ void flutter_web_r_t_c_plugin_register_with_registrar(
     FlPluginRegistrar* registrar) {
 #endif
   static auto* plugin_registrar = new flutter::PluginRegistrar(registrar);
-  flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
+  videosdk_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
       plugin_registrar);
 }
