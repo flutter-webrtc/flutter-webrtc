@@ -3,7 +3,7 @@ package org.webrtc.audio;
 import android.media.AudioTrack;
 import android.util.Log;
 
-import com.cloudwebrtc.webrtc.record.AudioTrackInterceptor;
+import live.videosdk.webrtc.record.AudioTrackInterceptor;
 
 import org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
 

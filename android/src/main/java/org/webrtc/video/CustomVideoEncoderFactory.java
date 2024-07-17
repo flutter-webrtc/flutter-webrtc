@@ -2,7 +2,7 @@ package org.webrtc.video;
 
 import androidx.annotation.Nullable;
 
-import com.cloudwebrtc.webrtc.SimulcastVideoEncoderFactoryWrapper;
+import live.videosdk.webrtc.SimulcastVideoEncoderFactoryWrapper;
 
 import org.webrtc.EglBase;
 import org.webrtc.SoftwareVideoEncoderFactory;

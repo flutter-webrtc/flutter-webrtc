@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_background: ^1.0.0
-  flutter_webrtc:
+  videosdk_webrtc:
     path: ../
   # Required for MediaRecorder example
   path_provider: ^2.0.2

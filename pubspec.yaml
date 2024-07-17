@@ -27,7 +27,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.cloudwebrtc.webrtc
+        package: live.videosdk.webrtc
         pluginClass: FlutterWebRTCPlugin
       ios:
         pluginClass: FlutterWebRTCPlugin
