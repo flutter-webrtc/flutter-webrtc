@@ -23,7 +23,7 @@
 
 #include "uuidxx.h"
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 using namespace libwebrtc;
 
@@ -126,6 +126,6 @@ class FlutterWebRTCBase {
   std::unique_ptr<EventChannelProxy> event_channel_;
 };
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin
 
 #endif  // !FLUTTER_WEBRTC_BASE_HXX

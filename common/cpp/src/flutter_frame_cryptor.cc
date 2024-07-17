@@ -2,7 +2,7 @@
 
 #include "base/scoped_ref_ptr.h"
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 libwebrtc::Algorithm AlgorithmFromInt(int algorithm) {
   switch (algorithm) {
@@ -603,4 +603,4 @@ void FlutterFrameCryptor::KeyProviderDispose(
   result->Success(EncodableValue(params));
 }
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin

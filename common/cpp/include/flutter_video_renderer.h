@@ -9,7 +9,7 @@
 
 #include <mutex>
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 using namespace libwebrtc;
 
@@ -78,6 +78,6 @@ class FlutterVideoRendererManager {
   std::map<int64_t, scoped_refptr<FlutterVideoRenderer>> renderers_;
 };
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin
 
 #endif  // !FLUTTER_WEBRTC_RTC_VIDEO_RENDERER_HXX

@@ -1,6 +1,6 @@
 #include "flutter_screen_capture.h"
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 FlutterScreenCapture::FlutterScreenCapture(FlutterWebRTCBase* base)
     : base_(base) {}
@@ -279,4 +279,4 @@ void FlutterScreenCapture::GetDisplayMedia(
   result->Success(EncodableValue(params));
 }
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin

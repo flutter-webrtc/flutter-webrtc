@@ -1,6 +1,6 @@
 name: videosdk_webrtc
 description: Flutter WebRTC plugin for iOS/Android/Destkop/Web, based on GoogleWebRTC.
-version: 0.0.1
+version: 0.0.2
 homepage: https://www.videosdk.live
 environment:
   sdk: '>=3.3.0 <4.0.0'

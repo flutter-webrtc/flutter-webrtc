@@ -4,7 +4,7 @@
 #include "flutter_common.h"
 #include "flutter_webrtc_base.h"
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
  public:
@@ -203,6 +203,6 @@ const char* peerConnectionStateString(RTCPeerConnectionState state);
 
 const char* iceGatheringStateString(RTCIceGatheringState state);
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin
 
 #endif  // !FLUTTER_WEBRTC_RTC_PEER_CONNECTION_HXX

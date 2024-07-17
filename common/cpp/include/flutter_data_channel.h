@@ -4,7 +4,7 @@
 #include "flutter_common.h"
 #include "flutter_webrtc_base.h"
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 class FlutterRTCDataChannelObserver : public RTCDataChannelObserver {
  public:
@@ -49,6 +49,6 @@ class FlutterDataChannel {
   FlutterWebRTCBase* base_;
 };
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin
 
 #endif  // !FLUTTER_WEBRTC_RTC_DATA_CHANNEL_HXX

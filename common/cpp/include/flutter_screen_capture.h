@@ -7,7 +7,7 @@
 #include "rtc_desktop_capturer.h"
 #include "rtc_desktop_media_list.h"
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 class FlutterScreenCapture : public MediaListObserver,
                              public DesktopCapturerObserver {
@@ -55,6 +55,6 @@ class FlutterScreenCapture : public MediaListObserver,
   std::vector<scoped_refptr<MediaSource>> sources_;
 };
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin
 
 #endif  // FLUTTER_SCRREN_CAPTURE_HXX

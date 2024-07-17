@@ -6,7 +6,7 @@
 
 #include "rtc_frame_cryptor.h"
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 class FlutterFrameCryptorObserver : public libwebrtc::RTCFrameCryptorObserver {
  public:
@@ -96,6 +96,6 @@ class FlutterFrameCryptor {
   std::map<std::string, scoped_refptr<libwebrtc::KeyProvider>> key_providers_;
 };
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin
 
 #endif  // FLUTTER_WEBRTC_RTC_FRAME_CRYPTOR_HXX

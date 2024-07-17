@@ -1,6 +1,6 @@
 #include "flutter_video_renderer.h"
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 FlutterVideoRenderer::~FlutterVideoRenderer() {}
 
@@ -181,4 +181,4 @@ void FlutterVideoRendererManager::VideoRendererDispose(
                 "VideoRendererDispose() texture not found!");
 }
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin

@@ -6,7 +6,7 @@
 #include "rtc_dtmf_sender.h"
 #include "rtc_rtp_parameters.h"
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 std::string RTCMediaTypeToString(RTCMediaType type) {
   switch (type) {
@@ -1384,4 +1384,4 @@ void FlutterPeerConnectionObserver::RemoveStreamForId(const std::string& id) {
     remote_streams_.erase(it);
 }
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin

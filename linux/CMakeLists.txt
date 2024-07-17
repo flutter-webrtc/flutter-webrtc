@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-set(PROJECT_NAME "flutter_webrtc")
+set(PROJECT_NAME "videosdk_webrtc")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
 set(PLUGIN_NAME "${PROJECT_NAME}_plugin")
@@ -50,7 +50,7 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin
-set(flutter_webrtc_bundled_libraries
+set(videosdk_webrtc_bundled_libraries
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/${FLUTTER_TARGET_PLATFORM}/libwebrtc.so"
   PARENT_SCOPE
 )

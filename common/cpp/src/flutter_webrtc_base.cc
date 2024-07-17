@@ -3,7 +3,7 @@
 #include "flutter_data_channel.h"
 #include "flutter_peerconnection.h"
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 const char* kEventChannelName = "FlutterWebRTC.Event";
 
@@ -359,4 +359,4 @@ FlutterWebRTCBase::GetRtpReceiverById(RTCPeerConnection* pc,
   return result;
 }
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin

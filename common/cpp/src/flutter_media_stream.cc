@@ -4,7 +4,7 @@
 #define DEFAULT_HEIGHT 720
 #define DEFAULT_FPS 30
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 FlutterMediaStream::FlutterMediaStream(FlutterWebRTCBase* base) : base_(base) {
   base_->audio_device_->OnDeviceChange([&] {
@@ -552,4 +552,4 @@ void FlutterMediaStream::MediaStreamTrackDispose(
   base_->RemoveMediaTrackForId(track_id);
   result->Success();
 }
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin

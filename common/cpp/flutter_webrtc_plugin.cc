@@ -1,4 +1,4 @@
-#include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
+#include "videosdk_webrtc/flutter_web_r_t_c_plugin.h"
 
 #include "flutter_common.h"
 #include "flutter_webrtc.h"
@@ -7,7 +7,7 @@ const char* kChannelName = "FlutterWebRTC.Method";
 
 //#if defined(_WINDOWS)
 
-namespace flutter_webrtc_plugin {
+namespace videosdk_webrtc_plugin {
 
 // A webrtc plugin for windows/linux.
 class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
@@ -63,7 +63,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
   TextureRegistrar* textures_;
 };
 
-}  // namespace flutter_webrtc_plugin
+}  // namespace videosdk_webrtc_plugin
 
 #if defined(_WINDOWS)
 void FlutterWebRTCPluginRegisterWithRegistrar(
