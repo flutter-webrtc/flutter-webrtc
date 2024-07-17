@@ -19,23 +19,31 @@
 
 - (void)capturer:(RTCVideoCapturer *)capturer didCaptureVideoFrame:(RTCVideoFrame *)frame {
     WebRTCService *webrtcService = [WebRTCService sharedInstance];
-    if ([webrtcService getVideoProcessor]) {
-        // Process the frame using your Processor instance
-        RTCVideoFrame *processedFrame = [[webrtcService getVideoProcessor] onFrameReceived:frame];
-        // Pass the processed frame to the video source, or the original frame if processedFrame is nil
-        if (self.videoSource) {
-            if (processedFrame) {
-                [self.videoSource capturer:capturer didCaptureVideoFrame:processedFrame];
-            } else {
+    @try {
+        if ([webrtcService getVideoProcessor]) {
+            // Process the frame using your Processor instance
+            RTCVideoFrame *processedFrame = [[webrtcService getVideoProcessor] onFrameReceived:frame];
+            // Pass the processed frame to the video source, or the original frame if processedFrame is nil
+            if (self.videoSource) {
+                if (processedFrame) {
+                    [self.videoSource capturer:capturer didCaptureVideoFrame:processedFrame];
+                } else {
+                    [self.videoSource capturer:capturer didCaptureVideoFrame:frame];
+                }
+            }
+        } else {
+            if (self.videoSource) {
                 [self.videoSource capturer:capturer didCaptureVideoFrame:frame];
             }
-        } 
-    } else {
+        }
+    }
+    @catch (NSException *exception) {
         if (self.videoSource) {
             [self.videoSource capturer:capturer didCaptureVideoFrame:frame];
-        } 
+        }
     }
 }
+
 
 @end
 

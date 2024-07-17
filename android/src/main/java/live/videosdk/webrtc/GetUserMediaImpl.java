@@ -777,14 +777,19 @@ class GetUserMediaImpl {
         
                     @Override
                     public void onFrameCaptured(VideoFrame frame) {
-                        if(webRTCService.getVideoProcessor() != null && frame != null){
-                            VideoFrame processedFrame = webRTCService.getVideoProcessor().onFrameReceived(frame);
-                            if(processedFrame != null){
-                                videoSource.getCapturerObserver().onFrameCaptured(processedFrame);
-                            }else{
+                        try{
+                            if(webRTCService.getVideoProcessor() != null && frame != null){
+                                VideoFrame processedFrame = webRTCService.getVideoProcessor().onFrameReceived(frame);
+                                if(processedFrame != null){
+                                    videoSource.getCapturerObserver().onFrameCaptured(processedFrame);
+                                }else{
+                                    videoSource.getCapturerObserver().onFrameCaptured(frame);
+                                }
+                            } else{
                                 videoSource.getCapturerObserver().onFrameCaptured(frame);
                             }
-                        } else{
+
+                        } catch(Exception e){
                             videoSource.getCapturerObserver().onFrameCaptured(frame);
                         }
                     }
