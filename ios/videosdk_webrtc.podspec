@@ -8,9 +8,9 @@ Pod::Spec.new do |s|
   s.description      = <<-DESC
 A new flutter plugin project.
                        DESC
-  s.homepage         = 'https://github.com/cloudwebrtc/flutter-webrtc'
+  s.homepage         = 'https://www.videosdk.live'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'CloudWebRTC' => 'duanweiwei1982@gmail.com' }
+  s.author           = { 'VideoSDK' => 'sdk@videosdk.live' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
