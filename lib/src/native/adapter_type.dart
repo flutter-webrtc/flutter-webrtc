@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 enum AdapterType {
   adapterTypeUnknown,
   adapterTypeEthernet,
@@ -8,8 +6,4 @@ enum AdapterType {
   adapterTypeVpn,
   adapterTypeLoopback,
   adapterTypeAny
-}
-
-extension AdapterTypeExt on AdapterType {
-  String get value => describeEnum(this);
 }
