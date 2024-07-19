@@ -825,7 +825,7 @@ class GetUserMediaImpl {
         return trackParams;
     }
 
-    void removeVideoCapturerSync(String id) {
+    void removeVideoCapturer(String id) {
         VideoCapturerInfo info = mVideoCapturers.get(id);
         if (info != null) {
             try {
@@ -846,10 +846,6 @@ class GetUserMediaImpl {
                 }
             }
         }
-    }
-
-    void removeVideoCapturer(String id) {
-        removeVideoCapturerSync(id);
     }
 
     @RequiresApi(api = VERSION_CODES.M)
