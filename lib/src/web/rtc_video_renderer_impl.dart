@@ -40,7 +40,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
   static const _elementIdForAudioManager = 'html_webrtc_audio_manager_list';
 
-  web.AudioElement? _audioElement;
+  web.HTMLAudioElement? _audioElement;
 
   static int _textureCounter = 1;
 
@@ -134,7 +134,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
     if (null != _audioStream) {
       if (null == _audioElement) {
-        _audioElement = web.AudioElement()
+        _audioElement = web.HTMLAudioElement()
           ..id = _elementIdForAudio
           ..muted = stream.ownerTag == 'local'
           ..autoplay = true;
@@ -184,7 +184,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
     if (null != _audioStream) {
       if (null == _audioElement) {
-        _audioElement = web.AudioElement()
+        _audioElement = web.HTMLAudioElement()
           ..id = _elementIdForAudio
           ..muted = stream.ownerTag == 'local'
           ..autoplay = true;

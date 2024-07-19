@@ -19,7 +19,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   import_sorter: ^4.6.0
-  lints: ^2.0.0
+  lints: ^4.0.0
   pedantic: ^1.11.1
   test: any
 
