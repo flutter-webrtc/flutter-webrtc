@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.11.4] - 2024-07-19
+
+* [Android] fix issue for camera switching.
+
 [0.11.3] - 2024-07-12
 
 * Bump version for libwebrtc.
