@@ -9,7 +9,3 @@ enum AdapterType {
   adapterTypeLoopback,
   adapterTypeAny
 }
-
-extension AdapterTypeExt on AdapterType {
-  String get value => describeEnum(this);
-}
