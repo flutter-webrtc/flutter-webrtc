@@ -52,6 +52,7 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
       throw 'Can\'t set srcObject: The RTCVideoPlatformController is disposed';
     }
     if (_viewId == null) throw 'Call initialize before setting the stream';
+    if (_srcObject == stream) return;
     _srcObject = stream;
     onSrcObjectChange?.call();
     WebRTC.invokeMethod(
@@ -74,6 +75,7 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
       throw 'Can\'t set srcObject: The RTCVideoPlatformController is disposed';
     }
     if (_viewId == null) throw 'Call initialize before setting the stream';
+    if (_srcObject == stream) return;
     _srcObject = stream;
     onSrcObjectChange?.call();
     var oldviewId = _viewId;
