@@ -12,4 +12,6 @@
 
 - (instancetype)initWithFrame:(CGRect)frame;
 
+- (void)setSize:(CGSize)size;
+
 @end

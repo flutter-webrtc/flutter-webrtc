@@ -48,6 +48,7 @@
   _isFirstFrameRendered = false;
   if (!oldValue) {
     [oldValue removeRenderer:(id<RTCVideoRenderer>)self];
+    _videoView.frame = CGRectZero;
   }
   if (videoTrack) {
     [videoTrack addRenderer:(id<RTCVideoRenderer>)self];
@@ -86,7 +87,7 @@
     }
     self->_isFirstFrameRendered = true;
   }
-
+    
   [_videoView renderFrame:frame];
 }
 
@@ -96,6 +97,7 @@
  * @param size The size of the video frame to render.
  */
 - (void)setSize:(CGSize)size {
+    [_videoView setSize:size];
 }
 
 #pragma mark - FlutterStreamHandler methods

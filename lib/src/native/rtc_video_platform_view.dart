@@ -24,10 +24,11 @@ class RTCVideoPlatFormView extends StatefulWidget {
 
 class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
   RTCVideoPlatformViewController? _controller;
-
+  bool _showVideoView = false;
   @override
   void dispose() {
     _controller?.onFirstFrameRendered = null;
+    _controller?.onSrcObjectChange = null;
     _controller?.onResize = null;
     _controller = null;
     super.dispose();
@@ -50,12 +51,14 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
             : BoxFit.cover,
         child: Center(
           child: SizedBox(
-            width: widget.objectFit ==
-                    RTCVideoViewObjectFit.RTCVideoViewObjectFitCover
-                ? constraints.maxWidth
-                : constraints.maxHeight *
-                    (_controller?.value.aspectRatio ?? 1.0),
-            height: constraints.maxHeight,
+            width: _showVideoView
+                ? widget.objectFit ==
+                        RTCVideoViewObjectFit.RTCVideoViewObjectFitCover
+                    ? constraints.maxWidth
+                    : constraints.maxHeight *
+                        (_controller?.value.aspectRatio ?? 1.0)
+                : 0.1,
+            height: _showVideoView ? constraints.maxHeight : 0.1,
             child: Transform(
               transform: Matrix4.identity()..rotateY(widget.mirror ? -pi : 0.0),
               alignment: FractionalOffset.center,
@@ -80,8 +83,9 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
     return Text('RTCVideoPlatformView only support for iOS.');
   }
 
-  void reBuildView() {
+  void showVideoView(bool show) {
     if (mounted) {
+      _showVideoView = show;
       setState(() {});
     }
   }
@@ -89,9 +93,10 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
   Future<void> onPlatformViewCreated(int id) async {
     final controller = RTCVideoPlatformViewController(id);
     _controller = controller;
+    controller.onFirstFrameRendered = () => showVideoView(true);
+    controller.onSrcObjectChange = () => showVideoView(false);
+    controller.onResize = () => showVideoView(true);
     widget.onViewReady?.call(controller);
-    controller.onFirstFrameRendered = reBuildView;
-    controller.onResize = reBuildView;
     await _controller?.initialize();
   }
 }

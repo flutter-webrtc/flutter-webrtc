@@ -44,6 +44,8 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
   @override
   Function? onFirstFrameRendered;
 
+  Function? onSrcObjectChange;
+
   @override
   set srcObject(MediaStream? stream) {
     if (_disposed) {
@@ -51,7 +53,7 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
     }
     if (_viewId == null) throw 'Call initialize before setting the stream';
     _srcObject = stream;
-    _reset();
+    onSrcObjectChange?.call();
     WebRTC.invokeMethod(
         'videoPlatformViewRendererSetSrcObject', <String, dynamic>{
       'viewId': _viewId,
@@ -73,6 +75,7 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
     }
     if (_viewId == null) throw 'Call initialize before setting the stream';
     _srcObject = stream;
+    onSrcObjectChange?.call();
     var oldviewId = _viewId;
     try {
       await WebRTC.invokeMethod(

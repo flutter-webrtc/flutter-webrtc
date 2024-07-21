@@ -3,15 +3,16 @@
 @implementation FlutterRTCVideoPlatformView {
   CGSize _videoSize;
   AVSampleBufferDisplayLayer* _videoLayer;
-  RTCVideoRotation _rotation;
+  int _rotation;
+  CGSize _remoteVideoSize;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
   if (self = [super initWithFrame:frame]) {
-    _rotation = RTCVideoRotation_0;
+    _rotation = -1;
     _videoLayer = [[AVSampleBufferDisplayLayer alloc] init];
     _videoLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-    _videoLayer.frame = frame;
+    _videoLayer.frame = CGRectZero;
     [self.layer addSublayer:_videoLayer];
     self.opaque = NO;
   }
@@ -23,7 +24,12 @@
   [_videoLayer removeAllAnimations];
 }
 
+- (void)setSize:(CGSize)size {
+    _remoteVideoSize = size;
+}
+
 - (void)renderFrame:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame {
+
   CVPixelBufferRef pixelBuffer = nil;
   if ([frame.buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
     pixelBuffer = ((RTCCVPixelBuffer*)frame.buffer).pixelBuffer;
@@ -36,7 +42,7 @@
     CATransform3D bufferTransform = [self fromFrameRotation:frame];
     _videoLayer.transform = bufferTransform;
     [_videoLayer layoutIfNeeded];
-    _rotation = frame.rotation;
+    _rotation = (int)frame.rotation;
   }
 
   CMSampleBufferRef sampleBuffer = [self sampleBufferFromPixelBuffer:pixelBuffer];
