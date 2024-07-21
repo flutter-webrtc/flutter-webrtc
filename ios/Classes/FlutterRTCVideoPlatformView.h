@@ -10,8 +10,6 @@
 
 - (void)renderFrame:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame;
 
-- (void)setSize : (CGSize)size;
-
 - (instancetype)initWithFrame:(CGRect)frame;
 
 @end

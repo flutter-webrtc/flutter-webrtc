@@ -15,10 +15,7 @@
 
 - (instancetype _Nullable )initWithMessenger:(NSObject<FlutterBinaryMessenger>* _Nonnull)messenger
                    viewIdentifier:(int64_t)viewId
-                            frame:(CGRect)frame
-                        objectFit:(NSNumber * _Nonnull)fit;
-
--(void)setObjectFit:(NSNumber  * _Nonnull)index;
+                            frame:(CGRect)frame;
 
 -(UIView* _Nonnull)view;
 

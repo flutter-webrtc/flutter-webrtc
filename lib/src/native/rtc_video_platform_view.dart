@@ -73,9 +73,7 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
       return UiKitView(
         viewType: viewType,
         onPlatformViewCreated: onPlatformViewCreated,
-        creationParams: <String, dynamic>{
-          'objectFit': widget.objectFit.index,
-        },
+        creationParams: <String, dynamic>{},
         creationParamsCodec: const StandardMessageCodec(),
       );
     }

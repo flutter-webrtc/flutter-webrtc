@@ -25,8 +25,7 @@
 - (NSObject<FlutterPlatformView>*)createWithFrame:(CGRect)frame
                                    viewIdentifier:(int64_t)viewId
                                         arguments:(id _Nullable)args {
-    NSNumber *fit = args[@"objectFit"];
-    FlutterRTCVideoPlatformViewController * render = [[FlutterRTCVideoPlatformViewController alloc] initWithMessenger:_messenger viewIdentifier:viewId frame:frame objectFit:fit];
+    FlutterRTCVideoPlatformViewController * render = [[FlutterRTCVideoPlatformViewController alloc] initWithMessenger:_messenger viewIdentifier:viewId frame:frame];
     self.renders[@(viewId)] = render;
     return render;
 }

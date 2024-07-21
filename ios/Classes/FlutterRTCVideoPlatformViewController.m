@@ -6,7 +6,6 @@
     FlutterRTCVideoPlatformView* _videoView;
     FlutterEventChannel* _eventChannel;
     bool _isFirstFrameRendered;
-    CGSize _frameSize;
     CGSize _renderSize;
     RTCVideoRotation _rotation;
 }
@@ -17,12 +16,10 @@
 
 - (instancetype)initWithMessenger:(NSObject<FlutterBinaryMessenger>*)messenger
                    viewIdentifier:(int64_t)viewId
-                            frame:(CGRect)frame
-                        objectFit:(NSNumber * _Nonnull)fit {
+                            frame:(CGRect)frame {
     self = [super init];
     if (self) {
         _isFirstFrameRendered = false;
-        _frameSize = CGSizeZero;
         _renderSize = CGSizeZero;
         _rotation = -1;
         _messenger = messenger;
@@ -83,22 +80,14 @@
     _rotation = frame.rotation;
   }
 
-<<<<<<< HEAD
-=======
-
-  [_videoView.videoRenderer renderFrame:frame];
->>>>>>> main
   if (!_isFirstFrameRendered) {
     if (self.eventSink) {
       postEvent(self.eventSink, @{@"event" : @"didFirstFrameRendered"});
     }
     self->_isFirstFrameRendered = true;
   }
-<<<<<<< HEAD
     
   [_videoView renderFrame:frame];
-=======
->>>>>>> main
 }
 
 /**
@@ -107,17 +96,6 @@
  * @param size The size of the video frame to render.
  */
 - (void)setSize:(CGSize)size {
-  if (size.width != _frameSize.width || size.height != _frameSize.height) {
-    _frameSize = size;
-  }
-<<<<<<< HEAD
-  [_videoView setSize:size];
-}
-
--(void)setObjectFit:(NSNumber  * _Nonnull)index {
-=======
-  [_videoView.videoRenderer setSize:size];
->>>>>>> main
 }
 
 #pragma mark - FlutterStreamHandler methods
