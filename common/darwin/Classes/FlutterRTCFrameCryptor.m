@@ -77,14 +77,14 @@
   }
 }
 
-- (RTCCyrptorAlgorithm)getAlgorithm:(NSNumber*)algorithm {
+- (RTCCryptorAlgorithm)getAlgorithm:(NSNumber*)algorithm {
   switch ([algorithm intValue]) {
     case 0:
-      return RTCCyrptorAlgorithmAesGcm;
+      return RTCCryptorAlgorithmAesGcm;
     case 1:
-      return RTCCyrptorAlgorithmAesCbc;
+      return RTCCryptorAlgorithmAesCbc;
     default:
-      return RTCCyrptorAlgorithmAesGcm;
+      return RTCCryptorAlgorithmAesGcm;
   }
 }
 

@@ -83,14 +83,22 @@
     _rotation = frame.rotation;
   }
 
+<<<<<<< HEAD
+=======
+
+  [_videoView.videoRenderer renderFrame:frame];
+>>>>>>> main
   if (!_isFirstFrameRendered) {
     if (self.eventSink) {
       postEvent(self.eventSink, @{@"event" : @"didFirstFrameRendered"});
     }
     self->_isFirstFrameRendered = true;
   }
+<<<<<<< HEAD
     
   [_videoView renderFrame:frame];
+=======
+>>>>>>> main
 }
 
 /**
@@ -102,10 +110,14 @@
   if (size.width != _frameSize.width || size.height != _frameSize.height) {
     _frameSize = size;
   }
+<<<<<<< HEAD
   [_videoView setSize:size];
 }
 
 -(void)setObjectFit:(NSNumber  * _Nonnull)index {
+=======
+  [_videoView.videoRenderer setSize:size];
+>>>>>>> main
 }
 
 #pragma mark - FlutterStreamHandler methods

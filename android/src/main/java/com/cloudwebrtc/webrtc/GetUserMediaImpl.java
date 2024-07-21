@@ -41,6 +41,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
+import com.cloudwebrtc.webrtc.audio.AudioUtils;
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.AudioSamplesInterceptor;
 import com.cloudwebrtc.webrtc.record.MediaRecorderImpl;
@@ -269,7 +270,7 @@ class GetUserMediaImpl {
      * if not matched camera with specified facing mode.
      */
     private Map<String, VideoCapturer> createVideoCapturer(
-            CameraEnumerator enumerator, boolean isFacing, String sourceId) {
+            CameraEnumerator enumerator, boolean isFacing, String sourceId, CameraEventsHandler cameraEventsHandler) {
         VideoCapturer videoCapturer = null;
         Map<String, VideoCapturer> result = new HashMap<String, VideoCapturer>();
         // if sourceId given, use specified sourceId first
@@ -277,7 +278,7 @@ class GetUserMediaImpl {
         if (sourceId != null && !sourceId.equals("")) {
             for (String name : deviceNames) {
                 if (name.equals(sourceId)) {
-                    videoCapturer = enumerator.createCapturer(name, new CameraEventsHandler());
+                    videoCapturer = enumerator.createCapturer(name, cameraEventsHandler);
                     if (videoCapturer != null) {
                         Log.d(TAG, "create user specified camera " + name + " succeeded");
                         result.put(name, videoCapturer);
@@ -294,10 +295,9 @@ class GetUserMediaImpl {
         String facingStr = isFacing ? "front" : "back";
         for (String name : deviceNames) {
             if (enumerator.isFrontFacing(name) == isFacing) {
-                videoCapturer = enumerator.createCapturer(name, new CameraEventsHandler());
+                videoCapturer = enumerator.createCapturer(name, cameraEventsHandler);
                 if (videoCapturer != null) {
                     Log.d(TAG, "Create " + facingStr + " camera " + name + " succeeded");
-
                     result.put(name, videoCapturer);
                     return result;
                 } else {
@@ -308,7 +308,7 @@ class GetUserMediaImpl {
 
         // falling back to the first available camera
         if (videoCapturer == null && deviceNames.length > 0) {
-            videoCapturer = enumerator.createCapturer(deviceNames[0], new CameraEventsHandler());
+            videoCapturer = enumerator.createCapturer(deviceNames[0], cameraEventsHandler);
             Log.d(TAG, "Falling back to the first available camera");
             result.put(deviceNames[0], videoCapturer);
         }
@@ -375,7 +375,7 @@ class GetUserMediaImpl {
 
         if (deviceId != null) {
             try {
-                setPreferredInputDevice(Integer.parseInt(deviceId));
+                setPreferredInputDevice(deviceId);
             } catch (Exception e) {
                 Log.e(TAG, "setPreferredInputDevice failed", e);
             }
@@ -740,15 +740,19 @@ class GetUserMediaImpl {
         String facingMode = getFacingMode(videoConstraintsMap);
         isFacing = facingMode == null || !facingMode.equals("environment");
         String deviceId = getSourceIdConstraint(videoConstraintsMap);
-
-        Map<String, VideoCapturer> result = createVideoCapturer(cameraEnumerator, isFacing, deviceId);
+        CameraEventsHandler cameraEventsHandler = new CameraEventsHandler();
+        Map<String, VideoCapturer> result = createVideoCapturer(cameraEnumerator, isFacing, deviceId, cameraEventsHandler);
 
         if (result == null) {
             return null;
         }
 
         if (deviceId == null) {
-            deviceId = result.keySet().iterator().next();
+            if(!result.keySet().isEmpty()) {
+                deviceId = result.keySet().iterator().next();
+            } else {
+                return null;
+            }
         }
 
         VideoCapturer videoCapturer = result.get(deviceId);
@@ -784,7 +788,10 @@ class GetUserMediaImpl {
                 ? videoConstraintsMandatory.getInt("minFrameRate")
                 : DEFAULT_FPS;
         info.capturer = videoCapturer;
+        info.cameraEventsHandler = cameraEventsHandler;
         videoCapturer.startCapture(info.width, info.height, info.fps);
+
+        cameraEventsHandler.waitForCameraOpen();
 
         String trackId = stateProvider.getNextTrackUUID();
         mVideoCapturers.put(trackId, info);
@@ -818,32 +825,27 @@ class GetUserMediaImpl {
         return trackParams;
     }
 
-    void removeVideoCapturerSync(String id) {
-        synchronized (mVideoCapturers) {
-            VideoCapturerInfo info = mVideoCapturers.get(id);
-            if (info != null) {
-                try {
-                    info.capturer.stopCapture();
-                } catch (InterruptedException e) {
-                    Log.e(TAG, "removeVideoCapturer() Failed to stop video capturer");
-                } finally {
-                    info.capturer.dispose();
-                    mVideoCapturers.remove(id);
-                    SurfaceTextureHelper helper = mSurfaceTextureHelpers.get(id);
-                    if (helper != null) {
-                        helper.stopListening();
-                        helper.dispose();
-                        mSurfaceTextureHelpers.remove(id);
-                    }
+    void removeVideoCapturer(String id) {
+        VideoCapturerInfo info = mVideoCapturers.get(id);
+        if (info != null) {
+            try {
+                info.capturer.stopCapture();
+                if (info.cameraEventsHandler != null) {
+                    info.cameraEventsHandler.waitForCameraClosed();
+                }
+            } catch (InterruptedException e) {
+                Log.e(TAG, "removeVideoCapturer() Failed to stop video capturer");
+            } finally {
+                info.capturer.dispose();
+                mVideoCapturers.remove(id);
+                SurfaceTextureHelper helper = mSurfaceTextureHelpers.get(id);
+                if (helper != null) {
+                    helper.stopListening();
+                    helper.dispose();
+                    mSurfaceTextureHelpers.remove(id);
                 }
             }
         }
-    }
-
-    void removeVideoCapturer(String id) {
-        new Thread(() -> {
-            removeVideoCapturerSync(id);
-        }).start();
     }
 
     @RequiresApi(api = VERSION_CODES.M)
@@ -1288,15 +1290,22 @@ class GetUserMediaImpl {
         int height;
         int fps;
         boolean isScreenCapture = false;
+        CameraEventsHandler cameraEventsHandler;
     }
 
     @RequiresApi(api = VERSION_CODES.M)
-    void setPreferredInputDevice(int i) {
+    void setPreferredInputDevice(String deviceId) {
         android.media.AudioManager audioManager = ((android.media.AudioManager) applicationContext.getSystemService(Context.AUDIO_SERVICE));
         final AudioDeviceInfo[] devices = audioManager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS);
-        if (devices.length > i) {
-            preferredInput = devices[i];
-            audioDeviceModule.setPreferredInputDevice(preferredInput);
+        if (devices.length > 0) {
+            for (int i = 0; i < devices.length; i++) {
+                AudioDeviceInfo device = devices[i];
+                if(deviceId.equals(AudioUtils.getAudioDeviceId(device))) {
+                    preferredInput = device;
+                    audioDeviceModule.setPreferredInputDevice(preferredInput);
+                    return;
+                }
+            }
         }
     }
 

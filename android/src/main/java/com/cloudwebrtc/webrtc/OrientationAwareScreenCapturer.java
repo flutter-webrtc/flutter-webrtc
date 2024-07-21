@@ -17,6 +17,10 @@ import android.app.Activity;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.projection.MediaProjectionManager;
+import android.os.Looper;
+import android.os.Handler;
+import android.os.Build;
+import android.view.Display;
 
 /**
  * An copy of ScreenCapturerAndroid to capture the screen content while being aware of device orientation
@@ -31,6 +35,8 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
     private final MediaProjection.Callback mediaProjectionCallback;
     private int width;
     private int height;
+    private int oldWidth;
+    private int oldHeight;
     private VirtualDisplay virtualDisplay;
     private SurfaceTextureHelper surfaceTextureHelper;
     private CapturerObserver capturerObserver;
@@ -58,15 +64,13 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
 
     public void onFrame(VideoFrame frame) {
         checkNotDisposed();
-        final boolean isOrientationPortrait = isDeviceOrientationPortrait();
-        if (isOrientationPortrait != this.isPortrait) {
-            this.isPortrait = isOrientationPortrait;
-
-            if (this.isPortrait) {
-                changeCaptureFormat(this.width, this.height, 15);
-            } else {
-                changeCaptureFormat(this.height, this.width, 15);
-            }
+        this.isPortrait = isDeviceOrientationPortrait();
+        final int max = Math.max(this.height, this.width);
+        final int min = Math.min(this.height, this.width);
+        if (this.isPortrait) {
+            changeCaptureFormat(min, max, 15);
+        } else {
+            changeCaptureFormat(max, min, 15);
         }
         capturerObserver.onFrameCaptured(frame);
     }
@@ -83,6 +87,7 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
             throw new RuntimeException("capturer is disposed.");
         }
     }
+
     public synchronized void initialize(final SurfaceTextureHelper surfaceTextureHelper,
                                         final Context applicationContext, final CapturerObserver capturerObserver) {
         checkNotDisposed();
@@ -100,6 +105,7 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
         this.mediaProjectionManager = (MediaProjectionManager) applicationContext.getSystemService(
                 Context.MEDIA_PROJECTION_SERVICE);
     }
+
     @Override
     public synchronized void startCapture(
             final int width, final int height, final int ignoredFramerate) {
@@ -124,6 +130,7 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
         capturerObserver.onCapturerStarted(true);
         surfaceTextureHelper.startListening(this);
     }
+
     @Override
     public synchronized void stopCapture() {
         checkNotDisposed();
@@ -146,37 +153,62 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
             }
         });
     }
+
     @Override
     public synchronized void dispose() {
         isDisposed = true;
     }
+
     /**
      * Changes output video format. This method can be used to scale the output
      * video, or to change orientation when the captured screen is rotated for example.
      *
-     * @param width new output video width
-     * @param height new output video height
+     * @param width            new output video width
+     * @param height           new output video height
      * @param ignoredFramerate ignored
      */
     @Override
     public synchronized void changeCaptureFormat(
             final int width, final int height, final int ignoredFramerate) {
         checkNotDisposed();
-        this.width = width;
-        this.height = height;
-        if (virtualDisplay == null) {
-            // Capturer is stopped, the virtual display will be created in startCaptuer().
-            return;
-        }
+        if (this.oldWidth != width || this.oldHeight != height) {
+            this.oldWidth = width;
+            this.oldHeight = height;
 
-        ThreadUtils.invokeAtFrontUninterruptibly(surfaceTextureHelper.getHandler(), new Runnable() {
-            @Override
-            public void run() {
-                surfaceTextureHelper.setTextureSize(width, height);
-                virtualDisplay.resize(width, height, VIRTUAL_DISPLAY_DPI);
+            if (oldHeight > oldWidth) {
+                ThreadUtils.invokeAtFrontUninterruptibly(surfaceTextureHelper.getHandler(), new Runnable() {
+                    @Override
+                    public void run() {
+                        if (virtualDisplay != null && surfaceTextureHelper != null) {
+                            virtualDisplay.setSurface(new Surface(surfaceTextureHelper.getSurfaceTexture()));
+                            surfaceTextureHelper.setTextureSize(oldWidth, oldHeight);
+                            virtualDisplay.resize(oldWidth, oldHeight, VIRTUAL_DISPLAY_DPI);
+                        }
+                    }
+                });
             }
-        });
+
+            if (oldWidth > oldHeight) {
+                surfaceTextureHelper.setTextureSize(oldWidth, oldHeight);
+                virtualDisplay.setSurface(new Surface(surfaceTextureHelper.getSurfaceTexture()));
+                final Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        ThreadUtils.invokeAtFrontUninterruptibly(surfaceTextureHelper.getHandler(), new Runnable() {
+                            @Override
+                            public void run() {
+                                if (virtualDisplay != null && surfaceTextureHelper != null) {
+                                    virtualDisplay.resize(oldWidth, oldHeight, VIRTUAL_DISPLAY_DPI);
+                                }
+                            }
+                        });
+                    }
+                }, 700);
+            }
+        }
     }
+
     private void createVirtualDisplay() {
         surfaceTextureHelper.setTextureSize(width, height);
         surfaceTextureHelper.getSurfaceTexture().setDefaultBufferSize(width, height);

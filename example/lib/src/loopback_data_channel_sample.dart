@@ -13,79 +13,78 @@ class DataChannelLoopBackSample extends StatefulWidget {
 }
 
 class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
-  RTCPeerConnection? _pc1;
-  RTCPeerConnection? _pc2;
-  RTCDataChannel? _dc1;
-  RTCDataChannel? _dc2;
-  String _dc1Status = '';
-  String _dc2Status = '';
+  RTCPeerConnection? _peerConnection1;
+  RTCPeerConnection? _peerConnection2;
+  RTCDataChannel? _dataChannel1;
+  RTCDataChannel? _dataChannel2;
+  String _dataChannel1Status = '';
+  String _dataChannel2Status = '';
 
   bool _inCalling = false;
-  @override
-  void initState() {
-    super.initState();
-  }
 
   void _makeCall() async {
-    if (_pc1 != null || _pc2 != null) return;
+    if (_peerConnection1 != null || _peerConnection2 != null) return;
 
     try {
-      _pc1 = await createPeerConnection({'iceServers': []});
-      _pc2 = await createPeerConnection({'iceServers': []});
+      _peerConnection1 = await createPeerConnection({'iceServers': []});
+      _peerConnection2 = await createPeerConnection({'iceServers': []});
 
-      _pc1!.onIceCandidate = (candidate) {
-        print('pc1: onIceCandidate: ${candidate.candidate}');
-        _pc2!.addCandidate(candidate);
+      _peerConnection1!.onIceCandidate = (candidate) {
+        print('peerConnection1: onIceCandidate: ${candidate.candidate}');
+        _peerConnection2!.addCandidate(candidate);
       };
 
-      _pc2!.onIceCandidate = (candidate) {
-        print('pc2: onIceCandidate: ${candidate.candidate}');
-        _pc1!.addCandidate(candidate);
+      _peerConnection2!.onIceCandidate = (candidate) {
+        print('peerConnection2: onIceCandidate: ${candidate.candidate}');
+        _peerConnection1!.addCandidate(candidate);
       };
 
-      _dc1 =
-          await _pc1!.createDataChannel('pc1-dc', RTCDataChannelInit()..id = 1);
+      _dataChannel1 = await _peerConnection1!.createDataChannel(
+          'peerConnection1-dc', RTCDataChannelInit()..id = 1);
 
-      _pc2!.onDataChannel = (channel) {
-        _dc2 = channel;
-        _dc2!.onDataChannelState = (state) {
+      _peerConnection2!.onDataChannel = (channel) {
+        _dataChannel2 = channel;
+        _dataChannel2!.onDataChannelState = (state) {
           setState(() {
-            _dc2Status += '\ndc2: state: ${state.toString()}';
+            _dataChannel2Status += '\ndataChannel2: state: ${state.toString()}';
           });
         };
-        _dc2!.onMessage = (data) {
+        _dataChannel2!.onMessage = (data) {
           setState(() {
-            _dc2Status += '\ndc2: Received message: ${data.text}';
+            _dataChannel2Status +=
+                '\ndataChannel2: Received message: ${data.text}';
           });
-          _dc2!.send(
-              RTCDataChannelMessage('(dc2 ==> dc1) Hello from dc2 echo !!!'));
+          _dataChannel2!.send(RTCDataChannelMessage(
+              '(dataChannel2 ==> dataChannel1) Hello from dataChannel2 echo !!!'));
         };
       };
 
-      _dc1!.onDataChannelState = (state) {
+      _dataChannel1!.onDataChannelState = (state) {
         setState(() {
-          _dc1Status += '\ndc1: state: ${state.toString()}';
+          _dataChannel1Status += '\ndataChannel1: state: ${state.toString()}';
         });
         if (state == RTCDataChannelState.RTCDataChannelOpen) {
-          _dc1!.send(RTCDataChannelMessage('(dc1 ==> dc2) Hello from dc1 !!!'));
+          _dataChannel1!.send(RTCDataChannelMessage(
+              '(dataChannel1 ==> dataChannel2) Hello from dataChannel1 !!!'));
         }
       };
 
-      _dc1!.onMessage = (data) => setState(() {
-            _dc1Status += '\ndc1: Received message: ${data.text}';
+      _dataChannel1!.onMessage = (data) => setState(() {
+            _dataChannel1Status +=
+                '\ndataChannel1: Received message: ${data.text}';
           });
 
-      var offer = await _pc1!.createOffer({});
-      print('pc1 offer: ${offer.sdp}');
+      var offer = await _peerConnection1!.createOffer({});
+      print('peerConnection1 offer: ${offer.sdp}');
 
-      await _pc2!.setRemoteDescription(offer);
-      var answer = await _pc2!.createAnswer();
-      print('pc2 answer: ${answer.sdp}');
+      await _peerConnection2!.setRemoteDescription(offer);
+      var answer = await _peerConnection2!.createAnswer();
+      print('peerConnection2 answer: ${answer.sdp}');
 
-      await _pc1!.setLocalDescription(offer);
-      await _pc2!.setLocalDescription(answer);
+      await _peerConnection1!.setLocalDescription(offer);
+      await _peerConnection2!.setLocalDescription(answer);
 
-      await _pc1!.setRemoteDescription(answer);
+      await _peerConnection1!.setRemoteDescription(answer);
     } catch (e) {
       print(e.toString());
     }
@@ -98,15 +97,15 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
 
   void _hangUp() async {
     try {
-      await _dc1?.close();
+      await _dataChannel1?.close();
       setState(() {
-        _dc1Status += '\n _dc1.close()';
+        _dataChannel1Status += '\n _dataChannel1.close()';
       });
-      await _dc2?.close();
-      await _pc1?.close();
-      await _pc2?.close();
-      _pc1 = null;
-      _pc2 = null;
+      await _dataChannel2?.close();
+      await _peerConnection1?.close();
+      await _peerConnection2?.close();
+      _peerConnection1 = null;
+      _peerConnection2 = null;
     } catch (e) {
       print(e.toString());
     }
@@ -117,8 +116,8 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
     Timer(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() {
-          _dc1Status = '';
-          _dc2Status = '';
+          _dataChannel1Status = '';
+          _dataChannel2Status = '';
         });
       }
     });
@@ -130,23 +129,20 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
       appBar: AppBar(
         title: Text('Data Channel Test'),
       ),
-      body: OrientationBuilder(
-        builder: (context, orientation) {
-          return Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('(caller)data channel 1:\n'),
-              Container(
-                child: Text(_dc1Status),
-              ),
-              Text('\n\n(callee)data channel 2:\n'),
-              Container(
-                child: Text(_dc2Status),
-              ),
-            ],
-          ));
-        },
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('(caller)data channel 1:\n'),
+            Container(
+              child: Text(_dataChannel1Status),
+            ),
+            Text('\n\n(callee)data channel 2:\n'),
+            Container(
+              child: Text(_dataChannel2Status),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _inCalling ? _hangUp : _makeCall,

@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import '../utils.dart';
 
 enum AppleAudioMode {
@@ -14,13 +12,9 @@ enum AppleAudioMode {
   voicePrompt,
 }
 
-extension AppleAudioModeExt on AppleAudioMode {
-  String get value => describeEnum(this);
-}
-
 extension AppleAudioModeEnumEx on String {
   AppleAudioMode toAppleAudioMode() =>
-      AppleAudioMode.values.firstWhere((d) => describeEnum(d) == toLowerCase());
+      AppleAudioMode.values.firstWhere((d) => d.name == toLowerCase());
 }
 
 enum AppleAudioCategory {
@@ -31,13 +25,9 @@ enum AppleAudioCategory {
   multiRoute,
 }
 
-extension AppleAudioCategoryExt on AppleAudioCategory {
-  String get value => describeEnum(this);
-}
-
 extension AppleAudioCategoryEnumEx on String {
-  AppleAudioCategory toAppleAudioCategory() => AppleAudioCategory.values
-      .firstWhere((d) => describeEnum(d) == toLowerCase());
+  AppleAudioCategory toAppleAudioCategory() =>
+      AppleAudioCategory.values.firstWhere((d) => d.name == toLowerCase());
 }
 
 enum AppleAudioCategoryOption {
@@ -50,14 +40,10 @@ enum AppleAudioCategoryOption {
   defaultToSpeaker,
 }
 
-extension AppleAudioCategoryOptionExt on AppleAudioCategoryOption {
-  String get value => describeEnum(this);
-}
-
 extension AppleAudioCategoryOptionEnumEx on String {
   AppleAudioCategoryOption toAppleAudioCategoryOption() =>
       AppleAudioCategoryOption.values
-          .firstWhere((d) => describeEnum(d) == toLowerCase());
+          .firstWhere((d) => d.name == toLowerCase());
 }
 
 class AppleAudioConfiguration {
@@ -72,11 +58,11 @@ class AppleAudioConfiguration {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
         if (appleAudioCategory != null)
-          'appleAudioCategory': appleAudioCategory!.value,
+          'appleAudioCategory': appleAudioCategory!.name,
         if (appleAudioCategoryOptions != null)
           'appleAudioCategoryOptions':
-              appleAudioCategoryOptions!.map((e) => e.value).toList(),
-        if (appleAudioMode != null) 'appleAudioMode': appleAudioMode!.value,
+              appleAudioCategoryOptions!.map((e) => e.name).toList(),
+        if (appleAudioMode != null) 'appleAudioMode': appleAudioMode!.name,
       };
 }
 
