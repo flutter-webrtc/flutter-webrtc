@@ -27,7 +27,6 @@
         _rotation = -1;
         _messenger = messenger;
         _videoView = [[FlutterRTCVideoPlatformView alloc] initWithFrame:frame];
-        [_videoView setObjectFit:fit];
         _viewId = viewId;
         /*Create Event Channel.*/
         _eventChannel = [FlutterEventChannel
@@ -84,14 +83,14 @@
     _rotation = frame.rotation;
   }
 
-
-  [_videoView.videoRenderer renderFrame:frame];
   if (!_isFirstFrameRendered) {
     if (self.eventSink) {
       postEvent(self.eventSink, @{@"event" : @"didFirstFrameRendered"});
     }
     self->_isFirstFrameRendered = true;
   }
+    
+  [_videoView renderFrame:frame];
 }
 
 /**
@@ -103,7 +102,10 @@
   if (size.width != _frameSize.width || size.height != _frameSize.height) {
     _frameSize = size;
   }
-  [_videoView.videoRenderer setSize:size];
+  [_videoView setSize:size];
+}
+
+-(void)setObjectFit:(NSNumber  * _Nonnull)index {
 }
 
 #pragma mark - FlutterStreamHandler methods
