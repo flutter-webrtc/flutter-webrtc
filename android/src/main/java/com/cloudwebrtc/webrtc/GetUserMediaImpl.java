@@ -29,8 +29,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import android.provider.MediaStore;
-import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.Pair;
 import android.util.Range;
 import android.util.SparseArray;
 import android.view.Display;
@@ -58,8 +58,10 @@ import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
 import org.webrtc.Camera1Capturer;
 import org.webrtc.Camera1Enumerator;
+import org.webrtc.Camera1Helper;
 import org.webrtc.Camera2Capturer;
 import org.webrtc.Camera2Enumerator;
+import org.webrtc.Camera2Helper;
 import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
 import org.webrtc.CameraEnumerator;
 import org.webrtc.CameraVideoCapturer;
@@ -67,6 +69,7 @@ import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.Size;
 import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoSource;
@@ -266,13 +269,12 @@ class GetUserMediaImpl {
      * @param isFacing   'user' mapped with 'front' is true (default) 'environment' mapped with 'back'
      *                   is false
      * @param sourceId   (String) use this sourceId and ignore facing mode if specified.
-     * @return VideoCapturer can invoke with <tt>startCapture</tt>/<tt>stopCapture</tt> <tt>null</tt>
+     * @return Pair of deviceName to VideoCapturer. Can invoke with <tt>startCapture</tt>/<tt>stopCapture</tt> <tt>null</tt>
      * if not matched camera with specified facing mode.
      */
-    private Map<String, VideoCapturer> createVideoCapturer(
+    private Pair<String, VideoCapturer> createVideoCapturer(
             CameraEnumerator enumerator, boolean isFacing, String sourceId, CameraEventsHandler cameraEventsHandler) {
-        VideoCapturer videoCapturer = null;
-        Map<String, VideoCapturer> result = new HashMap<String, VideoCapturer>();
+        VideoCapturer videoCapturer;
         // if sourceId given, use specified sourceId first
         final String[] deviceNames = enumerator.getDeviceNames();
         if (sourceId != null && !sourceId.equals("")) {
@@ -281,8 +283,7 @@ class GetUserMediaImpl {
                     videoCapturer = enumerator.createCapturer(name, cameraEventsHandler);
                     if (videoCapturer != null) {
                         Log.d(TAG, "create user specified camera " + name + " succeeded");
-                        result.put(name, videoCapturer);
-                        return result;
+                        return new Pair<>(name, videoCapturer);
                     } else {
                         Log.d(TAG, "create user specified camera " + name + " failed");
                         break; // fallback to facing mode
@@ -298,8 +299,8 @@ class GetUserMediaImpl {
                 videoCapturer = enumerator.createCapturer(name, cameraEventsHandler);
                 if (videoCapturer != null) {
                     Log.d(TAG, "Create " + facingStr + " camera " + name + " succeeded");
-                    result.put(name, videoCapturer);
-                    return result;
+
+                    return new Pair<>(name, videoCapturer);
                 } else {
                     Log.e(TAG, "Create " + facingStr + " camera " + name + " failed");
                 }
@@ -307,13 +308,13 @@ class GetUserMediaImpl {
         }
 
         // falling back to the first available camera
-        if (videoCapturer == null && deviceNames.length > 0) {
+        if (deviceNames.length > 0) {
             videoCapturer = enumerator.createCapturer(deviceNames[0], cameraEventsHandler);
             Log.d(TAG, "Falling back to the first available camera");
-            result.put(deviceNames[0], videoCapturer);
+            return new Pair<>(deviceNames[0], videoCapturer);
         }
 
-        return result;
+        return null;
     }
 
     /**
@@ -741,21 +742,14 @@ class GetUserMediaImpl {
         isFacing = facingMode == null || !facingMode.equals("environment");
         String deviceId = getSourceIdConstraint(videoConstraintsMap);
         CameraEventsHandler cameraEventsHandler = new CameraEventsHandler();
-        Map<String, VideoCapturer> result = createVideoCapturer(cameraEnumerator, isFacing, deviceId, cameraEventsHandler);
+        Pair<String, VideoCapturer> result = createVideoCapturer(cameraEnumerator, isFacing, deviceId, cameraEventsHandler);
 
         if (result == null) {
             return null;
         }
 
-        if (deviceId == null) {
-            if(!result.keySet().isEmpty()) {
-                deviceId = result.keySet().iterator().next();
-            } else {
-                return null;
-            }
-        }
-
-        VideoCapturer videoCapturer = result.get(deviceId);
+        deviceId = result.first;
+        VideoCapturer videoCapturer = result.second;
 
         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
         VideoSource videoSource = pcFactory.createVideoSource(false);
@@ -768,36 +762,56 @@ class GetUserMediaImpl {
         VideoCapturerInfo info = new VideoCapturerInfo();
 
         Integer videoWidth = getConstrainInt(videoConstraintsMap, "width");
-        info.width = videoWidth != null
+        int targetWidth = videoWidth != null
                 ? videoWidth
                 : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minWidth")
                 ? videoConstraintsMandatory.getInt("minWidth")
                 : DEFAULT_WIDTH;
 
         Integer videoHeight = getConstrainInt(videoConstraintsMap, "height");
-        info.height = videoHeight != null
+        int targetHeight = videoHeight != null
                 ? videoHeight
                 : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minHeight")
                 ? videoConstraintsMandatory.getInt("minHeight")
                 : DEFAULT_HEIGHT;
 
         Integer videoFrameRate = getConstrainInt(videoConstraintsMap, "frameRate");
-        info.fps = videoFrameRate != null
+        int targetFps = videoFrameRate != null
                 ? videoFrameRate
                 : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minFrameRate")
                 ? videoConstraintsMandatory.getInt("minFrameRate")
                 : DEFAULT_FPS;
+
+        info.width = targetWidth;
+        info.height = targetHeight;
+        info.fps = targetFps;
         info.capturer = videoCapturer;
+
+        // Find actual capture format.
+        Size actualSize = null;
+        if (videoCapturer instanceof Camera1Capturer) {
+            int cameraId = Camera1Helper.getCameraId(deviceId);
+            actualSize = Camera1Helper.findClosestCaptureFormat(cameraId, targetWidth, targetHeight);
+        } else if (videoCapturer instanceof Camera2Capturer) {
+            CameraManager cameraManager = (CameraManager) applicationContext.getSystemService(Context.CAMERA_SERVICE);
+            actualSize = Camera2Helper.findClosestCaptureFormat(cameraManager, deviceId, targetWidth, targetHeight);
+        }
+
+        if (actualSize != null) {
+            info.width = actualSize.width;
+            info.height = actualSize.height;
+        }
+
         info.cameraEventsHandler = cameraEventsHandler;
-        videoCapturer.startCapture(info.width, info.height, info.fps);
+        videoCapturer.startCapture(targetWidth, targetHeight, targetFps);
 
         cameraEventsHandler.waitForCameraOpen();
 
         String trackId = stateProvider.getNextTrackUUID();
         mVideoCapturers.put(trackId, info);
         mSurfaceTextureHelpers.put(trackId, surfaceTextureHelper);
-        Log.d(TAG, "changeCaptureFormat: " + info.width + "x" + info.height + "@" + info.fps);
-        videoSource.adaptOutputFormat(info.width, info.height, info.fps);
+
+        Log.d(TAG, "Target: " + targetWidth + "x" + targetHeight + "@" + targetFps + ", Actual: " + info.width + "x" + info.height + "@" + info.fps);
 
         VideoTrack track = pcFactory.createVideoTrack(trackId, videoSource);
         mediaStream.addTrack(track);
@@ -1284,7 +1298,7 @@ class GetUserMediaImpl {
         boolean isEnabled(String id);
     }
 
-    public class VideoCapturerInfo {
+    public static class VideoCapturerInfo {
         VideoCapturer capturer;
         int width;
         int height;
