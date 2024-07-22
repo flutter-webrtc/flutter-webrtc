@@ -429,13 +429,16 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
                                                             targetWidth:targetWidth
                                                            targetHeight:targetHeight];
 
+    CMVideoDimensions selectedDimension = CMVideoFormatDescriptionGetDimensions(selectedFormat.formatDescription);
+    NSInteger selectedWidth = (NSInteger) selectedDimension.width;
+    NSInteger selectedHeight = (NSInteger) selectedDimension.height;
     NSInteger selectedFps = [self selectFpsForFormat:selectedFormat targetFps:targetFps];
 
     self._lastTargetFps = selectedFps;
     self._lastTargetWidth = targetWidth;
     self._lastTargetHeight = targetHeight;
     
-    NSLog(@"target format %ldx%ld, targetFps: %ld, seledted fps %ld", targetWidth, targetHeight, targetFps, selectedFps);
+    NSLog(@"target format %ldx%ld, targetFps: %ld, selected format: %ldx%ld, selected fps %ld", targetWidth, targetHeight, targetFps, selectedWidth, selectedHeight, selectedFps);
 
     if ([videoDevice lockForConfiguration:NULL]) {
       @try {
@@ -475,14 +478,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
                    : videoDevice.position == AVCaptureDevicePositionFront ? @"user"
                                                                           : @"unspecified";
     }
-      
-    [videoSource adaptOutputFormatToWidth:(int)targetWidth height:(int)targetHeight  fps:(int)targetFps];
 
     videoTrack.settings = @{
       @"deviceId" : videoDeviceId,
       @"kind" : @"videoinput",
-      @"width" : [NSNumber numberWithInteger:targetWidth ],
-      @"height" : [NSNumber numberWithInteger:targetHeight],
+      @"width" : [NSNumber numberWithInteger:selectedWidth],
+      @"height" : [NSNumber numberWithInteger:selectedHeight],
       @"frameRate" : [NSNumber numberWithInteger:selectedFps],
       @"facingMode" : facingMode,
     };
