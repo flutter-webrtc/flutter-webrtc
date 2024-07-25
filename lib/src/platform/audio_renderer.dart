@@ -1,7 +1,7 @@
 import '/src/platform/track.dart';
 
 import 'native/audio_renderer.dart'
-    if (dart.library.html) 'web/audio_renderer.dart';
+    if (dart.library.js_interop) 'web/audio_renderer.dart';
 
 /// Renderer for audio [MediaStreamTrack]s.
 abstract class AudioRenderer {

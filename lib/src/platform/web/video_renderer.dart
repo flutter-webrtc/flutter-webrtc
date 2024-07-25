@@ -1,8 +1,11 @@
 import 'dart:async';
-import 'dart:html' as html;
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
+
+import 'package:web/web.dart' as web;
 
 import '../track.dart';
 import '../video_renderer.dart';
@@ -57,11 +60,11 @@ class WebVideoRenderer extends VideoRenderer {
 
   static const _elementIdForAudioManager = 'html_webrtc_audio_manager_list';
 
-  html.AudioElement? _audioElement;
+  web.HTMLAudioElement? _audioElement;
 
   static int _textureCounter = 1;
 
-  html.MediaStream? _videoStream;
+  web.MediaStream? _videoStream;
 
   WebMediaStreamTrack? _srcObject;
 
@@ -133,7 +136,7 @@ class WebVideoRenderer extends VideoRenderer {
     _srcObject = track as WebMediaStreamTrack;
 
     if (null != _srcObject) {
-      _videoStream = html.MediaStream();
+      _videoStream = web.MediaStream();
       _videoStream!.addTrack(track.jsTrack);
     } else {
       _videoStream = null;
@@ -148,14 +151,16 @@ class WebVideoRenderer extends VideoRenderer {
   /// [_outputAudioSinkId].
   void _syncSinkId() {
     if (_outputAudioSinkId != null) {
-      _audioElement?.setSinkId(_outputAudioSinkId!);
+      // TODO: Replace when dart-lang/web#205 is fixed:
+      //       https://github.com/dart-lang/web/issues/205
+      _audioElement?.callMethod('setSinkId'.toJS, _outputAudioSinkId!.toJS);
     }
   }
 
-  html.VideoElement? findHtmlView() {
-    final element = html.document.getElementById(_elementIdForVideo);
+  web.HTMLVideoElement? findHtmlView() {
+    final element = web.document.getElementById(_elementIdForVideo);
     if (null != element) {
-      return element as html.VideoElement;
+      return element as web.HTMLVideoElement;
     } else {
       return null;
     }
@@ -172,8 +177,8 @@ class WebVideoRenderer extends VideoRenderer {
     element?.removeAttribute('src');
     element?.load();
     _audioElement?.remove();
-    final audioManager = html.document.getElementById(_elementIdForAudioManager)
-        as html.DivElement?;
+    final audioManager = web.document.getElementById(_elementIdForAudioManager)
+        as web.HTMLDivElement?;
     if (audioManager != null && !audioManager.hasChildNodes()) {
       audioManager.remove();
     }
@@ -191,7 +196,7 @@ class WebVideoRenderer extends VideoRenderer {
       }
       _subscriptions.clear();
 
-      final element = html.VideoElement()
+      final element = web.HTMLVideoElement()
         ..autoplay = true
         ..muted = true
         ..controls = false
@@ -204,7 +209,9 @@ class WebVideoRenderer extends VideoRenderer {
         ..id = _elementIdForVideo
         ..setAttribute('playsinline', 'true')
         ..setAttribute(
-            'oncontextmenu', _enableContextMenu ? '' : 'return false;');
+          'oncontextmenu',
+          _enableContextMenu ? '' : 'return false;',
+        );
 
       _subscriptions.add(
         element.onCanPlay.listen((dynamic _) {
@@ -222,7 +229,7 @@ class WebVideoRenderer extends VideoRenderer {
 
       // The error event fires when some form of error occurs while attempting to load or perform the media.
       _subscriptions.add(
-        element.onError.listen((html.Event _) {
+        element.onError.listen((web.Event _) {
           // The Event itself (_) doesn't contain info about the actual error.
           // We need to look at the HTMLMediaElement.error.
           // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error

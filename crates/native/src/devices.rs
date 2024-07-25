@@ -445,11 +445,8 @@ pub mod linux_device_change {
         pub struct AudioMonitor {
             /// [PulseAudio] context.
             ///
-            /// [PulseAudio]: https://freedesktop.org/wiki/Software/PulseAudio`.
-            // It's not read, but is required to live for correct destruction of
-            // the PulseAudio `Context`.
-            #[allow(dead_code)] // for destruction
-            pub context: Context,
+            /// [PulseAudio]: https://freedesktop.org/wiki/Software/PulseAudio
+            pub _context: Context,
 
             /// [PulseAudio] main loop.
             ///
@@ -529,7 +526,10 @@ pub mod linux_device_change {
                     | InterestMaskSet::SERVER;
                 context.subscribe(mask, |_| {});
 
-                Ok(Self { context, main_loop })
+                Ok(Self {
+                    _context: context,
+                    main_loop,
+                })
             }
         }
     }

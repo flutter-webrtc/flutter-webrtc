@@ -1,5 +1,8 @@
 import 'dart:async';
-import 'dart:html' as html;
+import 'dart:js_interop';
+
+import 'package:collection/collection.dart';
+import 'package:web/web.dart' as web;
 
 import '../../model/constraints.dart';
 import '/src/model/track.dart';
@@ -10,28 +13,26 @@ import '/src/platform/track.dart';
 class WebMediaStreamTrack extends MediaStreamTrack {
   WebMediaStreamTrack(this.jsTrack);
 
-  final html.MediaStreamTrack jsTrack;
+  final web.MediaStreamTrack jsTrack;
 
   @override
   String deviceId() {
-    return jsTrack.getSettings()['deviceId']!;
+    return jsTrack.getSettings().deviceId;
   }
 
   @override
   String id() {
-    return jsTrack.id!;
+    return jsTrack.id;
   }
 
   @override
   void onEnded(OnEndedCallback cb) {
-    jsTrack.onEnded.listen((event) {
-      cb.call();
-    });
+    jsTrack.onended = cb.toJS;
   }
 
   @override
   bool isEnabled() {
-    return jsTrack.enabled ?? false;
+    return jsTrack.enabled;
   }
 
   @override
@@ -72,23 +73,21 @@ class WebMediaStreamTrack extends MediaStreamTrack {
   @override
   FacingMode? facingMode() {
     var settings = jsTrack.getSettings();
-    String? facingMode = settings['facingMode'];
-    if (facingMode != null) {
-      return FacingMode.values
-          .firstWhere((element) => element.name.toLowerCase() == facingMode);
-    }
-    return null;
+    String? facingMode = settings.facingMode;
+    return FacingMode.values.firstWhereOrNull(
+      (element) => element.name.toLowerCase() == facingMode,
+    );
   }
 
   @override
-  Future<int?> height() {
+  FutureOr<int?> height() {
     var settings = jsTrack.getSettings();
-    return settings['height'];
+    return settings.height;
   }
 
   @override
-  Future<int?> width() {
+  FutureOr<int?> width() {
     var settings = jsTrack.getSettings();
-    return settings['width'];
+    return settings.width;
   }
 }

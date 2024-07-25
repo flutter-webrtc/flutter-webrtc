@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'src/create_peer_connection.dart';
 import 'src/get_display_media.dart';
 import 'src/get_sources.dart';
-import 'src/get_user_media.dart'
-    if (dart.library.html) 'src/get_user_media_sample_web.dart';
+import 'src/get_user_media.dart';
 import 'src/loopback.dart';
 import 'src/on_device_change.dart';
 import 'src/video_codec_info.dart';
@@ -17,7 +16,7 @@ void main() {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -33,30 +32,32 @@ class _MyAppState extends State<MyApp> {
   }
 
   ListBody _buildRow(context, item) {
-    return ListBody(children: <Widget>[
-      ListTile(
-        title: Text(item.title),
-        onTap: () => item.push(context),
-        trailing: const Icon(Icons.arrow_right),
-      ),
-      const Divider()
-    ]);
+    return ListBody(
+      children: <Widget>[
+        ListTile(
+          title: Text(item.title),
+          onTap: () => item.push(context),
+          trailing: const Icon(Icons.arrow_right),
+        ),
+        const Divider()
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-          appBar: AppBar(
-            title: const Text('Flutter-WebRTC example'),
-          ),
-          body: ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(0.0),
-              itemCount: items.length,
-              itemBuilder: (context, i) {
-                return _buildRow(context, items[i]);
-              })),
+        appBar: AppBar(title: const Text('Flutter-WebRTC example')),
+        body: ListView.builder(
+          shrinkWrap: true,
+          padding: const EdgeInsets.all(0.0),
+          itemCount: items.length,
+          itemBuilder: (context, i) {
+            return _buildRow(context, items[i]);
+          },
+        ),
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -64,67 +65,83 @@ class _MyAppState extends State<MyApp> {
   void _initItems() {
     items = <RouteItem>[
       RouteItem(
-          title: 'GetUserMedia',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        const GetUserMediaSample()));
-          }),
+        title: 'GetUserMedia',
+        push: (BuildContext context) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => const GetUserMediaSample(),
+            ),
+          );
+        },
+      ),
       RouteItem(
-          title: 'GetDisplayMedia',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        const GetDisplayMediaSample()));
-          }),
+        title: 'GetDisplayMedia',
+        push: (BuildContext context) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => const GetDisplayMediaSample(),
+            ),
+          );
+        },
+      ),
       RouteItem(
-          title: 'LoopBack Sample',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) => const Loopback()));
-          }),
+        title: 'LoopBack Sample',
+        push: (BuildContext context) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => const Loopback(),
+            ),
+          );
+        },
+      ),
       RouteItem(
-          title: 'getSources',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        const GetSourcesSample()));
-          }),
+        title: 'getSources',
+        push: (BuildContext context) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => const GetSourcesSample(),
+            ),
+          );
+        },
+      ),
       RouteItem(
-          title: 'Basic RtcPeerConnection',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        const PeerConnectionSample()));
-          }),
+        title: 'Basic RtcPeerConnection',
+        push: (BuildContext context) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => const PeerConnectionSample(),
+            ),
+          );
+        },
+      ),
       RouteItem(
-          title: 'onDeviceChange notifier',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        const OnDeviceChangeNotifierSample()));
-          }),
+        title: 'onDeviceChange notifier',
+        push: (BuildContext context) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) =>
+                  const OnDeviceChangeNotifierSample(),
+            ),
+          );
+        },
+      ),
       RouteItem(
-          title: 'Video Codec Info',
-          push: (BuildContext context) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        const VideoCodecInfoSample()));
-          }),
+        title: 'Video Codec Info',
+        push: (BuildContext context) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => const VideoCodecInfoSample(),
+            ),
+          );
+        },
+      ),
     ];
   }
 }
