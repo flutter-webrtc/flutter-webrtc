@@ -1,10 +1,13 @@
 [package]
 name = "libwebrtc-sys"
-version = "0.0.0+123.0.6312.105"
+version = "0.0.0+126.0.6478.182-r2"
 edition = "2021"
 rust-version = "1.62"
 publish = false
 links = "webrtc"
+
+[features]
+fake-media = []
 
 [dependencies]
 anyhow = "1.0"

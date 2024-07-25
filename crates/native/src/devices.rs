@@ -445,7 +445,10 @@ pub mod linux_device_change {
         pub struct AudioMonitor {
             /// [PulseAudio] context.
             ///
-            /// [PulseAudio]: https://freedesktop.org/wiki/Software/PulseAudio
+            /// [PulseAudio]: https://freedesktop.org/wiki/Software/PulseAudio`.
+            // It's not read, but is required to live for correct destruction of
+            // the PulseAudio `Context`.
+            #[allow(dead_code)] // for destruction
             pub context: Context,
 
             /// [PulseAudio] main loop.

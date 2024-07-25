@@ -2811,6 +2811,7 @@ pub(crate) mod webrtc {
         /// # Safety
         ///
         /// Caller must ensure that the provided `buffer` is large enough.
+        #[allow(clippy::missing_safety_doc)] // false positive
         pub unsafe fn video_frame_to_abgr(frame: &VideoFrame, buffer: *mut u8);
 
         /// Converts the provided [`webrtc::VideoFrame`] pixels to the `ARGB`
@@ -2819,6 +2820,7 @@ pub(crate) mod webrtc {
         /// # Safety
         ///
         /// Caller must ensure that the provided `buffer` is large enough.
+        #[allow(clippy::missing_safety_doc)] // false positive
         pub unsafe fn video_frame_to_argb(
             frame: &VideoFrame,
             argb_stride: i32,
