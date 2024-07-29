@@ -150,11 +150,6 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
   @override
   bool get muted => _srcObject?.getAudioTracks()[0].muted ?? true;
 
-  void _reset() {
-    value = value.copyWith(
-        width: 0.0, height: 0.0, renderVideo: false, rotation: 0);
-  }
-
   @override
   set muted(bool mute) {
     if (_disposed) {
