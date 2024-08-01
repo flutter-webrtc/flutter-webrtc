@@ -1,6 +1,6 @@
 PODS:
   - FlutterMacOS (1.0.0)
-  - medea_flutter_webrtc (0.10.0-dev):
+  - medea_flutter_webrtc (0.10.0):
     - FlutterMacOS
 
 DEPENDENCIES:
