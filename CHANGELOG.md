@@ -1,6 +1,13 @@
 # Changelog
 
 --------------------------------------------
+[0.11.6] - 2024-08-02
+
+* [Web] change VideoElement to HTMLVideoElement.
+* [iOS] added shared singleton for FlutterWebRTCPlugin (#1634)
+* [iOS] Using av samplebuffer for PlatformView (#1635)
+
+
 [0.11.5] - 2024-07-23
 
 * [Android] Report actual sizes for camera media stream track (#1636).
