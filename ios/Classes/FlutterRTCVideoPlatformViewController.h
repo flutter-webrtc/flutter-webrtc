@@ -6,20 +6,18 @@
 
 #import <WebRTC/WebRTC.h>
 
-@interface FlutterRTCVideoPlatformViewController : NSObject<FlutterPlatformView, FlutterStreamHandler, RTCVideoRenderer>
+@interface FlutterRTCVideoPlatformViewController
+    : NSObject <FlutterPlatformView, FlutterStreamHandler, RTCVideoRenderer>
 
 @property(nonatomic, strong) NSObject<FlutterBinaryMessenger>* _Nonnull messenger;
 @property(nonatomic, strong) FlutterEventSink _Nonnull eventSink;
 @property(nonatomic) int64_t viewId;
 @property(nonatomic, strong) RTCVideoTrack* _Nullable videoTrack;
 
-- (instancetype _Nullable )initWithMessenger:(NSObject<FlutterBinaryMessenger>* _Nonnull)messenger
-                   viewIdentifier:(int64_t)viewId
-                            frame:(CGRect)frame
-                        objectFit:(NSNumber * _Nonnull)fit;
+- (instancetype _Nullable)initWithMessenger:(NSObject<FlutterBinaryMessenger>* _Nonnull)messenger
+                             viewIdentifier:(int64_t)viewId
+                                      frame:(CGRect)frame;
 
--(void)setObjectFit:(NSNumber  * _Nonnull)index;
-
--(UIView* _Nonnull)view;
+- (UIView* _Nonnull)view;
 
 @end

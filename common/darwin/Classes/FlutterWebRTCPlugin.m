@@ -801,13 +801,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
       }
       render.videoTrack = videoTrack;
       result(nil);
-  } else if([@"videoPlatformViewRendererSetObjectFit" isEqualToString:call.method]){
-      NSDictionary* argsMap = call.arguments;
-      NSNumber* viewId = argsMap[@"viewId"];
-      NSNumber* fit = argsMap[@"objectFit"];
-      FlutterRTCVideoPlatformViewController* render = _platformViewFactory.renders[viewId];
-      [render setObjectFit:fit];
-      result(nil);
   } else if ([@"videoPlatformViewRendererDispose" isEqualToString:call.method]) {
       NSDictionary* argsMap = call.arguments;
       NSNumber* viewId = argsMap[@"viewId"];
