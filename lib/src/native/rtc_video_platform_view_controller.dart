@@ -44,14 +44,17 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
   @override
   Function? onFirstFrameRendered;
 
+  Function? onSrcObjectChange;
+
   @override
   set srcObject(MediaStream? stream) {
     if (_disposed) {
       throw 'Can\'t set srcObject: The RTCVideoPlatformController is disposed';
     }
     if (_viewId == null) throw 'Call initialize before setting the stream';
+    if (_srcObject == stream) return;
     _srcObject = stream;
-    _reset();
+    onSrcObjectChange?.call();
     WebRTC.invokeMethod(
         'videoPlatformViewRendererSetSrcObject', <String, dynamic>{
       'viewId': _viewId,
@@ -72,7 +75,9 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
       throw 'Can\'t set srcObject: The RTCVideoPlatformController is disposed';
     }
     if (_viewId == null) throw 'Call initialize before setting the stream';
+    if (_srcObject == stream) return;
     _srcObject = stream;
+    onSrcObjectChange?.call();
     var oldviewId = _viewId;
     try {
       await WebRTC.invokeMethod(
@@ -145,11 +150,6 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
   @override
   bool get muted => _srcObject?.getAudioTracks()[0].muted ?? true;
 
-  void _reset() {
-    value = value.copyWith(
-        width: 0.0, height: 0.0, renderVideo: false, rotation: 0);
-  }
-
   @override
   set muted(bool mute) {
     if (_disposed) {
@@ -179,21 +179,5 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
       return false;
     }
     return true;
-  }
-
-  Future<void> updateObjectFit(RTCVideoViewObjectFit objectFit) async {
-    if (_disposed) {
-      throw 'Can\'t set objectFit: The RTCVideoPlatformController is disposed';
-    }
-    if (_viewId == null) throw 'Call initialize before setting the objectFit';
-    try {
-      await WebRTC.invokeMethod(
-          'videoPlatformViewRendererSetObjectFit', <String, dynamic>{
-        'viewId': _viewId,
-        'objectFit': objectFit.index,
-      });
-    } on PlatformException catch (e) {
-      throw 'Got exception for RTCVideoPlatformController::setObjectFit: ${e.message}';
-    }
   }
 }

@@ -3,12 +3,11 @@
 #import "FlutterWebRTCPlugin.h"
 
 @implementation FlutterRTCVideoPlatformViewController {
-    FlutterRTCVideoPlatformView* _videoView;
-    FlutterEventChannel* _eventChannel;
-    bool _isFirstFrameRendered;
-    CGSize _frameSize;
-    CGSize _renderSize;
-    RTCVideoRotation _rotation;
+  FlutterRTCVideoPlatformView* _videoView;
+  FlutterEventChannel* _eventChannel;
+  bool _isFirstFrameRendered;
+  CGSize _renderSize;
+  RTCVideoRotation _rotation;
 }
 
 @synthesize messenger = _messenger;
@@ -17,30 +16,27 @@
 
 - (instancetype)initWithMessenger:(NSObject<FlutterBinaryMessenger>*)messenger
                    viewIdentifier:(int64_t)viewId
-                            frame:(CGRect)frame
-                        objectFit:(NSNumber * _Nonnull)fit {
-    self = [super init];
-    if (self) {
-        _isFirstFrameRendered = false;
-        _frameSize = CGSizeZero;
-        _renderSize = CGSizeZero;
-        _rotation = -1;
-        _messenger = messenger;
-        _videoView = [[FlutterRTCVideoPlatformView alloc] initWithFrame:frame];
-        [_videoView setObjectFit:fit];
-        _viewId = viewId;
-        /*Create Event Channel.*/
-        _eventChannel = [FlutterEventChannel
-            eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/PlatformViewId%lld", viewId]
-                 binaryMessenger:messenger];
-        [_eventChannel setStreamHandler:self];
-    }
-    
-    return self;
+                            frame:(CGRect)frame {
+  self = [super init];
+  if (self) {
+    _isFirstFrameRendered = false;
+    _renderSize = CGSizeZero;
+    _rotation = -1;
+    _messenger = messenger;
+    _videoView = [[FlutterRTCVideoPlatformView alloc] initWithFrame:frame];
+    _viewId = viewId;
+    /*Create Event Channel.*/
+    _eventChannel = [FlutterEventChannel
+        eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/PlatformViewId%lld", viewId]
+             binaryMessenger:messenger];
+    [_eventChannel setStreamHandler:self];
+  }
+
+  return self;
 }
 
 - (UIView*)view {
-    return _videoView;
+  return _videoView;
 }
 
 - (void)setVideoTrack:(RTCVideoTrack*)videoTrack {
@@ -50,48 +46,49 @@
   }
   _videoTrack = videoTrack;
   _isFirstFrameRendered = false;
-  if(!oldValue) {
+  if (!oldValue) {
     [oldValue removeRenderer:(id<RTCVideoRenderer>)self];
+    _videoView.frame = CGRectZero;
   }
-  if(videoTrack) {
+  if (videoTrack) {
     [videoTrack addRenderer:(id<RTCVideoRenderer>)self];
   }
 }
 
 #pragma mark - RTCVideoRenderer methods
 - (void)renderFrame:(RTCVideoFrame*)frame {
-
-  if (_renderSize.width != frame.width || _renderSize.height != frame.height || !_isFirstFrameRendered) {
-      if (self.eventSink) {
-        postEvent( self.eventSink, @{
-          @"event" : @"didPlatformViewChangeVideoSize",
-          @"id" : @(self.viewId),
-          @"width" : @(frame.width),
-          @"height" : @(frame.height),
-        });
-      }
+  if (_renderSize.width != frame.width || _renderSize.height != frame.height ||
+      !_isFirstFrameRendered) {
+    if (self.eventSink) {
+      postEvent(self.eventSink, @{
+        @"event" : @"didPlatformViewChangeVideoSize",
+        @"id" : @(self.viewId),
+        @"width" : @(frame.width),
+        @"height" : @(frame.height),
+      });
+    }
     _renderSize = CGSizeMake(frame.width, frame.height);
   }
 
   if (frame.rotation != _rotation || !_isFirstFrameRendered) {
-      if (self.eventSink) {
-        postEvent( self.eventSink,@{
-          @"event" : @"didPlatformViewChangeRotation",
-          @"id" : @(self.viewId),
-          @"rotation" : @(frame.rotation),
-        });
-      }
+    if (self.eventSink) {
+      postEvent(self.eventSink, @{
+        @"event" : @"didPlatformViewChangeRotation",
+        @"id" : @(self.viewId),
+        @"rotation" : @(frame.rotation),
+      });
+    }
     _rotation = frame.rotation;
   }
 
-
-  [_videoView.videoRenderer renderFrame:frame];
   if (!_isFirstFrameRendered) {
     if (self.eventSink) {
       postEvent(self.eventSink, @{@"event" : @"didFirstFrameRendered"});
     }
     self->_isFirstFrameRendered = true;
   }
+    
+  [_videoView renderFrame:frame];
 }
 
 /**
@@ -100,10 +97,7 @@
  * @param size The size of the video frame to render.
  */
 - (void)setSize:(CGSize)size {
-  if (size.width != _frameSize.width || size.height != _frameSize.height) {
-    _frameSize = size;
-  }
-  [_videoView.videoRenderer setSize:size];
+    [_videoView setSize:size];
 }
 
 #pragma mark - FlutterStreamHandler methods

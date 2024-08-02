@@ -6,12 +6,12 @@
 
 #import <WebRTC/WebRTC.h>
 
-@interface FlutterRTCVideoPlatformView : UIView <RTC_OBJC_TYPE (RTCVideoViewDelegate)>
+@interface FlutterRTCVideoPlatformView : UIView
 
-@property(nonatomic, readonly) __kindof UIView<RTC_OBJC_TYPE(RTCVideoRenderer)> *videoRenderer;
+- (void)renderFrame:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame;
 
 - (instancetype)initWithFrame:(CGRect)frame;
 
--(void)setObjectFit:(NSNumber *)index;
+- (void)setSize:(CGSize)size;
 
 @end

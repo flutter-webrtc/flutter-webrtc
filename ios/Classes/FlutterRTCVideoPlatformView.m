@@ -1,45 +1,126 @@
 #import "FlutterRTCVideoPlatformView.h"
 
 @implementation FlutterRTCVideoPlatformView {
-    CGSize _videoSize;
-    RTCMTLVideoView *_videoView;
+  CGSize _videoSize;
+  AVSampleBufferDisplayLayer* _videoLayer;
+  int _rotation;
+  CGSize _remoteVideoSize;
 }
 
-@synthesize videoRenderer = _videoRenderer;
-
 - (instancetype)initWithFrame:(CGRect)frame {
-    if (self = [super initWithFrame:frame]) {
-        _videoView = [[RTC_OBJC_TYPE(RTCMTLVideoView) alloc] initWithFrame:CGRectZero];
-        _videoView.videoContentMode = UIViewContentModeScaleAspectFit;
-        _videoView.delegate = self;
-        _videoRenderer = _videoView;
-        self.opaque = NO;
-        [self addSubview:_videoRenderer];
-    }
-    return self;
+  if (self = [super initWithFrame:frame]) {
+    _rotation = -1;
+    _videoLayer = [[AVSampleBufferDisplayLayer alloc] init];
+    _videoLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+    _videoLayer.frame = CGRectZero;
+    [self.layer addSublayer:_videoLayer];
+    self.opaque = NO;
+  }
+  return self;
 }
 
 - (void)layoutSubviews {
-    CGRect bounds = self.bounds;
-    _videoRenderer.frame = bounds;
+  _videoLayer.frame = self.bounds;
+  [_videoLayer removeAllAnimations];
 }
 
--(void)setObjectFit:(NSNumber *)index {
-    if ([index intValue] == 0) {
-        _videoView.videoContentMode = UIViewContentModeScaleAspectFit;
-    } else if([index intValue] == 1) {
-        // for Cover mode
-        _videoView.contentMode = UIViewContentModeScaleAspectFit;
-        _videoView.videoContentMode = UIViewContentModeScaleAspectFill;
-    }
+- (void)setSize:(CGSize)size {
+    _remoteVideoSize = size;
 }
 
-#pragma mark - RTC_OBJC_TYPE(RTCVideoViewDelegate)
-- (void)videoView:(id<RTC_OBJC_TYPE(RTCVideoRenderer)>)videoView didChangeVideoSize:(CGSize)size {
-  if (videoView == _videoRenderer) {
-      _videoSize = size;
+- (void)renderFrame:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame {
+
+  CVPixelBufferRef pixelBuffer = nil;
+  if ([frame.buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
+    pixelBuffer = ((RTCCVPixelBuffer*)frame.buffer).pixelBuffer;
+    CFRetain(pixelBuffer);
+  } else if ([frame.buffer isKindOfClass:[RTCI420Buffer class]]) {
+    pixelBuffer = [self toCVPixelBuffer:frame];
   }
-  [self setNeedsLayout];
+
+  if (_rotation != frame.rotation) {
+    CATransform3D bufferTransform = [self fromFrameRotation:frame];
+    _videoLayer.transform = bufferTransform;
+    [_videoLayer layoutIfNeeded];
+    _rotation = (int)frame.rotation;
+  }
+
+  CMSampleBufferRef sampleBuffer = [self sampleBufferFromPixelBuffer:pixelBuffer];
+  if (sampleBuffer) {
+    [_videoLayer enqueueSampleBuffer:sampleBuffer];
+    CFRelease(sampleBuffer);
+  }
+
+  CFRelease(pixelBuffer);
+}
+
+- (CVPixelBufferRef)toCVPixelBuffer:(RTCVideoFrame*)frame {
+  CVPixelBufferRef outputPixelBuffer;
+  NSDictionary* pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
+  CVPixelBufferCreate(kCFAllocatorDefault, frame.width, frame.height,
+                      kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+                      (__bridge CFDictionaryRef)(pixelAttributes), &outputPixelBuffer);
+  id<RTCI420Buffer> i420Buffer = (RTCI420Buffer*)frame.buffer;
+
+  CVPixelBufferLockBaseAddress(outputPixelBuffer, 0);
+  // NV12
+  uint8_t* dstY = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 0);
+  const size_t dstYStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 0);
+  uint8_t* dstUV = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 1);
+  const size_t dstUVStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 1);
+
+  [RTCYUVHelper I420ToNV12:i420Buffer.dataY
+                srcStrideY:i420Buffer.strideY
+                      srcU:i420Buffer.dataU
+                srcStrideU:i420Buffer.strideU
+                      srcV:i420Buffer.dataV
+                srcStrideV:i420Buffer.strideV
+                      dstY:dstY
+                dstStrideY:(int)dstYStride
+                     dstUV:dstUV
+               dstStrideUV:(int)dstUVStride
+                     width:i420Buffer.width
+                    height:i420Buffer.height];
+
+  CVPixelBufferUnlockBaseAddress(outputPixelBuffer, 0);
+  return outputPixelBuffer;
+}
+
+- (CMSampleBufferRef)sampleBufferFromPixelBuffer:(CVPixelBufferRef)pixelBuffer {
+  CMSampleBufferRef sampleBuffer = NULL;
+  OSStatus err = noErr;
+  CMVideoFormatDescriptionRef formatDesc = NULL;
+  err = CMVideoFormatDescriptionCreateForImageBuffer(kCFAllocatorDefault, pixelBuffer, &formatDesc);
+  if (err != noErr) {
+    return nil;
+  }
+  CMSampleTimingInfo sampleTimingInfo = kCMTimingInfoInvalid;
+  err = CMSampleBufferCreateReadyWithImageBuffer(kCFAllocatorDefault, pixelBuffer, formatDesc,
+                                                 &sampleTimingInfo, &sampleBuffer);
+  if (sampleBuffer) {
+    CFArrayRef attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, YES);
+    CFMutableDictionaryRef dict = (CFMutableDictionaryRef)CFArrayGetValueAtIndex(attachments, 0);
+    CFDictionarySetValue(dict, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue);
+  }
+  if (err != noErr) {
+    return nil;
+  }
+  formatDesc = nil;
+  return sampleBuffer;
+}
+
+- (CATransform3D)fromFrameRotation:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame {
+  switch (frame.rotation) {
+    case RTCVideoRotation_0:
+      return CATransform3DIdentity;
+    case RTCVideoRotation_90:
+      return CATransform3DMakeRotation(M_PI / 2.0, 0, 0, 1);
+    case RTCVideoRotation_180:
+      return CATransform3DMakeRotation(M_PI, 0, 0, 1);
+    case RTCVideoRotation_270:
+      return CATransform3DMakeRotation(-M_PI / 0, 0, 0, 1);
+  }
+  return CATransform3DIdentity;
 }
 
 @end

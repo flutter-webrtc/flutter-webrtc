@@ -24,10 +24,11 @@ class RTCVideoPlatFormView extends StatefulWidget {
 
 class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
   RTCVideoPlatformViewController? _controller;
-
+  bool _showVideoView = false;
   @override
   void dispose() {
     _controller?.onFirstFrameRendered = null;
+    _controller?.onSrcObjectChange = null;
     _controller?.onResize = null;
     _controller = null;
     super.dispose();
@@ -41,19 +42,29 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
   }
 
   Widget _buildVideoView(BuildContext context, BoxConstraints constraints) {
-    return FittedBox(
-      clipBehavior: Clip.hardEdge,
-      fit:
-          widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
-              ? BoxFit.contain
-              : BoxFit.cover,
-      child: SizedBox(
-        width: constraints.maxWidth,
-        height: constraints.maxHeight,
-        child: Transform(
-          transform: Matrix4.identity()..rotateY(widget.mirror ? -pi : 0.0),
-          alignment: FractionalOffset.center,
-          child: _buildNativeView(),
+    return Center(
+      child: FittedBox(
+        clipBehavior: Clip.hardEdge,
+        fit: widget.objectFit ==
+                RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
+            ? BoxFit.contain
+            : BoxFit.cover,
+        child: Center(
+          child: SizedBox(
+            width: _showVideoView
+                ? widget.objectFit ==
+                        RTCVideoViewObjectFit.RTCVideoViewObjectFitCover
+                    ? constraints.maxWidth
+                    : constraints.maxHeight *
+                        (_controller?.value.aspectRatio ?? 1.0)
+                : 0.1,
+            height: _showVideoView ? constraints.maxHeight : 0.1,
+            child: Transform(
+              transform: Matrix4.identity()..rotateY(widget.mirror ? -pi : 0.0),
+              alignment: FractionalOffset.center,
+              child: _buildNativeView(),
+            ),
+          ),
         ),
       ),
     );
@@ -65,17 +76,16 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
       return UiKitView(
         viewType: viewType,
         onPlatformViewCreated: onPlatformViewCreated,
-        creationParams: <String, dynamic>{
-          'objectFit': widget.objectFit.index,
-        },
+        creationParams: <String, dynamic>{},
         creationParamsCodec: const StandardMessageCodec(),
       );
     }
     return Text('RTCVideoPlatformView only support for iOS.');
   }
 
-  void reBuildView() {
+  void showVideoView(bool show) {
     if (mounted) {
+      _showVideoView = show;
       setState(() {});
     }
   }
@@ -83,9 +93,10 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
   Future<void> onPlatformViewCreated(int id) async {
     final controller = RTCVideoPlatformViewController(id);
     _controller = controller;
+    controller.onFirstFrameRendered = () => showVideoView(true);
+    controller.onSrcObjectChange = () => showVideoView(false);
+    controller.onResize = () => showVideoView(true);
     widget.onViewReady?.call(controller);
-    controller.onFirstFrameRendered = reBuildView;
-    controller.onResize = reBuildView;
     await _controller?.initialize();
   }
 }
