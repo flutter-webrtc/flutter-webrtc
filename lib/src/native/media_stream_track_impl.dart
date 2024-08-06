@@ -39,9 +39,13 @@ class MediaStreamTrackNative extends MediaStreamTrack {
     });
     _enabled = enabled;
 
+    onChange?.call();
+
     if (kind == 'audio') {
       _muted = !enabled;
       muted ? onMute?.call() : onUnMute?.call();
+    }else if (kind == 'video') {
+      _enabled ? onCameraOn?.call() : onCameraOff?.call();
     }
   }
 
