@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.11.6+hotfix.1] - 2024-08-07
+
+* [iOS] Fixed PlatformView not rendering after resuming from background.
+
 [0.11.6] - 2024-08-02
 
 * [Web] change VideoElement to HTMLVideoElement.
