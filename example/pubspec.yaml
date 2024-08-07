@@ -16,7 +16,7 @@ dependencies:
     path: ../
   # Required for MediaRecorder example
   path_provider: ^2.0.2
-  permission_handler: ^10.2.0
+  permission_handler: ^11.3.1
   sdp_transform: ^0.3.2
 
 
