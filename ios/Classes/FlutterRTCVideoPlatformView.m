@@ -3,16 +3,18 @@
 @implementation FlutterRTCVideoPlatformView {
   CGSize _videoSize;
   AVSampleBufferDisplayLayer* _videoLayer;
-  int _rotation;
   CGSize _remoteVideoSize;
+  CATransform3D _bufferTransform;
+  RTCVideoRotation _lastVideoRotation;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
   if (self = [super initWithFrame:frame]) {
-    _rotation = -1;
     _videoLayer = [[AVSampleBufferDisplayLayer alloc] init];
     _videoLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
     _videoLayer.frame = CGRectZero;
+    _bufferTransform = CATransform3DIdentity;
+    _lastVideoRotation = RTCVideoRotation_0;
     [self.layer addSublayer:_videoLayer];
     self.opaque = NO;
   }
@@ -38,15 +40,18 @@
     pixelBuffer = [self toCVPixelBuffer:frame];
   }
 
-  if (_rotation != frame.rotation) {
-    CATransform3D bufferTransform = [self fromFrameRotation:frame];
-    _videoLayer.transform = bufferTransform;
+  if (_lastVideoRotation != frame.rotation) {
+    _bufferTransform = [self fromFrameRotation:frame.rotation];
+    _videoLayer.transform = _bufferTransform;
     [_videoLayer layoutIfNeeded];
-    _rotation = (int)frame.rotation;
+    _lastVideoRotation = frame.rotation;
   }
 
   CMSampleBufferRef sampleBuffer = [self sampleBufferFromPixelBuffer:pixelBuffer];
   if (sampleBuffer) {
+    if([_videoLayer requiresFlushToResumeDecoding]) {
+      [_videoLayer flushAndRemoveImage];
+    }
     [_videoLayer enqueueSampleBuffer:sampleBuffer];
     CFRelease(sampleBuffer);
   }
@@ -109,8 +114,8 @@
   return sampleBuffer;
 }
 
-- (CATransform3D)fromFrameRotation:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame {
-  switch (frame.rotation) {
+- (CATransform3D)fromFrameRotation:(RTCVideoRotation)rotation {
+  switch (rotation) {
     case RTCVideoRotation_0:
       return CATransform3DIdentity;
     case RTCVideoRotation_90:

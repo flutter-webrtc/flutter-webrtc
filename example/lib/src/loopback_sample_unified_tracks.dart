@@ -852,7 +852,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
               ),
               Align(
                 alignment: Alignment.bottomCenter,
-                child: ButtonBar(
+                child: OverflowBar(
                   children: [
                     FloatingActionButton(
                         heroTag: null,
