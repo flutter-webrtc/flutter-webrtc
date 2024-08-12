@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
 
 class VideoCodecInfoSample extends StatefulWidget {
-  const VideoCodecInfoSample({Key? key}) : super(key: key);
+  const VideoCodecInfoSample({super.key});
 
   @override
   State<VideoCodecInfoSample> createState() => _State();

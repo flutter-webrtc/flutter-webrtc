@@ -7,7 +7,7 @@ import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
 class PeerConnectionSample extends StatefulWidget {
   static String tag = 'peer_connection_sample';
 
-  const PeerConnectionSample({Key? key}) : super(key: key);
+  const PeerConnectionSample({super.key});
 
   @override
   State<PeerConnectionSample> createState() => _PeerConnectionSampleState();

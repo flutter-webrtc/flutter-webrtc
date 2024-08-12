@@ -6,7 +6,7 @@ import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
 class GetSourcesSample extends StatefulWidget {
   static String tag = 'get_sources_sample';
 
-  const GetSourcesSample({Key? key}) : super(key: key);
+  const GetSourcesSample({super.key});
 
   @override
   State<GetSourcesSample> createState() => _GetSourcesSampleState();

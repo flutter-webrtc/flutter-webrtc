@@ -394,7 +394,7 @@ pub mod linux_device_change {
             //         `socket`.
             let socket_fd =
                 unsafe { BorrowedFd::borrow_raw(socket.as_raw_fd()) };
-            let fds = PollFd::new(&socket_fd, PollFlags::POLLIN);
+            let fds = PollFd::new(socket_fd, PollFlags::POLLIN);
             loop {
                 ppoll(&mut [fds], None, None)?;
 
@@ -570,7 +570,7 @@ mod win_default_device_callback {
         Win32::{
             Media::Audio::{
                 EDataFlow, ERole, IMMDeviceEnumerator, IMMNotificationClient,
-                IMMNotificationClient_Impl, MMDeviceEnumerator,
+                IMMNotificationClient_Impl, MMDeviceEnumerator, DEVICE_STATE,
             },
             System::Com::{CoCreateInstance, CLSCTX_ALL},
             UI::Shell::PropertiesSystem::PROPERTYKEY,
@@ -593,8 +593,12 @@ mod win_default_device_callback {
     struct AudioEndpointCallback;
 
     #[allow(non_snake_case)]
-    impl IMMNotificationClient_Impl for AudioEndpointCallback {
-        fn OnDeviceStateChanged(&self, _: &PCWSTR, _: u32) -> Result<()> {
+    impl IMMNotificationClient_Impl for AudioEndpointCallback_Impl {
+        fn OnDeviceStateChanged(
+            &self,
+            _: &PCWSTR,
+            _: DEVICE_STATE,
+        ) -> Result<()> {
             Ok(())
         }
 
@@ -741,11 +745,19 @@ pub unsafe fn init() {
             0,
             None,
             None,
-            HMODULE(0),
+            HMODULE(ptr::null_mut()),
             None,
         );
 
-        ShowWindow(hwnd, SW_HIDE);
+        let Ok(hwnd) = hwnd else {
+            log::error!(
+                "Failed to create window so on device change listener is \
+                 disabled",
+            );
+            return;
+        };
+
+        _ = ShowWindow(hwnd, SW_HIDE);
 
         let mut msg: MSG = mem::zeroed();
 
@@ -754,7 +766,7 @@ pub unsafe fn init() {
                 break;
             }
 
-            TranslateMessage(&msg);
+            _ = TranslateMessage(&msg);
             DispatchMessageW(&msg);
         }
     });

@@ -347,9 +347,7 @@ fn download_libwebrtc() -> anyhow::Result<()> {
     // Force download if `INSTALL_WEBRTC=1`.
     if env::var("INSTALL_WEBRTC").as_deref().unwrap_or("0") == "0" {
         // Skip download if already downloaded and checksum matches.
-        if fs::metadata(&lib_dir)
-            .map(|m| m.is_dir())
-            .unwrap_or_default()
+        if fs::metadata(&lib_dir).is_ok_and(|m| m.is_dir())
             && fs::read(&checksum).unwrap_or_default().as_slice()
                 == expected_hash.as_bytes()
         {

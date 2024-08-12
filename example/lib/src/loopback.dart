@@ -7,7 +7,7 @@ import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
 class Loopback extends StatefulWidget {
   static String tag = 'get_usermedia_sample';
 
-  const Loopback({Key? key}) : super(key: key);
+  const Loopback({super.key});
 
   @override
   State<Loopback> createState() => _LoopbackState();

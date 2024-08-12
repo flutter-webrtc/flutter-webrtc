@@ -10,7 +10,7 @@ import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
 class GetDisplayMediaSample extends StatefulWidget {
   static String tag = 'get_display_media_sample';
 
-  const GetDisplayMediaSample({Key? key}) : super(key: key);
+  const GetDisplayMediaSample({super.key});
 
   @override
   State<GetDisplayMediaSample> createState() => _GetDisplayMediaSampleState();

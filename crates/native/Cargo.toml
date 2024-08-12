@@ -1,7 +1,7 @@
 [package]
 name = "medea-flutter-webrtc-native"
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.75"
 publish = false
 
 [lib]
@@ -10,24 +10,24 @@ crate-type = ["cdylib"]
 [dependencies]
 anyhow = "1.0"
 cxx = "1.0"
-dashmap = "5.4"
-derive_more = "0.99"
+dashmap = "6.0"
+derive_more = { version = "1.0", features = ["as_ref", "display", "from", "into"] }
 flutter_rust_bridge = { version = "=1.82.4", default-features = false }
 flutter_rust_bridge_macros = { version = "=1.82.4", default-features = false }
-lazy_static = "1.4"
+lazy_static = "1.5"
 libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"
-once_cell = "1.17"
+once_cell = "1.19"
 threadpool = "1.8"
 xxhash = { package = "xxhash-rust", version = "0.8", features = ["xxh3"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libudev = "0.3"
-nix = { version = "0.27", features = ["poll", "signal"] }
-pulse = { version = "2.27", package = "libpulse-binding" }
+nix = { version = "0.29", features = ["poll", "signal"] }
+pulse = { version = "2.28", package = "libpulse-binding" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.52", features = ["implement", "Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Media_Audio", "Win32_System_Com", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging"] }
+windows = { version = "0.58", features = ["implement", "Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Media_Audio", "Win32_System_Com", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging"] }
 
 [build-dependencies]
 anyhow = "1.0"
