@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
-import 'package:medea_flutter_webrtc/src/api/bridge.g.dart';
-import 'bridge.g.dart' as ffi;
+import 'bridge/api.dart' as ffi;
+import 'bridge/lib.dart' as ffi_ty;
 import 'send_encoding_parameters.dart';
 
 /// [RTCRtpParameters][0] implementation.
@@ -59,7 +59,7 @@ class _RtpParametersFFI extends RtpParameters {
   }
 
   /// Reference to the Rust side [RtpParameters].
-  late ArcRtpParameters _inner;
+  late ffi_ty.ArcRtpParameters _inner;
 
   @override
   ffi.RtcRtpSendParameters toFFI() {

@@ -299,15 +299,12 @@ ifeq ($(shell brew list | grep -Fx llvm),)
 	brew install llvm
 endif
 endif
-	flutter_rust_bridge_codegen --rust-input=crates/native/src/api.rs \
-		--dart-output=lib/src/api/bridge.g.dart \
-		--skip-add-mod-to-lib \
-		--no-build-runner \
-		--dart-enums-style \
-		--inline-rust
-	sed -i$(if $(call eq,$(CURRENT_OS),macos), '',) \
-		's/^pub use io::\*;$$/pub use self::io::*;/' \
-		crates/native/src/bridge_generated.rs
+	flutter_rust_bridge_codegen generate \
+		--rust-input=crate::api \
+		--rust-root=crates/native \
+		--no-add-mod-to-lib \
+		--dart-output=lib/src/api/bridge \
+		--no-web
 	flutter pub run build_runner build --delete-conflicting-outputs
 
 

@@ -1,6 +1,7 @@
 import 'dart:core';
 
 import 'package:flutter/material.dart';
+import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
 
 import 'src/create_peer_connection.dart';
 import 'src/get_display_media.dart';
@@ -11,7 +12,9 @@ import 'src/on_device_change.dart';
 import 'src/video_codec_info.dart';
 import 'src/route_item.dart';
 
-void main() {
+void main() async {
+  await initFfiBridge();
+
   runApp(const MyApp());
 }
 

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 import '/medea_flutter_webrtc.dart';
-import '/src/api/bridge.g.dart' as ffi;
+import '/src/api/bridge/api.dart' as ffi;
 import '/src/api/channel.dart';
 
 /// Representation of a single media unit.
@@ -206,7 +206,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
     _deviceId = track.deviceId;
     _peerId = track.peerId;
     _kind = MediaKind.values[track.kind.index];
-    _eventSub = api!
+    _eventSub = ffi
         .registerTrackObserver(
             peerId: _peerId,
             trackId: track.id,
@@ -224,7 +224,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   void onAudioLevelChanged(OnAudioLevelChangedCallback? cb) {
-    api!.setAudioLevelObserverEnabled(
+    ffi.setAudioLevelObserverEnabled(
       peerId: _peerId,
       trackId: _id,
       enabled: cb != null,
@@ -244,7 +244,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   @override
   Future<MediaStreamTrack> clone() async {
     if (!_stopped) {
-      return NativeMediaStreamTrack.from(await api!.cloneTrack(
+      return NativeMediaStreamTrack.from(await ffi.cloneTrack(
           trackId: _id,
           peerId: _peerId,
           kind: ffi.MediaType.values[_kind.index]));
@@ -266,7 +266,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   @override
   Future<void> setEnabled(bool enabled) async {
     if (!_stopped) {
-      await api!.setTrackEnabled(
+      await ffi.setTrackEnabled(
           peerId: _peerId,
           trackId: _id,
           enabled: enabled,
@@ -279,7 +279,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   @override
   Future<MediaStreamTrackState> state() async {
     return !_stopped
-        ? MediaStreamTrackState.values[(await api!.trackState(
+        ? MediaStreamTrackState.values[(await ffi.trackState(
                 peerId: _peerId,
                 trackId: _id,
                 kind: ffi.MediaType.values[_kind.index]))
@@ -294,13 +294,13 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   Future<int?> height() async {
-    return await api!.trackHeight(
+    return await ffi.trackHeight(
         trackId: _id, peerId: _peerId, kind: ffi.MediaType.values[_kind.index]);
   }
 
   @override
   Future<int?> width() async {
-    return await api!.trackWidth(
+    return await ffi.trackWidth(
         trackId: _id, peerId: _peerId, kind: ffi.MediaType.values[_kind.index]);
   }
 
@@ -309,7 +309,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
     if (!_stopped) {
       _onEnded = null;
 
-      await api!.disposeTrack(
+      await ffi.disposeTrack(
           trackId: _id,
           peerId: _peerId,
           kind: ffi.MediaType.values[_kind.index]);

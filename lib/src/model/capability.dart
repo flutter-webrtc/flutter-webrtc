@@ -1,5 +1,5 @@
 import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
-import '/src/api/bridge.g.dart' as ffi;
+import '/src/api/bridge/api.dart' as ffi;
 
 /// Representation of the static capabilities of an endpoint.
 ///

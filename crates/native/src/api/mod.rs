@@ -6,11 +6,11 @@ use std::{
     time::Duration,
 };
 
-use flutter_rust_bridge::{RustOpaque, StreamSink};
 use libwebrtc_sys as sys;
 
 use crate::{
     devices::{self, DeviceState},
+    frb_generated::{RustOpaque, StreamSink},
     pc::PeerConnectionId,
     renderer::FrameHandler,
     user_media::TrackOrigin,
@@ -2122,7 +2122,7 @@ pub struct MediaStreamTrack {
     /// [`MediaStreamTrack`] was received.
     ///
     /// Always [`None`] for local [`MediaStreamTrack`]s.
-    pub peer_id: Option<u64>,
+    pub peer_id: Option<u32>,
 
     /// Label identifying the track source, as in "internal microphone".
     pub device_id: String,
@@ -2524,7 +2524,7 @@ pub fn create_peer_connection(
     WEBRTC
         .lock()
         .unwrap()
-        .create_peer_connection(&(cb.into()), configuration)
+        .create_peer_connection(&cb, configuration)
 }
 
 /// Initiates the creation of an SDP offer for the purpose of starting a new
@@ -2794,7 +2794,7 @@ pub fn microphone_volume() -> anyhow::Result<u32> {
 }
 
 /// Disposes the specified [`MediaStreamTrack`].
-pub fn dispose_track(track_id: String, peer_id: Option<u64>, kind: MediaType) {
+pub fn dispose_track(track_id: String, peer_id: Option<u32>, kind: MediaType) {
     let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
 
     WEBRTC
@@ -2809,7 +2809,7 @@ pub fn dispose_track(track_id: String, peer_id: Option<u64>, kind: MediaType) {
 /// [0]: https://w3.org/TR/mediacapture-streams#dfn-readystate
 pub fn track_state(
     track_id: String,
-    peer_id: Option<u64>,
+    peer_id: Option<u32>,
     kind: MediaType,
 ) -> anyhow::Result<TrackState> {
     let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
@@ -2828,7 +2828,7 @@ pub fn track_state(
 /// [height]: https://w3.org/TR/mediacapture-streams#dfn-height
 pub fn track_height(
     track_id: String,
-    peer_id: Option<u64>,
+    peer_id: Option<u32>,
     kind: MediaType,
 ) -> anyhow::Result<Option<i32>> {
     if kind == MediaType::Audio {
@@ -2851,7 +2851,7 @@ pub fn track_height(
 /// [width]: https://w3.org/TR/mediacapture-streams#dfn-height
 pub fn track_width(
     track_id: String,
-    peer_id: Option<u64>,
+    peer_id: Option<u32>,
     kind: MediaType,
 ) -> anyhow::Result<Option<i32>> {
     if kind == MediaType::Audio {
@@ -2873,7 +2873,7 @@ pub fn track_width(
 /// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
 pub fn set_track_enabled(
     track_id: String,
-    peer_id: Option<u64>,
+    peer_id: Option<u32>,
     kind: MediaType,
     enabled: bool,
 ) -> anyhow::Result<()> {
@@ -2890,7 +2890,7 @@ pub fn set_track_enabled(
 /// Clones the specified [`MediaStreamTrack`].
 pub fn clone_track(
     track_id: String,
-    peer_id: Option<u64>,
+    peer_id: Option<u32>,
     kind: MediaType,
 ) -> anyhow::Result<MediaStreamTrack> {
     let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
@@ -2904,7 +2904,7 @@ pub fn clone_track(
 /// Registers an observer to the [`MediaStreamTrack`] events.
 pub fn register_track_observer(
     cb: StreamSink<TrackEvent>,
-    peer_id: Option<u64>,
+    peer_id: Option<u32>,
     track_id: String,
     kind: MediaType,
 ) -> anyhow::Result<()> {
@@ -2914,7 +2914,7 @@ pub fn register_track_observer(
         track_id,
         track_origin,
         kind,
-        cb.into(),
+        cb,
     )
 }
 
@@ -2922,7 +2922,7 @@ pub fn register_track_observer(
 /// with the provided `track_id`.
 pub fn set_audio_level_observer_enabled(
     track_id: String,
-    peer_id: Option<u64>,
+    peer_id: Option<u32>,
     enabled: bool,
 ) -> anyhow::Result<()> {
     let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
@@ -2939,10 +2939,8 @@ pub fn set_audio_level_observer_enabled(
 /// Only one callback can be set at a time, so the previous one will be dropped,
 /// if any.
 pub fn set_on_device_changed(cb: StreamSink<()>) -> anyhow::Result<()> {
-    let device_state = DeviceState::new(
-        cb.into(),
-        &mut WEBRTC.lock().unwrap().task_queue_factory,
-    )?;
+    let device_state =
+        DeviceState::new(cb, &mut WEBRTC.lock().unwrap().task_queue_factory)?;
     Webrtc::set_on_device_changed(device_state);
     Ok(())
 }
@@ -2954,12 +2952,12 @@ pub fn set_on_device_changed(cb: StreamSink<()>) -> anyhow::Result<()> {
 pub fn create_video_sink(
     cb: StreamSink<TextureEvent>,
     sink_id: i64,
-    peer_id: Option<u64>,
+    peer_id: Option<u32>,
     track_id: String,
-    callback_ptr: u64,
+    callback_ptr: i64,
     texture_id: i64,
 ) -> anyhow::Result<()> {
-    let handler = FrameHandler::new(callback_ptr as _, cb.into(), texture_id);
+    let handler = FrameHandler::new(callback_ptr as _, cb, texture_id);
     let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
 
     WEBRTC.lock().unwrap().create_video_sink(

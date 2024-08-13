@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
 import '/src/platform/native/media_stream_track.dart';
-import 'bridge.g.dart' as ffi;
+import 'bridge/api.dart' as ffi;
 import 'channel.dart';
 
 /// Default video width when capturing user's camera.
@@ -47,7 +47,7 @@ class _DeviceHandler {
   /// Subscribes to the platform [Stream] emitting device change events.
   void _listen() async {
     if (isDesktop) {
-      api!.setOnDeviceChanged().listen(
+      ffi.setOnDeviceChanged().listen(
         (event) {
           if (_handler != null) {
             _handler!();
@@ -116,7 +116,7 @@ final _mediaDevicesMethodChannel = methodChannel('MediaDevices', 0);
 /// Returns list of [MediaDeviceInfo]s for the currently available devices.
 Future<List<MediaDeviceInfo>> enumerateDevices() async {
   if (isDesktop) {
-    return (await api!.enumerateDevices())
+    return (await ffi.enumerateDevices())
         .map((e) => MediaDeviceInfo.fromFFI(e))
         .toList();
   } else {
@@ -129,7 +129,7 @@ Future<List<MediaDeviceInfo>> enumerateDevices() async {
 /// Returns list of [MediaDisplayInfo]s for the currently available displays.
 Future<List<MediaDisplayInfo>> enumerateDisplays() async {
   if (isDesktop) {
-    return (await api!.enumerateDisplays())
+    return (await ffi.enumerateDisplays())
         .map((e) => MediaDisplayInfo.fromFFI(e))
         .toList();
   } else {
@@ -164,7 +164,7 @@ Future<List<NativeMediaStreamTrack>> getDisplayMedia(
 /// List of output audio devices may be obtained via [enumerateDevices].
 Future<void> setOutputAudioId(String deviceId) async {
   if (isDesktop) {
-    await api!.setAudioPlayoutDevice(deviceId: deviceId);
+    await ffi.setAudioPlayoutDevice(deviceId: deviceId);
   } else {
     await _mediaDevicesMethodChannel
         .invokeMethod('setOutputAudioId', {'deviceId': deviceId});
@@ -174,7 +174,7 @@ Future<void> setOutputAudioId(String deviceId) async {
 /// Indicates whether the microphone is available to set volume.
 Future<bool> microphoneVolumeIsAvailable() async {
   if (isDesktop) {
-    return await api!.microphoneVolumeIsAvailable();
+    return await ffi.microphoneVolumeIsAvailable();
   } else {
     // TODO(logist322): Implement for Channel-based implementation.
     return false;
@@ -184,12 +184,12 @@ Future<bool> microphoneVolumeIsAvailable() async {
 /// Sets the microphone system volume according to the specified [level] in
 /// percents.
 Future<void> setMicrophoneVolume(int level) async {
-  await api!.setMicrophoneVolume(level: level);
+  await ffi.setMicrophoneVolume(level: level);
 }
 
 /// Returns the current level of the microphone volume in percents.
 Future<int> microphoneVolume() async {
-  return await api!.microphoneVolume();
+  return await ffi.microphoneVolume();
 }
 
 /// [MethodChannel]-based implementation of a [getUserMedia] function.
@@ -239,7 +239,7 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
               isDisplay: false)
           : null;
 
-  var result = await api!.getMedia(
+  var result = await ffi.getMedia(
       constraints: ffi.MediaStreamConstraints(
           audio: audioConstraints, video: videoConstraints));
 
@@ -292,7 +292,7 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaFFI(
               isDisplay: true)
           : null;
 
-  var result = await api!.getMedia(
+  var result = await ffi.getMedia(
       constraints: ffi.MediaStreamConstraints(
           audio: audioConstraints, video: videoConstraints));
 
@@ -322,7 +322,5 @@ void onDeviceChange(OnDeviceChangeCallback? cb) {
 ///
 /// This must be called before any other function to work properly.
 Future<void> enableFakeMedia() async {
-  if (api != null) {
-    await api!.enableFakeMedia();
-  }
+  await ffi.enableFakeMedia();
 }

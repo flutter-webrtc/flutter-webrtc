@@ -15,9 +15,10 @@ use sys::AudioProcessing;
 use xxhash::xxh3::xxh3_64;
 
 use crate::{
-    api, devices, next_id,
+    api, devices,
+    frb_generated::StreamSink,
+    next_id,
     pc::{PeerConnectionId, RtpTransceiver},
-    stream_sink::StreamSink,
     PeerConnection, VideoSink, VideoSinkId, Webrtc,
 };
 
@@ -1040,7 +1041,7 @@ impl VideoTrack {
         let width = Arc::new(OnceCell::new());
         let height = Arc::new(OnceCell::new());
         let mut sink = VideoSink::new(
-            i64::try_from(next_id()).unwrap(),
+            i64::from(next_id()),
             sys::VideoSinkInterface::create_forwarding(Box::new(
                 VideoFormatSink {
                     width: Arc::clone(&width),
@@ -1085,7 +1086,7 @@ impl VideoTrack {
         let height = Arc::new(OnceCell::new());
         height.set(RwLock::from(0)).unwrap();
         let mut sink = VideoSink::new(
-            i64::try_from(next_id()).unwrap(),
+            i64::from(next_id()),
             sys::VideoSinkInterface::create_forwarding(Box::new(
                 VideoFormatSink {
                     width: Arc::clone(&width),
@@ -1546,14 +1547,14 @@ impl TrackEventHandler {
     /// Sends an [`api::TrackEvent::TrackCreated`] to the provided
     /// [`StreamSink`].
     pub fn new(cb: StreamSink<api::TrackEvent>) -> Self {
-        cb.add(api::TrackEvent::TrackCreated);
+        _ = cb.add(api::TrackEvent::TrackCreated);
         Self(cb)
     }
 }
 
 impl sys::TrackEventCallback for TrackEventHandler {
     fn on_ended(&mut self) {
-        self.0.add(api::TrackEvent::Ended);
+        _ = self.0.add(api::TrackEvent::Ended);
     }
 }
 
@@ -1569,7 +1570,7 @@ struct AudioSourceAudioLevelHandler(StreamSink<api::TrackEvent>);
 impl AudioSourceAudioLevelHandler {
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn on_audio_level_change(&self, level: f32) {
-        self.0.add(api::TrackEvent::AudioLevelUpdated(cmp::min(
+        _ = self.0.add(api::TrackEvent::AudioLevelUpdated(cmp::min(
             (level * 1000.0).round() as u32,
             100,
         )));

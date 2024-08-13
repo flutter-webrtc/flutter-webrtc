@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-import '../../api/bridge.g.dart' as ffi;
 import '../../api/peer.dart';
+import '/src/api/bridge/api.dart' as ffi;
+import '/src/api/bridge/renderer.dart' as ffi_renderer;
 import '/src/api/channel.dart';
 import '/src/model/track.dart';
 import '/src/platform/native/media_stream_track.dart';
@@ -167,7 +168,7 @@ class _NativeVideoRendererChannel extends NativeVideoRenderer {
 /// FFI-based implementation of a [NativeVideoRenderer].
 class _NativeVideoRendererFFI extends NativeVideoRenderer {
   /// Subscription to the events of this [NativeVideoRenderer].
-  Stream<ffi.TextureEvent>? _eventStream;
+  Stream<ffi_renderer.TextureEvent>? _eventStream;
 
   @override
   int get videoWidth {
@@ -199,7 +200,7 @@ class _NativeVideoRendererFFI extends NativeVideoRenderer {
 
     _srcObject = track;
     if (track == null) {
-      api!.disposeVideoSink(sinkId: textureId!);
+      ffi.disposeVideoSink(sinkId: textureId!);
       value = RTCVideoValue.empty;
     } else {
       var handler =
@@ -208,7 +209,7 @@ class _NativeVideoRendererFFI extends NativeVideoRenderer {
       });
 
       var trackId = track.id();
-      _eventStream = api!.createVideoSink(
+      _eventStream = ffi.createVideoSink(
         sinkId: textureId!,
         peerId: track.peerId,
         trackId: trackId,
@@ -230,8 +231,8 @@ class _NativeVideoRendererFFI extends NativeVideoRenderer {
 
   /// Listener for this [NativeVideoRenderer]'s events received from the native
   /// side.
-  void eventListener(ffi.TextureEvent event) {
-    if (event is ffi.TextureEvent_OnTextureChange) {
+  void eventListener(ffi_renderer.TextureEvent event) {
+    if (event is ffi_renderer.TextureEvent_OnTextureChange) {
       var rotation = event.rotation;
       var width = 0.0 + event.width;
       var height = 0.0 + event.height;
@@ -253,7 +254,7 @@ class _NativeVideoRendererFFI extends NativeVideoRenderer {
         onCanPlay?.call();
       }
       onResize?.call();
-    } else if (event is ffi.TextureEvent_OnFirstFrameRendered) {
+    } else if (event is ffi_renderer.TextureEvent_OnFirstFrameRendered) {
       value = value.copyWith(renderVideo: renderVideo);
     }
   }

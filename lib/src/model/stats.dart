@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 
-import '../api/bridge.g.dart' as ffi;
+import '/src/api/bridge/api.dart' as ffi;
 
 /// Tries to parse the provided [value] as [int].
 ///
@@ -696,7 +696,7 @@ class RtcOutboundRtpStreamStats extends RtcStatsType {
       var cast =
           stats.mediaType as ffi.RtcOutboundRtpStreamStatsMediaType_Audio;
       mediaType = RtcOutboundRtpStreamStatsAudio(
-          cast.totalSamplesSent, cast.voiceActivityFlag);
+          cast.totalSamplesSent?.toInt(), cast.voiceActivityFlag);
     } else if (kind == 'RtcOutboundRtpStreamStatsMediaType_VideoImpl') {
       var cast =
           stats.mediaType as ffi.RtcOutboundRtpStreamStatsMediaType_Video;
@@ -706,7 +706,7 @@ class RtcOutboundRtpStreamStats extends RtcStatsType {
     return RtcOutboundRtpStreamStats(
       stats.trackId,
       mediaType,
-      stats.bytesSent,
+      stats.bytesSent?.toInt(),
       stats.packetsSent,
       stats.mediaSourceId,
     );
@@ -921,9 +921,9 @@ class RtcInboundRtpStreamStats extends RtcStatsType {
     if (type == 'RtcInboundRtpStreamMediaType_AudioImpl') {
       var cast = stats.mediaType as ffi.RtcInboundRtpStreamMediaType_Audio;
       mediaType = RtcInboundRtpStreamAudio(
-          cast.totalSamplesReceived,
-          cast.concealedSamples,
-          cast.silentConcealedSamples,
+          cast.totalSamplesReceived?.toInt(),
+          cast.concealedSamples?.toInt(),
+          cast.silentConcealedSamples?.toInt(),
           cast.audioLevel,
           cast.totalAudioEnergy,
           cast.totalSamplesDuration,
@@ -939,7 +939,7 @@ class RtcInboundRtpStreamStats extends RtcStatsType {
         cast.framesPerSecond,
         cast.firCount,
         cast.pliCount,
-        cast.concealmentEvents,
+        cast.concealmentEvents?.toInt(),
         cast.framesReceived,
         cast.sliCount,
       );
@@ -947,10 +947,10 @@ class RtcInboundRtpStreamStats extends RtcStatsType {
 
     return RtcInboundRtpStreamStats(
         stats.remoteId,
-        stats.bytesReceived,
+        stats.bytesReceived?.toInt(),
         stats.packetsReceived,
         stats.totalDecodeTime,
-        stats.jitterBufferEmittedCount,
+        stats.jitterBufferEmittedCount?.toInt(),
         mediaType);
   }
 
@@ -1075,8 +1075,8 @@ class RtcIceCandidatePairStats extends RtcStatsType {
     return RtcIceCandidatePairStats(
       RtcStatsIceCandidatePairState.values[stats.state.index],
       stats.nominated,
-      stats.bytesSent,
-      stats.bytesReceived,
+      stats.bytesSent?.toInt(),
+      stats.bytesReceived?.toInt(),
       stats.totalRoundTripTime,
       stats.currentRoundTripTime,
       stats.availableOutgoingBitrate,
@@ -1175,8 +1175,12 @@ class RtcTransportStats extends RtcStatsType {
     if (stats.iceRole != null) {
       role = IceRole.values[stats.iceRole!.index];
     }
-    return RtcTransportStats(stats.packetsSent, stats.packetsReceived,
-        stats.bytesSent, stats.bytesReceived, role);
+    return RtcTransportStats(
+        stats.packetsSent?.toInt(),
+        stats.packetsReceived?.toInt(),
+        stats.bytesSent?.toInt(),
+        stats.bytesReceived?.toInt(),
+        role);
   }
 
   /// Creates [RtcTransportStats] basing on the [Map] received from the native
@@ -1246,7 +1250,7 @@ class RtcRemoteInboundRtpStreamStats extends RtcStatsType {
       stats.fractionLost,
       stats.roundTripTimeMeasurements,
       stats.jitter,
-      stats.reportsReceived,
+      stats.reportsReceived?.toInt(),
     );
   }
 
@@ -1333,7 +1337,7 @@ class RtcRemoteOutboundRtpStreamStats extends RtcStatsType {
     return RtcRemoteOutboundRtpStreamStats(
       stats.localId,
       stats.remoteTimestamp,
-      stats.reportsSent,
+      stats.reportsSent?.toInt(),
     );
   }
 

@@ -1,5 +1,6 @@
-import '/src/api/bridge.g.dart' as ffi;
 import '/src/api/peer.dart';
+import 'bridge/api.dart' as ffi;
+import 'bridge/lib.dart';
 
 /// Encoding describing a single configuration of a codec for an [RTCRtpSender].
 ///
@@ -28,8 +29,8 @@ abstract class SendEncodingParameters {
 
   /// Create new [SendEncodingParameters] from the provided
   /// [ffi.RtcRtpEncodingParameters].
-  static SendEncodingParameters fromFFI(ffi.RtcRtpEncodingParameters e,
-      ffi.ArcRtpEncodingParameters sysEncoding) {
+  static SendEncodingParameters fromFFI(
+      ffi.RtcRtpEncodingParameters e, ArcRtpEncodingParameters sysEncoding) {
     return _SendEncodingParametersFFI(e.rid, e.active,
         maxBitrate: e.maxBitrate,
         maxFramerate: e.maxFramerate,
@@ -74,7 +75,7 @@ abstract class SendEncodingParameters {
 
   /// Tries to convert these [SendEncodingParameters] into
   /// [ffi.ArcRtpEncodingParameters].
-  (ffi.RtcRtpEncodingParameters, ffi.ArcRtpEncodingParameters?) toFFI();
+  (ffi.RtcRtpEncodingParameters, ArcRtpEncodingParameters?) toFFI();
 }
 
 /// [MethodChannel]-based implementation of [SendEncodingParameters].
@@ -105,7 +106,7 @@ class _SendEncodingParametersChannel extends SendEncodingParameters {
   }
 
   @override
-  (ffi.RtcRtpEncodingParameters, ffi.ArcRtpEncodingParameters?) toFFI() {
+  (ffi.RtcRtpEncodingParameters, ArcRtpEncodingParameters?) toFFI() {
     throw UnimplementedError();
   }
 }
@@ -117,7 +118,7 @@ class _SendEncodingParametersFFI extends SendEncodingParameters {
       double? maxFramerate,
       double? scaleResolutionDownBy,
       String? scalabilityMode,
-      ffi.ArcRtpEncodingParameters? encoding}) {
+      ArcRtpEncodingParameters? encoding}) {
     this.rid = rid;
     this.active = active;
     this.maxBitrate = maxBitrate;
@@ -128,10 +129,10 @@ class _SendEncodingParametersFFI extends SendEncodingParameters {
   }
 
   /// Underlying [ffi.ArcRtpEncodingParameters].
-  ffi.ArcRtpEncodingParameters? _encoding;
+  ArcRtpEncodingParameters? _encoding;
 
   @override
-  (ffi.RtcRtpEncodingParameters, ffi.ArcRtpEncodingParameters?) toFFI() {
+  (ffi.RtcRtpEncodingParameters, ArcRtpEncodingParameters?) toFFI() {
     return (
       ffi.RtcRtpEncodingParameters(
           rid: rid,

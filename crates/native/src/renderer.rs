@@ -2,7 +2,7 @@
 
 use libwebrtc_sys as sys;
 
-use crate::stream_sink::StreamSink;
+use crate::frb_generated::StreamSink;
 
 pub use frame_handler::FrameHandler;
 
@@ -74,7 +74,7 @@ impl TextureEventNotifier {
 
         if !self.first_frame_rendered {
             self.first_frame_rendered = true;
-            self.sink.add(TextureEvent::OnFirstFrameRendered {
+            _ = self.sink.add(TextureEvent::OnFirstFrameRendered {
                 texture_id: self.texture_id,
             });
         }
@@ -86,7 +86,7 @@ impl TextureEventNotifier {
             self.height = height;
             self.width = width;
             self.rotation = rotation;
-            self.sink.add(TextureEvent::OnTextureChange {
+            _ = self.sink.add(TextureEvent::OnTextureChange {
                 texture_id: self.texture_id,
                 width,
                 height,
@@ -105,8 +105,8 @@ mod frame_handler {
     use libwebrtc_sys as sys;
 
     use crate::{
+        frb_generated::StreamSink,
         renderer::{TextureEvent, TextureEventNotifier},
-        stream_sink::StreamSink,
     };
 
     pub use cpp_api_bindings::{OnFrameCallbackInterface, VideoFrame};
@@ -245,8 +245,8 @@ mod frame_handler {
     use libwebrtc_sys as sys;
 
     use crate::{
+        frb_generated::StreamSink,
         renderer::{TextureEvent, TextureEventNotifier},
-        stream_sink::StreamSink,
     };
 
     /// Handler for a [`sys::VideoFrame`]s renderer.

@@ -2,9 +2,9 @@ import 'package:flutter/services.dart';
 
 import 'package:medea_flutter_webrtc/src/model/capability.dart';
 import '/src/model/transceiver.dart';
-import 'bridge.g.dart' as ffi;
+import 'bridge/api.dart' as ffi;
+import 'bridge/lib.dart';
 import 'channel.dart';
-import 'peer.dart';
 import 'sender.dart';
 
 /// [RTCTransceiver][1] representation
@@ -166,20 +166,20 @@ class _RtpTransceiverFFI extends RtpTransceiver {
   }
 
   /// Native side peer connection.
-  late final ffi.ArcPeerConnection _peer;
+  late final ArcPeerConnection _peer;
 
   /// Native side transceiver.
-  late final ffi.ArcRtpTransceiver _transceiver;
+  late final ArcRtpTransceiver _transceiver;
 
   @override
   Future<TransceiverDirection> getDirection() async {
     return TransceiverDirection.values[
-        (await api!.getTransceiverDirection(transceiver: _transceiver)).index];
+        (await ffi.getTransceiverDirection(transceiver: _transceiver)).index];
   }
 
   @override
   Future<void> setDirection(TransceiverDirection direction) async {
-    await api!.setTransceiverDirection(
+    await ffi.setTransceiverDirection(
         transceiver: _transceiver,
         direction: ffi.RtpTransceiverDirection.values[direction.index]);
   }
@@ -199,28 +199,27 @@ class _RtpTransceiverFFI extends RtpTransceiver {
           parameters: params,
           feedback: List.empty());
     }).toList();
-    await api!
-        .setCodecPreferences(transceiver: _transceiver, codecs: ffiCodecs);
+    await ffi.setCodecPreferences(transceiver: _transceiver, codecs: ffiCodecs);
   }
 
   @override
   Future<void> stop() async {
-    await api!.stopTransceiver(transceiver: _transceiver);
+    await ffi.stopTransceiver(transceiver: _transceiver);
   }
 
   @override
   Future<void> syncMid() async {
-    _mid = await api!.getTransceiverMid(transceiver: _transceiver);
+    _mid = await ffi.getTransceiverMid(transceiver: _transceiver);
   }
 
   @override
   Future<void> setRecv(bool recv) async {
-    await api!.setTransceiverRecv(transceiver: _transceiver, recv: recv);
+    await ffi.setTransceiverRecv(transceiver: _transceiver, recv: recv);
   }
 
   @override
   Future<void> setSend(bool send) async {
-    await api!.setTransceiverSend(transceiver: _transceiver, send: send);
+    await ffi.setTransceiverSend(transceiver: _transceiver, send: send);
   }
 
   @override
