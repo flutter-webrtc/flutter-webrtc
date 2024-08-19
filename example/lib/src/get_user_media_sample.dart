@@ -22,6 +22,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   bool _inCalling = false;
   bool _isTorchOn = false;
   MediaRecorder? _mediaRecorder;
+
   bool get _isRec => _mediaRecorder != null;
 
   List<MediaDeviceInfo>? _mediaDevicesList;
@@ -143,6 +144,18 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     }
   }
 
+  void setZoom(double zoomLevel) async {
+    if (_localStream == null) throw Exception('Stream is not initialized');
+    // await videoTrack.setZoom(zoomLevel); //Use it after published webrtc_interface 1.1.1
+
+    // before the release, use can just call native method directly.
+    final videoTrack = _localStream!
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == 'video');
+    await WebRTC.invokeMethod('mediaStreamTrackSetZoom',
+        <String, dynamic>{'trackId': videoTrack.id, 'zoomLevel': zoomLevel});
+  }
+
   void _toggleCamera() async {
     if (_localStream == null) throw Exception('Stream is not initialized');
 
@@ -218,14 +231,21 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
-            child: Container(
-              margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              decoration: BoxDecoration(color: Colors.black54),
+              child: Container(
+            margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            decoration: BoxDecoration(color: Colors.black54),
+            child: GestureDetector(
+              onScaleStart: (details) {},
+              onScaleUpdate: (details) {
+                if (details.scale != 1.0) {
+                  setZoom(details.scale);
+                }
+              },
               child: RTCVideoView(_localRenderer, mirror: true),
             ),
-          );
+          ));
         },
       ),
       floatingActionButton: FloatingActionButton(

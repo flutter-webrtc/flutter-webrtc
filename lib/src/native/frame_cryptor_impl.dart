@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
-import '../frame_cryptor.dart';
 import 'rtc_rtp_receiver_impl.dart';
 import 'rtc_rtp_sender_impl.dart';
 import 'utils.dart';
@@ -15,6 +14,47 @@ class KeyProviderImpl implements KeyProvider {
   final String _id;
   @override
   String get id => _id;
+
+  @override
+  Future<void> setSharedKey({required Uint8List key, int index = 0}) async {
+    try {
+      await WebRTC.invokeMethod('keyProviderSetSharedKey', <String, dynamic>{
+        'keyProviderId': _id,
+        'keyIndex': index,
+        'key': key,
+      });
+    } on PlatformException catch (e) {
+      throw 'Unable to KeyProviderImpl::setSharedKey: ${e.message}';
+    }
+  }
+
+  @override
+  Future<Uint8List> ratchetSharedKey({int index = 0}) async {
+    try {
+      final response = await WebRTC.invokeMethod(
+          'keyProviderRatchetSharedKey', <String, dynamic>{
+        'keyProviderId': _id,
+        'keyIndex': index,
+      });
+      return response['result'];
+    } on PlatformException catch (e) {
+      throw 'Unable to KeyProviderImpl::ratchetSharedKey: ${e.message}';
+    }
+  }
+
+  @override
+  Future<Uint8List> exportSharedKey({int index = 0}) async {
+    try {
+      final response = await WebRTC.invokeMethod(
+          'keyProviderExportSharedKey', <String, dynamic>{
+        'keyProviderId': _id,
+        'keyIndex': index,
+      });
+      return response['result'];
+    } on PlatformException catch (e) {
+      throw 'Unable to KeyProviderImpl::exportSharedKey: ${e.message}';
+    }
+  }
 
   @override
   Future<bool> setKey({
@@ -51,6 +91,36 @@ class KeyProviderImpl implements KeyProvider {
       return response['result'];
     } on PlatformException catch (e) {
       throw 'Unable to KeyProviderImpl::ratchetKey: ${e.message}';
+    }
+  }
+
+  @override
+  Future<Uint8List> exportKey({
+    required String participantId,
+    required int index,
+  }) async {
+    try {
+      final response =
+          await WebRTC.invokeMethod('keyProviderExportKey', <String, dynamic>{
+        'keyProviderId': _id,
+        'participantId': participantId,
+        'keyIndex': index,
+      });
+      return response['result'];
+    } on PlatformException catch (e) {
+      throw 'Unable to KeyProviderImpl::exportSharedKey: ${e.message}';
+    }
+  }
+
+  @override
+  Future<void> setSifTrailer({required Uint8List trailer}) async {
+    try {
+      await WebRTC.invokeMethod('keyProviderSetSifTrailer', <String, dynamic>{
+        'keyProviderId': _id,
+        'sifTrailer': trailer,
+      });
+    } on PlatformException catch (e) {
+      throw 'Unable to KeyProviderImpl::setSifTrailer: ${e.message}';
     }
   }
 

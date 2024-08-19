@@ -2,18 +2,16 @@
 
 namespace flutter_webrtc_plugin {
 
-FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar* registrar,
-                                           BinaryMessenger* messenger)
-    : registrar_(registrar) {
-  texture_ =
-      std::make_unique<flutter::TextureVariant>(flutter::PixelBufferTexture(
-          [this](size_t width,
-                 size_t height) -> const FlutterDesktopPixelBuffer* {
-            return this->CopyPixelBuffer(width, height);
-          }));
+FlutterVideoRenderer::~FlutterVideoRenderer() {}
 
-  texture_id_ = registrar_->RegisterTexture(texture_.get());
-
+void FlutterVideoRenderer::initialize(
+    TextureRegistrar* registrar,
+    BinaryMessenger* messenger,
+    std::unique_ptr<flutter::TextureVariant> texture,
+    int64_t trxture_id) {
+  registrar_ = registrar;
+  texture_ = std::move(texture);
+  texture_id_ = trxture_id;
   std::string channel_name =
       "FlutterWebRTC/Texture" + std::to_string(texture_id_);
   event_channel_ = EventChannelProxy::Create(messenger, channel_name);
@@ -114,20 +112,30 @@ FlutterVideoRendererManager::FlutterVideoRendererManager(
 
 void FlutterVideoRendererManager::CreateVideoRendererTexture(
     std::unique_ptr<MethodResultProxy> result) {
-  std::unique_ptr<FlutterVideoRenderer> texture(
-      new FlutterVideoRenderer(base_->textures_, base_->messenger_));
-  int64_t texture_id = texture->texture_id();
-  renderers_[texture_id] = std::move(texture);
+  auto texture = new RefCountedObject<FlutterVideoRenderer>();
+  auto textureVariant =
+      std::make_unique<flutter::TextureVariant>(flutter::PixelBufferTexture(
+          [texture](size_t width,
+                    size_t height) -> const FlutterDesktopPixelBuffer* {
+            return texture->CopyPixelBuffer(width, height);
+          }));
+
+  auto texture_id = base_->textures_->RegisterTexture(textureVariant.get());
+  texture->initialize(base_->textures_, base_->messenger_,
+                      std::move(textureVariant), texture_id);
+  renderers_[texture_id] = texture;
   EncodableMap params;
   params[EncodableValue("textureId")] = EncodableValue(texture_id);
   result->Success(EncodableValue(params));
 }
 
-void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
-                                                 const std::string& stream_id,
-                                                 const std::string& ownerTag) {
+void FlutterVideoRendererManager::VideoRendererSetSrcObject(
+    int64_t texture_id,
+    const std::string& stream_id,
+    const std::string& owner_tag,
+    const std::string& track_id) {
   scoped_refptr<RTCMediaStream> stream =
-      base_->MediaStreamForId(stream_id, ownerTag);
+      base_->MediaStreamForId(stream_id, owner_tag);
 
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
@@ -135,7 +143,16 @@ void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
     if (stream.get()) {
       auto video_tracks = stream->video_tracks();
       if (video_tracks.size() > 0) {
-        renderer->SetVideoTrack(video_tracks[0]);
+        if (track_id == std::string()) {
+          renderer->SetVideoTrack(video_tracks[0]);
+        } else {
+          for (auto track : video_tracks.std_vector()) {
+            if (track->id().std_string() == track_id) {
+              renderer->SetVideoTrack(track);
+              break;
+            }
+          }
+        }
         renderer->media_stream_id = stream_id;
       }
     } else {
@@ -149,8 +166,14 @@ void FlutterVideoRendererManager::VideoRendererDispose(
     std::unique_ptr<MethodResultProxy> result) {
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
+    it->second->SetVideoTrack(nullptr);
+#if defined(_WINDOWS)
+    base_->textures_->UnregisterTexture(texture_id,
+                                        [&, it] { renderers_.erase(it); });
+#else
     base_->textures_->UnregisterTexture(texture_id);
     renderers_.erase(it);
+#endif
     result->Success();
     return;
   }

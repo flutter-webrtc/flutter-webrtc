@@ -113,7 +113,7 @@
                       dstV:(uint8_t*)buffer.dataV
                 dstStrideV:buffer.strideV
                      width:src.width
-                     width:src.height
+                    height:src.height
                       mode:rotation];
 
   return buffer;
@@ -145,7 +145,7 @@
                        dstUV:dstUV
                  dstStrideUV:(int)dstUVStride
                        width:i420Buffer.width
-                       width:i420Buffer.height];
+                      height:i420Buffer.height];
 
   } else {
     uint8_t* dst = CVPixelBufferGetBaseAddress(outputPixelBuffer);
@@ -192,7 +192,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
       if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{
+        postEvent( strongSelf.eventSink, @{
           @"event" : @"didTextureChangeVideoSize",
           @"id" : @(strongSelf.textureId),
           @"width" : @(frame.width),
@@ -207,7 +207,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
       if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{
+        postEvent( strongSelf.eventSink,@{
           @"event" : @"didTextureChangeRotation",
           @"id" : @(strongSelf.textureId),
           @"rotation" : @(frame.rotation),
@@ -224,7 +224,7 @@
     [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
     if (!strongSelf->_isFirstFrameRendered) {
       if (strongSelf.eventSink) {
-        strongSelf.eventSink(@{@"event" : @"didFirstFrameRendered"});
+        postEvent(strongSelf.eventSink, @{@"event" : @"didFirstFrameRendered"});
         strongSelf->_isFirstFrameRendered = true;
       }
     }

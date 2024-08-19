@@ -39,14 +39,14 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
-          java-version: '12.x'
+          java-version: '17.x'
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
       - name: Install project dependencies
         run: flutter pub get
-      - name: Start Android Build
+      - name: Build for Android
         working-directory: ./example
         run: flutter build apk
 
@@ -76,7 +76,7 @@ jobs:
           channel: 'stable'
       - name: Install project dependencies
         run: flutter pub get
-      - name: Build for windows
+      - name: Build for Windows
         working-directory: ./example
         run: flutter build windows --release
 
@@ -91,7 +91,7 @@ jobs:
           channel: 'stable'
       - name: Install project dependencies
         run: flutter pub get
-      - name: Build for windows
+      - name: Build for macOS
         working-directory: ./example
         run: flutter build macos --release
 
@@ -114,7 +114,7 @@ jobs:
         run: sudo apt-get update
       - name: Install ninja-build libgtk-3-dev
         run: sudo apt-get install -y ninja-build libgtk-3-dev
-      - name: Start Linux Build
+      - name: Build for Linux
         working-directory: ./example
         run: flutter build linux
 
@@ -133,6 +133,6 @@ jobs:
           channel: 'stable'
       - name: Install project dependencies
         run: flutter pub get
-      - name: Start Web Build
+      - name: build for Web
         working-directory: ./example
         run: flutter build web

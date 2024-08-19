@@ -9,8 +9,8 @@ class RTCSessionDescription : public RefCountInterface {
  public:
   enum SdpType { kOffer = 0, kPrAnswer, kAnswer };
 
-  static LIB_WEBRTC_API scoped_refptr<RTCSessionDescription>
-  Create(const string type, const string sdp, SdpParseError* error);
+  static LIB_WEBRTC_API scoped_refptr<RTCSessionDescription> Create(
+      const string type, const string sdp, SdpParseError* error);
 
  public:
   virtual const string sdp() const = 0;

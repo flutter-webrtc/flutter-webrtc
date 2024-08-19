@@ -12,7 +12,7 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.3.3'
+          channel: 'stable'
       - name: Install project dependencies
         run: flutter pub get
       - name: Dart Format Check

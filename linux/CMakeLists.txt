@@ -14,6 +14,7 @@ add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/src/flutter_frame_cryptor.cc"
   "../common/cpp/src/flutter_media_stream.cc"
   "../common/cpp/src/flutter_peerconnection.cc"
+  "../common/cpp/src/flutter_frame_capturer.cc"
   "../common/cpp/src/flutter_video_renderer.cc"
   "../common/cpp/src/flutter_screen_capture.cc"
   "../common/cpp/src/flutter_webrtc.cc"
@@ -31,6 +32,7 @@ include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/../common/cpp/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/uuidxx"
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/svpng"
 )
 
 apply_standard_settings(${PLUGIN_NAME})
@@ -51,4 +53,11 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
 set(flutter_webrtc_bundled_libraries
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/${FLUTTER_TARGET_PLATFORM}/libwebrtc.so"
   PARENT_SCOPE
+)
+
+# Add $ORIGIN to RPATH so that lib/libflutter_webrtc_plugin.so can find lib/libwebrtc.so at runtime
+set_property(
+    TARGET ${PLUGIN_NAME}
+    PROPERTY BUILD_RPATH
+    "\$ORIGIN"
 )

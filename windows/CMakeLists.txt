@@ -16,6 +16,7 @@ add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/src/flutter_frame_cryptor.cc"
   "../common/cpp/src/flutter_media_stream.cc"
   "../common/cpp/src/flutter_peerconnection.cc"
+  "../common/cpp/src/flutter_frame_capturer.cc"
   "../common/cpp/src/flutter_video_renderer.cc"
   "../common/cpp/src/flutter_screen_capture.cc"
   "../common/cpp/src/flutter_webrtc.cc"
@@ -26,6 +27,7 @@ add_library(${PLUGIN_NAME} SHARED
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/../common/cpp/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/uuidxx"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/svpng"
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/include"
 )
 

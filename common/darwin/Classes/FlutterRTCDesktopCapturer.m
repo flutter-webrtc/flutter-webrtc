@@ -272,7 +272,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
   NSRect imageRect = NSMakeRect(0.0, 0.0, width, height);
 
   [newImage lockFocus];
-  [sourceImage drawInRect:thumbnailRect fromRect:imageRect operation:NSCompositeCopy fraction:1.0];
+    [sourceImage drawInRect:thumbnailRect fromRect:imageRect operation:NSCompositingOperationCopy fraction:1.0];
   [newImage unlockFocus];
 
   return newImage;
@@ -346,7 +346,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
       NSImage* resizedImg = [self resizeImage:image forSize:NSMakeSize(320, 180)];
       data = [resizedImg TIFFRepresentation];
     }
-    self.eventSink(@{
+    postEvent(self.eventSink, @{
       @"event" : @"desktopSourceAdded",
       @"id" : source.sourceId,
       @"name" : source.name,
@@ -361,7 +361,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
 - (void)didDesktopSourceRemoved:(RTC_OBJC_TYPE(RTCDesktopSource) *)source {
   // NSLog(@"didDesktopSourceRemoved: %@, id %@", source.name, source.sourceId);
   if (self.eventSink) {
-    self.eventSink(@{
+    postEvent(self.eventSink, @{
       @"event" : @"desktopSourceRemoved",
       @"id" : source.sourceId,
     });
@@ -372,7 +372,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
 - (void)didDesktopSourceNameChanged:(RTC_OBJC_TYPE(RTCDesktopSource) *)source {
   // NSLog(@"didDesktopSourceNameChanged: %@, id %@", source.name, source.sourceId);
   if (self.eventSink) {
-    self.eventSink(@{
+    postEvent(self.eventSink, @{
       @"event" : @"desktopSourceNameChanged",
       @"id" : source.sourceId,
       @"name" : source.name,
@@ -386,7 +386,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
   if (self.eventSink) {
     NSImage* resizedImg = [self resizeImage:[source thumbnail] forSize:NSMakeSize(320, 180)];
     NSData* data = [resizedImg TIFFRepresentation];
-    self.eventSink(@{
+    postEvent(self.eventSink, @{
       @"event" : @"desktopSourceThumbnailChanged",
       @"id" : source.sourceId,
       @"thumbnail" : data
