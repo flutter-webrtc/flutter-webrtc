@@ -6,6 +6,20 @@ All user visible changes to this project will be documented in this file. This p
 
 
 
+## [0.11.0] · 2024-08-26
+[0.11.0]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.11.0
+
+[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.10.0...0.11.0)
+
+### Changed
+
+- Upgraded `flutter_rust_bridge` to 2.2.0 version. ([#167])
+
+[#167]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/167
+
+
+
+
 ## [0.10.0] · 2024-08-01
 [0.10.0]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.10.0
 
