@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.11.7] - 2024-09-04
+
+* [Web] Bump dart_webrtc to 1.4.9.
+* [Web] Bump web version to 1.0.0.
+
 [0.11.6+hotfix.1] - 2024-08-07
 
 * [iOS] Fixed PlatformView not rendering after resuming from background.
