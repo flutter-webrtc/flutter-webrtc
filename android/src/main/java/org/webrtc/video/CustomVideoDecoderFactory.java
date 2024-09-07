@@ -2,12 +2,12 @@ package org.webrtc.video;
 
 import androidx.annotation.Nullable;
 
-import org.webrtc.EglBase;
-import org.webrtc.SoftwareVideoDecoderFactory;
-import org.webrtc.VideoCodecInfo;
-import org.webrtc.VideoDecoder;
-import org.webrtc.VideoDecoderFactory;
-import org.webrtc.WrappedVideoDecoderFactory;
+import livekit.org.webrtc.EglBase;
+import livekit.org.webrtc.SoftwareVideoDecoderFactory;
+import livekit.org.webrtc.VideoCodecInfo;
+import livekit.org.webrtc.VideoDecoder;
+import livekit.org.webrtc.VideoDecoderFactory;
+import livekit.org.webrtc.WrappedVideoDecoderFactory;
 
 import java.util.ArrayList;
 import java.util.List;

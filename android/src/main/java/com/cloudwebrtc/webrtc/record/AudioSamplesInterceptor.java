@@ -2,8 +2,8 @@ package com.cloudwebrtc.webrtc.record;
 
 import android.annotation.SuppressLint;
 
-import org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
-import org.webrtc.audio.JavaAudioDeviceModule.AudioSamples;
+import livekit.org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
+import livekit.org.webrtc.audio.JavaAudioDeviceModule.AudioSamples;
 
 import java.util.HashMap;
 

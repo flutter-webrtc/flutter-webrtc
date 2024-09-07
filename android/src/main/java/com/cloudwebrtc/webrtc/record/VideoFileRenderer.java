@@ -9,13 +9,13 @@ import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 
-import org.webrtc.EglBase;
-import org.webrtc.GlRectDrawer;
-import org.webrtc.VideoFrame;
-import org.webrtc.VideoFrameDrawer;
-import org.webrtc.VideoSink;
-import org.webrtc.audio.JavaAudioDeviceModule;
-import org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
+import livekit.org.webrtc.EglBase;
+import livekit.org.webrtc.GlRectDrawer;
+import livekit.org.webrtc.VideoFrame;
+import livekit.org.webrtc.VideoFrameDrawer;
+import livekit.org.webrtc.VideoSink;
+import livekit.org.webrtc.audio.JavaAudioDeviceModule;
+import livekit.org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

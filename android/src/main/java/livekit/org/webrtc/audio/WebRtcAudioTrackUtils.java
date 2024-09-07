@@ -1,11 +1,13 @@
-package org.webrtc.audio;
+package livekit.org.webrtc.audio;
+
 
 import android.media.AudioTrack;
 import android.util.Log;
 
 import com.cloudwebrtc.webrtc.record.AudioTrackInterceptor;
 
-import org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
+import livekit.org.webrtc.audio.JavaAudioDeviceModule;
+import livekit.org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
 
 import java.lang.reflect.Field;
 

@@ -3,7 +3,7 @@ package com.cloudwebrtc.webrtc;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 
-import org.webrtc.DataChannel;
+import livekit.org.webrtc.DataChannel;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;

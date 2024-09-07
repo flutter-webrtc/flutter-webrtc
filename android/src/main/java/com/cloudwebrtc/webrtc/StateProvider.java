@@ -5,9 +5,9 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 import java.util.Map;
-import org.webrtc.MediaStream;
-import org.webrtc.MediaStreamTrack;
-import org.webrtc.PeerConnectionFactory;
+import livekit.org.webrtc.MediaStream;
+import livekit.org.webrtc.MediaStreamTrack;
+import livekit.org.webrtc.PeerConnectionFactory;
 
 import io.flutter.plugin.common.BinaryMessenger;
 

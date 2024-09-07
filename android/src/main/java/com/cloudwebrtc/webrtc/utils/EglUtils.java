@@ -2,7 +2,7 @@ package com.cloudwebrtc.webrtc.utils;
 
 import android.os.Build;
 
-import org.webrtc.EglBase;
+import livekit.org.webrtc.EglBase;
 
 public class EglUtils {
     /**

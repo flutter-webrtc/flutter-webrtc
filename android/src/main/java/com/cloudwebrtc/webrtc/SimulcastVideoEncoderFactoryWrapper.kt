@@ -1,6 +1,6 @@
 package com.cloudwebrtc.webrtc
 
-import org.webrtc.*
+import livekit.org.webrtc.*
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors

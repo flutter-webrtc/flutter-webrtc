@@ -2,12 +2,12 @@ package com.cloudwebrtc.webrtc;
 
 import android.graphics.SurfaceTexture;
 
-import org.webrtc.EglBase;
-import org.webrtc.EglRenderer;
-import org.webrtc.GlRectDrawer;
-import org.webrtc.RendererCommon;
-import org.webrtc.ThreadUtils;
-import org.webrtc.VideoFrame;
+import livekit.org.webrtc.EglBase;
+import livekit.org.webrtc.EglRenderer;
+import livekit.org.webrtc.GlRectDrawer;
+import livekit.org.webrtc.RendererCommon;
+import livekit.org.webrtc.ThreadUtils;
+import livekit.org.webrtc.VideoFrame;
 
 import java.util.concurrent.CountDownLatch;
 

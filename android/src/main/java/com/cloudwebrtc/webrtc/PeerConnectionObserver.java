@@ -27,22 +27,22 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
-import org.webrtc.AudioTrack;
-import org.webrtc.CandidatePairChangeEvent;
-import org.webrtc.DataChannel;
-import org.webrtc.DtmfSender;
-import org.webrtc.IceCandidate;
-import org.webrtc.MediaStream;
-import org.webrtc.MediaStreamTrack;
-import org.webrtc.PeerConnection;
-import org.webrtc.RTCStats;
-import org.webrtc.RTCStatsReport;
-import org.webrtc.RtpCapabilities;
-import org.webrtc.RtpParameters;
-import org.webrtc.RtpReceiver;
-import org.webrtc.RtpSender;
-import org.webrtc.RtpTransceiver;
-import org.webrtc.VideoTrack;
+import livekit.org.webrtc.AudioTrack;
+import livekit.org.webrtc.CandidatePairChangeEvent;
+import livekit.org.webrtc.DataChannel;
+import livekit.org.webrtc.DtmfSender;
+import livekit.org.webrtc.IceCandidate;
+import livekit.org.webrtc.MediaStream;
+import livekit.org.webrtc.MediaStreamTrack;
+import livekit.org.webrtc.PeerConnection;
+import livekit.org.webrtc.RTCStats;
+import livekit.org.webrtc.RTCStatsReport;
+import livekit.org.webrtc.RtpCapabilities;
+import livekit.org.webrtc.RtpParameters;
+import livekit.org.webrtc.RtpReceiver;
+import livekit.org.webrtc.RtpSender;
+import livekit.org.webrtc.RtpTransceiver;
+import livekit.org.webrtc.VideoTrack;
 
 class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.StreamHandler {
   private final static String TAG = FlutterWebRTCPlugin.TAG;

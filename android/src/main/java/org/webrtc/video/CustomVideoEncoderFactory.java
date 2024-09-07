@@ -4,11 +4,11 @@ import androidx.annotation.Nullable;
 
 import com.cloudwebrtc.webrtc.SimulcastVideoEncoderFactoryWrapper;
 
-import org.webrtc.EglBase;
-import org.webrtc.SoftwareVideoEncoderFactory;
-import org.webrtc.VideoCodecInfo;
-import org.webrtc.VideoEncoder;
-import org.webrtc.VideoEncoderFactory;
+import livekit.org.webrtc.EglBase;
+import livekit.org.webrtc.SoftwareVideoEncoderFactory;
+import livekit.org.webrtc.VideoCodecInfo;
+import livekit.org.webrtc.VideoEncoder;
+import livekit.org.webrtc.VideoEncoderFactory;
 
 import java.util.ArrayList;
 import java.util.List;

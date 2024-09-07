@@ -4,12 +4,12 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import org.webrtc.FrameCryptor;
-import org.webrtc.FrameCryptorAlgorithm;
-import org.webrtc.FrameCryptorFactory;
-import org.webrtc.FrameCryptorKeyProvider;
-import org.webrtc.RtpReceiver;
-import org.webrtc.RtpSender;
+import livekit.org.webrtc.FrameCryptor;
+import livekit.org.webrtc.FrameCryptorAlgorithm;
+import livekit.org.webrtc.FrameCryptorFactory;
+import livekit.org.webrtc.FrameCryptorKeyProvider;
+import livekit.org.webrtc.RtpReceiver;
+import livekit.org.webrtc.RtpSender;
 
 import java.util.ArrayList;
 import java.util.HashMap;

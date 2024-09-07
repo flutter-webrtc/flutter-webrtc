@@ -2,7 +2,7 @@ package com.cloudwebrtc.webrtc;
 
 import android.util.Log;
 
-import org.webrtc.CameraVideoCapturer;
+import livekit.org.webrtc.CameraVideoCapturer;
 
 class CameraEventsHandler implements CameraVideoCapturer.CameraEventsHandler {
     public enum CameraState {

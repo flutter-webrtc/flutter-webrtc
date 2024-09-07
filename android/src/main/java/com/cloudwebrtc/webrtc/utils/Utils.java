@@ -2,7 +2,7 @@ package com.cloudwebrtc.webrtc.utils;
 
 import androidx.annotation.Nullable;
 
-import org.webrtc.PeerConnection;
+import livekit.org.webrtc.PeerConnection;
 
 public class Utils {
 

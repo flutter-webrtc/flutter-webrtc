@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 
-import org.webrtc.VideoTrack;
+import livekit.org.webrtc.VideoTrack;
 
 import java.io.File;
 

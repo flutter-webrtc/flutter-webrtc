@@ -1,11 +1,11 @@
 package com.cloudwebrtc.webrtc;
 
-import org.webrtc.SurfaceTextureHelper;
-import org.webrtc.CapturerObserver;
-import org.webrtc.ThreadUtils;
-import org.webrtc.VideoCapturer;
-import org.webrtc.VideoFrame;
-import org.webrtc.VideoSink;
+import livekit.org.webrtc.SurfaceTextureHelper;
+import livekit.org.webrtc.CapturerObserver;
+import livekit.org.webrtc.ThreadUtils;
+import livekit.org.webrtc.VideoCapturer;
+import livekit.org.webrtc.VideoFrame;
+import livekit.org.webrtc.VideoSink;
 
 import android.annotation.TargetApi;
 import android.content.Context;

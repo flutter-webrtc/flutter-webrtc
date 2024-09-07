@@ -9,10 +9,10 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 
 import java.util.List;
 
-import org.webrtc.EglBase;
-import org.webrtc.MediaStream;
-import org.webrtc.RendererCommon.RendererEvents;
-import org.webrtc.VideoTrack;
+import livekit.org.webrtc.EglBase;
+import livekit.org.webrtc.MediaStream;
+import livekit.org.webrtc.RendererCommon.RendererEvents;
+import livekit.org.webrtc.VideoTrack;
 
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.view.TextureRegistry;
