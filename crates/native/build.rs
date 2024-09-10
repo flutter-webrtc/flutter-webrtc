@@ -1,9 +1,16 @@
-#![warn(clippy::pedantic)]
+#![warn(
+    clippy::allow_attributes,
+    clippy::allow_attributes_without_reason,
+    clippy::pedantic
+)]
 
 #[cfg(target_os = "macos")]
 use std::{env, path::PathBuf, process};
 
-#[allow(clippy::unnecessary_wraps)]
+#[cfg_attr(
+    not(target_os = "macos"),
+    expect(clippy::unnecessary_wraps, reason = "uniformity")
+)]
 fn main() -> anyhow::Result<()> {
     #[cfg(target_os = "macos")]
     {

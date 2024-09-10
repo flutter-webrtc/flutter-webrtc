@@ -135,7 +135,6 @@ impl Webrtc {
             let count_playout = self.audio_device_module.playout_devices();
             let count_recording = self.audio_device_module.recording_devices();
 
-            #[allow(clippy::cast_sign_loss)]
             let mut result =
                 Vec::with_capacity((count_playout + count_recording) as usize);
 
@@ -235,7 +234,7 @@ impl Webrtc {
         for i in 0..count {
             let (_, id) = self.audio_device_module.recording_device_name(i)?;
             if id == device_id.to_string() {
-                #[allow(clippy::cast_sign_loss)]
+                #[expect(clippy::cast_sign_loss, reason = "never negative")]
                 return Ok(Some(i as u16));
             }
         }
@@ -261,7 +260,7 @@ impl Webrtc {
         for i in 0..count {
             let (_, id) = self.audio_device_module.playout_device_name(i)?;
             if id == device_id.to_string() {
-                #[allow(clippy::cast_sign_loss)]
+                #[expect(clippy::cast_sign_loss, reason = "never negative")]
                 return Ok(Some(i as u16));
             }
         }
@@ -555,7 +554,6 @@ pub unsafe fn init() {
 }
 
 #[cfg(target_os = "windows")]
-#[allow(unused_must_use)]
 mod win_default_device_callback {
     //! Implementation of the default audio output device changes detector for
     //! Windows.
@@ -592,7 +590,6 @@ mod win_default_device_callback {
     #[windows::core::implement(IMMNotificationClient)]
     struct AudioEndpointCallback;
 
-    #[allow(non_snake_case)]
     impl IMMNotificationClient_Impl for AudioEndpointCallback_Impl {
         fn OnDeviceStateChanged(
             &self,
@@ -719,7 +716,7 @@ pub unsafe fn init() {
             .collect::<Vec<u16>>();
         let lpsz_class_name_ptr = lpsz_class_name.as_ptr();
 
-        #[allow(clippy::cast_possible_truncation)]
+        #[expect(clippy::cast_possible_truncation, reason = "size fits")]
         let class = WNDCLASSEXW {
             cbSize: mem::size_of::<WNDCLASSEXW>() as u32,
             lpfnWndProc: Some(wndproc),

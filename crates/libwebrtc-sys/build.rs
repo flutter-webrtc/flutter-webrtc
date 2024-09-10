@@ -1,4 +1,8 @@
-#![warn(clippy::pedantic)]
+#![warn(
+    clippy::allow_attributes,
+    clippy::allow_attributes_without_reason,
+    clippy::pedantic
+)]
 
 #[cfg(not(target_os = "windows"))]
 use std::ffi::OsString;
@@ -191,7 +195,7 @@ fn get_path_to_openal() -> anyhow::Result<PathBuf> {
 /// Downloads and compiles OpenAL dynamic library.
 ///
 /// Copies OpenAL headers and compiled library to the required locations.
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines, reason = "not matters here")]
 fn compile_openal() -> anyhow::Result<()> {
     let openal_version = OPENAL_URL.split('/').last().unwrap();
     let manifest_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
@@ -401,7 +405,7 @@ fn get_cpp_files() -> anyhow::Result<Vec<PathBuf>> {
         .join("src")
         .join("cpp");
 
-    #[allow(unused_mut)]
+    #[cfg_attr(target_os = "macos", expect(unused_mut, reason = "cfg"))]
     let mut files = get_files_from_dir(dir);
 
     #[cfg(not(target_os = "macos"))]

@@ -1372,7 +1372,7 @@ pub enum RtcStatsType {
 }
 
 impl From<sys::RtcStatsType> for RtcStatsType {
-    #[allow(clippy::too_many_lines)]
+    #[expect(clippy::too_many_lines, reason = "trivial code")]
     fn from(kind: sys::RtcStatsType) -> Self {
         use sys::RtcStatsType as T;
 
@@ -2425,13 +2425,11 @@ pub enum VideoCodec {
     /// [H.264] Advanced Video Coding (AVC).
     ///
     /// [H.264]: https://en.wikipedia.org/wiki/Advanced_Video_Coding
-    #[allow(dead_code)]
     H264,
 
     /// [H.265] High Efficiency Video Coding (HEVC).
     ///
     /// [H.265]: https://en.wikipedia.org/wiki/High_Efficiency_Video_Coding
-    #[allow(dead_code)]
     H265,
 
     /// [VP8] codec.
@@ -2516,7 +2514,7 @@ pub fn enumerate_displays() -> Vec<MediaDisplayInfo> {
 }
 
 /// Creates a new [`PeerConnection`] and returns its ID.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn create_peer_connection(
     cb: StreamSink<PeerConnectionEvent>,
     configuration: RtcConfiguration,
@@ -2529,7 +2527,7 @@ pub fn create_peer_connection(
 
 /// Initiates the creation of an SDP offer for the purpose of starting a new
 /// WebRTC connection to a remote peer.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn create_offer(
     peer: RustOpaque<Arc<PeerConnection>>,
     voice_activity_detection: bool,
@@ -2545,7 +2543,7 @@ pub fn create_offer(
 
 /// Creates an SDP answer to an offer received from a remote peer during an
 /// offer/answer negotiation of a WebRTC connection.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn create_answer(
     peer: RustOpaque<Arc<PeerConnection>>,
     voice_activity_detection: bool,
@@ -2560,7 +2558,7 @@ pub fn create_answer(
 }
 
 /// Changes the local description associated with the connection.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn set_local_description(
     peer: RustOpaque<Arc<PeerConnection>>,
     kind: SdpType,
@@ -2575,7 +2573,7 @@ pub fn set_local_description(
 
 /// Sets the specified session description as the remote peer's current offer or
 /// answer.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn set_remote_description(
     peer: RustOpaque<Arc<PeerConnection>>,
     kind: SdpType,
@@ -2586,7 +2584,6 @@ pub fn set_remote_description(
 
 /// Creates a new [`RtcRtpTransceiver`] and adds it to the set of transceivers
 /// of the specified [`PeerConnection`].
-#[allow(clippy::needless_pass_by_value)]
 pub fn add_transceiver(
     peer: RustOpaque<Arc<PeerConnection>>,
     media_type: MediaType,
@@ -2597,7 +2594,7 @@ pub fn add_transceiver(
 
 /// Returns a sequence of [`RtcRtpTransceiver`] objects representing the RTP
 /// transceivers currently attached to the specified [`PeerConnection`].
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn get_transceivers(
     peer: RustOpaque<Arc<PeerConnection>>,
 ) -> Vec<RtcRtpTransceiver> {
@@ -2605,7 +2602,7 @@ pub fn get_transceivers(
 }
 
 /// Changes the preferred `direction` of the specified [`RtcRtpTransceiver`].
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn set_transceiver_direction(
     transceiver: RustOpaque<Arc<RtpTransceiver>>,
     direction: RtpTransceiverDirection,
@@ -2614,7 +2611,7 @@ pub fn set_transceiver_direction(
 }
 
 /// Changes the receive direction of the specified [`RtcRtpTransceiver`].
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn set_transceiver_recv(
     transceiver: RustOpaque<Arc<RtpTransceiver>>,
     recv: bool,
@@ -2623,7 +2620,7 @@ pub fn set_transceiver_recv(
 }
 
 /// Changes the send direction of the specified [`RtcRtpTransceiver`].
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn set_transceiver_send(
     transceiver: RustOpaque<Arc<RtpTransceiver>>,
     send: bool,
@@ -2635,7 +2632,7 @@ pub fn set_transceiver_send(
 /// [`RtcRtpTransceiver`].
 ///
 /// [1]: https://w3.org/TR/webrtc#dfn-media-stream-identification-tag
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn get_transceiver_mid(
     transceiver: RustOpaque<Arc<RtpTransceiver>>,
 ) -> Option<String> {
@@ -2643,7 +2640,7 @@ pub fn get_transceiver_mid(
 }
 
 /// Returns the preferred direction of the specified [`RtcRtpTransceiver`].
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn get_transceiver_direction(
     transceiver: RustOpaque<Arc<RtpTransceiver>>,
 ) -> RtpTransceiverDirection {
@@ -2651,7 +2648,7 @@ pub fn get_transceiver_direction(
 }
 
 /// Returns [`RtcStats`] of the [`PeerConnection`] by its ID.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn get_peer_stats(
     peer: RustOpaque<Arc<PeerConnection>>,
 ) -> anyhow::Result<Vec<RtcStats>> {
@@ -2672,7 +2669,7 @@ pub fn get_peer_stats(
 ///
 /// This will immediately cause the transceiver's sender to no longer send, and
 /// its receiver to no longer receive.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn stop_transceiver(
     transceiver: RustOpaque<Arc<RtpTransceiver>>,
 ) -> anyhow::Result<()> {
@@ -2681,7 +2678,7 @@ pub fn stop_transceiver(
 
 /// Changes the preferred [`RtpTransceiver`] codecs to the provided
 /// [`Vec`]`<`[`RtpCodecCapability`]`>`.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn set_codec_preferences(
     transceiver: RustOpaque<Arc<RtpTransceiver>>,
     codecs: Vec<RtpCodecCapability>,
@@ -2691,7 +2688,7 @@ pub fn set_codec_preferences(
 
 /// Replaces the specified [`AudioTrack`] (or [`VideoTrack`]) on the
 /// [`sys::Transceiver`]'s `sender`.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn sender_replace_track(
     peer: RustOpaque<Arc<PeerConnection>>,
     transceiver: RustOpaque<Arc<RtpTransceiver>>,
@@ -2704,7 +2701,7 @@ pub fn sender_replace_track(
 }
 
 /// Returns [`RtpParameters`] from the provided [`RtpTransceiver`]'s `sender`.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn sender_get_parameters(
     transceiver: RustOpaque<Arc<RtpTransceiver>>,
 ) -> RtcRtpSendParameters {
@@ -2714,7 +2711,6 @@ pub fn sender_get_parameters(
 /// Returns the capabilities of an [RTP] sender of the specified [`MediaType`].
 ///
 /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
-#[allow(clippy::needless_pass_by_value)]
 pub fn get_rtp_sender_capabilities(kind: MediaType) -> RtpCapabilities {
     RtpCapabilities::from(
         WEBRTC
@@ -2726,7 +2722,7 @@ pub fn get_rtp_sender_capabilities(kind: MediaType) -> RtpCapabilities {
 }
 
 /// Sets [`RtpParameters`] into the provided [`RtpTransceiver`]'s `sender`.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn sender_set_parameters(
     transceiver: RustOpaque<Arc<RtpTransceiver>>,
     params: RtcRtpSendParameters,
@@ -2735,7 +2731,7 @@ pub fn sender_set_parameters(
 }
 
 /// Adds the new ICE `candidate` to the given [`PeerConnection`].
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn add_ice_candidate(
     peer: RustOpaque<Arc<PeerConnection>>,
     candidate: String,
@@ -2750,13 +2746,13 @@ pub fn add_ice_candidate(
 }
 
 /// Tells the [`PeerConnection`] that ICE should be restarted.
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn restart_ice(peer: RustOpaque<Arc<PeerConnection>>) {
     peer.restart_ice();
 }
 
 /// Closes the [`PeerConnection`].
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn dispose_peer_connection(peer: RustOpaque<Arc<PeerConnection>>) {
     WEBRTC.lock().unwrap().dispose_peer_connection(&peer);
 }

@@ -87,7 +87,7 @@ impl Webrtc {
         track_id: String,
         kind: api::MediaType,
     ) {
-        #[allow(clippy::mutable_key_type)] // false positive
+        #[expect(clippy::mutable_key_type, reason = "false positive")]
         let senders = match kind {
             api::MediaType::Audio => {
                 if let Some((_, mut track)) = self
@@ -432,7 +432,6 @@ impl Webrtc {
     }
 
     /// Clones the specified [`api::MediaStreamTrack`].
-    #[allow(clippy::too_many_lines)]
     pub fn clone_track(
         &mut self,
         id: String,
@@ -853,7 +852,11 @@ impl AudioDeviceModule {
         let volume = f64::from(min_volume)
             + (f64::from(max_volume - min_volume) * (f64::from(level) / 100.0));
 
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        #[expect( // intentional
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss,
+            reason = "size fits and non-negative"
+        )]
         self.inner.set_microphone_volume(volume as u32)
     }
 
@@ -864,15 +867,7 @@ impl AudioDeviceModule {
     /// If [`sys::AudioDeviceModule::microphone_volume_is_available()`] call
     /// fails.
     pub fn microphone_volume_is_available(&self) -> anyhow::Result<bool> {
-        Ok(
-            if let Ok(is_available) =
-                self.inner.microphone_volume_is_available()
-            {
-                is_available
-            } else {
-                false
-            },
-        )
+        Ok(self.inner.microphone_volume_is_available().unwrap_or(false))
     }
 
     /// Returns the current level of the microphone volume in percents.
@@ -888,7 +883,11 @@ impl AudioDeviceModule {
         let min_volume = self.inner.min_microphone_volume()?;
         let max_volume = self.inner.max_microphone_volume()?;
 
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        #[expect( // intentional
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss,
+            reason = "size fits and non-negative"
+        )]
         let level = (f64::from(volume - min_volume)
             / f64::from(max_volume - min_volume)
             * 100.0) as u32;
@@ -1568,7 +1567,11 @@ impl sys::TrackEventCallback for TrackEventHandler {
 struct AudioSourceAudioLevelHandler(StreamSink<api::TrackEvent>);
 
 impl AudioSourceAudioLevelHandler {
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    #[expect( // intentional
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "size fits and non-negative"
+    )]
     fn on_audio_level_change(&self, level: f32) {
         _ = self.0.add(api::TrackEvent::AudioLevelUpdated(cmp::min(
             (level * 1000.0).round() as u32,

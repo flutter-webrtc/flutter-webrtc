@@ -141,7 +141,7 @@ mod frame_handler {
     }
 
     impl From<UniquePtr<sys::VideoFrame>> for VideoFrame {
-        #[allow(clippy::cast_sign_loss)]
+        #[expect(clippy::cast_sign_loss, reason = "guarded by `assert!`")]
         fn from(frame: UniquePtr<sys::VideoFrame>) -> Self {
             let height = frame.height();
             let width = frame.width();
@@ -278,7 +278,7 @@ mod frame_handler {
         pub buffer_size: usize,
 
         /// Actual [`sys::VideoFrame`].
-        #[allow(clippy::struct_field_names)]
+        #[expect(clippy::struct_field_names, reason = "naming is OK")]
         pub frame: *mut sys::VideoFrame,
     }
 
@@ -297,7 +297,7 @@ mod frame_handler {
         }
 
         /// Passes the provided [`sys::VideoFrame`] to the C side listener.
-        #[allow(clippy::cast_sign_loss, clippy::too_many_lines)]
+        #[expect(clippy::cast_sign_loss, reason = "guarded by `assert!`")]
         pub fn on_frame(&mut self, frame: UniquePtr<sys::VideoFrame>) {
             let height = frame.height();
             let width = frame.width();

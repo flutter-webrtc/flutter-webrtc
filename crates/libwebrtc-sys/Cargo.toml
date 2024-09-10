@@ -2,7 +2,7 @@
 name = "libwebrtc-sys"
 version = "0.0.0+127.0.6533.72"
 edition = "2021"
-rust-version = "1.75"
+rust-version = "1.81"
 publish = false
 links = "webrtc"
 

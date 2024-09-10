@@ -1,5 +1,10 @@
-#![warn(clippy::pedantic)]
-#![allow(clippy::missing_errors_doc)]
+#![warn(
+    clippy::allow_attributes,
+    clippy::allow_attributes_without_reason,
+    clippy::pedantic
+)]
+// TODO: Needs refactoring
+#![expect(clippy::missing_errors_doc, reason = "needs refactoring")]
 
 mod bridge;
 
@@ -245,14 +250,14 @@ impl AudioDeviceModule {
 
     /// Returns count of available audio playout devices.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
+    #[expect(clippy::cast_sign_loss, reason = "never negative")]
     pub fn playout_devices(&self) -> u32 {
         webrtc::playout_devices(&self.0).max(0) as u32
     }
 
     /// Returns count of available audio recording devices.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
+    #[expect(clippy::cast_sign_loss, reason = "never negative")]
     pub fn recording_devices(&self) -> u32 {
         webrtc::recording_devices(&self.0).max(0) as u32
     }
@@ -3027,7 +3032,8 @@ pub enum RtcStatsType {
     Unimplemented,
 }
 
-#[allow(clippy::too_many_lines)]
+// TODO: Needs refactoring.
+#[expect(clippy::too_many_lines, reason = "needs refactoring")]
 impl TryFrom<webrtc::RTCStatsWrap> for RtcStatsType {
     type Error = anyhow::Error;
 

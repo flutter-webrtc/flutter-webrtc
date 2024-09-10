@@ -1,3 +1,5 @@
+#![expect(clippy::allow_attributes, reason = "`cxx` fails on `#[expect]`")]
+
 use std::fmt;
 
 use anyhow::anyhow;
@@ -49,7 +51,7 @@ impl OptionI32 {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`i32`]`>`.
-#[allow(clippy::unnecessary_box_returns)]
+#[expect(clippy::unnecessary_box_returns, reason = "FFI")]
 pub fn init_option_i32() -> Box<OptionI32> {
     Box::new(OptionI32(None))
 }
@@ -69,7 +71,7 @@ impl OptionRtcpFeedbackMessageType {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`RtcpFeedbackMessageType`]`>` value.
-#[allow(clippy::unnecessary_box_returns)] // required for FFI
+#[expect(clippy::unnecessary_box_returns, reason = "FFI")]
 pub fn init_option_rtcp_feedback_message_type(
 ) -> Box<OptionRtcpFeedbackMessageType> {
     Box::new(OptionRtcpFeedbackMessageType(None))
@@ -87,7 +89,7 @@ impl OptionString {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`String`]`>`.
-#[allow(clippy::unnecessary_box_returns)]
+#[expect(clippy::unnecessary_box_returns, reason = "FFI")]
 pub fn init_option_string() -> Box<OptionString> {
     Box::new(OptionString(None))
 }
@@ -104,7 +106,7 @@ impl OptionF64 {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`f64`]`>`.
-#[allow(clippy::unnecessary_box_returns)]
+#[expect(clippy::unnecessary_box_returns, reason = "FFI")]
 pub fn init_option_f64() -> Box<OptionF64> {
     Box::new(OptionF64(None))
 }
@@ -121,7 +123,7 @@ impl OptionU32 {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`u32`]`>`.
-#[allow(clippy::unnecessary_box_returns)]
+#[expect(clippy::unnecessary_box_returns, reason = "FFI")]
 pub fn init_option_u32() -> Box<OptionU32> {
     Box::new(OptionU32(None))
 }
@@ -138,7 +140,7 @@ impl OptionU64 {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`u64`]`>`.
-#[allow(clippy::unnecessary_box_returns)]
+#[expect(clippy::unnecessary_box_returns, reason = "FFI")]
 pub fn init_option_u64() -> Box<OptionU64> {
     Box::new(OptionU64(None))
 }
@@ -155,12 +157,12 @@ impl OptionBool {
 }
 
 /// Creates an empty Rust [`Option`]`<`[`bool`]`>`.
-#[allow(clippy::unnecessary_box_returns)]
+#[expect(clippy::unnecessary_box_returns, reason = "FFI")]
 pub fn init_option_bool() -> Box<OptionBool> {
     Box::new(OptionBool(None))
 }
 
-#[allow(clippy::unnecessary_box_returns)]
+#[allow(clippy::unnecessary_box_returns, reason = "FFI")]
 #[cxx::bridge(namespace = "bridge")]
 pub(crate) mod webrtc {
     /// Wrapper for a `(String, String)` tuple transferable via FFI boundaries.
@@ -2246,7 +2248,7 @@ pub(crate) mod webrtc {
         );
     }
 
-    #[allow(dead_code)]
+    #[allow(dead_code, reason = "FFI")]
     #[rustfmt::skip]
     unsafe extern "C++" {
         pub type RTCMediaSourceStats;
@@ -2811,7 +2813,7 @@ pub(crate) mod webrtc {
         /// # Safety
         ///
         /// Caller must ensure that the provided `buffer` is large enough.
-        #[allow(clippy::missing_safety_doc)] // false positive
+        #[allow(clippy::missing_safety_doc, reason = "false positive")]
         pub unsafe fn video_frame_to_abgr(frame: &VideoFrame, buffer: *mut u8);
 
         /// Converts the provided [`webrtc::VideoFrame`] pixels to the `ARGB`
@@ -2820,7 +2822,7 @@ pub(crate) mod webrtc {
         /// # Safety
         ///
         /// Caller must ensure that the provided `buffer` is large enough.
-        #[allow(clippy::missing_safety_doc)] // false positive
+        #[allow(clippy::missing_safety_doc, reason = "false positive")]
         pub unsafe fn video_frame_to_argb(
             frame: &VideoFrame,
             argb_stride: i32,
@@ -3148,7 +3150,7 @@ pub(crate) mod webrtc {
 }
 
 /// Successfully completes the provided [`DynSetDescriptionCallback`].
-#[allow(clippy::boxed_local)]
+#[expect(clippy::boxed_local, reason = "FFI")]
 pub fn create_sdp_success(
     mut cb: Box<DynCreateSdpCallback>,
     sdp: &CxxString,
@@ -3158,19 +3160,19 @@ pub fn create_sdp_success(
 }
 
 /// Completes the provided [`DynCreateSdpCallback`] with an error.
-#[allow(clippy::boxed_local)]
+#[expect(clippy::boxed_local, reason = "FFI")]
 pub fn create_sdp_fail(mut cb: Box<DynCreateSdpCallback>, error: &CxxString) {
     cb.fail(error);
 }
 
 /// Successfully completes the provided [`DynSetDescriptionCallback`].
-#[allow(clippy::boxed_local)]
+#[expect(clippy::boxed_local, reason = "FFI")]
 pub fn set_description_success(mut cb: Box<DynSetDescriptionCallback>) {
     cb.success();
 }
 
 /// Completes the provided [`DynSetDescriptionCallback`] with the given `error`.
-#[allow(clippy::boxed_local)]
+#[expect(clippy::boxed_local, reason = "FFI")]
 pub fn set_description_fail(
     mut cb: Box<DynSetDescriptionCallback>,
     error: &CxxString,
@@ -3378,13 +3380,13 @@ fn new_string_pair(f: &CxxString, s: &CxxString) -> webrtc::StringPair {
 }
 
 /// Calls the success [`DynAddIceCandidateCallback`].
-#[allow(clippy::boxed_local)]
+#[expect(clippy::boxed_local, reason = "FFI")]
 pub fn add_ice_candidate_success(mut cb: Box<DynAddIceCandidateCallback>) {
     cb.on_success();
 }
 
 /// Calls the fail [`DynAddIceCandidateCallback`].
-#[allow(clippy::boxed_local)]
+#[expect(clippy::boxed_local, reason = "FFI")]
 pub fn add_ice_candidate_fail(
     mut cb: Box<DynAddIceCandidateCallback>,
     error: &CxxString,
@@ -3394,7 +3396,7 @@ pub fn add_ice_candidate_fail(
 
 /// Forwards the specified [`RTCStatsReport`] to the provided
 /// [`DynRTCStatsCollectorCallback`] when stats are delivered.
-#[allow(clippy::boxed_local)]
+#[expect(clippy::boxed_local, reason = "FFI")]
 pub fn on_stats_delivered(
     mut cb: Box<DynRTCStatsCollectorCallback>,
     report: UniquePtr<webrtc::RTCStatsReport>,
