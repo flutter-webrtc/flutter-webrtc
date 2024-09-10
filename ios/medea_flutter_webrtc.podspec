@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'medea_flutter_webrtc'
-  s.version          = '0.11.1-dev'
+  s.version          = '0.11.1'
   s.summary          = 'Flutter WebRTC plugin based on Google WebRTC'
   s.description      = <<-DESC
 Flutter WebRTC plugin based on Google WebRTC.
