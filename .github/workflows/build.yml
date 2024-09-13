@@ -118,6 +118,29 @@ jobs:
         working-directory: ./example
         run: flutter build linux
 
+  build-for-elinux:
+    name: Build for Flutter Embedded Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Run apt update
+        run: sudo apt-get update
+      - name: Install ninja-build libgtk-3-dev
+        run: sudo apt-get install -y ninja-build libgtk-3-dev
+      - name: Install elinux
+        run:  git clone https://github.com/sony/flutter-elinux.git ~/flutter-elinux
+      - name: Build for elinux
+        working-directory: ./example
+        run: /home/runner/flutter-elinux/bin/flutter-elinux pub get && /home/runner/flutter-elinux/bin/flutter-elinux build elinux
+
   build-for-web:
     name: Build for Flutter Web
     runs-on: ubuntu-latest
