@@ -119,7 +119,7 @@ jobs:
         run: flutter build linux
 
   build-for-elinux:
-    name: Build for Embedded Flutter Linux
+    name: Build for Flutter Embedded Linux
     runs-on: ubuntu-latest
 
     steps:
