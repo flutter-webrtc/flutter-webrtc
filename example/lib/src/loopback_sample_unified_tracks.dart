@@ -42,9 +42,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   bool _audioDecrypt = false;
   bool _videoDecrypt = false;
   List<MediaDeviceInfo>? _mediaDevicesList;
-  String? _senderParticipantId;
   final FrameCryptorFactory _frameCyrptorFactory = frameCryptorFactory;
-  KeyProvider? _keyProvider;
+  KeyProvider? _keySharedProvider;
   final Map<String, FrameCryptor> _frameCyrptors = {};
   Timer? _timer;
   final _configuration = <String, dynamic>{
@@ -255,10 +254,12 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       sharedKey: true,
       ratchetSalt: Uint8List.fromList(demoRatchetSalt.codeUnits),
       ratchetWindowSize: 16,
+      failureTolerance: -1,
     );
 
-    _keyProvider ??=
+    _keySharedProvider ??=
         await _frameCyrptorFactory.createDefaultKeyProvider(keyProviderOptions);
+    await _keySharedProvider?.setSharedKey(key: aesKey);
     acaps = await getRtpSenderCapabilities('audio');
     print('sender audio capabilities: ${acaps!.toMap()}');
 
@@ -343,24 +344,15 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                 participantId: id,
                 sender: element,
                 algorithm: Algorithm.kAesGcm,
-                keyProvider: _keyProvider!);
+                keyProvider: _keySharedProvider!);
         frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
             print('EN onFrameCryptorStateChanged $participantId $state');
         _frameCyrptors[id] = frameCyrptor;
         await frameCyrptor.setKeyIndex(0);
       }
 
-      if (kind == 'video') {
-        _senderParticipantId = id;
-      }
-
       var _frameCyrptor = _frameCyrptors[id];
-      if (enabled) {
-        await _frameCyrptor?.setEnabled(true);
-        await _keyProvider?.setKey(participantId: id, index: 0, key: aesKey);
-      } else {
-        await _frameCyrptor?.setEnabled(false);
-      }
+      await _frameCyrptor?.setEnabled(enabled);
       await _frameCyrptor?.updateCodec(
           kind == 'video' ? videoDropdownValue : audioDropdownValue);
     });
@@ -379,7 +371,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                 participantId: id,
                 receiver: element,
                 algorithm: Algorithm.kAesGcm,
-                keyProvider: _keyProvider!);
+                keyProvider: _keySharedProvider!);
         frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
             print('DE onFrameCryptorStateChanged $participantId $state');
         _frameCyrptors[id] = frameCyrptor;
@@ -387,12 +379,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       }
 
       var _frameCyrptor = _frameCyrptors[id];
-      if (enabled) {
-        await _frameCyrptor?.setEnabled(true);
-        await _keyProvider?.setKey(participantId: id, index: 0, key: aesKey);
-      } else {
-        await _frameCyrptor?.setEnabled(false);
-      }
+      await _frameCyrptor?.setEnabled(enabled);
       await _frameCyrptor?.updateCodec(
           kind == 'video' ? videoDropdownValue : audioDropdownValue);
     });
@@ -413,8 +400,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void _ratchetKey() async {
-    var newKey = await _keyProvider?.ratchetKey(
-        participantId: _senderParticipantId!, index: 0);
+    var newKey = await _keySharedProvider?.ratchetSharedKey(index: 0);
     print('newKey $newKey');
   }
 
@@ -530,7 +516,6 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       transceiver.setCodecPreferences(codecs);
     });
     await _negotiate();
-
     setState(() {
       _micOn = true;
     });
@@ -596,7 +581,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       if (fromConnection) {
         await _connectionRemoveTrack(track);
       }
-      await _localStream!.removeTrack(track);
+      try {
+        await _localStream!.removeTrack(track);
+      } catch (e) {
+        print(e.toString());
+      }
       await track.stop();
     }
   }
@@ -608,7 +597,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       if (fromConnection) {
         await _connectionRemoveTrack(track);
       }
-      await _localStream!.removeTrack(track);
+      try {
+        await _localStream!.removeTrack(track);
+      } catch (e) {
+        print(e.toString());
+      }
       await track.stop();
     }
   }
@@ -859,7 +852,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
               ),
               Align(
                 alignment: Alignment.bottomCenter,
-                child: ButtonBar(
+                child: OverflowBar(
                   children: [
                     FloatingActionButton(
                         heroTag: null,

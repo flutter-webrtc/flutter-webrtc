@@ -26,8 +26,7 @@ class RefCountedObject : public T {
 
   template <class P0, class P1, class... Args>
   RefCountedObject(P0&& p0, P1&& p1, Args&&... args)
-      : T(std::forward<P0>(p0),
-          std::forward<P1>(p1),
+      : T(std::forward<P0>(p0), std::forward<P1>(p1),
           std::forward<Args>(args)...) {}
 
   virtual int AddRef() const { return AtomicOps::Increment(&ref_count_); }

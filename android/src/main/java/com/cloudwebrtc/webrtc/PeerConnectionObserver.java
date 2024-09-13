@@ -511,6 +511,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           String transceiverId = transceiver.getMid();
           if (null == transceiverId) {
             transceiverId = stateProvider.getNextStreamUUID();
+            this.transceivers.put(transceiverId,transceiver);
           }
           params.putMap("transceiver", transceiverToMap(transceiverId, transceiver));
         }
@@ -659,6 +660,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       encoding.scaleResolutionDownBy = (Double) parameters.get("scaleResolutionDownBy");
     }
 
+    if (parameters.get("scalabilityMode") != null) {
+      encoding.scalabilityMode = (String) parameters.get("scalabilityMode");
+    }
+
     return encoding;
   }
 
@@ -680,7 +685,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     if (encodingsParams != null) {
       for (int i = 0; i < encodingsParams.size(); i++) {
         Map<String, Object> params = encodingsParams.get(i);
-        sendEncodings.add(0, mapToEncoding(params));
+        sendEncodings.add(mapToEncoding(params));
       }
       init = new RtpTransceiver.RtpTransceiverInit(stringToTransceiverDirection(direction), streamIds, sendEncodings);
     } else {
@@ -1102,6 +1107,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       String transceiverId = transceiver.getMid();
       if (null == transceiverId) {
         transceiverId = stateProvider.getNextStreamUUID();
+        this.transceivers.put(transceiverId,transceiver);
       }
       transceiversParams.pushMap(new ConstraintsMap(transceiverToMap(transceiverId, transceiver)));
     }

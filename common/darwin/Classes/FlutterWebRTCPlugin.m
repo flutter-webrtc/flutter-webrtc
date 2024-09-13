@@ -6,7 +6,10 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
 #import "FlutterRTCFrameCryptor.h"
-
+#if TARGET_OS_IPHONE
+#import "FlutterRTCVideoPlatformViewFactory.h"
+#import "FlutterRTCVideoPlatformViewController.h"
+#endif
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/RTCFieldTrials.h>
 #import <WebRTC/WebRTC.h>
@@ -75,6 +78,12 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
 }
 @end
 
+void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      sink(event);
+    });
+}
+
 @implementation FlutterWebRTCPlugin {
 #pragma clang diagnostic pop
   FlutterMethodChannel* _methodChannel;
@@ -84,7 +93,21 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
   id _messenger;
   id _textures;
   BOOL _speakerOn;
+  BOOL _speakerOnButPreferBluetooth;
   AVAudioSessionPort _preferredInput;
+#if TARGET_OS_IPHONE
+  FLutterRTCVideoPlatformViewFactory *_platformViewFactory;
+#endif
+}
+
+static FlutterWebRTCPlugin *sharedSingleton;
+
++ (FlutterWebRTCPlugin *)sharedSingleton
+{
+  @synchronized(self)
+  {
+    return sharedSingleton;
+  }
 }
 
 @synthesize messenger = _messenger;
@@ -118,6 +141,7 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
                    withTextures:(NSObject<FlutterTextureRegistry>*)textures {
 
   self = [super init];
+  sharedSingleton = self;
 
   FlutterEventChannel* eventChannel =
       [FlutterEventChannel eventChannelWithName:@"FlutterWebRTC.Event" binaryMessenger:messenger];
@@ -129,10 +153,13 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
     _textures = textures;
     _messenger = messenger;
     _speakerOn = NO;
+    _speakerOnButPreferBluetooth = NO;
     _eventChannel = eventChannel;
 #if TARGET_OS_IPHONE
     _preferredInput = AVAudioSessionPortHeadphones;
     self.viewController = viewController;
+    _platformViewFactory  = [[FLutterRTCVideoPlatformViewFactory alloc] initWithMessenger:messenger];
+    [registrar registerViewFactory:_platformViewFactory withId:FLutterRTCVideoPlatformViewFactoryID];
 #endif
   }
 
@@ -157,7 +184,7 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
   [_peerConnectionFactory.audioDeviceModule setDevicesUpdatedHandler:^(void) {
     NSLog(@"Handle Devices Updated!");
     if (self.eventSink) {
-      self.eventSink(@{@"event" : @"onDeviceChange"});
+      postEvent( self.eventSink, @{@"event" : @"onDeviceChange"});
     }
   }];
 #endif
@@ -195,21 +222,12 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
   NSInteger routeChangeReason =
       [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
-  switch (routeChangeReason) {
-    case AVAudioSessionRouteChangeReasonNewDeviceAvailable: {
-      if (session.isActive) {
-        [AudioUtils selectAudioInput:_preferredInput];
-      }
-      break;
-    }
-    default:
-      break;
-  }
-
   if (self.eventSink &&
       (routeChangeReason == AVAudioSessionRouteChangeReasonNewDeviceAvailable ||
-       routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable)) {
-    self.eventSink(@{@"event" : @"onDeviceChange"});
+       routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable ||
+       routeChangeReason == AVAudioSessionRouteChangeReasonCategoryChange ||
+       routeChangeReason == AVAudioSessionRouteChangeReasonOverride)) {
+    postEvent(self.eventSink, @{@"event" : @"onDeviceChange"});
   }
 #endif
 }
@@ -746,7 +764,53 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
     }
     [self rendererSetSrcObject:render stream:videoTrack];
     result(nil);
-  } else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {
+  }
+#if TARGET_OS_IPHONE
+  else if ([@"videoPlatformViewRendererSetSrcObject" isEqualToString:call.method]) {
+      NSDictionary* argsMap = call.arguments;
+      NSNumber* viewId = argsMap[@"viewId"];
+      FlutterRTCVideoPlatformViewController* render = _platformViewFactory.renders[viewId];
+      NSString* streamId = argsMap[@"streamId"];
+      NSString* ownerTag = argsMap[@"ownerTag"];
+      NSString* trackId = argsMap[@"trackId"];
+      if (!render) {
+        result([FlutterError errorWithCode:@"videoRendererSetSrcObject: render is nil"
+                                   message:nil
+                                   details:nil]);
+        return;
+      }
+      RTCMediaStream* stream = nil;
+      RTCVideoTrack* videoTrack = nil;
+      if ([ownerTag isEqualToString:@"local"]) {
+        stream = _localStreams[streamId];
+      }
+      if (!stream) {
+        stream = [self streamForId:streamId peerConnectionId:ownerTag];
+      }
+      if (stream) {
+        NSArray* videoTracks = stream ? stream.videoTracks : nil;
+        videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
+        for (RTCVideoTrack* track in videoTracks) {
+          if ([track.trackId isEqualToString:trackId]) {
+            videoTrack = track;
+          }
+        }
+        if (!videoTrack) {
+          NSLog(@"Not found video track for RTCMediaStream: %@", streamId);
+        }
+      }
+      render.videoTrack = videoTrack;
+      result(nil);
+  } else if ([@"videoPlatformViewRendererDispose" isEqualToString:call.method]) {
+      NSDictionary* argsMap = call.arguments;
+      NSNumber* viewId = argsMap[@"viewId"];
+      FlutterRTCVideoPlatformViewController* render = _platformViewFactory.renders[viewId];
+      render.videoTrack = nil;
+      [_platformViewFactory.renders removeObjectForKey:viewId];
+      result(nil);
+    }
+#endif
+     else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
     RTCMediaStreamTrack* track = self.localTracks[trackId];
@@ -845,10 +909,18 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
     NSDictionary* argsMap = call.arguments;
     NSNumber* enable = argsMap[@"enable"];
     _speakerOn = enable.boolValue;
+    _speakerOnButPreferBluetooth = NO;
     [AudioUtils setSpeakerphoneOn:_speakerOn];
+    postEvent(self.eventSink, @{@"event" : @"onDeviceChange"});
+    result(nil);
+  }
+  else if ([@"ensureAudioSession" isEqualToString:call.method]) {
+    [self ensureAudioSession];
     result(nil);
   }
   else if ([@"enableSpeakerphoneButPreferBluetooth" isEqualToString:call.method]) {
+    _speakerOn = YES;
+    _speakerOnButPreferBluetooth = YES;
     [AudioUtils setSpeakerphoneOnButPreferBluetooth];
     result(nil);
   }
@@ -1354,7 +1426,6 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
 - (void)ensureAudioSession {
 #if TARGET_OS_IPHONE
   [AudioUtils ensureAudioSessionWithRecording:[self hasLocalAudioTrack]];
-  [AudioUtils setSpeakerphoneOn:_speakerOn];
 #endif
 }
 
@@ -1936,6 +2007,11 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
   if (map[@"scaleResolutionDownBy"] != nil) {
     [encoding setScaleResolutionDownBy:(NSNumber*)map[@"scaleResolutionDownBy"]];
   }
+
+  if (map[@"scalabilityMode"] != nil) {
+    [encoding setScalabilityMode:(NSString*)map[@"scalabilityMode"]];
+  }
+
   return encoding;
 }
 
@@ -1957,7 +2033,7 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
   if (encodingsParams != nil) {
     NSMutableArray<RTCRtpEncodingParameters*>* sendEncodings = [[NSMutableArray alloc] init];
     for (NSDictionary* map in encodingsParams) {
-      [sendEncodings insertObject:[self mapToEncoding:map] atIndex:0];
+      [sendEncodings addObject:[self mapToEncoding:map]];
     }
     [init setSendEncodings:sendEncodings];
   }

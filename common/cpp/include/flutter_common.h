@@ -13,6 +13,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <optional>
 
 typedef flutter::EncodableValue EncodableValue;
 typedef flutter::EncodableMap EncodableMap;
@@ -87,6 +88,13 @@ inline double findDouble(const EncodableMap& map, const std::string& key) {
   if (it != map.end() && TypeIs<double>(it->second))
     return GetValue<double>(it->second);
   return 0.0;
+}
+
+inline std::optional<double> maybeFindDouble(const EncodableMap& map, const std::string& key) {
+  auto it = map.find(EncodableValue(key));
+  if (it != map.end() && TypeIs<double>(it->second))
+    return GetValue<double>(it->second);
+  return std::nullopt;
 }
 
 inline std::vector<uint8_t> findVector(const EncodableMap& map,

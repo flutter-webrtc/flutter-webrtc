@@ -114,36 +114,38 @@ public class FlutterRTCFrameCryptor {
         Map<String, Object> params = (Map<String, Object>) call.arguments;
         if (method_name.equals("frameCryptorFactoryCreateFrameCryptor")) {
             frameCryptorFactoryCreateFrameCryptor(params, result);
-            return true;
           } else if (method_name.equals("frameCryptorSetKeyIndex")) {
             frameCryptorSetKeyIndex(params, result);
-            return true;
           } else if (method_name.equals("frameCryptorGetKeyIndex")) {
             frameCryptorGetKeyIndex(params, result);
-            return true;
           } else if (method_name.equals("frameCryptorSetEnabled")) {
             frameCryptorSetEnabled(params, result);
-            return true;
           } else if (method_name.equals("frameCryptorGetEnabled")) {
             frameCryptorGetEnabled(params, result);
-            return true;
           } else if (method_name.equals("frameCryptorDispose")) {
             frameCryptorDispose(params, result);
-            return true;
           } else if (method_name.equals("frameCryptorFactoryCreateKeyProvider")) {
             frameCryptorFactoryCreateKeyProvider(params, result);
-            return true;
+          }else if (method_name.equals("keyProviderSetSharedKey")) {
+            keyProviderSetSharedKey(params, result);
+          } else if (method_name.equals("keyProviderRatchetSharedKey")) {
+            keyProviderRatchetSharedKey(params, result);
+          }  else if (method_name.equals("keyProviderExportSharedKey")) {
+            keyProviderExportKey(params, result);
           } else if (method_name.equals("keyProviderSetKey")) {
             keyProviderSetKey(params, result);
-            return true;
           } else if (method_name.equals("keyProviderRatchetKey")) {
             keyProviderRatchetKey(params, result);
-            return true;
+          } else if (method_name.equals("keyProviderExportKey")) {
+            keyProviderExportKey(params, result);
+          } else if (method_name.equals("keyProviderSetSifTrailer")) {
+            keyProviderSetSifTrailer(params, result);
           } else if (method_name.equals("keyProviderDispose")) {
             keyProviderDispose(params, result);
-            return true;
+          } else  {
+            return false;
           }
-        return false;
+        return true;
     }
 
     private FrameCryptorAlgorithm frameCryptorAlgorithmFromInt(int algorithm) {
@@ -179,7 +181,8 @@ public class FlutterRTCFrameCryptor {
         if(type.equals("sender")) {
             RtpSender rtpSender = pco.getRtpSenderById(rtpSenderId);
 
-            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpSender(rtpSender,
+            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpSender(stateProvider.getPeerConnectionFactory(),
+                    rtpSender,
                     participantId,
                     frameCryptorAlgorithmFromInt(algorithm),
                     keyProvider);
@@ -194,7 +197,8 @@ public class FlutterRTCFrameCryptor {
         } else if(type.equals("receiver")) {
             RtpReceiver rtpReceiver = pco.getRtpReceiverById(rtpReceiverId);
 
-            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpReceiver(rtpReceiver,
+            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpReceiver(stateProvider.getPeerConnectionFactory(),
+                    rtpReceiver,
                     participantId,
                     frameCryptorAlgorithmFromInt(algorithm),
                     keyProvider);
@@ -287,15 +291,66 @@ public class FlutterRTCFrameCryptor {
         Map<String, Object> keyProviderOptions = (Map<String, Object>) params.get("keyProviderOptions");
         boolean sharedKey = (boolean) keyProviderOptions.get("sharedKey");
         int ratchetWindowSize = (int) keyProviderOptions.get("ratchetWindowSize");
+        int failureTolerance = (int) keyProviderOptions.get("failureTolerance");
         byte[] ratchetSalt = ( byte[]) keyProviderOptions.get("ratchetSalt");
         byte[] uncryptedMagicBytes = new byte[0];
         if(keyProviderOptions.containsKey("uncryptedMagicBytes")) {
             uncryptedMagicBytes = ( byte[]) keyProviderOptions.get("uncryptedMagicBytes");
         }
-        FrameCryptorKeyProvider keyProvider = FrameCryptorFactory.createFrameCryptorKeyProvider(sharedKey, ratchetSalt, ratchetWindowSize, uncryptedMagicBytes);
+        int keyRingSize = (int) keyProviderOptions.get("keyRingSize");
+        boolean discardFrameWhenCryptorNotReady = (boolean) keyProviderOptions.get("discardFrameWhenCryptorNotReady");
+        FrameCryptorKeyProvider keyProvider = FrameCryptorFactory.createFrameCryptorKeyProvider(sharedKey, ratchetSalt, ratchetWindowSize, uncryptedMagicBytes, failureTolerance, keyRingSize, discardFrameWhenCryptorNotReady);
         ConstraintsMap paramsResult = new ConstraintsMap();
         keyProviders.put(keyProviderId, keyProvider);
         paramsResult.putString("keyProviderId", keyProviderId);
+        result.success(paramsResult.toMap());
+    }
+
+    private void keyProviderSetSharedKey(Map<String, Object> params, @NonNull Result result) {
+        String keyProviderId = (String) params.get("keyProviderId");
+        FrameCryptorKeyProvider keyProvider = keyProviders.get(keyProviderId);
+        if (keyProvider == null) {
+            result.error("keyProviderSetKeySharedFailed", "keyProvider not found", null);
+            return;
+        }
+        int keyIndex = (int) params.get("keyIndex");
+        byte[] key = ( byte[]) params.get("key");
+        keyProvider.setSharedKey(keyIndex, key);
+
+        ConstraintsMap paramsResult = new ConstraintsMap();
+        paramsResult.putBoolean("result", true);
+        result.success(paramsResult.toMap());
+    }
+
+    private void keyProviderRatchetSharedKey(Map<String, Object> params, @NonNull Result result) {
+        String keyProviderId = (String) params.get("keyProviderId");
+        FrameCryptorKeyProvider keyProvider = keyProviders.get(keyProviderId);
+        if (keyProvider == null) {
+            result.error("keyProviderRatchetSharedKeyFailed", "keyProvider not found", null);
+            return;
+        }
+        int keyIndex = (int) params.get("keyIndex");
+
+        byte[] newKey = keyProvider.ratchetSharedKey(keyIndex);
+
+        ConstraintsMap paramsResult = new ConstraintsMap();
+        paramsResult.putByte("result", newKey);
+        result.success(paramsResult.toMap());
+    }
+
+    private void keyProviderExportSharedKey(Map<String, Object> params, @NonNull Result result) {
+        String keyProviderId = (String) params.get("keyProviderId");
+        FrameCryptorKeyProvider keyProvider = keyProviders.get(keyProviderId);
+        if (keyProvider == null) {
+            result.error("keyProviderExportSharedKeyFailed", "keyProvider not found", null);
+            return;
+        }
+        int keyIndex = (int) params.get("keyIndex");
+
+        byte[] key = keyProvider.exportSharedKey(keyIndex);
+
+        ConstraintsMap paramsResult = new ConstraintsMap();
+        paramsResult.putByte("result", key);
         result.success(paramsResult.toMap());
     }
 
@@ -330,6 +385,38 @@ public class FlutterRTCFrameCryptor {
 
         ConstraintsMap paramsResult = new ConstraintsMap();
         paramsResult.putByte("result", newKey);
+        result.success(paramsResult.toMap());
+    }
+
+    private void keyProviderExportKey(Map<String, Object> params, @NonNull Result result) {
+        String keyProviderId = (String) params.get("keyProviderId");
+        FrameCryptorKeyProvider keyProvider = keyProviders.get(keyProviderId);
+        if (keyProvider == null) {
+            result.error("keyProviderExportKeyFailed", "keyProvider not found", null);
+            return;
+        }
+        String participantId = (String) params.get("participantId");
+        int keyIndex = (int) params.get("keyIndex");
+
+        byte[] key = keyProvider.exportKey(participantId, keyIndex);
+
+        ConstraintsMap paramsResult = new ConstraintsMap();
+        paramsResult.putByte("result", key);
+        result.success(paramsResult.toMap());
+    }
+
+    private void keyProviderSetSifTrailer(Map<String, Object> params, @NonNull Result result) {
+        String keyProviderId = (String) params.get("keyProviderId");
+        FrameCryptorKeyProvider keyProvider = keyProviders.get(keyProviderId);
+        if (keyProvider == null) {
+            result.error("keyProviderSetSifTrailerFailed", "keyProvider not found", null);
+            return;
+        }
+        byte[] sifTrailer = ( byte[]) params.get("sifTrailer");
+        keyProvider.setSifTrailer(sifTrailer);
+
+        ConstraintsMap paramsResult = new ConstraintsMap();
+        paramsResult.putBoolean("result", true);
         result.success(paramsResult.toMap());
     }
 

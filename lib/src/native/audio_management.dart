@@ -21,6 +21,10 @@ class NativeAudioManagement {
     );
   }
 
+  static Future<void> ensureAudioSession() async {
+    await WebRTC.invokeMethod('ensureAudioSession');
+  }
+
   static Future<void> setSpeakerphoneOnButPreferBluetooth() async {
     await WebRTC.invokeMethod('enableSpeakerphoneButPreferBluetooth');
   }
