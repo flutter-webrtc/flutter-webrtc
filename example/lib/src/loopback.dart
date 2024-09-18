@@ -119,11 +119,13 @@ class _LoopbackState extends State<Loopback> {
 
       var audioTrack =
           _tracks!.firstWhere((track) => track.kind() == MediaKind.audio);
-      audioTrack.onAudioLevelChanged((volume) {
-        setState(() {
-          currentAudioLevel = volume / 100;
+      if (audioTrack.isOnAudioLevelAvailable()) {
+        audioTrack.onAudioLevelChanged((volume) {
+          setState(() {
+            currentAudioLevel = volume / 100;
+          });
         });
-      });
+      }
 
       await vtrans?.sender.replaceTrack(
           _tracks!.firstWhere((track) => track.kind() == MediaKind.video));
@@ -179,11 +181,13 @@ class _LoopbackState extends State<Loopback> {
     caps.audio.mandatory!.deviceId = id;
 
     var newTrack = (await getUserMedia(caps))[0];
-    newTrack.onAudioLevelChanged((volume) {
-      setState(() {
-        currentAudioLevel = volume / 100;
+    if (newTrack.isOnAudioLevelAvailable()) {
+      newTrack.onAudioLevelChanged((volume) {
+        setState(() {
+          currentAudioLevel = volume / 100;
+        });
       });
-    });
+    }
     await _audioTxTr!.sender.replaceTrack(newTrack);
 
     _tracks!.add(newTrack);
