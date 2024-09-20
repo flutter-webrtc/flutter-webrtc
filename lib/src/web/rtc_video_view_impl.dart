@@ -96,7 +96,7 @@ class RTCVideoViewState extends State<RTCVideoView> {
         final ui.Image img = await ui_web.createImageFromTextureSource(element,
             width: element.videoWidth,
             height: element.videoHeight,
-            transferOwnership: false);
+            transferOwnership: true);
 
         if (mounted) {
           setState(() {
@@ -120,6 +120,7 @@ class RTCVideoViewState extends State<RTCVideoView> {
     if (mounted) {
       super.dispose();
     }
+    capturedFrame?.dispose();
     if (videoElement != null) {
       cancelFrame(videoElement!);
     }
