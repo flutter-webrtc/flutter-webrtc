@@ -11,11 +11,16 @@ All user visible changes to this project will be documented in this file. This p
 
 [Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.11.1...0.11.2)
 
+### Added
+
+- `RtpReceiver.getCapabilities()` method. ([#173])
+
 ### Changed
 
 - Upgraded `flutter_rust_bridge` to 2.4.0 version. ([#172])
 
 [#172]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/172
+[#173]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/173
 
 
 

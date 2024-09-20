@@ -575,6 +575,11 @@ std::unique_ptr<RtpCapabilities> get_rtp_sender_capabilities(
     const PeerConnectionFactoryInterface& peer_connection_factory,
     MediaType kind);
 
+// Returns the receiver `RtpCapabilities` of the provided `MediaType`.
+std::unique_ptr<RtpCapabilities> get_rtp_receiver_capabilities(
+    const PeerConnectionFactoryInterface& peer_connection_factory,
+    MediaType kind);
+
 // Returns the `RtpCodecCapability` of the provided `RtpCapabilities`.
 rust::Vec<RtpCodecCapabilityContainer> rtp_capabilities_codecs(
     const RtpCapabilities& capabilty);

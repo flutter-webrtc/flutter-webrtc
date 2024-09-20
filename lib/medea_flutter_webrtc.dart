@@ -4,6 +4,7 @@ export 'src/api/devices.dart'
     if (dart.library.js_interop) 'src/platform/web/fake_media.dart';
 export 'src/api/peer.dart' if (dart.library.js_interop) 'none.dart';
 export 'src/api/sender.dart' if (dart.library.js_interop) 'none.dart';
+export 'src/api/receiver.dart' if (dart.library.js_interop) 'none.dart';
 export 'src/api/transceiver.dart' if (dart.library.js_interop) 'none.dart';
 export 'src/api/parameters.dart' if (dart.library.js_interop) 'none.dart';
 export 'src/api/send_encoding_parameters.dart'

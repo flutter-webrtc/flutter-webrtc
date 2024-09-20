@@ -22,6 +22,7 @@ class _State extends State<VideoCodecInfoSample> {
 
   void _renderState() async {
     var senderCaps = await RtpSender.getCapabilities(MediaKind.video);
+    var receiverCaps = await RtpReceiver.getCapabilities(MediaKind.video);
     var encoders = await PeerConnection.videoEncoders();
     var decoders = await PeerConnection.videoDecoders();
 
@@ -30,6 +31,7 @@ class _State extends State<VideoCodecInfoSample> {
       for (var enc in encoders) {
         codecs += 'Encoder: ${enc.codec} HW: ${enc.isHardwareAccelerated}\n';
       }
+
       codecs += '\n';
       for (var dec in decoders) {
         codecs += 'Decoder: ${dec.codec} HW: ${dec.isHardwareAccelerated}\n';
@@ -37,8 +39,14 @@ class _State extends State<VideoCodecInfoSample> {
 
       codecs += '\n';
       for (var c in senderCaps.codecs) {
-        codecs += 'Sender Codec: ${c.kind} ${c.name} ${c.mimeType} '
-            '${json.encode(c.parameters)}\n';
+        codecs += 'Sender Codec: ${c.kind}, ${c.name}, ${c.mimeType}, '
+            '${c.clockRate}Hz, ${json.encode(c.parameters)}\n';
+      }
+
+      codecs += '\n';
+      for (var c in receiverCaps.codecs) {
+        codecs += 'Receiver Codec: ${c.kind}, ${c.name}, ${c.mimeType}, '
+            '${c.clockRate}Hz, ${json.encode(c.parameters)}\n';
       }
 
       text = codecs;

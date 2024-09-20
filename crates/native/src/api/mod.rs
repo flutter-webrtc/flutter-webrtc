@@ -2708,7 +2708,7 @@ pub fn sender_get_parameters(
     RtcRtpSendParameters::from(transceiver.sender_get_parameters())
 }
 
-/// Returns the capabilities of an [RTP] sender of the specified [`MediaType`].
+/// Returns the capabilities of an [RTP] sender of the provided [`MediaType`].
 ///
 /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
 pub fn get_rtp_sender_capabilities(kind: MediaType) -> RtpCapabilities {
@@ -2718,6 +2718,19 @@ pub fn get_rtp_sender_capabilities(kind: MediaType) -> RtpCapabilities {
             .unwrap()
             .peer_connection_factory
             .get_rtp_sender_capabilities(kind.into()),
+    )
+}
+
+/// Returns the capabilities of an [RTP] receiver of the provided [`MediaType`].
+///
+/// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
+pub fn get_rtp_receiver_capabilities(kind: MediaType) -> RtpCapabilities {
+    RtpCapabilities::from(
+        WEBRTC
+            .lock()
+            .unwrap()
+            .peer_connection_factory
+            .get_rtp_receiver_capabilities(kind.into()),
     )
 }
 

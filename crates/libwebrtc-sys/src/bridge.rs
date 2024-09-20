@@ -2492,10 +2492,18 @@ pub(crate) mod webrtc {
             transceiver: &RtpTransceiverInterface,
         ) -> UniquePtr<RtpReceiverInterface>;
 
-        /// Returns the [`RtpCapabilities`] of the provided
+        /// Returns the sender [`RtpCapabilities`] of the provided
         /// [`PeerConnectionFactoryInterface`].
         #[must_use]
         pub fn get_rtp_sender_capabilities(
+            peer_connection_factory: &PeerConnectionFactoryInterface,
+            kind: MediaType,
+        ) -> UniquePtr<RtpCapabilities>;
+
+        /// Returns the receiver [`RtpCapabilities`] of the provided
+        /// [`PeerConnectionFactoryInterface`].
+        #[must_use]
+        pub fn get_rtp_receiver_capabilities(
             peer_connection_factory: &PeerConnectionFactoryInterface,
             kind: MediaType,
         ) -> UniquePtr<RtpCapabilities>;

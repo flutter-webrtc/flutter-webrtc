@@ -171,11 +171,17 @@ Future<RtcRtpSendParameters> senderGetParameters(
         {required ArcRtpTransceiver transceiver}) =>
     RustLib.instance.api.crateApiSenderGetParameters(transceiver: transceiver);
 
-/// Returns the capabilities of an [RTP] sender of the specified [`MediaType`].
+/// Returns the capabilities of an [RTP] sender of the provided [`MediaType`].
 ///
 /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
 Future<RtpCapabilities> getRtpSenderCapabilities({required MediaType kind}) =>
     RustLib.instance.api.crateApiGetRtpSenderCapabilities(kind: kind);
+
+/// Returns the capabilities of an [RTP] receiver of the provided [`MediaType`].
+///
+/// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
+Future<RtpCapabilities> getRtpReceiverCapabilities({required MediaType kind}) =>
+    RustLib.instance.api.crateApiGetRtpReceiverCapabilities(kind: kind);
 
 /// Sets [`RtpParameters`] into the provided [`RtpTransceiver`]'s `sender`.
 Future<void> senderSetParameters(

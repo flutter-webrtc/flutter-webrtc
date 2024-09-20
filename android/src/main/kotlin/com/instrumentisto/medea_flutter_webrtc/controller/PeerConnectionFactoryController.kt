@@ -65,6 +65,16 @@ class PeerConnectionFactoryController(private val messenger: BinaryMessenger, st
                     .getRtpSenderCapabilities(MediaStreamTrack.MediaType.values()[kind!!]))
         result.success(capabilities.asFlutterResult())
       }
+      "getRtpReceiverCapabilities" -> {
+        val kind: Int? = call.argument("kind")
+        val capabilities =
+            RtpCapabilities.fromWebRtc(
+                factory
+                    .state
+                    .getPeerConnectionFactory()
+                    .getRtpReceiverCapabilities(MediaStreamTrack.MediaType.values()[kind!!]))
+        result.success(capabilities.asFlutterResult())
+      }
       "videoEncoders" -> {
         val map = hashMapOf<VideoCodec, VideoCodecInfo>()
 

@@ -56,9 +56,11 @@ abstract class RtpSender {
   }
 }
 
-/// [MethodChannel]-based implementation of a [RtpSender].
+/// [MethodChannel]-based implementation of an [RtpSender].
 class _RtpSenderChannel extends RtpSender {
-  /// [RtpCapabilities] of an RTP sender of the specified [MediaKind].
+  /// [RtpCapabilities] of an [RTP] sender of the provided [MediaKind].
+  ///
+  /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
   static Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
     var map = await _peerConnectionFactoryMethodChannel
         .invokeMethod('getRtpSenderCapabilities', {'kind': kind.index});
@@ -97,9 +99,11 @@ class _RtpSenderChannel extends RtpSender {
   }
 }
 
-/// FFI-based implementation of a [RtpSender].
+/// FFI-based implementation of an [RtpSender].
 class _RtpSenderFFI extends RtpSender {
-  /// [RtpCapabilities] of an RTP sender of the specified [MediaKind].
+  /// [RtpCapabilities] of an [RTP] sender of the provided [MediaKind].
+  ///
+  /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
   static Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
     return RtpCapabilities.fromFFI(await ffi.getRtpSenderCapabilities(
         kind: ffi.MediaType.values[kind.index]));

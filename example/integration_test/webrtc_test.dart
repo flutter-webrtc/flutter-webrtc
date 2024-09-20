@@ -239,35 +239,84 @@ void main() {
     }
   });
 
-  testWidgets('Get capabilities', (WidgetTester tester) async {
-    var capabilities = await RtpSender.getCapabilities(MediaKind.video);
+  testWidgets('Get video capabilities', (WidgetTester tester) async {
+    var senderCapabilities = await RtpSender.getCapabilities(MediaKind.video);
+    var receiverCapabilities =
+        await RtpReceiver.getCapabilities(MediaKind.video);
 
-    expect(
-        capabilities.codecs
-            .where((cap) => cap.mimeType == 'video/VP9')
-            .firstOrNull,
-        isNotNull);
-    expect(
-        capabilities.codecs
-            .where((cap) => cap.mimeType == 'video/VP8')
-            .firstOrNull,
-        isNotNull);
-    expect(
-        capabilities.codecs
-            .where((cap) => cap.mimeType == 'video/AV1')
-            .firstOrNull,
-        isNotNull);
+    var mimeTypes = [
+      'video/rtx',
+      'video/red',
+      'video/ulpfec',
+      'video/VP9',
+      'video/VP8',
+      'video/AV1'
+    ];
+
     if (!Platform.isAndroid && !Platform.isIOS) {
       expect(
-          capabilities.codecs
+          senderCapabilities.codecs
               .where((cap) => cap.mimeType == 'video/H264')
               .firstOrNull,
           isNull);
       expect(
-          capabilities.codecs
+          senderCapabilities.codecs
               .where((cap) => cap.mimeType == 'video/H265')
               .firstOrNull,
           isNull);
+      expect(
+          receiverCapabilities.codecs
+              .where((cap) => cap.mimeType == 'video/H264')
+              .firstOrNull,
+          isNull);
+      expect(
+          receiverCapabilities.codecs
+              .where((cap) => cap.mimeType == 'video/H265')
+              .firstOrNull,
+          isNull);
+    }
+
+    for (var mimeType in mimeTypes) {
+      expect(
+          senderCapabilities.codecs
+              .where((cap) => cap.mimeType == mimeType)
+              .firstOrNull,
+          isNotNull);
+      expect(
+          receiverCapabilities.codecs
+              .where((cap) => cap.mimeType == mimeType)
+              .firstOrNull,
+          isNotNull);
+    }
+  });
+
+  testWidgets('Get audio capabilities', (WidgetTester tester) async {
+    var senderCapabilities = await RtpSender.getCapabilities(MediaKind.audio);
+    var receiverCapabilities =
+        await RtpReceiver.getCapabilities(MediaKind.audio);
+
+    var mimeTypes = [
+      'audio/opus',
+      'audio/red',
+      'audio/G722',
+      'audio/ILBC',
+      'audio/PCMU',
+      'audio/PCMA',
+      'audio/CN',
+      'audio/telephone-event',
+    ];
+
+    for (var mimeType in mimeTypes) {
+      expect(
+          senderCapabilities.codecs
+              .where((cap) => cap.mimeType == mimeType)
+              .firstOrNull,
+          isNotNull);
+      expect(
+          receiverCapabilities.codecs
+              .where((cap) => cap.mimeType == mimeType)
+              .firstOrNull,
+          isNotNull);
     }
   });
 
