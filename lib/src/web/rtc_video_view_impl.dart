@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'dart:js_interop';
-import 'dart:js_util';
+import 'dart:js_interop_unsafe';
 
 import 'package:dart_webrtc/dart_webrtc.dart';
 import 'package:web/web.dart' as web;
@@ -200,7 +200,7 @@ typedef _VideoFrameRequestCallback = JSFunction;
 extension _HTMLVideoElementRequestAnimationFrame on web.HTMLVideoElement {
   int requestVideoFrameCallbackWithFallback(
       _VideoFrameRequestCallback callback) {
-    if (hasProperty(this, 'requestVideoFrameCallback')) {
+    if (hasProperty('requestVideoFrameCallback'.toJS).toDart) {
       return requestVideoFrameCallback(callback);
     } else {
       return web.window.requestAnimationFrame((double num) {
@@ -210,7 +210,7 @@ extension _HTMLVideoElementRequestAnimationFrame on web.HTMLVideoElement {
   }
 
   void cancelVideoFrameCallbackWithFallback(int callbackID) {
-    if (hasProperty(this, 'requestVideoFrameCallback')) {
+    if (hasProperty('requestVideoFrameCallback'.toJS).toDart) {
       cancelVideoFrameCallback(callbackID);
     } else {
       web.window.cancelAnimationFrame(callbackID);
