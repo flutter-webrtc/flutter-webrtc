@@ -9,23 +9,34 @@ import '../helper.dart';
 import 'utils.dart';
 
 class MediaStreamTrackNative extends MediaStreamTrack {
-  MediaStreamTrackNative(this._trackId, this._label, this._kind, this._enabled);
+  MediaStreamTrackNative(this._trackId, this._label, this._kind, this._enabled,
+      this._peerConnectionId,
+      [this.settings_ = const {}]);
 
-  factory MediaStreamTrackNative.fromMap(Map<dynamic, dynamic> map) {
-    return MediaStreamTrackNative(
-        map['id'], map['label'], map['kind'], map['enabled']);
+  factory MediaStreamTrackNative.fromMap(
+      Map<dynamic, dynamic> map, String peerConnectionId) {
+    return MediaStreamTrackNative(map['id'], map['label'], map['kind'],
+        map['enabled'], peerConnectionId, map['settings'] ?? {});
   }
   final String _trackId;
   final String _label;
   final String _kind;
+  final String _peerConnectionId;
+  final Map<Object?, Object?> settings_;
+
   bool _enabled;
 
   bool _muted = false;
 
+  String get peerConnectionId => _peerConnectionId;
+
   @override
   set enabled(bool enabled) {
-    WebRTC.invokeMethod('mediaStreamTrackSetEnable',
-        <String, dynamic>{'trackId': _trackId, 'enabled': enabled});
+    WebRTC.invokeMethod('mediaStreamTrackSetEnable', <String, dynamic>{
+      'trackId': _trackId,
+      'enabled': enabled,
+      'peerConnectionId': _peerConnectionId
+    });
     _enabled = enabled;
 
     if (kind == 'audio') {
@@ -64,13 +75,12 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   @override
   Future<bool> switchCamera() => Helper.switchCamera(this);
 
+  Future<void> setZoom(double zoomLevel) => Helper.setZoom(this, zoomLevel);
+
+  @Deprecated('Use Helper.setSpeakerphoneOn instead')
   @override
   void enableSpeakerphone(bool enable) async {
-    print('MediaStreamTrack:enableSpeakerphone $enable');
-    await WebRTC.invokeMethod(
-      'enableSpeakerphone',
-      <String, dynamic>{'trackId': _trackId, 'enable': enable},
-    );
+    return Helper.setSpeakerphoneOn(enable);
   }
 
   @override
@@ -80,10 +90,11 @@ class MediaStreamTrackNative extends MediaStreamTrack {
       'captureFrame',
       <String, dynamic>{
         'trackId': _trackId,
-        'path': filePath.path + '/captureFrame.png'
+        'peerConnectionId': _peerConnectionId,
+        'path': '${filePath.path}/captureFrame.png'
       },
     );
-    return File(filePath.path + '/captureFrame.png')
+    return File('${filePath.path}/captureFrame.png')
         .readAsBytes()
         .then((value) => value.buffer);
   }
@@ -92,13 +103,18 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   Future<void> applyConstraints([Map<String, dynamic>? constraints]) {
     if (constraints == null) return Future.value();
 
-    var _current = getConstraints();
+    var current = getConstraints();
     if (constraints.containsKey('volume') &&
-        _current['volume'] != constraints['volume']) {
+        current['volume'] != constraints['volume']) {
       Helper.setVolume(constraints['volume'], this);
     }
 
     return Future.value();
+  }
+
+  @override
+  Map<String, dynamic> getSettings() {
+    return settings_.map((key, value) => MapEntry(key.toString(), value));
   }
 
   @override

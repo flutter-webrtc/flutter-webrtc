@@ -48,12 +48,10 @@ class string {
   LIB_PORTABLE_API string();
   LIB_PORTABLE_API void init(const char* str, size_t len);
   LIB_PORTABLE_API void destroy();
-  
+
   inline string(const char* str) { init(str, strlen(str)); }
 
-  inline string(const std::string& str) {
-    init(str.c_str(), str.length());
-  }
+  inline string(const std::string& str) { init(str.c_str(), str.length()); }
 
   inline string(const string& o) {
     init(o.m_dynamic == 0 ? o.m_buf : o.m_dynamic, o.m_length);
@@ -73,9 +71,7 @@ class string {
     return *this;
   }
 
-  inline size_t size() { 
-      return m_length;
-  }
+  inline size_t size() { return m_length; }
 
   inline const char* c_string() const {
     return m_dynamic == 0 ? m_buf : m_dynamic;
@@ -86,9 +82,7 @@ class string {
   }
 };
 
-  inline std::string to_std_string(const string& str) {
-  return str.std_string();
-}
+inline std::string to_std_string(const string& str) { return str.std_string(); }
 
 template <typename T>
 class identity {
@@ -106,7 +100,8 @@ class vector {
 
  public:
   class move_ref {
-   friend class vector;
+    friend class vector;
+
    private:
     vector<T>& m_ref;
     move_ref(vector<T>& ref) : m_ref(ref) {}
@@ -155,10 +150,7 @@ class vector {
     }
   }
 
-
-  ~vector() { 
-      destroy_all();
-  }
+  ~vector() { destroy_all(); }
 
   vector<T>& operator=(const vector<T>& o) {
     if (m_size < o.m_size) {
@@ -207,7 +199,7 @@ class vector {
   T& operator[](size_t i) { return m_array[i]; }
 
   const T& operator[](size_t i) const { return m_array[i]; }
-  
+
   void clear() { destroy_all(); }
 
  protected:
@@ -250,8 +242,7 @@ class map {
   }*/
 
   template <typename K2, typename KC, typename V2, typename VC>
-  static my_pair* to_array(const std::map<K2, V2>& m,
-                           KC convertKey,
+  static my_pair* to_array(const std::map<K2, V2>& m, KC convertKey,
                            VC convertValue) {
     my_pair* data = new my_pair[m.size()];
     my_pair* dp = data;
@@ -284,8 +275,7 @@ class map {
       : m_vec(to_array(m, identity<K>(), identity<V>()), m.size()) {}
 
   template <typename K2, typename KC, typename V2, typename VC>
-  map(const std::map<K2, V2>& m,
-      KC convertKey = identity<K>(),
+  map(const std::map<K2, V2>& m, KC convertKey = identity<K>(),
       VC convertValue = identity<V>())
       : m_vec(to_array(m, convertKey, convertValue), m.size()) {}
 
@@ -326,8 +316,7 @@ class map {
   const my_pair* get(K2 key, int (*cmp)(K2, const K&)) const {
     for (size_t i = 0; i < m_vec.size(); ++i) {
       const my_pair* dp = m_vec.data() + i;
-      if (!cmp(key, dp->key))
-        return dp;
+      if (!cmp(key, dp->key)) return dp;
     }
     return 0;
   }
@@ -434,14 +423,12 @@ class local_ptr {
       : m_ptr(0), m_destroy(0) {}  // copying does not persist value
   local_ptr& operator=(const local_ptr&) { return *this; }
   ~local_ptr() {
-    if (m_ptr)
-      m_destroy(m_ptr);
+    if (m_ptr) m_destroy(m_ptr);
   }
   const T* get() const { return m_ptr; }
   T* get() { return m_ptr; }
   void set(T* ptr, void (*dtor)(T*)) {
-    if (m_ptr)
-      m_destroy(m_ptr);
+    if (m_ptr) m_destroy(m_ptr);
     m_ptr = ptr;
     m_destroy = dtor;
   }

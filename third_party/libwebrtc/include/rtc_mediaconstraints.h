@@ -16,15 +16,9 @@ class RTCMediaConstraints : public RefCountInterface {
   LIB_WEBRTC_API static const char*
       kDAEchoCancellation;                             // googDAEchoCancellation
   LIB_WEBRTC_API static const char* kAutoGainControl;  // googAutoGainControl
-  LIB_WEBRTC_API static const char*
-      kExperimentalAutoGainControl;                     // googAutoGainControl2
   LIB_WEBRTC_API static const char* kNoiseSuppression;  // googNoiseSuppression
-  LIB_WEBRTC_API static const char*
-      kExperimentalNoiseSuppression;                  // googNoiseSuppression2
-  LIB_WEBRTC_API static const char* kHighpassFilter;  // googHighpassFilter
-  LIB_WEBRTC_API static const char*
-      kTypingNoiseDetection;  // googTypingNoiseDetection
-  LIB_WEBRTC_API static const char* kAudioMirroring;  // googAudioMirroring
+  LIB_WEBRTC_API static const char* kHighpassFilter;    // googHighpassFilter
+  LIB_WEBRTC_API static const char* kAudioMirroring;    // googAudioMirroring
   LIB_WEBRTC_API static const char*
       kAudioNetworkAdaptorConfig;  // goodAudioNetworkAdaptorConfig
 
@@ -45,8 +39,6 @@ class RTCMediaConstraints : public RefCountInterface {
   LIB_WEBRTC_API static const char* kValueFalse;  // false
 
   // PeerConnection constraint keys.
-  // Temporary pseudo-constraints used to enable DTLS-SRTP
-  LIB_WEBRTC_API static const char* kEnableDtlsSrtp;  // Enable DTLS-SRTP
   // Temporary pseudo-constraints used to enable DataChannels
   LIB_WEBRTC_API static const char*
       kEnableRtpDataChannels;  // Enable RTP DataChannels
@@ -59,8 +51,8 @@ class RTCMediaConstraints : public RefCountInterface {
   LIB_WEBRTC_API static const char* kEnableVideoSuspendBelowMinBitrate;
   // googSuspendBelowMinBitrate
   // Constraint to enable combined audio+video bandwidth estimation.
-  LIB_WEBRTC_API static const char*
-      kCombinedAudioVideoBwe;  // googCombinedAudioVideoBwe
+  //LIB_WEBRTC_API static const char*
+  //    kCombinedAudioVideoBwe;  // googCombinedAudioVideoBwe
   LIB_WEBRTC_API static const char*
       kScreencastMinBitrate;  // googScreencastMinBitrate
   LIB_WEBRTC_API static const char*

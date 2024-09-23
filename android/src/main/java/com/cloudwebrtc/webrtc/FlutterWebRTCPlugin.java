@@ -11,8 +11,9 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 
-import com.cloudwebrtc.webrtc.MethodCallHandlerImpl.AudioManager;
-import com.cloudwebrtc.webrtc.utils.RTCAudioManager;
+import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
+import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
+import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 
 import java.util.Set;
 
@@ -21,6 +22,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.embedding.engine.plugins.lifecycle.HiddenLifecycleReference;
 import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.view.TextureRegistry;
@@ -28,16 +30,17 @@ import io.flutter.view.TextureRegistry;
 /**
  * FlutterWebRTCPlugin
  */
-public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
+public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventChannel.StreamHandler {
 
     static public final String TAG = "FlutterWebRTCPlugin";
     private static Application application;
 
-    private RTCAudioManager rtcAudioManager;
-    private MethodChannel channel;
+    private MethodChannel methodChannel;
     private MethodCallHandlerImpl methodCallHandler;
     private LifeCycleObserver observer;
     private Lifecycle lifecycle;
+    private EventChannel eventChannel;
+    public EventChannel.EventSink eventSink;
 
     public FlutterWebRTCPlugin() {
     }
@@ -96,8 +99,8 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
         methodCallHandler.setActivity(null);
         if (this.observer != null) {
             this.lifecycle.removeObserver(this.observer);
-            if (this.application!=null) {
-                this.application.unregisterActivityLifecycleCallbacks(this.observer);
+            if (application!=null) {
+                application.unregisterActivityLifecycleCallbacks(this.observer);
             }
         }
         this.lifecycle = null;
@@ -105,62 +108,45 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware {
 
     private void startListening(final Context context, BinaryMessenger messenger,
                                 TextureRegistry textureRegistry) {
-        methodCallHandler = new MethodCallHandlerImpl(context, messenger, textureRegistry,
-                new AudioManager() {
-                    @Override
-                    public void onAudioManagerRequested(boolean requested) {
-                        if (requested) {
-                            if (rtcAudioManager == null) {
-                                rtcAudioManager = RTCAudioManager.create(context);
-                            }
-                            rtcAudioManager.start(FlutterWebRTCPlugin.this::onAudioManagerDevicesChanged);
-                        } else {
-                            if (rtcAudioManager != null) {
-                                rtcAudioManager.stop();
-                                rtcAudioManager = null;
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void setMicrophoneMute(boolean mute) {
-                        if (rtcAudioManager != null) {
-                            rtcAudioManager.setMicrophoneMute(mute);
-                        }
-                    }
-
-                    @Override
-                    public void setSpeakerphoneOn(boolean on) {
-                        if (rtcAudioManager != null) {
-                            rtcAudioManager.setSpeakerphoneOn(on);
-                        }
-                    }
-                });
-
-        channel = new MethodChannel(messenger, "FlutterWebRTC.Method");
-        channel.setMethodCallHandler(methodCallHandler);
+        AudioSwitchManager.instance = new AudioSwitchManager(context);
+        methodCallHandler = new MethodCallHandlerImpl(context, messenger, textureRegistry);
+        methodChannel = new MethodChannel(messenger, "FlutterWebRTC.Method");
+        methodChannel.setMethodCallHandler(methodCallHandler);
+        eventChannel = new EventChannel( messenger,"FlutterWebRTC.Event");
+        eventChannel.setStreamHandler(this);
+        AudioSwitchManager.instance.audioDeviceChangeListener = (devices, currentDevice) -> {
+            Log.w(TAG, "audioFocusChangeListener " + devices+ " " + currentDevice);
+            ConstraintsMap params = new ConstraintsMap();
+            params.putString("event", "onDeviceChange");
+            sendEvent(params.toMap());
+            return null;
+        };
     }
 
     private void stopListening() {
         methodCallHandler.dispose();
         methodCallHandler = null;
-        channel.setMethodCallHandler(null);
-
-        if (rtcAudioManager != null) {
+        methodChannel.setMethodCallHandler(null);
+        eventChannel.setStreamHandler(null);
+        if (AudioSwitchManager.instance != null) {
             Log.d(TAG, "Stopping the audio manager...");
-            rtcAudioManager.stop();
-            rtcAudioManager = null;
+            AudioSwitchManager.instance.stop();
         }
     }
 
-    // This method is called when the audio manager reports audio device change,
-    // e.g. from wired headset to speakerphone.
-    private void onAudioManagerDevicesChanged(
-            final RTCAudioManager.AudioDevice device,
-            final Set<RTCAudioManager.AudioDevice> availableDevices) {
-        Log.d(TAG, "onAudioManagerDevicesChanged: " + availableDevices + ", "
-                + "selected: " + device);
-        // TODO(henrika): add callback handler.
+    @Override
+    public void onListen(Object arguments, EventChannel.EventSink events) {
+        eventSink = new AnyThreadSink(events);
+    }
+    @Override
+    public void onCancel(Object arguments) {
+        eventSink = null;
+    }
+
+    public void sendEvent(Object event) {
+        if(eventSink != null) {
+            eventSink.success(event);
+        }
     }
 
     private class LifeCycleObserver implements Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {

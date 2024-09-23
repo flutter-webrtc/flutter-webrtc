@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -11,23 +10,25 @@ import 'rtc_video_renderer_impl.dart';
 class RTCVideoView extends StatefulWidget {
   RTCVideoView(
     this._renderer, {
-    Key? key,
+    super.key,
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirror = false,
     this.filterQuality = FilterQuality.low,
-  }) : super(key: key);
+    this.placeholderBuilder,
+  });
 
   final RTCVideoRenderer _renderer;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
   final FilterQuality filterQuality;
+  final WidgetBuilder? placeholderBuilder;
 
   @override
-  _RTCVideoViewState createState() => _RTCVideoViewState();
+  RTCVideoViewState createState() => RTCVideoViewState();
 }
 
-class _RTCVideoViewState extends State<RTCVideoView> {
-  _RTCVideoViewState();
+class RTCVideoViewState extends State<RTCVideoView> {
+  RTCVideoViewState();
 
   RTCVideoRenderer get videoRenderer => widget._renderer;
 
@@ -65,12 +66,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
   }
 
   Widget buildVideoElementView() {
-    return Transform(
-      alignment: Alignment.center,
-      transform: Matrix4.rotationY(videoRenderer.mirror ? pi * -1 : 0),
-      child: HtmlElementView(
-          viewType: 'RTCVideoRenderer-${videoRenderer.textureId}'),
-    );
+    return HtmlElementView(viewType: videoRenderer.viewType);
   }
 
   @override
@@ -83,7 +79,7 @@ class _RTCVideoViewState extends State<RTCVideoView> {
             height: constraints.maxHeight,
             child: widget._renderer.renderVideo
                 ? buildVideoElementView()
-                : Container(),
+                : widget.placeholderBuilder?.call(context) ?? Container(),
           ),
         );
       },

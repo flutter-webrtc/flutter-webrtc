@@ -1,9 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-
-import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../flutter_webrtc.dart';
+import 'native/audio_management.dart';
 
 class Helper {
   static Future<List<MediaDeviceInfo>> enumerateDevices(String type) async {
@@ -27,21 +25,6 @@ class Helper {
   static Future<List<MediaDeviceInfo>> get audiooutputs =>
       enumerateDevices('audiooutput');
 
-  /// To select a a specific camera, you need to set constraints
-  /// eg.
-  /// constraints = {
-  ///      'audio': true,
-  ///      'video': {
-  ///          'deviceId': Helper.cameras[0].deviceId,
-  ///          }
-  ///      };
-  ///
-  /// Helper.openCamera(constraints);
-  ///
-  static Future<MediaStream> openCamera(Map<String, dynamic> mediaConstraints) {
-    return navigator.mediaDevices.getUserMedia(mediaConstraints);
-  }
-
   /// For web implementation, make sure to pass the target deviceId
   static Future<bool> switchCamera(MediaStreamTrack track,
       [String? deviceId, MediaStream? stream]) async {
@@ -59,8 +42,8 @@ class Helper {
     if (deviceId == null) throw 'You need to specify the deviceId';
     if (stream == null) throw 'You need to specify the stream';
 
-    var _cameras = await cameras;
-    if (!_cameras.any((e) => e.deviceId == deviceId)) {
+    var cams = await cameras;
+    if (!cams.any((e) => e.deviceId == deviceId)) {
       throw 'The provided deviceId is not available, make sure to retreive the deviceId from Helper.cammeras()';
     }
 
@@ -76,46 +59,116 @@ class Helper {
       'video': {'deviceId': deviceId}
     };
 
-    var _stream = await openCamera(mediaConstraints);
-    var _cameraTrack = _stream.getVideoTracks()[0];
+    var newStream = await openCamera(mediaConstraints);
+    var newCamTrack = newStream.getVideoTracks()[0];
 
-    await stream.addTrack(_cameraTrack, addToNative: true);
+    await stream.addTrack(newCamTrack, addToNative: true);
 
     return Future.value(true);
   }
 
-  static Future<void> setVolume(double volume, MediaStreamTrack track) async {
-    if (track.kind == 'audio') {
-      if (kIsWeb) {
-        final constraints = track.getConstraints();
-        constraints['volume'] = volume;
-        await track.applyConstraints(constraints);
-      } else {
-        await WebRTC.invokeMethod(
-          'setVolume',
-          <String, dynamic>{'trackId': track.id, 'volume': volume},
-        );
-      }
+  static Future<void> setZoom(
+      MediaStreamTrack videoTrack, double zoomLevel) async {
+    if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
+      await WebRTC.invokeMethod(
+        'mediaStreamTrackSetZoom',
+        <String, dynamic>{'trackId': videoTrack.id, 'zoomLevel': zoomLevel},
+      );
+    } else {
+      throw Exception('setZoom only support for mobile devices!');
     }
-
-    return Future.value();
   }
 
-  static void setMicrophoneMute(bool mute, MediaStreamTrack track) async {
-    if (track.kind != 'audio') {
-      throw 'The is not an audio track => $track';
-    }
+  /// Used to select a specific audio output device.
+  ///
+  /// Note: This method is only used for Flutter native,
+  /// supported on iOS/Android/macOS/Windows.
+  ///
+  /// Android/macOS/Windows: Can be used to switch all output devices.
+  /// iOS: you can only switch directly between the
+  /// speaker and the preferred device
+  /// web: flutter web can use RTCVideoRenderer.audioOutput instead
+  static Future<void> selectAudioOutput(String deviceId) async {
+    await navigator.mediaDevices
+        .selectAudioOutput(AudioOutputOptions(deviceId: deviceId));
+  }
 
-    if (!kIsWeb) {
-      try {
-        await WebRTC.invokeMethod(
-          'setMicrophoneMute',
-          <String, dynamic>{'trackId': track.id, 'mute': mute},
-        );
-      } on PlatformException catch (e) {
-        throw 'Unable to MediaStreamTrack::setMicrophoneMute: ${e.message}';
-      }
+  /// Set audio input device for Flutter native
+  /// Note: The usual practice in flutter web is to use deviceId as the
+  /// `getUserMedia` parameter to get a new audio track and replace it with the
+  ///  audio track in the original rtpsender.
+  static Future<void> selectAudioInput(String deviceId) =>
+      NativeAudioManagement.selectAudioInput(deviceId);
+
+  /// Enable or disable speakerphone
+  /// for iOS/Android only
+  static Future<void> setSpeakerphoneOn(bool enable) =>
+      NativeAudioManagement.setSpeakerphoneOn(enable);
+
+  /// Ensure audio session
+  /// for iOS only
+  static Future<void> ensureAudioSession() =>
+      NativeAudioManagement.ensureAudioSession();
+
+  /// Enable speakerphone, but use bluetooth if audio output device available
+  /// for iOS/Android only
+  static Future<void> setSpeakerphoneOnButPreferBluetooth() =>
+      NativeAudioManagement.setSpeakerphoneOnButPreferBluetooth();
+
+  /// To select a a specific camera, you need to set constraints
+  /// eg.
+  /// var constraints = {
+  ///      'audio': true,
+  ///      'video': {
+  ///          'deviceId': Helper.cameras[0].deviceId,
+  ///          }
+  ///      };
+  ///
+  /// var stream = await Helper.openCamera(constraints);
+  ///
+  static Future<MediaStream> openCamera(Map<String, dynamic> mediaConstraints) {
+    return navigator.mediaDevices.getUserMedia(mediaConstraints);
+  }
+
+  /// Set the volume for Flutter native
+  static Future<void> setVolume(double volume, MediaStreamTrack track) =>
+      NativeAudioManagement.setVolume(volume, track);
+
+  /// Set the microphone mute/unmute for Flutter native
+  static Future<void> setMicrophoneMute(bool mute, MediaStreamTrack track) =>
+      NativeAudioManagement.setMicrophoneMute(mute, track);
+
+  /// Set the audio configuration to for Android.
+  /// Must be set before initiating a WebRTC session and cannot be changed
+  /// mid session.
+  static Future<void> setAndroidAudioConfiguration(
+          AndroidAudioConfiguration androidAudioConfiguration) =>
+      AndroidNativeAudioManagement.setAndroidAudioConfiguration(
+          androidAudioConfiguration);
+
+  /// After Android app finishes a session, on audio focus loss, clear the active communication device.
+  static Future<void> clearAndroidCommunicationDevice() =>
+      WebRTC.invokeMethod('clearAndroidCommunicationDevice');
+
+  /// Set the audio configuration for iOS
+  static Future<void> setAppleAudioConfiguration(
+          AppleAudioConfiguration appleAudioConfiguration) =>
+      AppleNativeAudioManagement.setAppleAudioConfiguration(
+          appleAudioConfiguration);
+
+  /// Set the audio configuration for iOS
+  static Future<void> setAppleAudioIOMode(AppleAudioIOMode mode,
+          {bool preferSpeakerOutput = false}) =>
+      AppleNativeAudioManagement.setAppleAudioConfiguration(
+          AppleNativeAudioManagement.getAppleAudioConfigurationForMode(mode,
+              preferSpeakerOutput: preferSpeakerOutput));
+
+  /// Request capture permission for Android
+  static Future<bool> requestCapturePermission() async {
+    if (WebRTC.platformIsAndroid) {
+      return await WebRTC.invokeMethod('requestCapturePermission');
+    } else {
+      throw Exception('requestCapturePermission only support for Android');
     }
-    track.enabled = !mute;
   }
 }

@@ -1,4 +1,4 @@
-include: package:pedantic/analysis_options.yaml
+include: package:lints/recommended.yaml
 
 linter:
   rules:
@@ -41,9 +41,8 @@ analyzer:
     # allow self-reference to deprecated members (we do this because otherwise we have
     # to annotate every member in every test, assert, etc, when we deprecate something)
     deprecated_member_use_from_same_package: ignore
-    # Ignore analyzer hints for updating pubspecs when using Future or
-    # Stream and not importing dart:async
-    # Please see https://github.com/flutter/flutter/pull/24528 for details.
-    sdk_version_async_exported_from_core: ignore
     # Conflict with import_sorter
     directives_ordering: ignore
+    constant_identifier_names: ignore
+    deprecated_member_use: ignore
+    implementation_imports: ignore

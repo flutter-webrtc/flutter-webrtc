@@ -2,6 +2,7 @@
 #define LIB_WEBRTC_RTC_RTP_TRANSCEIVER_HXX
 
 #include "base/refcount.h"
+#include "rtc_rtp_capabilities.h"
 #include "rtc_rtp_parameters.h"
 #include "rtc_rtp_receiver.h"
 #include "rtc_rtp_sender.h"
@@ -12,8 +13,7 @@ namespace libwebrtc {
 class RTCRtpTransceiverInit : public RefCountInterface {
  public:
   LIB_WEBRTC_API static scoped_refptr<RTCRtpTransceiverInit> Create(
-      RTCRtpTransceiverDirection direction,
-      const vector<string> stream_ids,
+      RTCRtpTransceiverDirection direction, const vector<string> stream_ids,
       const vector<scoped_refptr<RTCRtpEncodingParameters>> encodings);
 
   virtual RTCRtpTransceiverDirection direction() = 0;
@@ -55,19 +55,10 @@ class RTCRtpTransceiver : public RefCountInterface {
 
   virtual void StopInternal() = 0;
 
-  // virtual string set_codec_preferences(vector<RTCRtpCodecCapability> codecs)
-  // = 0;
+  virtual void SetCodecPreferences(
+      vector<scoped_refptr<RTCRtpCodecCapability>> codecs) = 0;
 
-  // virtual vector<RTCRtpCodecCapability> codec_preferences() const = 0;
-
-  // virtual vector<RTCRtpHeaderExtensionCapability> HeaderExtensionsToOffer()
-  // const = 0;
-
-  // virtual std::vector<RTCRtpHeaderExtensionCapability>
-  // HeaderExtensionsNegotiated() const = 0;
-
-  // virtual webrtc::RTCError SetOfferedRtpHeaderExtensions(vector<const
-  // RTCRtpHeaderExtensionCapability> header_extensions_to_offer);
+  virtual const string transceiver_id() const = 0;
 };
 
 }  // namespace libwebrtc

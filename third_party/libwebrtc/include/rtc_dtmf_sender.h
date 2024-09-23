@@ -25,13 +25,10 @@ class RTCDtmfSender : public RefCountInterface {
 
   virtual void UnregisterObserver() = 0;
 
-  virtual bool InsertDtmf(const string tones,
-                          int duration,
+  virtual bool InsertDtmf(const string tones, int duration,
                           int inter_tone_gap) = 0;
 
-  virtual bool InsertDtmf(const string tones,
-                          int duration,
-                          int inter_tone_gap,
+  virtual bool InsertDtmf(const string tones, int duration, int inter_tone_gap,
                           int comma_delay) = 0;
 
   virtual bool CanInsertDtmf() = 0;

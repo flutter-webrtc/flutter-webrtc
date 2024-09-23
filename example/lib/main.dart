@@ -5,20 +5,22 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc_example/src/capture_frame_sample.dart';
 
-import 'src/data_channel_sample.dart';
+import 'src/device_enumeration_sample.dart';
 import 'src/get_display_media_sample.dart';
 import 'src/get_user_media_sample.dart'
     if (dart.library.html) 'src/get_user_media_sample_web.dart';
-import 'src/loopback_sample.dart';
+import 'src/loopback_data_channel_sample.dart';
+import 'src/loopback_sample_unified_tracks.dart';
 import 'src/route_item.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   if (WebRTC.platformIsDesktop) {
     debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
   } else if (WebRTC.platformIsAndroid) {
-    WidgetsFlutterBinding.ensureInitialized();
-    startForegroundService();
+    //startForegroundService();
   }
   runApp(MyApp());
 }
@@ -27,7 +29,7 @@ Future<bool> startForegroundService() async {
   final androidConfig = FlutterBackgroundAndroidConfig(
     notificationTitle: 'Title of the notification',
     notificationText: 'Text of the notification',
-    notificationImportance: AndroidNotificationImportance.Default,
+    notificationImportance: AndroidNotificationImportance.normal,
     notificationIcon: AndroidResource(
         name: 'background_icon',
         defType: 'drawable'), // Default is ic_launcher from folder mipmap
@@ -64,6 +66,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
           appBar: AppBar(
             title: Text('Flutter-WebRTC example'),
@@ -89,6 +92,15 @@ class _MyAppState extends State<MyApp> {
                     builder: (BuildContext context) => GetUserMediaSample()));
           }),
       RouteItem(
+          title: 'Device Enumeration',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) =>
+                        DeviceEnumerationSample()));
+          }),
+      RouteItem(
           title: 'GetDisplayMedia',
           push: (BuildContext context) {
             Navigator.push(
@@ -98,20 +110,30 @@ class _MyAppState extends State<MyApp> {
                         GetDisplayMediaSample()));
           }),
       RouteItem(
-          title: 'LoopBack Sample',
+          title: 'LoopBack Sample (Unified Tracks)',
           push: (BuildContext context) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (BuildContext context) => LoopBackSample()));
+                    builder: (BuildContext context) =>
+                        LoopBackSampleUnifiedTracks()));
           }),
       RouteItem(
-          title: 'DataChannel',
+          title: 'DataChannelLoopBackSample',
           push: (BuildContext context) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (BuildContext context) => DataChannelSample()));
+                    builder: (BuildContext context) =>
+                        DataChannelLoopBackSample()));
+          }),
+      RouteItem(
+          title: 'Capture Frame',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) => CaptureFrameSample()));
           }),
     ];
   }

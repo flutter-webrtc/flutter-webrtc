@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.webrtc.EglBase;
 import org.webrtc.MediaStream;
-import org.webrtc.MediaStreamTrack;
 import org.webrtc.RendererCommon.RendererEvents;
 import org.webrtc.VideoTrack;
 
@@ -22,9 +21,11 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
 
     private static final String TAG = FlutterWebRTCPlugin.TAG;
     private final SurfaceTexture texture;
-    private TextureRegistry.SurfaceTextureEntry entry;
+    private final TextureRegistry.SurfaceTextureEntry entry;
     private int id = -1;
     private MediaStream mediaStream;
+
+    private String ownerTag;
 
     public void Dispose() {
         //destroy
@@ -54,7 +55,9 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
                 ConstraintsMap params = new ConstraintsMap();
                 params.putString("event", "didFirstFrameRendered");
                 params.putInt("id", id);
-                eventSink.success(params.toMap());
+                if (eventSink != null) {
+                    eventSink.success(params.toMap());
+                }
             }
 
             @Override
@@ -87,7 +90,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         };
     }
 
-    private SurfaceTextureRenderer surfaceTextureRenderer;
+    private final SurfaceTextureRenderer surfaceTextureRenderer;
 
     /**
      * The {@code VideoTrack}, if any, rendered by this {@code FlutterRTCVideoRenderer}.
@@ -106,6 +109,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         this.texture = texture;
         this.eventSink = null;
         this.entry = entry;
+        this.ownerTag = null;
     }
 
     public void setEventChannel(EventChannel eventChannel) {
@@ -142,15 +146,46 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * @param mediaStream The {@code MediaStream} to be rendered by this
      *                    {@code FlutterRTCVideoRenderer} or {@code null}.
      */
-    public void setStream(MediaStream mediaStream) {
+    public void setStream(MediaStream mediaStream, String ownerTag) {
         VideoTrack videoTrack;
         this.mediaStream = mediaStream;
+        this.ownerTag = ownerTag;
         if (mediaStream == null) {
             videoTrack = null;
         } else {
             List<VideoTrack> videoTracks = mediaStream.videoTracks;
 
             videoTrack = videoTracks.isEmpty() ? null : videoTracks.get(0);
+        }
+
+        setVideoTrack(videoTrack);
+    }
+   /**
+     * Sets the {@code MediaStream} to be rendered by this {@code FlutterRTCVideoRenderer}.
+     * The implementation renders the first {@link VideoTrack}, if any, of the
+     * specified trackId
+     *
+     * @param mediaStream The {@code MediaStream} to be rendered by this
+     *                    {@code FlutterRTCVideoRenderer} or {@code null}.
+     * @param trackId The {@code trackId} to be rendered by this
+     *                    {@code FlutterRTCVideoRenderer} or {@code null}.
+     */
+    public void setStream(MediaStream mediaStream,String trackId, String ownerTag) {
+        VideoTrack videoTrack;
+        this.mediaStream = mediaStream;
+        this.ownerTag = ownerTag;
+        if (mediaStream == null) {
+            videoTrack = null;
+        } else {
+            List<VideoTrack> videoTracks = mediaStream.videoTracks;
+
+            videoTrack = videoTracks.isEmpty() ? null : videoTracks.get(0);
+
+            for (VideoTrack track : videoTracks){
+                if (track.id().equals(trackId)){
+                    videoTrack = track;
+                }
+            }
         }
 
         setVideoTrack(videoTrack);
@@ -173,8 +208,12 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
             this.videoTrack = videoTrack;
 
             if (videoTrack != null) {
-                Log.w(TAG, "FlutterRTCVideoRenderer.setVideoTrack, set video track to " + videoTrack.id());
-                tryAddRendererToVideoTrack();
+                try {
+                    Log.w(TAG, "FlutterRTCVideoRenderer.setVideoTrack, set video track to " + videoTrack.id());
+                    tryAddRendererToVideoTrack();
+                } catch (Exception e) {
+                    Log.e(TAG, "tryAddRendererToVideoTrack " + e);
+                }
             } else {
                 Log.w(TAG, "FlutterRTCVideoRenderer.setVideoTrack, set video track to null");
             }
@@ -185,7 +224,7 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * Starts rendering {@link #videoTrack} if rendering is not in progress and
      * all preconditions for the start of rendering are met.
      */
-    private void tryAddRendererToVideoTrack() {
+    private void tryAddRendererToVideoTrack() throws Exception {
         if (videoTrack != null) {
             EglBase.Context sharedContext = EglUtils.getRootEglBaseContext();
 
@@ -205,15 +244,15 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
         }
     }
 
-    public boolean checkMediaStream(String id) {
-        if (null == id || null == mediaStream) {
+    public boolean checkMediaStream(String id, String ownerTag) {
+        if (null == id || null == mediaStream || ownerTag == null || !ownerTag.equals(this.ownerTag)) {
             return false;
         }
         return id.equals(mediaStream.getId());
     }
 
-    public boolean checkVideoTrack(String id) {
-        if (null == id || null == videoTrack) {
+    public boolean checkVideoTrack(String id, String ownerTag) {
+        if (null == id || null == videoTrack  || ownerTag == null || !ownerTag.equals(this.ownerTag)) {
             return false;
         }
         return id.equals(videoTrack.id());

@@ -12,11 +12,15 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     implements VideoRenderer {
   RTCVideoRenderer() : super(RTCVideoValue.empty);
   int? _textureId;
+  bool _disposed = false;
   MediaStream? _srcObject;
   StreamSubscription<dynamic>? _eventSubscription;
 
   @override
   Future<void> initialize() async {
+    if (_textureId != null) {
+      return;
+    }
     final response = await WebRTC.invokeMethod('createVideoRenderer', {});
     _textureId = response['textureId'];
     _eventSubscription = EventChannel('FlutterWebRTC/Texture$textureId')
@@ -40,9 +44,14 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   Function? onResize;
 
   @override
-  set srcObject(MediaStream? stream) {
-    if (textureId == null) throw 'Call initialize before setting the stream';
+  Function? onFirstFrameRendered;
 
+  @override
+  set srcObject(MediaStream? stream) {
+    if (_disposed) {
+      throw 'Can\'t set srcObject: The RTCVideoRenderer is disposed';
+    }
+    if (textureId == null) throw 'Call initialize before setting the stream';
     _srcObject = stream;
     WebRTC.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
       'textureId': textureId,
@@ -52,21 +61,55 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       value = (stream == null)
           ? RTCVideoValue.empty
           : value.copyWith(renderVideo: renderVideo);
-    });
+    }).catchError((e) {
+      print('Got exception for RTCVideoRenderer::setSrcObject: ${e.message}');
+    }, test: (e) => e is PlatformException);
+  }
+
+  Future<void> setSrcObject({MediaStream? stream, String? trackId}) async {
+    if (_disposed) {
+      throw 'Can\'t set srcObject: The RTCVideoRenderer is disposed';
+    }
+    if (_textureId == null) throw 'Call initialize before setting the stream';
+    _srcObject = stream;
+    var oldTextureId = _textureId;
+    try {
+      await WebRTC.invokeMethod('videoRendererSetSrcObject', <String, dynamic>{
+        'textureId': _textureId,
+        'streamId': stream?.id ?? '',
+        'ownerTag': stream?.ownerTag ?? '',
+        'trackId': trackId ?? '0'
+      });
+      value = (stream == null)
+          ? RTCVideoValue.empty
+          : value.copyWith(renderVideo: renderVideo);
+    } on PlatformException catch (e) {
+      throw 'Got exception for RTCVideoRenderer::setSrcObject: textureId $oldTextureId [disposed: $_disposed] with stream ${stream?.id}, error: ${e.message}';
+    }
   }
 
   @override
   Future<void> dispose() async {
+    if (_disposed) return;
     await _eventSubscription?.cancel();
-    await WebRTC.invokeMethod(
-      'videoRendererDispose',
-      <String, dynamic>{'textureId': _textureId},
-    );
+    _eventSubscription = null;
+    if (_textureId != null) {
+      try {
+        await WebRTC.invokeMethod('videoRendererDispose', <String, dynamic>{
+          'textureId': _textureId,
+        });
+        _textureId = null;
+        _disposed = true;
+      } on PlatformException catch (e) {
+        throw 'Failed to RTCVideoRenderer::dispose: ${e.message}';
+      }
+    }
 
     return super.dispose();
   }
 
   void eventListener(dynamic event) {
+    if (_disposed) return;
     final Map<dynamic, dynamic> map = event;
     switch (map['event']) {
       case 'didTextureChangeRotation':
@@ -83,6 +126,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
         break;
       case 'didFirstFrameRendered':
         value = value.copyWith(renderVideo: renderVideo);
+        onFirstFrameRendered?.call();
         break;
     }
   }
@@ -94,13 +138,16 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   }
 
   @override
-  bool get renderVideo => srcObject != null;
+  bool get renderVideo => _textureId != null && _srcObject != null;
 
   @override
   bool get muted => _srcObject?.getAudioTracks()[0].muted ?? true;
 
   @override
   set muted(bool mute) {
+    if (_disposed) {
+      throw Exception('Can\'t be muted: The RTCVideoRenderer is disposed');
+    }
     if (_srcObject == null) {
       throw Exception('Can\'t be muted: The MediaStream is null');
     }
@@ -116,8 +163,13 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   }
 
   @override
-  Future<bool> audioOutput(String deviceId) {
-    // TODO(cloudwebrtc): related to https://github.com/flutter-webrtc/flutter-webrtc/issues/395
-    throw UnimplementedError('This is not implement yet');
+  Future<bool> audioOutput(String deviceId) async {
+    try {
+      await Helper.selectAudioOutput(deviceId);
+    } catch (e) {
+      print('Helper.selectAudioOutput ${e.toString()}');
+      return false;
+    }
+    return true;
   }
 }

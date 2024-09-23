@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:flutter_webrtc/src/native/rtc_data_channel_impl.dart';
 import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
 
 void main() {
@@ -9,10 +10,10 @@ void main() {
   final channel = MethodChannel('FlutterWebRTC.Method');
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      await ServicesBinding.instance?.defaultBinaryMessenger
+      await ServicesBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
-              'FlutterWebRTC/peerConnectoinEvent', null, (ByteData? data) {});
-      await ServicesBinding.instance?.defaultBinaryMessenger
+              'FlutterWebRTC/peerConnectionEvent', null, (ByteData? data) {});
+      await ServicesBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
               'FlutterWebRTC/dataChannelEvent', null, (ByteData? data) {});
     });
@@ -25,7 +26,7 @@ void main() {
   test(
       'Validate that not setting any public delegate this will not break the implementation by throwing NPE',
       () {
-    final rct = RTCPeerConnectionNative('', {});
+    final pc = RTCPeerConnectionNative('', {});
     final events = [
       'signalingState',
       'iceGatheringState',
@@ -39,8 +40,18 @@ void main() {
       'onRenegotiationNeeded'
     ];
 
-    events.forEach((event) {
-      rct.eventListener(<String, dynamic>{
+    pc.onDataChannel = (dc) {
+      final channel = dc as RTCDataChannelNative;
+      channel.eventListener(<String, dynamic>{
+        'event': 'dataChannelStateChanged',
+        'id': 0,
+        'flutterId': '',
+        'state': 'open'
+      });
+    };
+
+    for (var event in events) {
+      pc.eventListener(<String, dynamic>{
         'event': event,
 
         //Minimum values for signalingState, iceGatheringState, iceConnectionState
@@ -66,7 +77,8 @@ void main() {
         },
         'id': 0,
         'label': '',
+        'flutterId': '',
       });
-    });
+    }
   });
 }
