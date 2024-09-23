@@ -34,7 +34,6 @@ import com.cloudwebrtc.webrtc.utils.PermissionUtils;
 import com.cloudwebrtc.webrtc.utils.Utils;
 import com.twilio.audioswitch.AudioDevice;
 
-import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
 import org.webrtc.DtmfSender;
