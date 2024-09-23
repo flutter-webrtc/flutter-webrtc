@@ -584,6 +584,7 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
           shouldCallResult = NO;
           stopHandler(^{
             NSLog(@"video capturer stopped, trackID = %@", videoTrack.trackId);
+            self.videoCapturer = nil;
             result(nil);
           });
           [self.videoCapturerStopHandlers removeObjectForKey:videoTrack.trackId];
