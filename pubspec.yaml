@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider: ^2.0.2
-  web: ^0.5.1
+  web: ^1.0.0
   webrtc_interface: ^1.2.0
 
 dev_dependencies:
