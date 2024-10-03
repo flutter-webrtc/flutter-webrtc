@@ -46,6 +46,10 @@ class RTCVideoViewState extends State<RTCVideoView> {
         widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
             ? 'contain'
             : 'cover';
+
+    videoElement =
+        web.document.getElementById("video_${videoRenderer.viewType}")
+            as web.HTMLVideoElement?;
     frameCallback(0.toJS, 0.toJS);
   }
 
@@ -126,6 +130,15 @@ class RTCVideoViewState extends State<RTCVideoView> {
     }
   }
 
+  Size? size;
+
+  void updateElement() {
+    if (videoElement != null && size != null) {
+      videoElement!.width = size!.width.toInt();
+      videoElement!.height = size!.height.toInt();
+    }
+  }
+
   @override
   void didUpdateWidget(RTCVideoView oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -143,37 +156,38 @@ class RTCVideoViewState extends State<RTCVideoView> {
     if (useHtmlElementView) {
       return HtmlElementView(viewType: videoRenderer.viewType);
     } else {
-      return Stack(children: [
-        Positioned.fill(
-            child: HtmlElementView(
-                viewType: videoRenderer.viewType,
-                onPlatformViewCreated: (viewId) {
-                  videoElement = ui_web.platformViewRegistry.getViewById(viewId)
-                      as web.HTMLVideoElement;
-                })),
-        if (capturedFrame != null)
-          Positioned.fill(
-              child: widget.mirror
-                  ? Transform.flip(
-                      flipX: true,
-                      child: RawImage(
-                          image: capturedFrame,
-                          fit: switch (widget.objectFit) {
-                            RTCVideoViewObjectFit
-                                  .RTCVideoViewObjectFitContain =>
-                              BoxFit.contain,
-                            RTCVideoViewObjectFit.RTCVideoViewObjectFitCover =>
-                              BoxFit.cover,
-                          }))
-                  : RawImage(
-                      image: capturedFrame,
-                      fit: switch (widget.objectFit) {
-                        RTCVideoViewObjectFit.RTCVideoViewObjectFitContain =>
-                          BoxFit.contain,
-                        RTCVideoViewObjectFit.RTCVideoViewObjectFitCover =>
-                          BoxFit.cover,
-                      })),
-      ]);
+      return LayoutBuilder(builder: (context, constraints) {
+        if (videoElement != null && size != constraints.biggest) {
+          size = constraints.biggest;
+          updateElement();
+        }
+
+        return Stack(children: [
+          if (capturedFrame != null)
+            Positioned.fill(
+                child: widget.mirror
+                    ? Transform.flip(
+                        flipX: true,
+                        child: RawImage(
+                            image: capturedFrame,
+                            fit: switch (widget.objectFit) {
+                              RTCVideoViewObjectFit
+                                    .RTCVideoViewObjectFitContain =>
+                                BoxFit.contain,
+                              RTCVideoViewObjectFit
+                                    .RTCVideoViewObjectFitCover =>
+                                BoxFit.cover,
+                            }))
+                    : RawImage(
+                        image: capturedFrame,
+                        fit: switch (widget.objectFit) {
+                          RTCVideoViewObjectFit.RTCVideoViewObjectFitContain =>
+                            BoxFit.contain,
+                          RTCVideoViewObjectFit.RTCVideoViewObjectFitCover =>
+                            BoxFit.cover,
+                        })),
+        ]);
+      });
     }
   }
 

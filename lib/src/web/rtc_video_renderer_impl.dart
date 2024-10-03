@@ -237,6 +237,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     if (audioManager != null && !audioManager.hasChildNodes()) {
       audioManager.remove();
     }
+    if (!useHtmlElementView) {
+      element?.remove();
+    }
     return super.dispose();
   }
 
@@ -257,68 +260,76 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     return false;
   }
 
+  web.HTMLVideoElement createElement() {
+    for (var s in _subscriptions) {
+      s.cancel();
+    }
+    _subscriptions.clear();
+
+    final element = web.HTMLVideoElement()
+      ..autoplay = true
+      ..muted = true
+      ..controls = false
+      ..srcObject = _videoStream
+      ..id = _elementIdForVideo
+      ..setAttribute('playsinline', 'true');
+
+    if (!useHtmlElementView) {
+      element.style.pointerEvents = "none";
+      element.style.opacity = "0";
+    } else {
+      _applyDefaultVideoStyles(element);
+    }
+
+    _subscriptions.add(
+      element.onCanPlay.listen((dynamic _) {
+        _updateAllValues();
+      }),
+    );
+
+    _subscriptions.add(
+      element.onResize.listen((dynamic _) {
+        _updateAllValues();
+        onResize?.call();
+      }),
+    );
+
+    // The error event fires when some form of error occurs while attempting to load or perform the media.
+    _subscriptions.add(
+      element.onError.listen((web.Event _) {
+        // The Event itself (_) doesn't contain info about the actual error.
+        // We need to look at the HTMLMediaElement.error.
+        // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
+        final error = element.error;
+        print('RTCVideoRenderer: videoElement.onError, ${error.toString()}');
+        throw PlatformException(
+          code: _kErrorValueToErrorName[error!.code]!,
+          message: error.message != '' ? error.message : _kDefaultErrorMessage,
+          details: _kErrorValueToErrorDescription[error.code],
+        );
+      }),
+    );
+
+    _subscriptions.add(
+      element.onEnded.listen((dynamic _) {
+        // print('RTCVideoRenderer: videoElement.onEnded');
+      }),
+    );
+
+    return element;
+  }
+
   @override
   Future<void> initialize() async {
     bool isVisible = useHtmlElementView;
-    web_ui.platformViewRegistry.registerViewFactory(viewType, (int viewId) {
-      for (var s in _subscriptions) {
-        s.cancel();
-      }
-      _subscriptions.clear();
-
-      final element = web.HTMLVideoElement()
-        ..autoplay = true
-        ..muted = true
-        ..controls = false
-        ..srcObject = _videoStream
-        ..id = _elementIdForVideo
-        ..setAttribute('playsinline', 'true');
-
-      if (!isVisible) {
-        element.style.pointerEvents = "none";
-        element.style.opacity = "0";
-      }
-
-      _applyDefaultVideoStyles(element);
-
-      _subscriptions.add(
-        element.onCanPlay.listen((dynamic _) {
-          _updateAllValues();
-        }),
-      );
-
-      _subscriptions.add(
-        element.onResize.listen((dynamic _) {
-          _updateAllValues();
-          onResize?.call();
-        }),
-      );
-
-      // The error event fires when some form of error occurs while attempting to load or perform the media.
-      _subscriptions.add(
-        element.onError.listen((web.Event _) {
-          // The Event itself (_) doesn't contain info about the actual error.
-          // We need to look at the HTMLMediaElement.error.
-          // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
-          final error = element.error;
-          print('RTCVideoRenderer: videoElement.onError, ${error.toString()}');
-          throw PlatformException(
-            code: _kErrorValueToErrorName[error!.code]!,
-            message:
-                error.message != '' ? error.message : _kDefaultErrorMessage,
-            details: _kErrorValueToErrorDescription[error.code],
-          );
-        }),
-      );
-
-      _subscriptions.add(
-        element.onEnded.listen((dynamic _) {
-          // print('RTCVideoRenderer: videoElement.onEnded');
-        }),
-      );
-
-      return element;
-    }, isVisible: isVisible);
+    if (isVisible) {
+      web_ui.platformViewRegistry.registerViewFactory(viewType, (int viewId) {
+        return createElement();
+      }, isVisible: isVisible);
+    } else {
+      final element = createElement();
+      web.window.document.body!.appendChild(element);
+    }
   }
 
   void _applyDefaultVideoStyles(web.HTMLVideoElement element) {
