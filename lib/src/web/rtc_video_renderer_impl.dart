@@ -274,12 +274,7 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       ..id = _elementIdForVideo
       ..setAttribute('playsinline', 'true');
 
-    if (!useHtmlElementView) {
-      element.style.pointerEvents = "none";
-      element.style.opacity = "0";
-    } else {
-      _applyDefaultVideoStyles(element);
-    }
+    _applyDefaultVideoStyles(element);
 
     _subscriptions.add(
       element.onCanPlay.listen((dynamic _) {
@@ -338,11 +333,17 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       element.style.transform = 'scaleX(-1)';
     }
 
-    element
-      ..style.objectFit = _objectFit
-      ..style.border = 'none'
-      ..style.width = '100%'
-      ..style.height = '100%';
+    if (useHtmlElementView) {
+      element
+        ..style.objectFit = _objectFit
+        ..style.border = 'none'
+        ..style.width = '100%'
+        ..style.height = '100%';
+    } else {
+      element.style.pointerEvents = "none";
+      element.style.opacity = "0";
+      element.style.position = "absolute";
+    }
   }
 
   @override
