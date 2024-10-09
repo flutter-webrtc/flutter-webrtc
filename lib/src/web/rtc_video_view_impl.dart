@@ -165,27 +165,22 @@ class RTCVideoViewState extends State<RTCVideoView> {
         return Stack(children: [
           if (capturedFrame != null)
             Positioned.fill(
-                child: widget.mirror
-                    ? Transform.flip(
-                        flipX: true,
-                        child: RawImage(
-                            image: capturedFrame,
-                            fit: switch (widget.objectFit) {
-                              RTCVideoViewObjectFit
-                                    .RTCVideoViewObjectFitContain =>
-                                BoxFit.contain,
-                              RTCVideoViewObjectFit
-                                    .RTCVideoViewObjectFitCover =>
-                                BoxFit.cover,
-                            }))
-                    : RawImage(
-                        image: capturedFrame,
-                        fit: switch (widget.objectFit) {
-                          RTCVideoViewObjectFit.RTCVideoViewObjectFitContain =>
-                            BoxFit.contain,
-                          RTCVideoViewObjectFit.RTCVideoViewObjectFitCover =>
-                            BoxFit.cover,
-                        })),
+                child: FittedBox(
+                    fit: switch (widget.objectFit) {
+                      RTCVideoViewObjectFit.RTCVideoViewObjectFitContain =>
+                        BoxFit.contain,
+                      RTCVideoViewObjectFit.RTCVideoViewObjectFitCover =>
+                        BoxFit.cover,
+                    },
+                    child: SizedBox(
+                        width: capturedFrame!.width.toDouble(),
+                        height: capturedFrame!.height.toDouble(),
+                        child: CustomPaint(
+                            willChange: true,
+                            painter: _ImageFlipPainter(
+                              capturedFrame!,
+                              widget.mirror,
+                            )))))
         ]);
       });
     }
@@ -233,4 +228,28 @@ extension _HTMLVideoElementRequestAnimationFrame on web.HTMLVideoElement {
 
   external int requestVideoFrameCallback(_VideoFrameRequestCallback callback);
   external void cancelVideoFrameCallback(int callbackID);
+}
+
+class _ImageFlipPainter extends CustomPainter {
+  _ImageFlipPainter(this.image, this.flip);
+
+  final ui.Image image;
+  final bool flip;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (flip) {
+      canvas.scale(-1, 1);
+      canvas.drawImage(image, Offset(-size.width, 0),
+          Paint()..filterQuality = ui.FilterQuality.high);
+    } else {
+      canvas.drawImage(
+          image, Offset(0, 0), Paint()..filterQuality = ui.FilterQuality.high);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
 }
