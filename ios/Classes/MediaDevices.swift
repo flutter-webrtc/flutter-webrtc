@@ -14,11 +14,11 @@ class MediaDevices {
   /// Subscribes on `AVAudioSession.routeChangeNotification` notifications for
   /// `onDeviceChange` callback firing.
   init(state: State) {
-    try! AVAudioSession.sharedInstance().setCategory(
+    try? AVAudioSession.sharedInstance().setCategory(
       AVAudioSession.Category.playAndRecord,
       options: AVAudioSession.CategoryOptions.allowBluetooth
     )
-    try! AVAudioSession.sharedInstance().setActive(true)
+    try? AVAudioSession.sharedInstance().setActive(true)
     self.state = state
     NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification, object: nil,

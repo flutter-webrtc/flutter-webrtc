@@ -19,8 +19,13 @@ All user visible changes to this project will be documented in this file. This p
 
 - Upgraded `flutter_rust_bridge` to 2.4.0 version. ([#172])
 
+### Fixed
+
+- `AVAudioSession` activation in push notification context on [iOS]. ([#175])
+
 [#172]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/172
 [#173]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/173
+[#175]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/175
 
 
 
