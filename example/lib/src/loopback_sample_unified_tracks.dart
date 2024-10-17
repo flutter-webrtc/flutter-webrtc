@@ -3,7 +3,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:videosdk_webrtc/flutter_webrtc.dart';
 
 class LoopBackSampleUnifiedTracks extends StatefulWidget {
   static String tag = 'loopback_sample_unified_tracks';

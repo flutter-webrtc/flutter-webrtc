@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:core';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:videosdk_webrtc/flutter_webrtc.dart';
 
 class DataChannelLoopBackSample extends StatefulWidget {
   static String tag = 'data_channel_sample';

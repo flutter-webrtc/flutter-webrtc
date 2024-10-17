@@ -3,7 +3,7 @@ import 'dart:core';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:videosdk_webrtc/flutter_webrtc.dart';
 import 'package:flutter_webrtc_example/src/widgets/screen_select_dialog.dart';
 
 /*
@@ -58,11 +58,11 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
           try {
             var hasPermissions = await FlutterBackground.hasPermissions;
             if (!isRetry) {
-              const androidConfig = FlutterBackgroundAndroidConfig(
+              var androidConfig = FlutterBackgroundAndroidConfig(
                 notificationTitle: 'Screen Sharing',
                 notificationText: 'LiveKit Example is sharing the screen.',
-                notificationImportance: AndroidNotificationImportance.Default,
-                notificationIcon: AndroidResource(
+                notificationImportance: AndroidNotificationImportance.normal,
+                notificationIcon: const AndroidResource(
                     name: 'livekit_ic_launcher', defType: 'mipmap'),
               );
               hasPermissions = await FlutterBackground.initialize(

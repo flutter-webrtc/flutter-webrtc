@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:videosdk_webrtc/flutter_webrtc.dart';
 import 'package:flutter_webrtc_example/src/capture_frame_sample.dart';
 
 import 'src/device_enumeration_sample.dart';
@@ -29,7 +29,7 @@ Future<bool> startForegroundService() async {
   final androidConfig = FlutterBackgroundAndroidConfig(
     notificationTitle: 'Title of the notification',
     notificationText: 'Text of the notification',
-    notificationImportance: AndroidNotificationImportance.Default,
+    notificationImportance: AndroidNotificationImportance.normal,
     notificationIcon: AndroidResource(
         name: 'background_icon',
         defType: 'drawable'), // Default is ic_launcher from folder mipmap
