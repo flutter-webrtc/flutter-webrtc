@@ -8,15 +8,15 @@ environment:
 dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
+  cupertino_icons: 1.0.8
   flutter:
     sdk: flutter
   flutter_background: ^1.0.0
   videosdk_webrtc:
     path: ../
   # Required for MediaRecorder example
-  path_provider: ^2.0.2
-  permission_handler: ^10.2.0
+  path_provider: ^2.1.4
+  permission_handler: 10.2.0
   sdp_transform: ^0.3.2
 
 

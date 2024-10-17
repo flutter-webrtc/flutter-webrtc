@@ -29,7 +29,7 @@ Future<bool> startForegroundService() async {
   final androidConfig = FlutterBackgroundAndroidConfig(
     notificationTitle: 'Title of the notification',
     notificationText: 'Text of the notification',
-    notificationImportance: AndroidNotificationImportance.normal,
+    notificationImportance: AndroidNotificationImportance.Default,
     notificationIcon: AndroidResource(
         name: 'background_icon',
         defType: 'drawable'), // Default is ic_launcher from folder mipmap
