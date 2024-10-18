@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.12.0+hotfix.1] - 2024-10-18
+
+* [macOS] fix compilation error for macOS.
+
 [0.12.0] - 2024-10-16
 
 * [iOS/macOS] Fix memory leak for iOS/macOS.
