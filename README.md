@@ -112,7 +112,7 @@ If necessary, in the same `build.gradle` you will need to increase `minSdkVersio
 
 ### Important reminder
 When you compile the release apk, you need to add the following operations,
-[Setup Proguard Rules](https://github.com/flutter-webrtc/flutter-webrtc/commit/d32dab13b5a0bed80dd9d0f98990f107b9b514f4)
+[Setup Proguard Rules](https://github.com/flutter-webrtc/flutter-webrtc/blob/main/android/proguard-rules.pro)
 
 ## Contributing
 
