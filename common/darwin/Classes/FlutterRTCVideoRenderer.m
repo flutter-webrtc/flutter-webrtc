@@ -45,12 +45,6 @@
   return self;
 }
 
-- (void)dealloc {
-  if (_pixelBufferRef) {
-    CVBufferRelease(_pixelBufferRef);
-  }
-}
-
 - (CVPixelBufferRef)copyPixelBuffer {
   if (_pixelBufferRef != nil) {
     CVBufferRetain(_pixelBufferRef);
@@ -61,6 +55,10 @@
 
 - (void)dispose {
   [_registry unregisterTexture:_textureId];
+  if (_pixelBufferRef) {
+    CVBufferRelease(_pixelBufferRef);
+    _pixelBufferRef = nil;
+  }
 }
 
 - (void)setVideoTrack:(RTCVideoTrack*)videoTrack {

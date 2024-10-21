@@ -935,12 +935,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     FourCharCode pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription);
 #if TARGET_OS_IPHONE
     if (@available(iOS 13.0, *)) {
-        if(format.isMultiCamSupported != AVCaptureMultiCamSession.multiCamSupported) {
-            continue;
-        }
+      if(format.isMultiCamSupported != AVCaptureMultiCamSession.multiCamSupported) {
+        continue;
+      }
     }
 #endif
-    //NSLog(@"AVCaptureDeviceFormats,fps %@, dimension: %dx%d", format.videoSupportedFrameRateRanges, dimension.width, dimension.height);
+    //NSLog(@"AVCaptureDeviceFormats,fps %d, dimension: %dx%d", format.videoSupportedFrameRateRanges, dimension.width, dimension.height);
     long diff = labs(targetWidth - dimension.width) + labs(targetHeight - dimension.height);
     if (diff < currentDiff) {
       selectedFormat = format;
