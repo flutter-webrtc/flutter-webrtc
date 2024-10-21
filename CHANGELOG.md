@@ -6,6 +6,7 @@
 * [web] fix: add stub WebRTC.initialize for web.
 * [Docs] Fixing proguard rules link (#1686)
 * [iOS/Android] feat: support unprocessed audio (#825)
+* [eLinux] feat: add support for eLinux (#1338)
 
 [0.12.0+hotfix.1] - 2024-10-18
 
