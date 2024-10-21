@@ -309,14 +309,19 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   AVCaptureDevice* videoDevice;
   NSString* videoDeviceId = nil;
   NSString* facingMode = nil;
+  NSArray<AVCaptureDevice*>* captureDevices = [RTCCameraVideoCapturer captureDevices];
 
   if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
     // constraints.video.deviceId
     NSString* deviceId = videoConstraints[@"deviceId"];
 
     if (deviceId) {
-      videoDevice = [AVCaptureDevice deviceWithUniqueID:deviceId];
-      videoDeviceId = deviceId;
+        for (AVCaptureDevice *device in captureDevices) {
+            if( [deviceId isEqualToString:device.uniqueID]) {
+                videoDevice = device;
+                videoDeviceId = deviceId;
+            }
+        }
     }
 
     // constraints.video.optional
@@ -328,9 +333,13 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
         if ([item isKindOfClass:[NSDictionary class]]) {
           NSString* sourceId = ((NSDictionary*)item)[@"sourceId"];
           if (sourceId) {
-            videoDevice = [AVCaptureDevice deviceWithUniqueID:sourceId];
+              for (AVCaptureDevice *device in captureDevices) {
+                  if( [sourceId isEqualToString:device.uniqueID]) {
+                      videoDevice = device;
+                      videoDeviceId = sourceId;
+                  }
+              }
             if (videoDevice) {
-              videoDeviceId = sourceId;
               break;
             }
           }
@@ -421,9 +430,11 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 
   if (videoDevice) {
     RTCVideoSource* videoSource = [self.peerConnectionFactory videoSource];
+#if TARGET_OS_OSX
     if (self.videoCapturer) {
       [self.videoCapturer stopCapture];
     }
+#endif
     self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
     AVCaptureDeviceFormat* selectedFormat = [self selectFormatForDevice:videoDevice
                                                             targetWidth:targetWidth
