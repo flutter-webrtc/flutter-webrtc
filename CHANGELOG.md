@@ -7,8 +7,6 @@
 * [Docs] Fixing proguard rules link (#1686)
 * [iOS/Android] feat: support unprocessed audio (#825)
 
-[0.12.0+hotfix.2] - 2024-10-20
-
 [0.12.0+hotfix.1] - 2024-10-18
 
 * [macOS] fix compilation error for macOS.
