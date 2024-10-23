@@ -2,7 +2,7 @@ import WebRTC
 
 /// Wrapper around an `RTCRtpReceiver`, powering it with additional API.
 class RtpReceiverProxy {
-  /// Actual underlying [RtpReceiver].
+  /// Actual underlying `RTCRtpReceiver`.
   private var receiver: RTCRtpReceiver
 
   /// `MediaStreamTrackProxy` of this `RtpReceiverProxy`.
