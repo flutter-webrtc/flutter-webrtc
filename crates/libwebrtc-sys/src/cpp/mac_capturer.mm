@@ -106,7 +106,7 @@ bool MacCapturer::is_screencast() const {
 }
 
 // Returns `false`.
-absl::optional<bool> MacCapturer::needs_denoising() const {
+std::optional<bool> MacCapturer::needs_denoising() const {
   return false;
 }
 

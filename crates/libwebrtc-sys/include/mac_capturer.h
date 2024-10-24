@@ -48,7 +48,7 @@ class MacCapturer : public rtc::AdaptedVideoTrackSource,
   //
   // If it's not set, the default configuration is used, which is different
   // depending on a video codec.
-  absl::optional<bool> needs_denoising() const override;
+  std::optional<bool> needs_denoising() const override;
 
   // Returns state of this `DeviceVideoCapturer`.
   webrtc::MediaSourceInterface::SourceState state() const override;

@@ -258,7 +258,7 @@ bool ScreenVideoCapturer::is_screencast() const {
 }
 
 // Always returns `false`.
-absl::optional<bool> ScreenVideoCapturer::needs_denoising() const {
+std::optional<bool> ScreenVideoCapturer::needs_denoising() const {
   return false;
 }
 

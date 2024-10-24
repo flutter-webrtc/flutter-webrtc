@@ -2,18 +2,17 @@ group 'com.instrumentisto.medea_flutter_webrtc'
 version '0.11.2-dev'
 
 buildscript {
-    ext.kotlin_version = '1.9.0'
+    ext.kotlin_version = "1.8.22"
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath("com.android.tools.build:gradle:8.1.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
     }
 }
-
 rootProject.allprojects {
     repositories {
         google()
@@ -26,10 +25,14 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk = 34
+    if (project.android.hasProperty("namespace")) {
+        namespace = "com.instrumentisto.medea_flutter_webrtc"
+    }
+
+    compileSdk 34
 
     defaultConfig {
-        minSdkVersion 24
+        minSdk 21
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         consumerProguardFiles 'proguard-rules.pro'
     }
@@ -43,8 +46,12 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_1_8
     }
 
     sourceSets {
@@ -53,7 +60,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.instrumentisto:libwebrtc-bin:128.0.6613.119@aar'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version'
+    implementation 'com.github.instrumentisto:libwebrtc-bin:130.0.6723.58@aar'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 }

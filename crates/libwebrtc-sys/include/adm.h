@@ -167,14 +167,14 @@ class OpenALAudioDeviceModule : public ExtendedADM {
 
   int32_t GetPlayoutUnderrunCount() const override { return -1; }
 
-  virtual absl::optional<Stats> GetStats() const { return absl::nullopt; }
+  virtual std::optional<Stats> GetStats() const { return std::nullopt; }
 
 #if defined(WEBRTC_IOS)
   virtual int GetPlayoutAudioParameters(AudioParameters* params) const {
-    return absl::nullopt;
+    return std::nullopt;
   }
   virtual int GetRecordAudioParameters(AudioParameters* params) const {
-    return absl::nullopt;
+    return std::nullopt;
   }
 #endif  // WEBRTC_IOS
 
