@@ -1,7 +1,10 @@
 # Changelog
 
 --------------------------------------------
-[0.12.1] - 2024-10-21
+
+[0.12.1+hotfix.1] - 2024-10-25
+
+* [iOS] fix: fix switch camera broken on iOS.
 
 * [web] fix: add stub WebRTC.initialize for web.
 * [Docs] Fixing proguard rules link (#1686)
