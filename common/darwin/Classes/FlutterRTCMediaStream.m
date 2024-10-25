@@ -870,6 +870,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     NSLog(@"Video capturer is null. Can't switch camera");
     return;
   }
+  [self.videoCapturer stopCapture];
   self._usingFrontCamera = !self._usingFrontCamera;
   AVCaptureDevicePosition position =
       self._usingFrontCamera ? AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
