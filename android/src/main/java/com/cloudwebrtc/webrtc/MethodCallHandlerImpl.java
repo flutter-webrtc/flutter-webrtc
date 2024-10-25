@@ -193,6 +193,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     final Options options = new Options();
     options.networkIgnoreMask = networkIgnoreMask;
 
+    // Set this option to enable hotspot peer connection.
+    options.disableNetworkMonitor = true; 
+
     final PeerConnectionFactory.Builder factoryBuilder = PeerConnectionFactory.builder()
             .setOptions(options);
 
