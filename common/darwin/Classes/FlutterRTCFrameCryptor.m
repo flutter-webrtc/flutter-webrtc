@@ -81,8 +81,6 @@
   switch ([algorithm intValue]) {
     case 0:
       return RTCCryptorAlgorithmAesGcm;
-    case 1:
-      return RTCCryptorAlgorithmAesCbc;
     default:
       return RTCCryptorAlgorithmAesGcm;
   }
