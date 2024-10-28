@@ -6,7 +6,7 @@ All user visible changes to this project will be documented in this file. This p
 
 
 
-## [0.11.2] · 2024-??-?? (unreleased)
+## [0.11.2] · 2024-10-28
 [0.11.2]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.11.2
 
 [Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.11.1...0.11.2)
@@ -18,7 +18,7 @@ All user visible changes to this project will be documented in this file. This p
 ### Changed
 
 - Upgraded `flutter_rust_bridge` to 2.4.0 version. ([#172])
-- Upgraded [libwebrtc] to [130.0.6723.58] version. ([#177])
+- Upgraded [libwebrtc] to [130.0.6723.69] version. ([#176], [#177])
 
 ### Fixed
 
@@ -27,8 +27,9 @@ All user visible changes to this project will be documented in this file. This p
 [#172]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/172
 [#173]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/173
 [#175]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/175
+[#176]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/176
 [#177]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/177
-[130.0.6723.58]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/130.0.6723.58
+[130.0.6723.69]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/130.0.6723.69
 
 
 
