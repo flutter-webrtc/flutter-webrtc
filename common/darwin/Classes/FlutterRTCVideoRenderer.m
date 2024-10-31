@@ -191,7 +191,7 @@
 - (void)renderFrame:(RTCVideoFrame*)frame {
 
   os_unfair_lock_lock(&_lock);
-  if(!_frameAvailable) {
+  if(!_frameAvailable && _pixelBufferRef) {
     [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
     [self.registry textureFrameAvailable:self.textureId];
     _frameAvailable = true;
