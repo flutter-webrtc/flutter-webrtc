@@ -751,6 +751,13 @@ class GetUserMediaImpl {
         deviceId = result.first;
         VideoCapturer videoCapturer = result.second;
 
+        if (facingMode == null && cameraEnumerator.isFrontFacing(deviceId)) {
+            facingMode = "user";
+        } else if (facingMode == null && cameraEnumerator.isBackFacing(deviceId)) {
+            facingMode = "environment";
+        }
+        // else, leave facingMode as it was
+
         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
         VideoSource videoSource = pcFactory.createVideoSource(false);
         String threadName = Thread.currentThread().getName() + "_texture_camera_thread";
