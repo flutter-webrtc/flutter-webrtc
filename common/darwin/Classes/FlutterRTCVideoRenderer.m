@@ -9,6 +9,7 @@
 #import <objc/runtime.h>
 
 #import "FlutterWebRTCPlugin.h"
+#import <os/lock.h>
 
 @implementation FlutterRTCVideoRenderer {
   CGSize _frameSize;
@@ -17,6 +18,8 @@
   RTCVideoRotation _rotation;
   FlutterEventChannel* _eventChannel;
   bool _isFirstFrameRendered;
+  bool _frameAvailable;
+  os_unfair_lock _lock;
 }
 
 @synthesize textureId = _textureId;
@@ -27,7 +30,9 @@
                               messenger:(NSObject<FlutterBinaryMessenger>*)messenger {
   self = [super init];
   if (self) {
+    _lock = OS_UNFAIR_LOCK_INIT;
     _isFirstFrameRendered = false;
+    _frameAvailable = false;
     _frameSize = CGSizeZero;
     _renderSize = CGSizeZero;
     _rotation = -1;
@@ -46,19 +51,25 @@
 }
 
 - (CVPixelBufferRef)copyPixelBuffer {
-  if (_pixelBufferRef != nil) {
-    CVBufferRetain(_pixelBufferRef);
-    return _pixelBufferRef;
+  CVPixelBufferRef buffer = nil;
+  os_unfair_lock_lock(&_lock);
+  if (_pixelBufferRef != nil && _frameAvailable) {
+    buffer = CVBufferRetain(_pixelBufferRef);
+    _frameAvailable = false;
   }
-  return nil;
+  os_unfair_lock_unlock(&_lock);
+  return buffer;
 }
 
 - (void)dispose {
   [_registry unregisterTexture:_textureId];
+  os_unfair_lock_lock(&_lock);
   if (_pixelBufferRef) {
     CVBufferRelease(_pixelBufferRef);
     _pixelBufferRef = nil;
   }
+  _frameAvailable = false;
+  os_unfair_lock_unlock(&_lock);
 }
 
 - (void)setVideoTrack:(RTCVideoTrack*)videoTrack {
@@ -178,14 +189,21 @@
 
 #pragma mark - RTCVideoRenderer methods
 - (void)renderFrame:(RTCVideoFrame*)frame {
-  [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
+
+  os_unfair_lock_lock(&_lock);
+  if(!_frameAvailable) {
+    [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
+    [self.registry textureFrameAvailable:self.textureId];
+    _frameAvailable = true;
+  }
+  os_unfair_lock_unlock(&_lock);
 
   __weak FlutterRTCVideoRenderer* weakSelf = self;
   if (_renderSize.width != frame.width || _renderSize.height != frame.height) {
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
       if (strongSelf.eventSink) {
-        postEvent( strongSelf.eventSink, @{
+        strongSelf.eventSink(@{
           @"event" : @"didTextureChangeVideoSize",
           @"id" : @(strongSelf.textureId),
           @"width" : @(frame.width),
@@ -200,7 +218,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterRTCVideoRenderer* strongSelf = weakSelf;
       if (strongSelf.eventSink) {
-        postEvent( strongSelf.eventSink,@{
+        strongSelf.eventSink(@{
           @"event" : @"didTextureChangeRotation",
           @"id" : @(strongSelf.textureId),
           @"rotation" : @(frame.rotation),
@@ -214,10 +232,9 @@
   // Notify the Flutter new pixelBufferRef to be ready.
   dispatch_async(dispatch_get_main_queue(), ^{
     FlutterRTCVideoRenderer* strongSelf = weakSelf;
-    [strongSelf.registry textureFrameAvailable:strongSelf.textureId];
     if (!strongSelf->_isFirstFrameRendered) {
       if (strongSelf.eventSink) {
-        postEvent(strongSelf.eventSink, @{@"event" : @"didFirstFrameRendered"});
+        strongSelf.eventSink(@{@"event" : @"didFirstFrameRendered"});
         strongSelf->_isFirstFrameRendered = true;
       }
     }
@@ -230,17 +247,18 @@
  * @param size The size of the video frame to render.
  */
 - (void)setSize:(CGSize)size {
-  if (_pixelBufferRef == nil ||
-      (size.width != _frameSize.width || size.height != _frameSize.height)) {
+  os_unfair_lock_lock(&_lock);
+  if (size.width != _frameSize.width || size.height != _frameSize.height) {
     if (_pixelBufferRef) {
       CVBufferRelease(_pixelBufferRef);
     }
     NSDictionary* pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
     CVPixelBufferCreate(kCFAllocatorDefault, size.width, size.height, kCVPixelFormatType_32BGRA,
                         (__bridge CFDictionaryRef)(pixelAttributes), &_pixelBufferRef);
-
+    _frameAvailable = false;
     _frameSize = size;
   }
+  os_unfair_lock_unlock(&_lock);
 }
 
 #pragma mark - FlutterStreamHandler methods
