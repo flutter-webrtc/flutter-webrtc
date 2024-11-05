@@ -69,4 +69,6 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 
 + (FlutterWebRTCPlugin * _Nullable)sharedSingleton;
 
+- (RTCDefaultAudioProcessingModule* _Nullable)defaultAudioProcessingModule;
+
 @end

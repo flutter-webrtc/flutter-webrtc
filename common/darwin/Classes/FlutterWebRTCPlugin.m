@@ -95,6 +95,7 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
   BOOL _speakerOn;
   BOOL _speakerOnButPreferBluetooth;
   AVAudioSessionPort _preferredInput;
+  RTCDefaultAudioProcessingModule* _defaultAudioProcessingModule;
 #if TARGET_OS_IPHONE
   FLutterRTCVideoPlatformViewFactory *_platformViewFactory;
 #endif
@@ -113,6 +114,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
 @synthesize messenger = _messenger;
 @synthesize eventSink = _eventSink;
 @synthesize preferredInput = _preferredInput;
+@defaultAudioProcessingModule = _defaultAudioProcessingModule;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel =
@@ -155,6 +157,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
     _speakerOn = NO;
     _speakerOnButPreferBluetooth = NO;
     _eventChannel = eventChannel;
+    _defaultAudioProcessingModule = [[RTCDefaultAudioProcessingModule alloc ] init];
 #if TARGET_OS_IPHONE
     _preferredInput = AVAudioSessionPortHeadphones;
     self.viewController = viewController;
@@ -242,17 +245,11 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
         VideoEncoderFactorySimulcast* simulcastFactory =
             [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
 
-        if (bypassVoiceProcessing) {
-          _peerConnectionFactory =
-              [[RTCPeerConnectionFactory alloc] initWithBypassVoiceProcessing:YES
-                                                               encoderFactory:simulcastFactory
-                                                               decoderFactory:decoderFactory
-                                                        audioProcessingModule:nil];
-        } else {
-          _peerConnectionFactory =
-              [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:simulcastFactory
-                                                        decoderFactory:decoderFactory];
-        }
+        _peerConnectionFactory =
+            [[RTCPeerConnectionFactory alloc] initWithBypassVoiceProcessing:bypassVoiceProcessing
+                                                             encoderFactory:simulcastFactory
+                                                             decoderFactory:decoderFactory
+                                                      audioProcessingModule:_defaultAudioProcessingModule];
 
         RTCPeerConnectionFactoryOptions *options = [[RTCPeerConnectionFactoryOptions alloc] init];
         for (NSString* adapter in networkIgnoreMask)

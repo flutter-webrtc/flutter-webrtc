@@ -15,6 +15,9 @@ import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 
+import org.webrtc.ExternalAudioProcessingFactory;
+import org.webrtc.MediaStreamTrack;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -45,6 +48,14 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     }
 
     public static FlutterWebRTCPlugin sharedSingleton;
+
+    public ExternalAudioProcessingFactory getExternalAudioProcessingFactory() {
+        return methodCallHandler.externalAudioProcessingFactory;
+    }
+
+    public MediaStreamTrack getTrackForId(String trackId, String peerConnectionId) {
+        return methodCallHandler.getTrackForId(trackId, peerConnectionId);
+    }
 
     /**
      * Plugin registration.

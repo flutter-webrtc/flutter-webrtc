@@ -38,6 +38,7 @@ import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
 import org.webrtc.DtmfSender;
 import org.webrtc.EglBase;
+import org.webrtc.ExternalAudioProcessingFactory;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
 import org.webrtc.MediaConstraints;
@@ -115,6 +116,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   private CustomVideoEncoderFactory videoEncoderFactory;
 
   private CustomVideoDecoderFactory videoDecoderFactory;
+
+  public ExternalAudioProcessingFactory externalAudioProcessingFactory;
 
   MethodCallHandlerImpl(Context context, BinaryMessenger messenger, TextureRegistry textureRegistry) {
     this.context = context;
@@ -219,6 +222,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     videoDecoderFactory.setForceSWCodecList(forceSWCodecList);
     videoEncoderFactory.setForceSWCodec(forceSWCodec);
     videoEncoderFactory.setForceSWCodecList(forceSWCodecList);
+
+    externalAudioProcessingFactory = new ExternalAudioProcessingFactory();
+
+    factoryBuilder.setAudioProcessingFactory(externalAudioProcessingFactory);
 
     mFactory = factoryBuilder
             .setAudioDeviceModule(audioDeviceModule)
@@ -1359,7 +1366,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     return stream;
   }
 
-  private MediaStreamTrack getTrackForId(String trackId, String peerConnectionId) {
+  public MediaStreamTrack getTrackForId(String trackId, String peerConnectionId) {
     MediaStreamTrack track = localTracks.get(trackId);
 
     if (track == null) {
