@@ -62,8 +62,9 @@
 }
 
 - (void)dispose {
-  [_registry unregisterTexture:_textureId];
   os_unfair_lock_lock(&_lock);
+  [_registry unregisterTexture:_textureId];
+  _textureId = -1;
   if (_pixelBufferRef) {
     CVBufferRelease(_pixelBufferRef);
     _pixelBufferRef = nil;
@@ -193,7 +194,9 @@
   os_unfair_lock_lock(&_lock);
   if(!_frameAvailable && _pixelBufferRef) {
     [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
-    [self.registry textureFrameAvailable:self.textureId];
+    if(_textureId != -1) {
+      [_registry textureFrameAvailable:_textureId];
+    }
     _frameAvailable = true;
   }
   os_unfair_lock_unlock(&_lock);
