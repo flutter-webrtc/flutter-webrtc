@@ -52,6 +52,8 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 @property(nonatomic) NSInteger _lastTargetHeight;
 @property(nonatomic) NSInteger _lastTargetFps;
 
+@property(nonatomic, strong) RTCDefaultAudioProcessingModule* _Nullable defaultAudioProcessingModule;
+
 - (RTCMediaStream* _Nullable)streamForId:(NSString* _Nonnull)streamId peerConnectionId:(NSString* _Nullable)peerConnectionId;
 - (RTCMediaStreamTrack* _Nullable)trackForId:(NSString* _Nonnull)trackId peerConnectionId:(NSString* _Nullable)peerConnectionId;
 - (RTCRtpTransceiver* _Nullable)getRtpTransceiverById:(RTCPeerConnection* _Nonnull)peerConnection Id:(NSString* _Nullable)Id;
@@ -69,6 +71,6 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 
 + (FlutterWebRTCPlugin * _Nullable)sharedSingleton;
 
-- (RTCDefaultAudioProcessingModule* _Nullable)defaultAudioProcessingModule;
+
 
 @end

@@ -114,7 +114,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
 @synthesize messenger = _messenger;
 @synthesize eventSink = _eventSink;
 @synthesize preferredInput = _preferredInput;
-@defaultAudioProcessingModule = _defaultAudioProcessingModule;
+@synthesize defaultAudioProcessingModule = _defaultAudioProcessingModule;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel =
