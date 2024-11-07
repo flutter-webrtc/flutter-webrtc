@@ -50,7 +50,7 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
 
     public static FlutterWebRTCPlugin sharedSingleton;
 
-    public AudioProcessingController getExternalAudioProcessingFactory() {
+    public AudioProcessingController getAudioProcessingController() {
         return methodCallHandler.audioProcessingController;
     }
 
