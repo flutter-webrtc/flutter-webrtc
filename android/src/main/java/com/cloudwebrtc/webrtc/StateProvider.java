@@ -20,9 +20,9 @@ public interface StateProvider {
 
   boolean putLocalStream(String streamId, MediaStream stream);
 
-  boolean putLocalTrack(String trackId, MediaStreamTrack track);
+  boolean putLocalTrack(String trackId, LocalTrack track);
 
-  MediaStreamTrack getLocalTrack(String trackId);
+  LocalTrack getLocalTrack(String trackId);
 
   String getNextStreamUUID();
 
