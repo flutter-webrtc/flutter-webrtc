@@ -13,6 +13,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * LocalAudioTrack represents an audio track that is sourced from local audio capture.
+ */
 public class LocalAudioTrack extends LocalTrack implements JavaAudioDeviceModule.SamplesReadyCallback {
     public LocalAudioTrack(AudioTrack audioTrack) {
         super(audioTrack);
@@ -20,12 +23,18 @@ public class LocalAudioTrack extends LocalTrack implements JavaAudioDeviceModule
 
     final List<AudioTrackSink> sinks = new ArrayList<>();
 
+    /**
+     * Add a sink to receive audio data from this track.
+     */
     public void addSink(AudioTrackSink sink) {
         synchronized (sinks) {
             sinks.add(sink);
         }
     }
 
+    /**
+     * Remove a sink for this track.
+     */ 
     public void removeSink(AudioTrackSink sink) {
         synchronized (sinks) {
             sinks.remove(sink);

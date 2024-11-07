@@ -43,7 +43,6 @@ import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
 import org.webrtc.DtmfSender;
 import org.webrtc.EglBase;
-import org.webrtc.ExternalAudioProcessingFactory;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
 import org.webrtc.MediaConstraints;
@@ -125,8 +124,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   private CustomVideoEncoderFactory videoEncoderFactory;
 
   private CustomVideoDecoderFactory videoDecoderFactory;
-
-  private ExternalAudioProcessingFactory externalAudioProcessingFactory;
 
   public AudioProcessingController audioProcessingController;
 
@@ -252,11 +249,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     videoEncoderFactory.setForceSWCodec(forceSWCodec);
     videoEncoderFactory.setForceSWCodecList(forceSWCodecList);
 
-    externalAudioProcessingFactory = new ExternalAudioProcessingFactory();
+    audioProcessingController = new AudioProcessingController();
 
-    audioProcessingController = new AudioProcessingController(externalAudioProcessingFactory);
-
-    factoryBuilder.setAudioProcessingFactory(externalAudioProcessingFactory);
+    factoryBuilder.setAudioProcessingFactory(audioProcessingController.externalAudioProcessingFactory);
 
     mFactory = factoryBuilder
             .setAudioDeviceModule(audioDeviceModule)

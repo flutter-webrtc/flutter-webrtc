@@ -9,11 +9,37 @@ import org.webrtc.VideoProcessor;
 import org.webrtc.VideoSink;
 import org.webrtc.VideoTrack;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
+    public interface ExternalVideoFrameProcessing {
+        /**
+         * Process a video frame.
+         * @param frame
+         * @return
+         */
+        public abstract VideoFrame onFrame(VideoFrame frame);
+    }
+
     public LocalVideoTrack(VideoTrack videoTrack) {
         super(videoTrack);
     }
-    
+
+    List<ExternalVideoFrameProcessing> processors = new ArrayList<>();
+
+    public void addProcessor(ExternalVideoFrameProcessing processor) {
+        synchronized (processors) {
+            processors.add(processor);
+        }
+    }
+
+    public void removeProcessor(ExternalVideoFrameProcessing processor) {
+        synchronized (processors) {
+            processors.remove(processor);
+        }
+    }
+
     private VideoSink sink = null;
 
     @Override
@@ -34,6 +60,11 @@ public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
     @Override
     public void onFrameCaptured(VideoFrame videoFrame) {
         if (sink != null) {
+            synchronized (processors) {
+                for (ExternalVideoFrameProcessing processor : processors) {
+                    videoFrame = processor.onFrame(videoFrame);
+                }
+            }
             sink.onFrame(videoFrame);
         }
     }
