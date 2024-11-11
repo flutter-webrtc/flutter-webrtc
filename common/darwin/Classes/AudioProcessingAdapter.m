@@ -72,7 +72,7 @@
     NSEnumerator *enumerator = [renderers objectEnumerator];
     id<RTCAudioRenderer> renderer = nil;
     while(renderer = [enumerator nextObject]){
-        //[renderer renderPCMBuffer:[self toPCMBuffer:audioBuffer]];
+        [renderer renderPCMBuffer:[self toPCMBuffer:audioBuffer]];
     }
     os_unfair_lock_unlock(&_lock);
 }
