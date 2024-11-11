@@ -9,6 +9,7 @@
 
 @class FlutterRTCVideoRenderer;
 @class FlutterRTCFrameCapturer;
+@class AudioManager;
 
 void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event);
 
@@ -52,7 +53,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 @property(nonatomic) NSInteger _lastTargetHeight;
 @property(nonatomic) NSInteger _lastTargetFps;
 
-@property(nonatomic, strong) RTCDefaultAudioProcessingModule* _Nullable defaultAudioProcessingModule;
+@property(nonatomic, strong) AudioManager* _Nullable audioManager;
 
 - (RTCMediaStream* _Nullable)streamForId:(NSString* _Nonnull)streamId peerConnectionId:(NSString* _Nullable)peerConnectionId;
 - (RTCMediaStreamTrack* _Nullable)trackForId:(NSString* _Nonnull)trackId peerConnectionId:(NSString* _Nullable)peerConnectionId;
@@ -70,7 +71,5 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 - (RTCRtpSender* _Nullable)getRtpSenderById:(RTCPeerConnection* _Nonnull)peerConnection Id:(NSString* _Nonnull)Id;
 
 + (FlutterWebRTCPlugin * _Nullable)sharedSingleton;
-
-
 
 @end

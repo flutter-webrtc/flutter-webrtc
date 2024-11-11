@@ -17,7 +17,7 @@ public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
         /**
          * Process a video frame.
          * @param frame
-         * @return
+         * @return The processed video frame.
          */
         public abstract VideoFrame onFrame(VideoFrame frame);
     }
