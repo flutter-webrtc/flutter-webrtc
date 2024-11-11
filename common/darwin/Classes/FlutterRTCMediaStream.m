@@ -56,7 +56,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 
 
 - (NSArray<AVCaptureDevice*> *) captureDevices {
-    NSArray<AVCaptureDevice *> *devices;
     NSArray<AVCaptureDeviceType> *deviceTypes = @[
 #if TARGET_OS_IPHONE
         AVCaptureDeviceTypeBuiltInTripleCamera,
@@ -67,9 +66,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
         AVCaptureDeviceTypeBuiltInUltraWideCamera,
 #else
         AVCaptureDeviceTypeBuiltInWideAngleCamera,
-        AVCaptureDeviceTypeDeskViewCamera,
 #endif
     ];
+    
+    if (@available(macOS 13.0, *)) {
+        deviceTypes = [deviceTypes arrayByAddingObject:AVCaptureDeviceTypeDeskViewCamera];
+    }
 
     if (@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)) {
         deviceTypes = [deviceTypes arrayByAddingObjectsFromArray: @[
@@ -78,10 +80,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
         ]];
     }
 
-    devices = [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:deviceTypes
+    return [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:deviceTypes
                                                                      mediaType:AVMediaTypeVideo
                                                                       position:AVCaptureDevicePositionUnspecified].devices;
-    return devices;
 }
 
 /**
