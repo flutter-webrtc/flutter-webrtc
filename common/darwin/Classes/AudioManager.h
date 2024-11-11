@@ -3,9 +3,9 @@
 
 @interface AudioManager : NSObject
 
-@property(nonatomic, strong) RTCDefaultAudioProcessingModule *audioProcessingModule;
+@property(nonatomic, strong)  RTCDefaultAudioProcessingModule* _Nullable audioProcessingModule;
 
-+ (instancetype)sharedInstance;
++ (_Nonnull instancetype)sharedInstance;
 
 -(void) addLocalAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer;
 
