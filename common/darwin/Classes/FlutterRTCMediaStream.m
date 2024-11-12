@@ -68,10 +68,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
         AVCaptureDeviceTypeBuiltInWideAngleCamera,
 #endif
     ];
-    
+
+#if !defined(TARGET_OS_IPHONE)
     if (@available(macOS 13.0, *)) {
         deviceTypes = [deviceTypes arrayByAddingObject:AVCaptureDeviceTypeDeskViewCamera];
     }
+#endif
 
     if (@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)) {
         deviceTypes = [deviceTypes arrayByAddingObjectsFromArray: @[
