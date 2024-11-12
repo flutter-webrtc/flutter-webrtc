@@ -10,6 +10,7 @@
 @class FlutterRTCVideoRenderer;
 @class FlutterRTCFrameCapturer;
 @class AudioManager;
+@class LocalVideoTrack;
 
 void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event);
 
@@ -45,6 +46,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 @property(nonatomic, strong) FlutterEventSink _Nullable eventSink;
 @property(nonatomic, strong) NSObject<FlutterBinaryMessenger>* _Nonnull messenger;
 @property(nonatomic, strong) RTCCameraVideoCapturer* _Nullable videoCapturer;
+@property(nonatomic, strong) LocalVideoTrack*  _Nullable localVideoTrack;
 @property(nonatomic, strong) FlutterRTCFrameCapturer* _Nullable frameCapturer;
 @property(nonatomic, strong) AVAudioSessionPort _Nullable preferredInput;
 

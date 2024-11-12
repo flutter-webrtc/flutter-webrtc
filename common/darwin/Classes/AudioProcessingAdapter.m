@@ -3,7 +3,8 @@
 #import <os/lock.h>
 
 @implementation AudioProcessingAdapter {
-    NSMutableArray<id<RTCAudioRenderer>> *renderers;
+    NSMutableArray<id<RTCAudioRenderer>> *_renderers;
+    NSMutableArray<id<ExternalAudioProcessing>> *_processors;
     os_unfair_lock _lock;
 }
 
@@ -11,48 +12,62 @@
   self = [super init];
   if (self) {
       _lock = OS_UNFAIR_LOCK_INIT;
-      renderers = [[NSMutableArray<id<RTCAudioRenderer>> alloc] init];
+      _renderers = [[NSMutableArray<id<RTCAudioRenderer>> alloc] init];
+      _processors = [[NSMutableArray<id<ExternalAudioProcessing>> alloc] init];
   }
   return self;
 }
 
+-(void)addProcessing:(id<ExternalAudioProcessing> _Nonnull)processor {
+    os_unfair_lock_lock(&_lock);
+    [_processors addObject:processor];
+    os_unfair_lock_unlock(&_lock);
+}
+
+-(void)removeProcessing:(id<ExternalAudioProcessing> _Nonnull)processor {
+    os_unfair_lock_lock(&_lock);
+    _processors = [[_processors filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
+        return evaluatedObject != processor;
+    }]] mutableCopy];
+    os_unfair_lock_unlock(&_lock);
+}
+
 -(void)addAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer {
     os_unfair_lock_lock(&_lock);
-    [renderers addObject:renderer];
+    [_renderers addObject:renderer];
     os_unfair_lock_unlock(&_lock);
 }
 
 -(void)removeAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer {
     os_unfair_lock_lock(&_lock);
-    renderers = [[renderers filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
+    _renderers = [[_renderers filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
         return evaluatedObject != renderer;
     }]] mutableCopy];
     os_unfair_lock_unlock(&_lock);
 }
 
--(void)audioProcessingInitializeWithSampleRate : (size_t)sampleRateHz channels
-                                                : (size_t)channels {
+-(void)audioProcessingInitializeWithSampleRate:(size_t)sampleRateHz
+                                      channels:(size_t)channels {
     os_unfair_lock_lock(&_lock);
+    for (id<ExternalAudioProcessing> processor in _processors) {
+        [processor audioProcessingInitializeWithSampleRate:sampleRateHz channels:channels];
+    }
     os_unfair_lock_unlock(&_lock);
 }
 
 -(AVAudioPCMBuffer *) toPCMBuffer:(RTC_OBJC_TYPE(RTCAudioBuffer) *)audioBuffer {
-
     AVAudioFormat *format =
     [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatInt16
                                      sampleRate: audioBuffer.frames * 100.0
                                        channels: (AVAudioChannelCount)audioBuffer.channels
                                     interleaved:NO];
-
    AVAudioPCMBuffer *pcmBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format
                                                                 frameCapacity:(AVAudioFrameCount)audioBuffer.frames];
     if (!pcmBuffer) {
       NSLog(@"Failed to create AVAudioPCMBuffer");
       return nil;
     }
-
     pcmBuffer.frameLength = (AVAudioFrameCount)audioBuffer.frames;
-    
     for (int i = 0; i < audioBuffer.channels; i++) {
         float* sourceBuffer = [audioBuffer rawBufferForChannel:i];
         float* targetBuffer = (float*)pcmBuffer.floatChannelData[i];
@@ -61,17 +76,16 @@
             targetBuffer[frame] = sourceBuffer[frame];
         }
     }
-
-
     return pcmBuffer;
 }
 
 -(void)audioProcessingProcess:(RTC_OBJC_TYPE(RTCAudioBuffer) *)audioBuffer {
     os_unfair_lock_lock(&_lock);
+    for (id<ExternalAudioProcessing> processor in _processors) {
+        [processor audioProcessingProcess:audioBuffer];
+    }
     
-    NSEnumerator *enumerator = [renderers objectEnumerator];
-    id<RTCAudioRenderer> renderer = nil;
-    while(renderer = [enumerator nextObject]){
+    for (id<RTCAudioRenderer> renderer in _renderers) {
         [renderer renderPCMBuffer:[self toPCMBuffer:audioBuffer]];
     }
     os_unfair_lock_unlock(&_lock);
@@ -79,7 +93,9 @@
 
 -(void)audioProcessingRelease {
     os_unfair_lock_lock(&_lock);
-    
+    for (id<ExternalAudioProcessing> processor in _processors) {
+        [processor audioProcessingRelease];
+    }
     os_unfair_lock_unlock(&_lock);
 }
 
