@@ -5,6 +5,7 @@
 #import "FlutterRTCPeerConnection.h"
 #import "VideoProcessingAdapter.h"
 #import "LocalVideoTrack.h"
+#import "LocalAudioTrack.h"
 
 @implementation RTCMediaStreamTrack (Flutter)
 
@@ -145,6 +146,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 
   NSString* trackId = [[NSUUID UUID] UUIDString];
   RTCAudioTrack* audioTrack = [self.peerConnectionFactory audioTrackWithTrackId:trackId];
+  LocalAudioTrack *localAudioTrack = [[LocalAudioTrack alloc] initWithTrack:audioTrack];
 
   audioTrack.settings = @{
     @"deviceId" : audioDeviceId,
@@ -158,7 +160,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 
   [mediaStream addAudioTrack:audioTrack];
 
-  [self.localTracks setObject:audioTrack forKey:trackId];
+  [self.localTracks setObject:localAudioTrack forKey:trackId];
 
   [self ensureAudioSession];
 
@@ -510,8 +512,8 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 
     NSString* trackUUID = [[NSUUID UUID] UUIDString];
     RTCVideoTrack* videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource
-                                                                         trackId:trackUUID];
-    self.localVideoTrack = [[LocalVideoTrack alloc] initWithTrack:videoTrack videoProcessing:videoProcessingAdapter];
+                                                                        trackId:trackUUID];
+    LocalVideoTrack *localVideoTrack = [[LocalVideoTrack alloc] initWithTrack:videoTrack videoProcessing:videoProcessingAdapter];
       
     __weak RTCCameraVideoCapturer* capturer = self.videoCapturer;
     self.videoCapturerStopHandlers[videoTrack.trackId] = ^(CompletionHandler handler) {
@@ -540,7 +542,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 
     [mediaStream addVideoTrack:videoTrack];
 
-    [self.localTracks setObject:videoTrack forKey:trackUUID];
+    [self.localTracks setObject:localVideoTrack forKey:trackUUID];
 
     successCallback(mediaStream);
   } else {

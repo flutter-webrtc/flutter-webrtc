@@ -1,4 +1,5 @@
 #import "VideoProcessingAdapter.h"
+#import <os/lock.h>
 
 @implementation VideoProcessingAdapter {
     RTCVideoSource* _videoSource;
@@ -10,8 +11,8 @@
 - (instancetype)initWithRTCVideoSource:(RTCVideoSource *)source {
     self = [super init];
     if (self) {
-        _videoSource = source;
         _lock = OS_UNFAIR_LOCK_INIT;
+        _videoSource = source;
         _processors = [NSArray<id<ExternalVideoFrameProcessing>> new];
     }
     return self;

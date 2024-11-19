@@ -5,7 +5,7 @@
     VideoProcessingAdapter *_processing;
 }
 
-@synthesize track = _track;
+@synthesize videoTrack = _track;
 @synthesize processing = _processing;
 
 -(instancetype)initWithTrack:(RTCVideoTrack *)track
@@ -16,6 +16,14 @@
         _processing = processing;
     }
     return self;
+}
+
+-(instancetype)initWithTrack:(RTCVideoTrack *)track {
+    return [self initWithTrack:track videoProcessing:nil];
+}
+
+-(RTCMediaStreamTrack *) track {
+    return _track;
 }
 
 @end

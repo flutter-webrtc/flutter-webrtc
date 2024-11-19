@@ -1,10 +1,10 @@
 #import <WebRTC/WebRTC.h>
+#import "LocalTrack.h"
 
-@interface LocalAudioTrack : NSObject
+@interface LocalAudioTrack : NSObject<LocalTrack>
 
 -(instancetype)initWithTrack:(RTCAudioTrack *)track;
 
-@property (nonatomic, strong) RTCAudioTrack *track;
-
+@property (nonatomic, strong) RTCAudioTrack *audioTrack;
 
 @end

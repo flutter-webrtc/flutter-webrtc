@@ -16,6 +16,10 @@
 #import <WebRTC/RTCFieldTrials.h>
 #import <WebRTC/WebRTC.h>
 
+#import "LocalTrack.h"
+#import "LocalAudioTrack.h"
+#import "LocalVideoTrack.h"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wprotocol"
 
@@ -643,13 +647,13 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     NSString* trackId = argsMap[@"trackId"];
     RTCMediaStream* stream = self.localStreams[streamId];
     if (stream) {
-      RTCMediaStreamTrack* track = self.localTracks[trackId];
+        id<LocalTrack> track = self.localTracks[trackId];
       if (track != nil) {
-        if ([track isKindOfClass:[RTCAudioTrack class]]) {
-          RTCAudioTrack* audioTrack = (RTCAudioTrack*)track;
+          if ([track isKindOfClass:[LocalAudioTrack class]]) {
+          RTCAudioTrack* audioTrack = ((LocalAudioTrack*)track).audioTrack;
           [stream removeAudioTrack:audioTrack];
-        } else if ([track isKindOfClass:[RTCVideoTrack class]]) {
-          RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+      } else if ([track isKindOfClass:[LocalVideoTrack class]]) {
+          RTCVideoTrack* videoTrack = ((LocalVideoTrack*)track).videoTrack;
           [stream removeVideoTrack:videoTrack];
         }
       } else {
@@ -827,9 +831,9 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
      else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
-    RTCMediaStreamTrack* track = self.localTracks[trackId];
-    if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
-      RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+    id<LocalTrack> track = self.localTracks[trackId];
+    if (track != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
+      RTCVideoTrack* videoTrack = ((LocalVideoTrack*)track).videoTrack;
       [self mediaStreamTrackHasTorch:videoTrack result:result];
     } else {
       if (track == nil) {
@@ -845,9 +849,9 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
     BOOL torch = [argsMap[@"torch"] boolValue];
-    RTCMediaStreamTrack* track = self.localTracks[trackId];
-    if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
-      RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+    id<LocalTrack> track = self.localTracks[trackId];
+    if (track != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
+      RTCVideoTrack* videoTrack = ((LocalVideoTrack*)track).videoTrack;
       [self mediaStreamTrackSetTorch:videoTrack torch:torch result:result];
     } else {
       if (track == nil) {
@@ -863,9 +867,9 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
     double zoomLevel = [argsMap[@"zoomLevel"] doubleValue];
-    RTCMediaStreamTrack* track = self.localTracks[trackId];
-    if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
-      RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+    id<LocalTrack> track = self.localTracks[trackId];
+    if (track != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
+      RTCVideoTrack* videoTrack = ((LocalVideoTrack*)track).videoTrack;
       [self mediaStreamTrackSetZoom:videoTrack zoomLevel:zoomLevel result:result];
     } else {
       if (track == nil) {
@@ -880,9 +884,9 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
   } else if ([@"mediaStreamTrackSwitchCamera" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
-    RTCMediaStreamTrack* track = self.localTracks[trackId];
-    if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
-      RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+    id<LocalTrack> track = self.localTracks[trackId];
+    if (track != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
+      RTCVideoTrack* videoTrack = ((LocalVideoTrack*)track).videoTrack;
       [self mediaStreamTrackSwitchCamera:videoTrack result:result];
     } else {
       if (track == nil) {
@@ -911,9 +915,9 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
     NSNumber* mute = argsMap[@"mute"];
-    RTCMediaStreamTrack* track = self.localTracks[trackId];
-    if (track != nil && [track isKindOfClass:[RTCAudioTrack class]]) {
-      RTCAudioTrack* audioTrack = (RTCAudioTrack*)track;
+    id<LocalTrack> track = self.localTracks[trackId];
+    if (track != nil && [track isKindOfClass:[LocalAudioTrack class]]) {
+      RTCAudioTrack* audioTrack = ((LocalAudioTrack*)track).audioTrack;
       audioTrack.isEnabled = !mute.boolValue;
     }
     result(nil);
@@ -1429,8 +1433,8 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
 
 - (BOOL)hasLocalAudioTrack {
   for (id key in _localTracks.allKeys) {
-    RTCMediaStreamTrack* track = [_localTracks objectForKey:key];
-    if ([track.kind isEqualToString:@"audio"]) {
+      id<LocalTrack> track = [_localTracks objectForKey:key];
+      if (track != nil && [track isKindOfClass:[LocalAudioTrack class]]) {
       return YES;
     }
   }
@@ -1459,7 +1463,7 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
 
     for (RTCMediaStreamTrack* track in stream.audioTracks) {
       NSString* trackId = track.trackId;
-      [self.localTracks setObject:track forKey:trackId];
+        [self.localTracks setObject:[[LocalAudioTrack alloc] initWithTrack:(RTCAudioTrack *)track] forKey:trackId];
       [audioTracks addObject:@{
         @"enabled" : @(track.isEnabled),
         @"id" : trackId,
@@ -1472,7 +1476,8 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
 
     for (RTCMediaStreamTrack* track in stream.videoTracks) {
       NSString* trackId = track.trackId;
-      [_localTracks setObject:track forKey:trackId];
+      [_localTracks setObject:[[LocalVideoTrack alloc] initWithTrack:(RTCVideoTrack *)track]
+                       forKey:trackId];
       [videoTracks addObject:@{
         @"enabled" : @(track.isEnabled),
         @"id" : trackId,
@@ -1509,29 +1514,32 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
 }
 
 - (RTCMediaStreamTrack*)trackForId:(NSString*)trackId peerConnectionId:(NSString*)peerConnectionId {
-  RTCMediaStreamTrack* track = _localTracks[trackId];
+  id<LocalTrack> track = _localTracks[trackId];
+  RTCMediaStreamTrack *mediaStreamTrack = nil;
   if (!track) {
     for (NSString* currentId in _peerConnections.allKeys) {
       if (peerConnectionId && [currentId isEqualToString:peerConnectionId] == false) {
         continue;
       }
       RTCPeerConnection* peerConnection = _peerConnections[currentId];
-      track = peerConnection.remoteTracks[trackId];
+      mediaStreamTrack = peerConnection.remoteTracks[trackId];
       if (!track) {
         for (RTCRtpTransceiver* transceiver in peerConnection.transceivers) {
           if (transceiver.receiver.track != nil &&
               [transceiver.receiver.track.trackId isEqual:trackId]) {
-            track = transceiver.receiver.track;
+              mediaStreamTrack = transceiver.receiver.track;
             break;
           }
         }
       }
-      if (track) {
+      if (mediaStreamTrack) {
         break;
       }
     }
+  } else {
+      mediaStreamTrack = [track track];
   }
-  return track;
+  return mediaStreamTrack;
 }
 
 - (RTCIceServer*)RTCIceServer:(id)json {

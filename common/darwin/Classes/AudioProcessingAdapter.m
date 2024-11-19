@@ -70,7 +70,7 @@
     pcmBuffer.frameLength = (AVAudioFrameCount)audioBuffer.frames;
     for (int i = 0; i < audioBuffer.channels; i++) {
         float* sourceBuffer = [audioBuffer rawBufferForChannel:i];
-        float* targetBuffer = (float*)pcmBuffer.floatChannelData[i];
+        float* targetBuffer = (float*)pcmBuffer.int16ChannelData[i];
 
         for (int frame = 0; frame < audioBuffer.frames; frame++) {
             targetBuffer[frame] = sourceBuffer[frame];
