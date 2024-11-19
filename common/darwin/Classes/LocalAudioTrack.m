@@ -27,8 +27,12 @@
     [AudioManager.sharedInstance removeLocalAudioRenderer:renderer];
 }
 
-- (void)removeAllRenderers {
-    
+-(void)addProcessing:(_Nonnull id<ExternalAudioProcessing>)processor {
+    [AudioManager.sharedInstance.capturePostProcessingAdapter addProcessing:processor];
+}
+
+-(void)removeProcessing:(_Nonnull id<ExternalAudioProcessing>)processor {
+    [AudioManager.sharedInstance.capturePostProcessingAdapter removeProcessing:processor];
 }
 
 @end

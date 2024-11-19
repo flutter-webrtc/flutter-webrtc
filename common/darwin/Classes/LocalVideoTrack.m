@@ -26,4 +26,22 @@
     return _track;
 }
 
+/** Register a renderer that will render all frames received on this track. */
+- (void)addRenderer:(id<RTC_OBJC_TYPE(RTCVideoRenderer)>)renderer {
+    [_track addRenderer:renderer];
+}
+
+/** Deregister a renderer. */
+- (void)removeRenderer:(id<RTC_OBJC_TYPE(RTCVideoRenderer)>)renderer {
+    [_track removeRenderer:renderer];
+}
+
+-(void)addProcessing:(id<ExternalVideoFrameProcessing>)processor {
+    [_processing addProcessing:processor];
+}
+
+-(void)removeProcessing:(id<ExternalVideoFrameProcessing>)processor {
+    [_processing removeProcessing:processor];
+}
+
 @end

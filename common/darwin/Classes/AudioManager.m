@@ -7,6 +7,8 @@
     AudioProcessingAdapter *_renderPreProcessingAdapter;
 }
 
+@synthesize capturePostProcessingAdapter = _capturePostProcessingAdapter;
+@synthesize renderPreProcessingAdapter = _renderPreProcessingAdapter;
 @synthesize audioProcessingModule = _audioProcessingModule;
 
 + (instancetype)sharedInstance {
