@@ -24,7 +24,8 @@ NSArray<RTCDesktopSource*>* _captureSources;
   RTCMediaStream* mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
   RTCVideoSource* videoSource = [self.peerConnectionFactory videoSourceForScreenCast:YES];
   NSString* trackUUID = [[NSUUID UUID] UUIDString];
-
+  VideoProcessingAdapter *videoProcessingAdapter = [[VideoProcessingAdapter alloc] initWithRTCVideoSource:videoSource];
+  
 #if TARGET_OS_IPHONE
   BOOL useBroadcastExtension = false;
   id videoConstraints = constraints[@"video"];
@@ -111,7 +112,6 @@ NSArray<RTCDesktopSource*>* _captureSources;
   }
   RTCDesktopCapturer* desktopCapturer;
   RTCDesktopSource* source = nil;
-  VideoProcessingAdapter *videoProcessingAdapter = [[VideoProcessingAdapter alloc] initWithRTCVideoSource:videoSource];
     
   if (useDefaultScreen) {
     desktopCapturer = [[RTCDesktopCapturer alloc] initWithDefaultScreen:self
@@ -142,7 +142,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
                                                                        trackId:trackUUID];
   [mediaStream addVideoTrack:videoTrack];
 
- LocalVideoTrack *localVideoTrack = [[LocalVideoTrack alloc] initWithTrack:videoTrack videoProcessing:videoProcessingAdapter];
+  LocalVideoTrack *localVideoTrack = [[LocalVideoTrack alloc] initWithTrack:videoTrack videoProcessing:videoProcessingAdapter];
     
   [self.localTracks setObject:localVideoTrack forKey:trackUUID];
 
