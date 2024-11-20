@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.webrtc.EglBase;
 import org.webrtc.MediaStream;
-import org.webrtc.RendererCommon.RendererEvents;
 import org.webrtc.VideoTrack;
 
 import io.flutter.plugin.common.EventChannel;
@@ -43,10 +42,10 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
      * The {@code RendererEvents} which listens to rendering events reported by
      * {@link #surfaceTextureRenderer}.
      */
-    private RendererEvents rendererEvents;
+    private SurfaceTextureRenderer.FrameRendererEvents rendererEvents;
 
     private void listenRendererEvents() {
-        rendererEvents = new RendererEvents() {
+        rendererEvents = new SurfaceTextureRenderer.FrameRendererEvents() {
             private int _rotation = -1;
             private int _width = 0, _height = 0;
 
@@ -85,6 +84,15 @@ public class FlutterRTCVideoRenderer implements EventChannel.StreamHandler {
                         _rotation = rotation;
                         eventSink.success(params2.toMap());
                     }
+                }
+            }
+
+            @Override public void onFrameTimestampNs(long timestampNs) {
+                if (eventSink != null) {
+                    ConstraintsMap params = new ConstraintsMap();
+                    params.putString("event", "didFrameTimestampNs");
+                    params.putLong("timestampNs", timestampNs);
+                    eventSink.success(params.toMap());
                 }
             }
         };

@@ -50,6 +50,8 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   @override
   Function? onFirstFrameRendered;
 
+  void Function(int timestampNs)? onFrameTimestampNs;
+
   @override
   set srcObject(MediaStream? stream) {
     if (_disposed) {
@@ -131,6 +133,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       case 'didFirstFrameRendered':
         value = value.copyWith(renderVideo: renderVideo);
         onFirstFrameRendered?.call();
+        break;
+      case 'didFrameTimestampNs':
+        onFrameTimestampNs?.call(map['timestampNs']);
         break;
     }
   }

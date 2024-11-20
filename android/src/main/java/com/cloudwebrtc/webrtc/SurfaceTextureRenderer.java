@@ -21,7 +21,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class SurfaceTextureRenderer extends EglRenderer {
   // Callback for reporting renderer events. Read-only after initilization so no lock required.
-  private RendererCommon.RendererEvents rendererEvents;
+  private FrameRendererEvents rendererEvents;
   private final Object layoutLock = new Object();
   private boolean isRenderingPaused;
   private boolean isFirstFrameRendered;
@@ -36,8 +36,7 @@ public class SurfaceTextureRenderer extends EglRenderer {
     super(name);
   }
 
-  public void init(final EglBase.Context sharedContext,
-                   RendererCommon.RendererEvents rendererEvents) {
+  public void init(final EglBase.Context sharedContext, FrameRendererEvents rendererEvents) {
     init(sharedContext, rendererEvents, EglBase.CONFIG_PLAIN, new GlRectDrawer());
   }
 
@@ -47,9 +46,8 @@ public class SurfaceTextureRenderer extends EglRenderer {
    * |drawer|. It is allowed to call init() to reinitialize the renderer after a previous
    * init()/release() cycle.
    */
-  public void init(final EglBase.Context sharedContext,
-                   RendererCommon.RendererEvents rendererEvents, final int[] configAttributes,
-                   RendererCommon.GlDrawer drawer) {
+  public void init(final EglBase.Context sharedContext, FrameRendererEvents rendererEvents,
+      final int[] configAttributes, RendererCommon.GlDrawer drawer) {
     ThreadUtils.checkIsOnMainThread();
     this.rendererEvents = rendererEvents;
     synchronized (layoutLock) {
@@ -138,6 +136,14 @@ public class SurfaceTextureRenderer extends EglRenderer {
         texture.setDefaultBufferSize(rotatedFrameWidth, rotatedFrameHeight);
         frameRotation = frame.getRotation();
       }
+
+      if (rendererEvents != null) {
+        rendererEvents.onFrameTimestampNs(frame.getTimestampNs());
+      }
     }
+  }
+
+  public interface FrameRendererEvents extends RendererCommon.RendererEvents {
+    void onFrameTimestampNs(long timestampNs);
   }
 }
