@@ -201,6 +201,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                         .setAudioSource(MediaRecorder.AudioSource.MIC);
     } else {
       audioDeviceModuleBuilder.setUseHardwareAcousticEchoCanceler(true)
+                        .setUseLowLatency(true)
+                        .setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
                         .setUseHardwareNoiseSuppressor(true);
     }
 
@@ -225,6 +227,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
 
     audioDeviceModule = audioDeviceModuleBuilder.createAudioDeviceModule();
+
+    if(!bypassVoiceProcessing) {
+       if(JavaAudioDeviceModule.isBuiltInNoiseSuppressorSupported()) {
+         audioDeviceModule.setNoiseSuppressorEnabled(true);
+       }
+    }
+
 
     getUserMediaImpl.audioDeviceModule = (JavaAudioDeviceModule) audioDeviceModule;
 
