@@ -1,0 +1,25 @@
+-- Merging decision tree log ---
+manifest
+ADDED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml:1:1-3:12
+INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml:1:1-3:12
+INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml:1:1-3:12
+	package
+		ADDED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml:2:3-35
+		INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+		INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml:1:11-69
+uses-sdk
+INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+		ADDED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+		INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+		ADDED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml
+		INJECTED from D:\Workspace\Kortobaa\Flutter\flutter-webrtc\android\src\main\AndroidManifest.xml

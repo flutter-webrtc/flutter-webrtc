@@ -93,6 +93,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   private final Map<String, PeerConnectionObserver> mPeerConnectionObservers = new HashMap<>();
   private final BinaryMessenger messenger;
+
+  private final AudioSwitchManager audioSwitchManager;
   private final Context context;
   private final TextureRegistry textures;
   private PeerConnectionFactory mFactory;
@@ -115,11 +117,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   private CustomVideoEncoderFactory videoEncoderFactory;
 
   private CustomVideoDecoderFactory videoDecoderFactory;
-
-  MethodCallHandlerImpl(Context context, BinaryMessenger messenger, TextureRegistry textureRegistry) {
+  
+  MethodCallHandlerImpl(Context context, BinaryMessenger messenger, TextureRegistry textureRegistry, AudioSwitchManager audioSwitchManager) {
     this.context = context;
     this.textures = textureRegistry;
     this.messenger = messenger;
+    this.audioSwitchManager = audioSwitchManager;
   }
 
   static private void resultError(String method, String error, Result result) {
@@ -154,7 +157,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                     .setEnableInternalTracer(true)
                     .createInitializationOptions());
 
-    getUserMediaImpl = new GetUserMediaImpl(this, context);
+    getUserMediaImpl = new GetUserMediaImpl(this, context, audioSwitchManager);
 
     frameCryptor = new FlutterRTCFrameCryptor(this);
 
@@ -599,17 +602,17 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       case "selectAudioOutput": {
         String deviceId = call.argument("deviceId");
-        AudioSwitchManager.instance.selectAudioOutput(AudioDeviceKind.fromTypeName(deviceId));
+        audioSwitchManager.selectAudioOutput(AudioDeviceKind.fromTypeName(deviceId));
         result.success(null);
         break;
       }
       case "clearAndroidCommunicationDevice": {
-        AudioSwitchManager.instance.clearCommunicationDevice();
+        audioSwitchManager.clearCommunicationDevice();
         break;
       }
       case "setMicrophoneMute":
         boolean mute = call.argument("mute");
-        AudioSwitchManager.instance.setMicrophoneMute(mute);
+        audioSwitchManager.setMicrophoneMute(mute);
         result.success(null);
         break;
       case "selectAudioInput":
@@ -623,17 +626,17 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       case "setAndroidAudioConfiguration": {
         Map<String, Object> configuration = call.argument("configuration");
-        AudioSwitchManager.instance.setAudioConfiguration(configuration);
+        audioSwitchManager.setAudioConfiguration(configuration);
         result.success(null);
         break;
       }
       case "enableSpeakerphone":
         boolean enable = call.argument("enable");
-        AudioSwitchManager.instance.enableSpeakerphone(enable);
+        audioSwitchManager.enableSpeakerphone(enable);
         result.success(null);
         break;
       case "enableSpeakerphoneButPreferBluetooth":
-        AudioSwitchManager.instance.enableSpeakerButPreferBluetooth();
+        audioSwitchManager.enableSpeakerButPreferBluetooth();
         result.success(null);
         break;
       case "requestCapturePermission": {
@@ -1258,7 +1261,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public String peerConnectionInit(ConstraintsMap configuration, ConstraintsMap constraints) {
     String peerConnectionId = getNextStreamUUID();
     RTCConfiguration conf = parseRTCConfiguration(configuration);
-    PeerConnectionObserver observer = new PeerConnectionObserver(conf, this, messenger, peerConnectionId);
+    PeerConnectionObserver observer = new PeerConnectionObserver(conf, this, messenger, peerConnectionId, audioSwitchManager);
     PeerConnection peerConnection
             = mFactory.createPeerConnection(
             conf,
@@ -1452,7 +1455,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
     }
 
-    List<? extends AudioDevice> audioOutputs = AudioSwitchManager.instance.availableAudioDevices();
+    List<? extends AudioDevice> audioOutputs = audioSwitchManager.availableAudioDevices();
 
     for (AudioDevice audioOutput : audioOutputs) {
       ConstraintsMap audioOutputMap = new ConstraintsMap();
@@ -1855,7 +1858,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       Log.d(TAG, "peerConnectionDispose() peerConnectionObserver is null");
     }
     if (mPeerConnectionObservers.size() == 0) {
-      AudioSwitchManager.instance.stop();
+      audioSwitchManager.stop();
     }
   }
 
