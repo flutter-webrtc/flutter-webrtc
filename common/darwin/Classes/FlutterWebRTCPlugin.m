@@ -6,6 +6,9 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
 #import "FlutterRTCFrameCryptor.h"
+#import "VideoEffectProcessor.h"
+#import "ProcessorProvider.h"
+#import "VideoFrameProcessor.h"
 #if TARGET_OS_IPHONE
 #import "FlutterRTCVideoPlatformViewFactory.h"
 #import "FlutterRTCVideoPlatformViewController.h"
@@ -173,6 +176,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
   self.frameCryptors = [NSMutableDictionary new];
   self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
+
 #if TARGET_OS_IPHONE
   AVAudioSession* session = [AVAudioSession sharedInstance];
   [[NSNotificationCenter defaultCenter] addObserver:self
@@ -294,6 +298,12 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     }
     [self initialize:networkIgnoreMask bypassVoiceProcessing:enableBypassVoiceProcessing];
     result(@"");
+  } else if([@"setVideoEffects" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* trackId = argsMap[@"trackId"];
+    NSArray* names = argsMap[@"names"];
+
+    [self mediaStreamTrackSetVideoEffects:trackId names:names];
   } else if ([@"createPeerConnection" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSDictionary* configuration = argsMap[@"configuration"];
@@ -1450,6 +1460,36 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     [AudioUtils deactiveRtcAudioSession];
   }
 #endif
+}
+
+- (void)mediaStreamTrackSetVideoEffects:(nonnull NSString *)trackId names:(nonnull NSArray<NSString *> *)names
+{
+  RTCMediaStreamTrack *track = [self trackForId:trackId peerConnectionId: nil];
+
+  if (track) {
+    NSLog(@"mediaStreamTrackSetVideoEffects: track found");
+
+    RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
+    RTCVideoSource *videoSource = videoTrack.source;
+    
+    NSMutableArray *processors = [[NSMutableArray alloc] init];
+    for (NSString *name in names) {
+      NSObject<VideoFrameProcessorDelegate> *processor = [ProcessorProvider getProcessor:name];
+      if (processor != nil) {
+        [processors addObject:processor];
+      }
+    }
+
+    self.videoEffectProcessor = [[VideoEffectProcessor alloc] initWithProcessors:processors
+                                                                     videoSource:videoSource];
+    
+    
+    self.videoCapturer.delegate = self.videoEffectProcessor;
+  } else {
+    NSLog(@"mediaStreamTrackSetVideoEffects: track not found");
+  }
+
+
 }
 
 - (void)mediaStreamGetTracks:(NSString*)streamId result:(FlutterResult)result {

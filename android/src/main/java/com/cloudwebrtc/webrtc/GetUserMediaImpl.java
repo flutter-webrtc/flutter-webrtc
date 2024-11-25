@@ -53,6 +53,9 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
+import com.cloudwebrtc.webrtc.videoEffects.VideoFrameProcessor;
+import com.cloudwebrtc.webrtc.videoEffects.VideoEffectProcessor;
+import com.cloudwebrtc.webrtc.videoEffects.ProcessorProvider;
 
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
@@ -82,6 +85,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import io.flutter.plugin.common.MethodChannel.Result;
 
@@ -108,6 +113,8 @@ class GetUserMediaImpl {
 
     private final Map<String, VideoCapturerInfo> mVideoCapturers = new HashMap<>();
     private final Map<String, SurfaceTextureHelper> mSurfaceTextureHelpers = new HashMap<>();
+    private final Map<String, VideoSource> mVideoSources = new HashMap<>();
+    
     private final StateProvider stateProvider;
     private final Context applicationContext;
 
@@ -810,6 +817,7 @@ class GetUserMediaImpl {
         String trackId = stateProvider.getNextTrackUUID();
         mVideoCapturers.put(trackId, info);
         mSurfaceTextureHelpers.put(trackId, surfaceTextureHelper);
+        mVideoSources.put(trackId, videoSource);
 
         Log.d(TAG, "Target: " + targetWidth + "x" + targetHeight + "@" + targetFps + ", Actual: " + info.width + "x" + info.height + "@" + info.fps);
 
@@ -857,8 +865,35 @@ class GetUserMediaImpl {
                     helper.stopListening();
                     helper.dispose();
                     mSurfaceTextureHelpers.remove(id);
+                    mVideoSources.remove(id);
                 }
             }
+        }
+    }
+
+    void setVideoEffect(String trackId, List<String> names) {
+        VideoSource videoSource = mVideoSources.get(trackId);
+        SurfaceTextureHelper surfaceTextureHelper = mSurfaceTextureHelpers.get(trackId);
+
+        if (names != null && !names.isEmpty()) {
+            List<VideoFrameProcessor> processors = names.stream()
+                .filter(name -> name instanceof String)
+                .map(name -> {
+                    VideoFrameProcessor videoFrameProcessor = ProcessorProvider.getProcessor((String) name);
+                    if (videoFrameProcessor == null) {
+                        Log.e(TAG, "no videoFrameProcessor associated with this name: " + name);
+                    }
+                    return videoFrameProcessor;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+            
+            VideoEffectProcessor videoEffectProcessor = new VideoEffectProcessor(processors, surfaceTextureHelper);
+            videoSource.setVideoProcessor(videoEffectProcessor);
+
+        } else {
+            videoSource.setVideoProcessor(null);
         }
     }
 

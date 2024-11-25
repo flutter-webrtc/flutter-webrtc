@@ -295,6 +295,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         result.success(null);
         break;
       }
+      case "setVideoEffects": {
+        String trackId = call.argument("trackId");
+        List<String> names = call.argument("names");
+        
+        getUserMediaImpl.setVideoEffect(trackId, names);
+        result.success(null);
+        break;
+      }
       case "createPeerConnection": {
         Map<String, Object> constraints = call.argument("constraints");
         Map<String, Object> configuration = call.argument("configuration");
