@@ -24,7 +24,6 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     needs:
       - build
-      - build-linux
       - clippy
       - dartanalyze
       - dartfmt
@@ -135,10 +134,12 @@ jobs:
       fail-fast: false
       matrix:
         platform:
+          - linux
           - macos
           - windows
-    runs-on: ${{ (matrix.platform == 'windows' && 'windows-latest')
-              || 'macos-12' }}
+    runs-on: ${{ (matrix.platform == 'macos'   && 'macos-12')
+              || (matrix.platform == 'windows' && 'windows-latest')
+              ||                                  'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@v1
@@ -147,6 +148,14 @@ jobs:
       - run: make rustup.targets only=${{ matrix.platform }}
       - uses: subosito/flutter-action@v2
       - run: flutter config --enable-${{ matrix.platform }}-desktop
+
+      - name: Install Linux platform dependencies
+        run: sudo apt-get install -y
+                          libgtk-3-dev libpulse-dev libudev-dev
+                          libxcomposite-dev libxdamage-dev libxfixes-dev
+                          libxrandr-dev libxtst-dev
+                          ninja-build
+        if: ${{ matrix.platform == 'linux' }}
 
       # Pin Xcode version for better compatibility.
       - uses: maxim-lobanov/setup-xcode@v1
@@ -162,39 +171,6 @@ jobs:
           name: build-${{ matrix.platform }}
           path: ${{ matrix.platform }}/rust/
 
-  build-linux:
-    name: build (linux)
-    runs-on: ubuntu-latest
-    # Pin glibc to 2.31 version for better compatibility.
-    container: debian:bullseye
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Linux platform dependencies
-        run: |
-          apt-get update
-          apt-get install -y \
-                  curl jq xz-utils git make clang libssl-dev cmake \
-                  libgtk-3-dev libpulse-dev libudev-dev libxcomposite-dev \
-                  libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
-                  ninja-build
-      - uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: stable
-      # Container doesn't pick `~` (tilde) in `PATH`.
-      - run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      - run: git config --global --add safe.directory '*'
-      - run: make rustup.targets only=linux
-      - uses: subosito/flutter-action@v2
-      - run: flutter config --enable-linux-desktop
-
-      - run: make cargo.build platform=linux debug=no
-      - run: make flutter.build platform=linux
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-linux
-          path: linux/rust/
-
 
 
 
@@ -204,7 +180,7 @@ jobs:
 
   test-flutter:
     name: test (example, ${{ matrix.platform }})
-    needs: ["build", "build-linux"]
+    needs: ["build"]
     strategy:
       fail-fast: false
       matrix:
@@ -365,7 +341,6 @@ jobs:
              && github.event.pull_request.head.repo.owner.login == 'instrumentisto') }}
     needs:
       - build
-      - build-linux
       - clippy
       - dartanalyze
       - dartfmt
