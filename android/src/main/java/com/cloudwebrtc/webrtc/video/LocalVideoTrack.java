@@ -48,14 +48,10 @@ public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
     }
 
     @Override
-    public void onCapturerStarted(boolean b) {
-
-    }
+    public void onCapturerStarted(boolean b) {}
 
     @Override
-    public void onCapturerStopped() {
-
-    }
+    public void onCapturerStopped() {}
 
     @Override
     public void onFrameCaptured(VideoFrame videoFrame) {

@@ -2,6 +2,6 @@
 
 @protocol LocalTrack <NSObject>
 
--(RTCMediaStreamTrack *) track;
+- (RTCMediaStreamTrack*)track;
 
 @end

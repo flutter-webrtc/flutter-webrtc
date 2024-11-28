@@ -16,7 +16,8 @@ import java.util.List;
 /**
  * LocalAudioTrack represents an audio track that is sourced from local audio capture.
  */
-public class LocalAudioTrack extends LocalTrack implements JavaAudioDeviceModule.SamplesReadyCallback {
+public class LocalAudioTrack
+        extends LocalTrack implements JavaAudioDeviceModule.SamplesReadyCallback {
     public LocalAudioTrack(AudioTrack audioTrack) {
         super(audioTrack);
     }
@@ -34,7 +35,7 @@ public class LocalAudioTrack extends LocalTrack implements JavaAudioDeviceModule
 
     /**
      * Remove a sink for this track.
-     */ 
+     */
     public void removeSink(AudioTrackSink sink) {
         synchronized (sinks) {
             sinks.remove(sink);
@@ -64,13 +65,8 @@ public class LocalAudioTrack extends LocalTrack implements JavaAudioDeviceModule
         synchronized (sinks) {
             for (AudioTrackSink sink : sinks) {
                 ByteBuffer byteBuffer = ByteBuffer.wrap(audioSamples.getData());
-                sink.onData(
-                        byteBuffer,
-                        bitsPerSample,
-                        audioSamples.getSampleRate(),
-                        audioSamples.getChannelCount(),
-                        numFrames,
-                        timestamp);
+                sink.onData(byteBuffer, bitsPerSample, audioSamples.getSampleRate(),
+                        audioSamples.getChannelCount(), numFrames, timestamp);
             }
         }
     }

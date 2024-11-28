@@ -15,8 +15,7 @@ public class AudioProcessingAdapter implements ExternalAudioProcessingFactory.Au
         void process(int numBands, int numFrames, ByteBuffer buffer);
     }
 
-    public AudioProcessingAdapter() {
-    }
+    public AudioProcessingAdapter() {}
     List<ExternalAudioFrameProcessing> audioProcessors = new ArrayList<>();
 
     public void addProcessor(ExternalAudioFrameProcessing audioProcessor) {

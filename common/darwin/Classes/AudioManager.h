@@ -4,16 +4,16 @@
 
 @interface AudioManager : NSObject
 
-@property(nonatomic, strong) RTCDefaultAudioProcessingModule * _Nonnull audioProcessingModule;
+@property(nonatomic, strong) RTCDefaultAudioProcessingModule* _Nonnull audioProcessingModule;
 
-@property(nonatomic, strong) AudioProcessingAdapter * _Nonnull capturePostProcessingAdapter;
+@property(nonatomic, strong) AudioProcessingAdapter* _Nonnull capturePostProcessingAdapter;
 
-@property(nonatomic, strong) AudioProcessingAdapter * _Nonnull renderPreProcessingAdapter;
+@property(nonatomic, strong) AudioProcessingAdapter* _Nonnull renderPreProcessingAdapter;
 
 + (_Nonnull instancetype)sharedInstance;
 
--(void) addLocalAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer;
+- (void)addLocalAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer;
 
--(void) removeLocalAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer;
+- (void)removeLocalAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer;
 
 @end

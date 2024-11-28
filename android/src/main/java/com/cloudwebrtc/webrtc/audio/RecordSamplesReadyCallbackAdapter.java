@@ -5,9 +5,9 @@ import org.webrtc.audio.JavaAudioDeviceModule;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RecordSamplesReadyCallbackAdapter implements JavaAudioDeviceModule.SamplesReadyCallback {
-    public RecordSamplesReadyCallbackAdapter() {
-    }
+public class RecordSamplesReadyCallbackAdapter
+        implements JavaAudioDeviceModule.SamplesReadyCallback {
+    public RecordSamplesReadyCallbackAdapter() {}
 
     List<JavaAudioDeviceModule.SamplesReadyCallback> callbacks = new ArrayList<>();
 

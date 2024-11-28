@@ -1,8 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <WebRTC/WebRTC.h>
 
-
-@protocol ExternalAudioProcessing
+@protocol ExternalAudioProcessingDelegate
 
 - (void)audioProcessingInitializeWithSampleRate:(size_t)sampleRateHz channels:(size_t)channels;
 
@@ -12,16 +11,16 @@
 
 @end
 
-@interface AudioProcessingAdapter : NSObject<RTCAudioCustomProcessingDelegate>
+@interface AudioProcessingAdapter : NSObject <RTCAudioCustomProcessingDelegate>
 
--(nonnull instancetype)init;
+- (nonnull instancetype)init;
 
--(void)addProcessing:(id<ExternalAudioProcessing> _Nonnull)processor;
+- (void)addProcessing:(id<ExternalAudioProcessingDelegate> _Nonnull)processor;
 
--(void)removeProcessing:(id<ExternalAudioProcessing> _Nonnull)processor;
+- (void)removeProcessing:(id<ExternalAudioProcessingDelegate> _Nonnull)processor;
 
--(void)addAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer;
+- (void)addAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer;
 
--(void)removeAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer;
+- (void)removeAudioRenderer:(nonnull id<RTCAudioRenderer>)renderer;
 
 @end

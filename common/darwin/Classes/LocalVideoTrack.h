@@ -2,23 +2,23 @@
 #import "LocalTrack.h"
 #import "VideoProcessingAdapter.h"
 
-@interface LocalVideoTrack : NSObject<LocalTrack>
+@interface LocalVideoTrack : NSObject <LocalTrack>
 
--(instancetype)initWithTrack:(RTCVideoTrack *)track;
+- (_Nonnull instancetype)initWithTrack:(RTCVideoTrack* _Nonnull)track;
 
--(instancetype)initWithTrack:(RTCVideoTrack *)track
-             videoProcessing:(VideoProcessingAdapter *)processing;
+- (_Nonnull instancetype)initWithTrack:(RTCVideoTrack* _Nonnull)track
+                       videoProcessing:(VideoProcessingAdapter* _Nullable)processing;
 
-@property (nonatomic, strong) RTCVideoTrack *videoTrack;
+@property(nonatomic, strong) RTCVideoTrack* _Nonnull videoTrack;
 
-@property (nonatomic, strong) VideoProcessingAdapter *processing;
+@property(nonatomic, strong) VideoProcessingAdapter* _Nonnull processing;
 
-- (void)addRenderer:(id<RTC_OBJC_TYPE(RTCVideoRenderer)>)renderer;
+- (void)addRenderer:(_Nonnull id<RTC_OBJC_TYPE(RTCVideoRenderer)>)renderer;
 
-- (void)removeRenderer:(id<RTC_OBJC_TYPE(RTCVideoRenderer)>)renderer;
+- (void)removeRenderer:(_Nonnull id<RTC_OBJC_TYPE(RTCVideoRenderer)>)renderer;
 
--(void)addProcessing:(id<ExternalVideoFrameProcessing>)processor;
+- (void)addProcessing:(_Nonnull id<ExternalVideoProcessingDelegate>)processor;
 
--(void)removeProcessing:(id<ExternalVideoFrameProcessing>)processor;
+- (void)removeProcessing:(_Nonnull id<ExternalVideoProcessingDelegate>)processor;
 
 @end
