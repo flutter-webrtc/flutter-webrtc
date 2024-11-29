@@ -42,6 +42,7 @@ import androidx.annotation.RequiresApi;
 
 import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
 import com.cloudwebrtc.webrtc.audio.AudioUtils;
+import com.cloudwebrtc.webrtc.audio.LocalAudioTrack;
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.AudioSamplesInterceptor;
 import com.cloudwebrtc.webrtc.record.MediaRecorderImpl;
@@ -53,6 +54,7 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
+import com.cloudwebrtc.webrtc.video.LocalVideoTrack;
 
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
@@ -376,7 +378,9 @@ class GetUserMediaImpl {
 
         if (deviceId != null) {
             try {
-                setPreferredInputDevice(deviceId);
+                if (VERSION.SDK_INT >= VERSION_CODES.M) {
+                    setPreferredInputDevice(deviceId);
+                }
             } catch (Exception e) {
                 Log.e(TAG, "setPreferredInputDevice failed", e);
             }
@@ -385,7 +389,7 @@ class GetUserMediaImpl {
         AudioTrack track = pcFactory.createAudioTrack(trackId, audioSource);
         stream.addTrack(track);
 
-        stateProvider.putLocalTrack(track.id(), track);
+        stateProvider.putLocalTrack(track.id(), new LocalAudioTrack(track));
 
         ConstraintsMap trackParams = new ConstraintsMap();
         trackParams.putBoolean("enabled", track.enabled());
@@ -396,7 +400,9 @@ class GetUserMediaImpl {
         trackParams.putBoolean("remote", false);
 
         if (deviceId == null) {
-            deviceId = "" + getPreferredInputDevice(preferredInput);
+            if (VERSION.SDK_INT >= VERSION_CODES.M) {
+                deviceId = "" + getPreferredInputDevice(preferredInput);
+            }
         }
 
         ConstraintsMap settings = new ConstraintsMap();
@@ -515,7 +521,7 @@ class GetUserMediaImpl {
 
     private void getDisplayMedia(final Result result, final MediaStream mediaStream, final Intent mediaProjectionData) {
         /* Create ScreenCapture */
-        MediaStreamTrack[] tracks = new MediaStreamTrack[1];
+        VideoTrack displayTrack = null;
         VideoCapturer videoCapturer = null;
         videoCapturer =
                 new OrientationAwareScreenCapturer(
@@ -563,41 +569,31 @@ class GetUserMediaImpl {
         String trackId = stateProvider.getNextTrackUUID();
         mVideoCapturers.put(trackId, info);
 
-        tracks[0] = pcFactory.createVideoTrack(trackId, videoSource);
+        displayTrack = pcFactory.createVideoTrack(trackId, videoSource);
 
         ConstraintsArray audioTracks = new ConstraintsArray();
         ConstraintsArray videoTracks = new ConstraintsArray();
         ConstraintsMap successResult = new ConstraintsMap();
 
-        for (MediaStreamTrack track : tracks) {
-            if (track == null) {
-                continue;
-            }
+        if (displayTrack  != null) {
+            String id = displayTrack.id();
 
-            String id = track.id();
+            LocalVideoTrack displayLocalVideoTrack = new LocalVideoTrack(displayTrack);
+            videoSource.setVideoProcessor(displayLocalVideoTrack);
 
-            if (track instanceof AudioTrack) {
-                mediaStream.addTrack((AudioTrack) track);
-            } else {
-                mediaStream.addTrack((VideoTrack) track);
-            }
-            stateProvider.putLocalTrack(id, track);
+            stateProvider.putLocalTrack(id, displayLocalVideoTrack);
 
             ConstraintsMap track_ = new ConstraintsMap();
-            String kind = track.kind();
+            String kind = displayTrack.kind();
 
-            track_.putBoolean("enabled", track.enabled());
+            track_.putBoolean("enabled", displayTrack.enabled());
             track_.putString("id", id);
             track_.putString("kind", kind);
             track_.putString("label", kind);
-            track_.putString("readyState", track.state().toString());
+            track_.putString("readyState", displayTrack.state().toString());
             track_.putBoolean("remote", false);
 
-            if (track instanceof AudioTrack) {
-                audioTracks.pushMap(track_);
-            } else {
-                videoTracks.pushMap(track_);
-            }
+            videoTracks.pushMap(track_);
         }
 
         String streamId = mediaStream.getId();
@@ -823,7 +819,10 @@ class GetUserMediaImpl {
         VideoTrack track = pcFactory.createVideoTrack(trackId, videoSource);
         mediaStream.addTrack(track);
 
-        stateProvider.putLocalTrack(track.id(), track);
+        LocalVideoTrack localVideoTrack = new LocalVideoTrack(track);
+        videoSource.setVideoProcessor(localVideoTrack);
+
+        stateProvider.putLocalTrack(track.id(),localVideoTrack);
 
         ConstraintsMap trackParams = new ConstraintsMap();
 
