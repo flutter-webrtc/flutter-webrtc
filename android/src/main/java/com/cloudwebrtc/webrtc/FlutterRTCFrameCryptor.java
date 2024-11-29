@@ -152,8 +152,6 @@ public class FlutterRTCFrameCryptor {
         switch (algorithm) {
             case 0:
                 return FrameCryptorAlgorithm.AES_GCM;
-            case 1:
-                return FrameCryptorAlgorithm.AES_CBC;
             default:
                 return FrameCryptorAlgorithm.AES_GCM;
         }
