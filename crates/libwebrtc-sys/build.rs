@@ -27,7 +27,7 @@ use walkdir::{DirEntry, WalkDir};
 /// [`libwebrtc-bin`]: https://github.com/instrumentisto/libwebrtc-bin
 static LIBWEBRTC_URL: &str =
     "https://github.com/instrumentisto/libwebrtc-bin/releases/download\
-                                                    /130.0.6723.69";
+                                                    /131.0.6778.85-r1";
 
 /// URL for downloading `openal-soft` source code.
 static OPENAL_URL: &str =
@@ -124,19 +124,19 @@ fn get_target() -> anyhow::Result<String> {
 fn get_expected_libwebrtc_hash() -> anyhow::Result<&'static str> {
     Ok(match get_target()?.as_str() {
         "aarch64-unknown-linux-gnu" => {
-            "7c920c99ad312469e0577c4764eb1fbf4b66fd5c82cb32bc3d2267f6dd387b4d"
+            "4393ea8a5b8f2c20c0c179858c6d12fb8892c421d7bc3061fe1f2ae27f9ebf89"
         }
         "x86_64-unknown-linux-gnu" => {
-            "7a4c730ed7921f02f8b5af42131417fe18c586c139cf2c1ba84601ece168ddad"
+            "1db3f3073b79f40a6e8ec11ae36430903b19d42902d620cf70ffa296b0eb835f"
         }
         "aarch64-apple-darwin" => {
-            "deb83f7396d2138862fd06993b4f77b587c41a7766b7099e51d16e60180fb24a"
+            "1e6f07c7ddc9f128a789c926a7884a9ed428e867a1613a93d63596ab1510ce34"
         }
         "x86_64-apple-darwin" => {
-            "cc2523cde784b9089b05a6162a0c871733870ecc22f391d0080b8c2be4cf8616"
+            "37da83abfe0ad15df4e12fb418afe432dd11e1ed8251dd6fe98557f3d0c8f345"
         }
         "x86_64-pc-windows-msvc" => {
-            "c3792497acbae8c29d68bd4e01d9551dc8fbc573edc8169112d1a6a58135c4a3"
+            "c77a300f6e7a94fa85428a41e671509668b98ef53250f13619e30739be850dfb"
         }
         arch => return Err(anyhow::anyhow!("Unsupported target: {arch}")),
     })

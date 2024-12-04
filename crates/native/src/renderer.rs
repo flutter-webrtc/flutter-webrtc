@@ -211,13 +211,13 @@ mod frame_handler {
         // This will trigger `cxx` to generate `UniquePtrTarget` trait for the
         // mentioned types.
         extern "Rust" {
-            fn _touch_unique_ptr_on_frame_handler(
+            fn touch_unique_ptr_on_frame_handler(
                 i: UniquePtr<OnFrameCallbackInterface>,
             );
         }
     }
 
-    fn _touch_unique_ptr_on_frame_handler(
+    fn touch_unique_ptr_on_frame_handler(
         _: cxx::UniquePtr<OnFrameCallbackInterface>,
     ) {
     }

@@ -15,7 +15,7 @@ Flutter WebRTC plugin based on Google WebRTC.
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency 'instrumentisto-libwebrtc-bin', '130.0.6723.69'
+  s.dependency 'instrumentisto-libwebrtc-bin', '131.0.6778.85-r1'
   s.platform         = :ios, '13.0'
   s.static_framework = true
 

@@ -14,9 +14,12 @@ All user visible changes to this project will be documented in this file. This p
 ### Changed
 
 - Upgraded [OpenAL] library to [1.24.0][openal-1.24.0] version. ([#181])
+- Upgraded [libwebrtc] to [131.0.6778.85-r1] version. ([#180])
 
+[#180]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/180
 [#181]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/181
 [openal-1.24.0]: https://github.com/kcat/openal-soft/releases/tag/1.24.0
+[131.0.6778.85-r1]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/131.0.6778.85-r1
 
 
 
