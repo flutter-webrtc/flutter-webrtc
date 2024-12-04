@@ -511,6 +511,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           String transceiverId = transceiver.getMid();
           if (null == transceiverId) {
             transceiverId = stateProvider.getNextStreamUUID();
+            this.transceivers.put(transceiverId,transceiver);
           }
           params.putMap("transceiver", transceiverToMap(transceiverId, transceiver));
         }
@@ -1106,6 +1107,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       String transceiverId = transceiver.getMid();
       if (null == transceiverId) {
         transceiverId = stateProvider.getNextStreamUUID();
+        this.transceivers.put(transceiverId,transceiver);
       }
       transceiversParams.pushMap(new ConstraintsMap(transceiverToMap(transceiverId, transceiver)));
     }

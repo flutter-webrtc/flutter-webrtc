@@ -23,9 +23,11 @@ class FlutterFrameCryptor {
  public:
   FlutterFrameCryptor(FlutterWebRTCBase* base) : base_(base) {}
 
+  // Since this takes ownership of result, ownership will be passed back to 'outResult' if this function fails
   bool HandleFrameCryptorMethodCall(
     const MethodCallProxy& method_call,
-    std::unique_ptr<MethodResultProxy> result);
+    std::unique_ptr<MethodResultProxy> result,
+    std::unique_ptr<MethodResultProxy> *outResult);
 
   void FrameCryptorFactoryCreateFrameCryptor(
       const EncodableMap& constraints,
@@ -91,7 +93,7 @@ class FlutterFrameCryptor {
   FlutterWebRTCBase* base_;
   std::map<std::string, scoped_refptr<libwebrtc::RTCFrameCryptor>>
       frame_cryptors_;
-  std::map<std::string, std::unique_ptr<FlutterFrameCryptorObserver>>
+  std::map<std::string, scoped_refptr<FlutterFrameCryptorObserver>>
       frame_cryptor_observers_;
   std::map<std::string, scoped_refptr<libwebrtc::KeyProvider>> key_providers_;
 };

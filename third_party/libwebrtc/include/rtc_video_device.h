@@ -20,8 +20,7 @@ class RTCVideoDevice : public RefCountInterface {
  public:
   virtual uint32_t NumberOfDevices() = 0;
 
-  virtual int32_t GetDeviceName(uint32_t deviceNumber,
-                                char* deviceNameUTF8,
+  virtual int32_t GetDeviceName(uint32_t deviceNumber, char* deviceNameUTF8,
                                 uint32_t deviceNameLength,
                                 char* deviceUniqueIdUTF8,
                                 uint32_t deviceUniqueIdUTF8Length,
@@ -29,8 +28,7 @@ class RTCVideoDevice : public RefCountInterface {
                                 uint32_t productUniqueIdUTF8Length = 0) = 0;
 
   virtual scoped_refptr<RTCVideoCapturer> Create(const char* name,
-                                                 uint32_t index,
-                                                 size_t width,
+                                                 uint32_t index, size_t width,
                                                  size_t height,
                                                  size_t target_fps) = 0;
 

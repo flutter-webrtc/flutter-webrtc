@@ -152,8 +152,6 @@ public class FlutterRTCFrameCryptor {
         switch (algorithm) {
             case 0:
                 return FrameCryptorAlgorithm.AES_GCM;
-            case 1:
-                return FrameCryptorAlgorithm.AES_CBC;
             default:
                 return FrameCryptorAlgorithm.AES_GCM;
         }
@@ -181,7 +179,8 @@ public class FlutterRTCFrameCryptor {
         if(type.equals("sender")) {
             RtpSender rtpSender = pco.getRtpSenderById(rtpSenderId);
 
-            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpSender(rtpSender,
+            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpSender(stateProvider.getPeerConnectionFactory(),
+                    rtpSender,
                     participantId,
                     frameCryptorAlgorithmFromInt(algorithm),
                     keyProvider);
@@ -196,7 +195,8 @@ public class FlutterRTCFrameCryptor {
         } else if(type.equals("receiver")) {
             RtpReceiver rtpReceiver = pco.getRtpReceiverById(rtpReceiverId);
 
-            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpReceiver(rtpReceiver,
+            FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpReceiver(stateProvider.getPeerConnectionFactory(),
+                    rtpReceiver,
                     participantId,
                     frameCryptorAlgorithmFromInt(algorithm),
                     keyProvider);
@@ -295,7 +295,9 @@ public class FlutterRTCFrameCryptor {
         if(keyProviderOptions.containsKey("uncryptedMagicBytes")) {
             uncryptedMagicBytes = ( byte[]) keyProviderOptions.get("uncryptedMagicBytes");
         }
-        FrameCryptorKeyProvider keyProvider = FrameCryptorFactory.createFrameCryptorKeyProvider(sharedKey, ratchetSalt, ratchetWindowSize, uncryptedMagicBytes, failureTolerance);
+        int keyRingSize = (int) keyProviderOptions.get("keyRingSize");
+        boolean discardFrameWhenCryptorNotReady = (boolean) keyProviderOptions.get("discardFrameWhenCryptorNotReady");
+        FrameCryptorKeyProvider keyProvider = FrameCryptorFactory.createFrameCryptorKeyProvider(sharedKey, ratchetSalt, ratchetWindowSize, uncryptedMagicBytes, failureTolerance, keyRingSize, discardFrameWhenCryptorNotReady);
         ConstraintsMap paramsResult = new ConstraintsMap();
         keyProviders.put(keyProviderId, keyProvider);
         paramsResult.putString("keyProviderId", keyProviderId);

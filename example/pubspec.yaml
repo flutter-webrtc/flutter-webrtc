@@ -3,7 +3,7 @@ description: Demonstrates how to use the webrtc plugin.
 version: 1.0.0
 publish_to: none
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=3.3.0 <4.0.0'
   
 dependencies:
   # The following adds the Cupertino Icons font to your application.
@@ -16,7 +16,7 @@ dependencies:
     path: ../
   # Required for MediaRecorder example
   path_provider: ^2.0.2
-  permission_handler: ^10.2.0
+  permission_handler: ^11.3.1
   sdp_transform: ^0.3.2
 
 

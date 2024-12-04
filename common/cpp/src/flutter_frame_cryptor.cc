@@ -48,7 +48,8 @@ void FlutterFrameCryptorObserver::OnFrameCryptionStateChanged(
 
 bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
     const MethodCallProxy& method_call,
-    std::unique_ptr<MethodResultProxy> result) {
+    std::unique_ptr<MethodResultProxy> result,
+    std::unique_ptr<MethodResultProxy> *outResult) {
   const std::string& method_name = method_call.method_name();
   if (!method_call.arguments()) {
     result->Error("Bad Arguments", "Null arguments received");
@@ -102,7 +103,8 @@ bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
     KeyProviderDispose(params, std::move(result));
     return true;
   }
-
+  
+  *outResult = std::move(result);
   return false;
 }
 
@@ -159,18 +161,17 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
       return;
     }
     auto frameCryptor =
-        libwebrtc::FrameCryptorFactory::frameCryptorFromRtpSender(
+        libwebrtc::FrameCryptorFactory::frameCryptorFromRtpSender(base_->factory_,
             string(participantId), sender, AlgorithmFromInt(algorithm),
             keyProvider);
     std::string event_channel = "FlutterWebRTC/frameCryptorEvent" + uuid;
 
-    std::unique_ptr<FlutterFrameCryptorObserver> observer(
-        new FlutterFrameCryptorObserver(base_->messenger_, event_channel));
+    scoped_refptr<FlutterFrameCryptorObserver> observer(new RefCountedObject<FlutterFrameCryptorObserver>(base_->messenger_, event_channel));
 
-    frameCryptor->RegisterRTCFrameCryptorObserver(observer.get());
+    frameCryptor->RegisterRTCFrameCryptorObserver(observer);
 
     frame_cryptors_[uuid] = frameCryptor;
-    frame_cryptor_observers_[uuid] = std::move(observer);
+    frame_cryptor_observers_[uuid] = observer;
     EncodableMap params;
     params[EncodableValue("frameCryptorId")] = uuid;
 
@@ -185,19 +186,18 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     std::string uuid = base_->GenerateUUID();
     auto keyProvider = key_providers_[keyProviderId];
     auto frameCryptor =
-        libwebrtc::FrameCryptorFactory::frameCryptorFromRtpReceiver(
+        libwebrtc::FrameCryptorFactory::frameCryptorFromRtpReceiver(base_->factory_,
             string(participantId), receiver, AlgorithmFromInt(algorithm),
             keyProvider);
 
     std::string event_channel = "FlutterWebRTC/frameCryptorEvent" + uuid;
 
-    std::unique_ptr<FlutterFrameCryptorObserver> observer(
-        new FlutterFrameCryptorObserver(base_->messenger_, event_channel));
+    scoped_refptr<FlutterFrameCryptorObserver> observer(new RefCountedObject<FlutterFrameCryptorObserver>(base_->messenger_, event_channel));
 
     frameCryptor->RegisterRTCFrameCryptorObserver(observer.get());
 
     frame_cryptors_[uuid] = frameCryptor;
-    frame_cryptor_observers_[uuid] = std::move(observer);
+    frame_cryptor_observers_[uuid] = observer;
     EncodableMap params;
     params[EncodableValue("frameCryptorId")] = uuid;
 
@@ -346,6 +346,12 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyProvider(
 
   auto failureTolerance = findInt(keyProviderOptions, "failureTolerance");
   options.failure_tolerance = failureTolerance;
+
+  auto keyRingSize = findInt(keyProviderOptions, "keyRingSize");
+  options.key_ring_size = keyRingSize;
+
+  auto discardFrameWhenCryptorNotReady = findBoolean(keyProviderOptions, "discardFrameWhenCryptorNotReady");
+  options.discard_frame_when_cryptor_not_ready = discardFrameWhenCryptorNotReady;
 
   auto keyProvider = libwebrtc::KeyProvider::Create(&options);
   if (nullptr == keyProvider.get()) {

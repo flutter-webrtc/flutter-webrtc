@@ -77,14 +77,12 @@
   }
 }
 
-- (RTCCyrptorAlgorithm)getAlgorithm:(NSNumber*)algorithm {
+- (RTCCryptorAlgorithm)getAlgorithm:(NSNumber*)algorithm {
   switch ([algorithm intValue]) {
     case 0:
-      return RTCCyrptorAlgorithmAesGcm;
-    case 1:
-      return RTCCyrptorAlgorithmAesCbc;
+      return RTCCryptorAlgorithmAesGcm;
     default:
-      return RTCCyrptorAlgorithmAesGcm;
+      return RTCCryptorAlgorithmAesGcm;
   }
 }
 
@@ -146,7 +144,8 @@
     }
 
     RTCFrameCryptor* frameCryptor =
-        [[RTCFrameCryptor alloc] initWithRtpSender:sender
+        [[RTCFrameCryptor alloc] initWithFactory:self.peerConnectionFactory
+                                         rtpSender:sender
                                      participantId:participantId
                                          algorithm:[self getAlgorithm:algorithm]
                                         keyProvider:keyProvider];
@@ -172,7 +171,8 @@
       return;
     }
     RTCFrameCryptor* frameCryptor =
-        [[RTCFrameCryptor alloc] initWithRtpReceiver:receiver
+        [[RTCFrameCryptor alloc] initWithFactory:self.peerConnectionFactory
+                                         rtpReceiver:receiver
                                        participantId:participantId
                                            algorithm:[self getAlgorithm:algorithm]
                                           keyProvider:keyProvider];
@@ -347,13 +347,19 @@
   NSNumber* failureTolerance = keyProviderOptions[@"failureTolerance"];
 
   FlutterStandardTypedData* uncryptedMagicBytes = keyProviderOptions[@"uncryptedMagicBytes"];
+
+  NSNumber* keyRingSize = keyProviderOptions[@"keyRingSize"];
+
+  NSNumber* discardFrameWhenCryptorNotReady = keyProviderOptions[@"discardFrameWhenCryptorNotReady"];
   
   RTCFrameCryptorKeyProvider* keyProvider =
       [[RTCFrameCryptorKeyProvider alloc] initWithRatchetSalt:ratchetSalt.data
                                            ratchetWindowSize:[ratchetWindowSize intValue]
                                                sharedKeyMode:[sharedKey boolValue]
                                          uncryptedMagicBytes: uncryptedMagicBytes != nil ? uncryptedMagicBytes.data : nil
-                                            failureTolerance:failureTolerance != nil ? [failureTolerance intValue] : -1];
+                                            failureTolerance:failureTolerance != nil ? [failureTolerance intValue] : -1
+                                                 keyRingSize:keyRingSize != nil ? [keyRingSize intValue] : 0
+                             discardFrameWhenCryptorNotReady:discardFrameWhenCryptorNotReady != nil ? [discardFrameWhenCryptorNotReady boolValue] : NO];
   self.keyProviders[keyProviderId] = keyProvider;
   result(@{@"keyProviderId" : keyProviderId});
 }
@@ -586,7 +592,7 @@
     didStateChangeWithParticipantId:(NSString*)participantId
                           withState:(FrameCryptionState)stateChanged {
   if (frameCryptor.eventSink) {
-    frameCryptor.eventSink(@{
+    postEvent(frameCryptor.eventSink, @{
       @"event" : @"frameCryptionStateChanged",
       @"participantId" : participantId,
       @"state" : [self stringFromState:stateChanged]

@@ -113,6 +113,11 @@ class Helper {
   static Future<void> setSpeakerphoneOn(bool enable) =>
       NativeAudioManagement.setSpeakerphoneOn(enable);
 
+  /// Ensure audio session
+  /// for iOS only
+  static Future<void> ensureAudioSession() =>
+      NativeAudioManagement.ensureAudioSession();
+
   /// Enable speakerphone, but use bluetooth if audio output device available
   /// for iOS/Android only
   static Future<void> setSpeakerphoneOnButPreferBluetooth() =>
@@ -165,4 +170,13 @@ class Helper {
       AppleNativeAudioManagement.setAppleAudioConfiguration(
           AppleNativeAudioManagement.getAppleAudioConfigurationForMode(mode,
               preferSpeakerOutput: preferSpeakerOutput));
+
+  /// Request capture permission for Android
+  static Future<bool> requestCapturePermission() async {
+    if (WebRTC.platformIsAndroid) {
+      return await WebRTC.invokeMethod('requestCapturePermission');
+    } else {
+      throw Exception('requestCapturePermission only support for Android');
+    }
+  }
 }

@@ -27,6 +27,7 @@ class FlutterFrameCapturer
   std::string path_;
   std::mutex mutex_;
   scoped_refptr<RTCVideoFrame> frame_;
+  volatile bool catch_frame_;
 
   bool SaveFrame();
 };
