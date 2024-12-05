@@ -139,7 +139,7 @@ jobs:
           - windows
     runs-on: ${{ (matrix.platform == 'macos'   && 'macos-13')
               || (matrix.platform == 'windows' && 'windows-latest')
-              ||                                  'ubuntu-latest' }}
+              ||                                  'ubuntu-20.04' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@v1
