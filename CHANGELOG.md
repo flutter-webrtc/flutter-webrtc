@@ -15,12 +15,15 @@ All user visible changes to this project will be documented in this file. This p
 
 - Upgraded [OpenAL] library to [1.24.1][openal-1.24.1] version. ([#182], [#181])
 - Upgraded [libwebrtc] to [131.0.6778.85-r1] version. ([#180])
+- Upgraded [`flutter_rust_bridge`] crate to [2.7.0][frb-2.7.0] version. ([#183])
 
 [#180]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/180
 [#181]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/181
 [#182]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/182
-[openal-1.24.1]: https://github.com/kcat/openal-soft/releases/tag/1.24.1
+[#183]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/183
 [131.0.6778.85-r1]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/131.0.6778.85-r1
+[openal-1.24.1]: https://github.com/kcat/openal-soft/releases/tag/1.24.1
+[frb-2.7.0]: https://github.com/fzyzcjy/flutter_rust_bridge/releases/tag/v2.7.0
 
 
 
@@ -36,7 +39,7 @@ All user visible changes to this project will be documented in this file. This p
 
 ### Changed
 
-- Upgraded `flutter_rust_bridge` to 2.4.0 version. ([#172])
+- Upgraded [`flutter_rust_bridge`] crate to [2.4.0][frb-2.4.0] version. ([#172])
 - Upgraded [libwebrtc] to [130.0.6723.69] version. ([#176], [#177])
 
 ### Fixed
@@ -49,6 +52,7 @@ All user visible changes to this project will be documented in this file. This p
 [#176]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/176
 [#177]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/177
 [130.0.6723.69]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/130.0.6723.69
+[frb-2.4.0]: https://github.com/fzyzcjy/flutter_rust_bridge/releases/tag/v2.4.0
 
 
 
@@ -75,9 +79,10 @@ All user visible changes to this project will be documented in this file. This p
 
 ### Changed
 
-- Upgraded `flutter_rust_bridge` to 2.2.0 version. ([#167])
+- Upgraded [`flutter_rust_bridge`] crate to [2.2.0][frb-2.2.0] version. ([#167])
 
 [#167]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/167
+[frb-2.2.0]: https://github.com/fzyzcjy/flutter_rust_bridge/releases/tag/v2.2.0
 
 
 
@@ -297,6 +302,7 @@ See [changelog in upstream repository](https://github.com/flutter-webrtc/flutter
 
 
 
+[`flutter_rust_bridge`]: https://docs.rs/flutter_rust_bridge
 [Android]: https://www.android.com
 [Dart]: https://dart.dev
 [Flutter]: https://www.flutter.dev

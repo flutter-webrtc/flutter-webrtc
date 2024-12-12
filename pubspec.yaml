@@ -14,7 +14,7 @@ dependencies:
   ffi: ^2.0.2
   flutter:
     sdk: flutter
-  flutter_rust_bridge: 2.4.0  # should be the same as in `Cargo.lock`
+  flutter_rust_bridge: 2.7.0  # should be the same as in `Cargo.lock`
   freezed_annotation: ^2.4.4
   uuid: ^4.4.2
   web: ">=0.5.1 <2.0.0"

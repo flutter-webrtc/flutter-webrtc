@@ -297,10 +297,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "dart-sys-fork"
-version = "4.1.1"
+name = "dart-sys"
+version = "4.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "933dafff26172b719bb9695dd3715a1e7792f62dcdc8a5d4c740db7e0fedee8b"
+checksum = "57967e4b200d767d091b961d6ab42cc7d0cc14fe9e052e75d0d3cf9eb732d895"
 dependencies = [
  "cc",
 ]
@@ -427,16 +427,16 @@ dependencies = [
 
 [[package]]
 name = "flutter_rust_bridge"
-version = "2.4.0"
+version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ff967a5893be60d849e4362910762acdc275febe44333153a11dcec1bca2cd2"
+checksum = "5419323ff3ae8b63ed20b7cd0fd0e3e73fa9234b3b212b87b5586fe76ae52318"
 dependencies = [
  "allo-isolate",
  "anyhow",
  "build-target",
  "bytemuck",
  "byteorder",
- "dart-sys-fork",
+ "dart-sys",
  "delegate-attr",
  "flutter_rust_bridge_macros",
  "futures",
@@ -451,9 +451,9 @@ dependencies = [
 
 [[package]]
 name = "flutter_rust_bridge_macros"
-version = "2.4.0"
+version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d48b4d3fae9d29377b19134a38386d8792bde70b9448cde49e96391bcfc8fed1"
+checksum = "9c6fd06cacc0dfe931d00f3acdc5ac6c5dd9382b33dd78d71cce8f0a62e9458b"
 dependencies = [
  "hex",
  "md-5",
@@ -1084,7 +1084,6 @@ dependencies = [
  "dashmap",
  "derive_more",
  "flutter_rust_bridge",
- "flutter_rust_bridge_macros",
  "lazy_static",
  "libpulse-binding",
  "libudev",
