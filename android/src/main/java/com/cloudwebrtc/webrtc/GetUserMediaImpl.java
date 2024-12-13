@@ -9,15 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
-import android.graphics.Rect;
-import android.hardware.Camera;
-import android.hardware.Camera.Parameters;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CaptureRequest;
 import android.media.AudioDeviceInfo;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
@@ -31,10 +23,8 @@ import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Pair;
-import android.util.Range;
 import android.util.SparseArray;
 import android.view.Display;
-import android.view.Surface;
 import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
@@ -54,8 +44,8 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
-import com.cloudwebrtc.webrtc.video.VideoCapturerInfo;
 import com.cloudwebrtc.webrtc.video.LocalVideoTrack;
+import com.cloudwebrtc.webrtc.video.VideoCapturerInfo;
 
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
@@ -65,7 +55,6 @@ import org.webrtc.Camera1Helper;
 import org.webrtc.Camera2Capturer;
 import org.webrtc.Camera2Enumerator;
 import org.webrtc.Camera2Helper;
-import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
 import org.webrtc.CameraEnumerator;
 import org.webrtc.CameraVideoCapturer;
 import org.webrtc.MediaConstraints;
@@ -80,7 +69,6 @@ import org.webrtc.VideoTrack;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -109,7 +97,7 @@ public class GetUserMediaImpl {
 
     static final String TAG = FlutterWebRTCPlugin.TAG;
 
-    private final Map<String, VideoCapturerInfo> mVideoCapturers = new HashMap<>();
+    private final Map<String, VideoCapturerInfoEx> mVideoCapturers = new HashMap<>();
     private final Map<String, SurfaceTextureHelper> mSurfaceTextureHelpers = new HashMap<>();
     private final StateProvider stateProvider;
     private final Context applicationContext;
@@ -558,7 +546,7 @@ public class GetUserMediaImpl {
         Point size = new Point();
         display.getRealSize(size);
 
-        VideoCapturerInfo info = new VideoCapturerInfo();
+        VideoCapturerInfoEx info = new VideoCapturerInfoEx();
         info.width = size.x;
         info.height = size.y;
         info.fps = DEFAULT_FPS;
@@ -764,7 +752,7 @@ public class GetUserMediaImpl {
         videoCapturer.initialize(
                 surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
 
-        VideoCapturerInfo info = new VideoCapturerInfo();
+        VideoCapturerInfoEx info = new VideoCapturerInfoEx();
 
         Integer videoWidth = getConstrainInt(videoConstraintsMap, "width");
         int targetWidth = videoWidth != null
@@ -850,7 +838,7 @@ public class GetUserMediaImpl {
     }
 
     void removeVideoCapturer(String id) {
-        VideoCapturerInfo info = mVideoCapturers.get(id);
+        VideoCapturerInfoEx info = mVideoCapturers.get(id);
         if (info != null) {
             try {
                 info.capturer.stopCapture();
@@ -1000,7 +988,7 @@ public class GetUserMediaImpl {
 
 
     public void reStartCamera(IsCameraEnabled getCameraId) {
-        for (Map.Entry<String, VideoCapturerInfo> item : mVideoCapturers.entrySet()) {
+        for (Map.Entry<String, VideoCapturerInfoEx> item : mVideoCapturers.entrySet()) {
             if (!item.getValue().isScreenCapture && getCameraId.isEnabled(item.getKey())) {
                 item.getValue().capturer.startCapture(
                         item.getValue().width,
@@ -1015,13 +1003,12 @@ public class GetUserMediaImpl {
         boolean isEnabled(String id);
     }
 
-    public static class VideoCapturerInfo {
-        VideoCapturer capturer;
-        int width;
-        int height;
-        int fps;
-        boolean isScreenCapture = false;
-        CameraEventsHandler cameraEventsHandler;
+    public static class VideoCapturerInfoEx extends VideoCapturerInfo  {
+        public CameraEventsHandler cameraEventsHandler;
+    }
+
+    public VideoCapturerInfoEx getCapturerInfo(String trackId) {
+        return mVideoCapturers.get(trackId);
     }
 
     @RequiresApi(api = VERSION_CODES.M)

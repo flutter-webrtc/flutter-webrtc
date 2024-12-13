@@ -1,11 +1,6 @@
 package com.cloudwebrtc.webrtc.video.camera;
 
-import static androidx.core.view.ViewCompat.getDisplay;
-
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraCaptureSession;
@@ -19,11 +14,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 import android.util.Range;
-import android.util.Rational;
 import android.util.Size;
-import android.view.Display;
 import android.view.Surface;
-import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -260,6 +252,9 @@ public class CameraUtils {
       params.setFlashMode(
               isTorchOn ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF);
       params.setFocusAreas(null);
+
+      result.success(null);
+      return;
     }
     resultError("setFocusMode", "[FocusMode] Video capturer not compatible", result);
   }

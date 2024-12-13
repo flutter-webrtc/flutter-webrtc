@@ -888,9 +888,9 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
       NSDictionary* argsMap = call.arguments;
       NSString* trackId = argsMap[@"trackId"];
       NSString* focusMode = argsMap[@"focusMode"];
-      RTCMediaStreamTrack* track = self.localTracks[trackId];
-      if (track != nil && focusMode != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
-        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+      id<LocalTrack> track = self.localTracks[trackId];
+      if (track != nil && focusMode != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
+        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track.track;
         [self mediaStreamTrackSetFocusMode:videoTrack focusMode:focusMode result:result];
       } else {
         if (track == nil) {
@@ -906,9 +906,9 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
       NSDictionary* argsMap = call.arguments;
       NSString* trackId = argsMap[@"trackId"];
       NSDictionary* focusPoint = argsMap[@"focusPoint"];
-      RTCMediaStreamTrack* track = self.localTracks[trackId];
-      if (track != nil && focusPoint != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
-        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+      id<LocalTrack> track = self.localTracks[trackId];
+      if (track != nil && focusPoint != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
+        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track.track;
         [self mediaStreamTrackSetFocusPoint:videoTrack focusPoint:focusPoint result:result];
       } else {
         if (track == nil) {
@@ -924,9 +924,9 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
       NSDictionary* argsMap = call.arguments;
       NSString* trackId = argsMap[@"trackId"];
       NSString* exposureMode = argsMap[@"exposureMode"];
-      RTCMediaStreamTrack* track = self.localTracks[trackId];
-      if (track != nil && exposureMode != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
-        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+      id<LocalTrack> track = self.localTracks[trackId];
+      if (track != nil && exposureMode != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
+        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track.track;
         [self mediaStreamTrackSetExposureMode:videoTrack exposureMode:exposureMode result:result];
       } else {
         if (track == nil) {
@@ -942,9 +942,9 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
       NSDictionary* argsMap = call.arguments;
       NSString* trackId = argsMap[@"trackId"];
       NSDictionary* exposurePoint = argsMap[@"exposurePoint"];
-      RTCMediaStreamTrack* track = self.localTracks[trackId];
-      if (track != nil && exposurePoint != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
-        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
+      id<LocalTrack> track = self.localTracks[trackId];
+      if (track != nil && exposurePoint != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
+        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track.track;
         [self mediaStreamTrackSetExposurePoint:videoTrack exposurePoint:exposurePoint result:result];
       } else {
         if (track == nil) {
@@ -961,7 +961,7 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     NSString* trackId = argsMap[@"trackId"];
     id<LocalTrack> track = self.localTracks[trackId];
     if (track != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
-      RTCVideoTrack* videoTrack = ((LocalVideoTrack*)track).videoTrack;
+      RTCVideoTrack* videoTrack = (RTCVideoTrack*)track.track;
       [self mediaStreamTrackSwitchCamera:videoTrack result:result];
     } else {
       if (track == nil) {

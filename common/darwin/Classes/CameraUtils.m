@@ -276,6 +276,9 @@
     NSLog(@"Video capturer is null. Can't switch camera");
     return;
   }
+#if TARGET_OS_IPHONE
+  [self.videoCapturer stopCapture];
+#endif
   self._usingFrontCamera = !self._usingFrontCamera;
   AVCaptureDevicePosition position =
       self._usingFrontCamera ? AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
