@@ -163,8 +163,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     final videoTrack = _localStream!
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');
-    await WebRTC.invokeMethod('mediaStreamTrackSetZoom',
-        <String, dynamic>{'trackId': videoTrack.id, 'zoomLevel': zoomLevel});
+    await Helper.setZoom(videoTrack, zoomLevel);
   }
 
   void _switchCamera() async {
