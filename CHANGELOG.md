@@ -1,6 +1,12 @@
 # Changelog
 
 --------------------------------------------
+[0.12.4] - 2024-12-16
+
+* [iOS/Android] add FocusMode/ExposureMode settings for mobile. (#1435)
+* [Dart] fix compiler errors.
+* [eLinux] add $ORIGIN to rpath in elinux (#1720).
+
 [0.12.3] - 2024-11-29
 
 * [iOS/Android/macOS] feat: Expose AV Processing and Sink native APIs.
