@@ -1,5 +1,5 @@
 group 'com.instrumentisto.medea_flutter_webrtc'
-version '0.11.2'
+version '0.12.0'
 
 buildscript {
     ext.kotlin_version = "1.8.22"
