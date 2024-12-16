@@ -1,22 +1,11 @@
 import 'dart:math';
-
-import 'package:flutter/foundation.dart';
-
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 import 'utils.dart';
 
 enum CameraFocusMode { auto, locked }
 
-extension CameraFocusModeExt on CameraFocusMode {
-  String get value => describeEnum(this);
-}
-
 enum CameraExposureMode { auto, locked }
-
-extension CameraExposureModeExt on CameraExposureMode {
-  String get value => describeEnum(this);
-}
 
 class CameraUtils {
   static Future<void> setZoom(
@@ -40,7 +29,7 @@ class CameraUtils {
         'mediaStreamTrackSetFocusMode',
         <String, dynamic>{
           'trackId': videoTrack.id,
-          'focusMode': focusMode.value,
+          'focusMode': focusMode.name,
         },
       );
     } else {
@@ -74,7 +63,7 @@ class CameraUtils {
         'mediaStreamTrackSetExposureMode',
         <String, dynamic>{
           'trackId': videoTrack.id,
-          'exposureMode': exposureMode.value,
+          'exposureMode': exposureMode.name,
         },
       );
     } else {
