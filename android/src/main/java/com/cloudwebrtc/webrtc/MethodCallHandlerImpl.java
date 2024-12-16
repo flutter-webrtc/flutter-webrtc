@@ -36,6 +36,9 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
 import com.cloudwebrtc.webrtc.utils.Utils;
+import com.cloudwebrtc.webrtc.video.VideoCapturerInfo;
+import com.cloudwebrtc.webrtc.video.camera.CameraUtils;
+import com.cloudwebrtc.webrtc.video.camera.Point;
 import com.cloudwebrtc.webrtc.video.LocalVideoTrack;
 import com.twilio.audioswitch.AudioDevice;
 
@@ -115,6 +118,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
    */
   private GetUserMediaImpl getUserMediaImpl;
 
+  private CameraUtils cameraUtils;
+
   private AudioDeviceModule audioDeviceModule;
 
   private FlutterRTCFrameCryptor frameCryptor;
@@ -166,6 +171,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                     .createInitializationOptions());
 
     getUserMediaImpl = new GetUserMediaImpl(this, context);
+
+    cameraUtils = new CameraUtils(getUserMediaImpl, activity);
 
     frameCryptor = new FlutterRTCFrameCryptor(this);
 
@@ -614,19 +621,51 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       case "mediaStreamTrackHasTorch": {
         String trackId = call.argument("trackId");
-        getUserMediaImpl.hasTorch(trackId, result);
+        cameraUtils.hasTorch(trackId, result);
         break;
       }
       case "mediaStreamTrackSetTorch": {
         String trackId = call.argument("trackId");
         boolean torch = call.argument("torch");
-        getUserMediaImpl.setTorch(trackId, torch, result);
+        cameraUtils.setTorch(trackId, torch, result);
         break;
       }
       case "mediaStreamTrackSetZoom": {
         String trackId = call.argument("trackId");
         double zoomLevel = call.argument("zoomLevel");
-        getUserMediaImpl.setZoom(trackId, zoomLevel, result);
+        cameraUtils.setZoom(trackId, zoomLevel, result);
+        break;
+      }
+      case "mediaStreamTrackSetFocusMode": {
+        cameraUtils.setFocusMode(call, result);
+        break;
+      }
+      case "mediaStreamTrackSetFocusPoint":{
+        Map<String, Object> focusPoint = call.argument("focusPoint");
+        Boolean reset = (Boolean)focusPoint.get("reset");
+        Double x = null;
+        Double y = null;
+        if (reset == null || !reset) {
+          x =  (Double)focusPoint.get("x");
+          y =  (Double)focusPoint.get("y");
+        }
+        cameraUtils.setFocusPoint(call, new Point(x, y), result);
+        break;
+      }
+      case "mediaStreamTrackSetExposureMode": {
+        cameraUtils.setExposureMode(call, result);
+        break;
+      }
+      case "mediaStreamTrackSetExposurePoint": {
+        Map<String, Object> exposurePoint = call.argument("exposurePoint");
+        Boolean reset = (Boolean)exposurePoint.get("reset");
+        Double x = null;
+        Double y = null;
+        if (reset == null || !reset) {
+          x =  (Double)exposurePoint.get("x");
+          y =  (Double)exposurePoint.get("y");
+        }
+        cameraUtils.setExposurePoint(call, new Point(x, y), result);
         break;
       }
       case "mediaStreamTrackSwitchCamera": {
