@@ -1,7 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 
 import '../flutter_webrtc.dart';
-import 'native/audio_management.dart';
 
 class Helper {
   static Future<List<MediaDeviceInfo>> enumerateDevices(String type) async {
@@ -67,17 +68,24 @@ class Helper {
     return Future.value(true);
   }
 
-  static Future<void> setZoom(
-      MediaStreamTrack videoTrack, double zoomLevel) async {
-    if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
-      await WebRTC.invokeMethod(
-        'mediaStreamTrackSetZoom',
-        <String, dynamic>{'trackId': videoTrack.id, 'zoomLevel': zoomLevel},
-      );
-    } else {
-      throw Exception('setZoom only support for mobile devices!');
-    }
-  }
+  static Future<void> setZoom(MediaStreamTrack videoTrack, double zoomLevel) =>
+      CameraUtils.setZoom(videoTrack, zoomLevel);
+
+  static Future<void> setFocusMode(
+          MediaStreamTrack videoTrack, CameraFocusMode focusMode) =>
+      CameraUtils.setFocusMode(videoTrack, focusMode);
+
+  static Future<void> setFocusPoint(
+          MediaStreamTrack videoTrack, Point<double>? point) =>
+      CameraUtils.setFocusPoint(videoTrack, point);
+
+  static Future<void> setExposureMode(
+          MediaStreamTrack videoTrack, CameraExposureMode exposureMode) =>
+      CameraUtils.setExposureMode(videoTrack, exposureMode);
+
+  static Future<void> setExposurePoint(
+          MediaStreamTrack videoTrack, Point<double>? point) =>
+      CameraUtils.setExposurePoint(videoTrack, point);
 
   /// Used to select a specific audio output device.
   ///
