@@ -584,6 +584,7 @@ public class GetUserMediaImpl {
             track_.putBoolean("remote", false);
 
             videoTracks.pushMap(track_);
+            mediaStream.addTrack(displayTrack);
         }
 
         String streamId = mediaStream.getId();
