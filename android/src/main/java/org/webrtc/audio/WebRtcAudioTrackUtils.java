@@ -9,6 +9,9 @@ import org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
 
 import java.lang.reflect.Field;
 
+import org.webrtc.voiceengine.WebRtcAudioManager;
+import org.webrtc.voiceengine.WebRtcAudioUtils;
+
 /**
  * Awful hack
  * It must be in this package, because WebRtcAudioTrack is package-private
@@ -53,6 +56,18 @@ public abstract class WebRtcAudioTrackUtils {
         } catch (Exception e) {
             Log.w(TAG, "Failed to detach callback", e);
         }
+    }
+
+    public static void setBlacklistDeviceForOpenSLESUsage(boolean enabled) {
+        WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(enabled);
+    }
+
+    public static void setWebRtcBasedAcousticEchoCanceler(boolean enabled) {
+        WebRtcAudioUtils.setWebRtcBasedAcousticEchoCanceler(enabled);
+    }
+
+    public static void setWebRtcBasedNoiseSuppressor(boolean enabled) {
+        WebRtcAudioUtils.setWebRtcBasedNoiseSuppressor(enabled);
     }
 
 }
