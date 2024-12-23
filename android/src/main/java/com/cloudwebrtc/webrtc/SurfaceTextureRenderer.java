@@ -95,6 +95,10 @@ public class SurfaceTextureRenderer extends EglRenderer {
   // VideoSink interface.
   @Override
   public void onFrame(VideoFrame frame) {
+    if(!isFirstFrameRendered) {
+      texture.setDefaultBufferSize(frame.getRotatedWidth(), frame.getRotatedHeight());
+      createEglSurface(texture);
+    }
     updateFrameDimensionsAndReportEvents(frame);
     super.onFrame(frame);
   }
@@ -104,7 +108,6 @@ public class SurfaceTextureRenderer extends EglRenderer {
   public void surfaceCreated(final SurfaceTexture texture) {
     ThreadUtils.checkIsOnMainThread();
     this.texture = texture;
-    createEglSurface(texture);
   }
 
   public void surfaceDestroyed() {
