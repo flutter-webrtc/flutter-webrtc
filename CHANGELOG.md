@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.12.5] - 2024-12-23
+
+* [iOS/Android] Fixed buf for screen capture.
+* [Android] Fixed first frame flickering.
+
 [0.12.4] - 2024-12-16
 
 * [iOS/Android] add FocusMode/ExposureMode settings for mobile. (#1435)
