@@ -51,6 +51,11 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     return @{@"minWidth" : @"1280", @"minHeight" : @"720", @"minFrameRate" : @"30"};
 }
 
+- (NSDictionary*)defaultAudioConstraints {
+    return @{};
+}
+
+
 - (RTCMediaConstraints*)defaultMediaStreamConstraints {
   RTCMediaConstraints* constraints =
       [[RTCMediaConstraints alloc] initWithMandatoryConstraints:[self defaultVideoConstraints]
@@ -114,7 +119,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
          mediaStream:(RTCMediaStream*)mediaStream {
   id audioConstraints = constraints[@"audio"];
   NSString* audioDeviceId = @"";
-
+  RTCMediaConstraints *rtcConstraints;
   if ([audioConstraints isKindOfClass:[NSDictionary class]]) {
     // constraints.audio.deviceId
     NSString* deviceId = audioConstraints[@"deviceId"];
@@ -123,11 +128,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
       audioDeviceId = deviceId;
     }
 
+    rtcConstraints = [self parseMediaConstraints:audioConstraints];
     // constraints.audio.optional.sourceId
-    id optionalVideoConstraints = audioConstraints[@"optional"];
-    if (optionalVideoConstraints && [optionalVideoConstraints isKindOfClass:[NSArray class]] &&
+    id optionalConstraints = audioConstraints[@"optional"];
+    if (optionalConstraints && [optionalConstraints isKindOfClass:[NSArray class]] &&
         !deviceId) {
-      NSArray* options = optionalVideoConstraints;
+      NSArray* options = optionalConstraints;
       for (id item in options) {
         if ([item isKindOfClass:[NSDictionary class]]) {
           NSString* sourceId = ((NSDictionary*)item)[@"sourceId"];
@@ -137,6 +143,8 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
         }
       }
     }
+  } else {
+      rtcConstraints = [self parseMediaConstraints:[self defaultAudioConstraints]];
   }
 
 #if !defined(TARGET_OS_IPHONE)
@@ -146,7 +154,8 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 #endif
 
   NSString* trackId = [[NSUUID UUID] UUIDString];
-  RTCAudioTrack* audioTrack = [self.peerConnectionFactory audioTrackWithTrackId:trackId];
+  RTCAudioSource *audioSource = [self.peerConnectionFactory audioSourceWithConstraints:rtcConstraints];
+  RTCAudioTrack* audioTrack = [self.peerConnectionFactory audioTrackWithSource:audioSource trackId:trackId];
   LocalAudioTrack *localAudioTrack = [[LocalAudioTrack alloc] initWithTrack:audioTrack];
 
   audioTrack.settings = @{
