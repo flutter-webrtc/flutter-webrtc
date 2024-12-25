@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.12.5+hotfix.1] - 2024-12-25
+
+* [iOS/macOS] fix: Pass MediaConstraints for getUserAudio.
+
 [0.12.5] - 2024-12-23
 
 * [iOS/Android] Fixed buf for screen capture.
