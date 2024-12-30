@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.12.5+hotfix.2] - 2024-12-25
+
+* [iOS] fix: Audio route issue for iOS.
+
 [0.12.5+hotfix.1] - 2024-12-25
 
 * [iOS/macOS] fix: Pass MediaConstraints for getUserAudio.
