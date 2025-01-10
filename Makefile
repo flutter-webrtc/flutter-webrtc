@@ -15,8 +15,8 @@ eq = $(if $(or $(1),$(2)),$(and $(findstring $(1),$(2)),\
 # Project parameters #
 ######################
 
-RUST_VER ?= 1.81
-RUST_NIGHTLY_VER ?= nightly-2024-09-08
+RUST_VER ?= 1.84
+RUST_NIGHTLY_VER ?= nightly-2025-01-10
 
 FLUTTER_RUST_BRIDGE_VER ?= $(strip \
 	$(shell grep -A1 'name = "flutter_rust_bridge"' Cargo.lock \
