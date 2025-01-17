@@ -750,6 +750,12 @@ public class GetUserMediaImpl {
         String threadName = Thread.currentThread().getName() + "_texture_camera_thread";
         SurfaceTextureHelper surfaceTextureHelper =
                 SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
+
+        if (surfaceTextureHelper == null) {
+            Log.e(TAG, "surfaceTextureHelper is null");
+            return null;
+        }
+
         videoCapturer.initialize(
                 surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
 
