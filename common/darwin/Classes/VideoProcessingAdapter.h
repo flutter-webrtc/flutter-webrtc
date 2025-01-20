@@ -13,4 +13,6 @@
 
 - (void)removeProcessing:(_Nonnull id<ExternalVideoProcessingDelegate>)processor;
 
+- (RTCVideoSource* _Nonnull) source;
+
 @end

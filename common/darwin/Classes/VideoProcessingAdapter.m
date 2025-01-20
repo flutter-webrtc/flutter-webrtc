@@ -18,6 +18,10 @@
   return self;
 }
 
+- (RTCVideoSource* _Nonnull) source {
+    return _videoSource;
+}
+
 - (void)addProcessing:(id<ExternalVideoProcessingDelegate>)processor {
   os_unfair_lock_lock(&_lock);
   _processors = [_processors arrayByAddingObject:processor];
