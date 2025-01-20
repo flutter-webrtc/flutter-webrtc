@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+[0.12.6] - 2025-01-20
+
+* [iOS] fix In-app screen recording.
+* [Android] fix: avoid crashes when surfaceTextureHelper is null. (#1743)
+
 [0.12.5+hotfix.2] - 2024-12-25
 
 * [iOS] fix: Audio route issue for iOS.
