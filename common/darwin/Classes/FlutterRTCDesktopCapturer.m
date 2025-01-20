@@ -40,7 +40,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
   if (useBroadcastExtension) {
     screenCapturer = [[FlutterBroadcastScreenCapturer alloc] initWithDelegate:videoProcessingAdapter];
   } else {
-    screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:videoProcessingAdapter];
+    screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:[videoProcessingAdapter source]];
   }
 
   [screenCapturer startCapture];
