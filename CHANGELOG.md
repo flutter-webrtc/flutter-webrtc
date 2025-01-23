@@ -6,18 +6,18 @@ All user visible changes to this project will be documented in this file. This p
 
 
 
-## [main] · unreleased
-[main]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/main
+## [0.12.1] · 2025-01-23
+[0.12.1]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.12.1
 
-[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.12.0...main)
+[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.12.0...0.12.1)
 
 ### Changed
 
-- Upgraded [OpenAL] library to [1.24.2][openal-1.24.2] version. ([todo])
+- Upgraded [OpenAL] library to [1.24.2][openal-1.24.2] version. ([494eb2fa])
 - Upgraded [libwebrtc] to [132.0.6834.83] version. ([#184])
 
 [#184]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/184
-[todo]: https://github.com/instrumentisto/medea-flutter-webrtc/commit/todo
+[494eb2fa]: https://github.com/instrumentisto/medea-flutter-webrtc/commit/494eb2fae899f26b4f65d8dae74adda55dc5f7d2
 [132.0.6834.83]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/132.0.6834.83
 [openal-1.24.2]: https://github.com/kcat/openal-soft/releases/tag/1.24.2
 
