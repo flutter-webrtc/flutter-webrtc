@@ -299,7 +299,6 @@ void main() {
       'audio/opus',
       'audio/red',
       'audio/G722',
-      'audio/ILBC',
       'audio/PCMU',
       'audio/PCMA',
       'audio/CN',
