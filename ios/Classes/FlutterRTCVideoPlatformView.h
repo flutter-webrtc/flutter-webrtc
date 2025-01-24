@@ -10,7 +10,7 @@
 
 - (void)renderFrame:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame;
 
-- (instancetype)initWithFrame:(CGRect)frame;
+- (instancetype _Nonnull)initWithFrame:(CGRect)frame;
 
 - (void)setSize:(CGSize)size;
 
