@@ -585,7 +585,7 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
       for (RTCVideoTrack* track in stream.videoTracks) {
         [_localTracks removeObjectForKey:track.trackId];
         RTCVideoTrack* videoTrack = (RTCVideoTrack*)track;
-        FlutterRTCVideoRenderer *renderer = [self findRendererByTrack:videoTrack];
+        FlutterRTCVideoRenderer *renderer = [self findRendererByTrackId:videoTrack.trackId];
         if(renderer != nil) {
           renderer.videoTrack = nil;
         }
@@ -689,10 +689,6 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
       for (RTCVideoTrack* track in stream.videoTracks) {
         if ([trackId isEqualToString:track.trackId]) {
           [stream removeVideoTrack:track];
-          FlutterRTCVideoRenderer *renderer = [self findRendererByTrack:track];
-          if(renderer != nil) {
-            renderer.videoTrack = nil;
-          }
           CapturerStopHandler stopHandler = self.videoCapturerStopHandlers[track.trackId];
           if (stopHandler) {
             stopHandler(^{
@@ -706,6 +702,10 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     [_localTracks removeObjectForKey:trackId];
     if (audioTrack) {
       [self ensureAudioSession];
+    }
+    FlutterRTCVideoRenderer *renderer = [self findRendererByTrackId:trackId];
+    if(renderer != nil) {
+      renderer.videoTrack = nil;
     }
     result(nil);
   } else if ([@"restartIce" isEqualToString:call.method]) {
@@ -2296,9 +2296,9 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
   return params;
 }
 
-- (FlutterRTCVideoRenderer *)findRendererByTrack:(RTCVideoTrack *)videoTrack {
-    for (FlutterRTCVideoRenderer *renderer in _renders.allValues) {
-        if (renderer.videoTrack == videoTrack) {
+- (FlutterRTCVideoRenderer *)findRendererByTrackId:(NSString *)trackId {
+    for (FlutterRTCVideoRenderer *renderer in self.renders.allValues) {
+        if (renderer.videoTrack != nil && [renderer.videoTrack.trackId isEqualToString:trackId]) {
             return renderer;
         }
     }
