@@ -75,13 +75,14 @@
 
 - (void)setVideoTrack:(RTCVideoTrack*)videoTrack {
   RTCVideoTrack* oldValue = self.videoTrack;
-
   if (oldValue != videoTrack) {
+    os_unfair_lock_lock(&_lock);
+    _videoTrack = videoTrack;
+    os_unfair_lock_unlock(&_lock);
     _isFirstFrameRendered = false;
     if (oldValue) {
       [oldValue removeRenderer:self];
     }
-    _videoTrack = videoTrack;
     _frameSize = CGSizeZero;
     _renderSize = CGSizeZero;
     _rotation = -1;
@@ -192,6 +193,10 @@
 - (void)renderFrame:(RTCVideoFrame*)frame {
 
   os_unfair_lock_lock(&_lock);
+  if(_videoTrack == nil) {
+    os_unfair_lock_unlock(&_lock);
+    return;
+  }
   if(!_frameAvailable && _pixelBufferRef) {
     [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
     if(_textureId != -1) {
