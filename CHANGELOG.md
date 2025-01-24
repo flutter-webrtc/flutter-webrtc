@@ -1,6 +1,10 @@
 # Changelog
 
 --------------------------------------------
+[0.12.7] - 2025-01-24
+
+* [iOS] More robustness for video renderer. (#1751)
+
 [0.12.6] - 2025-01-20
 
 * [iOS] fix In-app screen recording.
