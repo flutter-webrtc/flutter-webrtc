@@ -12,7 +12,7 @@ use std::{collections::HashMap, mem};
 
 use anyhow::{anyhow, bail};
 use cxx::{let_cxx_string, CxxString, CxxVector, UniquePtr};
-use derive_more::From;
+use derive_more::with_trait::From;
 
 use self::bridge::webrtc;
 

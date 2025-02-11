@@ -7,7 +7,7 @@ use std::{
 };
 
 use anyhow::{anyhow, bail, Context};
-use derive_more::{AsRef, Display, From, Into};
+use derive_more::with_trait::{AsRef, Display, From, Into};
 use libwebrtc_sys as sys;
 // TODO: Use `std::sync::OnceLock` instead, once it support `.wait()` API.
 use once_cell::sync::OnceCell;

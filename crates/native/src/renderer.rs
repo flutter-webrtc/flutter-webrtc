@@ -101,7 +101,7 @@ impl TextureEventNotifier {
 /// renderer.
 mod frame_handler {
     use cxx::UniquePtr;
-    use derive_more::From;
+    use derive_more::with_trait::From;
     use libwebrtc_sys as sys;
 
     use crate::{

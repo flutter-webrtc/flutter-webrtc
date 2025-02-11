@@ -4,7 +4,7 @@ use std::fmt;
 
 use anyhow::anyhow;
 use cxx::{CxxString, CxxVector, UniquePtr};
-use derive_more::{Deref, DerefMut};
+use derive_more::with_trait::{Deref, DerefMut};
 
 use crate::{
     AddIceCandidateCallback, AudioSourceOnAudioLevelChangeCallback,

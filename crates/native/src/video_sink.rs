@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use cxx::UniquePtr;
-use derive_more::{AsMut, AsRef};
+use derive_more::with_trait::{AsMut, AsRef};
 use libwebrtc_sys as sys;
 
 use crate::{

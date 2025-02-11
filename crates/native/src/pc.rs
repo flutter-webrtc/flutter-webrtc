@@ -10,7 +10,7 @@ use std::{
 use anyhow::anyhow;
 use cxx::{CxxString, CxxVector};
 use dashmap::DashMap;
-use derive_more::{Display, From, Into};
+use derive_more::with_trait::{Display, From, Into};
 use libwebrtc_sys as sys;
 use threadpool::ThreadPool;
 
