@@ -28,11 +28,16 @@ NSArray<RTCDesktopSource*>* _captureSources;
   
 #if TARGET_OS_IPHONE
   BOOL useBroadcastExtension = false;
+  BOOL presentBroadcastPicker = false;
+
   id videoConstraints = constraints[@"video"];
   if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
     // constraints.video.deviceId
     useBroadcastExtension =
-        [((NSDictionary*)videoConstraints)[@"deviceId"] isEqualToString:@"broadcast"];
+        [((NSDictionary*)videoConstraints)[@"deviceId"] hasPrefix:@"broadcast"];
+    presentBroadcastPicker =
+        useBroadcastExtension &&
+        ![((NSDictionary*)videoConstraints)[@"deviceId"] hasSuffix:@"-manual"];
   }
 
   id screenCapturer;
@@ -52,7 +57,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
     [screenCapturer stopCaptureWithCompletionHandler:handler];
   };
 
-  if (useBroadcastExtension) {
+  if (presentBroadcastPicker) {
     NSString* extension =
         [[[NSBundle mainBundle] infoDictionary] valueForKey:kRTCScreenSharingExtension];
 
@@ -112,7 +117,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
   }
   RTCDesktopCapturer* desktopCapturer;
   RTCDesktopSource* source = nil;
-    
+
   if (useDefaultScreen) {
     desktopCapturer = [[RTCDesktopCapturer alloc] initWithDefaultScreen:self
                                                         captureDelegate:videoProcessingAdapter];
@@ -137,13 +142,13 @@ NSArray<RTCDesktopSource*>* _captureSources;
     handler();
   };
 #endif
-    
+
   RTCVideoTrack* videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource
                                                                        trackId:trackUUID];
   [mediaStream addVideoTrack:videoTrack];
 
   LocalVideoTrack *localVideoTrack = [[LocalVideoTrack alloc] initWithTrack:videoTrack videoProcessing:videoProcessingAdapter];
-    
+
   [self.localTracks setObject:localVideoTrack forKey:trackUUID];
 
   NSMutableArray* audioTracks = [NSMutableArray array];
