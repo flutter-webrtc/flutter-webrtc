@@ -1,14 +1,17 @@
+# .github/workflows/publish.yml
 name: Publish to pub.dev
 
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*'
+    - 'v[0-9]+.[0-9]+.[0-9]+' # for tags like: 'v1.2.3'
 
 jobs:
   publish:
     permissions:
       id-token: write # Required for authentication using OIDC
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
-    # with:
-    #   working-directory: path/to/package/within/repository
+    with:
+      # Specify the github actions deployment environment
+      environment: pub.dev
+      # working-directory: path/to/package/within/repository
