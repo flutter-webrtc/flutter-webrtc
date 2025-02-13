@@ -1,6 +1,11 @@
 # Changelog
 
 --------------------------------------------
+
+[0.12.9] - 2025-02-13
+
+* [iOS] feat: Add option to start capture without broadcast picker (#1764)
+
 [0.12.8] - 2025-02-07
 
 * [Dart] feat: expose rtc video value (#1754)
