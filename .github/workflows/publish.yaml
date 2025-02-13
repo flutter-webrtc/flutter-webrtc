@@ -1,34 +1,14 @@
-name: Publish plugin
+name: Publish to pub.dev
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - name: Install project dependencies
-        run: flutter pub get
-      - name: Dart Format Check
-        run: dart format lib/ test/ --set-exit-if-changed
-      - name: Import Sorter Check
-        run: flutter pub run import_sorter:main --no-comments --exit-if-changed
-      - name: Dart Analyze Check
-        run: flutter analyze
-      - name: Dart Test Check
-        run: flutter test
-      #- name: Check Publish Warnings
-      #  run: dart pub publish --dry-run
-      - name: Publish
-        uses: k-paxian/dart-package-publisher@v1.5.1
-        with:
-          credentialJson: ${{ secrets.CREDENTIAL_JSON }}
-          flutter: true
-          skipTests: true
-          force: true
+  publish:
+    permissions:
+      id-token: write # Required for authentication using OIDC
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    # with:
+    #   working-directory: path/to/package/within/repository
