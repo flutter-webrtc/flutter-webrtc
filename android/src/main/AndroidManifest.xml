@@ -1,3 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.cloudwebrtc.webrtc">
+    <application>
+        <activity android:name=".ScreenCapturePermissionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
+            android:excludeFromRecents="true" >
+        </activity>
+    </application>
 </manifest>
