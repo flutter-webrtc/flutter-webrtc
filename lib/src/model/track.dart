@@ -15,5 +15,5 @@ enum MediaKind {
   audio,
 
   /// Video data.
-  video
+  video,
 }

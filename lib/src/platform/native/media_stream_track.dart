@@ -193,7 +193,8 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   /// Creates a new [MediaStreamTrack] from the provided [ffi.MediaStreamTrack].
   static Future<_NativeMediaStreamTrackFFI> create(
-      ffi.MediaStreamTrack track) async {
+    ffi.MediaStreamTrack track,
+  ) async {
     var ffiTrack = _NativeMediaStreamTrackFFI(track);
     await ffiTrack._initialized.future;
     return ffiTrack;
@@ -208,18 +209,19 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
     _kind = MediaKind.values[track.kind.index];
     _eventSub = ffi
         .registerTrackObserver(
-            peerId: _peerId,
-            trackId: track.id,
-            kind: ffi.MediaType.values[_kind.index])
+          peerId: _peerId,
+          trackId: track.id,
+          kind: ffi.MediaType.values[_kind.index],
+        )
         .listen((event) {
-      if (event is ffi.TrackEvent_AudioLevelUpdated) {
-        _onAudioLevelChanged?.call(event.field0);
-      } else if (event is ffi.TrackEvent_Ended) {
-        _onEnded?.call();
-      } else if (event is ffi.TrackEvent_TrackCreated) {
-        _initialized.complete();
-      }
-    });
+          if (event is ffi.TrackEvent_AudioLevelUpdated) {
+            _onAudioLevelChanged?.call(event.field0);
+          } else if (event is ffi.TrackEvent_Ended) {
+            _onEnded?.call();
+          } else if (event is ffi.TrackEvent_TrackCreated) {
+            _initialized.complete();
+          }
+        });
   }
 
   @override
@@ -244,17 +246,23 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   @override
   Future<MediaStreamTrack> clone() async {
     if (!_stopped) {
-      return NativeMediaStreamTrack.from(await ffi.cloneTrack(
+      return NativeMediaStreamTrack.from(
+        await ffi.cloneTrack(
           trackId: _id,
           peerId: _peerId,
-          kind: ffi.MediaType.values[_kind.index]));
+          kind: ffi.MediaType.values[_kind.index],
+        ),
+      );
     } else {
-      return NativeMediaStreamTrack.from(ffi.MediaStreamTrack(
+      return NativeMediaStreamTrack.from(
+        ffi.MediaStreamTrack(
           deviceId: _deviceId,
           enabled: _enabled,
           peerId: _peerId,
           id: _id,
-          kind: ffi.MediaType.values[_kind.index]));
+          kind: ffi.MediaType.values[_kind.index],
+        ),
+      );
     }
   }
 
@@ -267,10 +275,11 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   Future<void> setEnabled(bool enabled) async {
     if (!_stopped) {
       await ffi.setTrackEnabled(
-          peerId: _peerId,
-          trackId: _id,
-          enabled: enabled,
-          kind: ffi.MediaType.values[_kind.index]);
+        peerId: _peerId,
+        trackId: _id,
+        enabled: enabled,
+        kind: ffi.MediaType.values[_kind.index],
+      );
     }
 
     _enabled = enabled;
@@ -280,10 +289,10 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   Future<MediaStreamTrackState> state() async {
     return !_stopped
         ? MediaStreamTrackState.values[(await ffi.trackState(
-                peerId: _peerId,
-                trackId: _id,
-                kind: ffi.MediaType.values[_kind.index]))
-            .index]
+          peerId: _peerId,
+          trackId: _id,
+          kind: ffi.MediaType.values[_kind.index],
+        )).index]
         : MediaStreamTrackState.ended;
   }
 
@@ -295,13 +304,19 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   @override
   Future<int?> height() async {
     return await ffi.trackHeight(
-        trackId: _id, peerId: _peerId, kind: ffi.MediaType.values[_kind.index]);
+      trackId: _id,
+      peerId: _peerId,
+      kind: ffi.MediaType.values[_kind.index],
+    );
   }
 
   @override
   Future<int?> width() async {
     return await ffi.trackWidth(
-        trackId: _id, peerId: _peerId, kind: ffi.MediaType.values[_kind.index]);
+      trackId: _id,
+      peerId: _peerId,
+      kind: ffi.MediaType.values[_kind.index],
+    );
   }
 
   @override
@@ -310,9 +325,10 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
       _onEnded = null;
 
       await ffi.disposeTrack(
-          trackId: _id,
-          peerId: _peerId,
-          kind: ffi.MediaType.values[_kind.index]);
+        trackId: _id,
+        peerId: _peerId,
+        kind: ffi.MediaType.values[_kind.index],
+      );
     }
     _stopped = true;
   }

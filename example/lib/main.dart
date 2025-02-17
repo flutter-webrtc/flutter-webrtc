@@ -42,7 +42,7 @@ class _MyAppState extends State<MyApp> {
           onTap: () => item.push(context),
           trailing: const Icon(Icons.arrow_right),
         ),
-        const Divider()
+        const Divider(),
       ],
     );
   }
@@ -128,8 +128,9 @@ class _MyAppState extends State<MyApp> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (BuildContext context) =>
-                  const OnDeviceChangeNotifierSample(),
+              builder:
+                  (BuildContext context) =>
+                      const OnDeviceChangeNotifierSample(),
             ),
           );
         },

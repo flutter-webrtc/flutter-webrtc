@@ -39,13 +39,15 @@ class _State extends State<VideoCodecInfoSample> {
 
       codecs += '\n';
       for (var c in senderCaps.codecs) {
-        codecs += 'Sender Codec: ${c.kind}, ${c.name}, ${c.mimeType}, '
+        codecs +=
+            'Sender Codec: ${c.kind}, ${c.name}, ${c.mimeType}, '
             '${c.clockRate}Hz, ${json.encode(c.parameters)}\n';
       }
 
       codecs += '\n';
       for (var c in receiverCaps.codecs) {
-        codecs += 'Receiver Codec: ${c.kind}, ${c.name}, ${c.mimeType}, '
+        codecs +=
+            'Receiver Codec: ${c.kind}, ${c.name}, ${c.mimeType}, '
             '${c.clockRate}Hz, ${json.encode(c.parameters)}\n';
       }
 
@@ -56,9 +58,7 @@ class _State extends State<VideoCodecInfoSample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Video Codecs Info'),
-      ),
+      appBar: AppBar(title: const Text('Video Codecs Info')),
       body: Center(child: Text(text)),
     );
   }

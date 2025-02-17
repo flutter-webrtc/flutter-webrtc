@@ -53,9 +53,7 @@ class _State extends State<OnDeviceChangeNotifierSample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(counterText),
-      ),
+      appBar: AppBar(title: Text(counterText)),
       body: Center(child: Text(text)),
     );
   }

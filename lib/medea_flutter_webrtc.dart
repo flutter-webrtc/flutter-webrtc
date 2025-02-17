@@ -1,5 +1,3 @@
-library medea_flutter_webrtc;
-
 export 'src/api/devices.dart'
     if (dart.library.js_interop) 'src/platform/web/fake_media.dart';
 export 'src/api/peer.dart' if (dart.library.js_interop) 'none.dart';

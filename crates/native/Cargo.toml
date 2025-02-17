@@ -10,13 +10,13 @@ crate-type = ["cdylib"]
 [dependencies]
 anyhow = "1.0"
 cxx = "1.0"
-dashmap = "6.0"
+dashmap = "6.1"
 derive_more = { version = "2.0", features = ["as_ref", "display", "from", "into"] }
-flutter_rust_bridge = { version = "=2.7.0", features = ["anyhow", "dart-opaque", "rust-async", "thread-pool"], default-features = false }
+flutter_rust_bridge = { version = "=2.8.0", features = ["anyhow", "dart-opaque", "rust-async", "thread-pool"], default-features = false }
 lazy_static = "1.5"
 libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"
-once_cell = "1.19"
+once_cell = "1.20"
 threadpool = "1.8"
 xxhash = { package = "xxhash-rust", version = "0.8", features = ["xxh3"] }
 
@@ -26,8 +26,8 @@ nix = { version = "0.29", features = ["poll", "signal"] }
 pulse = { version = "2.28", package = "libpulse-binding" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.58", features = ["implement", "Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Media_Audio", "Win32_System_Com", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging"] }
-windows-core = "0.58" # for `#[windows::core]` macro expansion
+windows = { version = "0.59", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Media_Audio", "Win32_System_Com", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging"] }
+windows-core = "0.59" # for `#[windows::core]` macro expansion
 
 [build-dependencies]
 anyhow = "1.0"

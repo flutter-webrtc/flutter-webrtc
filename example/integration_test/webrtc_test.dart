@@ -16,7 +16,9 @@ void main() {
   testWidgets('Add transceiver', (WidgetTester tester) async {
     var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     expect(trans.mid, isNull);
 
@@ -34,12 +36,25 @@ void main() {
 
     var videoInit1 = RtpTransceiverInit(TransceiverDirection.sendOnly);
 
-    var h = SendEncodingParameters.create("h", true,
-        maxBitrate: 1200 * 1024, maxFramerate: 30);
-    var m = SendEncodingParameters.create("m", true,
-        maxBitrate: 600 * 1024, maxFramerate: 30, scaleResolutionDownBy: 2);
-    var l = SendEncodingParameters.create("l", true,
-        maxBitrate: 300 * 1024, scaleResolutionDownBy: 4);
+    var h = SendEncodingParameters.create(
+      "h",
+      true,
+      maxBitrate: 1200 * 1024,
+      maxFramerate: 30,
+    );
+    var m = SendEncodingParameters.create(
+      "m",
+      true,
+      maxBitrate: 600 * 1024,
+      maxFramerate: 30,
+      scaleResolutionDownBy: 2,
+    );
+    var l = SendEncodingParameters.create(
+      "l",
+      true,
+      maxBitrate: 300 * 1024,
+      scaleResolutionDownBy: 4,
+    );
 
     videoInit1.sendEncodings.add(h);
     videoInit1.sendEncodings.add(m);
@@ -84,18 +99,28 @@ void main() {
 
     var videoInit1 = RtpTransceiverInit(TransceiverDirection.sendOnly);
 
-    var h = SendEncodingParameters.create("h", true,
-        maxBitrate: 1200 * 1024, maxFramerate: 30);
-    var m = SendEncodingParameters.create("m", true,
-        maxBitrate: 600 * 1024,
-        maxFramerate: 20,
-        scaleResolutionDownBy: 2,
-        scalabilityMode: "L2T2");
-    var l = SendEncodingParameters.create("l", true,
-        maxBitrate: 300 * 1024,
-        maxFramerate: 10,
-        scaleResolutionDownBy: 4,
-        scalabilityMode: "L1T2");
+    var h = SendEncodingParameters.create(
+      "h",
+      true,
+      maxBitrate: 1200 * 1024,
+      maxFramerate: 30,
+    );
+    var m = SendEncodingParameters.create(
+      "m",
+      true,
+      maxBitrate: 600 * 1024,
+      maxFramerate: 20,
+      scaleResolutionDownBy: 2,
+      scalabilityMode: "L2T2",
+    );
+    var l = SendEncodingParameters.create(
+      "l",
+      true,
+      maxBitrate: 300 * 1024,
+      maxFramerate: 10,
+      scaleResolutionDownBy: 4,
+      scalabilityMode: "L1T2",
+    );
 
     videoInit1.sendEncodings.add(h);
     videoInit1.sendEncodings.add(m);
@@ -112,7 +137,9 @@ void main() {
     expect(parameters.encodings[0].maxBitrate, h.maxBitrate);
     expect(parameters.encodings[0].scalabilityMode, h.scalabilityMode);
     expect(
-        parameters.encodings[0].scaleResolutionDownBy, h.scaleResolutionDownBy);
+      parameters.encodings[0].scaleResolutionDownBy,
+      h.scaleResolutionDownBy,
+    );
 
     expect(parameters.encodings[1].rid, m.rid);
     expect(parameters.encodings[1].active, m.active);
@@ -120,7 +147,9 @@ void main() {
     expect(parameters.encodings[1].maxBitrate, m.maxBitrate);
     expect(parameters.encodings[1].scalabilityMode, m.scalabilityMode);
     expect(
-        parameters.encodings[1].scaleResolutionDownBy, m.scaleResolutionDownBy);
+      parameters.encodings[1].scaleResolutionDownBy,
+      m.scaleResolutionDownBy,
+    );
 
     expect(parameters.encodings[2].rid, l.rid);
     expect(parameters.encodings[2].active, l.active);
@@ -128,7 +157,9 @@ void main() {
     expect(parameters.encodings[2].maxBitrate, l.maxBitrate);
     expect(parameters.encodings[2].scalabilityMode, l.scalabilityMode);
     expect(
-        parameters.encodings[2].scaleResolutionDownBy, l.scaleResolutionDownBy);
+      parameters.encodings[2].scaleResolutionDownBy,
+      l.scaleResolutionDownBy,
+    );
 
     // set new values
     parameters.encodings[0].maxFramerate = 25;
@@ -176,7 +207,9 @@ void main() {
     var pc1 = await PeerConnection.create(IceTransportType.all, [server]);
 
     var videoTransceiver = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendOnly),
+    );
 
     var offer = (await pc1.createOffer()).description;
 
@@ -212,37 +245,58 @@ void main() {
   testWidgets('Video codec info', (WidgetTester tester) async {
     var decoders = await PeerConnection.videoDecoders();
     expect(
-        decoders.where((dec) => dec.codec == VideoCodec.VP8).length, isNonZero);
+      decoders.where((dec) => dec.codec == VideoCodec.VP8).length,
+      isNonZero,
+    );
     expect(
-        decoders.where((dec) => dec.codec == VideoCodec.VP9).length, isNonZero);
+      decoders.where((dec) => dec.codec == VideoCodec.VP9).length,
+      isNonZero,
+    );
     expect(
-        decoders.where((dec) => dec.codec == VideoCodec.AV1).length, isNonZero);
+      decoders.where((dec) => dec.codec == VideoCodec.AV1).length,
+      isNonZero,
+    );
     if (!Platform.isAndroid && !Platform.isIOS) {
       expect(
-          decoders.where((dec) => dec.codec == VideoCodec.H264).length, isZero);
+        decoders.where((dec) => dec.codec == VideoCodec.H264).length,
+        isZero,
+      );
       expect(
-          decoders.where((enc) => enc.codec == VideoCodec.H265).length, isZero);
+        decoders.where((enc) => enc.codec == VideoCodec.H265).length,
+        isZero,
+      );
     }
 
     var encoders = await PeerConnection.videoEncoders();
     expect(
-        encoders.where((enc) => enc.codec == VideoCodec.VP8).length, isNonZero);
+      encoders.where((enc) => enc.codec == VideoCodec.VP8).length,
+      isNonZero,
+    );
     expect(
-        encoders.where((enc) => enc.codec == VideoCodec.VP9).length, isNonZero);
+      encoders.where((enc) => enc.codec == VideoCodec.VP9).length,
+      isNonZero,
+    );
     expect(
-        encoders.where((enc) => enc.codec == VideoCodec.AV1).length, isNonZero);
+      encoders.where((enc) => enc.codec == VideoCodec.AV1).length,
+      isNonZero,
+    );
     if (!Platform.isAndroid && !Platform.isIOS) {
       expect(
-          encoders.where((enc) => enc.codec == VideoCodec.H264).length, isZero);
+        encoders.where((enc) => enc.codec == VideoCodec.H264).length,
+        isZero,
+      );
       expect(
-          encoders.where((enc) => enc.codec == VideoCodec.H265).length, isZero);
+        encoders.where((enc) => enc.codec == VideoCodec.H265).length,
+        isZero,
+      );
     }
   });
 
   testWidgets('Get video capabilities', (WidgetTester tester) async {
     var senderCapabilities = await RtpSender.getCapabilities(MediaKind.video);
-    var receiverCapabilities =
-        await RtpReceiver.getCapabilities(MediaKind.video);
+    var receiverCapabilities = await RtpReceiver.getCapabilities(
+      MediaKind.video,
+    );
 
     var mimeTypes = [
       'video/rtx',
@@ -250,50 +304,57 @@ void main() {
       'video/ulpfec',
       'video/VP9',
       'video/VP8',
-      'video/AV1'
+      'video/AV1',
     ];
 
     if (!Platform.isAndroid && !Platform.isIOS) {
       expect(
-          senderCapabilities.codecs
-              .where((cap) => cap.mimeType == 'video/H264')
-              .firstOrNull,
-          isNull);
+        senderCapabilities.codecs
+            .where((cap) => cap.mimeType == 'video/H264')
+            .firstOrNull,
+        isNull,
+      );
       expect(
-          senderCapabilities.codecs
-              .where((cap) => cap.mimeType == 'video/H265')
-              .firstOrNull,
-          isNull);
+        senderCapabilities.codecs
+            .where((cap) => cap.mimeType == 'video/H265')
+            .firstOrNull,
+        isNull,
+      );
       expect(
-          receiverCapabilities.codecs
-              .where((cap) => cap.mimeType == 'video/H264')
-              .firstOrNull,
-          isNull);
+        receiverCapabilities.codecs
+            .where((cap) => cap.mimeType == 'video/H264')
+            .firstOrNull,
+        isNull,
+      );
       expect(
-          receiverCapabilities.codecs
-              .where((cap) => cap.mimeType == 'video/H265')
-              .firstOrNull,
-          isNull);
+        receiverCapabilities.codecs
+            .where((cap) => cap.mimeType == 'video/H265')
+            .firstOrNull,
+        isNull,
+      );
     }
 
     for (var mimeType in mimeTypes) {
       expect(
-          senderCapabilities.codecs
-              .where((cap) => cap.mimeType == mimeType)
-              .firstOrNull,
-          isNotNull);
+        senderCapabilities.codecs
+            .where((cap) => cap.mimeType == mimeType)
+            .firstOrNull,
+        isNotNull,
+      );
       expect(
-          receiverCapabilities.codecs
-              .where((cap) => cap.mimeType == mimeType)
-              .firstOrNull,
-          isNotNull);
+        receiverCapabilities.codecs
+            .where((cap) => cap.mimeType == mimeType)
+            .firstOrNull,
+        isNotNull,
+      );
     }
   });
 
   testWidgets('Get audio capabilities', (WidgetTester tester) async {
     var senderCapabilities = await RtpSender.getCapabilities(MediaKind.audio);
-    var receiverCapabilities =
-        await RtpReceiver.getCapabilities(MediaKind.audio);
+    var receiverCapabilities = await RtpReceiver.getCapabilities(
+      MediaKind.audio,
+    );
 
     var mimeTypes = [
       'audio/opus',
@@ -307,15 +368,17 @@ void main() {
 
     for (var mimeType in mimeTypes) {
       expect(
-          senderCapabilities.codecs
-              .where((cap) => cap.mimeType == mimeType)
-              .firstOrNull,
-          isNotNull);
+        senderCapabilities.codecs
+            .where((cap) => cap.mimeType == mimeType)
+            .firstOrNull,
+        isNotNull,
+      );
       expect(
-          receiverCapabilities.codecs
-              .where((cap) => cap.mimeType == mimeType)
-              .firstOrNull,
-          isNotNull);
+        receiverCapabilities.codecs
+            .where((cap) => cap.mimeType == mimeType)
+            .firstOrNull,
+        isNotNull,
+      );
     }
   });
 
@@ -324,7 +387,9 @@ void main() {
     var pc2 = await PeerConnection.create(IceTransportType.all, []);
 
     var vtrans = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var capabilities = await RtpSender.getCapabilities(MediaKind.video);
 
@@ -337,9 +402,10 @@ void main() {
       expect(names.contains("H265"), isFalse);
     }
 
-    var vp8Preferences = capabilities.codecs.where((element) {
-      return element.name == 'VP8';
-    }).toList();
+    var vp8Preferences =
+        capabilities.codecs.where((element) {
+          return element.name == 'VP8';
+        }).toList();
 
     await vtrans.setCodecPreferences(vp8Preferences);
 
@@ -367,9 +433,13 @@ void main() {
   testWidgets('Get transceivers', (WidgetTester tester) async {
     var pc = await PeerConnection.create(IceTransportType.all, []);
     var t1 = await pc.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
     var t2 = await pc.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var before = await pc.getTransceivers();
 
@@ -404,7 +474,9 @@ void main() {
   testWidgets('Get transceiver direction', (WidgetTester tester) async {
     var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var direction = await trans.getDirection();
     expect(direction, equals(TransceiverDirection.sendRecv));
@@ -416,7 +488,9 @@ void main() {
   testWidgets('Set transceiver direction', (WidgetTester tester) async {
     var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var direction = await trans.getDirection();
 
@@ -441,7 +515,9 @@ void main() {
   testWidgets('Stop transceiver', (WidgetTester tester) async {
     var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var direction = await trans.getDirection();
 
@@ -460,7 +536,9 @@ void main() {
   testWidgets('Get transceiver mid', (WidgetTester tester) async {
     var pc = await PeerConnection.create(IceTransportType.all, []);
     var trans = await pc.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     expect(trans.mid, isNull);
 
@@ -496,7 +574,9 @@ void main() {
       }
     });
     var t = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var offer = await pc1.createOffer();
     await pc1.setLocalDescription(offer);
@@ -527,7 +607,9 @@ void main() {
     });
 
     var t = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var offer = await pc1.createOffer();
     await pc1.setLocalDescription(offer);
@@ -574,7 +656,9 @@ void main() {
     });
 
     var t = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var offer = await pc1.createOffer();
     await pc1.setLocalDescription(offer);
@@ -613,7 +697,9 @@ void main() {
   testWidgets('Peer connection event on track', (WidgetTester tester) async {
     var pc1 = await PeerConnection.create(IceTransportType.all, []);
     var t = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var pc2 = await PeerConnection.create(IceTransportType.all, []);
     final completer = Completer<void>();
@@ -634,7 +720,9 @@ void main() {
   testWidgets('Track Onended', (WidgetTester tester) async {
     var pc1 = await PeerConnection.create(IceTransportType.all, []);
     var tr = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var pc2 = await PeerConnection.create(IceTransportType.all, []);
     final completer = Completer<void>();
@@ -660,8 +748,9 @@ void main() {
     await tr.dispose();
   });
 
-  testWidgets('Track Onended not working after stop()',
-      (WidgetTester tester) async {
+  testWidgets('Track Onended not working after stop()', (
+    WidgetTester tester,
+  ) async {
     var capsAudioOnly = DeviceConstraints();
     capsAudioOnly.audio.mandatory = AudioConstraints();
 
@@ -692,7 +781,9 @@ void main() {
     });
 
     var audioTransceiver = await pc1.addTransceiver(
-        MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendOnly));
+      MediaKind.audio,
+      RtpTransceiverInit(TransceiverDirection.sendOnly),
+    );
 
     audioTransceiver.sender.replaceTrack(track);
 
@@ -732,10 +823,12 @@ void main() {
 
     var tracks = await getUserMedia(caps);
 
-    var videoTrack =
-        tracks.firstWhere((track) => track.kind() == MediaKind.video);
-    var audioTrack =
-        tracks.firstWhere((track) => track.kind() == MediaKind.audio);
+    var videoTrack = tracks.firstWhere(
+      (track) => track.kind() == MediaKind.video,
+    );
+    var audioTrack = tracks.firstWhere(
+      (track) => track.kind() == MediaKind.audio,
+    );
 
     var server = IceServer(['stun:stun.l.google.com:19302']);
     var pc1 = await PeerConnection.create(IceTransportType.all, [server]);
@@ -786,9 +879,13 @@ void main() {
     });
 
     var videoTransceiver = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendOnly),
+    );
     var audioTransceiver = await pc1.addTransceiver(
-        MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendOnly));
+      MediaKind.audio,
+      RtpTransceiverInit(TransceiverDirection.sendOnly),
+    );
 
     videoTransceiver.sender.replaceTrack(videoTrack);
     audioTransceiver.sender.replaceTrack(audioTrack);
@@ -801,8 +898,9 @@ void main() {
     await pc2.setLocalDescription(answer);
     await pc1.setRemoteDescription(answer);
 
-    await Future.wait(futures.map((e) => e.future))
-        .timeout(const Duration(seconds: 5));
+    await Future.wait(
+      futures.map((e) => e.future),
+    ).timeout(const Duration(seconds: 5));
 
     await pc1.close();
     await pc2.close();
@@ -836,14 +934,19 @@ void main() {
     });
 
     var t1 = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendOnly),
+    );
     var t2 = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendOnly),
+    );
 
     var tracks = await getUserMedia(caps);
 
-    var videoTrack =
-        tracks.firstWhere((track) => track.kind() == MediaKind.video);
+    var videoTrack = tracks.firstWhere(
+      (track) => track.kind() == MediaKind.video,
+    );
     var cloneVideoTrack = await videoTrack.clone();
     await cloneVideoTrack.setEnabled(false);
 
@@ -892,18 +995,22 @@ void main() {
     capsVideoAudio.video.mandatory!.fps = 30;
 
     var tracksAudioOnly = await getUserMedia(capsAudioOnly);
-    bool hasVideo =
-        tracksAudioOnly.any((track) => track.kind() == MediaKind.video);
-    bool hasAudio =
-        tracksAudioOnly.any((track) => track.kind() == MediaKind.audio);
+    bool hasVideo = tracksAudioOnly.any(
+      (track) => track.kind() == MediaKind.video,
+    );
+    bool hasAudio = tracksAudioOnly.any(
+      (track) => track.kind() == MediaKind.audio,
+    );
     expect(hasVideo, isFalse);
     expect(hasAudio, isTrue);
 
     var tracksVideoDeviceOnly = await getUserMedia(capsVideoDeviceOnly);
-    hasVideo =
-        tracksVideoDeviceOnly.any((track) => track.kind() == MediaKind.video);
-    hasAudio =
-        tracksVideoDeviceOnly.any((track) => track.kind() == MediaKind.audio);
+    hasVideo = tracksVideoDeviceOnly.any(
+      (track) => track.kind() == MediaKind.video,
+    );
+    hasAudio = tracksVideoDeviceOnly.any(
+      (track) => track.kind() == MediaKind.audio,
+    );
     expect(hasVideo, isTrue);
     expect(hasAudio, isFalse);
 
@@ -923,8 +1030,11 @@ void main() {
   testWidgets('ICE transport types', (WidgetTester tester) async {
     // IceTransportType.all, STUN server
     {
-      var server =
-          IceServer(['stun:stun.l.google.com:19302'], 'username', 'password');
+      var server = IceServer(
+        ['stun:stun.l.google.com:19302'],
+        'username',
+        'password',
+      );
       var pc1 = await PeerConnection.create(IceTransportType.all, [server]);
       var pc2 = await PeerConnection.create(IceTransportType.all, [server]);
 
@@ -946,9 +1056,13 @@ void main() {
       pc2.onIceCandidate(onIceCandidate);
 
       var t1 = await pc1.addTransceiver(
-          MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+        MediaKind.video,
+        RtpTransceiverInit(TransceiverDirection.sendRecv),
+      );
       var t2 = await pc1.addTransceiver(
-          MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendRecv));
+        MediaKind.audio,
+        RtpTransceiverInit(TransceiverDirection.sendRecv),
+      );
 
       var offer = await pc1.createOffer();
       await pc1.setLocalDescription(offer);
@@ -984,9 +1098,13 @@ void main() {
       });
 
       var t1 = await pc1.addTransceiver(
-          MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+        MediaKind.video,
+        RtpTransceiverInit(TransceiverDirection.sendRecv),
+      );
       var t2 = await pc1.addTransceiver(
-          MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendRecv));
+        MediaKind.audio,
+        RtpTransceiverInit(TransceiverDirection.sendRecv),
+      );
 
       var offer = await pc1.createOffer();
       await pc1.setLocalDescription(offer);
@@ -1012,7 +1130,9 @@ void main() {
     // ignore: prefer_function_declarations_over_variables
     var testEnableRecv = (beforeDirection, afterDirection) async {
       var transceiver = await pc.addTransceiver(
-          MediaKind.video, RtpTransceiverInit(beforeDirection));
+        MediaKind.video,
+        RtpTransceiverInit(beforeDirection),
+      );
       await transceiver.setRecv(true);
       expect(await transceiver.getDirection(), afterDirection);
 
@@ -1022,7 +1142,9 @@ void main() {
     // ignore: prefer_function_declarations_over_variables
     var testDisableRecv = (beforeDirection, afterDirection) async {
       var transceiver = await pc.addTransceiver(
-          MediaKind.video, RtpTransceiverInit(beforeDirection));
+        MediaKind.video,
+        RtpTransceiverInit(beforeDirection),
+      );
       await transceiver.setRecv(false);
       expect(await transceiver.getDirection(), afterDirection);
 
@@ -1043,15 +1165,19 @@ void main() {
       [TransceiverDirection.sendRecv, TransceiverDirection.sendOnly],
     ];
 
-    for (var value = testEnable.removeAt(0);
-        testEnable.isNotEmpty;
-        value = testEnable.removeAt(0)) {
+    for (
+      var value = testEnable.removeAt(0);
+      testEnable.isNotEmpty;
+      value = testEnable.removeAt(0)
+    ) {
       await testEnableRecv(value[0], value[1]);
     }
 
-    for (var value = testDisable.removeAt(0);
-        testDisable.isNotEmpty;
-        value = testDisable.removeAt(0)) {
+    for (
+      var value = testDisable.removeAt(0);
+      testDisable.isNotEmpty;
+      value = testDisable.removeAt(0)
+    ) {
       await testDisableRecv(value[0], value[1]);
     }
 
@@ -1063,7 +1189,9 @@ void main() {
     // ignore: prefer_function_declarations_over_variables
     var testEnableRecv = (beforeDirection, afterDirection) async {
       var transceiver = await pc.addTransceiver(
-          MediaKind.video, RtpTransceiverInit(beforeDirection));
+        MediaKind.video,
+        RtpTransceiverInit(beforeDirection),
+      );
       await transceiver.setSend(true);
       expect(await transceiver.getDirection(), afterDirection);
 
@@ -1073,7 +1201,9 @@ void main() {
     // ignore: prefer_function_declarations_over_variables
     var testDisableRecv = (beforeDirection, afterDirection) async {
       var transceiver = await pc.addTransceiver(
-          MediaKind.video, RtpTransceiverInit(beforeDirection));
+        MediaKind.video,
+        RtpTransceiverInit(beforeDirection),
+      );
       await transceiver.setSend(false);
       expect(await transceiver.getDirection(), afterDirection);
 
@@ -1094,23 +1224,28 @@ void main() {
       [TransceiverDirection.sendRecv, TransceiverDirection.recvOnly],
     ];
 
-    for (var value = testEnable.removeAt(0);
-        testEnable.isNotEmpty;
-        value = testEnable.removeAt(0)) {
+    for (
+      var value = testEnable.removeAt(0);
+      testEnable.isNotEmpty;
+      value = testEnable.removeAt(0)
+    ) {
       await testEnableRecv(value[0], value[1]);
     }
 
-    for (var value = testDisable.removeAt(0);
-        testDisable.isNotEmpty;
-        value = testDisable.removeAt(0)) {
+    for (
+      var value = testDisable.removeAt(0);
+      testDisable.isNotEmpty;
+      value = testDisable.removeAt(0)
+    ) {
       await testDisableRecv(value[0], value[1]);
     }
 
     await pc.close();
   });
 
-  testWidgets('Handles still work after Peer close',
-      (WidgetTester tester) async {
+  testWidgets('Handles still work after Peer close', (
+    WidgetTester tester,
+  ) async {
     var caps = DeviceConstraints();
     caps.audio.mandatory = AudioConstraints();
     caps.video.mandatory = DeviceVideoConstraints();
@@ -1132,10 +1267,14 @@ void main() {
     });
 
     var vtrans = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendOnly),
+    );
 
     var atrans = await pc1.addTransceiver(
-        MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendOnly));
+      MediaKind.audio,
+      RtpTransceiverInit(TransceiverDirection.sendOnly),
+    );
 
     var offer = await pc1.createOffer();
     await pc1.setLocalDescription(offer);
@@ -1158,10 +1297,12 @@ void main() {
     });
 
     await vtrans.sender.replaceTrack(
-        tracks.firstWhere((track) => track.kind() == MediaKind.video));
+      tracks.firstWhere((track) => track.kind() == MediaKind.video),
+    );
 
     await atrans.sender.replaceTrack(
-        tracks.firstWhere((track) => track.kind() == MediaKind.audio));
+      tracks.firstWhere((track) => track.kind() == MediaKind.audio),
+    );
 
     await pc1.close();
     await pc2.close();
@@ -1214,15 +1355,20 @@ void main() {
     }
   });
 
-  testWidgets('on_track when peer has transceiver.',
-      (WidgetTester tester) async {
+  testWidgets('on_track when peer has transceiver.', (
+    WidgetTester tester,
+  ) async {
     var pc1 = await PeerConnection.create(IceTransportType.all, []);
     var pc2 = await PeerConnection.create(IceTransportType.all, []);
 
     var t1 = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
     var t2 = await pc2.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var offer = await pc1.createOffer();
     await pc1.setLocalDescription(offer);
@@ -1250,9 +1396,13 @@ void main() {
       }
     });
     var tVideo = await pc1.addTransceiver(
-        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.video,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
     var tAudio = await pc1.addTransceiver(
-        MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendRecv));
+      MediaKind.audio,
+      RtpTransceiverInit(TransceiverDirection.sendRecv),
+    );
 
     var offer = await pc1.createOffer();
     await pc1.setLocalDescription(offer);
@@ -1265,13 +1415,16 @@ void main() {
     var senderStats = await pc1.getStats();
     var receiverStats = await pc2.getStats();
 
-    expect(senderStats.where((e) => e.type is RtcOutboundRtpStreamStats).length,
-        2);
+    expect(
+      senderStats.where((e) => e.type is RtcOutboundRtpStreamStats).length,
+      2,
+    );
     expect(senderStats.where((e) => e.type is RtcTransportStats).length, 1);
 
     expect(
-        receiverStats.where((e) => e.type is RtcInboundRtpStreamStats).length,
-        2);
+      receiverStats.where((e) => e.type is RtcInboundRtpStreamStats).length,
+      2,
+    );
     expect(receiverStats.where((e) => e.type is RtcTransportStats).length, 1);
 
     await pc1.close();

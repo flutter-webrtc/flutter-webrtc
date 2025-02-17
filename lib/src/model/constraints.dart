@@ -9,10 +9,7 @@ class DisplayConstraints {
 
   /// Converts this model to the [Map] expected by Flutter.
   Map<String, Map<String, dynamic>> toMap() {
-    return {
-      'audio': audio.toMap(),
-      'video': video.toMap(),
-    };
+    return {'audio': audio.toMap(), 'video': video.toMap()};
   }
 }
 
@@ -37,10 +34,7 @@ class DeviceConstraints {
 
   /// Converts this model to the [Map] expected by Flutter.
   Map<String, Map<String, dynamic>> toMap() {
-    return {
-      'audio': audio.toMap(),
-      'video': video.toMap(),
-    };
+    return {'audio': audio.toMap(), 'video': video.toMap()};
   }
 }
 

@@ -47,9 +47,11 @@ class WebMediaStreamTrack extends MediaStreamTrack {
 
   @override
   Future<MediaStreamTrackState> state() {
-    return Future.value(jsTrack.readyState == 'live'
-        ? MediaStreamTrackState.live
-        : MediaStreamTrackState.ended);
+    return Future.value(
+      jsTrack.readyState == 'live'
+          ? MediaStreamTrackState.live
+          : MediaStreamTrackState.ended,
+    );
   }
 
   @override

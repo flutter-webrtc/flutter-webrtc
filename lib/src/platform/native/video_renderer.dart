@@ -93,9 +93,10 @@ class _NativeVideoRendererChannel extends NativeVideoRenderer {
     final response = await _rendererFactoryChannel.invokeMethod('create');
     _textureId = response['textureId'];
     _channelId = response['channelId'];
-    _eventChan = eventChannel('VideoRendererEvent', _channelId)
-        .receiveBroadcastStream()
-        .listen(eventListener, onError: errorListener);
+    _eventChan = eventChannel(
+      'VideoRendererEvent',
+      _channelId,
+    ).receiveBroadcastStream().listen(eventListener, onError: errorListener);
     _chan = methodChannel('VideoRenderer', _channelId);
   }
 
@@ -109,17 +110,16 @@ class _NativeVideoRendererChannel extends NativeVideoRenderer {
     }
     _srcObject = track;
 
-    await _chan.invokeMethod('setSrcObject', {
-      'trackId': track?.id(),
-    });
+    await _chan.invokeMethod('setSrcObject', {'trackId': track?.id()});
 
     if (track != null) {
       _canPlayCalled = false;
     }
 
-    value = (track == null)
-        ? RTCVideoValue.empty
-        : value.copyWith(renderVideo: renderVideo);
+    value =
+        (track == null)
+            ? RTCVideoValue.empty
+            : value.copyWith(renderVideo: renderVideo);
   }
 
   @override
@@ -203,10 +203,10 @@ class _NativeVideoRendererFFI extends NativeVideoRenderer {
       ffi.disposeVideoSink(sinkId: textureId!);
       value = RTCVideoValue.empty;
     } else {
-      var handler =
-          await _chan.invokeMethod('createFrameHandler', <String, dynamic>{
-        'textureId': textureId,
-      });
+      var handler = await _chan.invokeMethod(
+        'createFrameHandler',
+        <String, dynamic>{'textureId': textureId},
+      );
 
       var trackId = track.id();
       _eventStream = ffi.createVideoSink(

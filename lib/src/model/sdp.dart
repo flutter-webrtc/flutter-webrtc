@@ -37,9 +37,6 @@ class SessionDescription {
 
   /// Converts this model to the [Map] expected by Flutter.
   Map<String, dynamic> toMap() {
-    return {
-      'type': type.index,
-      'description': description,
-    };
+    return {'type': type.index, 'description': description};
   }
 }

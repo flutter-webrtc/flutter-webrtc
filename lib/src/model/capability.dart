@@ -9,22 +9,25 @@ class RtpCapabilities {
 
   static RtpCapabilities fromFFI(ffi.RtpCapabilities capabilities) {
     return RtpCapabilities(
-        capabilities.codecs.map((v) => RtpCodecCapability.fromFFI(v)).toList(),
-        capabilities.headerExtensions
-            .map((v) => RtpHeaderExtensionCapability.fromFFI(v))
-            .toList());
+      capabilities.codecs.map((v) => RtpCodecCapability.fromFFI(v)).toList(),
+      capabilities.headerExtensions
+          .map((v) => RtpHeaderExtensionCapability.fromFFI(v))
+          .toList(),
+    );
   }
 
   static RtpCapabilities fromMap(dynamic map) {
-    var codecs = (map['codecs'] as List<Object?>)
-        .where((element) => element != null)
-        .map((c) => RtpCodecCapability.fromMap(c))
-        .toList();
+    var codecs =
+        (map['codecs'] as List<Object?>)
+            .where((element) => element != null)
+            .map((c) => RtpCodecCapability.fromMap(c))
+            .toList();
 
-    var headerExtensions = (map['headerExtensions'] as List<Object?>)
-        .where((element) => element != null)
-        .map((h) => RtpHeaderExtensionCapability.fromMap(h))
-        .toList();
+    var headerExtensions =
+        (map['headerExtensions'] as List<Object?>)
+            .where((element) => element != null)
+            .map((h) => RtpHeaderExtensionCapability.fromMap(h))
+            .toList();
     return RtpCapabilities(codecs, headerExtensions);
   }
 
@@ -43,15 +46,19 @@ class RtpHeaderExtensionCapability {
   RtpHeaderExtensionCapability(this.uri, this.direction);
 
   static RtpHeaderExtensionCapability fromFFI(
-      ffi.RtpHeaderExtensionCapability headerExtension) {
-    return RtpHeaderExtensionCapability(headerExtension.uri,
-        TransceiverDirection.values[headerExtension.direction.index]);
+    ffi.RtpHeaderExtensionCapability headerExtension,
+  ) {
+    return RtpHeaderExtensionCapability(
+      headerExtension.uri,
+      TransceiverDirection.values[headerExtension.direction.index],
+    );
   }
 
   static RtpHeaderExtensionCapability fromMap(dynamic map) {
-    var direction = map['direction'] == null
-        ? TransceiverDirection.sendRecv
-        : TransceiverDirection.values[map['direction']];
+    var direction =
+        map['direction'] == null
+            ? TransceiverDirection.sendRecv
+            : TransceiverDirection.values[map['direction']];
     return RtpHeaderExtensionCapability(map['uri'], direction);
   }
 
@@ -68,8 +75,15 @@ class RtpHeaderExtensionCapability {
 /// Representation of static capabilities of an endpoint's implementation of a
 /// codec.
 class RtpCodecCapability {
-  RtpCodecCapability(this.mimeType, this.clockRate, this.parameters, this.kind,
-      this.name, this.numChannels, this.preferredPayloadType);
+  RtpCodecCapability(
+    this.mimeType,
+    this.clockRate,
+    this.parameters,
+    this.kind,
+    this.name,
+    this.numChannels,
+    this.preferredPayloadType,
+  );
 
   static RtpCodecCapability fromFFI(ffi.RtpCodecCapability capability) {
     Map<String, String> parameters = {};
@@ -78,13 +92,14 @@ class RtpCodecCapability {
     }
 
     return RtpCodecCapability(
-        capability.mimeType,
-        capability.clockRate,
-        parameters,
-        MediaKind.values[capability.kind.index],
-        capability.name,
-        capability.numChannels,
-        capability.preferredPayloadType);
+      capability.mimeType,
+      capability.clockRate,
+      parameters,
+      MediaKind.values[capability.kind.index],
+      capability.name,
+      capability.numChannels,
+      capability.preferredPayloadType,
+    );
   }
 
   static RtpCodecCapability fromMap(dynamic map) {
@@ -95,13 +110,14 @@ class RtpCodecCapability {
       }
     }
     return RtpCodecCapability(
-        map['mimeType'],
-        map['clockRate'],
-        parameters,
-        MediaKind.values[map['kind']],
-        map['name'],
-        map['numChannels'],
-        map['preferredPayloadType']);
+      map['mimeType'],
+      map['clockRate'],
+      parameters,
+      MediaKind.values[map['kind']],
+      map['name'],
+      map['numChannels'],
+      map['preferredPayloadType'],
+    );
   }
 
   Map<String, dynamic> toMap() {
@@ -112,7 +128,7 @@ class RtpCodecCapability {
       'preferredPayloadType': preferredPayloadType ?? 0,
       'name': name,
       'kind': kind.index,
-      'numChannels': numChannels
+      'numChannels': numChannels,
     };
   }
 

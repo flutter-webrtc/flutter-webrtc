@@ -32,11 +32,7 @@ class IceServer {
 
   /// Converts this model to the [Map] expected by Flutter.
   Map<String, dynamic> toMap() {
-    return {
-      'urls': urls,
-      'username': username,
-      'password': password,
-    };
+    return {'urls': urls, 'username': username, 'password': password};
   }
 }
 
@@ -206,8 +202,9 @@ class VideoCodecInfo {
   VideoCodecInfo(this.isHardwareAccelerated, this.codec);
 
   static VideoCodecInfo fromFFI(ffi.VideoCodecInfo vc) {
-    VideoCodec mediaCodec = VideoCodec.values
-        .firstWhere((el) => el.name.toLowerCase() == vc.codec.name);
+    VideoCodec mediaCodec = VideoCodec.values.firstWhere(
+      (el) => el.name.toLowerCase() == vc.codec.name,
+    );
     return VideoCodecInfo(vc.isHardwareAccelerated, mediaCodec);
   }
 

@@ -95,10 +95,7 @@ abstract class VideoRenderer extends ValueNotifier<RTCVideoValue> {
   }
 }
 
-enum VideoViewObjectFit {
-  contain,
-  cover,
-}
+enum VideoViewObjectFit { contain, cover }
 
 VideoRenderer createVideoRenderer() {
   return createPlatformSpecificVideoRenderer();

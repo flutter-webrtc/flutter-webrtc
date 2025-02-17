@@ -12,7 +12,8 @@ part of 'renderer.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$TextureEvent {
@@ -21,49 +22,47 @@ mixin _$TextureEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            int textureId, int width, int height, int rotation)
-        onTextureChange,
+      int textureId,
+      int width,
+      int height,
+      int rotation,
+    )
+    onTextureChange,
     required TResult Function(int textureId) onFirstFrameRendered,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(int textureId, int width, int height, int rotation)?
-        onTextureChange,
+    onTextureChange,
     TResult? Function(int textureId)? onFirstFrameRendered,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(int textureId, int width, int height, int rotation)?
-        onTextureChange,
+    onTextureChange,
     TResult Function(int textureId)? onFirstFrameRendered,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(TextureEvent_OnTextureChange value)
-        onTextureChange,
+    onTextureChange,
     required TResult Function(TextureEvent_OnFirstFrameRendered value)
-        onFirstFrameRendered,
-  }) =>
-      throw _privateConstructorUsedError;
+    onFirstFrameRendered,
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(TextureEvent_OnTextureChange value)? onTextureChange,
     TResult? Function(TextureEvent_OnFirstFrameRendered value)?
-        onFirstFrameRendered,
-  }) =>
-      throw _privateConstructorUsedError;
+    onFirstFrameRendered,
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(TextureEvent_OnTextureChange value)? onTextureChange,
     TResult Function(TextureEvent_OnFirstFrameRendered value)?
-        onFirstFrameRendered,
+    onFirstFrameRendered,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
 
   /// Create a copy of TextureEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -75,8 +74,9 @@ mixin _$TextureEvent {
 /// @nodoc
 abstract class $TextureEventCopyWith<$Res> {
   factory $TextureEventCopyWith(
-          TextureEvent value, $Res Function(TextureEvent) then) =
-      _$TextureEventCopyWithImpl<$Res, TextureEvent>;
+    TextureEvent value,
+    $Res Function(TextureEvent) then,
+  ) = _$TextureEventCopyWithImpl<$Res, TextureEvent>;
   @useResult
   $Res call({int textureId});
 }
@@ -95,15 +95,17 @@ class _$TextureEventCopyWithImpl<$Res, $Val extends TextureEvent>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? textureId = null,
-  }) {
-    return _then(_value.copyWith(
-      textureId: null == textureId
-          ? _value.textureId
-          : textureId // ignore: cast_nullable_to_non_nullable
-              as int,
-    ) as $Val);
+  $Res call({Object? textureId = null}) {
+    return _then(
+      _value.copyWith(
+            textureId:
+                null == textureId
+                    ? _value.textureId
+                    : textureId // ignore: cast_nullable_to_non_nullable
+                        as int,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -111,9 +113,9 @@ class _$TextureEventCopyWithImpl<$Res, $Val extends TextureEvent>
 abstract class _$$TextureEvent_OnTextureChangeImplCopyWith<$Res>
     implements $TextureEventCopyWith<$Res> {
   factory _$$TextureEvent_OnTextureChangeImplCopyWith(
-          _$TextureEvent_OnTextureChangeImpl value,
-          $Res Function(_$TextureEvent_OnTextureChangeImpl) then) =
-      __$$TextureEvent_OnTextureChangeImplCopyWithImpl<$Res>;
+    _$TextureEvent_OnTextureChangeImpl value,
+    $Res Function(_$TextureEvent_OnTextureChangeImpl) then,
+  ) = __$$TextureEvent_OnTextureChangeImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({int textureId, int width, int height, int rotation});
@@ -124,9 +126,9 @@ class __$$TextureEvent_OnTextureChangeImplCopyWithImpl<$Res>
     extends _$TextureEventCopyWithImpl<$Res, _$TextureEvent_OnTextureChangeImpl>
     implements _$$TextureEvent_OnTextureChangeImplCopyWith<$Res> {
   __$$TextureEvent_OnTextureChangeImplCopyWithImpl(
-      _$TextureEvent_OnTextureChangeImpl _value,
-      $Res Function(_$TextureEvent_OnTextureChangeImpl) _then)
-      : super(_value, _then);
+    _$TextureEvent_OnTextureChangeImpl _value,
+    $Res Function(_$TextureEvent_OnTextureChangeImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of TextureEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -138,36 +140,42 @@ class __$$TextureEvent_OnTextureChangeImplCopyWithImpl<$Res>
     Object? height = null,
     Object? rotation = null,
   }) {
-    return _then(_$TextureEvent_OnTextureChangeImpl(
-      textureId: null == textureId
-          ? _value.textureId
-          : textureId // ignore: cast_nullable_to_non_nullable
-              as int,
-      width: null == width
-          ? _value.width
-          : width // ignore: cast_nullable_to_non_nullable
-              as int,
-      height: null == height
-          ? _value.height
-          : height // ignore: cast_nullable_to_non_nullable
-              as int,
-      rotation: null == rotation
-          ? _value.rotation
-          : rotation // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
+    return _then(
+      _$TextureEvent_OnTextureChangeImpl(
+        textureId:
+            null == textureId
+                ? _value.textureId
+                : textureId // ignore: cast_nullable_to_non_nullable
+                    as int,
+        width:
+            null == width
+                ? _value.width
+                : width // ignore: cast_nullable_to_non_nullable
+                    as int,
+        height:
+            null == height
+                ? _value.height
+                : height // ignore: cast_nullable_to_non_nullable
+                    as int,
+        rotation:
+            null == rotation
+                ? _value.rotation
+                : rotation // ignore: cast_nullable_to_non_nullable
+                    as int,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$TextureEvent_OnTextureChangeImpl extends TextureEvent_OnTextureChange {
-  const _$TextureEvent_OnTextureChangeImpl(
-      {required this.textureId,
-      required this.width,
-      required this.height,
-      required this.rotation})
-      : super._();
+  const _$TextureEvent_OnTextureChangeImpl({
+    required this.textureId,
+    required this.width,
+    required this.height,
+    required this.rotation,
+  }) : super._();
 
   /// ID of the texture.
   @override
@@ -213,16 +221,22 @@ class _$TextureEvent_OnTextureChangeImpl extends TextureEvent_OnTextureChange {
   @override
   @pragma('vm:prefer-inline')
   _$$TextureEvent_OnTextureChangeImplCopyWith<
-          _$TextureEvent_OnTextureChangeImpl>
-      get copyWith => __$$TextureEvent_OnTextureChangeImplCopyWithImpl<
-          _$TextureEvent_OnTextureChangeImpl>(this, _$identity);
+    _$TextureEvent_OnTextureChangeImpl
+  >
+  get copyWith => __$$TextureEvent_OnTextureChangeImplCopyWithImpl<
+    _$TextureEvent_OnTextureChangeImpl
+  >(this, _$identity);
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            int textureId, int width, int height, int rotation)
-        onTextureChange,
+      int textureId,
+      int width,
+      int height,
+      int rotation,
+    )
+    onTextureChange,
     required TResult Function(int textureId) onFirstFrameRendered,
   }) {
     return onTextureChange(textureId, width, height, rotation);
@@ -232,7 +246,7 @@ class _$TextureEvent_OnTextureChangeImpl extends TextureEvent_OnTextureChange {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(int textureId, int width, int height, int rotation)?
-        onTextureChange,
+    onTextureChange,
     TResult? Function(int textureId)? onFirstFrameRendered,
   }) {
     return onTextureChange?.call(textureId, width, height, rotation);
@@ -242,7 +256,7 @@ class _$TextureEvent_OnTextureChangeImpl extends TextureEvent_OnTextureChange {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(int textureId, int width, int height, int rotation)?
-        onTextureChange,
+    onTextureChange,
     TResult Function(int textureId)? onFirstFrameRendered,
     required TResult orElse(),
   }) {
@@ -256,9 +270,9 @@ class _$TextureEvent_OnTextureChangeImpl extends TextureEvent_OnTextureChange {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(TextureEvent_OnTextureChange value)
-        onTextureChange,
+    onTextureChange,
     required TResult Function(TextureEvent_OnFirstFrameRendered value)
-        onFirstFrameRendered,
+    onFirstFrameRendered,
   }) {
     return onTextureChange(this);
   }
@@ -268,7 +282,7 @@ class _$TextureEvent_OnTextureChangeImpl extends TextureEvent_OnTextureChange {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(TextureEvent_OnTextureChange value)? onTextureChange,
     TResult? Function(TextureEvent_OnFirstFrameRendered value)?
-        onFirstFrameRendered,
+    onFirstFrameRendered,
   }) {
     return onTextureChange?.call(this);
   }
@@ -278,7 +292,7 @@ class _$TextureEvent_OnTextureChangeImpl extends TextureEvent_OnTextureChange {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(TextureEvent_OnTextureChange value)? onTextureChange,
     TResult Function(TextureEvent_OnFirstFrameRendered value)?
-        onFirstFrameRendered,
+    onFirstFrameRendered,
     required TResult orElse(),
   }) {
     if (onTextureChange != null) {
@@ -289,11 +303,12 @@ class _$TextureEvent_OnTextureChangeImpl extends TextureEvent_OnTextureChange {
 }
 
 abstract class TextureEvent_OnTextureChange extends TextureEvent {
-  const factory TextureEvent_OnTextureChange(
-      {required final int textureId,
-      required final int width,
-      required final int height,
-      required final int rotation}) = _$TextureEvent_OnTextureChangeImpl;
+  const factory TextureEvent_OnTextureChange({
+    required final int textureId,
+    required final int width,
+    required final int height,
+    required final int rotation,
+  }) = _$TextureEvent_OnTextureChangeImpl;
   const TextureEvent_OnTextureChange._() : super._();
 
   /// ID of the texture.
@@ -314,17 +329,18 @@ abstract class TextureEvent_OnTextureChange extends TextureEvent {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$TextureEvent_OnTextureChangeImplCopyWith<
-          _$TextureEvent_OnTextureChangeImpl>
-      get copyWith => throw _privateConstructorUsedError;
+    _$TextureEvent_OnTextureChangeImpl
+  >
+  get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class _$$TextureEvent_OnFirstFrameRenderedImplCopyWith<$Res>
     implements $TextureEventCopyWith<$Res> {
   factory _$$TextureEvent_OnFirstFrameRenderedImplCopyWith(
-          _$TextureEvent_OnFirstFrameRenderedImpl value,
-          $Res Function(_$TextureEvent_OnFirstFrameRenderedImpl) then) =
-      __$$TextureEvent_OnFirstFrameRenderedImplCopyWithImpl<$Res>;
+    _$TextureEvent_OnFirstFrameRenderedImpl value,
+    $Res Function(_$TextureEvent_OnFirstFrameRenderedImpl) then,
+  ) = __$$TextureEvent_OnFirstFrameRenderedImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({int textureId});
@@ -332,27 +348,31 @@ abstract class _$$TextureEvent_OnFirstFrameRenderedImplCopyWith<$Res>
 
 /// @nodoc
 class __$$TextureEvent_OnFirstFrameRenderedImplCopyWithImpl<$Res>
-    extends _$TextureEventCopyWithImpl<$Res,
-        _$TextureEvent_OnFirstFrameRenderedImpl>
+    extends
+        _$TextureEventCopyWithImpl<
+          $Res,
+          _$TextureEvent_OnFirstFrameRenderedImpl
+        >
     implements _$$TextureEvent_OnFirstFrameRenderedImplCopyWith<$Res> {
   __$$TextureEvent_OnFirstFrameRenderedImplCopyWithImpl(
-      _$TextureEvent_OnFirstFrameRenderedImpl _value,
-      $Res Function(_$TextureEvent_OnFirstFrameRenderedImpl) _then)
-      : super(_value, _then);
+    _$TextureEvent_OnFirstFrameRenderedImpl _value,
+    $Res Function(_$TextureEvent_OnFirstFrameRenderedImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of TextureEvent
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? textureId = null,
-  }) {
-    return _then(_$TextureEvent_OnFirstFrameRenderedImpl(
-      textureId: null == textureId
-          ? _value.textureId
-          : textureId // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
+  $Res call({Object? textureId = null}) {
+    return _then(
+      _$TextureEvent_OnFirstFrameRenderedImpl(
+        textureId:
+            null == textureId
+                ? _value.textureId
+                : textureId // ignore: cast_nullable_to_non_nullable
+                    as int,
+      ),
+    );
   }
 }
 
@@ -361,7 +381,7 @@ class __$$TextureEvent_OnFirstFrameRenderedImplCopyWithImpl<$Res>
 class _$TextureEvent_OnFirstFrameRenderedImpl
     extends TextureEvent_OnFirstFrameRendered {
   const _$TextureEvent_OnFirstFrameRenderedImpl({required this.textureId})
-      : super._();
+    : super._();
 
   /// ID of the texture.
   @override
@@ -390,16 +410,22 @@ class _$TextureEvent_OnFirstFrameRenderedImpl
   @override
   @pragma('vm:prefer-inline')
   _$$TextureEvent_OnFirstFrameRenderedImplCopyWith<
-          _$TextureEvent_OnFirstFrameRenderedImpl>
-      get copyWith => __$$TextureEvent_OnFirstFrameRenderedImplCopyWithImpl<
-          _$TextureEvent_OnFirstFrameRenderedImpl>(this, _$identity);
+    _$TextureEvent_OnFirstFrameRenderedImpl
+  >
+  get copyWith => __$$TextureEvent_OnFirstFrameRenderedImplCopyWithImpl<
+    _$TextureEvent_OnFirstFrameRenderedImpl
+  >(this, _$identity);
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            int textureId, int width, int height, int rotation)
-        onTextureChange,
+      int textureId,
+      int width,
+      int height,
+      int rotation,
+    )
+    onTextureChange,
     required TResult Function(int textureId) onFirstFrameRendered,
   }) {
     return onFirstFrameRendered(textureId);
@@ -409,7 +435,7 @@ class _$TextureEvent_OnFirstFrameRenderedImpl
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(int textureId, int width, int height, int rotation)?
-        onTextureChange,
+    onTextureChange,
     TResult? Function(int textureId)? onFirstFrameRendered,
   }) {
     return onFirstFrameRendered?.call(textureId);
@@ -419,7 +445,7 @@ class _$TextureEvent_OnFirstFrameRenderedImpl
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(int textureId, int width, int height, int rotation)?
-        onTextureChange,
+    onTextureChange,
     TResult Function(int textureId)? onFirstFrameRendered,
     required TResult orElse(),
   }) {
@@ -433,9 +459,9 @@ class _$TextureEvent_OnFirstFrameRenderedImpl
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(TextureEvent_OnTextureChange value)
-        onTextureChange,
+    onTextureChange,
     required TResult Function(TextureEvent_OnFirstFrameRendered value)
-        onFirstFrameRendered,
+    onFirstFrameRendered,
   }) {
     return onFirstFrameRendered(this);
   }
@@ -445,7 +471,7 @@ class _$TextureEvent_OnFirstFrameRenderedImpl
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(TextureEvent_OnTextureChange value)? onTextureChange,
     TResult? Function(TextureEvent_OnFirstFrameRendered value)?
-        onFirstFrameRendered,
+    onFirstFrameRendered,
   }) {
     return onFirstFrameRendered?.call(this);
   }
@@ -455,7 +481,7 @@ class _$TextureEvent_OnFirstFrameRenderedImpl
   TResult maybeMap<TResult extends Object?>({
     TResult Function(TextureEvent_OnTextureChange value)? onTextureChange,
     TResult Function(TextureEvent_OnFirstFrameRendered value)?
-        onFirstFrameRendered,
+    onFirstFrameRendered,
     required TResult orElse(),
   }) {
     if (onFirstFrameRendered != null) {
@@ -466,8 +492,9 @@ class _$TextureEvent_OnFirstFrameRenderedImpl
 }
 
 abstract class TextureEvent_OnFirstFrameRendered extends TextureEvent {
-  const factory TextureEvent_OnFirstFrameRendered(
-      {required final int textureId}) = _$TextureEvent_OnFirstFrameRenderedImpl;
+  const factory TextureEvent_OnFirstFrameRendered({
+    required final int textureId,
+  }) = _$TextureEvent_OnFirstFrameRenderedImpl;
   const TextureEvent_OnFirstFrameRendered._() : super._();
 
   /// ID of the texture.
@@ -479,6 +506,7 @@ abstract class TextureEvent_OnFirstFrameRendered extends TextureEvent {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$TextureEvent_OnFirstFrameRenderedImplCopyWith<
-          _$TextureEvent_OnFirstFrameRenderedImpl>
-      get copyWith => throw _privateConstructorUsedError;
+    _$TextureEvent_OnFirstFrameRenderedImpl
+  >
+  get copyWith => throw _privateConstructorUsedError;
 }

@@ -74,7 +74,8 @@ class _LoopbackState extends State<Loopback> {
       _mediaDevicesList = await enumerateDevices();
       _tracks = await getUserMedia(caps);
       await _localRenderer.setSrcObject(
-          _tracks!.firstWhere((track) => track.kind() == MediaKind.video));
+        _tracks!.firstWhere((track) => track.kind() == MediaKind.video),
+      );
 
       var server = IceServer(['stun:stun.l.google.com:19302']);
       _pc1 = await PeerConnection.create(IceTransportType.all, [server]);
@@ -94,10 +95,14 @@ class _LoopbackState extends State<Loopback> {
       });
 
       var vtrans = await _pc1?.addTransceiver(
-          MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
+        MediaKind.video,
+        RtpTransceiverInit(TransceiverDirection.sendOnly),
+      );
 
       _audioTxTr = await _pc1?.addTransceiver(
-          MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendOnly));
+        MediaKind.audio,
+        RtpTransceiverInit(TransceiverDirection.sendOnly),
+      );
 
       var offer = await _pc1?.createOffer();
       await _pc1?.setLocalDescription(offer!);
@@ -117,8 +122,9 @@ class _LoopbackState extends State<Loopback> {
         await _pc1?.addIceCandidate(candidate);
       });
 
-      var audioTrack =
-          _tracks!.firstWhere((track) => track.kind() == MediaKind.audio);
+      var audioTrack = _tracks!.firstWhere(
+        (track) => track.kind() == MediaKind.audio,
+      );
       if (audioTrack.isOnAudioLevelAvailable()) {
         audioTrack.onAudioLevelChanged((volume) {
           setState(() {
@@ -128,7 +134,8 @@ class _LoopbackState extends State<Loopback> {
       }
 
       await vtrans?.sender.replaceTrack(
-          _tracks!.firstWhere((track) => track.kind() == MediaKind.video));
+        _tracks!.firstWhere((track) => track.kind() == MediaKind.video),
+      );
 
       await _audioTxTr?.sender.replaceTrack(audioTrack);
     } catch (e) {
@@ -198,130 +205,150 @@ class _LoopbackState extends State<Loopback> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'WebRTC loopback test. ${_inCalling ? (_microIsAvailable ? 'Micro volume: $_volume .' : 'Micro volume is not available') : ''}'),
-        actions: _inCalling
-            ? <Widget>[
-                IconButton(
-                  icon: const Icon(Icons.remove),
-                  tooltip: 'Micro lower',
-                  onPressed: _microIsAvailable
-                      ? () async {
-                          setState(() {
-                            _volume = _volume >= 10 ? _volume - 10 : 0;
-                          });
-                          await setMicrophoneVolume(_volume);
-                        }
-                      : null,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  tooltip: 'Micro louder',
-                  onPressed: _microIsAvailable
-                      ? () async {
-                          setState(() {
-                            _volume = _volume <= 90 ? _volume + 10 : 100;
-                          });
-                          await setMicrophoneVolume(_volume);
-                        }
-                      : null,
-                ),
-                IconButton(
-                  icon:
-                      _mic ? const Icon(Icons.mic_off) : const Icon(Icons.mic),
-                  tooltip: _mic ? 'Disable audio rec' : 'Enable audio rec',
-                  onPressed: () {
-                    setState(() {
-                      _mic = !_mic;
-                    });
-                    _tracks!
-                        .firstWhere((track) => track.kind() == MediaKind.audio)
-                        .setEnabled(_mic);
-                  },
-                ),
-                IconButton(
-                  icon: _cam
-                      ? const Icon(Icons.videocam_off)
-                      : const Icon(Icons.videocam),
-                  tooltip: _cam ? 'Disable video rec' : 'Enable video rec',
-                  onPressed: () {
-                    setState(() {
-                      _cam = !_cam;
-                    });
-                    _tracks!
-                        .firstWhere((track) => track.kind() == MediaKind.video)
-                        .setEnabled(_cam);
-                  },
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (id) {
-                    _setInputAudioId(id);
-                  },
-                  itemBuilder: (BuildContext context) {
-                    if (_mediaDevicesList != null) {
-                      return _mediaDevicesList!
-                          .where((device) =>
-                              device.kind == MediaDeviceKind.audioinput)
-                          .map((device) {
-                        return PopupMenuItem<String>(
-                          value: device.deviceId,
-                          child: Text(device.label),
-                        );
-                      }).toList();
-                    }
-                    return [];
-                  },
-                  icon: const Icon(Icons.mic),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (id) {
-                    setOutputAudioId(id);
-                  },
-                  itemBuilder: (BuildContext context) {
-                    if (_mediaDevicesList != null) {
-                      return _mediaDevicesList!
-                          .where((device) =>
-                              device.kind == MediaDeviceKind.audiooutput)
-                          .map((device) {
-                        return PopupMenuItem<String>(
-                          value: device.deviceId,
-                          child: Text(device.label),
-                        );
-                      }).toList();
-                    }
-                    return [];
-                  },
-                  icon: const Icon(Icons.volume_down),
-                )
-              ]
-            : null,
+          'WebRTC loopback test. ${_inCalling ? (_microIsAvailable ? 'Micro volume: $_volume .' : 'Micro volume is not available') : ''}',
+        ),
+        actions:
+            _inCalling
+                ? <Widget>[
+                  IconButton(
+                    icon: const Icon(Icons.remove),
+                    tooltip: 'Micro lower',
+                    onPressed:
+                        _microIsAvailable
+                            ? () async {
+                              setState(() {
+                                _volume = _volume >= 10 ? _volume - 10 : 0;
+                              });
+                              await setMicrophoneVolume(_volume);
+                            }
+                            : null,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: 'Micro louder',
+                    onPressed:
+                        _microIsAvailable
+                            ? () async {
+                              setState(() {
+                                _volume = _volume <= 90 ? _volume + 10 : 100;
+                              });
+                              await setMicrophoneVolume(_volume);
+                            }
+                            : null,
+                  ),
+                  IconButton(
+                    icon:
+                        _mic
+                            ? const Icon(Icons.mic_off)
+                            : const Icon(Icons.mic),
+                    tooltip: _mic ? 'Disable audio rec' : 'Enable audio rec',
+                    onPressed: () {
+                      setState(() {
+                        _mic = !_mic;
+                      });
+                      _tracks!
+                          .firstWhere(
+                            (track) => track.kind() == MediaKind.audio,
+                          )
+                          .setEnabled(_mic);
+                    },
+                  ),
+                  IconButton(
+                    icon:
+                        _cam
+                            ? const Icon(Icons.videocam_off)
+                            : const Icon(Icons.videocam),
+                    tooltip: _cam ? 'Disable video rec' : 'Enable video rec',
+                    onPressed: () {
+                      setState(() {
+                        _cam = !_cam;
+                      });
+                      _tracks!
+                          .firstWhere(
+                            (track) => track.kind() == MediaKind.video,
+                          )
+                          .setEnabled(_cam);
+                    },
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (id) {
+                      _setInputAudioId(id);
+                    },
+                    itemBuilder: (BuildContext context) {
+                      if (_mediaDevicesList != null) {
+                        return _mediaDevicesList!
+                            .where(
+                              (device) =>
+                                  device.kind == MediaDeviceKind.audioinput,
+                            )
+                            .map((device) {
+                              return PopupMenuItem<String>(
+                                value: device.deviceId,
+                                child: Text(device.label),
+                              );
+                            })
+                            .toList();
+                      }
+                      return [];
+                    },
+                    icon: const Icon(Icons.mic),
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (id) {
+                      setOutputAudioId(id);
+                    },
+                    itemBuilder: (BuildContext context) {
+                      if (_mediaDevicesList != null) {
+                        return _mediaDevicesList!
+                            .where(
+                              (device) =>
+                                  device.kind == MediaDeviceKind.audiooutput,
+                            )
+                            .map((device) {
+                              return PopupMenuItem<String>(
+                                value: device.deviceId,
+                                child: Text(device.label),
+                              );
+                            })
+                            .toList();
+                      }
+                      return [];
+                    },
+                    icon: const Icon(Icons.volume_down),
+                  ),
+                ]
+                : null,
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
-              child: Column(children: [
-            Row(
+            child: Column(
               children: [
-                Container(
-                  margin: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                  width: MediaQuery.of(context).size.width / 2,
-                  height: MediaQuery.of(context).size.height - 66,
-                  decoration: const BoxDecoration(color: Colors.black54),
-                  child: VideoView(_localRenderer, mirror: true),
+                Row(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                      width: MediaQuery.of(context).size.width / 2,
+                      height: MediaQuery.of(context).size.height - 66,
+                      decoration: const BoxDecoration(color: Colors.black54),
+                      child: VideoView(_localRenderer, mirror: true),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                      width: MediaQuery.of(context).size.width / 2,
+                      height: MediaQuery.of(context).size.height - 66,
+                      decoration: const BoxDecoration(color: Colors.black54),
+                      child: VideoView(_remoteRenderer, mirror: true),
+                    ),
+                  ],
                 ),
-                Container(
-                  margin: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                  width: MediaQuery.of(context).size.width / 2,
-                  height: MediaQuery.of(context).size.height - 66,
-                  decoration: const BoxDecoration(color: Colors.black54),
-                  child: VideoView(_remoteRenderer, mirror: true),
+                LinearProgressIndicator(
+                  value: currentAudioLevel,
+                  minHeight: 10.0,
                 ),
               ],
             ),
-            LinearProgressIndicator(
-              value: currentAudioLevel,
-              minHeight: 10.0,
-            ),
-          ]));
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(

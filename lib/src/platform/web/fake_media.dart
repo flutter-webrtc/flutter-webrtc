@@ -124,7 +124,6 @@ Future<void> enableFakeMedia() async {
         }
     }
     enableMock();
-  '''
-        .toJS,
+  '''.toJS,
   );
 }

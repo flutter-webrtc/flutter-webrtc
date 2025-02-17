@@ -26,7 +26,7 @@ void setOutputAudioSinkId(String deviceId) {
     final children = audioManager.children;
     for (int i = 0; i < children.length; ++i) {
       final child = children.item(i);
-      if (child is web.HTMLAudioElement) {
+      if (child != null && child.isA<web.HTMLAudioElement>()) {
         // TODO: Replace once dart-lang/web#205 is fixed:
         //       https://github.com/dart-lang/web/issues/205
         child.callMethod('setSinkId'.toJS, deviceId.toJS);
@@ -68,8 +68,9 @@ class WebAudioRenderer extends AudioRenderer {
     _element?.srcObject = null;
     _element?.remove();
     _element = null;
-    final audioManager = web.document.getElementById(_elementIdForAudioManager)
-        as web.HTMLDivElement?;
+    final audioManager =
+        web.document.getElementById(_elementIdForAudioManager)
+            as web.HTMLDivElement?;
     if (audioManager != null && !audioManager.hasChildNodes()) {
       audioManager.remove();
     }
@@ -99,9 +100,10 @@ class WebAudioRenderer extends AudioRenderer {
     stream.addTrack(srcObject.jsTrack);
 
     if (_element == null) {
-      _element = web.HTMLAudioElement()
-        ..id = _elementId
-        ..autoplay = true;
+      _element =
+          web.HTMLAudioElement()
+            ..id = _elementId
+            ..autoplay = true;
       _getAudioManagerDiv().append(_element!);
 
       try {
@@ -126,9 +128,10 @@ class WebAudioRenderer extends AudioRenderer {
       return div as web.HTMLDivElement;
     }
 
-    div = web.HTMLDivElement()
-      ..id = _elementIdForAudioManager
-      ..style.display = 'none';
+    div =
+        web.HTMLDivElement()
+          ..id = _elementIdForAudioManager
+          ..style.display = 'none';
     web.document.body?.append(div);
 
     return div as web.HTMLDivElement;

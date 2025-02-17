@@ -117,14 +117,16 @@ class _RtpTransceiverChannel extends RtpTransceiver {
 
   @override
   Future<void> setCodecPreferences(List<RtpCodecCapability> codecs) async {
-    await _chan.invokeMethod('setCodecPreferences',
-        {'codecs': codecs.map((c) => c.toMap()).toList()});
+    await _chan.invokeMethod('setCodecPreferences', {
+      'codecs': codecs.map((c) => c.toMap()).toList(),
+    });
   }
 
   @override
   Future<TransceiverDirection> getDirection() async {
-    return TransceiverDirection
-        .values[await _chan.invokeMethod('getDirection')];
+    return TransceiverDirection.values[await _chan.invokeMethod(
+      'getDirection',
+    )];
   }
 
   @override
@@ -173,32 +175,37 @@ class _RtpTransceiverFFI extends RtpTransceiver {
 
   @override
   Future<TransceiverDirection> getDirection() async {
-    return TransceiverDirection.values[
-        (await ffi.getTransceiverDirection(transceiver: _transceiver)).index];
+    return TransceiverDirection.values[(await ffi.getTransceiverDirection(
+      transceiver: _transceiver,
+    )).index];
   }
 
   @override
   Future<void> setDirection(TransceiverDirection direction) async {
     await ffi.setTransceiverDirection(
-        transceiver: _transceiver,
-        direction: ffi.RtpTransceiverDirection.values[direction.index]);
+      transceiver: _transceiver,
+      direction: ffi.RtpTransceiverDirection.values[direction.index],
+    );
   }
 
   @override
   Future<void> setCodecPreferences(List<RtpCodecCapability> codecs) async {
-    var ffiCodecs = codecs.map((c) {
-      var params = c.parameters.entries.map((e) => (e.key, e.value)).toList();
-      return ffi.RtpCodecCapability(
-          clockRate: c.clockRate,
-          numChannels: c.numChannels,
-          preferredPayloadType: c.preferredPayloadType,
-          scalabilityModes: List.empty(),
-          mimeType: c.mimeType,
-          name: c.name,
-          kind: ffi.MediaType.values[c.kind.index],
-          parameters: params,
-          feedback: List.empty());
-    }).toList();
+    var ffiCodecs =
+        codecs.map((c) {
+          var params =
+              c.parameters.entries.map((e) => (e.key, e.value)).toList();
+          return ffi.RtpCodecCapability(
+            clockRate: c.clockRate,
+            numChannels: c.numChannels,
+            preferredPayloadType: c.preferredPayloadType,
+            scalabilityModes: List.empty(),
+            mimeType: c.mimeType,
+            name: c.name,
+            kind: ffi.MediaType.values[c.kind.index],
+            parameters: params,
+            feedback: List.empty(),
+          );
+        }).toList();
     await ffi.setCodecPreferences(transceiver: _transceiver, codecs: ffiCodecs);
   }
 

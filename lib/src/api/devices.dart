@@ -47,17 +47,15 @@ class _DeviceHandler {
   /// Subscribes to the platform [Stream] emitting device change events.
   void _listen() async {
     if (isDesktop) {
-      ffi.setOnDeviceChanged().listen(
-        (event) {
-          if (_handler != null) {
-            _handler!();
-          }
-        },
-      );
+      ffi.setOnDeviceChanged().listen((event) {
+        if (_handler != null) {
+          _handler!();
+        }
+      });
     } else {
-      eventChannel('MediaDevicesEvent', 0)
-          .receiveBroadcastStream()
-          .listen((event) {
+      eventChannel('MediaDevicesEvent', 0).receiveBroadcastStream().listen((
+        event,
+      ) {
         final dynamic e = event;
         switch (e['event']) {
           case 'onDeviceChange':
@@ -120,8 +118,8 @@ Future<List<MediaDeviceInfo>> enumerateDevices() async {
         .map((e) => MediaDeviceInfo.fromFFI(e))
         .toList();
   } else {
-    final List<dynamic>? devices =
-        await _mediaDevicesMethodChannel.invokeMethod('enumerateDevices');
+    final List<dynamic>? devices = await _mediaDevicesMethodChannel
+        .invokeMethod('enumerateDevices');
     return devices!.map((i) => MediaDeviceInfo.fromMap(i)).toList();
   }
 }
@@ -140,7 +138,8 @@ Future<List<MediaDisplayInfo>> enumerateDisplays() async {
 /// Returns list of local audio and video [NativeMediaStreamTrack]s based on the
 /// provided [DeviceConstraints].
 Future<List<NativeMediaStreamTrack>> getUserMedia(
-    DeviceConstraints constraints) async {
+  DeviceConstraints constraints,
+) async {
   if (isDesktop) {
     return _getUserMediaFFI(constraints);
   } else {
@@ -151,7 +150,8 @@ Future<List<NativeMediaStreamTrack>> getUserMedia(
 /// Returns list of local display [NativeMediaStreamTrack]s based on the
 /// provided [DisplayConstraints].
 Future<List<NativeMediaStreamTrack>> getDisplayMedia(
-    DisplayConstraints constraints) async {
+  DisplayConstraints constraints,
+) async {
   if (isDesktop) {
     return _getDisplayMediaFFI(constraints);
   } else {
@@ -166,8 +166,9 @@ Future<void> setOutputAudioId(String deviceId) async {
   if (isDesktop) {
     await ffi.setAudioPlayoutDevice(deviceId: deviceId);
   } else {
-    await _mediaDevicesMethodChannel
-        .invokeMethod('setOutputAudioId', {'deviceId': deviceId});
+    await _mediaDevicesMethodChannel.invokeMethod('setOutputAudioId', {
+      'deviceId': deviceId,
+    });
   }
 }
 
@@ -194,10 +195,13 @@ Future<int> microphoneVolume() async {
 
 /// [MethodChannel]-based implementation of a [getUserMedia] function.
 Future<List<NativeMediaStreamTrack>> _getUserMediaChannel(
-    DeviceConstraints constraints) async {
+  DeviceConstraints constraints,
+) async {
   try {
-    List<dynamic>? res = await _mediaDevicesMethodChannel
-        .invokeMethod('getUserMedia', {'constraints': constraints.toMap()});
+    List<dynamic>? res = await _mediaDevicesMethodChannel.invokeMethod(
+      'getUserMedia',
+      {'constraints': constraints.toMap()},
+    );
     List<Future<NativeMediaStreamTrack>> tracks =
         res!.map((t) => NativeMediaStreamTrack.from(t)).toList();
     return await Future.wait(tracks);
@@ -214,34 +218,44 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaChannel(
 
 /// FFI-based implementation of a [getUserMedia] function.
 Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
-    DeviceConstraints constraints) async {
+  DeviceConstraints constraints,
+) async {
   var audioConstraints =
       constraints.audio.mandatory != null || constraints.audio.optional != null
           ? ffi.AudioConstraints(
-              deviceId: constraints.audio.mandatory?.deviceId,
-              autoGainControl: constraints.audio.mandatory?.autoGainControl)
+            deviceId: constraints.audio.mandatory?.deviceId,
+            autoGainControl: constraints.audio.mandatory?.autoGainControl,
+          )
           : null;
 
   var videoConstraints =
       constraints.video.mandatory != null || constraints.video.optional != null
           ? ffi.VideoConstraints(
-              deviceId: constraints.video.mandatory?.deviceId ??
-                  constraints.video.optional?.deviceId,
-              height: constraints.video.mandatory?.height ??
-                  constraints.video.optional?.height ??
-                  defaultUserMediaHeight,
-              width: constraints.video.mandatory?.width ??
-                  constraints.video.optional?.width ??
-                  defaultUserMediaWidth,
-              frameRate: constraints.video.mandatory?.fps ??
-                  constraints.video.optional?.fps ??
-                  defaultFrameRate,
-              isDisplay: false)
+            deviceId:
+                constraints.video.mandatory?.deviceId ??
+                constraints.video.optional?.deviceId,
+            height:
+                constraints.video.mandatory?.height ??
+                constraints.video.optional?.height ??
+                defaultUserMediaHeight,
+            width:
+                constraints.video.mandatory?.width ??
+                constraints.video.optional?.width ??
+                defaultUserMediaWidth,
+            frameRate:
+                constraints.video.mandatory?.fps ??
+                constraints.video.optional?.fps ??
+                defaultFrameRate,
+            isDisplay: false,
+          )
           : null;
 
   var result = await ffi.getMedia(
-      constraints: ffi.MediaStreamConstraints(
-          audio: audioConstraints, video: videoConstraints));
+    constraints: ffi.MediaStreamConstraints(
+      audio: audioConstraints,
+      video: videoConstraints,
+    ),
+  );
 
   if (result is ffi.GetMediaResult_Ok) {
     List<Future<NativeMediaStreamTrack>> tracks =
@@ -250,19 +264,26 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
   } else {
     if ((result as ffi.GetMediaResult_Err).field0 is ffi.GetMediaError_Video) {
       throw GetMediaException(
-          GetMediaExceptionKind.video, result.field0.field0);
+        GetMediaExceptionKind.video,
+        result.field0.field0,
+      );
     } else {
       throw GetMediaException(
-          GetMediaExceptionKind.audio, result.field0.field0);
+        GetMediaExceptionKind.audio,
+        result.field0.field0,
+      );
     }
   }
 }
 
 /// [MethodChannel]-based implementation of a [getDisplayMedia] function.
 Future<List<NativeMediaStreamTrack>> _getDisplayMediaChannel(
-    DisplayConstraints constraints) async {
-  List<dynamic>? res = await _mediaDevicesMethodChannel
-      .invokeMethod('getDisplayMedia', {'constraints': constraints.toMap()});
+  DisplayConstraints constraints,
+) async {
+  List<dynamic>? res = await _mediaDevicesMethodChannel.invokeMethod(
+    'getDisplayMedia',
+    {'constraints': constraints.toMap()},
+  );
   List<Future<NativeMediaStreamTrack>> tracks =
       res!.map((t) => NativeMediaStreamTrack.from(t)).toList();
   return await Future.wait(tracks);
@@ -270,31 +291,41 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaChannel(
 
 /// FFI-based implementation of a [getDisplayMedia] function.
 Future<List<NativeMediaStreamTrack>> _getDisplayMediaFFI(
-    DisplayConstraints constraints) async {
-  var audioConstraints = constraints.audio.mandatory != null ||
-          constraints.audio.optional != null
-      ? ffi.AudioConstraints(deviceId: constraints.audio.mandatory?.deviceId)
-      : null;
+  DisplayConstraints constraints,
+) async {
+  var audioConstraints =
+      constraints.audio.mandatory != null || constraints.audio.optional != null
+          ? ffi.AudioConstraints(
+            deviceId: constraints.audio.mandatory?.deviceId,
+          )
+          : null;
 
   var videoConstraints =
       constraints.video.mandatory != null || constraints.video.optional != null
           ? ffi.VideoConstraints(
-              deviceId: constraints.video.mandatory?.deviceId,
-              height: constraints.video.mandatory?.height ??
-                  constraints.video.optional?.height ??
-                  defaultDisplayMediaHeight,
-              width: constraints.video.mandatory?.width ??
-                  constraints.video.optional?.width ??
-                  defaultDisplayMediaWidth,
-              frameRate: constraints.video.mandatory?.fps ??
-                  constraints.video.optional?.fps ??
-                  defaultFrameRate,
-              isDisplay: true)
+            deviceId: constraints.video.mandatory?.deviceId,
+            height:
+                constraints.video.mandatory?.height ??
+                constraints.video.optional?.height ??
+                defaultDisplayMediaHeight,
+            width:
+                constraints.video.mandatory?.width ??
+                constraints.video.optional?.width ??
+                defaultDisplayMediaWidth,
+            frameRate:
+                constraints.video.mandatory?.fps ??
+                constraints.video.optional?.fps ??
+                defaultFrameRate,
+            isDisplay: true,
+          )
           : null;
 
   var result = await ffi.getMedia(
-      constraints: ffi.MediaStreamConstraints(
-          audio: audioConstraints, video: videoConstraints));
+    constraints: ffi.MediaStreamConstraints(
+      audio: audioConstraints,
+      video: videoConstraints,
+    ),
+  );
 
   if (result is ffi.GetMediaResult_Ok) {
     List<Future<NativeMediaStreamTrack>> tracks =
@@ -303,10 +334,14 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaFFI(
   } else {
     if ((result as ffi.GetMediaResult_Err) is ffi.GetMediaError_Video) {
       throw GetMediaException(
-          GetMediaExceptionKind.video, result.field0.field0);
+        GetMediaExceptionKind.video,
+        result.field0.field0,
+      );
     } else {
       throw GetMediaException(
-          GetMediaExceptionKind.audio, result.field0.field0);
+        GetMediaExceptionKind.audio,
+        result.field0.field0,
+      );
     }
   }
 }

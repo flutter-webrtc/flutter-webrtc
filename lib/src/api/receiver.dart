@@ -7,8 +7,10 @@ import 'channel.dart';
 import 'peer.dart';
 
 /// [MethodChannel] used for the messaging with a native side.
-final _peerConnectionFactoryMethodChannel =
-    methodChannel('PeerConnectionFactory', 0);
+final _peerConnectionFactoryMethodChannel = methodChannel(
+  'PeerConnectionFactory',
+  0,
+);
 
 /// [RTCRtpReceiver] implementation.
 ///
@@ -32,8 +34,10 @@ class _RtpReceiverChannel extends RtpReceiver {
   ///
   /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
   static Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
-    var map = await _peerConnectionFactoryMethodChannel
-        .invokeMethod('getRtpReceiverCapabilities', {'kind': kind.index});
+    var map = await _peerConnectionFactoryMethodChannel.invokeMethod(
+      'getRtpReceiverCapabilities',
+      {'kind': kind.index},
+    );
     return RtpCapabilities.fromMap(map);
   }
 }
@@ -44,7 +48,10 @@ class _RtpReceiverFFI extends RtpReceiver {
   ///
   /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
   static Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
-    return RtpCapabilities.fromFFI(await ffi.getRtpReceiverCapabilities(
-        kind: ffi.MediaType.values[kind.index]));
+    return RtpCapabilities.fromFFI(
+      await ffi.getRtpReceiverCapabilities(
+        kind: ffi.MediaType.values[kind.index],
+      ),
+    );
   }
 }

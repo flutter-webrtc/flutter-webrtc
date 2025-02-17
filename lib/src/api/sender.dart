@@ -10,8 +10,10 @@ import 'channel.dart';
 import 'peer.dart';
 
 /// [MethodChannel] used for the messaging with a native side.
-final _peerConnectionFactoryMethodChannel =
-    methodChannel('PeerConnectionFactory', 0);
+final _peerConnectionFactoryMethodChannel = methodChannel(
+  'PeerConnectionFactory',
+  0,
+);
 
 /// [RTCSender][1] implementation.
 ///
@@ -24,7 +26,9 @@ abstract class RtpSender {
 
   /// Create a new [RtpSender] from the provided [peerId] and [transceiverId].
   static RtpSender fromFFI(
-      ArcPeerConnection peer, ArcRtpTransceiver transceiver) {
+    ArcPeerConnection peer,
+    ArcRtpTransceiver transceiver,
+  ) {
     return _RtpSenderFFI(peer, transceiver);
   }
 
@@ -62,8 +66,10 @@ class _RtpSenderChannel extends RtpSender {
   ///
   /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
   static Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
-    var map = await _peerConnectionFactoryMethodChannel
-        .invokeMethod('getRtpSenderCapabilities', {'kind': kind.index});
+    var map = await _peerConnectionFactoryMethodChannel.invokeMethod(
+      'getRtpSenderCapabilities',
+      {'kind': kind.index},
+    );
     return RtpCapabilities.fromMap(map);
   }
 
@@ -105,8 +111,11 @@ class _RtpSenderFFI extends RtpSender {
   ///
   /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
   static Future<RtpCapabilities> getCapabilities(MediaKind kind) async {
-    return RtpCapabilities.fromFFI(await ffi.getRtpSenderCapabilities(
-        kind: ffi.MediaType.values[kind.index]));
+    return RtpCapabilities.fromFFI(
+      await ffi.getRtpSenderCapabilities(
+        kind: ffi.MediaType.values[kind.index],
+      ),
+    );
   }
 
   /// Native side peer connection.
@@ -120,7 +129,10 @@ class _RtpSenderFFI extends RtpSender {
   @override
   Future<void> replaceTrack(MediaStreamTrack? t) async {
     await ffi.senderReplaceTrack(
-        peer: _peer, transceiver: _transceiver, trackId: t?.id());
+      peer: _peer,
+      transceiver: _transceiver,
+      trackId: t?.id(),
+    );
   }
 
   @override
@@ -131,12 +143,15 @@ class _RtpSenderFFI extends RtpSender {
   @override
   Future<RtpParameters> getParameters() async {
     return RtpParameters.fromFFI(
-        await ffi.senderGetParameters(transceiver: _transceiver));
+      await ffi.senderGetParameters(transceiver: _transceiver),
+    );
   }
 
   @override
   Future<void> setParameters(RtpParameters parameters) async {
     await ffi.senderSetParameters(
-        transceiver: _transceiver, params: parameters.toFFI());
+      transceiver: _transceiver,
+      params: parameters.toFFI(),
+    );
   }
 }

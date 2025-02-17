@@ -56,8 +56,10 @@ class _VideoViewState extends State<VideoView> {
   void didUpdateWidget(VideoView oldWidget) {
     super.didUpdateWidget(oldWidget);
     videoRenderer.mirror = widget.mirror;
-    Timer(const Duration(milliseconds: 10),
-        () => videoRenderer.mirror = widget.mirror);
+    Timer(
+      const Duration(milliseconds: 10),
+      () => videoRenderer.mirror = widget.mirror,
+    );
     videoRenderer.enableContextMenu = widget.enableContextMenu;
     videoRenderer.objectFit =
         widget.objectFit == VideoViewObjectFit.contain ? 'contain' : 'cover';
@@ -77,9 +79,10 @@ class _VideoViewState extends State<VideoView> {
           child: SizedBox(
             width: constraints.maxWidth,
             height: constraints.maxHeight,
-            child: widget._renderer.renderVideo
-                ? buildVideoElementView()
-                : Container(),
+            child:
+                widget._renderer.renderVideo
+                    ? buildVideoElementView()
+                    : Container(),
           ),
         );
       },

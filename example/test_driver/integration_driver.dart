@@ -17,7 +17,7 @@ Future<void> main() async {
         'pm',
         'grant',
         _packageName,
-        'android.permission.$permission'
+        'android.permission.$permission',
       ]);
     }
   }

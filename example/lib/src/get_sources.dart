@@ -40,9 +40,7 @@ class _GetSourcesSampleState extends State<GetSourcesSample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('getSources'),
-      ),
+      appBar: AppBar(title: const Text('getSources')),
       body: Center(child: Text(text)),
       floatingActionButton: FloatingActionButton(
         onPressed: _getSources,

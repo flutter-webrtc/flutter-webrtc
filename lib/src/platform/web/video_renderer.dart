@@ -177,8 +177,9 @@ class WebVideoRenderer extends VideoRenderer {
     element?.removeAttribute('src');
     element?.load();
     _audioElement?.remove();
-    final audioManager = web.document.getElementById(_elementIdForAudioManager)
-        as web.HTMLDivElement?;
+    final audioManager =
+        web.document.getElementById(_elementIdForAudioManager)
+            as web.HTMLDivElement?;
     if (audioManager != null && !audioManager.hasChildNodes()) {
       audioManager.remove();
     }
@@ -189,29 +190,31 @@ class WebVideoRenderer extends VideoRenderer {
   @override
   Future<void> initialize() async {
     // ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory('RTCVideoRenderer-$textureId',
-        (int viewId) {
+    ui.platformViewRegistry.registerViewFactory('RTCVideoRenderer-$textureId', (
+      int viewId,
+    ) {
       for (var s in _subscriptions) {
         s.cancel();
       }
       _subscriptions.clear();
 
-      final element = web.HTMLVideoElement()
-        ..autoplay = true
-        ..muted = true
-        ..controls = false
-        ..style.objectFit = _objectFit
-        ..style.border = 'none'
-        ..style.width = '100%'
-        ..style.height = '100%'
-        ..style.transform = _mirror ? 'rotateY(0.5turn)' : ''
-        ..srcObject = _videoStream
-        ..id = _elementIdForVideo
-        ..setAttribute('playsinline', 'true')
-        ..setAttribute(
-          'oncontextmenu',
-          _enableContextMenu ? '' : 'return false;',
-        );
+      final element =
+          web.HTMLVideoElement()
+            ..autoplay = true
+            ..muted = true
+            ..controls = false
+            ..style.objectFit = _objectFit
+            ..style.border = 'none'
+            ..style.width = '100%'
+            ..style.height = '100%'
+            ..style.transform = _mirror ? 'rotateY(0.5turn)' : ''
+            ..srcObject = _videoStream
+            ..id = _elementIdForVideo
+            ..setAttribute('playsinline', 'true')
+            ..setAttribute(
+              'oncontextmenu',
+              _enableContextMenu ? '' : 'return false;',
+            );
 
       _subscriptions.add(
         element.onCanPlay.listen((dynamic _) {

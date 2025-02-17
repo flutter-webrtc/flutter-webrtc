@@ -2094,7 +2094,7 @@ impl AudioSourceInterface {
         );
     }
 
-    /// Unsubscribes the provided [`AudioSourceAudioLevelObserver`] from
+    /// Unsubscribes the current [`AudioSourceOnAudioLevelChangeCallback`] from
     /// this [`AudioSourceInterface`].
     pub fn unsubscribe(&self) {
         webrtc::audio_source_unregister_audio_level_observer(&self.0);

@@ -41,7 +41,7 @@ class RtpTransceiverInit {
     return {
       'direction': direction.index,
       'sendEncodings':
-          sendEncodings.map((encoding) => encoding.toMap()).toList()
+          sendEncodings.map((encoding) => encoding.toMap()).toList(),
     };
   }
 }

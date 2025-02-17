@@ -31,16 +31,14 @@ abstract class RtpParameters {
 /// [MethodChannel]-based implementation of [RtpParameters].
 class _RtpParametersChannel extends RtpParameters {
   _RtpParametersChannel.fromMap(dynamic map) {
-    encodings = List.unmodifiable(map!['encodings']
-        .map((e) => SendEncodingParameters.fromMap(e))
-        .toList());
+    encodings = List.unmodifiable(
+      map!['encodings'].map((e) => SendEncodingParameters.fromMap(e)).toList(),
+    );
   }
 
   @override
   Map<String, dynamic> toMap() {
-    return {
-      'encodings': encodings.map((e) => e.toMap()).toList(),
-    };
+    return {'encodings': encodings.map((e) => e.toMap()).toList()};
   }
 
   @override
@@ -53,9 +51,11 @@ class _RtpParametersChannel extends RtpParameters {
 class _RtpParametersFFI extends RtpParameters {
   _RtpParametersFFI(ffi.RtcRtpSendParameters params) {
     _inner = params.inner;
-    encodings = List.unmodifiable(params.encodings
-        .map((e) => SendEncodingParameters.fromFFI(e.$1, e.$2))
-        .toList());
+    encodings = List.unmodifiable(
+      params.encodings
+          .map((e) => SendEncodingParameters.fromFFI(e.$1, e.$2))
+          .toList(),
+    );
   }
 
   /// Reference to the Rust side [RtpParameters].
@@ -64,11 +64,13 @@ class _RtpParametersFFI extends RtpParameters {
   @override
   ffi.RtcRtpSendParameters toFFI() {
     return ffi.RtcRtpSendParameters(
-        encodings: encodings.map((e) {
-          var r = e.toFFI();
-          return (r.$1, r.$2!);
-        }).toList(),
-        inner: _inner);
+      encodings:
+          encodings.map((e) {
+            var r = e.toFFI();
+            return (r.$1, r.$2!);
+          }).toList(),
+      inner: _inner,
+    );
   }
 
   @override
