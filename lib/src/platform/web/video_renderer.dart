@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
-import 'dart:ui' as ui;
+import 'dart:ui_web' as ui;
 
 import 'package:flutter/services.dart';
 
@@ -189,7 +189,6 @@ class WebVideoRenderer extends VideoRenderer {
 
   @override
   Future<void> initialize() async {
-    // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory('RTCVideoRenderer-$textureId', (
       int viewId,
     ) {
