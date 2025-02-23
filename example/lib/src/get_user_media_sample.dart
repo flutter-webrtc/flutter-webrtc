@@ -105,6 +105,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       print('Recording is not available on iOS');
       return;
     }
+
     // TODO(rostopira): request write storage permission
     final storagePath = await getExternalStorageDirectory();
     if (storagePath == null) throw Exception('Can\'t find storagePath');

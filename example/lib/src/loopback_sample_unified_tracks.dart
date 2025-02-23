@@ -132,7 +132,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void _selectAudioInput(String deviceId) async {
-    await Helper.selectAudioInput(deviceId);
+    if (!WebRTC.platformIsWeb) {
+      await Helper.selectAudioInput(deviceId);
+    }
   }
 
   void _cleanUp() async {
@@ -539,7 +541,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   void _switchSpeaker() async {
     setState(() {
       _speakerOn = !_speakerOn;
-      Helper.setSpeakerphoneOn(_speakerOn);
+      if (!WebRTC.platformIsWeb) {
+        Helper.setSpeakerphoneOn(_speakerOn);
+      }
     });
   }
 
