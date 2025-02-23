@@ -19,7 +19,6 @@ dependencies:
   permission_handler: ^11.3.1
   sdp_transform: ^0.3.2
 
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
