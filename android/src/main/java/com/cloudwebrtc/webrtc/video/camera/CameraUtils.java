@@ -44,8 +44,10 @@ public class CameraUtils {
   public CameraUtils(GetUserMediaImpl getUserMediaImpl, Activity activity) {
     this.getUserMediaImpl = getUserMediaImpl;
     this.activity = activity;
-    this.deviceOrientationManager = new DeviceOrientationManager(activity, 0);
-    this.deviceOrientationManager.start();
+    if(activity != null) {
+      this.deviceOrientationManager = new DeviceOrientationManager(activity, 0);
+      this.deviceOrientationManager.start();
+    }
   }
 
   public void setFocusMode(MethodCall call, AnyThreadResult result) {
@@ -215,16 +217,19 @@ public class CameraUtils {
                 cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
         MeteringRectangle focusRectangle = null;
         Size cameraBoundaries = CameraRegionUtils.getCameraBoundaries(cameraCharacteristics, captureRequestBuilder);
-        PlatformChannel.DeviceOrientation orientation = deviceOrientationManager.getLastUIOrientation();
-        focusRectangle =
-                convertPointToMeteringRectangle(cameraBoundaries, focusPoint.x, focusPoint.y, orientation);
 
-        captureRequestBuilder.set(
-                CaptureRequest.CONTROL_AF_REGIONS,
-                captureRequestBuilder == null ? null : new MeteringRectangle[] {focusRectangle});
-        captureRequestBuilder.addTarget(surface);
-        captureSession.setRepeatingRequest(
-                captureRequestBuilder.build(), null, cameraThreadHandler);
+        if (deviceOrientationManager != null) {
+          PlatformChannel.DeviceOrientation orientation = deviceOrientationManager.getLastUIOrientation();
+          focusRectangle =
+                  convertPointToMeteringRectangle(cameraBoundaries, focusPoint.x, focusPoint.y, orientation);
+
+          captureRequestBuilder.set(
+                  CaptureRequest.CONTROL_AF_REGIONS,
+                  captureRequestBuilder == null ? null : new MeteringRectangle[] {focusRectangle});
+          captureRequestBuilder.addTarget(surface);
+          captureSession.setRepeatingRequest(
+                  captureRequestBuilder.build(), null, cameraThreadHandler);
+        }
       } catch (CameraAccessException e) {
         // Should never happen since we are already accessing the camera
         throw new RuntimeException(e);
@@ -315,20 +320,23 @@ public class CameraUtils {
 
         MeteringRectangle exposureRectangle = null;
         Size cameraBoundaries = CameraRegionUtils.getCameraBoundaries(cameraCharacteristics, captureRequestBuilder);
-        PlatformChannel.DeviceOrientation orientation = deviceOrientationManager.getLastUIOrientation();
-        exposureRectangle =
-                convertPointToMeteringRectangle(cameraBoundaries, exposurePoint.x, exposurePoint.y, orientation);
-        if (exposureRectangle != null) {
-          captureRequestBuilder.set(
-                  CaptureRequest.CONTROL_AE_REGIONS, new MeteringRectangle[] {exposureRectangle});
-        } else {
-          MeteringRectangle[] defaultRegions = captureRequestBuilder.get(CaptureRequest.CONTROL_AE_REGIONS);
-          captureRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS, defaultRegions);
-        }
 
-        captureRequestBuilder.addTarget(surface);
-        captureSession.setRepeatingRequest(
-                captureRequestBuilder.build(), null, cameraThreadHandler);
+        if(deviceOrientationManager != null) {
+          PlatformChannel.DeviceOrientation orientation = deviceOrientationManager.getLastUIOrientation();
+          exposureRectangle =
+                  convertPointToMeteringRectangle(cameraBoundaries, exposurePoint.x, exposurePoint.y, orientation);
+          if (exposureRectangle != null) {
+            captureRequestBuilder.set(
+                    CaptureRequest.CONTROL_AE_REGIONS, new MeteringRectangle[] {exposureRectangle});
+          } else {
+            MeteringRectangle[] defaultRegions = captureRequestBuilder.get(CaptureRequest.CONTROL_AE_REGIONS);
+            captureRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS, defaultRegions);
+          }
+
+          captureRequestBuilder.addTarget(surface);
+          captureSession.setRepeatingRequest(
+                  captureRequestBuilder.build(), null, cameraThreadHandler);
+        }
       } catch (CameraAccessException e) {
         // Should never happen since we are already accessing the camera
         throw new RuntimeException(e);
