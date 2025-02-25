@@ -224,7 +224,7 @@ const NSUInteger kMaxReadLength = 10 * 1024;
       break;
   }
 
-  RTCVideoFrame* videoFrame = [[RTCVideoFrame alloc] initWithBuffer:rtcPixelBuffer
+  RTCVideoFrame* videoFrame = [[RTCVideoFrame alloc] initWithBuffer:[rtcPixelBuffer toI420]
                                                            rotation:rotation
                                                         timeStampNs:frameTimeStampNs];
 

@@ -49,9 +49,13 @@
 
   CMSampleBufferRef sampleBuffer = [self sampleBufferFromPixelBuffer:pixelBuffer];
   if (sampleBuffer) {
-    if([_videoLayer requiresFlushToResumeDecoding]) {
-      [_videoLayer flushAndRemoveImage];
-    }
+      if (@available(iOS 14.0, *)) {
+          if([_videoLayer requiresFlushToResumeDecoding]) {
+              [_videoLayer flushAndRemoveImage];
+          }
+      } else {
+          // Fallback on earlier versions
+      }
     [_videoLayer enqueueSampleBuffer:sampleBuffer];
     CFRelease(sampleBuffer);
   }

@@ -208,10 +208,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                         .setUseStereoOutput(true)
                         .setAudioSource(MediaRecorder.AudioSource.MIC);
     } else {
-      audioDeviceModuleBuilder.setUseHardwareAcousticEchoCanceler(true)
-                        .setUseLowLatency(true)
-                        .setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
-                        .setUseHardwareNoiseSuppressor(true);
+      boolean useHardwareAudioProcessing = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
+      boolean useLowLatency = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+      audioDeviceModuleBuilder.setUseHardwareAcousticEchoCanceler(useHardwareAudioProcessing)
+                        .setUseLowLatency(useLowLatency)
+                        .setUseHardwareNoiseSuppressor(useHardwareAudioProcessing);
     }
 
     audioDeviceModuleBuilder.setSamplesReadyCallback(recordSamplesReadyCallbackAdapter);
