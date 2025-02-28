@@ -1,6 +1,7 @@
 package com.cloudwebrtc.webrtc;
 
 import android.graphics.SurfaceTexture;
+import android.view.Surface;
 
 import org.webrtc.EglBase;
 import org.webrtc.EglRenderer;
@@ -10,6 +11,8 @@ import org.webrtc.ThreadUtils;
 import org.webrtc.VideoFrame;
 
 import java.util.concurrent.CountDownLatch;
+
+import io.flutter.view.TextureRegistry;
 
 /**
  * Display the video stream on a Surface.
@@ -95,19 +98,35 @@ public class SurfaceTextureRenderer extends EglRenderer {
   // VideoSink interface.
   @Override
   public void onFrame(VideoFrame frame) {
-    if(!isFirstFrameRendered) {
-      texture.setDefaultBufferSize(frame.getRotatedWidth(), frame.getRotatedHeight());
-      createEglSurface(texture);
+    if(surface == null) {
+      producer.setSize(frame.getRotatedWidth(),frame.getRotatedHeight());
+      surface = producer.getSurface();
+      createEglSurface(surface);
     }
     updateFrameDimensionsAndReportEvents(frame);
     super.onFrame(frame);
   }
 
-  private SurfaceTexture texture;
+  private Surface surface = null;
 
-  public void surfaceCreated(final SurfaceTexture texture) {
+  private TextureRegistry.SurfaceProducer producer;
+
+  public void surfaceCreated(final TextureRegistry.SurfaceProducer producer) {
     ThreadUtils.checkIsOnMainThread();
-    this.texture = texture;
+    this.producer = producer;
+    this.producer.setCallback(
+            new TextureRegistry.SurfaceProducer.Callback() {
+              @Override
+              public void onSurfaceAvailable() {
+                // Do surface initialization here, and draw the current frame.
+              }
+
+              @Override
+              public void onSurfaceDestroyed() {
+                surfaceDestroyed();
+              }
+            }
+    );
   }
 
   public void surfaceDestroyed() {
@@ -138,7 +157,7 @@ public class SurfaceTextureRenderer extends EglRenderer {
         }
         rotatedFrameWidth = frame.getRotatedWidth();
         rotatedFrameHeight = frame.getRotatedHeight();
-        texture.setDefaultBufferSize(rotatedFrameWidth, rotatedFrameHeight);
+        producer.setSize(rotatedFrameWidth, rotatedFrameHeight);
         frameRotation = frame.getRotation();
       }
     }
