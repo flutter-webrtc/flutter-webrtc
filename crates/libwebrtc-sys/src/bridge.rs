@@ -72,8 +72,8 @@ impl OptionRtcpFeedbackMessageType {
 
 /// Creates an empty Rust [`Option`]`<`[`RtcpFeedbackMessageType`]`>` value.
 #[expect(clippy::unnecessary_box_returns, reason = "FFI")]
-pub fn init_option_rtcp_feedback_message_type(
-) -> Box<OptionRtcpFeedbackMessageType> {
+pub fn init_option_rtcp_feedback_message_type()
+-> Box<OptionRtcpFeedbackMessageType> {
     Box::new(OptionRtcpFeedbackMessageType(None))
 }
 
@@ -163,6 +163,17 @@ pub fn init_option_bool() -> Box<OptionBool> {
 }
 
 #[allow(clippy::unnecessary_box_returns, reason = "FFI")]
+#[allow( // `cxx::bridge` macro expansion
+    clippy::absolute_paths,
+    clippy::as_conversions,
+    clippy::multiple_inherent_impl,
+    clippy::multiple_unsafe_ops_per_block,
+    clippy::renamed_function_params,
+    let_underscore_drop,
+    trivial_casts,
+    reason = "`cxx::bridge` macro expansion"
+)]
+#[allow(missing_docs, reason = "needs refactoring")] // TODO: Fill up.
 #[cxx::bridge(namespace = "bridge")]
 pub(crate) mod webrtc {
     /// Wrapper for a `(String, String)` tuple transferable via FFI boundaries.
@@ -1603,8 +1614,8 @@ pub(crate) mod webrtc {
         pub fn set_output_will_be_muted(ap: &AudioProcessing, muted: bool);
 
         /// Creates a new [`AudioProcessingConfig`].
-        pub fn create_audio_processing_config(
-        ) -> UniquePtr<AudioProcessingConfig>;
+        pub fn create_audio_processing_config()
+        -> UniquePtr<AudioProcessingConfig>;
 
         /// Returns [`AudioProcessingConfig`] of the provided
         /// [`AudioProcessing`].
@@ -2237,8 +2248,8 @@ pub(crate) mod webrtc {
 
         /// Creates an empty Rust [`Option`]`<`[`RtcpFeedbackMessageType`]`>`
         /// value.
-        pub fn init_option_rtcp_feedback_message_type(
-        ) -> Box<OptionRtcpFeedbackMessageType>;
+        pub fn init_option_rtcp_feedback_message_type()
+        -> Box<OptionRtcpFeedbackMessageType>;
 
         /// Sets the specified [`Option`]`<`[`RtcpFeedbackMessageType`]`>`
         /// to [`Some`]`(value)`.
@@ -2996,7 +3007,7 @@ pub(crate) mod webrtc {
         /// Called once the `LocalAudioSource` produces a new audio level
         /// update.
         fn on_audio_level_change(
-            cb: &mut DynAudioSourceOnAudioLevelChangeCallback,
+            cb: &DynAudioSourceOnAudioLevelChangeCallback,
             volume: f32,
         );
     }
@@ -3373,7 +3384,7 @@ pub fn on_ended(cb: &mut DynTrackEventCallback) {
 /// Notifies the provided [`DynAudioSourceOnAudioLevelChangeCallback`] about an
 /// audio level update.
 pub fn on_audio_level_change(
-    cb: &mut DynAudioSourceOnAudioLevelChangeCallback,
+    cb: &DynAudioSourceOnAudioLevelChangeCallback,
     volume: f32,
 ) {
     cb.on_audio_level_change(volume);
@@ -3381,10 +3392,7 @@ pub fn on_audio_level_change(
 
 /// Creates a new [`StringPair`].
 fn new_string_pair(f: &CxxString, s: &CxxString) -> webrtc::StringPair {
-    webrtc::StringPair {
-        first: f.to_string(),
-        second: s.to_string(),
-    }
+    webrtc::StringPair { first: f.to_string(), second: s.to_string() }
 }
 
 /// Calls the success [`DynAddIceCandidateCallback`].

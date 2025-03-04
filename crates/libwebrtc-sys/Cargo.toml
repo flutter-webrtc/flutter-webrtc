@@ -1,8 +1,8 @@
 [package]
 name = "libwebrtc-sys"
 version = "0.0.0+132.0.6834.159"
-edition = "2021"
-rust-version = "1.81"
+edition = "2024"
+rust-version = "1.85"
 publish = false
 links = "webrtc"
 

@@ -15,8 +15,8 @@ eq = $(if $(or $(1),$(2)),$(and $(findstring $(1),$(2)),\
 # Project parameters #
 ######################
 
-RUST_VER ?= 1.84
-RUST_NIGHTLY_VER ?= nightly-2025-01-10
+RUST_VER ?= 1.85
+RUST_NIGHTLY_VER ?= nightly-2025-02-22
 
 FLUTTER_RUST_BRIDGE_VER ?= $(strip \
 	$(shell grep -A1 'name = "flutter_rust_bridge"' Cargo.lock \
@@ -272,8 +272,7 @@ ifeq ($(dockerized),yes)
 		ghcr.io/instrumentisto/rust:$(RUST_NIGHTLY_VER) \
 			make cargo.fmt check=$(check) dockerized=no
 else
-	cargo +nightly fmt --all -- --config-path=.nightly.rustfmt.toml \
-		$(if $(call eq,$(check),yes),--check,)
+	cargo +nightly fmt --all $(if $(call eq,$(check),yes),--check,)
 endif
 
 

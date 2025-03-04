@@ -1,6 +1,10 @@
 # See full lints list at:
 # https://rust-lang.github.io/rust-clippy/master/index.html
 
+absolute-paths-allowed-crates = [
+    "reqwest",
+]
+
 doc-valid-idents = [
     "KiB", "MiB", "GiB", "TiB", "PiB", "EiB",
     "DirectX", "ECMAScript",

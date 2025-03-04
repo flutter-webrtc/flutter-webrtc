@@ -1,9 +1,10 @@
 use std::{
-    hash::Hash,
+    hash::{Hash, Hasher},
     mem,
     sync::{
+        Arc, Mutex, OnceLock, Weak,
         atomic::{AtomicBool, Ordering},
-        mpsc, Arc, Mutex, OnceLock, Weak,
+        mpsc,
     },
 };
 
@@ -15,11 +16,11 @@ use libwebrtc_sys as sys;
 use threadpool::ThreadPool;
 
 use crate::{
+    AudioTrack, AudioTrackId, VideoTrack, VideoTrackId, Webrtc,
     api::{self, RtpCodecCapability, RtpTransceiverInit},
     frb_generated::{RustOpaque, StreamSink},
     next_id,
     user_media::TrackOrigin,
-    AudioTrack, AudioTrackId, VideoTrack, VideoTrackId, Webrtc,
 };
 
 impl Webrtc {
@@ -49,6 +50,7 @@ impl Webrtc {
 
     /// Returns a sequence of [`api::RtcRtpTransceiver`] objects representing
     /// the RTP transceivers currently attached to specified [`PeerConnection`].
+    #[must_use]
     pub fn get_transceivers(
         peer: &RustOpaque<Arc<PeerConnection>>,
     ) -> Vec<api::RtcRtpTransceiver> {
@@ -78,7 +80,7 @@ impl Webrtc {
     ///
     /// If the [`Mutex`] guarding the [`sys::PeerConnectionInterface`] is
     /// poisoned.
-    pub fn dispose_peer_connection(&mut self, this: &Arc<PeerConnection>) {
+    pub fn dispose_peer_connection(&self, this: &Arc<PeerConnection>) {
         // Remove all tracks from this `Peer`'s senders.
         for mut track in self.video_tracks.iter_mut() {
             track.senders.remove(this);
@@ -121,14 +123,14 @@ impl Webrtc {
     }
 
     /// Replaces the specified [`AudioTrack`] (or [`VideoTrack`]) on the
-    /// [`sys::Transceiver`]'s `sender`.
+    /// [`sys::RtpTransceiverInterface`]'s `sender`.
     ///
     /// # Panics
     ///
     /// If the [`Mutex`] guarding the [`sys::PeerConnectionInterface`] is
     /// poisoned.
     pub fn sender_replace_track(
-        &mut self,
+        &self,
         peer: &Arc<PeerConnection>,
         transceiver: &Arc<RtpTransceiver>,
         track_id: Option<String>,
@@ -251,7 +253,7 @@ pub struct PeerConnection {
 }
 
 impl Hash for PeerConnection {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.id.hash(state);
     }
 }
@@ -333,16 +335,19 @@ impl PeerConnection {
     }
 
     /// Returns ID of this [`PeerConnection`].
-    pub fn id(&self) -> PeerConnectionId {
+    pub const fn id(&self) -> PeerConnectionId {
         self.id
     }
 
-    /// Returns a sequence of [`RtpTransceiverInterface`] objects representing
-    /// the RTP transceivers currently attached to this [`PeerConnection`].
+    /// Returns a sequence of [`sys::RtpTransceiverInterface`] objects
+    /// representing the [RTP] transceivers currently attached to this
+    /// [`PeerConnection`].
     ///
     /// # Panics
     ///
     /// If the underlying [`Mutex`] is poisoned.
+    ///
+    /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
     #[must_use]
     pub fn get_transceivers(&self) -> Vec<sys::RtpTransceiverInterface> {
         self.inner.lock().unwrap().get_transceivers()
@@ -365,11 +370,7 @@ impl PeerConnection {
         sdp_mline_index: i32,
         add_candidate_tx: mpsc::Sender<anyhow::Result<()>>,
     ) -> anyhow::Result<()> {
-        let candidate = IceCandidate {
-            candidate,
-            sdp_mid,
-            sdp_mline_index,
-        };
+        let candidate = IceCandidate { candidate, sdp_mid, sdp_mline_index };
 
         if self.has_remote_description.load(Ordering::SeqCst) {
             self.inner.lock().unwrap().add_ice_candidate(
@@ -398,6 +399,7 @@ impl PeerConnection {
     ///
     /// If the [`Mutex`] guarding the [`sys::PeerConnectionInterface`] is
     /// poisoned.
+    #[expect(clippy::significant_drop_tightening, reason = "intended")]
     pub fn set_remote_description(
         &self,
         kind: sys::SdpType,
@@ -408,6 +410,7 @@ impl PeerConnection {
         let obs = sys::SetRemoteDescriptionObserver::new(Box::new(
             SetSdpCallback(set_sdp_tx),
         ));
+
         let mut inner = self.inner.lock().unwrap();
         inner.set_remote_description(desc, obs);
 
@@ -450,6 +453,8 @@ impl PeerConnection {
             let transceiver = peer.add_transceiver(media_type, &(init.into()));
             let index = peer.get_transceivers().len() - 1;
 
+            drop(peer);
+
             (
                 transceiver.mid(),
                 transceiver.direction().into(),
@@ -461,12 +466,7 @@ impl PeerConnection {
             )
         };
 
-        Ok(api::RtcRtpTransceiver {
-            peer: this,
-            transceiver,
-            mid,
-            direction,
-        })
+        Ok(api::RtcRtpTransceiver { peer: this, transceiver, mid, direction })
     }
 
     /// Initiates the creation of an SDP offer for the purpose of starting a new
@@ -548,7 +548,8 @@ impl PeerConnection {
         self.inner.lock().unwrap().set_local_description(desc, obs);
     }
 
-    /// Returns [`RtcStats`] of this [`PeerConnection`].
+    /// Emits a [`sys::RtcStatsReport`] of this [`PeerConnection`] into the
+    /// provided [`mpsc::Sender`].
     ///
     /// # Panics
     ///
@@ -594,16 +595,14 @@ impl RtpParameters {
     ///
     /// If the [`Mutex`] guarding the [`sys::RtpParameters`] is poisoned.
     fn update_encoding(&self, encoding: &RtpEncodingParameters) {
-        self.0
-            .lock()
-            .unwrap()
-            .set_encodings(&encoding.0.lock().unwrap());
+        self.0.lock().unwrap().set_encodings(&encoding.0.lock().unwrap());
     }
 }
 
+#[expect(clippy::fallible_impl_from, reason = "locking")]
 impl From<api::RtpTransceiverInit> for sys::RtpTransceiverInit {
     fn from(v: RtpTransceiverInit) -> Self {
-        let mut init = sys::RtpTransceiverInit::new();
+        let mut init = Self::new();
 
         init.set_direction(v.direction.into());
 
@@ -687,10 +686,7 @@ impl RtpEncodingParameters {
     /// If the [`Mutex`] guarding the [`sys::RtpEncodingParameters`] is
     /// poisoned.
     pub fn set_scalability_mode(&self, scalability_mode: String) {
-        self.0
-            .lock()
-            .unwrap()
-            .set_scalability_mode(scalability_mode);
+        self.0.lock().unwrap().set_scalability_mode(scalability_mode);
     }
 }
 
@@ -711,7 +707,7 @@ impl From<api::RtcRtpEncodingParameters> for RtpEncodingParameters {
             scalability_mode,
         } = v;
 
-        let e = RtpEncodingParameters::new();
+        let e = Self::new();
 
         e.set_rid(rid);
         e.set_active(active);
@@ -878,7 +874,7 @@ impl RtpTransceiver {
         self.inner.lock().unwrap().direction()
     }
 
-    /// Returns the [`MediaType`] of this [`RtpTransceiver`].
+    /// Returns the [`sys::MediaType`] of this [`RtpTransceiver`].
     ///
     /// # Panics
     ///
@@ -978,7 +974,7 @@ impl PartialEq for RtpTransceiver {
 }
 
 impl Hash for RtpTransceiver {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.peer_id.hash(state);
         self.index.hash(state);
     }
@@ -1215,8 +1211,7 @@ impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
                     }
                     sys::MediaType::MEDIA_TYPE_VIDEO => {
                         let track_id = VideoTrackId::from(track_id);
-                        if video_tracks
-                            .contains_key(&(track_id.clone(), track_origin))
+                        if video_tracks.contains_key(&(track_id, track_origin))
                         {
                             return;
                         }

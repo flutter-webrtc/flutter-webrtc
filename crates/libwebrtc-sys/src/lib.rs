@@ -1,30 +1,178 @@
+//! Bindings to [`libwebrtc-bin`] library.
+//!
+//! [`libwebrtc-bin`]: https://github.com/instrumentisto/libwebrtc-bin
+
+#![deny(nonstandard_style, rustdoc::all, trivial_casts, trivial_numeric_casts)]
+#![forbid(non_ascii_idents)]
 #![warn(
+    clippy::absolute_paths,
     clippy::allow_attributes,
     clippy::allow_attributes_without_reason,
-    clippy::pedantic
+    clippy::as_conversions,
+    clippy::as_pointer_underscore,
+    clippy::as_ptr_cast_mut,
+    clippy::assertions_on_result_states,
+    clippy::branches_sharing_code,
+    clippy::cfg_not_test,
+    clippy::clear_with_drain,
+    clippy::clone_on_ref_ptr,
+    clippy::collection_is_never_read,
+    clippy::create_dir,
+    clippy::dbg_macro,
+    clippy::debug_assert_with_mut_call,
+    clippy::decimal_literal_representation,
+    clippy::default_union_representation,
+    clippy::derive_partial_eq_without_eq,
+    clippy::doc_include_without_cfg,
+    clippy::empty_drop,
+    clippy::empty_structs_with_brackets,
+    clippy::equatable_if_let,
+    clippy::empty_enum_variants_with_brackets,
+    clippy::exit,
+    clippy::expect_used,
+    clippy::fallible_impl_from,
+    clippy::filetype_is_file,
+    clippy::float_cmp_const,
+    clippy::fn_to_numeric_cast_any,
+    clippy::format_push_string,
+    clippy::get_unwrap,
+    clippy::if_then_some_else_none,
+    clippy::imprecise_flops,
+    clippy::infinite_loop,
+    clippy::iter_on_empty_collections,
+    clippy::iter_on_single_items,
+    clippy::iter_over_hash_type,
+    clippy::iter_with_drain,
+    clippy::large_include_file,
+    clippy::large_stack_frames,
+    clippy::let_underscore_untyped,
+    clippy::literal_string_with_formatting_args,
+    clippy::lossy_float_literal,
+    clippy::map_err_ignore,
+    clippy::map_with_unused_argument_over_ranges,
+    clippy::mem_forget,
+    clippy::missing_assert_message,
+    clippy::missing_asserts_for_indexing,
+    clippy::missing_const_for_fn,
+    clippy::missing_docs_in_private_items,
+    clippy::module_name_repetitions,
+    clippy::multiple_inherent_impl,
+    clippy::multiple_unsafe_ops_per_block,
+    clippy::mutex_atomic,
+    clippy::mutex_integer,
+    clippy::needless_collect,
+    clippy::needless_pass_by_ref_mut,
+    clippy::needless_raw_strings,
+    clippy::non_zero_suggestions,
+    clippy::nonstandard_macro_braces,
+    clippy::option_if_let_else,
+    clippy::or_fun_call,
+    clippy::panic_in_result_fn,
+    clippy::partial_pub_fields,
+    clippy::pathbuf_init_then_push,
+    clippy::pedantic,
+    clippy::print_stderr,
+    clippy::print_stdout,
+    clippy::pub_without_shorthand,
+    clippy::rc_buffer,
+    clippy::rc_mutex,
+    clippy::read_zero_byte_vec,
+    clippy::redundant_clone,
+    clippy::redundant_type_annotations,
+    clippy::renamed_function_params,
+    clippy::ref_patterns,
+    clippy::rest_pat_in_fully_bound_structs,
+    clippy::same_name_method,
+    clippy::semicolon_inside_block,
+    clippy::set_contains_or_insert,
+    clippy::shadow_unrelated,
+    clippy::significant_drop_in_scrutinee,
+    clippy::significant_drop_tightening,
+    clippy::str_to_string,
+    clippy::string_add,
+    clippy::string_lit_as_bytes,
+    clippy::string_lit_chars_any,
+    clippy::string_slice,
+    clippy::string_to_string,
+    clippy::suboptimal_flops,
+    clippy::suspicious_operation_groupings,
+    clippy::suspicious_xor_used_as_pow,
+    clippy::tests_outside_test_module,
+    clippy::todo,
+    clippy::too_long_first_doc_paragraph,
+    clippy::trailing_empty_array,
+    clippy::transmute_undefined_repr,
+    clippy::trivial_regex,
+    clippy::try_err,
+    clippy::undocumented_unsafe_blocks,
+    clippy::unimplemented,
+    clippy::uninhabited_references,
+    clippy::unnecessary_safety_comment,
+    clippy::unnecessary_safety_doc,
+    clippy::unnecessary_self_imports,
+    clippy::unnecessary_struct_initialization,
+    clippy::unused_peekable,
+    clippy::unused_result_ok,
+    clippy::unused_trait_names,
+    clippy::unwrap_in_result,
+    clippy::unwrap_used,
+    clippy::use_debug,
+    clippy::use_self,
+    clippy::useless_let_if_seq,
+    clippy::verbose_file_reads,
+    clippy::while_float,
+    clippy::wildcard_enum_match_arm,
+    ambiguous_negative_literals,
+    closure_returning_async_block,
+    future_incompatible,
+    impl_trait_redundant_captures,
+    let_underscore_drop,
+    macro_use_extern_crate,
+    meta_variable_misuse,
+    missing_abi,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    missing_docs,
+    redundant_lifetimes,
+    rust_2018_idioms,
+    single_use_lifetimes,
+    unit_bindings,
+    unnameable_types,
+    unreachable_pub,
+    unstable_features,
+    unused,
+    variant_size_differences
 )]
-// TODO: Needs refactoring
-#![expect(clippy::missing_errors_doc, reason = "needs refactoring")]
+// TODO: Revisit and apply granular.
+#![expect( // needs refactoring
+    clippy::missing_docs_in_private_items,
+    clippy::missing_errors_doc,
+    clippy::undocumented_unsafe_blocks,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    unnameable_types,
+    unreachable_pub,
+    reason = "needs refactoring"
+)]
 
 mod bridge;
 
 use std::{collections::HashMap, mem};
 
 use anyhow::{anyhow, bail};
-use cxx::{let_cxx_string, CxxString, CxxVector, UniquePtr};
+use cxx::{CxxString, CxxVector, UniquePtr, let_cxx_string};
 use derive_more::with_trait::From;
 
 use self::bridge::webrtc;
-
 pub use crate::webrtc::{
-    candidate_to_string, get_candidate_pair,
+    AudioLayer, BundlePolicy, Candidate, CandidatePairChangeEvent,
+    CandidateType, IceConnectionState, IceGatheringState, IceTransportsType,
+    MediaType, PeerConnectionState, RTCStatsIceCandidatePairState,
+    RtcpFeedbackMessageType, RtcpFeedbackType, RtpTransceiverDirection,
+    ScalabilityMode, SdpType, SignalingState, TrackState, VideoFrame,
+    VideoRotation, candidate_to_string, get_candidate_pair,
     get_estimated_disconnected_time_ms, get_last_data_received_ms, get_reason,
-    video_frame_to_abgr, video_frame_to_argb, AudioLayer, BundlePolicy,
-    Candidate, CandidatePairChangeEvent, CandidateType, IceConnectionState,
-    IceGatheringState, IceTransportsType, MediaType, PeerConnectionState,
-    RTCStatsIceCandidatePairState, RtcpFeedbackMessageType, RtcpFeedbackType,
-    RtpTransceiverDirection, ScalabilityMode, SdpType, SignalingState,
-    TrackState, VideoFrame, VideoRotation,
+    video_frame_to_abgr, video_frame_to_argb,
 };
 
 /// Handler of events firing from a [`MediaStreamTrackInterface`].
@@ -54,8 +202,9 @@ pub trait CreateSdpCallback {
 }
 
 /// Completion callback for a [`SetLocalDescriptionObserver`] and
-/// [`SetRemoteDescriptionObserver`], used to call
-/// [`PeerConnectionInterface::set_local_description()`] and
+/// [`SetRemoteDescriptionObserver`].
+///
+/// It is used to call [`PeerConnectionInterface::set_local_description()`] and
 /// [`PeerConnectionInterface::set_remote_description()`].
 pub trait SetDescriptionCallback {
     /// Called when the related operation is successfully completed.
@@ -228,9 +377,7 @@ impl AudioDeviceModule {
             worker_thread.0.pin_mut(),
             audio_layer,
             task_queue_factory.0.pin_mut(),
-            &audio_processing
-                .unwrap_or(&AudioProcessing(UniquePtr::null()))
-                .0,
+            &audio_processing.unwrap_or(&AudioProcessing(UniquePtr::null())).0,
         );
 
         if ptr.is_null() {
@@ -250,16 +397,14 @@ impl AudioDeviceModule {
 
     /// Returns count of available audio playout devices.
     #[must_use]
-    #[expect(clippy::cast_sign_loss, reason = "never negative")]
     pub fn playout_devices(&self) -> u32 {
-        webrtc::playout_devices(&self.0).max(0) as u32
+        webrtc::playout_devices(&self.0).try_into().unwrap_or_default()
     }
 
     /// Returns count of available audio recording devices.
     #[must_use]
-    #[expect(clippy::cast_sign_loss, reason = "never negative")]
     pub fn recording_devices(&self) -> u32 {
-        webrtc::recording_devices(&self.0).max(0) as u32
+        webrtc::recording_devices(&self.0).try_into().unwrap_or_default()
     }
 
     /// Returns the `(label, id)` tuple for the given audio playout device
@@ -882,7 +1027,7 @@ impl RtpTransceiverInterface {
 
     /// Returns a [`MediaType`] of this [`RtpTransceiverInterface`].
     #[must_use]
-    pub fn media_type(&self) -> MediaType {
+    pub const fn media_type(&self) -> MediaType {
         self.media_type
     }
 
@@ -1135,6 +1280,7 @@ impl RtpSenderInterface {
         &self,
         track: Option<&VideoTrackInterface>,
     ) -> anyhow::Result<()> {
+        #[expect(clippy::or_fun_call, reason = "not possible")]
         let success = webrtc::replace_sender_video_track(
             &self.0,
             track.map_or(&UniquePtr::null(), |t| &t.inner),
@@ -1153,6 +1299,7 @@ impl RtpSenderInterface {
         &self,
         track: Option<&AudioTrackInterface>,
     ) -> anyhow::Result<()> {
+        #[expect(clippy::or_fun_call, reason = "not possible")]
         let success = webrtc::replace_sender_audio_track(
             &self.0,
             track.map_or(&UniquePtr::null(), |t| &t.inner),
@@ -1815,10 +1962,11 @@ impl RtpCapabilities {
 }
 
 /// [`PeerConnectionFactoryInterface`] is the main entry point to the
-/// `PeerConnection API` for clients it is responsible for creating
-/// [`AudioSourceInterface`], tracks ([`VideoTrackInterface`],
-/// [`AudioTrackInterface`]), [`MediaStreamInterface`] and the
-/// `PeerConnection`s.
+/// `PeerConnection API` for clients.
+///
+/// It is responsible for creating [`AudioSourceInterface`], tracks
+/// ([`VideoTrackInterface`], [`AudioTrackInterface`]), [`MediaStreamInterface`]
+/// and `PeerConnection`s.
 pub struct PeerConnectionFactoryInterface(
     UniquePtr<webrtc::PeerConnectionFactoryInterface>,
 );
@@ -1832,6 +1980,7 @@ impl PeerConnectionFactoryInterface {
         default_adm: Option<&AudioDeviceModule>,
         ap: Option<&AudioProcessing>,
     ) -> anyhow::Result<Self> {
+        #[expect(clippy::or_fun_call, reason = "not possible")]
         let inner = webrtc::create_peer_connection_factory(
             network_thread.map_or(&UniquePtr::null(), |t| &t.0),
             worker_thread.map_or(&UniquePtr::null(), |t| &t.0),
@@ -1873,10 +2022,7 @@ impl PeerConnectionFactoryInterface {
                  CreatePeerConnectionOrError()`",
             );
         }
-        Ok(PeerConnectionInterface {
-            inner,
-            _observer: dependencies.observer,
-        })
+        Ok(PeerConnectionInterface { inner, _observer: dependencies.observer })
     }
 
     /// Creates a new [`VideoTrackInterface`] sourced by the provided
@@ -1894,10 +2040,7 @@ impl PeerConnectionFactoryInterface {
                  `webrtc::PeerConnectionFactoryInterface::CreateVideoTrack()`",
             );
         }
-        Ok(VideoTrackInterface {
-            inner,
-            observers: Vec::new(),
-        })
+        Ok(VideoTrackInterface { inner, observers: Vec::new() })
     }
 
     /// Creates a new [`AudioTrackInterface`] sourced by the provided
@@ -1915,10 +2058,7 @@ impl PeerConnectionFactoryInterface {
                  `webrtc::PeerConnectionFactoryInterface::CreateAudioTrack()`",
             );
         }
-        Ok(AudioTrackInterface {
-            inner,
-            observers: Vec::new(),
-        })
+        Ok(AudioTrackInterface { inner, observers: Vec::new() })
     }
 
     /// Creates a new empty [`MediaStreamInterface`].
@@ -2006,7 +2146,7 @@ impl VideoTrackSourceInterface {
                  `webrtc::CreateVideoTrackSourceProxy()`",
             );
         }
-        Ok(VideoTrackSourceInterface(ptr))
+        Ok(Self(ptr))
     }
 
     /// Creates a new fake [`VideoTrackSourceInterface`].
@@ -2031,7 +2171,7 @@ impl VideoTrackSourceInterface {
                  `webrtc::CreateVideoTrackSource()`",
             );
         }
-        Ok(VideoTrackSourceInterface(ptr))
+        Ok(Self(ptr))
     }
 
     /// Starts screen capturing and creates a new [`VideoTrackSourceInterface`]
@@ -2064,7 +2204,7 @@ impl VideoTrackSourceInterface {
                  `webrtc::CreateVideoTrackSourceProxy()`",
             );
         }
-        Ok(VideoTrackSourceInterface(ptr))
+        Ok(Self(ptr))
     }
 }
 
@@ -2155,7 +2295,7 @@ impl TrackEventObserver {
     /// Creates a new [`TrackEventObserver`].
     #[must_use]
     pub fn new(cb: Box<dyn TrackEventCallback>) -> Self {
-        TrackEventObserver(webrtc::create_track_event_observer(Box::new(cb)))
+        Self(webrtc::create_track_event_observer(Box::new(cb)))
     }
 
     /// Sets the observable track to the specified [`VideoTrackInterface`].
@@ -2258,10 +2398,7 @@ impl TryFrom<MediaStreamTrackInterface> for VideoTrackInterface {
                 webrtc::media_stream_track_interface_downcast_video_track(
                     track.0,
                 );
-            Ok(VideoTrackInterface {
-                inner,
-                observers: Vec::new(),
-            })
+            Ok(Self { inner, observers: Vec::new() })
         } else {
             bail!(
                 "The provided `MediaStreamTrackInterface` is not an instance \
@@ -2335,10 +2472,7 @@ impl TryFrom<MediaStreamTrackInterface> for AudioTrackInterface {
                 webrtc::media_stream_track_interface_downcast_audio_track(
                     track.0,
                 );
-            Ok(AudioTrackInterface {
-                inner,
-                observers: Vec::new(),
-            })
+            Ok(Self { inner, observers: Vec::new() })
         } else {
             bail!(
                 "The provided `MediaStreamTrackInterface` is not an instance \
@@ -3092,7 +3226,7 @@ impl TryFrom<webrtc::RTCStatsWrap> for RtcStatsType {
                     anyhow!("`RTCIceCandidateStats` has no protocol")
                 })?;
                 let protocol = Protocol::try_from(protocol.as_ref())?;
-                let stats = IceCandidateStats {
+                let ice_stats = IceCandidateStats {
                     transport_id: transport_id.take(),
                     address: address.take(),
                     port: port.take(),
@@ -3103,11 +3237,15 @@ impl TryFrom<webrtc::RTCStatsWrap> for RtcStatsType {
                 };
                 if is_remote {
                     Self::RtcIceCandidateStats(
-                        RtcIceCandidateStats::RtcRemoteIceCandidateStats(stats),
+                        RtcIceCandidateStats::RtcRemoteIceCandidateStats(
+                            ice_stats,
+                        ),
                     )
                 } else {
                     Self::RtcIceCandidateStats(
-                        RtcIceCandidateStats::RtcLocalIceCandidateStats(stats),
+                        RtcIceCandidateStats::RtcLocalIceCandidateStats(
+                            ice_stats,
+                        ),
                     )
                 }
             }
@@ -3136,7 +3274,7 @@ impl TryFrom<webrtc::RTCStatsWrap> for RtcStatsType {
                     mut total_decode_time,
                     mut jitter_buffer_emitted_count,
                 } = webrtc::cast_to_rtc_inbound_rtp_stream_stats(stats.stats)?;
-                let media_type = if let webrtc::MediaKind::Audio = media_type {
+                let media_type = if media_type == webrtc::MediaKind::Audio {
                     RtcInboundRtpStreamMediaType::Audio {
                         total_samples_received: total_samples_received.take(),
                         concealed_samples: concealed_samples.take(),
@@ -3177,7 +3315,7 @@ impl TryFrom<webrtc::RTCStatsWrap> for RtcStatsType {
                     stats,
                 } = webrtc::cast_to_rtc_media_source_stats(stats.stats)?;
                 let track_identifier = track_identifier.take();
-                let kind = if let webrtc::MediaKind::Audio = kind {
+                let kind = if kind == webrtc::MediaKind::Audio {
                     let webrtc::RTCAudioSourceStatsWrap {
                         mut audio_level,
                         mut total_audio_energy,
@@ -3207,10 +3345,7 @@ impl TryFrom<webrtc::RTCStatsWrap> for RtcStatsType {
                         frames_per_second: frames_per_second.take(),
                     }
                 };
-                Self::RtcMediaSourceStats {
-                    track_identifier,
-                    kind,
-                }
+                Self::RtcMediaSourceStats { track_identifier, kind }
             }
             T::RTCOutboundRTPStreamStats => {
                 let webrtc::RTCOutboundRTPStreamStatsWrap {
@@ -3223,7 +3358,7 @@ impl TryFrom<webrtc::RTCStatsWrap> for RtcStatsType {
                     mut packets_sent,
                     mut media_source_id,
                 } = webrtc::cast_to_rtc_outbound_rtp_stream_stats(stats.stats)?;
-                let kind = if let webrtc::MediaKind::Audio = kind {
+                let kind = if kind == webrtc::MediaKind::Audio {
                     RtcOutboundRtpStreamStatsMediaType::Audio
                 } else {
                     RtcOutboundRtpStreamStatsMediaType::Video {
@@ -3325,22 +3460,14 @@ pub struct RtcStats {
 impl TryFrom<webrtc::RTCStatsWrap> for RtcStats {
     type Error = anyhow::Error;
     fn try_from(stats: webrtc::RTCStatsWrap) -> Result<Self, Self::Error> {
-        let webrtc::RTCStatsWrap {
-            id,
-            timestamp_us,
-            kind: _,
-            stats: _,
-        } = &stats;
+        let webrtc::RTCStatsWrap { id, timestamp_us, kind: _, stats: _ } =
+            &stats;
 
         let id = id.clone();
         let timestamp_us = *timestamp_us;
         let kind = RtcStatsType::try_from(stats)?;
 
-        Ok(Self {
-            id,
-            timestamp_us,
-            kind,
-        })
+        Ok(Self { id, timestamp_us, kind })
     }
 }
 

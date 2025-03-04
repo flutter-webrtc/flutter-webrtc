@@ -139,7 +139,7 @@ jobs:
           - windows
     runs-on: ${{ (matrix.platform == 'macos'   && 'macos-13')
               || (matrix.platform == 'windows' && 'windows-latest')
-              ||                                  'ubuntu-20.04' }}
+              ||                                  'ubuntu-22.04' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@v1
@@ -150,11 +150,12 @@ jobs:
       - run: flutter config --enable-${{ matrix.platform }}-desktop
 
       - name: Install Linux platform dependencies
-        run: sudo apt-get install -y
-                          libgtk-3-dev libpulse-dev libudev-dev
-                          libxcomposite-dev libxdamage-dev libxfixes-dev
-                          libxrandr-dev libxtst-dev
-                          ninja-build
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+                       libgtk-3-dev libpulse-dev libudev-dev libxcomposite-dev \
+                       libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
+                       ninja-build
         if: ${{ matrix.platform == 'linux' }}
 
       # Pin Xcode version for better compatibility.

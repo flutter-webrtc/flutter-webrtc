@@ -1,5 +1,6 @@
 [workspace]
 members = ["crates/libwebrtc-sys", "crates/native"]
+resolver = "3"
 
 [profile.release]
 lto = "fat"
