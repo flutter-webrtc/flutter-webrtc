@@ -1024,7 +1024,7 @@ dependencies = [
 
 [[package]]
 name = "libwebrtc-sys"
-version = "0.0.0+132.0.6834.159"
+version = "0.0.0+133.0.6943.141"
 dependencies = [
  "anyhow",
  "cxx",
@@ -1032,6 +1032,7 @@ dependencies = [
  "derive_more",
  "flate2",
  "pkg-config",
+ "regex-lite",
  "reqwest",
  "sha2",
  "tar",
@@ -1322,6 +1323,12 @@ checksum = "82b568323e98e49e2a0899dcee453dd679fae22d69adf9b11dd508d1549b7e2f"
 dependencies = [
  "bitflags 2.8.0",
 ]
+
+[[package]]
+name = "regex-lite"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53a49587ad06b26609c52e423de037e7f57f20d53535d66e08c695f347df952a"
 
 [[package]]
 name = "reqwest"

@@ -67,7 +67,12 @@ jobs:
           sudo apt-get install -y \
                        libgtk-3-dev libpulse-dev libudev-dev libxcomposite-dev \
                        libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
-                       ninja-build
+                       ninja-build lld-19 binutils build-essential
+          # TODO: Remove once lld-19 becomes the default in Ubuntu repositories
+          sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-19 100
+          sudo update-alternatives --config lld
+          sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-19 100
+          sudo update-alternatives --config ld.lld
         if: ${{ matrix.platform == 'linux' }}
 
       - run: make cargo.lint
@@ -151,11 +156,18 @@ jobs:
 
       - name: Install Linux platform dependencies
         run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/llvm.asc
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
           sudo apt-get update
           sudo apt-get install -y \
-                       libgtk-3-dev libpulse-dev libudev-dev libxcomposite-dev \
-                       libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
-                       ninja-build
+                       cmake \
+                       libgtk-3-dev liblzma-dev libpulse-dev libudev-dev \
+                       ninja-build lld-19 binutils build-essential
+          # TODO: Remove once lld-19 becomes the default in Ubuntu repositories
+          sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-19 100
+          sudo update-alternatives --config lld
+          sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-19 100
+          sudo update-alternatives --config ld.lld
         if: ${{ matrix.platform == 'linux' }}
 
       # Pin Xcode version for better compatibility.
@@ -219,7 +231,12 @@ jobs:
                        cmake \
                        libgtk-3-dev liblzma-dev libpulse-dev libudev-dev \
                        ninja-build \
-                       xvfb
+                       xvfb lld-19 binutils build-essential
+          # TODO: Remove once lld-19 becomes the default in Ubuntu repositories
+          sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-19 100
+          sudo update-alternatives --config lld
+          sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-19 100
+          sudo update-alternatives --config ld.lld
         if: ${{ matrix.platform == 'linux' }}
 
       - run: make cargo.build debug=yes platform=${{ matrix.platform }}
@@ -322,7 +339,12 @@ jobs:
           sudo apt-get install -y \
                        libgtk-3-dev libpulse-dev libudev-dev libxcomposite-dev \
                        libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
-                       ninja-build
+                       ninja-build lld-19 binutils build-essential
+          # TODO: Remove once lld-19 becomes the default in Ubuntu repositories
+          sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-19 100
+          sudo update-alternatives --config lld
+          sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-19 100
+          sudo update-alternatives --config ld.lld
         if: ${{ matrix.platform == 'linux' }}
 
       - run: make cargo.doc
