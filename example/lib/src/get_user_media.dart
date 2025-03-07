@@ -68,6 +68,13 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     try {
       var stream = await getUserMedia(caps);
       _mediaDevicesList = await enumerateDevices();
+      for (var t in stream) {
+        t.onEnded(() {
+          print(
+            "Track ended: id = ${t.id()}, kind = ${t.kind()}, deviceId = ${t.deviceId()}",
+          );
+        });
+      }
       _tracks = stream;
       await _localRenderer.setSrcObject(
         _tracks!.firstWhere((track) {

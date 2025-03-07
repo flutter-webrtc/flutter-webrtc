@@ -1,6 +1,5 @@
 //! [`VideoSink`] related definitions.
 
-use anyhow::anyhow;
 use cxx::UniquePtr;
 use derive_more::with_trait::{AsMut, AsRef};
 use libwebrtc_sys as sys;
@@ -17,7 +16,7 @@ impl Webrtc {
         track_id: String,
         track_origin: TrackOrigin,
         handler: FrameHandler,
-    ) -> anyhow::Result<()> {
+    ) {
         self.dispose_video_sink(sink_id);
 
         let track_id = VideoTrackId::from(track_id);
@@ -30,13 +29,13 @@ impl Webrtc {
             track_origin,
         };
 
-        self.video_tracks
-            .get_mut(&(track_id.clone(), track_origin))
-            .ok_or_else(|| anyhow!("Cannot find track with ID `{track_id}`"))?
-            .add_video_sink(&mut sink);
-        self.video_sinks.insert(Id(sink_id), sink);
+        let track = self.video_tracks.get_mut(&(track_id, track_origin));
 
-        Ok(())
+        if let Some(mut track) = track {
+            track.add_video_sink(&mut sink);
+
+            self.video_sinks.insert(Id(sink_id), sink);
+        }
     }
 
     /// Destroys a [`VideoSink`] by the given ID.

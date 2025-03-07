@@ -106,6 +106,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  MediaStreamTrack dco_decode_box_autoadd_media_stream_track(dynamic raw);
+
+  @protected
   Protocol dco_decode_box_autoadd_protocol(dynamic raw);
 
   @protected
@@ -278,6 +281,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   IceRole? dco_decode_opt_box_autoadd_ice_role(dynamic raw);
+
+  @protected
+  MediaStreamTrack? dco_decode_opt_box_autoadd_media_stream_track(dynamic raw);
 
   @protected
   Protocol? dco_decode_opt_box_autoadd_protocol(dynamic raw);
@@ -518,6 +524,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  MediaStreamTrack sse_decode_box_autoadd_media_stream_track(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Protocol sse_decode_box_autoadd_protocol(SseDeserializer deserializer);
 
   @protected
@@ -736,6 +747,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   IceRole? sse_decode_opt_box_autoadd_ice_role(SseDeserializer deserializer);
+
+  @protected
+  MediaStreamTrack? sse_decode_opt_box_autoadd_media_stream_track(
+    SseDeserializer deserializer,
+  );
 
   @protected
   Protocol? sse_decode_opt_box_autoadd_protocol(SseDeserializer deserializer);
@@ -1027,6 +1043,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_media_stream_track(
+    MediaStreamTrack self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_protocol(Protocol self, SseSerializer serializer);
 
   @protected
@@ -1291,6 +1313,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_ice_role(
     IceRole? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_media_stream_track(
+    MediaStreamTrack? self,
     SseSerializer serializer,
   );
 

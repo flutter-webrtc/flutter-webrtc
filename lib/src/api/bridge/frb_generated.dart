@@ -91,7 +91,7 @@ abstract class RustLibApi extends BaseApi {
     required RtpTransceiverInit init,
   });
 
-  Future<MediaStreamTrack> crateApiCloneTrack({
+  Future<MediaStreamTrack?> crateApiCloneTrack({
     required String trackId,
     int? peerId,
     required MediaType kind,
@@ -393,7 +393,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<MediaStreamTrack> crateApiCloneTrack({
+  Future<MediaStreamTrack?> crateApiCloneTrack({
     required String trackId,
     int? peerId,
     required MediaType kind,
@@ -413,8 +413,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_media_stream_track,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeSuccessData: sse_decode_opt_box_autoadd_media_stream_track,
+          decodeErrorData: null,
         ),
         constMeta: kCrateApiCloneTrackConstMeta,
         argValues: [trackId, peerId, kind],
@@ -571,7 +571,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           },
           codec: SseCodec(
             decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_AnyhowException,
+            decodeErrorData: null,
           ),
           constMeta: kCrateApiCreateVideoSinkConstMeta,
           argValues: [cb, sinkId, peerId, trackId, callbackPtr, textureId],
@@ -1100,7 +1100,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           },
           codec: SseCodec(
             decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_AnyhowException,
+            decodeErrorData: null,
           ),
           constMeta: kCrateApiRegisterTrackObserverConstMeta,
           argValues: [cb, peerId, trackId, kind],
@@ -1271,7 +1271,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: null,
         ),
         constMeta: kCrateApiSetAudioLevelObserverEnabledConstMeta,
         argValues: [trackId, peerId, enabled],
@@ -1438,7 +1438,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           },
           codec: SseCodec(
             decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_AnyhowException,
+            decodeErrorData: null,
           ),
           constMeta: kCrateApiSetOnDeviceChangedConstMeta,
           argValues: [cb],
@@ -1513,7 +1513,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: null,
         ),
         constMeta: kCrateApiSetTrackEnabledConstMeta,
         argValues: [trackId, peerId, kind, enabled],
@@ -1684,7 +1684,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_box_autoadd_i_32,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: null,
         ),
         constMeta: kCrateApiTrackHeightConstMeta,
         argValues: [trackId, peerId, kind],
@@ -1720,7 +1720,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_track_state,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: null,
         ),
         constMeta: kCrateApiTrackStateConstMeta,
         argValues: [trackId, peerId, kind],
@@ -1756,7 +1756,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_box_autoadd_i_32,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: null,
         ),
         constMeta: kCrateApiTrackWidthConstMeta,
         argValues: [trackId, peerId, kind],
@@ -1991,6 +1991,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_media_stream_constraints(raw);
+  }
+
+  @protected
+  MediaStreamTrack dco_decode_box_autoadd_media_stream_track(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_media_stream_track(raw);
   }
 
   @protected
@@ -2388,6 +2394,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   IceRole? dco_decode_opt_box_autoadd_ice_role(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_ice_role(raw);
+  }
+
+  @protected
+  MediaStreamTrack? dco_decode_opt_box_autoadd_media_stream_track(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_media_stream_track(raw);
   }
 
   @protected
@@ -3192,6 +3204,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  MediaStreamTrack sse_decode_box_autoadd_media_stream_track(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_media_stream_track(deserializer));
+  }
+
+  @protected
   Protocol sse_decode_box_autoadd_protocol(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_protocol(deserializer));
@@ -3761,6 +3781,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_ice_role(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  MediaStreamTrack? sse_decode_opt_box_autoadd_media_stream_track(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_media_stream_track(deserializer));
     } else {
       return null;
     }
@@ -4807,6 +4840,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_media_stream_track(
+    MediaStreamTrack self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_media_stream_track(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_protocol(
     Protocol self,
     SseSerializer serializer,
@@ -5341,6 +5383,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_ice_role(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_media_stream_track(
+    MediaStreamTrack? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_media_stream_track(self, serializer);
     }
   }
 

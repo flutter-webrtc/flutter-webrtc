@@ -1,37 +1,21 @@
-#[cfg(target_os = "windows")]
-use std::{ffi::OsStr, mem, os::windows::prelude::OsStrExt as _, thread};
 use std::{
-    ptr,
-    sync::atomic::{AtomicPtr, Ordering},
+    mem, ptr,
+    sync::{
+        atomic::{AtomicPtr, Ordering},
+        mpsc,
+    },
+    thread,
 };
 
 use anyhow::anyhow;
 use libwebrtc_sys as sys;
-#[cfg(target_os = "linux")]
-use pulse::mainloop::standard::IterateResult;
-#[cfg(target_os = "windows")]
-use windows::{
-    Win32::{
-        Foundation::{HWND, LPARAM, LRESULT, WPARAM},
-        UI::WindowsAndMessaging::{
-            CW_USEDEFAULT, CreateWindowExW, DBT_DEVNODES_CHANGED,
-            DefWindowProcW, DispatchMessageW, GetMessageW, MSG,
-            RegisterClassExW, SW_HIDE, ShowWindow, TranslateMessage,
-            WINDOW_EX_STYLE, WM_DEVICECHANGE, WM_QUIT, WNDCLASSEXW, WS_ICONIC,
-        },
-    },
-    core::PCWSTR,
-};
 
 use crate::{
-    AudioDeviceModule, Webrtc, api,
+    Webrtc, api,
+    api::WEBRTC,
     frb_generated::StreamSink,
-    user_media::{AudioDeviceId, VideoDeviceId},
+    user_media::{AudioDeviceId, MediaTrackSource, TrackOrigin, VideoDeviceId},
 };
-
-/// Static instance of a [`DeviceState`].
-static ON_DEVICE_CHANGE: AtomicPtr<DeviceState> =
-    AtomicPtr::new(ptr::null_mut());
 
 /// Returns a list of all available displays that can be used for screen
 /// capturing.
@@ -45,149 +29,124 @@ pub fn enumerate_displays() -> Vec<api::MediaDisplayInfo> {
         .collect()
 }
 
-/// Current number of media devices and some tools to enumerate them (such as
-/// [`AudioDeviceModule`] and [`sys::VideoDeviceInfo`]).
-///
-/// It's used to generate an event with `OnDeviceChangeCallback`, if the last is
-/// needed.
-pub struct DeviceState {
-    cb: StreamSink<()>,
-    adm: AudioDeviceModule,
-    _thread: sys::Thread,
-    vdi: sys::VideoDeviceInfo,
-    audio_count: u32,
-    video_count: u32,
-}
+/// Sender to notify of media devices change.
+static DEVICE_CHANGE_TX: AtomicPtr<mpsc::Sender<()>> =
+    AtomicPtr::new(ptr::null_mut());
 
-impl DeviceState {
-    /// Creates a new [`DeviceState`].
-    pub fn new(
-        cb: StreamSink<()>,
-        tq: &mut sys::TaskQueueFactory,
-    ) -> anyhow::Result<Self> {
-        let mut thread = sys::Thread::create(false)?;
-        thread.start()?;
-        let adm = AudioDeviceModule::new(
-            &mut thread,
-            sys::AudioLayer::kPlatformDefaultAudio,
-            tq,
-            None,
-        )?;
+/// Initializes media devices change watcher.
+pub fn init_on_device_change() {
+    let (tx, rx) = mpsc::channel();
 
-        let vdi = sys::VideoDeviceInfo::create()?;
-
-        let mut ds = Self {
-            adm,
-            _thread: thread,
-            vdi,
-            audio_count: 0,
-            video_count: 0,
-            cb,
-        };
-
-        let audio_device_count = ds.count_audio_devices();
-        ds.set_audio_count(audio_device_count);
-
-        let video_device_count = ds.count_video_devices();
-        ds.set_video_count(video_device_count);
-
-        Ok(ds)
+    let old =
+        DEVICE_CHANGE_TX.swap(Box::into_raw(Box::new(tx)), Ordering::SeqCst);
+    if old.is_null() {
+        unsafe {
+            #[cfg(target_os = "macos")]
+            macos::init();
+            #[cfg(target_os = "windows")]
+            windows::init();
+            #[cfg(target_os = "linux")]
+            linux::init();
+        }
+    } else {
+        unsafe {
+            drop(Box::from_raw(old));
+        }
     }
 
-    /// Counts current number of audio media devices.
-    fn count_audio_devices(&self) -> u32 {
-        self.adm.playout_devices() + self.adm.recording_devices()
-    }
-
-    /// Counts current number on video media devices.
-    fn count_video_devices(&mut self) -> u32 {
-        self.vdi.number_of_devices()
-    }
-
-    /// Fixes some audio media devices `count` in this [`DeviceState`].
-    fn set_audio_count(&mut self, count: u32) {
-        self.audio_count = count;
-    }
-
-    /// Fixes some video media devices `count` in this [`DeviceState`].
-    fn set_video_count(&mut self, count: u32) {
-        self.video_count = count;
-    }
-
-    /// Triggers the `OnDeviceChangeCallback`.
-    fn on_device_change(&self) {
-        _ = self.cb.add(());
-    }
+    thread::spawn(move || {
+        while rx.recv().is_ok() {
+            // Drain channel since this on_device_changed call will handle
+            // all changes that happened to this moment
+            while rx.try_recv().is_ok() {}
+            WEBRTC.lock().unwrap().on_device_changed();
+        }
+    });
 }
 
 impl Webrtc {
-    /// Returns a list of all available audio input and output devices.
-    ///
-    /// # Panics
-    ///
-    /// On any error returned from `libWebRTC`.
+    /// Returns a list of all available media devices.
     pub fn enumerate_devices(
         &mut self,
     ) -> anyhow::Result<Vec<api::MediaDeviceInfo>> {
-        let mut audio = {
-            let count_playout = self.audio_device_module.playout_devices();
-            let count_recording = self.audio_device_module.recording_devices();
+        let audio_inputs = self
+            .enumerate_audio_input_devices()?
+            .into_iter()
+            .map(|(label, id)| api::MediaDeviceInfo {
+                device_id: id.into(),
+                kind: api::MediaDeviceKind::AudioInput,
+                label,
+            });
 
-            let mut result =
-                Vec::with_capacity((count_playout + count_recording) as usize);
+        let audio_outputs = self
+            .enumerate_audio_output_devices()?
+            .into_iter()
+            .map(|(label, id)| api::MediaDeviceInfo {
+                device_id: id.into(),
+                kind: api::MediaDeviceKind::AudioOutput,
+                label,
+            });
 
-            for kind in [
-                api::MediaDeviceKind::AudioOutput,
-                api::MediaDeviceKind::AudioInput,
-            ] {
-                let count: i16 = if kind == api::MediaDeviceKind::AudioOutput {
-                    count_playout
-                } else {
-                    count_recording
-                }
-                .try_into()?;
+        let video_inputs = self
+            .enumerate_video_input_devices()?
+            .into_iter()
+            .map(|(label, id)| api::MediaDeviceInfo {
+                device_id: id.into(),
+                kind: api::MediaDeviceKind::VideoInput,
+                label,
+            });
 
-                for i in 0..count {
-                    let (label, device_id) =
-                        if kind == api::MediaDeviceKind::AudioOutput {
-                            self.audio_device_module.playout_device_name(i)?
-                        } else {
-                            self.audio_device_module.recording_device_name(i)?
-                        };
+        Ok(audio_inputs.chain(audio_outputs).chain(video_inputs).collect())
+    }
 
-                    result.push(api::MediaDeviceInfo {
-                        device_id,
-                        kind,
-                        label,
-                    });
-                }
-            }
+    /// Returns a list of all available audio input devices.
+    pub fn enumerate_audio_input_devices(
+        &self,
+    ) -> anyhow::Result<Vec<(String, AudioDeviceId)>> {
+        let count_recording = self.audio_device_module.recording_devices();
+        let mut result = Vec::with_capacity(count_recording as usize);
 
-            result
-        };
+        for i in 0..i16::try_from(count_recording)? {
+            let (label, device_id) =
+                self.audio_device_module.recording_device_name(i)?;
 
-        // Returns a list of all available video input devices.
-        let mut video = {
-            let count = self.video_device_info.number_of_devices();
-            let mut result = Vec::with_capacity(count as usize);
+            result.push((label, AudioDeviceId::from(device_id)));
+        }
 
-            for i in 0..count {
-                let (label, device_id) =
-                    self.video_device_info.device_name(i)?;
+        Ok(result)
+    }
 
-                result.push(api::MediaDeviceInfo {
-                    device_id,
-                    kind: api::MediaDeviceKind::VideoInput,
-                    label,
-                });
-            }
+    /// Returns a list of all available audio output devices.
+    pub fn enumerate_audio_output_devices(
+        &self,
+    ) -> anyhow::Result<Vec<(String, AudioDeviceId)>> {
+        let count_playout = self.audio_device_module.playout_devices();
+        let mut result = Vec::with_capacity(count_playout as usize);
 
-            result
-        };
+        for i in 0..i16::try_from(count_playout)? {
+            let (label, device_id) =
+                self.audio_device_module.playout_device_name(i)?;
 
-        audio.append(&mut video);
+            result.push((label, AudioDeviceId::from(device_id)));
+        }
 
-        Ok(audio)
+        Ok(result)
+    }
+
+    /// Returns a list of all available video input devices.
+    pub fn enumerate_video_input_devices(
+        &mut self,
+    ) -> anyhow::Result<Vec<(String, VideoDeviceId)>> {
+        let count = self.video_device_info.number_of_devices();
+        let mut result = Vec::with_capacity(count as usize);
+
+        for i in 0..count {
+            let (label, device_id) = self.video_device_info.device_name(i)?;
+
+            result.push((label, VideoDeviceId::from(device_id)));
+        }
+
+        Ok(result)
     }
 
     /// Returns an index of the specific video device identified by the provided
@@ -223,7 +182,7 @@ impl Webrtc {
     /// [1]: libwebrtc_sys::AudioDeviceModule::recording_devices
     /// [2]: libwebrtc_sys::AudioDeviceModule::recording_device_name
     pub fn get_index_of_audio_recording_device(
-        &self,
+        &mut self,
         device_id: &AudioDeviceId,
     ) -> anyhow::Result<Option<u16>> {
         let count: i16 =
@@ -249,7 +208,7 @@ impl Webrtc {
     /// [1]: libwebrtc_sys::AudioDeviceModule::playout_devices
     /// [2]: libwebrtc_sys::AudioDeviceModule::playout_device_name
     pub fn get_index_of_audio_playout_device(
-        &self,
+        &mut self,
         device_id: &AudioDeviceId,
     ) -> anyhow::Result<Option<u16>> {
         let count: i16 =
@@ -266,7 +225,7 @@ impl Webrtc {
 
     /// Sets the specified `audio playout` device.
     pub fn set_audio_playout_device(
-        &self,
+        &mut self,
         device_id: String,
     ) -> anyhow::Result<()> {
         let device_id = AudioDeviceId::from(device_id);
@@ -286,81 +245,171 @@ impl Webrtc {
 
     /// Sets the microphone system volume according to the specified `level` in
     /// percents.
-    pub fn set_microphone_volume(&self, level: u8) -> anyhow::Result<()> {
+    pub fn set_microphone_volume(&mut self, level: u8) -> anyhow::Result<()> {
         self.audio_device_module.set_microphone_volume(level)
     }
 
     /// Indicates if the microphone is available to set volume.
-    pub fn microphone_volume_is_available(&self) -> anyhow::Result<bool> {
+    pub fn microphone_volume_is_available(&mut self) -> anyhow::Result<bool> {
         self.audio_device_module.microphone_volume_is_available()
     }
 
     /// Returns the current level of the microphone volume in percents.
-    pub fn microphone_volume(&self) -> anyhow::Result<u32> {
+    pub fn microphone_volume(&mut self) -> anyhow::Result<u32> {
         self.audio_device_module.microphone_volume()
     }
 
-    /// Sets the provided [`DeviceState`] as the callback to be called whenever
-    /// the set of available media devices changes.
+    /// Sets the provided `StreamSink` as the callback to be called whenever the
+    /// set of available media devices changes.
     ///
     /// Only one callback can be set at a time, so the previous one will be
     /// dropped, if any.
-    pub fn set_on_device_changed(device_state: DeviceState) {
-        let prev = ON_DEVICE_CHANGE
-            .swap(Box::into_raw(Box::new(device_state)), Ordering::SeqCst);
+    pub fn set_on_device_changed(&mut self, cb: StreamSink<()>) {
+        self.devices_state.on_device_change = Some(cb);
+    }
 
-        if prev.is_null() {
-            unsafe {
-                init();
+    /// Triggers the device change event.
+    fn on_device_changed(&mut self) {
+        let new_audio_ins = match self.enumerate_audio_input_devices() {
+            Ok(ais) => ais,
+            Err(e) => {
+                log::error!("Failed to enumerate audio inputs: {e}");
+                return;
             }
-        } else {
-            unsafe {
-                drop(Box::from_raw(prev));
+        };
+        let new_audio_outs = match self.enumerate_audio_output_devices() {
+            Ok(ais) => ais,
+            Err(e) => {
+                log::error!("Failed to enumerate audio outputs: {e}");
+                return;
             }
+        };
+        let new_video_ins = match self.enumerate_video_input_devices() {
+            Ok(ais) => ais,
+            Err(e) => {
+                log::error!("Failed to enumerate video inputs: {e}");
+                return;
+            }
+        };
+
+        let audio_ins_changed =
+            self.devices_state.audio_inputs != new_audio_ins;
+        let audio_outs_changed =
+            self.devices_state.audio_outputs != new_audio_outs;
+        let video_ins_changed =
+            self.devices_state.video_inputs != new_video_ins;
+
+        if !audio_ins_changed && !audio_outs_changed && !video_ins_changed {
+            // No media devices changed
+            return;
+        }
+
+        let mut old_audio_ins = mem::take(&mut self.devices_state.audio_inputs);
+        let mut old_video_ins = mem::take(&mut self.devices_state.video_inputs);
+
+        // If some audio or video inputs wre disconnected we drop corresponding
+        // audio/video sources and tracks sourced from these sources.
+        let mut tracks_to_remove: Vec<(String, api::MediaType)> = Vec::new();
+        if audio_ins_changed && old_audio_ins.len() > new_audio_ins.len() {
+            old_audio_ins.retain(|e| !new_audio_ins.contains(e));
+
+            for (_, delete_ai) in old_audio_ins {
+                for track in self.audio_tracks.iter() {
+                    if let MediaTrackSource::Local(s) = &track.source {
+                        if s.device_id == delete_ai {
+                            tracks_to_remove.push((
+                                track.id.clone().into(),
+                                api::MediaType::Audio,
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        if video_ins_changed && old_video_ins.len() > new_video_ins.len() {
+            old_video_ins.retain(|e| !new_video_ins.contains(e));
+
+            for (_, delete_vi) in old_video_ins {
+                for track in self.video_tracks.iter() {
+                    if let MediaTrackSource::Local(s) = &track.source {
+                        if s.device_id == delete_vi {
+                            tracks_to_remove.push((
+                                track.id.clone().into(),
+                                api::MediaType::Video,
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+
+        for (id, kind) in tracks_to_remove {
+            self.dispose_track(TrackOrigin::Local, id, kind, true);
+        }
+
+        self.devices_state.audio_inputs = new_audio_ins;
+        self.devices_state.audio_outputs = new_audio_outs;
+        self.devices_state.video_inputs = new_video_ins;
+
+        if let Some(cb) = &self.devices_state.on_device_change {
+            _ = cb.add(());
         }
     }
 }
 
-#[cfg(target_os = "linux")]
-/// Creates a detached [`Thread`] creating a devices monitor which polls for
-/// events.
-///
-/// [`Thread`]: std::thread::Thread
-pub unsafe fn init() {
-    use std::thread;
+/// Available media devices snapshot.
+#[derive(Default)]
+pub struct DevicesState {
+    /// `StreamSink` to notify Dart side about a device change event.
+    pub on_device_change: Option<StreamSink<()>>,
 
-    use crate::devices::linux_device_change::{
-        pulse_audio::AudioMonitor, udev::monitoring,
-    };
+    /// List of all available audio input devices.
+    pub audio_inputs: Vec<(String, AudioDeviceId)>,
 
-    // Video devices monitoring via `libudev`.
-    thread::spawn(move || {
-        let context = libudev::Context::new().unwrap();
-        monitoring(&context).unwrap();
-    });
+    /// List of all available audio output devices.
+    pub audio_outputs: Vec<(String, AudioDeviceId)>,
 
-    // Audio devices monitoring via PulseAudio.
-    thread::spawn(move || {
-        let mut m = AudioMonitor::new().unwrap();
-        loop {
-            match m.main_loop.iterate(true) {
-                IterateResult::Success(_) => {}
-                IterateResult::Quit(_) => {
-                    break;
-                }
-                IterateResult::Err(e) => {
-                    log::error!("pulse audio mainloop iterate error: {e}");
-                }
-            }
-        }
-    });
+    /// List of all available video input devices.
+    pub video_inputs: Vec<(String, VideoDeviceId)>,
 }
 
 #[cfg(target_os = "linux")]
-pub mod linux_device_change {
+mod linux {
     //! Tools for monitoring devices on [Linux].
     //!
     //! [Linux]: https://linux.org
+
+    use pulse::mainloop::standard::IterateResult;
+
+    /// Creates a detached [`Thread`] creating a devices monitor which polls for
+    /// events.
+    ///
+    /// [`Thread`]: std::thread::Thread
+    pub unsafe fn init() {
+        use std::thread;
+
+        // Video devices monitoring via `libudev`.
+        thread::spawn(move || {
+            let context = libudev::Context::new().unwrap();
+            udev::monitoring(&context).unwrap();
+        });
+
+        // Audio devices monitoring via PulseAudio.
+        thread::spawn(move || {
+            let mut m = pulse_audio::AudioMonitor::new().unwrap();
+            loop {
+                match m.main_loop.iterate(true) {
+                    IterateResult::Success(_) => {}
+                    IterateResult::Quit(_) => {
+                        break;
+                    }
+                    IterateResult::Err(e) => {
+                        log::error!("pulse audio mainloop iterate error: {e}");
+                    }
+                }
+            }
+        });
+    }
 
     pub mod udev {
         //! [libudev] tools for monitoring devices.
@@ -376,7 +425,7 @@ pub mod linux_device_change {
         use libudev::EventType;
         use nix::poll::{PollFd, PollFlags, ppoll};
 
-        use crate::devices::ON_DEVICE_CHANGE;
+        use crate::devices::DEVICE_CHANGE_TX;
 
         /// Monitors video devices via [libudev].
         ///
@@ -402,15 +451,9 @@ pub mod linux_device_change {
                     event.event_type(),
                     EventType::Add | EventType::Remove,
                 ) {
-                    let state = ON_DEVICE_CHANGE.load(Ordering::SeqCst);
-                    if !state.is_null() {
-                        let device_state = unsafe { &mut *state };
-                        let new_count = device_state.count_video_devices();
-
-                        if device_state.video_count != new_count {
-                            device_state.set_video_count(new_count);
-                            device_state.on_device_change();
-                        }
+                    let tx = DEVICE_CHANGE_TX.load(Ordering::SeqCst);
+                    if !tx.is_null() {
+                        _ = unsafe { &*tx }.send(());
                     }
                 }
             }
@@ -433,7 +476,7 @@ pub mod linux_device_change {
             mainloop::standard::{IterateResult, Mainloop},
         };
 
-        use crate::devices::ON_DEVICE_CHANGE;
+        use crate::devices::DEVICE_CHANGE_TX;
 
         /// Monitor of audio devices via [PulseAudio].
         ///
@@ -464,33 +507,20 @@ pub mod linux_device_change {
                             anyhow!("PulseAudio context failed to start")
                         })?;
 
-                context.set_subscribe_callback(Some(Box::new(
-                    |facility, operation, _| {
-                        if let Some(New | Removed | Changed) = operation {
-                            if let Some(Sink | Source | Server) = facility {
-                                let state =
-                                    ON_DEVICE_CHANGE.load(Ordering::SeqCst);
-                                if !state.is_null() {
-                                    let device_state = unsafe { &mut *state };
+                context.set_subscribe_callback(Some(Box::new(|f, op, _| {
+                    let (Some(f), Some(op)) = (f, op) else {
+                        return;
+                    };
 
-                                    if facility == Some(Server) {
-                                        device_state.on_device_change();
-                                    } else {
-                                        let new_count =
-                                            device_state.count_audio_devices();
-
-                                        if device_state.audio_count != new_count
-                                        {
-                                            device_state
-                                                .set_audio_count(new_count);
-                                            device_state.on_device_change();
-                                        }
-                                    }
-                                }
-                            }
+                    if matches!(f, Sink | Source) && matches!(op, New | Removed)
+                        || f == Server && op == Changed
+                    {
+                        let tx = DEVICE_CHANGE_TX.load(Ordering::SeqCst);
+                        if !tx.is_null() {
+                            _ = unsafe { &*tx }.send(());
                         }
-                    },
-                )));
+                    };
+                })));
 
                 context.connect(None, FlagSet::empty(), None)?;
                 loop {
@@ -529,48 +559,66 @@ pub mod linux_device_change {
 }
 
 #[cfg(target_os = "macos")]
-/// Sets native side callback for devices monitoring.
-pub unsafe fn init() {
-    unsafe extern "C" {
-        /// Passes the callback to the native side.
-        pub fn set_on_device_change_mac(cb: unsafe extern "C" fn());
-    }
+mod macos {
+    use std::sync::atomic::Ordering;
 
-    extern "C" fn on_device_change() {
-        let state = ON_DEVICE_CHANGE.load(Ordering::SeqCst);
-        if !state.is_null() {
-            let device_state = unsafe { &mut *state };
-            device_state.on_device_change();
+    use crate::devices::DEVICE_CHANGE_TX;
+
+    /// Sets native side callback for devices monitoring.
+    pub unsafe fn init() {
+        unsafe extern "C" {
+            /// Passes the callback to the native side.
+            pub fn set_on_device_change_mac(cb: unsafe extern "C" fn());
         }
-    }
 
-    unsafe {
-        set_on_device_change_mac(on_device_change);
+        extern "C" fn on_device_change() {
+            let tx = DEVICE_CHANGE_TX.load(Ordering::SeqCst);
+            if !tx.is_null() {
+                _ = unsafe { &*tx }.send(());
+            }
+        }
+
+        unsafe {
+            set_on_device_change_mac(on_device_change);
+        }
     }
 }
 
 #[cfg(target_os = "windows")]
-mod win_default_device_callback {
+mod windows {
     //! Implementation of the default audio output device changes detector for
     //! Windows.
 
     use std::{
+        ffi::OsStr,
+        mem,
+        os::windows::prelude::OsStrExt as _,
         ptr,
         sync::atomic::{AtomicPtr, Ordering},
+        thread,
     };
 
     use windows::{
         Win32::{
-            Foundation::PROPERTYKEY,
+            Foundation::{HWND, LPARAM, LRESULT, PROPERTYKEY, WPARAM},
             Media::Audio::{
                 DEVICE_STATE, EDataFlow, ERole, IMMDeviceEnumerator,
                 IMMNotificationClient, IMMNotificationClient_Impl,
                 MMDeviceEnumerator,
             },
             System::Com::{CLSCTX_ALL, CoCreateInstance},
+            UI::WindowsAndMessaging::{
+                CW_USEDEFAULT, CreateWindowExW, DBT_DEVNODES_CHANGED,
+                DefWindowProcW, DispatchMessageW, GetMessageW, MSG,
+                RegisterClassExW, SW_HIDE, ShowWindow, TranslateMessage,
+                WINDOW_EX_STYLE, WM_DEVICECHANGE, WM_QUIT, WNDCLASSEXW,
+                WS_ICONIC,
+            },
         },
         core::{PCWSTR, Result},
     };
+
+    use crate::devices::DEVICE_CHANGE_TX;
 
     /// Storage for an [`IMMDeviceEnumerator`] used for detecting default audio
     /// device changes.
@@ -611,11 +659,9 @@ mod win_default_device_callback {
             _: &PCWSTR,
         ) -> Result<()> {
             if role == ERole(0) {
-                let state = super::ON_DEVICE_CHANGE.load(Ordering::SeqCst);
-
-                if !state.is_null() {
-                    let device_state = unsafe { &mut *state };
-                    device_state.on_device_change();
+                let tx = DEVICE_CHANGE_TX.load(Ordering::SeqCst);
+                if !tx.is_null() {
+                    _ = unsafe { &*tx }.send(());
                 }
             }
 
@@ -657,116 +703,104 @@ mod win_default_device_callback {
             Ordering::SeqCst,
         );
     }
-}
 
-#[cfg(target_os = "windows")]
-/// Creates a detached [`Thread`] creating and registering a system message
-/// window - [`HWND`].
-///
-/// [`Thread`]: thread::Thread
-pub unsafe fn init() {
-    /// Message handler for an [`HWND`].
-    unsafe extern "system" fn wndproc(
-        hwnd: HWND,
-        msg: u32,
-        wp: WPARAM,
-        lp: LPARAM,
-    ) -> LRESULT {
-        let mut result = LRESULT(0);
+    /// Creates a detached [`Thread`] creating and registering a system message
+    /// window - [`HWND`].
+    ///
+    /// [`Thread`]: thread::Thread
+    pub unsafe fn init() {
+        /// Message handler for an [`HWND`].
+        unsafe extern "system" fn wndproc(
+            hwnd: HWND,
+            msg: u32,
+            wp: WPARAM,
+            lp: LPARAM,
+        ) -> LRESULT {
+            let mut result = LRESULT(0);
 
-        // The message that notifies an application of a change to the hardware
-        // configuration of a device or the computer.
-        if msg == WM_DEVICECHANGE {
-            // The device event when a device has been added to or removed from
-            // the system.
-            if DBT_DEVNODES_CHANGED as usize == wp.0 {
-                let state = ON_DEVICE_CHANGE.load(Ordering::SeqCst);
-
-                if !state.is_null() {
-                    let device_state = unsafe { &mut *state };
-                    let new_video_count = device_state.count_video_devices();
-                    let new_audio_count = device_state.count_audio_devices();
-
-                    if device_state.video_count != new_video_count
-                        || device_state.audio_count != new_audio_count
-                    {
-                        device_state.set_video_count(new_video_count);
-                        device_state.set_audio_count(new_audio_count);
-                        device_state.on_device_change();
+            // The message that notifies an application of a change to the
+            // hardware configuration of a device or the computer.
+            if msg == WM_DEVICECHANGE {
+                // The device event when a device has been added to or removed
+                // from the system.
+                if DBT_DEVNODES_CHANGED as usize == wp.0 {
+                    let tx = DEVICE_CHANGE_TX.load(Ordering::SeqCst);
+                    if !tx.is_null() {
+                        _ = unsafe { &*tx }.send(());
                     }
                 }
-            }
-        } else {
-            result = unsafe { DefWindowProcW(hwnd, msg, wp, lp) };
-        }
-
-        result
-    }
-
-    win_default_device_callback::register();
-
-    thread::spawn(|| {
-        let lpsz_class_name = OsStr::new("EventWatcher")
-            .encode_wide()
-            .chain(Some(0))
-            .collect::<Vec<u16>>();
-        let lpsz_class_name_ptr = lpsz_class_name.as_ptr();
-
-        #[expect(clippy::cast_possible_truncation, reason = "size fits")]
-        let class = WNDCLASSEXW {
-            cbSize: mem::size_of::<WNDCLASSEXW>() as u32,
-            lpfnWndProc: Some(wndproc),
-            lpszClassName: PCWSTR(lpsz_class_name_ptr),
-            ..WNDCLASSEXW::default()
-        };
-        unsafe {
-            RegisterClassExW(&class);
-        }
-
-        let lp_window_name = OsStr::new("Notifier")
-            .encode_wide()
-            .chain(Some(0))
-            .collect::<Vec<u16>>();
-        let lp_window_name_ptr = lp_window_name.as_ptr();
-
-        let hwnd = unsafe {
-            CreateWindowExW(
-                WINDOW_EX_STYLE(0),
-                class.lpszClassName,
-                PCWSTR::from_raw(lp_window_name_ptr),
-                WS_ICONIC,
-                0,
-                0,
-                CW_USEDEFAULT,
-                0,
-                None,
-                None,
-                None,
-                None,
-            )
-        };
-
-        let Ok(hwnd) = hwnd else {
-            log::error!(
-                "Failed to create window so on device change listener is \
-                 disabled",
-            );
-            return;
-        };
-
-        _ = unsafe { ShowWindow(hwnd, SW_HIDE) };
-
-        let mut msg: MSG = unsafe { mem::zeroed() };
-
-        while unsafe { GetMessageW(&mut msg, Some(hwnd), 0, 0).into() } {
-            if msg.message == WM_QUIT {
-                break;
+            } else {
+                result = unsafe { DefWindowProcW(hwnd, msg, wp, lp) };
             }
 
-            _ = unsafe { TranslateMessage(&msg) };
+            result
+        }
+
+        register();
+
+        thread::spawn(|| {
+            let lpsz_class_name = OsStr::new("EventWatcher")
+                .encode_wide()
+                .chain(Some(0))
+                .collect::<Vec<u16>>();
+            let lpsz_class_name_ptr = lpsz_class_name.as_ptr();
+
+            #[expect(clippy::cast_possible_truncation, reason = "size fits")]
+            let class = WNDCLASSEXW {
+                cbSize: mem::size_of::<WNDCLASSEXW>() as u32,
+                lpfnWndProc: Some(wndproc),
+                lpszClassName: PCWSTR(lpsz_class_name_ptr),
+                ..WNDCLASSEXW::default()
+            };
             unsafe {
-                DispatchMessageW(&msg);
+                RegisterClassExW(&class);
             }
-        }
-    });
+
+            let lp_window_name = OsStr::new("Notifier")
+                .encode_wide()
+                .chain(Some(0))
+                .collect::<Vec<u16>>();
+            let lp_window_name_ptr = lp_window_name.as_ptr();
+
+            let hwnd = unsafe {
+                CreateWindowExW(
+                    WINDOW_EX_STYLE(0),
+                    class.lpszClassName,
+                    PCWSTR::from_raw(lp_window_name_ptr),
+                    WS_ICONIC,
+                    0,
+                    0,
+                    CW_USEDEFAULT,
+                    0,
+                    None,
+                    None,
+                    None,
+                    None,
+                )
+            };
+
+            let Ok(hwnd) = hwnd else {
+                log::error!(
+                    "Failed to create window so on device change listener is \
+                    disabled",
+                );
+                return;
+            };
+
+            _ = unsafe { ShowWindow(hwnd, SW_HIDE) };
+
+            let mut msg: MSG = unsafe { mem::zeroed() };
+
+            while unsafe { GetMessageW(&mut msg, Some(hwnd), 0, 0).into() } {
+                if msg.message == WM_QUIT {
+                    break;
+                }
+
+                _ = unsafe { TranslateMessage(&msg) };
+                unsafe {
+                    DispatchMessageW(&msg);
+                }
+            }
+        });
+    }
 }

@@ -154,13 +154,14 @@ fn wire__crate__api__clone_track_impl(
             let api_kind = <crate::api::MediaType>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok =
-                            crate::api::clone_track(api_track_id, api_peer_id, api_kind)?;
-                        Ok(output_ok)
-                    })(),
-                )
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(crate::api::clone_track(
+                        api_track_id,
+                        api_peer_id,
+                        api_kind,
+                    ))?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -324,19 +325,19 @@ fn wire__crate__api__create_video_sink_impl(
             let api_texture_id = <i64>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok = crate::api::create_video_sink(
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::api::create_video_sink(
                             api_cb,
                             api_sink_id,
                             api_peer_id,
                             api_track_id,
                             api_callback_ptr,
                             api_texture_id,
-                        )?;
-                        Ok(output_ok)
-                    })(),
-                )
+                        );
+                    })?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -920,17 +921,17 @@ fn wire__crate__api__register_track_observer_impl(
             let api_kind = <crate::api::MediaType>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok = crate::api::register_track_observer(
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::api::register_track_observer(
                             api_cb,
                             api_peer_id,
                             api_track_id,
                             api_kind,
-                        )?;
-                        Ok(output_ok)
-                    })(),
-                )
+                        );
+                    })?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -1112,16 +1113,16 @@ fn wire__crate__api__set_audio_level_observer_enabled_impl(
             let api_enabled = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok = crate::api::set_audio_level_observer_enabled(
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::api::set_audio_level_observer_enabled(
                             api_track_id,
                             api_peer_id,
                             api_enabled,
-                        )?;
-                        Ok(output_ok)
-                    })(),
-                )
+                        );
+                    })?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -1298,12 +1299,12 @@ fn wire__crate__api__set_on_device_changed_impl(
             );
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok = crate::api::set_on_device_changed(api_cb)?;
-                        Ok(output_ok)
-                    })(),
-                )
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::api::set_on_device_changed(api_cb);
+                    })?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -1374,17 +1375,17 @@ fn wire__crate__api__set_track_enabled_impl(
             let api_enabled = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok = crate::api::set_track_enabled(
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::api::set_track_enabled(
                             api_track_id,
                             api_peer_id,
                             api_kind,
                             api_enabled,
-                        )?;
-                        Ok(output_ok)
-                    })(),
-                )
+                        );
+                    })?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -1567,13 +1568,14 @@ fn wire__crate__api__track_height_impl(
             let api_kind = <crate::api::MediaType>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok =
-                            crate::api::track_height(api_track_id, api_peer_id, api_kind)?;
-                        Ok(output_ok)
-                    })(),
-                )
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(crate::api::track_height(
+                        api_track_id,
+                        api_peer_id,
+                        api_kind,
+                    ))?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -1605,13 +1607,14 @@ fn wire__crate__api__track_state_impl(
             let api_kind = <crate::api::MediaType>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok =
-                            crate::api::track_state(api_track_id, api_peer_id, api_kind)?;
-                        Ok(output_ok)
-                    })(),
-                )
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(crate::api::track_state(
+                        api_track_id,
+                        api_peer_id,
+                        api_kind,
+                    ))?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -1643,13 +1646,14 @@ fn wire__crate__api__track_width_impl(
             let api_kind = <crate::api::MediaType>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok =
-                            crate::api::track_width(api_track_id, api_peer_id, api_kind)?;
-                        Ok(output_ok)
-                    })(),
-                )
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(crate::api::track_width(
+                        api_track_id,
+                        api_peer_id,
+                        api_kind,
+                    ))?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -2347,6 +2351,17 @@ impl SseDecode for Option<crate::api::IceRole> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::api::IceRole>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::MediaStreamTrack> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::MediaStreamTrack>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -5237,6 +5252,16 @@ impl SseEncode for Option<crate::api::IceRole> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::IceRole>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::MediaStreamTrack> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::MediaStreamTrack>::sse_encode(value, serializer);
         }
     }
 }

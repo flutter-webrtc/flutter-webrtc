@@ -226,6 +226,9 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   void onAudioLevelChanged(OnAudioLevelChangedCallback? cb) {
+    if (_stopped) {
+      return;
+    }
     ffi.setAudioLevelObserverEnabled(
       peerId: _peerId,
       trackId: _id,
@@ -236,6 +239,10 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   bool isOnAudioLevelAvailable() {
+    if (_stopped) {
+      return false;
+    }
+
     if (_kind != MediaKind.audio || _deviceId == 'remote') {
       return false;
     } else {
@@ -245,14 +252,17 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   Future<MediaStreamTrack> clone() async {
-    if (!_stopped) {
-      return NativeMediaStreamTrack.from(
-        await ffi.cloneTrack(
-          trackId: _id,
-          peerId: _peerId,
-          kind: ffi.MediaType.values[_kind.index],
-        ),
-      );
+    var ffiTrack =
+        _stopped
+            ? null
+            : await ffi.cloneTrack(
+              trackId: _id,
+              peerId: _peerId,
+              kind: ffi.MediaType.values[_kind.index],
+            );
+
+    if (ffiTrack != null) {
+      return NativeMediaStreamTrack.from(ffiTrack);
     } else {
       return NativeMediaStreamTrack.from(
         ffi.MediaStreamTrack(
@@ -303,6 +313,10 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   Future<int?> height() async {
+    if (_stopped) {
+      return null;
+    }
+
     return await ffi.trackHeight(
       trackId: _id,
       peerId: _peerId,
@@ -312,6 +326,10 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   Future<int?> width() async {
+    if (_stopped) {
+      return null;
+    }
+
     return await ffi.trackWidth(
       trackId: _id,
       peerId: _peerId,
@@ -323,6 +341,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   Future<void> stop() async {
     if (!_stopped) {
       _onEnded = null;
+      _onAudioLevelChanged = null;
 
       await ffi.disposeTrack(
         trackId: _id,

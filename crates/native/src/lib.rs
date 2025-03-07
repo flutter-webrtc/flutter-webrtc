@@ -203,7 +203,7 @@ use threadpool::ThreadPool;
 
 #[doc(inline)]
 pub use crate::{
-    devices::DeviceState,
+    devices::DevicesState,
     pc::{
         PeerConnection, RtpEncodingParameters, RtpParameters, RtpTransceiver,
     },
@@ -233,10 +233,11 @@ pub struct Webrtc {
     audio_tracks: Arc<DashMap<(AudioTrackId, TrackOrigin), AudioTrack>>,
     video_sinks: HashMap<VideoSinkId, VideoSink>,
     ap: sys::AudioProcessing,
+    devices_state: DevicesState,
 
     /// `peer_connection_factory` must be dropped before [`Thread`]s.
     peer_connection_factory: sys::PeerConnectionFactoryInterface,
-    task_queue_factory: sys::TaskQueueFactory,
+    _task_queue_factory: sys::TaskQueueFactory,
     audio_device_module: AudioDeviceModule,
     worker_thread: sys::Thread,
     signaling_thread: sys::Thread,
@@ -279,11 +280,12 @@ impl Webrtc {
                 Some(&ap),
             )?;
 
-        Ok(Self {
-            task_queue_factory,
+        let mut this = Self {
+            _task_queue_factory: task_queue_factory,
             worker_thread,
             signaling_thread,
             ap,
+            devices_state: DevicesState::default(),
             audio_device_module,
             video_device_info: VideoDeviceInfo::new()?,
             peer_connection_factory,
@@ -293,6 +295,17 @@ impl Webrtc {
             audio_tracks: Arc::new(DashMap::new()),
             video_sinks: HashMap::new(),
             callback_pool: ThreadPool::new(4),
-        })
+        };
+
+        this.devices_state.audio_inputs =
+            this.enumerate_audio_input_devices()?;
+        this.devices_state.audio_outputs =
+            this.enumerate_audio_output_devices()?;
+        this.devices_state.video_inputs =
+            this.enumerate_video_input_devices()?;
+
+        devices::init_on_device_change();
+
+        Ok(this)
     }
 }

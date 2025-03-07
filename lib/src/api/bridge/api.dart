@@ -338,7 +338,7 @@ Future<void> setTrackEnabled({
 );
 
 /// Clones the specified [`MediaStreamTrack`].
-Future<MediaStreamTrack> cloneTrack({
+Future<MediaStreamTrack?> cloneTrack({
   required String trackId,
   int? peerId,
   required MediaType kind,
