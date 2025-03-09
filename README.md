@@ -20,7 +20,7 @@ Enterprise Grade APIs for Feeds, Chat, & Video. <a href="https://getstream.io/vi
 <img src="https://avatars.githubusercontent.com/u/69438833?s=200&v=4" alt="LiveKit" style="margin: 8px; width: 100px" />
 </a>
 <br />
-   <a href="https://livekit.io/?utm_source=opencollective&utm_medium=github&utm_campaign=flutter-webrtc" target="_blank">LiveKit</a> - Open source WebRTC infrastructure
+   <a href="https://livekit.io/?utm_source=opencollective&utm_medium=github&utm_campaign=flutter-webrtc" target="_blank">LiveKit</a> - Open source WebRTC and realtime AI infrastructure
 <p>
 
 ## Functionality
