@@ -84,16 +84,6 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   }
 
   @override
-  void selectAudioOutput(String deviceId) async {
-    return Helper.selectAudioOutput(deviceId);
-  }
-
-  @override
-  void selectAudioInput(String deviceId) async {
-    return Helper.selectAudioInput(deviceId);
-  }
-
-  @override
   Future<ByteBuffer> captureFrame() async {
     var filePath = await getTemporaryDirectory();
     await WebRTC.invokeMethod(
