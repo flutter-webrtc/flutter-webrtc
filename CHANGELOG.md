@@ -1,6 +1,12 @@
 
 # Changelog
 
+[0.12.12] - 2025-03-09
+
+* [Dart] feat: selectAudioOutput and selectAudioInput methods created to enable dynamic change on audio intput/output device (#1656)
+* [Android] feat: Migrate to the new Surface API. (#1726)
+* [Chore] chore: fix sponsors logo and links.
+
 [0.12.11] - 2025-02-23
 
 * [web] bump version for dart_webrtc.
