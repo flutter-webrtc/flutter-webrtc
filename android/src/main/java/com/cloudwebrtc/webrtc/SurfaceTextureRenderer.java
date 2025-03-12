@@ -134,6 +134,7 @@ public class SurfaceTextureRenderer extends EglRenderer {
     final CountDownLatch completionLatch = new CountDownLatch(1);
     releaseEglSurface(completionLatch::countDown);
     ThreadUtils.awaitUninterruptibly(completionLatch);
+    surface = null;
   }
 
   // Update frame dimensions and report any changes to |rendererEvents|.
