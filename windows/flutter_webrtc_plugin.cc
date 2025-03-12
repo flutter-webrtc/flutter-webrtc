@@ -3,6 +3,8 @@
 #include "flutter_common.h"
 #include "flutter_webrtc.h"
 
+#include <flutter/plugin_registrar_windows.h>
+
 const char* kChannelName = "FlutterWebRTC.Method";
 
 namespace flutter_webrtc_plugin {
@@ -66,7 +68,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
 
 void FlutterWebRTCPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  static auto* plugin_registrar = new flutter::PluginRegistrar(registrar);
   flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
-      plugin_registrar);
+      flutter::PluginRegistrarManager::GetInstance()
+          ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
 }
