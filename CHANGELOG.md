@@ -6,6 +6,21 @@ All user visible changes to this project will be documented in this file. This p
 
 
 
+## [0.13.1] · unreleased
+[0.13.1]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.13.1
+
+[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.13.0...0.13.1)
+
+### Changed
+
+- Upgraded [libwebrtc] to [134.0.6998.35] version. ([#190])
+
+[#190]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/190
+[134.0.6998.35]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/134.0.6998.35
+
+
+
+
 ## [0.13.0] · 2025-03-07
 [0.13.0]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.13.0
 

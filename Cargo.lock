@@ -1018,7 +1018,7 @@ dependencies = [
 
 [[package]]
 name = "libwebrtc-sys"
-version = "0.0.0+133.0.6943.141"
+version = "0.0.0+134.0.6998.35"
 dependencies = [
  "anyhow",
  "cxx",
