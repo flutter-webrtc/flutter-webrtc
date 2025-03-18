@@ -13,10 +13,11 @@ All user visible changes to this project will be documented in this file. This p
 
 ### Changed
 
-- Upgraded [libwebrtc] to [134.0.6998.35] version. ([#190])
+- Upgraded [libwebrtc] to [134.0.6998.88] version. ([#190])
 
 [#190]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/190
-[134.0.6998.35]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/134.0.6998.35
+[todo]: https://github.com/instrumentisto/medea-flutter-webrtc/commit/todo
+[134.0.6998.88]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/134.0.6998.88
 
 
 
