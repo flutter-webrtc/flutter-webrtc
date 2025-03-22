@@ -1,5 +1,7 @@
 #include "flutter_common.h"
 
+#include <mutex>
+
 class MethodCallProxyImpl : public MethodCallProxy {
  public:
   explicit MethodCallProxyImpl(const MethodCall& method_call)
@@ -79,10 +81,7 @@ class EventChannelProxyImpl : public EventChannelProxy {
             std::unique_ptr<flutter::EventSink<EncodableValue>>&& events)
             -> std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> {
           sink_ = std::move(events);
-          for (auto& event : event_queue_) {
-            sink_->Success(event);
-          }
-          event_queue_.clear();
+          PostEvent(sink_.get());
           on_listen_called_ = true;
           return nullptr;
         },
@@ -98,8 +97,10 @@ class EventChannelProxyImpl : public EventChannelProxy {
   virtual ~EventChannelProxyImpl() {}
 
   void Success(const EncodableValue& event, bool cache_event = true) override {
+      std::lock_guard<std::mutex> guard(mutex_);
     if (on_listen_called_) {
-      sink_->Success(event);
+        event_queue_.push_back(event);
+        PostEvent(sink_.get());
     } else {
       if (cache_event) {
         event_queue_.push_back(event);
@@ -107,15 +108,42 @@ class EventChannelProxyImpl : public EventChannelProxy {
     }
   }
 
+  void PostEvent(EventSink* sink) {
+      if (GetFltWindowId() != NULL) {
+         PostMessageA(GetFltWindowId(), WM_EVENT_SINK_MESSAGE, (LPARAM)this, 0 );
+      }
+  }
+
+  virtual void PostEvent_W() override {
+      if (sink_) {
+          std::lock_guard<std::mutex> guard(mutex_);
+          for (auto& event : event_queue_) {
+              sink_->Success(event);
+          }
+      }
+  }
+
  private:
   std::unique_ptr<EventChannel> channel_;
   std::unique_ptr<EventSink> sink_;
   std::list<EncodableValue> event_queue_;
   bool on_listen_called_ = false;
+  EncodableValue last_event_;
+  std::mutex mutex_;
 };
 
 std::unique_ptr<EventChannelProxy> EventChannelProxy::Create(
     BinaryMessenger* messenger,
     const std::string& channelName) {
   return std::make_unique<EventChannelProxyImpl>(messenger, channelName);
+}
+
+static HWND window_id_;
+
+void SetWindowId(HWND hwnd) {
+    window_id_ = hwnd;
+}
+
+HWND GetFltWindowId() {
+    return window_id_;
 }

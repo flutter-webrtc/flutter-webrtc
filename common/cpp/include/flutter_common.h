@@ -10,6 +10,8 @@
 #include <flutter/standard_method_codec.h>
 #include <flutter/texture_registrar.h>
 
+#include "flutter/plugin_registrar_windows.h"
+
 #include <list>
 #include <memory>
 #include <string>
@@ -26,6 +28,10 @@ typedef flutter::EventChannel<EncodableValue> EventChannel;
 typedef flutter::EventSink<EncodableValue> EventSink;
 typedef flutter::MethodCall<EncodableValue> MethodCall;
 typedef flutter::MethodResult<EncodableValue> MethodResult;
+
+#define WM_EVENT_SINK_MESSAGE   0x1999
+
+using EventSinkDelegate = std::function<std::optional<int>()>;
 
 // foo.StringValue() becomes std::get<std::string>(foo)
 // foo.IsString() becomes std::holds_alternative<std::string>(foo)
@@ -167,6 +173,11 @@ class MethodResultProxy {
   virtual void NotImplemented() = 0;
 };
 
+void SetWindowId(HWND hwnd);
+
+HWND GetFltWindowId();
+
+
 class EventChannelProxy {
  public:
   static std::unique_ptr<EventChannelProxy> Create(
@@ -177,6 +188,8 @@ class EventChannelProxy {
 
   virtual void Success(const EncodableValue& event,
                        bool cache_event = true) = 0;
+
+  virtual void PostEvent_W() = 0;
 };
 
 #endif  // FLUTTER_WEBRTC_COMMON_HXX
