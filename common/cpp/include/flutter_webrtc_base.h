@@ -43,7 +43,7 @@ class FlutterWebRTCBase {
   enum ParseConstraintType { kMandatory, kOptional };
 
  public:
-  FlutterWebRTCBase(BinaryMessenger* messenger, TextureRegistrar* textures);
+  FlutterWebRTCBase(BinaryMessenger* messenger, TextureRegistrar* textures, TaskRunner* task_runner);
   ~FlutterWebRTCBase();
 
   std::string GenerateUUID();
@@ -122,6 +122,7 @@ class FlutterWebRTCBase {
 
  protected:
   BinaryMessenger* messenger_;
+  TaskRunner *task_runner_;
   TextureRegistrar* textures_;
   std::unique_ptr<EventChannelProxy> event_channel_;
 };

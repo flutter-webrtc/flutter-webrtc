@@ -8,14 +8,15 @@ namespace flutter_webrtc_plugin {
 const char* kEventChannelName = "FlutterWebRTC.Event";
 
 FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger* messenger,
-                                     TextureRegistrar* textures)
-    : messenger_(messenger), textures_(textures) {
+                                     TextureRegistrar* textures,
+                                     TaskRunner *task_runner)
+    : messenger_(messenger), textures_(textures),task_runner_(task_runner) {
   LibWebRTC::Initialize();
   factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
   desktop_device_ = factory_->GetDesktopDevice();
-  event_channel_ = EventChannelProxy::Create(messenger_, kEventChannelName);
+  event_channel_ = EventChannelProxy::Create(messenger_, task_runner_, kEventChannelName);
 }
 
 FlutterWebRTCBase::~FlutterWebRTCBase() {

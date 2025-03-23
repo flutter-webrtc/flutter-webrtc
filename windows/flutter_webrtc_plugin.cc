@@ -2,6 +2,7 @@
 
 #include "flutter_common.h"
 #include "flutter_webrtc.h"
+#include "task_runner_windows.h"
 
 const char* kChannelName = "FlutterWebRTC.Method";
 
@@ -29,19 +30,13 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  virtual ~FlutterWebRTCPluginImpl() {
-      if (window_proc_delegate_id_ != -1) {
-          registrar_->UnregisterTopLevelWindowProcDelegate(
-              static_cast<int32_t>(window_proc_delegate_id_));
-      }
-  }
+  virtual ~FlutterWebRTCPluginImpl() {}
 
   BinaryMessenger* messenger() { return messenger_; }
 
   TextureRegistrar* textures() { return textures_; }
 
-  flutter::PluginRegistrarWindows* registrar_;
-  int64_t window_proc_delegate_id_ = -1;
+  TaskRunner* task_runner() { return task_runner_.get(); }
 
  private:
   // Creates a plugin that communicates on the given channel.
@@ -49,24 +44,9 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
                           std::unique_ptr<MethodChannel> channel)
       : channel_(std::move(channel)),
         messenger_(registrar->messenger()),
-        textures_(registrar->texture_registrar()) {
-	registrar_ = static_cast<flutter::PluginRegistrarWindows*>(registrar);
+        textures_(registrar->texture_registrar()),
+        task_runner_(std::make_unique<TaskRunnerWindows>()) {
     webrtc_ = std::make_unique<FlutterWebRTC>(this);
-
-    if (window_proc_delegate_id_ == -1) {
-        flutter::WindowProcDelegate delegate([plugin_pointer = this](HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) -> std::optional<LRESULT> {
-            switch (message) {
-                case WM_EVENT_SINK_MESSAGE: {
-                    EventChannelProxy* proxy = (EventChannelProxy*)wparam;
-                    proxy->PostEvent_W();
-					return 0;
-                }
-            }
-            return std::nullopt;
-         });
-        window_proc_delegate_id_ = registrar_->RegisterTopLevelWindowProcDelegate(delegate);
-        SetWindowId(::GetActiveWindow());
-    }
   }
 
   // Called when a method is called on |channel_|;
@@ -83,6 +63,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
   std::unique_ptr<FlutterWebRTC> webrtc_;
   BinaryMessenger* messenger_;
   TextureRegistrar* textures_;
+  std::unique_ptr<TaskRunner> task_runner_;
 };
 
 }  // namespace flutter_webrtc_plugin
@@ -90,8 +71,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
 
 void FlutterWebRTCPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-    static auto* plugin_registrar = flutter::PluginRegistrarManager::GetInstance()
-        ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar);
+    static auto* plugin_registrar = new flutter::PluginRegistrar(registrar);
     flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
-      plugin_registrar);
+        plugin_registrar);
 }
