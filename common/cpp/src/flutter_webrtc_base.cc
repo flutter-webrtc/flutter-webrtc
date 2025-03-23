@@ -10,7 +10,7 @@ const char* kEventChannelName = "FlutterWebRTC.Event";
 FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger* messenger,
                                      TextureRegistrar* textures,
                                      TaskRunner *task_runner)
-    : messenger_(messenger), textures_(textures),task_runner_(task_runner) {
+    : messenger_(messenger), task_runner_(task_runner), textures_(textures) {
   LibWebRTC::Initialize();
   factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
   audio_device_ = factory_->GetAudioDevice();
