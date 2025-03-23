@@ -37,6 +37,8 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
 
   TextureRegistrar* textures() { return textures_; }
 
+  TaskRunner* task_runner() { return nullptr; }
+
  private:
   // Creates a plugin that communicates on the given channel.
   FlutterWebRTCPluginImpl(PluginRegistrar* registrar,
