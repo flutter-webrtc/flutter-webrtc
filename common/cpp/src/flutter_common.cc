@@ -1,4 +1,7 @@
 #include "flutter_common.h"
+#include "task_runner.h"
+
+#include <memory>
 
 class MethodCallProxyImpl : public MethodCallProxy {
  public:
@@ -66,56 +69,75 @@ std::unique_ptr<MethodResultProxy> MethodResultProxy::Create(
 }
 
 class EventChannelProxyImpl : public EventChannelProxy {
- public:
-  EventChannelProxyImpl(BinaryMessenger* messenger,
-                        const std::string& channelName)
-      : channel_(std::make_unique<EventChannel>(
-            messenger,
-            channelName,
-            &flutter::StandardMethodCodec::GetInstance())) {
-    auto handler = std::make_unique<
-        flutter::StreamHandlerFunctions<EncodableValue>>(
-        [&](const EncodableValue* arguments,
-            std::unique_ptr<flutter::EventSink<EncodableValue>>&& events)
-            -> std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> {
-          sink_ = std::move(events);
-          for (auto& event : event_queue_) {
-            sink_->Success(event);
-          }
-          event_queue_.clear();
-          on_listen_called_ = true;
-          return nullptr;
-        },
-        [&](const EncodableValue* arguments)
-            -> std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> {
-          on_listen_called_ = false;
-          return nullptr;
-        });
+  public:
+   EventChannelProxyImpl(BinaryMessenger* messenger,
+                         TaskRunner* task_runner,
+                         const std::string& channelName)
+       : channel_(std::make_unique<EventChannel>(
+             messenger,
+             channelName,
+             &flutter::StandardMethodCodec::GetInstance())),
+             task_runner_(task_runner) {
+     auto handler = std::make_unique<
+         flutter::StreamHandlerFunctions<EncodableValue>>(
+         [&](const EncodableValue* arguments,
+             std::unique_ptr<flutter::EventSink<EncodableValue>>&& events)
+             -> std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> {
+           sink_ = std::move(events);
+           std::weak_ptr<EventSink> weak_sink = sink_;
+           for (auto& event : event_queue_) {
+            PostEvent(event);
+           }
+           event_queue_.clear();
+           on_listen_called_ = true;
+           return nullptr;
+         },
+         [&](const EncodableValue* arguments)
+             -> std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> {
+           on_listen_called_ = false;
+           return nullptr;
+         });
+ 
+     channel_->SetStreamHandler(std::move(handler));
+   }
+ 
+   virtual ~EventChannelProxyImpl() {}
+ 
+   void Success(const EncodableValue& event, bool cache_event = true) override {
+     if (on_listen_called_) {
+       PostEvent(event);
+     } else {
+       if (cache_event) {
+         event_queue_.push_back(event);
+       }
+     }
+   }
 
-    channel_->SetStreamHandler(std::move(handler));
-  }
-
-  virtual ~EventChannelProxyImpl() {}
-
-  void Success(const EncodableValue& event, bool cache_event = true) override {
-    if (on_listen_called_) {
+   void PostEvent(const EncodableValue& event) {
+     if(task_runner_) {
+      std::weak_ptr<EventSink> weak_sink = sink_;
+       task_runner_->EnqueueTask([weak_sink, event]() {
+        auto sink = weak_sink.lock();
+        if (sink) {
+          sink->Success(event);
+        }
+      });
+     } else {
       sink_->Success(event);
-    } else {
-      if (cache_event) {
-        event_queue_.push_back(event);
-      }
-    }
-  }
-
- private:
-  std::unique_ptr<EventChannel> channel_;
-  std::unique_ptr<EventSink> sink_;
-  std::list<EncodableValue> event_queue_;
-  bool on_listen_called_ = false;
-};
+     }
+   }
+ 
+  private:
+   std::unique_ptr<EventChannel> channel_;
+   std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink_;
+   std::list<EncodableValue> event_queue_;
+   bool on_listen_called_ = false;
+   TaskRunner* task_runner_;
+ };
 
 std::unique_ptr<EventChannelProxy> EventChannelProxy::Create(
     BinaryMessenger* messenger,
+    TaskRunner* task_runner,
     const std::string& channelName) {
-  return std::make_unique<EventChannelProxyImpl>(messenger, channelName);
+  return std::make_unique<EventChannelProxyImpl>(messenger, task_runner, channelName);
 }

@@ -10,6 +10,7 @@ class FlutterRTCDataChannelObserver : public RTCDataChannelObserver {
  public:
   FlutterRTCDataChannelObserver(scoped_refptr<RTCDataChannel> data_channel,
                                 BinaryMessenger* messenger,
+                                TaskRunner* task_runner,
                                 const std::string& channel_name);
   virtual ~FlutterRTCDataChannelObserver();
 

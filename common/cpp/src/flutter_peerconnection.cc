@@ -338,6 +338,7 @@ void FlutterPeerConnection::CreateRTCPeerConnection(
 
   std::unique_ptr<FlutterPeerConnectionObserver> observer(
       new FlutterPeerConnectionObserver(base_, pc, base_->messenger_,
+                                        base_->task_runner_,
                                         event_channel, uuid));
 
   base_->peerconnection_observers_[uuid] = std::move(observer);
@@ -1118,9 +1119,10 @@ FlutterPeerConnectionObserver::FlutterPeerConnectionObserver(
     FlutterWebRTCBase* base,
     scoped_refptr<RTCPeerConnection> peerconnection,
     BinaryMessenger* messenger,
+    TaskRunner* task_runner,
     const std::string& channel_name,
     std::string& peerConnectionId)
-    : event_channel_(EventChannelProxy::Create(messenger, channel_name)),
+    : event_channel_(EventChannelProxy::Create(messenger, task_runner, channel_name)),
       peerconnection_(peerconnection),
       base_(base),
       id_(peerConnectionId) {
@@ -1326,6 +1328,7 @@ void FlutterPeerConnectionObserver::OnDataChannel(
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
+                                        base_->task_runner_,
                                         event_channel));
 
   base_->lock();
