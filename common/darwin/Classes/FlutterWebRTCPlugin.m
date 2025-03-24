@@ -570,7 +570,14 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
 
     [self dataChannelSend:peerConnectionId dataChannelId:dataChannelId data:data type:type];
     result(nil);
-  } else if ([@"dataChannelClose" isEqualToString:call.method]) {
+  }  else if ([@"dataChannelGetBufferedAmount" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+    NSString* dataChannelId = argsMap[@"dataChannelId"];
+
+    [self dataChannelGetBufferedAmount:peerConnectionId dataChannelId:dataChannelId result:result];
+  } 
+  else if ([@"dataChannelClose" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* peerConnectionId = argsMap[@"peerConnectionId"];
     NSString* dataChannelId = argsMap[@"dataChannelId"];

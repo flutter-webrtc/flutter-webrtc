@@ -21,7 +21,8 @@
 #include "rtc_base/ref_count.h"
 
 namespace libwebrtc {
-class IceTransport : public rtc::RefCountInterface {
+
+class IceTransport : public RefCountInterface {
  public:
   virtual IceTransport* internal() = 0;
 };
