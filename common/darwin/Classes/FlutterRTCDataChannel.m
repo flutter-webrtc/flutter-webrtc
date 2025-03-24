@@ -124,7 +124,10 @@
   RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
   RTCDataChannel* dataChannel = peerConnection.dataChannels[dataChannelId];
   if(dataChannel == NULL || dataChannel.readyState != RTCDataChannelStateOpen) {
-    result(@{@"bufferedAmount": @(-1)});
+    result([FlutterError
+          errorWithCode:[NSString stringWithFormat:@"%@Failed", @"dataChannelGetBufferedAmount"]
+                message:[NSString stringWithFormat:@"Error: dataChannel not found or not opened!"]
+                details:nil]);
   } else {
     result(@{@"bufferedAmount": @(dataChannel.bufferedAmount)});
   }
