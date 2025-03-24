@@ -116,7 +116,8 @@ class RTCDataChannelNative extends RTCDataChannel {
       'peerConnectionId': _peerConnectionId,
       'dataChannelId': _flutterId
     });
-    return response['bufferedAmount'];
+    _bufferedAmount = response['bufferedAmount'];
+    return _bufferedAmount;
   }
 
   @override
