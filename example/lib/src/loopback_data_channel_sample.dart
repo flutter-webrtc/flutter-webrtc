@@ -49,12 +49,14 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
             _dataChannel2Status += '\ndataChannel2: state: ${state.toString()}';
           });
         };
-        _dataChannel2!.onMessage = (data) {
+        _dataChannel2!.onMessage = (data) async {
+          var bufferedAmount = await _dataChannel2!.getBufferedAmount();
           setState(() {
             _dataChannel2Status +=
-                '\ndataChannel2: Received message: ${data.text}';
+                '\ndataChannel2: Received message: ${data.text}, bufferedAmount: $bufferedAmount';
           });
-          _dataChannel2!.send(RTCDataChannelMessage(
+
+          await _dataChannel2!.send(RTCDataChannelMessage(
               '(dataChannel2 ==> dataChannel1) Hello from dataChannel2 echo !!!'));
         };
       };
@@ -69,10 +71,12 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
         }
       };
 
-      _dataChannel1!.onMessage = (data) => setState(() {
-            _dataChannel1Status +=
-                '\ndataChannel1: Received message: ${data.text}';
-          });
+      _dataChannel1!.onMessage = (data) async {
+        var bufferedAmount = await _dataChannel2!.getBufferedAmount();
+        _dataChannel1Status +=
+            '\ndataChannel1: Received message: ${data.text}, bufferedAmount: $bufferedAmount';
+        setState(() {});
+      };
 
       var offer = await _peerConnection1!.createOffer({});
       print('peerConnection1 offer: ${offer.sdp}');

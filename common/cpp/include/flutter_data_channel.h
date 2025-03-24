@@ -40,6 +40,9 @@ class FlutterDataChannel {
                        const EncodableValue& data,
                        std::unique_ptr<MethodResultProxy>);
 
+  void DataChannelGetBufferedAmount(RTCDataChannel* data_channel,
+                       std::unique_ptr<MethodResultProxy> result);
+
   void DataChannelClose(RTCDataChannel* data_channel,
                         const std::string& data_channel_uuid,
                         std::unique_ptr<MethodResultProxy>);
