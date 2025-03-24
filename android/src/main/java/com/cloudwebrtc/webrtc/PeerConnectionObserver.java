@@ -176,6 +176,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       result.success(params.toMap());
     } else {
       Log.d(TAG, "dataChannelGetBufferedAmount() dataChannel is null");
+      resultError("dataChannelGetBufferedAmount", "DataChannel is null", result);
     }
   }
 

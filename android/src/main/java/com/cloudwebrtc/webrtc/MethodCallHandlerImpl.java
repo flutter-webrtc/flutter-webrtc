@@ -2050,6 +2050,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       Log.d(TAG, "dataChannelGetBufferedAmount() peerConnection is null");
+      resultError("dataChannelGetBufferedAmount", "peerConnection is null", result);
     } else {
       pco.dataChannelGetBufferedAmount(dataChannelId, result);
     }
