@@ -6,6 +6,7 @@
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
+#import "FlutterRTCMediaRecorder.h"
 #import "FlutterRTCFrameCryptor.h"
 #if TARGET_OS_IPHONE
 #import "FlutterRTCVideoPlatformViewFactory.h"
@@ -184,6 +185,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
   self.frameCryptors = [NSMutableDictionary new];
   self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
+  self.recorders = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
   self.focusMode = @"locked";
   self.exposureMode = @"locked";
@@ -1463,6 +1465,59 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
     if (peerConnection) {
       result(@{@"state" : [self stringForSignalingState:peerConnection.signalingState]});
+    } else if ([@"startRecordToFile" isEqualToString:call.method]){
+        NSDictionary* argsMap = call.arguments;
+        NSNumber* recorderId = argsMap[@"recorderId"];
+        NSString* path = argsMap[@"path"];
+        NSString* trackId = argsMap[@"videoTrackId"];
+        NSString* audioTrackId = argsMap[@"audioTrackId"];
+        NSNumber* rotation = argsMap[@"rotation"];
+        RTCMediaStreamTrack *track = [self trackForId:trackId];
+        RTCMediaStreamTrack *audioTrack = [self trackForId:audioTrackId];
+        if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
+            NSURL* pathUrl = [NSURL fileURLWithPath:path];
+            self.recorders[recorderId] = [[FlutterRTCMediaRecorder alloc]
+                    initWithVideoTrack:(RTCVideoTrack *)track
+                       rotationDegrees:rotation
+                            audioTrack:(RTCAudioTrack *)audioTrack
+                            outputFile:pathUrl
+            ];
+        }
+        result(nil);
+    } else if ([@"changeRecorderTrack" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSNumber* recorderId = argsMap[@"recorderId"];
+        NSString* trackId = argsMap[@"videoTrackId"];
+        RTCMediaStreamTrack *track = [self trackForId:trackId];
+        FlutterRTCMediaRecorder* recorder = self.recorders[recorderId];
+        if (track == nil) {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
+                                       message:[NSString stringWithFormat:@"Error: track with id %@ not found!",trackId]
+                                        details:nil]);
+        } else if (recorder != nil) {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
+                                       message:[NSString stringWithFormat:@"Error: recorder with id %@ not found!",recorderId]
+                                        details:nil]);
+        } else if (recorder.videoTrack == nil) {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
+                                       message:[NSString stringWithFormat:@"Error: recorder with id %@ doesn't have video track!",recorderId]
+                                        details:nil]);
+        } else {
+            [recorder changeVideoTrack:(RTCVideoTrack *)track];
+            result(nil);
+        }
+    } else if ([@"stopRecordToFile" isEqualToString:call.method]) {
+        NSDictionary* argsMap = call.arguments;
+        NSNumber* recorderId = argsMap[@"recorderId"];
+        FlutterRTCMediaRecorder* recorder = self.recorders[recorderId];
+        if (recorder != nil) {
+            [recorder stop:result];
+            [self.recorders removeObjectForKey:recorderId];
+        } else {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
+                                       message:[NSString stringWithFormat:@"Error: recorder with id %@ not found!",recorderId]
+                                        details:nil]);
+        }
     } else {
       result([FlutterError
           errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]

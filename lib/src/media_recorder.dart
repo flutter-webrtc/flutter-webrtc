@@ -7,12 +7,27 @@ class MediaRecorder extends rtc.MediaRecorder {
   final rtc.MediaRecorder _delegate;
 
   @override
-  Future<void> start(String path,
-          {MediaStreamTrack? videoTrack, RecorderAudioChannel? audioChannel}) =>
-      _delegate.start(path, videoTrack: videoTrack, audioChannel: audioChannel);
+  Future<void> start(
+    String path, {
+    MediaStreamTrack? videoTrack,
+    RecorderAudioChannel? audioChannel,
+    MediaStreamTrack? audioTrack,
+    int rotationDegrees = 0,
+  }) {
+    return _delegate.start(
+      path,
+      videoTrack: videoTrack,
+      audioChannel: audioChannel,
+      rotationDegrees: rotationDegrees,
+    );
+  }
 
   @override
   Future stop() => _delegate.stop();
+
+  @override
+  Future<void> changeVideoTrack(MediaStreamTrack videoTrack) =>
+      _delegate.changeVideoTrack(videoTrack);
 
   @override
   void startWeb(
