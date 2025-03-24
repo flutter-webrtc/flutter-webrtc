@@ -7,6 +7,7 @@ FlutterVideoRenderer::~FlutterVideoRenderer() {}
 void FlutterVideoRenderer::initialize(
     TextureRegistrar* registrar,
     BinaryMessenger* messenger,
+    TaskRunner* task_runner,
     std::unique_ptr<flutter::TextureVariant> texture,
     int64_t trxture_id) {
   registrar_ = registrar;
@@ -14,7 +15,7 @@ void FlutterVideoRenderer::initialize(
   texture_id_ = trxture_id;
   std::string channel_name =
       "FlutterWebRTC/Texture" + std::to_string(texture_id_);
-  event_channel_ = EventChannelProxy::Create(messenger, channel_name);
+  event_channel_ = EventChannelProxy::Create(messenger, task_runner, channel_name);
 }
 
 const FlutterDesktopPixelBuffer* FlutterVideoRenderer::CopyPixelBuffer(
@@ -121,7 +122,7 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
           }));
 
   auto texture_id = base_->textures_->RegisterTexture(textureVariant.get());
-  texture->initialize(base_->textures_, base_->messenger_,
+  texture->initialize(base_->textures_, base_->messenger_, base_->task_runner_,
                       std::move(textureVariant), texture_id);
   renderers_[texture_id] = texture;
   EncodableMap params;

@@ -11,6 +11,7 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
   FlutterPeerConnectionObserver(FlutterWebRTCBase* base,
                                 scoped_refptr<RTCPeerConnection> peerconnection,
                                 BinaryMessenger* messenger,
+                                TaskRunner* task_runner,
                                 const std::string& channel_name,
                                 std::string& peerConnectionId);
 

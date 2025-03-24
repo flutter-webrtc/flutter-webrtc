@@ -12,8 +12,10 @@
 
 #include <list>
 #include <memory>
-#include <string>
+#include <mutex>
 #include <optional>
+#include <queue>
+#include <string>
 
 typedef flutter::EncodableValue EncodableValue;
 typedef flutter::EncodableMap EncodableMap;
@@ -26,6 +28,8 @@ typedef flutter::EventChannel<EncodableValue> EventChannel;
 typedef flutter::EventSink<EncodableValue> EventSink;
 typedef flutter::MethodCall<EncodableValue> MethodCall;
 typedef flutter::MethodResult<EncodableValue> MethodResult;
+
+class TaskRunner;
 
 // foo.StringValue() becomes std::get<std::string>(foo)
 // foo.IsString() becomes std::holds_alternative<std::string>(foo)
@@ -90,7 +94,8 @@ inline double findDouble(const EncodableMap& map, const std::string& key) {
   return 0.0;
 }
 
-inline std::optional<double> maybeFindDouble(const EncodableMap& map, const std::string& key) {
+inline std::optional<double> maybeFindDouble(const EncodableMap& map,
+                                             const std::string& key) {
   auto it = map.find(EncodableValue(key));
   if (it != map.end() && TypeIs<double>(it->second))
     return GetValue<double>(it->second);
@@ -171,6 +176,7 @@ class EventChannelProxy {
  public:
   static std::unique_ptr<EventChannelProxy> Create(
       BinaryMessenger* messenger,
+      TaskRunner* task_runner,
       const std::string& channelName);
 
   virtual ~EventChannelProxy() = default;

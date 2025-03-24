@@ -21,6 +21,8 @@ class FlutterWebRTCPlugin : public flutter::Plugin {
   virtual BinaryMessenger* messenger() = 0;
 
   virtual TextureRegistrar* textures() = 0;
+
+  virtual TaskRunner* task_runner() = 0;
 };
 
 class FlutterWebRTC : public FlutterWebRTCBase,

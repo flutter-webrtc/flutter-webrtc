@@ -2,6 +2,7 @@
 
 #include "flutter_common.h"
 #include "flutter_webrtc.h"
+#include "task_runner_windows.h"
 
 const char* kChannelName = "FlutterWebRTC.Method";
 
@@ -35,13 +36,16 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
 
   TextureRegistrar* textures() { return textures_; }
 
+  TaskRunner* task_runner() { return task_runner_.get(); }
+
  private:
   // Creates a plugin that communicates on the given channel.
   FlutterWebRTCPluginImpl(PluginRegistrar* registrar,
                           std::unique_ptr<MethodChannel> channel)
       : channel_(std::move(channel)),
         messenger_(registrar->messenger()),
-        textures_(registrar->texture_registrar()) {
+        textures_(registrar->texture_registrar()),
+        task_runner_(std::make_unique<TaskRunnerWindows>()) {
     webrtc_ = std::make_unique<FlutterWebRTC>(this);
   }
 
@@ -59,6 +63,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
   std::unique_ptr<FlutterWebRTC> webrtc_;
   BinaryMessenger* messenger_;
   TextureRegistrar* textures_;
+  std::unique_ptr<TaskRunner> task_runner_;
 };
 
 }  // namespace flutter_webrtc_plugin
@@ -66,7 +71,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
 
 void FlutterWebRTCPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  static auto* plugin_registrar = new flutter::PluginRegistrar(registrar);
-  flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
-      plugin_registrar);
+    static auto* plugin_registrar = new flutter::PluginRegistrar(registrar);
+    flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
+        plugin_registrar);
 }
