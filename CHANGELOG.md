@@ -1,6 +1,11 @@
 
 # Changelog
 
+[0.13.0] - 2025-03-24
+
+* [All] feat: add getBufferedAmount for DataChannel. (#1796)
+* [Windows] fix: fixed non-platform thread call error. (#1795)
+
 [0.12.12+hotfix.1] - 2025-03-12
 
 * [Android] fix: fixed video not rendered after resume from background.
