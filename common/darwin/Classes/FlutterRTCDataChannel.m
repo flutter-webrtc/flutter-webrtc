@@ -118,6 +118,18 @@
   }
 }
 
+- (void)dataChannelGetBufferedAmount:(nonnull NSString*)peerConnectionId
+          dataChannelId:(nonnull NSString*)dataChannelId 
+                result:(nonnull FlutterResult)result {
+  RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
+  RTCDataChannel* dataChannel = peerConnection.dataChannels[dataChannelId];
+  if(dataChannel == NULL || dataChannel.readyState != RTCDataChannelStateOpen) {
+    result(@{@"bufferedAmount": @(-1)});
+  } else {
+    result(@{@"bufferedAmount": @(dataChannel.bufferedAmount)});
+  }
+}
+
 - (void)dataChannelSend:(nonnull NSString*)peerConnectionId
           dataChannelId:(nonnull NSString*)dataChannelId
                    data:(id)data

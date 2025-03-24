@@ -110,6 +110,16 @@ class RTCDataChannelNative extends RTCDataChannel {
   }
 
   @override
+  Future<int> getBufferedAmount() async {
+    final Map<dynamic, dynamic> response = await WebRTC.invokeMethod(
+        'dataChannelGetBufferedAmount', <String, dynamic>{
+      'peerConnectionId': _peerConnectionId,
+      'dataChannelId': _flutterId
+    });
+    return response['bufferedAmount'];
+  }
+
+  @override
   Future<void> send(RTCDataChannelMessage message) async {
     await WebRTC.invokeMethod('dataChannelSend', <String, dynamic>{
       'peerConnectionId': _peerConnectionId,
