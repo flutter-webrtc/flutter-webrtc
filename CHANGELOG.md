@@ -16,6 +16,7 @@ All user visible changes to this project will be documented in this file. This p
 - Upgraded [libwebrtc] to [134.0.6998.165] version. ([24750229])
 
 [24750229]: https://github.com/instrumentisto/medea-flutter-webrtc/commit/24750229034753705cfc6f5e240f4cabd8bfbd04
+[134.0.6998.165]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/134.0.6998.165
 
 
 
