@@ -19,11 +19,13 @@ class MediaRecorder extends rtc.MediaRecorder {
       videoTrack: videoTrack,
       audioChannel: audioChannel,
       rotationDegrees: rotationDegrees,
+      audioTrack: audioTrack,
     );
   }
 
   @override
-  Future stop() => _delegate.stop();
+  Future stop({String? albumName}) =>
+      _delegate.stop(albumName: albumName ?? "FlutterWebRtc");
 
   @override
   Future<void> changeVideoTrack(MediaStreamTrack videoTrack) =>

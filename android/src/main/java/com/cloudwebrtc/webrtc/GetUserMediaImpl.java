@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -13,12 +14,14 @@ import android.hardware.camera2.CameraManager;
 import android.media.AudioDeviceInfo;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelFileDescriptor;
 import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -69,6 +72,9 @@ import org.webrtc.VideoTrack;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -974,22 +980,64 @@ public class GetUserMediaImpl {
         mediaRecorders.append(id, mediaRecorder);
     }
 
-    void stopRecording(Integer id) {
-        MediaRecorderImpl mediaRecorder = mediaRecorders.get(id);
-        if (mediaRecorder != null) {
-            mediaRecorder.stopRecording();
-            mediaRecorders.remove(id);
-            File file = mediaRecorder.getRecordFile();
-            if (file != null) {
-                ContentValues values = new ContentValues(3);
-                values.put(MediaStore.Video.Media.TITLE, file.getName());
-                values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
-                values.put(MediaStore.Video.Media.DATA, file.getAbsolutePath());
-                applicationContext
-                        .getContentResolver()
-                        .insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+    void stopRecording(Integer id, String albumName) {
+        try {
+            MediaRecorderImpl mediaRecorder = mediaRecorders.get(id);
+            if (mediaRecorder != null) {
+                mediaRecorder.stopRecording();
+                mediaRecorders.remove(id);
+                File file = mediaRecorder.getRecordFile();
+                Uri collection;
+
+                if (file != null) {
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Video.Media.TITLE, file.getName());
+                    values.put(MediaStore.Video.Media.DISPLAY_NAME, file.getName());
+                    values.put(MediaStore.Video.Media.ALBUM, albumName);
+                    values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
+                    values.put(MediaStore.Video.Media.DATE_ADDED, System.currentTimeMillis() / 1000);
+                    values.put(MediaStore.Video.Media.DATE_TAKEN, System.currentTimeMillis());
+
+                    //Android version above 9 MediaStore uses RELATIVE_PATH
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        values.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/" + albumName);
+                        values.put(MediaStore.Video.Media.IS_PENDING, 1);
+
+                        collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                    } else {
+                        //Android version 9 and below MediaStore uses DATA
+                        values.put(MediaStore.Video.Media.DATA, "/storage/emulated/0/Movies/" + albumName + "/" + file.getName());
+
+                        collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                    }
+
+                    ContentResolver resolver = applicationContext.getContentResolver();
+                    Uri uriSavedMedia = resolver.insert(collection, values);
+
+                    assert uriSavedMedia != null;
+                    ParcelFileDescriptor pfd = resolver.openFileDescriptor(uriSavedMedia, "w");
+                    assert pfd != null;
+                    FileOutputStream out = new FileOutputStream(pfd.getFileDescriptor());
+
+                    InputStream in = new FileInputStream(file);
+
+                    byte[] buf = new byte[8192];
+                    int len;
+
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+
+                    out.close();
+                    in.close();
+                    pfd.close();
+                    values.clear();
+                }
             }
+        } catch(Exception e){
+
         }
+
     }
 
 
