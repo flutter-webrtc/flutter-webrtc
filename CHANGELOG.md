@@ -6,9 +6,10 @@ All user visible changes to this project will be documented in this file. This p
 
 
 
-## main
+## [0.13.3] · 2025-03-27
+[0.13.3]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.13.3
 
-[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.13.2...main)
+[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.13.2...0.13.3)
 
 ### Changed
 
