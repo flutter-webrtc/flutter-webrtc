@@ -184,6 +184,7 @@ pub mod api;
 #[rustfmt::skip]
 mod frb_generated;
 mod devices;
+pub mod frb;
 mod pc;
 mod renderer;
 mod user_media;
@@ -192,7 +193,7 @@ pub mod video_sink;
 use std::{
     collections::HashMap,
     sync::{
-        Arc,
+        Arc, LazyLock,
         atomic::{AtomicU32, Ordering},
     },
 };
@@ -215,6 +216,13 @@ pub use crate::{
     video_sink::VideoSink,
 };
 use crate::{user_media::TrackOrigin, video_sink::Id as VideoSinkId};
+
+/// Main [`ThreadPool`] used by [`flutter_rust_bridge`] when calling
+/// synchronous Rust code to avoid locking [`libwebrtc`] threads.
+///
+/// [`libwebrtc`]: libwebrtc_sys
+pub(crate) static THREADPOOL: LazyLock<ThreadPool> =
+    LazyLock::new(|| ThreadPool::with_name("fltr-wbrtc-pool".into(), 4));
 
 /// Counter used to generate unique IDs.
 static ID_COUNTER: AtomicU32 = AtomicU32::new(1);
@@ -241,10 +249,6 @@ pub struct Webrtc {
     audio_device_module: AudioDeviceModule,
     worker_thread: sys::Thread,
     signaling_thread: sys::Thread,
-
-    /// [`ThreadPool`] used to offload blocking or CPU-intensive tasks, so they
-    /// won't block Flutter WebRTC threads.
-    callback_pool: ThreadPool,
 }
 
 impl Webrtc {
@@ -294,7 +298,6 @@ impl Webrtc {
             audio_sources: HashMap::new(),
             audio_tracks: Arc::new(DashMap::new()),
             video_sinks: HashMap::new(),
-            callback_pool: ThreadPool::new(4),
         };
 
         this.devices_state.audio_inputs =
@@ -308,4 +311,28 @@ impl Webrtc {
 
         Ok(this)
     }
+}
+
+/// Compares strings in `const` context.
+///
+/// As there is no `const impl Trait` and `l == r` calls [`Eq`], we have to
+/// write custom comparison function.
+///
+/// [`Eq`]: trait@Eq
+// TODO: Remove once `Eq` trait is allowed in `const` context.
+const fn str_eq(l: &str, r: &str) -> bool {
+    if l.len() != r.len() {
+        return false;
+    }
+
+    let (l, r) = (l.as_bytes(), r.as_bytes());
+    let mut i = 0;
+    while i < l.len() {
+        if l[i] != r[i] {
+            return false;
+        }
+        i += 1;
+    }
+
+    true
 }

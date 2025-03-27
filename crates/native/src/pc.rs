@@ -13,10 +13,9 @@ use cxx::{CxxString, CxxVector};
 use dashmap::DashMap;
 use derive_more::with_trait::{Display, From, Into};
 use libwebrtc_sys as sys;
-use threadpool::ThreadPool;
 
 use crate::{
-    AudioTrack, AudioTrackId, VideoTrack, VideoTrackId, Webrtc,
+    AudioTrack, AudioTrackId, THREADPOOL, VideoTrack, VideoTrackId, Webrtc,
     api::{self, RtpCodecCapability, RtpTransceiverInit},
     frb_generated::{RustOpaque, StreamSink},
     next_id,
@@ -38,7 +37,6 @@ impl Webrtc {
             Arc::clone(&self.audio_tracks),
             obs.clone(),
             configuration,
-            self.callback_pool.clone(),
         )?;
         obs.add(api::PeerConnectionEvent::PeerCreated {
             peer: RustOpaque::new(peer),
@@ -275,7 +273,6 @@ impl PeerConnection {
         audio_tracks: Arc<DashMap<(AudioTrackId, TrackOrigin), AudioTrack>>,
         observer: StreamSink<api::PeerConnectionEvent>,
         configuration: api::RtcConfiguration,
-        pool: ThreadPool,
     ) -> anyhow::Result<Arc<Self>> {
         let obs_peer = Arc::new(OnceLock::new());
         let observer = sys::PeerConnectionObserver::new(Box::new(
@@ -284,7 +281,6 @@ impl PeerConnection {
                 peer: Arc::clone(&obs_peer),
                 video_tracks,
                 audio_tracks,
-                pool,
             },
         ));
 
@@ -1084,10 +1080,6 @@ struct PeerConnectionObserver {
 
     /// Map of the remote [`AudioTrack`]s shared with the [`crate::Webrtc`].
     audio_tracks: Arc<DashMap<(AudioTrackId, TrackOrigin), AudioTrack>>,
-
-    /// [`ThreadPool`] executing blocking tasks from the
-    /// [`PeerConnectionObserver`] callbacks.
-    pool: ThreadPool,
 }
 
 impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
@@ -1174,7 +1166,7 @@ impl sys::PeerConnectionEventsHandler for PeerConnectionObserver {
     }
 
     fn on_track(&mut self, transceiver: sys::RtpTransceiverInterface) {
-        self.pool.execute({
+        THREADPOOL.execute({
             // PANIC: Unwrapping is OK, since the transceiver is guaranteed
             //        to be negotiated at this point.
             let mid = transceiver.mid().unwrap();

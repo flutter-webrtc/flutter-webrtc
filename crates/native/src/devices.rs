@@ -34,6 +34,13 @@ static DEVICE_CHANGE_TX: AtomicPtr<mpsc::Sender<()>> =
     AtomicPtr::new(ptr::null_mut());
 
 /// Initializes media devices change watcher.
+///
+/// # Panics
+///
+/// If fails to spawn the `dvc-chng-hndlr` [`Thread`] where the watcher should
+/// run.
+///
+/// [`Thread`]: std::thread::Thread
 pub fn init_on_device_change() {
     let (tx, rx) = mpsc::channel();
 
@@ -54,14 +61,19 @@ pub fn init_on_device_change() {
         }
     }
 
-    thread::spawn(move || {
-        while rx.recv().is_ok() {
-            // Drain channel since this on_device_changed call will handle
-            // all changes that happened to this moment
-            while rx.try_recv().is_ok() {}
-            WEBRTC.lock().unwrap().on_device_changed();
-        }
-    });
+    thread::Builder::new()
+        .name("dvc-chng-hndlr".into())
+        .spawn(move || {
+            while rx.recv().is_ok() {
+                // Drain channel since this on_device_changed call will handle
+                // all changes that happened to this moment
+                while rx.try_recv().is_ok() {}
+                WEBRTC.lock().unwrap().on_device_changed();
+            }
+        })
+        .unwrap_or_else(|e| {
+            panic!("failed to spawn `dvc-chng-hndlr` thread: {e}")
+        });
 }
 
 impl Webrtc {
@@ -384,31 +396,47 @@ mod linux {
     /// Creates a detached [`Thread`] creating a devices monitor which polls for
     /// events.
     ///
+    /// # Panics
+    ///
+    /// If fails to spawn the `udev-dvc-lstnr` or `pulse-dvc-lstnr` [`Thread`].
+    ///
     /// [`Thread`]: std::thread::Thread
     pub unsafe fn init() {
         use std::thread;
 
         // Video devices monitoring via `libudev`.
-        thread::spawn(move || {
-            let context = libudev::Context::new().unwrap();
-            udev::monitoring(&context).unwrap();
-        });
+        thread::Builder::new()
+            .name("udev-dvc-lstnr".into())
+            .spawn(move || {
+                let context = libudev::Context::new().unwrap();
+                udev::monitoring(&context).unwrap();
+            })
+            .unwrap_or_else(|e| {
+                panic!("failed to spawn `udev-dvc-lstnr` thread: {e}")
+            });
 
         // Audio devices monitoring via PulseAudio.
-        thread::spawn(move || {
-            let mut m = pulse_audio::AudioMonitor::new().unwrap();
-            loop {
-                match m.main_loop.iterate(true) {
-                    IterateResult::Success(_) => {}
-                    IterateResult::Quit(_) => {
-                        break;
-                    }
-                    IterateResult::Err(e) => {
-                        log::error!("pulse audio mainloop iterate error: {e}");
+        thread::Builder::new()
+            .name("pulse-dvc-lstnr".to_owned())
+            .spawn(move || {
+                let mut m = pulse_audio::AudioMonitor::new().unwrap();
+                loop {
+                    match m.main_loop.iterate(true) {
+                        IterateResult::Success(_) => {}
+                        IterateResult::Quit(_) => {
+                            break;
+                        }
+                        IterateResult::Err(e) => {
+                            log::error!(
+                                "pulse audio mainloop iterate error: {e}",
+                            );
+                        }
                     }
                 }
-            }
-        });
+            })
+            .unwrap_or_else(|e| {
+                panic!("failed to spawn `pulse-dvc-lstnr` thread: {e}")
+            });
     }
 
     pub mod udev {
@@ -707,6 +735,10 @@ mod windows {
     /// Creates a detached [`Thread`] creating and registering a system message
     /// window - [`HWND`].
     ///
+    /// # Panics
+    ///
+    /// If fails to spawn the `dvc-chng-lstnr` [`Thread`].
+    ///
     /// [`Thread`]: thread::Thread
     pub unsafe fn init() {
         /// Message handler for an [`HWND`].
@@ -738,7 +770,7 @@ mod windows {
 
         register();
 
-        thread::spawn(|| {
+        thread::Builder::new().name("dvc-chng-lstnr".into()).spawn(move || {
             let lpsz_class_name = OsStr::new("EventWatcher")
                 .encode_wide()
                 .chain(Some(0))
@@ -801,6 +833,8 @@ mod windows {
                     DispatchMessageW(&msg);
                 }
             }
+        }).unwrap_or_else(|e| {
+            panic!("failed to spawn `dvc-chng-lstnr` thread: {e}")
         });
     }
 }

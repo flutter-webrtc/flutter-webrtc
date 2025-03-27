@@ -12,8 +12,7 @@ anyhow = "1.0"
 cxx = "1.0"
 dashmap = "6.1"
 derive_more = { version = "2.0", features = ["as_ref", "display", "from", "into"] }
-flutter_rust_bridge = { version = "=2.8.0", features = ["anyhow", "dart-opaque", "rust-async", "thread-pool"], default-features = false }
-lazy_static = "1.5"
+flutter_rust_bridge = { version = "=2.9.0", features = ["anyhow", "dart-opaque", "rust-async", "thread-pool"], default-features = false }
 libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"
 once_cell = "1.20"

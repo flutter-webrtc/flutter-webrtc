@@ -2,7 +2,7 @@ name: medea_flutter_webrtc
 description: >
   Flutter WebRTC plugin for Android/iOS/macOS/Linux/Windows/Web, based on
   GoogleWebRTC, designed for and used in Medea Jason WebRTC client.
-version: 0.13.2
+version: 0.13.3-dev
 homepage: https://github.com/instrumentisto/medea-flutter-webrtc
 
 environment:
@@ -14,7 +14,7 @@ dependencies:
   ffi: ^2.1.3
   flutter:
     sdk: flutter
-  flutter_rust_bridge: 2.8.0  # should be the same as in `Cargo.lock`
+  flutter_rust_bridge: 2.9.0  # should be the same as in `Cargo.lock`
   freezed_annotation: ^2.4.4
   uuid: ^4.4.2
   web: ">=0.5.1 <2.0.0"

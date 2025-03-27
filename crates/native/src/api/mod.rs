@@ -2,13 +2,14 @@
 
 use std::{
     sync::{
-        Arc, Mutex,
+        Arc, LazyLock, Mutex,
         atomic::{AtomicBool, Ordering},
         mpsc,
     },
     time::Duration,
 };
 
+use flutter_rust_bridge::for_generated::FLUTTER_RUST_BRIDGE_RUNTIME_VERSION;
 use libwebrtc_sys as sys;
 
 // Re-exporting since it is used in the generated code.
@@ -18,16 +19,36 @@ pub use crate::{
 };
 use crate::{
     Webrtc, devices,
-    frb_generated::{RustOpaque, StreamSink},
+    frb::{FrbHandler, new_frb_handler},
+    frb_generated::{
+        FLUTTER_RUST_BRIDGE_CODEGEN_VERSION, RustOpaque, StreamSink,
+    },
     pc::PeerConnectionId,
     renderer::FrameHandler,
     user_media::TrackOrigin,
 };
 
-lazy_static::lazy_static! {
-    pub(crate) static ref WEBRTC: Mutex<Webrtc> =
-        Mutex::new(Webrtc::new().unwrap());
-}
+/// Custom [`Handler`] for executing Rust code called from Dart.
+///
+/// [`Handler`]: flutter_rust_bridge::Handler
+// Must be named `FLUTTER_RUST_BRIDGE_HANDLER` for `flutter_rust_bridge` to
+// discover it.
+pub static FLUTTER_RUST_BRIDGE_HANDLER: LazyLock<FrbHandler> =
+    LazyLock::new(|| {
+        const {
+            if !crate::str_eq(
+                FLUTTER_RUST_BRIDGE_CODEGEN_VERSION,
+                FLUTTER_RUST_BRIDGE_RUNTIME_VERSION,
+            ) {
+                panic!("`flutter_rust_bridge` versions mismatch");
+            }
+        }
+
+        new_frb_handler()
+    });
+
+pub(crate) static WEBRTC: LazyLock<Mutex<Webrtc>> =
+    LazyLock::new(|| Mutex::new(Webrtc::new().unwrap()));
 
 /// Timeout for [`mpsc::Receiver::recv_timeout()`] operations.
 pub static RX_TIMEOUT: Duration = Duration::from_secs(5);

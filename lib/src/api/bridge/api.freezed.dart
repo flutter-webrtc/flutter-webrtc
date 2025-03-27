@@ -9471,6 +9471,7 @@ class _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl
   /// Calculated as defined in [Section 6.4.1 of RFC 3550][1] and
   /// [Appendix A.3][2].
   ///
+  /// [SSRC]: https://w3.org/TR/webrtc-stats#dfn-ssrc
   /// [1]: https://tools.ietf.org/html/rfc3550#section-6.4.1
   /// [2]: https://tools.ietf.org/html/rfc3550#appendix-A.3
   @override
@@ -9879,6 +9880,7 @@ abstract class RtcStatsType_RtcRemoteInboundRtpStreamStats
   /// Calculated as defined in [Section 6.4.1 of RFC 3550][1] and
   /// [Appendix A.3][2].
   ///
+  /// [SSRC]: https://w3.org/TR/webrtc-stats#dfn-ssrc
   /// [1]: https://tools.ietf.org/html/rfc3550#section-6.4.1
   /// [2]: https://tools.ietf.org/html/rfc3550#appendix-A.3
   double? get fractionLost;
