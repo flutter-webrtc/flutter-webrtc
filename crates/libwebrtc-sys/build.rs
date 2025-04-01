@@ -176,7 +176,7 @@ static LIBWEBRTC_URL: &str = "\
 
 /// URL for downloading `openal-soft` source code.
 static OPENAL_URL: &str =
-    "https://github.com/kcat/openal-soft/archive/refs/tags/1.24.2";
+    "https://github.com/kcat/openal-soft/archive/refs/tags/1.24.3";
 
 fn main() -> anyhow::Result<()> {
     let lib_dir = libpath()?;
