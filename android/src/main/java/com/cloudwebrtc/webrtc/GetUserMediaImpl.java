@@ -365,17 +365,6 @@ public class GetUserMediaImpl {
         String trackId = stateProvider.getNextTrackUUID();
         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
         AudioSource audioSource = pcFactory.createAudioSource(audioConstraints);
-
-        if (deviceId != null) {
-            try {
-                if (VERSION.SDK_INT >= VERSION_CODES.M) {
-                    setPreferredInputDevice(deviceId);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "setPreferredInputDevice failed", e);
-            }
-        }
-
         AudioTrack track = pcFactory.createAudioTrack(trackId, audioSource);
         stream.addTrack(track);
 
