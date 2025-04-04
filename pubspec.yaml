@@ -9,7 +9,11 @@ environment:
 
 dependencies:
   collection: ^1.17.0
-  dart_webrtc: ^1.5.3
+  dart_webrtc:
+    git:
+      url: https://github.com/daniel-g-favoreto-opl/dart-webrtc.git
+      ref: ios-record
+
   flutter:
     sdk: flutter
   path_provider: ^2.0.2

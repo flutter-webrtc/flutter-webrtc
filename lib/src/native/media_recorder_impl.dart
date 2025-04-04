@@ -63,7 +63,7 @@ class MediaRecorderNative extends MediaRecorder {
   }
 
   @override
-  Future<dynamic> stop({required String albumName}) async {
+  Future<dynamic> stop({String? albumName}) async {
     if (!_isStarted) {
       throw "Media recorder not started!";
     }
