@@ -115,7 +115,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       await tempDir.create(recursive: true);
     }
 
-    _mediaRecorderFilePath = '${tempDir.path}/${timestamp}.mp4';
+    _mediaRecorderFilePath = '${tempDir.path}/$timestamp.mp4';
 
     if (_mediaRecorderFilePath == null) {
       throw Exception('Can\'t find storagePath');
