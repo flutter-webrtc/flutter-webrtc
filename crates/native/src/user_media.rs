@@ -3,14 +3,12 @@ use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
     mem,
-    sync::{Arc, Mutex, RwLock, Weak},
+    sync::{Arc, Mutex, OnceLock, RwLock, Weak},
 };
 
 use anyhow::{Context as _, anyhow, bail};
 use derive_more::with_trait::{AsRef, Display, From, Into};
 use libwebrtc_sys as sys;
-// TODO: Use `std::sync::OnceLock` instead, once it support `.wait()` API.
-use once_cell::sync::OnceCell;
 use sys::AudioProcessing;
 use xxhash::xxh3::xxh3_64;
 
@@ -42,7 +40,7 @@ impl Webrtc {
                 if let Err(err) = track {
                     if Arc::strong_count(&src) == 2 {
                         self.video_sources.remove(&src.device_id);
-                    };
+                    }
                     return Err(err);
                 }
                 tracks.push(track?);
@@ -100,7 +98,7 @@ impl Webrtc {
                             self.audio_sources.remove(&src.device_id);
                             self.audio_device_module
                                 .dispose_audio_source(&src.device_id);
-                        };
+                        }
                     }
                     if notify_on_ended {
                         track.notify_on_ended();
@@ -123,7 +121,7 @@ impl Webrtc {
                     if let MediaTrackSource::Local(src) = &track.source {
                         if Arc::strong_count(src) == 2 {
                             self.video_sources.remove(&src.device_id);
-                        };
+                        }
                     }
                     if notify_on_ended {
                         track.notify_on_ended();
@@ -955,19 +953,19 @@ pub struct VideoTrack {
     sink: Option<VideoSink>,
 
     /// Video width.
-    width: Arc<OnceCell<RwLock<i32>>>,
+    width: Arc<OnceLock<RwLock<i32>>>,
 
     /// Video height.
-    height: Arc<OnceCell<RwLock<i32>>>,
+    height: Arc<OnceLock<RwLock<i32>>>,
 }
 
 /// Tracks changes in video `height` and `width`.
 struct VideoFormatSink {
     /// Video width.
-    width: Arc<OnceCell<RwLock<i32>>>,
+    width: Arc<OnceLock<RwLock<i32>>>,
 
     /// Video height.
-    height: Arc<OnceCell<RwLock<i32>>>,
+    height: Arc<OnceLock<RwLock<i32>>>,
 }
 
 impl sys::OnFrameCallback for VideoFormatSink {
@@ -991,8 +989,8 @@ impl VideoTrack {
         let id = VideoTrackId(next_id().to_string());
         let track_origin = TrackOrigin::Local;
 
-        let width = Arc::new(OnceCell::new());
-        let height = Arc::new(OnceCell::new());
+        let width = Arc::new(OnceLock::new());
+        let height = Arc::new(OnceLock::new());
         let mut sink = VideoSink::new(
             i64::from(next_id()),
             sys::VideoSinkInterface::create_forwarding(Box::new(
@@ -1041,9 +1039,9 @@ impl VideoTrack {
         let track = receiver.track();
         let track_origin = TrackOrigin::Remote(peer.id());
 
-        let width = Arc::new(OnceCell::new());
+        let width = Arc::new(OnceLock::new());
         width.set(RwLock::from(0)).unwrap();
-        let height = Arc::new(OnceCell::new());
+        let height = Arc::new(OnceLock::new());
         height.set(RwLock::from(0)).unwrap();
         let mut sink = VideoSink::new(
             i64::from(next_id()),

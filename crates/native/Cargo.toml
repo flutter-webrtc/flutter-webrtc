@@ -1,7 +1,7 @@
 [package]
 name = "medea-flutter-webrtc-native"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.86"
 publish = false
 
 [lib]
@@ -15,7 +15,6 @@ derive_more = { version = "2.0", features = ["as_ref", "display", "from", "into"
 flutter_rust_bridge = { version = "=2.9.0", features = ["anyhow", "dart-opaque", "rust-async", "thread-pool"], default-features = false }
 libwebrtc-sys = { path = "../libwebrtc-sys" }
 log = "0.4"
-once_cell = "1.20"
 threadpool = "1.8"
 xxhash = { package = "xxhash-rust", version = "0.8", features = ["xxh3"] }
 

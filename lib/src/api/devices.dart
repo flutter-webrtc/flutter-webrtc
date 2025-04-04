@@ -177,7 +177,7 @@ Future<bool> microphoneVolumeIsAvailable() async {
   if (isDesktop) {
     return await ffi.microphoneVolumeIsAvailable();
   } else {
-    // TODO(logist322): Implement for Channel-based implementation.
+    // TODO: Implement for Channel-based implementation.
     return false;
   }
 }

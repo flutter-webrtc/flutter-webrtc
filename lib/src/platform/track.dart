@@ -61,10 +61,9 @@ abstract class MediaStreamTrack {
   /// Currently, it's only supported for local audio tracks on desktop
   /// platforms.
   bool isOnAudioLevelAvailable() {
-    // TODO(evdokimovs): Might be implemented on web using audio level in
-    //                   media-source `rtc=stats` or audio node and
-    //                   `AnalyserNode`:
-    // https://webrtc.github.io/samples/src/content/getusermedia/volume
+    // TODO: Might be implemented on web using audio level in media-source
+    //       `rtc=stats` or audio node and `AnalyserNode`:
+    //       https://webrtc.github.io/samples/src/content/getusermedia/volume
     return false;
   }
 

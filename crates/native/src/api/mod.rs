@@ -2467,7 +2467,7 @@ pub struct VideoCodecInfo {
 /// Returns all [`VideoCodecInfo`]s of the supported video encoders.
 #[must_use]
 pub fn video_encoders() -> Vec<VideoCodecInfo> {
-    // TODO(rogurotus): Implement HW acceleration probing for desktop.
+    // TODO: Implement HW acceleration probing for desktop.
     vec![
         VideoCodecInfo {
             is_hardware_accelerated: false,
@@ -2487,7 +2487,7 @@ pub fn video_encoders() -> Vec<VideoCodecInfo> {
 /// Returns all [`VideoCodecInfo`]s of the supported video decoders.
 #[must_use]
 pub fn video_decoders() -> Vec<VideoCodecInfo> {
-    // TODO(rogurotus): Implement HW acceleration probing for desktop.
+    // TODO: Implement HW acceleration probing for desktop.
     vec![
         VideoCodecInfo {
             is_hardware_accelerated: false,

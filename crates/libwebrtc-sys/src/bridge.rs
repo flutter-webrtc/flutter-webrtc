@@ -45,7 +45,7 @@ pub struct OptionI32(Option<i32>);
 
 impl OptionI32 {
     /// Sets this [`Option`]`<`[`i32`]`>` to [`Some`]`(value)`.
-    fn set_value(&mut self, value: i32) {
+    const fn set_value(&mut self, value: i32) {
         self.0 = Some(value);
     }
 }
@@ -63,9 +63,9 @@ pub struct OptionRtcpFeedbackMessageType(
 );
 
 impl OptionRtcpFeedbackMessageType {
-    /// Sets this [`Option`]`<`[`RtcpFeedbackMessageType`]`>`
-    /// to [`Some`]`(value)`.
-    fn set_value(&mut self, value: crate::RtcpFeedbackMessageType) {
+    /// Sets this [`Option`]`<`[`RtcpFeedbackMessageType`]`>` to
+    /// [`Some`]`(value)`.
+    const fn set_value(&mut self, value: crate::RtcpFeedbackMessageType) {
         self.0 = Some(value);
     }
 }
@@ -100,7 +100,7 @@ pub struct OptionF64(Option<f64>);
 
 impl OptionF64 {
     /// Sets this [`Option`]`<`[`f64`]`>` to [`Some`]`(value)`.
-    fn set_value(&mut self, value: f64) {
+    const fn set_value(&mut self, value: f64) {
         self.0 = Some(value);
     }
 }
@@ -117,7 +117,7 @@ pub struct OptionU32(Option<u32>);
 
 impl OptionU32 {
     /// Sets this [`Option`]`<`[`u32`]`>` to [`Some`]`(value)`.
-    fn set_value(&mut self, value: u32) {
+    const fn set_value(&mut self, value: u32) {
         self.0 = Some(value);
     }
 }
@@ -134,7 +134,7 @@ pub struct OptionU64(Option<u64>);
 
 impl OptionU64 {
     /// Sets this [`Option`]`<`[`u64`]`>` to [`Some`]`(value)`.
-    fn set_value(&mut self, value: u64) {
+    const fn set_value(&mut self, value: u64) {
         self.0 = Some(value);
     }
 }
@@ -151,7 +151,7 @@ pub struct OptionBool(Option<bool>);
 
 impl OptionBool {
     /// Sets this [`Option`]`<`[`bool`]`>` to [`Some`]`(value)`.
-    fn set_value(&mut self, value: bool) {
+    const fn set_value(&mut self, value: bool) {
         self.0 = Some(value);
     }
 }

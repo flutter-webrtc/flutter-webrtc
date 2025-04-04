@@ -547,7 +547,7 @@ mod linux {
                         if !tx.is_null() {
                             _ = unsafe { &*tx }.send(());
                         }
-                    };
+                    }
                 })));
 
                 context.connect(None, FlagSet::empty(), None)?;
@@ -563,9 +563,7 @@ mod linux {
                     }
 
                     match main_loop.iterate(true) {
-                        IterateResult::Success(_) => {
-                            continue;
-                        }
+                        IterateResult::Success(_) => {}
                         IterateResult::Quit(c) => {
                             anyhow::bail!("PulseAudio quit with code: {}", c.0);
                         }

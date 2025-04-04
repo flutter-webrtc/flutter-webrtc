@@ -35,7 +35,6 @@
     clippy::filetype_is_file,
     clippy::float_cmp_const,
     clippy::fn_to_numeric_cast_any,
-    clippy::format_push_string,
     clippy::get_unwrap,
     clippy::if_then_some_else_none,
     clippy::imprecise_flops,
@@ -72,6 +71,7 @@
     clippy::partial_pub_fields,
     clippy::pathbuf_init_then_push,
     clippy::pedantic,
+    clippy::precedence_bits,
     clippy::print_stderr,
     clippy::print_stdout,
     clippy::pub_without_shorthand,
@@ -83,6 +83,7 @@
     clippy::renamed_function_params,
     clippy::ref_patterns,
     clippy::rest_pat_in_fully_bound_structs,
+    clippy::return_and_then,
     clippy::same_name_method,
     clippy::semicolon_inside_block,
     clippy::set_contains_or_insert,
@@ -130,7 +131,6 @@
     let_underscore_drop,
     macro_use_extern_crate,
     meta_variable_misuse,
-    missing_abi,
     missing_copy_implementations,
     missing_debug_implementations,
     missing_docs,
@@ -371,7 +371,7 @@ fn get_path_to_openal() -> anyhow::Result<PathBuf> {
 /// [OpenAL]: https://github.com/kcat/openal-soft
 #[expect(clippy::too_many_lines, reason = "not matters here")]
 fn compile_openal() -> anyhow::Result<()> {
-    let openal_version = OPENAL_URL.split('/').last().unwrap_or_default();
+    let openal_version = OPENAL_URL.split('/').next_back().unwrap_or_default();
     let manifest_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
     let temp_dir = manifest_path.join("temp");
     let openal_path = get_path_to_openal()?;
@@ -409,7 +409,7 @@ fn compile_openal() -> anyhow::Result<()> {
             let count = resp.read(&mut buffer)?;
             if count == 0 {
                 break;
-            };
+            }
             _ = out_file.write(&buffer[0..count])?;
         }
     }
@@ -550,7 +550,7 @@ fn download_libwebrtc() -> anyhow::Result<()> {
             let count = resp.read(&mut buffer)?;
             if count == 0 {
                 break;
-            };
+            }
             hasher.update(&buffer[0..count]);
             _ = out_file.write(&buffer[0..count])?;
         }
