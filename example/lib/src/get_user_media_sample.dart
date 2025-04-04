@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 
 /*
@@ -24,6 +25,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   bool _isTorchOn = false;
   bool _isFrontCamera = true;
   MediaRecorder? _mediaRecorder;
+  String? _mediaRecorderFilePath;
 
   bool get _isRec => _mediaRecorder != null;
 
@@ -102,26 +104,24 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   void _startRecording() async {
     if (_localStream == null) throw Exception('Stream is not initialized');
     // TODO(rostopira): request write storage permission
-    String? filePath;
-    if (Platform.isAndroid) {
-      filePath = (await getExternalStorageDirectory())?.path;
-      if (filePath != null) {
-        filePath += '/Movies/test.mp4';
-      }
-    } else if (Platform.isIOS || Platform.isMacOS) {
-      final tempDir = await getTemporaryDirectory();
-      if (!(await tempDir.exists())) {
-        await tempDir.create(recursive: true);
-      }
-      filePath = tempDir.path + '/test.mp4';
-      print(filePath);
-    } else {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    if (!(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
       throw 'Unsupported platform';
     }
-    if (filePath == null) {
+
+    final tempDir = await getTemporaryDirectory();
+    if (!(await tempDir.exists())) {
+      await tempDir.create(recursive: true);
+    }
+
+    _mediaRecorderFilePath = '${tempDir.path}/${timestamp}.mp4';
+
+    if (_mediaRecorderFilePath == null) {
       throw Exception('Can\'t find storagePath');
     }
-    final file = File(filePath);
+
+    final file = File(_mediaRecorderFilePath!);
     if (await file.exists()) {
       await file.delete();
     }
@@ -131,17 +131,35 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     final videoTrack = _localStream!
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');
-    await _mediaRecorder!.start(
-      filePath,
-      videoTrack: videoTrack,
-    );
+
+    final audioTrack = _localStream!
+        .getAudioTracks()
+        .firstWhere((track) => track.kind == 'audio');
+
+    await _mediaRecorder!.start(_mediaRecorderFilePath!,
+        videoTrack: videoTrack,
+        audioTrack: audioTrack,
+        audioChannel: RecorderAudioChannel.OUTPUT);
   }
 
   void _stopRecording() async {
-    await _mediaRecorder?.stop();
+    if (_mediaRecorderFilePath == null) {
+      return;
+    }
+
+    // album name works only for android, for ios use gallerySaver
+    await _mediaRecorder?.stop(albumName: 'FlutterWebRTC');
     setState(() {
       _mediaRecorder = null;
     });
+
+    // this is only for ios, android already saves to albumName
+    await GallerySaver.saveVideo(
+      _mediaRecorderFilePath!,
+      albumName: 'FlutterWebRTC',
+    );
+
+    _mediaRecorderFilePath = null;
   }
 
   void onViewFinderTap(TapDownDetails details, BoxConstraints constraints) {
