@@ -24,8 +24,8 @@ nix = { version = "0.29", features = ["poll", "signal"] }
 pulse = { version = "2.28", package = "libpulse-binding" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.59", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Media_Audio", "Win32_System_Com", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging"] }
-windows-core = "0.59" # for `#[windows::core]` macro expansion
+windows = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Media_Audio", "Win32_System_Com", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging"] }
+windows-core = "0.61" # for `#[windows::core]` macro expansion
 
 [build-dependencies]
 anyhow = "1.0"

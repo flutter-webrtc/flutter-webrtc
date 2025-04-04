@@ -615,6 +615,18 @@ mod windows {
     //! Implementation of the default audio output device changes detector for
     //! Windows.
 
+    // TODO: Remove once macro expands with `#[automatically_derived]`:
+    //       https://github.com/microsoft/windows-rs/issues/3566
+    #![expect( // `#[windows::core::implement]` macro expansion
+        clippy::as_pointer_underscore,
+        clippy::borrow_as_ptr,
+        clippy::inline_always,
+        clippy::multiple_unsafe_ops_per_block,
+        clippy::ptr_as_ptr,
+        trivial_casts,
+        reason = "`#[windows::core::implement]` macro expansion"
+    )]
+
     use std::{
         ffi::OsStr,
         mem,
