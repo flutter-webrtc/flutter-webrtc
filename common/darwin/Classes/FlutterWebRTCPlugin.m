@@ -1508,62 +1508,69 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
                 details:nil]);
     }
   } else if ([@"startRecordToFile" isEqualToString:call.method]){
-        NSDictionary* argsMap = call.arguments;
-        NSNumber* recorderId = argsMap[@"recorderId"];
-        NSString* path = argsMap[@"path"];
-        NSString* trackId = argsMap[@"videoTrackId"];
-        NSString* audioTrackId = argsMap[@"audioTrackId"];
-        NSNumber* rotation = argsMap[@"rotation"];
-        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+        #if TARGET_OS_IOS
+            NSDictionary* argsMap = call.arguments;
+            NSNumber* recorderId = argsMap[@"recorderId"];
+            NSString* path = argsMap[@"path"];
+            NSString* trackId = argsMap[@"videoTrackId"];
+            NSString* audioTrackId = argsMap[@"audioTrackId"];
+            NSNumber* rotation = argsMap[@"rotation"];
+            NSString* peerConnectionId = argsMap[@"peerConnectionId"];
 
-        RTCMediaStreamTrack *track = [self trackForId:trackId peerConnectionId:peerConnectionId];
-        RTCMediaStreamTrack *audioTrack = [self trackForId:audioTrackId peerConnectionId:peerConnectionId];
-        if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
-            NSURL* pathUrl = [NSURL fileURLWithPath:path];
-            self.recorders[recorderId] = [[FlutterRTCMediaRecorder alloc]
-                    initWithVideoTrack:(RTCVideoTrack *)track
-                       rotationDegrees:rotation
-                            audioTrack:(RTCAudioTrack *)audioTrack
-                            outputFile:pathUrl
-            ];
-        }
-        result(nil);
-    } else if ([@"changeRecorderTrack" isEqualToString:call.method]) {
-        NSDictionary* argsMap = call.arguments;
-        NSNumber* recorderId = argsMap[@"recorderId"];
-        NSString* trackId = argsMap[@"videoTrackId"];
-        NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-
-        RTCMediaStreamTrack *track = [self trackForId:trackId peerConnectionId:peerConnectionId];
-        FlutterRTCMediaRecorder* recorder = self.recorders[recorderId];
-        if (track == nil) {
-            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: track with id %@ not found!",trackId]
-                                        details:nil]);
-        } else if (recorder != nil) {
-            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: recorder with id %@ not found!",recorderId]
-                                        details:nil]);
-        } else if (recorder.videoTrack == nil) {
-            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: recorder with id %@ doesn't have video track!",recorderId]
-                                        details:nil]);
-        } else {
-            [recorder changeVideoTrack:(RTCVideoTrack *)track];
+            RTCMediaStreamTrack *track = [self trackForId:trackId peerConnectionId:peerConnectionId];
+            RTCMediaStreamTrack *audioTrack = [self trackForId:audioTrackId peerConnectionId:peerConnectionId];
+            if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
+                NSURL* pathUrl = [NSURL fileURLWithPath:path];
+                self.recorders[recorderId] = [[FlutterRTCMediaRecorder alloc]
+                        initWithVideoTrack:(RTCVideoTrack *)track
+                          rotationDegrees:rotation
+                                audioTrack:(RTCAudioTrack *)audioTrack
+                                outputFile:pathUrl
+                ];
+            }
             result(nil);
-        }
+        #endif
+      
+    } else if ([@"changeRecorderTrack" isEqualToString:call.method]) {
+        #if TARGET_OS_IOS
+              NSDictionary* argsMap = call.arguments;
+              NSNumber* recorderId = argsMap[@"recorderId"];
+              NSString* trackId = argsMap[@"videoTrackId"];
+              NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+
+              RTCMediaStreamTrack *track = [self trackForId:trackId peerConnectionId:peerConnectionId];
+              FlutterRTCMediaRecorder* recorder = self.recorders[recorderId];
+              if (track == nil) {
+                  result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
+                                            message:[NSString stringWithFormat:@"Error: track with id %@ not found!",trackId]
+                                              details:nil]);
+              } else if (recorder != nil) {
+                  result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
+                                            message:[NSString stringWithFormat:@"Error: recorder with id %@ not found!",recorderId]
+                                              details:nil]);
+              } else if (recorder.videoTrack == nil) {
+                  result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
+                                            message:[NSString stringWithFormat:@"Error: recorder with id %@ doesn't have video track!",recorderId]
+                                              details:nil]);
+              } else {
+                  [recorder changeVideoTrack:(RTCVideoTrack *)track];
+                  result(nil);
+              }
+        #endif
     } else if ([@"stopRecordToFile" isEqualToString:call.method]) {
-        NSDictionary* argsMap = call.arguments;
-        NSNumber* recorderId = argsMap[@"recorderId"];
-        FlutterRTCMediaRecorder* recorder = self.recorders[recorderId];
-        if (recorder != nil) {
-            [recorder stop:result];
-            [self.recorders removeObjectForKey:recorderId];
-        } else {
-            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
-                                       message:[NSString stringWithFormat:@"Error: recorder with id %@ not found!",recorderId]
-                                        details:nil]);
-        }
+       #if TARGET_OS_IOS
+                NSDictionary* argsMap = call.arguments;
+                NSNumber* recorderId = argsMap[@"recorderId"];
+                FlutterRTCMediaRecorder* recorder = self.recorders[recorderId];
+                if (recorder != nil) {
+                    [recorder stop:result];
+                    [self.recorders removeObjectForKey:recorderId];
+                } else {
+                    result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
+                                              message:[NSString stringWithFormat:@"Error: recorder with id %@ not found!",recorderId]
+                                                details:nil]);
+                }
+        #endif
     } else {
     [self handleFrameCryptorMethodCall:call result:result];
   }
