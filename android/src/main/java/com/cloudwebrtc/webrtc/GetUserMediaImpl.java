@@ -115,7 +115,14 @@ public class GetUserMediaImpl {
 
     public void screenRequestPermissions(ResultReceiver resultReceiver) {
         mediaProjectionData = null;
-        final Activity activity = stateProvider.getActivity();
+        try{
+            Intent activityIntent = new Intent(applicationContext, ScreenCapturePermissionActivity.class);
+            activityIntent.putExtra("resultReceiver", resultReceiver);
+            activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            applicationContext.startActivity(activityIntent);
+        }catch (Exception expection){}
+
+        /*final Activity activity = stateProvider.getActivity();
         if (activity == null) {
             // Activity went away, nothing we can do.
             return;
@@ -138,7 +145,7 @@ public class GetUserMediaImpl {
             transaction.commit();
         } catch (IllegalStateException ise) {
 
-        }
+        }*/
     }
 
     public void requestCapturePermission(final Result result) {
@@ -180,8 +187,7 @@ public class GetUserMediaImpl {
                         "Can't run requestStart() due to a low API level. API level 21 or higher is required.");
                 return;
             } else {
-                MediaProjectionManager mediaProjectionManager =
-                        (MediaProjectionManager) activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+                MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
                 // call for the projection manager
                 this.startActivityForResult(
@@ -550,6 +556,7 @@ public class GetUserMediaImpl {
 
         displayTrack = pcFactory.createVideoTrack(trackId, videoSource);
 
+
         ConstraintsArray audioTracks = new ConstraintsArray();
         ConstraintsArray videoTracks = new ConstraintsArray();
         ConstraintsMap successResult = new ConstraintsMap();
@@ -575,6 +582,28 @@ public class GetUserMediaImpl {
             videoTracks.pushMap(track_);
             mediaStream.addTrack(displayTrack);
         }
+
+        AudioSource audioSource = pcFactory.createAudioSource(new MediaConstraints());
+        AudioTrack audioTrack = pcFactory.createAudioTrack(stateProvider.getNextTrackUUID(), audioSource);
+
+        if (audioTrack != null) {
+            mediaStream.addTrack(audioTrack);
+
+            ConstraintsMap audioTrackMap = new ConstraintsMap();
+            String id = audioTrack.id();
+            String kind = audioTrack.kind();
+
+            audioTrackMap.putBoolean("enabled", audioTrack.enabled());
+            audioTrackMap.putString("id", id);
+            audioTrackMap.putString("kind", kind);
+            audioTrackMap.putString("label", kind);
+            audioTrackMap.putString("readyState", audioTrack.state().toString());
+            audioTrackMap.putBoolean("remote", false);
+
+            audioTracks.pushMap(audioTrackMap);
+            stateProvider.putLocalTrack(id, new LocalAudioTrack(audioTrack));
+        }
+
 
         String streamId = mediaStream.getId();
 

@@ -160,6 +160,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
     mPeerConnectionObservers.clear();
   }
+
+  void releaseCameraUtils() {
+    if(cameraUtils != null){
+      cameraUtils.release();
+    }
+  }
+
   private void initialize(boolean bypassVoiceProcessing, int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
   @Nullable ConstraintsMap androidAudioConfiguration) {
     if (mFactory != null) {
@@ -172,6 +179,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                     .createInitializationOptions());
 
     getUserMediaImpl = new GetUserMediaImpl(this, context);
+
 
     cameraUtils = new CameraUtils(getUserMediaImpl, activity);
 
@@ -206,13 +214,16 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                         .setUseHardwareNoiseSuppressor(false)
                         .setUseStereoInput(true)
                         .setUseStereoOutput(true)
-                        .setAudioSource(MediaRecorder.AudioSource.MIC);
+                        .setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
     } else {
       boolean useHardwareAudioProcessing = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
       boolean useLowLatency = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
       audioDeviceModuleBuilder.setUseHardwareAcousticEchoCanceler(useHardwareAudioProcessing)
                         .setUseLowLatency(useLowLatency)
-                        .setUseHardwareNoiseSuppressor(useHardwareAudioProcessing);
+                        .setUseStereoInput(true)
+                        .setUseStereoOutput(true)
+                        .setUseHardwareNoiseSuppressor(useHardwareAudioProcessing)
+                        .setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
     }
 
     audioDeviceModuleBuilder.setSamplesReadyCallback(recordSamplesReadyCallbackAdapter);
@@ -627,52 +638,66 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       case "mediaStreamTrackHasTorch": {
-        String trackId = call.argument("trackId");
-        cameraUtils.hasTorch(trackId, result);
+        if(cameraUtils!=null) {
+          String trackId = call.argument("trackId");
+          cameraUtils.hasTorch(trackId, result);
+        }
         break;
       }
       case "mediaStreamTrackSetTorch": {
-        String trackId = call.argument("trackId");
-        boolean torch = call.argument("torch");
-        cameraUtils.setTorch(trackId, torch, result);
+        if(cameraUtils!=null) {
+          String trackId = call.argument("trackId");
+          boolean torch = call.argument("torch");
+          cameraUtils.setTorch(trackId, torch, result);
+        }
         break;
       }
       case "mediaStreamTrackSetZoom": {
-        String trackId = call.argument("trackId");
-        double zoomLevel = call.argument("zoomLevel");
-        cameraUtils.setZoom(trackId, zoomLevel, result);
+        if(cameraUtils!=null) {
+          String trackId = call.argument("trackId");
+          double zoomLevel = call.argument("zoomLevel");
+          cameraUtils.setZoom(trackId, zoomLevel, result);
+        }
         break;
       }
       case "mediaStreamTrackSetFocusMode": {
-        cameraUtils.setFocusMode(call, result);
+        if(cameraUtils!=null) {
+          cameraUtils.setFocusMode(call, result);
+        }
         break;
       }
       case "mediaStreamTrackSetFocusPoint":{
-        Map<String, Object> focusPoint = call.argument("focusPoint");
-        Boolean reset = (Boolean)focusPoint.get("reset");
-        Double x = null;
-        Double y = null;
-        if (reset == null || !reset) {
-          x =  (Double)focusPoint.get("x");
-          y =  (Double)focusPoint.get("y");
+        if(cameraUtils!=null) {
+          Map<String, Object> focusPoint = call.argument("focusPoint");
+          Boolean reset = (Boolean)focusPoint.get("reset");
+          Double x = null;
+          Double y = null;
+          if (reset == null || !reset) {
+            x =  (Double)focusPoint.get("x");
+            y =  (Double)focusPoint.get("y");
+          }
+          cameraUtils.setFocusPoint(call, new Point(x, y), result);
         }
-        cameraUtils.setFocusPoint(call, new Point(x, y), result);
         break;
       }
       case "mediaStreamTrackSetExposureMode": {
-        cameraUtils.setExposureMode(call, result);
+        if(cameraUtils!=null) {
+          cameraUtils.setExposureMode(call, result);
+        }
         break;
       }
       case "mediaStreamTrackSetExposurePoint": {
-        Map<String, Object> exposurePoint = call.argument("exposurePoint");
-        Boolean reset = (Boolean)exposurePoint.get("reset");
-        Double x = null;
-        Double y = null;
-        if (reset == null || !reset) {
-          x =  (Double)exposurePoint.get("x");
-          y =  (Double)exposurePoint.get("y");
+        if(cameraUtils!=null) {
+          Map<String, Object> exposurePoint = call.argument("exposurePoint");
+          Boolean reset = (Boolean)exposurePoint.get("reset");
+          Double x = null;
+          Double y = null;
+          if (reset == null || !reset) {
+            x =  (Double)exposurePoint.get("x");
+            y =  (Double)exposurePoint.get("y");
+          }
+          cameraUtils.setExposurePoint(call, new Point(x, y), result);
         }
-        cameraUtils.setExposurePoint(call, new Point(x, y), result);
         break;
       }
       case "mediaStreamTrackSwitchCamera": {
@@ -2283,9 +2308,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     final Activity activity = getActivity();
     final Context context = getApplicationContext();
-    PermissionUtils.requestPermissions(
-            context,
-            activity,
-            permissions.toArray(new String[permissions.size()]), callback);
+    if(activity!=null) {
+      PermissionUtils.requestPermissions(
+              context,
+              activity,
+              permissions.toArray(new String[permissions.size()]), callback);
+    }
   }
 }
