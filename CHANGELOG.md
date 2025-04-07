@@ -1,6 +1,10 @@
 
 # Changelog
 
+[0.13.1+hotfix.1] - 2024-04-07
+
+* [Android] fix: Fix `clearAndroidCommunicationDevice` call blocking.
+
 [0.13.1] - 2025-04-03
 
 * [Android] fix: remove setPreferredInputDevice when getUserAduio. (#1808)
