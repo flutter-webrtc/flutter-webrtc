@@ -164,17 +164,12 @@ int32_t OpenALAudioDeviceModule::ActiveAudioLayer(
 
 rtc::scoped_refptr<OpenALAudioDeviceModule> OpenALAudioDeviceModule::Create(
     AudioLayer audio_layer,
-    webrtc::TaskQueueFactory* task_queue_factory,
-    const std::unique_ptr<rtc::scoped_refptr<webrtc::AudioProcessing>>& audio_processing) {
+    webrtc::TaskQueueFactory* task_queue_factory) {
   auto adm = rtc::make_ref_counted<OpenALAudioDeviceModule>();
 
-  if (!audio_processing.get()) {
-    adm->audio_processing_ = nullptr;
-  } else {
-    adm->audio_processing_ = audio_processing.get()->get();
-  }
   adm->audio_device_buffer_ =
       std::make_unique<webrtc::AudioDeviceBuffer>(task_queue_factory);
+  adm->apm_ = webrtc::make_ref_counted<PlayoutDelegatingAPM>();
 
   return adm;
 }
@@ -713,8 +708,9 @@ void OpenALAudioDeviceModule::stopPlayingOnThread() {
   _data->_playoutThread->Stop();
 }
 
-rtc::scoped_refptr<bridge::LocalAudioSource>
-OpenALAudioDeviceModule::CreateAudioSource(uint32_t device_index) {
+rtc::scoped_refptr<bridge::LocalAudioSource> OpenALAudioDeviceModule::CreateAudioSource(
+    uint32_t device_index,
+    rtc::scoped_refptr<webrtc::AudioProcessing> ap) {
   std::lock_guard<std::recursive_mutex> lk(_recording_mutex);
 
   std::string device_id;
@@ -724,7 +720,8 @@ OpenALAudioDeviceModule::CreateAudioSource(uint32_t device_index) {
     return nullptr;
   }
 
-  auto recorder = std::make_unique<AudioDeviceRecorder>(device_id, audio_processing_);
+  apm_->AddDelegate(device_id, ap);
+  auto recorder = std::make_unique<AudioDeviceRecorder>(device_id, ap);
   recorder->StartCapture();
   auto source = recorder->GetSource();
   _recorders[device_id] = std::move(recorder);
@@ -740,10 +737,15 @@ void OpenALAudioDeviceModule::DisposeAudioSource(std::string device_id) {
   auto it = _recorders.find(device_id);
   if (it != _recorders.end()) {
     auto recorder = std::move(it->second);
+    apm_->RemoveDelegate(device_id);
     recorder->StopCapture();
     _recorders.erase(it);
   }
 }
+
+rtc::scoped_refptr<PlayoutDelegatingAPM> OpenALAudioDeviceModule::AudioProcessing() {
+  return apm_;
+};
 
 void OpenALAudioDeviceModule::stopCaptureOnThread() {
   {

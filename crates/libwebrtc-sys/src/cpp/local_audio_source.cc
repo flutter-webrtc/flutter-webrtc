@@ -1,5 +1,6 @@
 #include "local_audio_source.h"
 #include "libwebrtc-sys/src/bridge.rs.h"
+#include "modules/audio_processing/include/audio_frame_proxies.h"
 
 namespace bridge {
 
@@ -15,10 +16,12 @@ float calculate_audio_level(int16_t* data, int size) {
 
 rtc::scoped_refptr<LocalAudioSource> LocalAudioSource::Create(
     cricket::AudioOptions audio_options,
-    std::optional<webrtc::AudioProcessing*> audio_processing) {
+    rtc::scoped_refptr<webrtc::AudioProcessing> ap) {
   auto source = rtc::make_ref_counted<LocalAudioSource>();
-  source->audio_processing_ = audio_processing;
+
+  source->audio_processing_ = ap;
   source->_options = audio_options;
+
   return source;
 }
 
@@ -55,20 +58,19 @@ void LocalAudioSource::OnData(const void* audio_data,
     }
   }
 
-  for (auto* sink : sinks_) {
-    audio_frame_.UpdateFrame(
-        0, (const int16_t*)audio_data, sample_rate / 100, sample_rate,
-        webrtc::AudioFrame::SpeechType::kNormalSpeech,
-        webrtc::AudioFrame::VADActivity::kVadUnknown, number_of_channels);
-    if (*audio_processing_) {
-      webrtc::StreamConfig input_config(sample_rate, number_of_channels);
-      webrtc::StreamConfig output_config(sample_rate, number_of_channels);
+  audio_frame_.UpdateFrame(
+      0, (const int16_t*)audio_data, sample_rate / 100, sample_rate,
+      webrtc::AudioFrame::SpeechType::kNormalSpeech,
+      webrtc::AudioFrame::VADActivity::kVadUnknown, number_of_channels);
 
-      int result =
-          (*audio_processing_)
-              ->ProcessStream(audio_frame_.data(), input_config, output_config,
-                              audio_frame_.mutable_data());
-    }
+  int ap_result = ProcessAudioFrame(audio_processing_.get(), &audio_frame_);
+
+  if (ap_result != webrtc::AudioProcessing::kNoError) {
+    RTC_LOG(LS_ERROR) << "`LocalAudioSource`: `AudioProcessing` error: "
+                      << ap_result;
+  }
+
+  for (auto* sink : sinks_) {
     sink->OnData(audio_frame_.data(), bits_per_sample, sample_rate,
                  number_of_channels, number_of_frames);
   }

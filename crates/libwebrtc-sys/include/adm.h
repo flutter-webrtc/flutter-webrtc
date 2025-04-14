@@ -40,6 +40,7 @@
 #include "api/media_stream_interface.h"
 #include "api/sequence_checker.h"
 #include "api/task_queue/task_queue_factory.h"
+#include "delegating_apm.h"
 #include "libwebrtc-sys/include/audio_device_recorder.h"
 #include "libwebrtc-sys/include/local_audio_source.h"
 #include "modules/audio_device/audio_device_buffer.h"
@@ -63,10 +64,14 @@ class ExtendedADM : public webrtc::AudioDeviceModule {
   // Creates a new `bridge::LocalAudioSource` that will record audio from the
   // device with the provided ID.
   virtual rtc::scoped_refptr<bridge::LocalAudioSource> CreateAudioSource(
-      uint32_t device_index) = 0;
+      uint32_t device_index,
+      rtc::scoped_refptr<webrtc::AudioProcessing> audio_processing) = 0;
 
   // Stops the `bridge::LocalAudioSource` for the provided device ID.
   virtual void DisposeAudioSource(std::string device_id) = 0;
+
+  // Returns the inner `PlayoutDelegatingAPM`.
+  virtual rtc::scoped_refptr<PlayoutDelegatingAPM> AudioProcessing() = 0;
 };
 
 class OpenALAudioDeviceModule : public ExtendedADM {
@@ -75,8 +80,7 @@ class OpenALAudioDeviceModule : public ExtendedADM {
 
   static rtc::scoped_refptr<OpenALAudioDeviceModule> Create(
       AudioLayer audio_layer,
-      webrtc::TaskQueueFactory* task_queue_factory,
-      const std::unique_ptr<rtc::scoped_refptr<webrtc::AudioProcessing>>& audio_processing);
+      webrtc::TaskQueueFactory* task_queue_factory);
 
   // Main initialization and termination.
   int32_t Init() override;
@@ -86,10 +90,14 @@ class OpenALAudioDeviceModule : public ExtendedADM {
   // Creates a new `bridge::LocalAudioSource` that will record audio from the
   // device with the provided ID.
   rtc::scoped_refptr<bridge::LocalAudioSource> CreateAudioSource(
-      uint32_t device_index) override;
+      uint32_t device_index,
+      rtc::scoped_refptr<webrtc::AudioProcessing> ap) override;
 
   // Stops the `bridge::LocalAudioSource` for the provided device ID.
   void DisposeAudioSource(std::string device_id) override;
+
+  // Returns the `PlayoutDelegatingAPM` used by this `OpenALAudioDeviceModule`.
+  rtc::scoped_refptr<PlayoutDelegatingAPM> AudioProcessing() override;
 
   // Playout control.
   int16_t PlayoutDevices() override;
@@ -217,7 +225,7 @@ class OpenALAudioDeviceModule : public ExtendedADM {
   void processRecordingQueued();
 
   std::unique_ptr<webrtc::AudioDeviceBuffer> audio_device_buffer_ = nullptr;
-  webrtc::AudioProcessing* audio_processing_;
+  rtc::scoped_refptr<PlayoutDelegatingAPM> apm_;
 
   std::recursive_mutex _recording_mutex;
   bool _recordingInitialized = false;

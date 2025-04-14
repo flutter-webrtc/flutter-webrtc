@@ -1488,7 +1488,6 @@ pub(crate) mod webrtc {
             worker_thread: &UniquePtr<Thread>,
             signaling_thread: &UniquePtr<Thread>,
             default_adm: &UniquePtr<AudioDeviceModule>,
-            ap: &UniquePtr<AudioProcessing>,
         ) -> UniquePtr<PeerConnectionFactoryInterface>;
     }
 
@@ -1501,7 +1500,6 @@ pub(crate) mod webrtc {
             worker_thread: Pin<&mut Thread>,
             audio_layer: AudioLayer,
             task_queue_factory: Pin<&mut TaskQueueFactory>,
-            ap: &UniquePtr<AudioProcessing>,
         ) -> UniquePtr<AudioDeviceModule>;
 
         /// Initializes the given [`AudioDeviceModule`].
@@ -2677,6 +2675,7 @@ pub(crate) mod webrtc {
         pub fn create_audio_source(
             audio_device_module: &AudioDeviceModule,
             device_index: u16,
+            ap: UniquePtr<AudioProcessing>,
         ) -> UniquePtr<AudioSourceInterface>;
 
         /// Disposes the [`AudioSourceInterface`] with the provided `device_id`.

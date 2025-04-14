@@ -1,6 +1,6 @@
 PODS:
   - FlutterMacOS (1.0.0)
-  - medea_flutter_webrtc (0.13.3):
+  - medea_flutter_webrtc (0.13.4-dev):
     - FlutterMacOS
 
 DEPENDENCIES:
@@ -15,7 +15,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
-  medea_flutter_webrtc: 251c07106b23626be784acc5fbe3cd0a8bfd1701
+  medea_flutter_webrtc: 3f183f93a857794b01f248ef141eeaee517abea6
 
 PODFILE CHECKSUM: 353c8bcc5d5b0994e508d035b5431cfe18c1dea7
 

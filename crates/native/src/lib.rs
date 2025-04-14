@@ -240,7 +240,6 @@ pub struct Webrtc {
     audio_sources: HashMap<AudioDeviceId, Arc<AudioSource>>,
     audio_tracks: Arc<DashMap<(AudioTrackId, TrackOrigin), AudioTrack>>,
     video_sinks: HashMap<VideoSinkId, VideoSink>,
-    ap: sys::AudioProcessing,
     devices_state: DevicesState,
 
     /// `peer_connection_factory` must be dropped before [`Thread`]s.
@@ -263,16 +262,10 @@ impl Webrtc {
         let mut signaling_thread = sys::Thread::create(false)?;
         signaling_thread.start()?;
 
-        let ap = sys::AudioProcessing::new()?;
-        let mut config = ap.config();
-        config.set_gain_controller_enabled(true);
-        ap.apply_config(&config);
-
         let audio_device_module = AudioDeviceModule::new(
             &mut worker_thread,
             sys::AudioLayer::kPlatformDefaultAudio,
             &mut task_queue_factory,
-            Some(&ap),
         )?;
 
         let peer_connection_factory =
@@ -281,14 +274,12 @@ impl Webrtc {
                 Some(&worker_thread),
                 Some(&signaling_thread),
                 Some(audio_device_module.as_ref()),
-                Some(&ap),
             )?;
 
         let mut this = Self {
             _task_queue_factory: task_queue_factory,
             worker_thread,
             signaling_thread,
-            ap,
             devices_state: DevicesState::default(),
             audio_device_module,
             video_device_info: VideoDeviceInfo::new()?,

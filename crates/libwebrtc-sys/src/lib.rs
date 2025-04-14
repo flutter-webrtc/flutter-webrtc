@@ -371,13 +371,11 @@ impl AudioDeviceModule {
         worker_thread: &mut Thread,
         audio_layer: AudioLayer,
         task_queue_factory: &mut TaskQueueFactory,
-        audio_processing: Option<&AudioProcessing>,
     ) -> anyhow::Result<Self> {
         let ptr = webrtc::create_audio_device_module(
             worker_thread.0.pin_mut(),
             audio_layer,
             task_queue_factory.0.pin_mut(),
-            &audio_processing.unwrap_or(&AudioProcessing(UniquePtr::null())).0,
         );
 
         if ptr.is_null() {
@@ -471,8 +469,13 @@ impl AudioDeviceModule {
     pub fn create_audio_source(
         &self,
         device_index: u16,
+        audio_processing: AudioProcessing,
     ) -> anyhow::Result<AudioSourceInterface> {
-        let ptr = webrtc::create_audio_source(&self.0, device_index);
+        let ptr = webrtc::create_audio_source(
+            &self.0,
+            device_index,
+            audio_processing.0,
+        );
 
         if ptr.is_null() {
             bail!(
@@ -1978,7 +1981,6 @@ impl PeerConnectionFactoryInterface {
         worker_thread: Option<&Thread>,
         signaling_thread: Option<&Thread>,
         default_adm: Option<&AudioDeviceModule>,
-        ap: Option<&AudioProcessing>,
     ) -> anyhow::Result<Self> {
         #[expect(clippy::or_fun_call, reason = "not possible")]
         let inner = webrtc::create_peer_connection_factory(
@@ -1986,7 +1988,6 @@ impl PeerConnectionFactoryInterface {
             worker_thread.map_or(&UniquePtr::null(), |t| &t.0),
             signaling_thread.map_or(&UniquePtr::null(), |t| &t.0),
             default_adm.map_or(&UniquePtr::null(), |t| &t.0),
-            ap.map_or(&UniquePtr::null(), |ap| &ap.0),
         );
 
         if inner.is_null() {

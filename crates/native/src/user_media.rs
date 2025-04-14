@@ -47,7 +47,6 @@ impl Webrtc {
             }
 
             if let Some(audio) = constraints.audio {
-                self.set_audio_processing_config(&audio);
                 let src = self
                     .get_or_create_audio_source(&audio)
                     .map_err(|e| api::GetMediaError::Audio(e.to_string()))?;
@@ -268,15 +267,6 @@ impl Webrtc {
         Ok(api_track)
     }
 
-    /// Sets [`api::AudioConstraints`] for this [`Webrtc`] session.
-    fn set_audio_processing_config(&self, caps: &api::AudioConstraints) {
-        if let Some(auto_gain_control) = caps.auto_gain_control {
-            let mut config = self.ap.config();
-            config.set_gain_controller_enabled(auto_gain_control);
-            self.ap.apply_config(&config);
-        }
-    }
-
     /// Creates a new [`sys::AudioSourceInterface`] based on the given
     /// [`AudioConstraints`].
     fn get_or_create_audio_source(
@@ -306,11 +296,18 @@ impl Webrtc {
         let src = if let Some(src) = self.audio_sources.get(&device_id) {
             Arc::clone(src)
         } else {
+            let ap = sys::AudioProcessing::new()?;
+            let mut config = ap.config();
+            if let Some(auto_gain_control) = caps.auto_gain_control {
+                config.set_gain_controller_enabled(auto_gain_control);
+            }
+            ap.apply_config(&config);
+
             let src = Arc::new(AudioSource::new(
                 device_id.clone(),
                 Arc::new(
                     self.audio_device_module
-                        .create_audio_source(device_index)?,
+                        .create_audio_source(device_index, ap)?,
                 ),
             ));
             self.audio_sources.insert(device_id, Arc::clone(&src));
@@ -663,13 +660,11 @@ impl AudioDeviceModule {
         worker_thread: &mut sys::Thread,
         audio_layer: sys::AudioLayer,
         task_queue_factory: &mut sys::TaskQueueFactory,
-        ap: Option<&AudioProcessing>,
     ) -> anyhow::Result<Self> {
         let inner = sys::AudioDeviceModule::create_proxy(
             worker_thread,
             audio_layer,
             task_queue_factory,
-            ap,
         )?;
         inner.init()?;
 
@@ -764,11 +759,12 @@ impl AudioDeviceModule {
     pub fn create_audio_source(
         &mut self,
         device_index: u16,
+        ap: AudioProcessing,
     ) -> anyhow::Result<sys::AudioSourceInterface> {
         if api::is_fake_media() {
             self.inner.create_fake_audio_source()
         } else {
-            self.inner.create_audio_source(device_index)
+            self.inner.create_audio_source(device_index, ap)
         }
     }
 

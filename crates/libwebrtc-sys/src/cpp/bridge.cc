@@ -6,9 +6,9 @@
 #include <chrono>
 #include <thread>
 
-#include "api/video/i420_buffer.h"
 #include "api/audio/builtin_audio_processing_builder.h"
 #include "api/environment/environment_factory.h"
+#include "api/video/i420_buffer.h"
 #include "api/video_codecs/video_decoder_factory_template.h"
 #include "api/video_codecs/video_decoder_factory_template_dav1d_adapter.h"
 #include "api/video_codecs/video_decoder_factory_template_libvpx_vp8_adapter.h"
@@ -23,6 +23,7 @@
 #include "libyuv.h"
 #include "modules/audio_device/include/audio_device_factory.h"
 #include "pc/proxy.h"
+#include "rtc_base/logging.h"
 
 namespace bridge {
 
@@ -114,14 +115,10 @@ std::unique_ptr<VideoTrackSourceInterface> create_device_video_source(
 std::unique_ptr<AudioDeviceModule> create_audio_device_module(
     Thread& worker_thread,
     AudioLayer audio_layer,
-    TaskQueueFactory& task_queue_factory,
-    const std::unique_ptr<AudioProcessing>& ap) {
+    TaskQueueFactory& task_queue_factory) {
   AudioDeviceModule adm = worker_thread.BlockingCall([audio_layer,
-                                                      &task_queue_factory,
-                                                      &ap] {
-    return ::OpenALAudioDeviceModule::Create(audio_layer,
-                                             &task_queue_factory,
-                                             ap);
+                                                      &task_queue_factory] {
+    return ::OpenALAudioDeviceModule::Create(audio_layer, &task_queue_factory);
   });
 
   if (adm == nullptr) {
@@ -253,13 +250,9 @@ int32_t set_audio_playout_device(const AudioDeviceModule& audio_device_module,
 
 // Calls `BuiltinAudioProcessingBuilder().Create()`.
 std::unique_ptr<AudioProcessing> create_audio_processing() {
-  webrtc::AudioProcessing::Config apm_config;
-  apm_config.echo_canceller.enabled = true;
-  apm_config.echo_canceller.mobile_mode = false;
-  apm_config.gain_controller1.enabled = true;
-  apm_config.gain_controller1.enable_limiter = true;
-
-  auto apm = webrtc::BuiltinAudioProcessingBuilder().SetConfig(apm_config).Build(webrtc::CreateEnvironment());
+  auto apm = webrtc::BuiltinAudioProcessingBuilder()
+                 .SetConfig(*create_audio_processing_config())
+                 .Build(webrtc::CreateEnvironment());
   return std::make_unique<AudioProcessing>(apm);
 }
 
@@ -337,8 +330,9 @@ std::unique_ptr<VideoTrackSourceInterface> create_display_video_source(
 // Creates a new `AudioSource` with the provided `AudioDeviceModule`.
 std::unique_ptr<AudioSourceInterface> create_audio_source(
     const AudioDeviceModule& audio_device_module,
-    uint16_t device_index) {
-  auto src = audio_device_module->CreateAudioSource(device_index);
+    uint16_t device_index,
+    std::unique_ptr<AudioProcessing> ap) {
+  auto src = audio_device_module->CreateAudioSource(device_index, *ap);
   if (src == nullptr) {
     return nullptr;
   }
@@ -496,8 +490,8 @@ std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
     const std::unique_ptr<Thread>& network_thread,
     const std::unique_ptr<Thread>& worker_thread,
     const std::unique_ptr<Thread>& signaling_thread,
-    const std::unique_ptr<AudioDeviceModule>& default_adm,
-    const std::unique_ptr<AudioProcessing>& ap) {
+    const std::unique_ptr<AudioDeviceModule>& default_adm) {
+
   std::unique_ptr<webrtc::VideoEncoderFactory> video_encoder_factory =
       std::make_unique<webrtc::VideoEncoderFactoryTemplate<
           webrtc::LibvpxVp8EncoderTemplateAdapter,
@@ -515,7 +509,7 @@ std::unique_ptr<PeerConnectionFactoryInterface> create_peer_connection_factory(
       webrtc::CreateBuiltinAudioEncoderFactory(),
       webrtc::CreateBuiltinAudioDecoderFactory(),
       std::move(video_encoder_factory), std::move(video_decoder_factory),
-      nullptr, ap ? *ap : nullptr);
+      nullptr, default_adm ? (*default_adm)->AudioProcessing() : nullptr);
 
   if (factory == nullptr) {
     return nullptr;
@@ -1178,13 +1172,22 @@ std::unique_ptr<std::string> display_source_title(const DisplaySource& source) {
 
 // Creates a new `AudioProcessingConfig`.
 std::unique_ptr<AudioProcessingConfig> create_audio_processing_config() {
+  // TODO: Probably should be configured from the Rust side, but for now it's OK
+  //       to set default values here.
   webrtc::AudioProcessing::Config apm_config;
+
   apm_config.echo_canceller.enabled = true;
   apm_config.echo_canceller.mobile_mode = false;
+
   apm_config.gain_controller1.enabled = true;
   apm_config.gain_controller1.mode ==
       webrtc::AudioProcessing::Config::GainController1::kAdaptiveDigital;
   apm_config.gain_controller1.enable_limiter = true;
+
+  apm_config.noise_suppression.enabled = true;
+  apm_config.noise_suppression.level =
+      webrtc::AudioProcessing::Config::NoiseSuppression::Level::kVeryHigh;
+
   return std::make_unique<AudioProcessingConfig>(apm_config);
 }
 

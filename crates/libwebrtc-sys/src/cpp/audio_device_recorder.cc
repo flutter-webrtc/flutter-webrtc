@@ -36,12 +36,11 @@ bool CheckDeviceFailed(ALCdevice* device) {
 
 AudioDeviceRecorder::AudioDeviceRecorder(
     std::string deviceId,
-    webrtc::AudioProcessing* audio_processing) {
+    rtc::scoped_refptr<webrtc::AudioProcessing> ap) {
   _device = alcCaptureOpenDevice(deviceId.empty() ? nullptr : deviceId.c_str(),
                                  kRecordingFrequency, AL_FORMAT_MONO16,
                                  kRecordingFrequency);
-  _source = bridge::LocalAudioSource::Create(cricket::AudioOptions(),
-                                             audio_processing);
+  _source = bridge::LocalAudioSource::Create(cricket::AudioOptions(), ap);
   _deviceId = deviceId;
 }
 
@@ -103,6 +102,10 @@ void AudioDeviceRecorder::StopCapture() {
 
 void AudioDeviceRecorder::StartCapture() {
   std::lock_guard<std::recursive_mutex> lk(_mutex);
+
+  if (_recording) {
+    return;
+  }
 
   _recording = true;
   if (_recordingFailed) {

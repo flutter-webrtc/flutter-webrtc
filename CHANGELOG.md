@@ -14,7 +14,12 @@ All user visible changes to this project will be documented in this file. This p
 
 - Upgraded [OpenAL] library to [1.24.3][openal-1.24.3] version. ([#193])
 
+### Fixed
+
+- Audio processing not working properly on multiple local audio sources. ([#195])
+
 [#193]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/193
+[#195]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/195
 [openal-1.24.3]: https://github.com/kcat/openal-soft/releases/tag/1.24.3
 
 
