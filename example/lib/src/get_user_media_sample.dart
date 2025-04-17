@@ -132,14 +132,11 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');
 
-    final audioTrack = _localStream!
-        .getAudioTracks()
-        .firstWhere((track) => track.kind == 'audio');
-
-    await _mediaRecorder!.start(_mediaRecorderFilePath!,
-        videoTrack: videoTrack,
-        audioTrack: audioTrack,
-        audioChannel: RecorderAudioChannel.OUTPUT);
+    await _mediaRecorder!.start(
+      _mediaRecorderFilePath!,
+      videoTrack: videoTrack,
+      audioChannel: RecorderAudioChannel.OUTPUT,
+    );
   }
 
   void _stopRecording() async {

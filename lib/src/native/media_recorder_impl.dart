@@ -16,42 +16,21 @@ class MediaRecorderNative extends MediaRecorder {
     String path, {
     MediaStreamTrack? videoTrack,
     RecorderAudioChannel? audioChannel,
-    MediaStreamTrack? audioTrack,
-    int rotationDegrees = 0,
   }) async {
     if (audioChannel == null && videoTrack == null) {
       throw Exception('Neither audio nor video track were provided');
     }
-    if ((WebRTC.platformIsIOS || WebRTC.platformIsMacOS) &&
-        audioTrack != null) {
-      print("Warning! Audio recording is experimental on iOS/macOS!");
-    }
+
     await WebRTC.invokeMethod('startRecordToFile', {
       'path': path,
       if (audioChannel != null) 'audioChannel': audioChannel.index,
       if (videoTrack != null) 'videoTrackId': videoTrack.id,
-      if (audioTrack != null) 'audioTrackId': audioTrack.id,
-      'rotation': rotationDegrees,
       'recorderId': _recorderId,
       'peerConnectionId': videoTrack is MediaStreamTrackNative
           ? videoTrack.peerConnectionId
           : null
     });
     _isStarted = true;
-  }
-
-  @override
-  Future<void> changeVideoTrack(MediaStreamTrack videoTrack) async {
-    if (!_isStarted) {
-      throw "Media recorder not started!";
-    }
-    await WebRTC.invokeMethod('changeRecorderTrack', {
-      'videoTrackId': videoTrack.id,
-      'recorderId': _recorderId,
-      'peerConnectionId': videoTrack is MediaStreamTrackNative
-          ? videoTrack.peerConnectionId
-          : null
-    });
   }
 
   @override

@@ -9,20 +9,16 @@
     int framesCount;
     bool isInitialized;
     CGSize _renderSize;
-    RTCVideoRotation _rotation;
     FlutterRTCAudioSink* _audioSink;
     AVAssetWriterInput* _audioWriter;
-    int _additionalRotation;
     int64_t _startTime;
 }
 
-- (instancetype)initWithVideoTrack:(RTCVideoTrack *)video rotationDegrees:(NSNumber *)rotation audioTrack:(RTCAudioTrack *)audio outputFile:(NSURL *)out {
+- (instancetype)initWithVideoTrack:(RTCVideoTrack *)video audioTrack:(RTCAudioTrack *)audio outputFile:(NSURL *)out {
     self = [super init];
-    _rotation = -1;
     isInitialized = false;
     self.videoTrack = video;
     self.output = out;
-    _additionalRotation = rotation.intValue;
     [video addRenderer:self];
     framesCount = 0;
     if (audio != nil)
@@ -31,14 +27,6 @@
         NSLog(@"Audio track is nil");
     _startTime = -1;
     return self;
-}
-
-- (void)changeVideoTrack:(RTCVideoTrack *)track {
-    if (self.videoTrack) {
-        [self.videoTrack removeRenderer:self];
-    }
-    self.videoTrack = track;
-    [track addRenderer:self];
 }
 
 - (void)initialize:(CGSize)size {
@@ -54,17 +42,7 @@
                outputSettings:videoSettings];
     self.writerInput.expectsMediaDataInRealTime = true;
     self.writerInput.mediaTimeScale = 30;
-    int rotationDegrees = _additionalRotation;
-    switch (_rotation) {
-        case RTCVideoRotation_0: break;
-        case RTCVideoRotation_90: rotationDegrees += 90; break;
-        case RTCVideoRotation_180: rotationDegrees += 180; break;
-        case RTCVideoRotation_270: rotationDegrees += 270; break;
-        default: break;
-    }
-    rotationDegrees %= 360;
-    self.writerInput.transform = CGAffineTransformMakeRotation(M_PI * rotationDegrees / 180);
-    
+
     if (_audioSink != nil) {
         AudioChannelLayout acl;
         bzero(&acl, sizeof(acl));
@@ -117,7 +95,6 @@
         return;
     }
     if (!isInitialized) {
-        _rotation = frame.rotation;
         [self initialize:CGSizeMake((CGFloat) frame.width, (CGFloat) frame.height)];
     }
     if (!self.writerInput.readyForMoreMediaData) {

@@ -71,6 +71,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
                         peerConnectionId:(NSString* _Nullable)peerConnectionId;
 - (RTCMediaStreamTrack* _Nullable)trackForId:(NSString* _Nonnull)trackId
                             peerConnectionId:(NSString* _Nullable)peerConnectionId;
+- (NSString*)audioTrackIdForVideoTrackId:(NSString*)videoTrackId;
 - (RTCRtpTransceiver* _Nullable)getRtpTransceiverById:(RTCPeerConnection* _Nonnull)peerConnection
                                                    Id:(NSString* _Nullable)Id;
 - (NSDictionary* _Nullable)mediaStreamToMap:(RTCMediaStream* _Nonnull)stream

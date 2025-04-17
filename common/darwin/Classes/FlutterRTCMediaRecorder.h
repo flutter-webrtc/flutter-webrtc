@@ -8,20 +8,17 @@
 @import Foundation;
 @import AVFoundation;
 
-@interface FlutterRTCMediaRecorder : NSObject<RTCVideoRenderer>
+@interface FlutterRTCMediaRecorder : NSObject <RTCVideoRenderer>
 
-@property (nonatomic, strong) RTCVideoTrack * _Nullable videoTrack;
-@property (nonatomic, strong) NSURL * _Nonnull output;
-@property (nonatomic, strong) AVAssetWriter * _Nullable assetWriter;
-@property (nonatomic, strong) AVAssetWriterInput * _Nullable writerInput;
+@property(nonatomic, strong) RTCVideoTrack* _Nullable videoTrack;
+@property(nonatomic, strong) NSURL* _Nonnull output;
+@property(nonatomic, strong) AVAssetWriter* _Nullable assetWriter;
+@property(nonatomic, strong) AVAssetWriterInput* _Nullable writerInput;
 
-- (instancetype _Nonnull) initWithVideoTrack:(RTCVideoTrack * _Nullable)video
-                             rotationDegrees:(NSNumber * _Nonnull)rotation
-                                  audioTrack:(RTCAudioTrack * _Nullable)audio
-                                  outputFile:(NSURL * _Nonnull)out;
+- (instancetype _Nonnull)initWithVideoTrack:(RTCVideoTrack* _Nullable)video
+                                 audioTrack:(RTCAudioTrack* _Nullable)audio
+                                 outputFile:(NSURL* _Nonnull)out;
 
-- (void) changeVideoTrack:(RTCVideoTrack * _Nonnull) track;
-
-- (void) stop:(_Nonnull FlutterResult) result;
+- (void)stop:(_Nonnull FlutterResult)result;
 
 @end
