@@ -14,7 +14,7 @@ class TaskRunnerLinux : public TaskRunner {
   ~TaskRunnerLinux() override = default;
 
   // TaskRunner implementation.
-  void EnqueueTask(TaskClosure task);
+  void EnqueueTask(TaskClosure task) override;
 
  private:
   std::mutex tasks_mutex_;

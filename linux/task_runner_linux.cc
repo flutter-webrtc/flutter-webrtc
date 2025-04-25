@@ -14,7 +14,7 @@ void TaskRunnerLinux::EnqueueTask(TaskClosure task) {
   if (context) {
     g_main_context_invoke(
         context,
-        [](gpointer user_data) {
+        [](gpointer user_data)  -> gboolean {
           TaskRunnerLinux* runner = static_cast<TaskRunnerLinux*>(user_data);
           std::lock_guard<std::mutex> lock(runner->tasks_mutex_);
           while (!runner->tasks_.empty()) {
@@ -22,6 +22,7 @@ void TaskRunnerLinux::EnqueueTask(TaskClosure task) {
             runner->tasks_.pop();
             task();
           }
+          return G_SOURCE_REMOVE;
         },
         this);
   }
