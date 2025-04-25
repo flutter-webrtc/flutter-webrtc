@@ -2,18 +2,26 @@ name: flutter_webrtc
 description: Flutter WebRTC plugin for iOS/Android/Destkop/Web, based on GoogleWebRTC.
 version: 0.13.1+hotfix.1
 homepage: https://github.com/cloudwebrtc/flutter-webrtc
+publish_to: none
 environment:
-  sdk: '>=3.3.0 <4.0.0'
-  flutter: '>=1.22.0'
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=1.22.0"
 
 dependencies:
   collection: ^1.17.0
-  dart_webrtc: ^1.5.3
+  dart_webrtc:
+    git:
+      url: https://github.com/daniel-g-favoreto-opl/dart-webrtc.git
+      ref: ios-record
+
   flutter:
     sdk: flutter
   path_provider: ^2.0.2
   web: ^1.0.0
-  webrtc_interface: ^1.2.2+hotfix.1
+  webrtc_interface:
+    git:
+      url: https://github.com/daniel-g-favoreto-opl/webrtc-interface.git
+      ref: media-recording-changes
 
 dev_dependencies:
   flutter_test:
@@ -39,3 +47,9 @@ flutter:
         pluginClass: FlutterWebRTCPlugin
       elinux:
         pluginClass: FlutterWebRTCPlugin
+
+dependency_overrides:
+  webrtc_interface:
+    git:
+      url: https://github.com/daniel-g-favoreto-opl/webrtc-interface.git
+      ref: media-recording-changes
