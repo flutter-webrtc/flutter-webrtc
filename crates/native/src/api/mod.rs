@@ -2112,15 +2112,72 @@ pub struct AudioConstraints {
     /// [`MediaStreamTrack`].
     ///
     /// First device will be chosen if an empty [`String`] is provided.
-    ///
-    /// **NOTE**: There can be only one active recording device at a time, so
-    ///           changing device will affect all previously obtained audio
-    ///           tracks.
     pub device_id: Option<String>,
 
+    /// Audio processing configuration of the [`MediaStreamTrack`].
+    pub processing: AudioProcessingConfig,
+}
+
+/// Audio processing configuration.
+#[derive(Debug, Default)]
+pub struct AudioProcessingConfig {
     /// Indicator whether the audio volume level should be automatically tuned
     /// to maintain a steady overall volume level.
     pub auto_gain_control: Option<bool>,
+
+    /// Indicator whether a high-pass filter should be enabled to eliminate
+    /// low-frequency noise.
+    pub high_pass_filter: Option<bool>,
+
+    /// Indicator whether noise suppression should be enabled to reduce
+    /// background sounds.
+    pub noise_suppression: Option<bool>,
+
+    /// Level of aggressiveness for noise suppression.
+    pub noise_suppression_level: Option<NoiseSuppressionLevel>,
+
+    /// Indicator whether echo cancellation should be enabled to prevent
+    /// feedback.
+    pub echo_cancellation: Option<bool>,
+}
+
+/// [`AudioProcessingConfig`] noise suppression aggressiveness.
+#[derive(Debug, Copy, Clone)]
+pub enum NoiseSuppressionLevel {
+    /// Minimal noise suppression.
+    Low,
+
+    /// Moderate level of suppression.
+    Moderate,
+
+    /// Aggressive noise suppression.
+    High,
+
+    /// Maximum suppression.
+    VeryHigh,
+}
+
+impl From<NoiseSuppressionLevel> for sys::NoiseSuppressionLevel {
+    fn from(level: NoiseSuppressionLevel) -> Self {
+        match level {
+            NoiseSuppressionLevel::Low => Self::kLow,
+            NoiseSuppressionLevel::Moderate => Self::kModerate,
+            NoiseSuppressionLevel::High => Self::kHigh,
+            NoiseSuppressionLevel::VeryHigh => Self::kVeryHigh,
+        }
+    }
+}
+
+impl From<sys::NoiseSuppressionLevel> for NoiseSuppressionLevel {
+    fn from(level: sys::NoiseSuppressionLevel) -> Self {
+        match level {
+            sys::NoiseSuppressionLevel::kLow => Self::Low,
+            sys::NoiseSuppressionLevel::kModerate => Self::Moderate,
+            sys::NoiseSuppressionLevel::kHigh => Self::High,
+            sys::NoiseSuppressionLevel::kVeryHigh => Self::VeryHigh,
+            _ => unreachable!(),
+        }
+    }
 }
 
 /// Representation of a single media track within a [MediaStream].
@@ -2517,7 +2574,6 @@ pub fn is_fake_media() -> bool {
 
 /// Returns a list of all available media input and output devices, such as
 /// microphones, cameras, headsets, and so forth.
-#[expect(clippy::missing_panics_doc, reason = "locking")]
 pub fn enumerate_devices() -> anyhow::Result<Vec<MediaDeviceInfo>> {
     WEBRTC.lock().unwrap().enumerate_devices()
 }
@@ -2530,7 +2586,6 @@ pub fn enumerate_displays() -> Vec<MediaDisplayInfo> {
 }
 
 /// Creates a new [`PeerConnection`] and returns its ID.
-#[expect(clippy::missing_panics_doc, reason = "locking")]
 #[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn create_peer_connection(
     cb: StreamSink<PeerConnectionEvent>,
@@ -2943,6 +2998,24 @@ pub fn set_audio_level_observer_enabled(
         track_origin,
         enabled,
     );
+}
+
+/// Applies the provided [`AudioProcessingConfig`] to specified local audio
+/// track.
+#[expect(clippy::needless_pass_by_value, reason = "FFI")]
+pub fn update_audio_processing(
+    track_id: String,
+    conf: AudioProcessingConfig,
+) -> anyhow::Result<()> {
+    WEBRTC.lock().unwrap().apply_audio_processing_config(track_id, &conf)
+}
+
+/// Returns the current [`AudioProcessingConfig`] for the specified local audio
+/// track.
+pub fn get_audio_processing_config(
+    track_id: String,
+) -> anyhow::Result<AudioProcessingConfig> {
+    WEBRTC.lock().unwrap().get_audio_processing_config(track_id)
 }
 
 /// Sets the provided `OnDeviceChangeCallback` as the callback to be called

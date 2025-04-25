@@ -21,7 +21,7 @@ xxhash = { package = "xxhash-rust", version = "0.8", features = ["xxh3"] }
 [target.'cfg(target_os = "linux")'.dependencies]
 libudev = "0.3"
 nix = { version = "0.29", features = ["poll", "signal"] }
-pulse = { version = "2.28", package = "libpulse-binding" }
+pulse = { version = "2.30", package = "libpulse-binding" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Media_Audio", "Win32_System_Com", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging"] }

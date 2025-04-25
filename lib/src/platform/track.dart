@@ -80,6 +80,49 @@ abstract class MediaStreamTrack {
         'before trying to set onAudioLevelChanged callback';
   }
 
+  /// Indicates whether the following function are supported for this
+  /// [MediaStreamTrack]:
+  /// - [MediaStreamTrack.setNoiseSuppressionEnabled]
+  /// - [MediaStreamTrack.setNoiseSuppressionLevel]
+  /// - [MediaStreamTrack.setHighPassFilterEnabled]
+  /// - [MediaStreamTrack.setEchoCancellationEnabled]
+  /// - [MediaStreamTrack.setAutoGainControlEnabled]
+  ///
+  /// Only supported for local audio [MediaStreamTrack]s on desktop platforms.
+  bool isAudioProcessingAvailable() {
+    return false;
+  }
+
+  Future<void> setNoiseSuppressionEnabled(bool enabled) {
+    throw 'setNoiseSuppressionEnabled is only support for local audio tracks '
+        'on desktop platforms. isAudioProcessingAvailable() should be called '
+        'before trying to call setNoiseSuppressionEnabled';
+  }
+
+  Future<void> setNoiseSuppressionLevel(NoiseSuppressionLevel level) {
+    throw 'setNoiseSuppressionEnabled is only support for local audio tracks '
+        'on desktop platforms. isAudioProcessingAvailable() should be called '
+        'before trying to call setNoiseSuppressionEnabled';
+  }
+
+  Future<void> setHighPassFilterEnabled(bool enabled) {
+    throw 'setHighPassFilterEnabled is only support for local audio tracks '
+        'on desktop platforms. isAudioProcessingAvailable() should be called '
+        'before trying to call setHighPassFilterEnabled';
+  }
+
+  Future<void> setEchoCancellationEnabled(bool enabled) {
+    throw 'setEchoCancellationEnabled is only support for local audio tracks '
+        'on desktop platforms. isAudioProcessingAvailable() should be called '
+        'before trying to call setEchoCancellationEnabled';
+  }
+
+  Future<void> setAutoGainControlEnabled(bool enabled) {
+    throw 'setAutoGainControlEnabled is only support for local audio tracks '
+        'on desktop platforms. isAudioProcessingAvailable() should be called '
+        'before trying to call setAutoGainControlEnabled';
+  }
+
   /// Creates a new instance of [MediaStreamTrack], which will depend on the same
   /// media source as this [MediaStreamTrack].
   ///

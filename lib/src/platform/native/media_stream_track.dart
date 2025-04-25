@@ -226,7 +226,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   void onAudioLevelChanged(OnAudioLevelChangedCallback? cb) {
-    if (_stopped) {
+    if (!isOnAudioLevelAvailable()) {
       return;
     }
     ffi.setAudioLevelObserverEnabled(
@@ -239,15 +239,7 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   bool isOnAudioLevelAvailable() {
-    if (_stopped) {
-      return false;
-    }
-
-    if (_kind != MediaKind.audio || _deviceId == 'remote') {
-      return false;
-    } else {
-      return true;
-    }
+    return !_stopped && _kind == MediaKind.audio && _deviceId != 'remote';
   }
 
   @override
@@ -350,5 +342,77 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
       );
     }
     _stopped = true;
+  }
+
+  @override
+  bool isAudioProcessingAvailable() {
+    return !_stopped && _kind == MediaKind.audio && _deviceId != 'remote';
+  }
+
+  @override
+  Future<void> setAutoGainControlEnabled(bool enabled) async {
+    if (!isAudioProcessingAvailable()) {
+      throw 'setAutoGainControlEnabled is unsupported, check with '
+          'isAudioProcessingAvailable beforehand';
+    }
+
+    await ffi.updateAudioProcessing(
+      trackId: _id,
+      conf: ffi.AudioProcessingConfig(autoGainControl: enabled),
+    );
+  }
+
+  @override
+  Future<void> setEchoCancellationEnabled(bool enabled) async {
+    if (!isAudioProcessingAvailable()) {
+      throw 'setEchoCancellationEnabled is unsupported, check with '
+          'isAudioProcessingAvailable beforehand';
+    }
+
+    await ffi.updateAudioProcessing(
+      trackId: _id,
+      conf: ffi.AudioProcessingConfig(echoCancellation: enabled),
+    );
+  }
+
+  @override
+  Future<void> setHighPassFilterEnabled(bool enabled) async {
+    if (!isAudioProcessingAvailable()) {
+      throw 'setHighPassFilterEnabled is unsupported, check with '
+          'isAudioProcessingAvailable beforehand';
+    }
+
+    await ffi.updateAudioProcessing(
+      trackId: _id,
+      conf: ffi.AudioProcessingConfig(highPassFilter: enabled),
+    );
+  }
+
+  @override
+  Future<void> setNoiseSuppressionEnabled(bool enabled) async {
+    if (!isAudioProcessingAvailable()) {
+      throw 'setNoiseSuppressionEnabled is unsupported, check with '
+          'isAudioProcessingAvailable beforehand';
+    }
+
+    await ffi.updateAudioProcessing(
+      trackId: _id,
+      conf: ffi.AudioProcessingConfig(noiseSuppression: enabled),
+    );
+  }
+
+  @override
+  Future<void> setNoiseSuppressionLevel(NoiseSuppressionLevel level) async {
+    if (!isAudioProcessingAvailable()) {
+      throw 'setNoiseSuppressionLevel is unsupported, check with '
+          'isAudioProcessingAvailable beforehand';
+    }
+
+    await ffi.updateAudioProcessing(
+      trackId: _id,
+      conf: ffi.AudioProcessingConfig(
+        noiseSuppressionLevel: ffi.NoiseSuppressionLevel.values[level.index],
+      ),
+    );
   }
 }

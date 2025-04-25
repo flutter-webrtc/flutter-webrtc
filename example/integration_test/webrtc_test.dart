@@ -3,6 +3,8 @@ import 'dart:io' show Platform;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medea_flutter_webrtc/medea_flutter_webrtc.dart';
+import 'package:medea_flutter_webrtc/src/api/bridge/api.dart'
+    show getAudioProcessingConfig;
 import 'package:integration_test/integration_test.dart';
 
 void main() {
@@ -1431,5 +1433,122 @@ void main() {
     await pc2.close();
     await tVideo.dispose();
     await tAudio.dispose();
+  });
+
+  testWidgets('Audio processing in get user media', (
+    WidgetTester tester,
+  ) async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      // Only supported on desktop.
+      return;
+    }
+
+    {
+      // Everything is enabled by default
+      var capsAudioOnly = DeviceConstraints();
+      capsAudioOnly.audio.mandatory = AudioConstraints();
+
+      var track = (await getUserMedia(capsAudioOnly))[0];
+
+      var conf = await getAudioProcessingConfig(trackId: track.id());
+
+      expect(conf.noiseSuppression, isTrue);
+      expect(conf.highPassFilter, isTrue);
+      expect(conf.echoCancellation, isTrue);
+      expect(conf.autoGainControl, isTrue);
+      expect(
+        conf.noiseSuppressionLevel!.index,
+        equals(NoiseSuppressionLevel.veryHigh.index),
+      );
+
+      await track.stop();
+    }
+
+    {
+      // Disable via gum
+      var capsAudioOnly = DeviceConstraints();
+      capsAudioOnly.audio.mandatory = AudioConstraints();
+      capsAudioOnly.audio.mandatory!.noiseSuppression = false;
+      capsAudioOnly.audio.mandatory!.highPassFilter = false;
+      capsAudioOnly.audio.mandatory!.echoCancellation = false;
+      capsAudioOnly.audio.mandatory!.autoGainControl = false;
+      capsAudioOnly.audio.mandatory!.noiseSuppressionLevel =
+          NoiseSuppressionLevel.low;
+
+      var track = (await getUserMedia(capsAudioOnly))[0];
+
+      var conf = await getAudioProcessingConfig(trackId: track.id());
+
+      expect(conf.noiseSuppression, isFalse);
+      expect(conf.highPassFilter, isFalse);
+      expect(conf.echoCancellation, isFalse);
+      expect(conf.autoGainControl, isFalse);
+      expect(
+        conf.noiseSuppressionLevel!.index,
+        equals(NoiseSuppressionLevel.low.index),
+      );
+
+      await track.stop();
+    }
+
+    {
+      // Disable in runtime
+      var capsAudioOnly = DeviceConstraints();
+      capsAudioOnly.audio.mandatory = AudioConstraints();
+
+      var track = (await getUserMedia(capsAudioOnly))[0];
+
+      await track.setNoiseSuppressionEnabled(false);
+      await track.setHighPassFilterEnabled(false);
+      await track.setEchoCancellationEnabled(false);
+      await track.setAutoGainControlEnabled(false);
+      await track.setNoiseSuppressionLevel(NoiseSuppressionLevel.low);
+
+      var conf = await getAudioProcessingConfig(trackId: track.id());
+
+      expect(conf.noiseSuppression, isFalse);
+      expect(conf.highPassFilter, isFalse);
+      expect(conf.echoCancellation, isFalse);
+      expect(conf.autoGainControl, isFalse);
+      expect(
+        conf.noiseSuppressionLevel!.index,
+        equals(NoiseSuppressionLevel.low.index),
+      );
+
+      await track.stop();
+    }
+
+    {
+      // Enable in runtime
+      var capsAudioOnly = DeviceConstraints();
+      capsAudioOnly.audio.mandatory = AudioConstraints();
+      capsAudioOnly.audio.mandatory!.noiseSuppression = false;
+      capsAudioOnly.audio.mandatory!.highPassFilter = false;
+      capsAudioOnly.audio.mandatory!.echoCancellation = false;
+      capsAudioOnly.audio.mandatory!.autoGainControl = false;
+      capsAudioOnly.audio.mandatory!.noiseSuppressionLevel =
+          NoiseSuppressionLevel.low;
+
+      var track = (await getUserMedia(capsAudioOnly))[0];
+
+      await track.setNoiseSuppressionEnabled(true);
+      await track.setHighPassFilterEnabled(true);
+      await track.setEchoCancellationEnabled(true);
+      await track.setAutoGainControlEnabled(true);
+      await track.setNoiseSuppressionLevel(NoiseSuppressionLevel.veryHigh);
+
+      var conf = await getAudioProcessingConfig(trackId: track.id());
+
+      expect(conf.noiseSuppression, isTrue);
+      expect(conf.highPassFilter, isTrue);
+      expect(conf.echoCancellation, isTrue);
+      expect(conf.autoGainControl, isTrue);
+      expect(
+        conf.noiseSuppressionLevel!.index,
+        equals(NoiseSuppressionLevel.veryHigh.index),
+      );
+
+      await track.stop();
+    }
   });
 }

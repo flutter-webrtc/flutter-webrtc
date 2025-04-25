@@ -12,8 +12,8 @@ import 'renderer.dart';
 
 part 'api.freezed.dart';
 
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `FLUTTER_RUST_BRIDGE_HANDLER`, `TrackKind`, `WEBRTC`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `deref`, `deref`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `hash`, `hash`, `hash`, `initialize`, `initialize`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `TrackKind`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `hash`, `hash`, `hash`
 
 /// Returns all [`VideoCodecInfo`]s of the supported video encoders.
 Future<List<VideoCodecInfo>> videoEncoders() =>
@@ -376,6 +376,22 @@ Future<void> setAudioLevelObserverEnabled({
   enabled: enabled,
 );
 
+/// Applies the provided [`AudioProcessingConfig`] to specified local audio
+/// track.
+Future<void> updateAudioProcessing({
+  required String trackId,
+  required AudioProcessingConfig conf,
+}) => RustLib.instance.api.crateApiUpdateAudioProcessing(
+  trackId: trackId,
+  conf: conf,
+);
+
+/// Returns the current [`AudioProcessingConfig`] for the specified local audio
+/// track.
+Future<AudioProcessingConfig> getAudioProcessingConfig({
+  required String trackId,
+}) => RustLib.instance.api.crateApiGetAudioProcessingConfig(trackId: trackId);
+
 /// Sets the provided `OnDeviceChangeCallback` as the callback to be called
 /// whenever a set of available media devices changes.
 ///
@@ -418,20 +434,15 @@ class AudioConstraints {
   /// [`MediaStreamTrack`].
   ///
   /// First device will be chosen if an empty [`String`] is provided.
-  ///
-  /// **NOTE**: There can be only one active recording device at a time, so
-  ///           changing device will affect all previously obtained audio
-  ///           tracks.
   final String? deviceId;
 
-  /// Indicator whether the audio volume level should be automatically tuned
-  /// to maintain a steady overall volume level.
-  final bool? autoGainControl;
+  /// Audio processing configuration of the [`MediaStreamTrack`].
+  final AudioProcessingConfig processing;
 
-  const AudioConstraints({this.deviceId, this.autoGainControl});
+  const AudioConstraints({this.deviceId, required this.processing});
 
   @override
-  int get hashCode => deviceId.hashCode ^ autoGainControl.hashCode;
+  int get hashCode => deviceId.hashCode ^ processing.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -439,7 +450,59 @@ class AudioConstraints {
       other is AudioConstraints &&
           runtimeType == other.runtimeType &&
           deviceId == other.deviceId &&
-          autoGainControl == other.autoGainControl;
+          processing == other.processing;
+}
+
+/// Audio processing configuration.
+class AudioProcessingConfig {
+  /// Indicator whether the audio volume level should be automatically tuned
+  /// to maintain a steady overall volume level.
+  final bool? autoGainControl;
+
+  /// Indicator whether a high-pass filter should be enabled to eliminate
+  /// low-frequency noise.
+  final bool? highPassFilter;
+
+  /// Indicator whether noise suppression should be enabled to reduce
+  /// background sounds.
+  final bool? noiseSuppression;
+
+  /// Level of aggressiveness for noise suppression.
+  final NoiseSuppressionLevel? noiseSuppressionLevel;
+
+  /// Indicator whether echo cancellation should be enabled to prevent
+  /// feedback.
+  final bool? echoCancellation;
+
+  const AudioProcessingConfig({
+    this.autoGainControl,
+    this.highPassFilter,
+    this.noiseSuppression,
+    this.noiseSuppressionLevel,
+    this.echoCancellation,
+  });
+
+  static Future<AudioProcessingConfig> default_() =>
+      RustLib.instance.api.crateApiAudioProcessingConfigDefault();
+
+  @override
+  int get hashCode =>
+      autoGainControl.hashCode ^
+      highPassFilter.hashCode ^
+      noiseSuppression.hashCode ^
+      noiseSuppressionLevel.hashCode ^
+      echoCancellation.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AudioProcessingConfig &&
+          runtimeType == other.runtimeType &&
+          autoGainControl == other.autoGainControl &&
+          highPassFilter == other.highPassFilter &&
+          noiseSuppression == other.noiseSuppression &&
+          noiseSuppressionLevel == other.noiseSuppressionLevel &&
+          echoCancellation == other.echoCancellation;
 }
 
 /// [RTCBundlePolicy][1] representation.
@@ -870,6 +933,21 @@ enum MediaType {
 
   /// Video [`MediaStreamTrack`].
   video,
+}
+
+/// [`AudioProcessingConfig`] noise suppression aggressiveness.
+enum NoiseSuppressionLevel {
+  /// Minimal noise suppression.
+  low,
+
+  /// Moderate level of suppression.
+  moderate,
+
+  /// Aggressive noise suppression.
+  high,
+
+  /// Maximum suppression.
+  veryHigh,
 }
 
 @freezed

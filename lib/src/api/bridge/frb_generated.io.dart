@@ -77,10 +77,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AudioConstraints dco_decode_audio_constraints(dynamic raw);
 
   @protected
+  AudioProcessingConfig dco_decode_audio_processing_config(dynamic raw);
+
+  @protected
   bool dco_decode_bool(dynamic raw);
 
   @protected
   AudioConstraints dco_decode_box_autoadd_audio_constraints(dynamic raw);
+
+  @protected
+  AudioProcessingConfig dco_decode_box_autoadd_audio_processing_config(
+    dynamic raw,
+  );
 
   @protected
   bool dco_decode_box_autoadd_bool(dynamic raw);
@@ -107,6 +115,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MediaStreamTrack dco_decode_box_autoadd_media_stream_track(dynamic raw);
+
+  @protected
+  NoiseSuppressionLevel dco_decode_box_autoadd_noise_suppression_level(
+    dynamic raw,
+  );
 
   @protected
   Protocol dco_decode_box_autoadd_protocol(dynamic raw);
@@ -265,6 +278,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   MediaType dco_decode_media_type(dynamic raw);
 
   @protected
+  NoiseSuppressionLevel dco_decode_noise_suppression_level(dynamic raw);
+
+  @protected
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
@@ -284,6 +300,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MediaStreamTrack? dco_decode_opt_box_autoadd_media_stream_track(dynamic raw);
+
+  @protected
+  NoiseSuppressionLevel? dco_decode_opt_box_autoadd_noise_suppression_level(
+    dynamic raw,
+  );
 
   @protected
   Protocol? dco_decode_opt_box_autoadd_protocol(dynamic raw);
@@ -489,10 +510,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AudioConstraints sse_decode_audio_constraints(SseDeserializer deserializer);
 
   @protected
+  AudioProcessingConfig sse_decode_audio_processing_config(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
   AudioConstraints sse_decode_box_autoadd_audio_constraints(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AudioProcessingConfig sse_decode_box_autoadd_audio_processing_config(
     SseDeserializer deserializer,
   );
 
@@ -525,6 +556,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MediaStreamTrack sse_decode_box_autoadd_media_stream_track(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NoiseSuppressionLevel sse_decode_box_autoadd_noise_suppression_level(
     SseDeserializer deserializer,
   );
 
@@ -729,6 +765,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   MediaType sse_decode_media_type(SseDeserializer deserializer);
 
   @protected
+  NoiseSuppressionLevel sse_decode_noise_suppression_level(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
@@ -750,6 +791,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MediaStreamTrack? sse_decode_opt_box_autoadd_media_stream_track(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NoiseSuppressionLevel? sse_decode_opt_box_autoadd_noise_suppression_level(
     SseDeserializer deserializer,
   );
 
@@ -1004,11 +1050,23 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_audio_processing_config(
+    AudioProcessingConfig self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_audio_constraints(
     AudioConstraints self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_audio_processing_config(
+    AudioProcessingConfig self,
     SseSerializer serializer,
   );
 
@@ -1045,6 +1103,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_media_stream_track(
     MediaStreamTrack self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_noise_suppression_level(
+    NoiseSuppressionLevel self,
     SseSerializer serializer,
   );
 
@@ -1293,6 +1357,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_media_type(MediaType self, SseSerializer serializer);
 
   @protected
+  void sse_encode_noise_suppression_level(
+    NoiseSuppressionLevel self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
@@ -1319,6 +1389,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_media_stream_track(
     MediaStreamTrack? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_noise_suppression_level(
+    NoiseSuppressionLevel? self,
     SseSerializer serializer,
   );
 

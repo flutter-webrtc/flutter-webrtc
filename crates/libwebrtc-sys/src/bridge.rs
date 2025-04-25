@@ -1459,6 +1459,23 @@ pub(crate) mod webrtc {
         kBundlePolicyMaxCompat,
     }
 
+    /// Possible noise suppression levels.
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    #[repr(i32)]
+    pub enum NoiseSuppressionLevel {
+        /// Minimal noise suppression.
+        kLow,
+
+        /// Moderate level of suppression.
+        kModerate,
+
+        /// Aggressive noise suppression.
+        kHigh,
+
+        /// Maximum suppression.
+        kVeryHigh,
+    }
+
     #[rustfmt::skip]
     unsafe extern "C++" {
         include!("libwebrtc-sys/include/bridge.h");
@@ -1599,9 +1616,12 @@ pub(crate) mod webrtc {
     unsafe extern "C++" {
         pub type AudioProcessing;
         pub type AudioProcessingConfig;
+        pub type NoiseSuppressionLevel;
 
         /// Creates a new [`AudioProcessing`].
-        pub fn create_audio_processing() -> UniquePtr<AudioProcessing>;
+        pub fn create_audio_processing(
+            conf: UniquePtr<AudioProcessingConfig>,
+        ) -> UniquePtr<AudioProcessing>;
 
         /// Indicates intent to mute the output of the provided
         /// [`AudioProcessing`].
@@ -1615,18 +1635,76 @@ pub(crate) mod webrtc {
         pub fn create_audio_processing_config()
         -> UniquePtr<AudioProcessingConfig>;
 
-        /// Returns [`AudioProcessingConfig`] of the provided
-        /// [`AudioProcessing`].
-        pub fn audio_processing_get_config(
-            ap: &AudioProcessing,
-        ) -> UniquePtr<AudioProcessingConfig>;
-
         /// Enables/disables AGC (auto gain control) in the provided
         /// [`AudioProcessingConfig`].
         pub fn config_gain_controller1_set_enabled(
             config: Pin<&mut AudioProcessingConfig>,
             enabled: bool,
         );
+
+        /// Enables/disables noise suppression in the provided
+        /// [`AudioProcessingConfig`].
+        pub fn config_noise_suppression_set_enabled(
+            config: Pin<&mut AudioProcessingConfig>,
+            enabled: bool,
+        );
+
+        /// Configures [`NoiseSuppressionLevel`] in the provided
+        /// [`AudioProcessingConfig`].
+        pub fn config_noise_suppression_set_level(
+            config: Pin<&mut AudioProcessingConfig>,
+            level: NoiseSuppressionLevel,
+        );
+
+        /// Enables/disables high pass filter in the provided
+        /// [`AudioProcessingConfig`].
+        pub fn config_high_pass_filter_set_enabled(
+            config: Pin<&mut AudioProcessingConfig>,
+            enabled: bool,
+        );
+
+        /// Enables/disables acoustic echo cancellation in the provided
+        /// [`AudioProcessingConfig`].
+        pub fn config_echo_cancellation_set_enabled(
+            config: Pin<&mut AudioProcessingConfig>,
+            enabled: bool,
+        );
+
+        /// Returns [`AudioProcessingConfig`] of the provided
+        /// [`AudioProcessing`].
+        pub fn audio_processing_get_config(
+            ap: &AudioProcessing,
+        ) -> UniquePtr<AudioProcessingConfig>;
+
+        /// Indicates whether AGC (auto gain control) is enabled in the provided
+        /// [`AudioProcessingConfig`].
+        pub fn config_gain_controller1_get_enabled(
+            config: Pin<&mut AudioProcessingConfig>,
+        ) -> bool;
+
+        /// Indicates whether noise suppression is enabled in the provided
+        /// [`AudioProcessingConfig`].
+        pub fn config_noise_suppression_get_enabled(
+            config: Pin<&mut AudioProcessingConfig>,
+        ) -> bool;
+
+        /// Returns [`NoiseSuppressionLevel`] in the provided
+        /// [`AudioProcessingConfig`].
+        pub fn config_noise_suppression_get_level(
+            config: Pin<&mut AudioProcessingConfig>,
+        ) -> NoiseSuppressionLevel;
+
+        /// Indicates whether high pass filter is enabled in the provided
+        /// [`AudioProcessingConfig`].
+        pub fn config_high_pass_filter_get_enabled(
+            config: Pin<&mut AudioProcessingConfig>,
+        ) -> bool;
+
+        /// Indicates whether echo cancellation is enabled in the provided
+        /// [`AudioProcessingConfig`].
+        pub fn config_echo_cancellation_get_enabled(
+            config: Pin<&mut AudioProcessingConfig>,
+        ) -> bool;
 
         /// Applies the provided [`AudioProcessingConfig`] to the provided
         /// [`AudioProcessing`].
@@ -2675,7 +2753,7 @@ pub(crate) mod webrtc {
         pub fn create_audio_source(
             audio_device_module: &AudioDeviceModule,
             device_index: u16,
-            ap: UniquePtr<AudioProcessing>,
+            ap: &UniquePtr<AudioProcessing>,
         ) -> UniquePtr<AudioSourceInterface>;
 
         /// Disposes the [`AudioSourceInterface`] with the provided `device_id`.

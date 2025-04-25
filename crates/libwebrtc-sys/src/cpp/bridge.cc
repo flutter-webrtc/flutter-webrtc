@@ -249,9 +249,10 @@ int32_t set_audio_playout_device(const AudioDeviceModule& audio_device_module,
 }
 
 // Calls `BuiltinAudioProcessingBuilder().Create()`.
-std::unique_ptr<AudioProcessing> create_audio_processing() {
+std::unique_ptr<AudioProcessing> create_audio_processing(
+    std::unique_ptr<AudioProcessingConfig> config) {
   auto apm = webrtc::BuiltinAudioProcessingBuilder()
-                 .SetConfig(*create_audio_processing_config())
+                 .SetConfig(*config)
                  .Build(webrtc::CreateEnvironment());
   return std::make_unique<AudioProcessing>(apm);
 }
@@ -331,7 +332,7 @@ std::unique_ptr<VideoTrackSourceInterface> create_display_video_source(
 std::unique_ptr<AudioSourceInterface> create_audio_source(
     const AudioDeviceModule& audio_device_module,
     uint16_t device_index,
-    std::unique_ptr<AudioProcessing> ap) {
+    const std::unique_ptr<AudioProcessing>& ap) {
   auto src = audio_device_module->CreateAudioSource(device_index, *ap);
   if (src == nullptr) {
     return nullptr;
@@ -1172,23 +1173,7 @@ std::unique_ptr<std::string> display_source_title(const DisplaySource& source) {
 
 // Creates a new `AudioProcessingConfig`.
 std::unique_ptr<AudioProcessingConfig> create_audio_processing_config() {
-  // TODO: Probably should be configured from the Rust side, but for now it's OK
-  //       to set default values here.
-  webrtc::AudioProcessing::Config apm_config;
-
-  apm_config.echo_canceller.enabled = true;
-  apm_config.echo_canceller.mobile_mode = false;
-
-  apm_config.gain_controller1.enabled = true;
-  apm_config.gain_controller1.mode ==
-      webrtc::AudioProcessing::Config::GainController1::kAdaptiveDigital;
-  apm_config.gain_controller1.enable_limiter = true;
-
-  apm_config.noise_suppression.enabled = true;
-  apm_config.noise_suppression.level =
-      webrtc::AudioProcessing::Config::NoiseSuppression::Level::kVeryHigh;
-
-  return std::make_unique<AudioProcessingConfig>(apm_config);
+  return std::make_unique<AudioProcessingConfig>();
 }
 
 // Enables/disables AGC (auto gain control) in the provided
@@ -1196,13 +1181,71 @@ std::unique_ptr<AudioProcessingConfig> create_audio_processing_config() {
 void config_gain_controller1_set_enabled(AudioProcessingConfig& config,
                                          bool enabled) {
   config.gain_controller1.enabled = enabled;
-  config.gain_controller1.analog_gain_controller.enabled = enabled;
+  config.gain_controller1.mode ==
+      webrtc::AudioProcessing::Config::GainController1::kAdaptiveDigital;
+  config.gain_controller1.enable_limiter = true;
+}
+
+// Enables/disables high pass filter in the provided `AudioProcessingConfig`.
+void config_high_pass_filter_set_enabled(AudioProcessingConfig& config,
+                                         bool enabled) {
+  config.high_pass_filter.enabled = enabled;
+}
+
+// Enables/disables acoustic echo cancellation in the provided
+// `AudioProcessingConfig`.
+void config_echo_cancellation_set_enabled(AudioProcessingConfig& config,
+                                          bool enabled) {
+  config.echo_canceller.enabled = enabled;
+  config.echo_canceller.mobile_mode = false;
+}
+
+// Enables/disables noise suppression in the provided `AudioProcessingConfig`.
+void config_noise_suppression_set_enabled(AudioProcessingConfig& config,
+                                          bool enabled) {
+  config.noise_suppression.enabled = enabled;
+}
+
+// Configures noise suppression level in the provided `AudioProcessingConfig`.
+void config_noise_suppression_set_level(AudioProcessingConfig& config,
+                                        NoiseSuppressionLevel level) {
+  config.noise_suppression.level = level;
 }
 
 // Returns `AudioProcessingConfig` of the provided `AudioProcessing`.
 std::unique_ptr<AudioProcessingConfig> audio_processing_get_config(
     const AudioProcessing& ap) {
   return std::make_unique<AudioProcessingConfig>(ap->GetConfig());
+}
+
+// Indicates whether AGC (auto gain control) is enabled in the provided
+// `AudioProcessingConfig`.
+bool config_gain_controller1_get_enabled(AudioProcessingConfig& config) {
+  return config.gain_controller1.enabled;
+}
+
+// Indicates whether high pass filter is enabled in the provided
+// `AudioProcessingConfig`.
+bool config_high_pass_filter_get_enabled(AudioProcessingConfig& config) {
+  return config.high_pass_filter.enabled;
+}
+
+// Indicates whether echo cancellation is enabled in the provided
+// `AudioProcessingConfig`.
+bool config_echo_cancellation_get_enabled(AudioProcessingConfig& config) {
+  return config.echo_canceller.enabled;
+}
+
+// Indicates whether noise suppression is enabled in the provided
+// `AudioProcessingConfig`.
+bool config_noise_suppression_get_enabled(AudioProcessingConfig& config) {
+  return config.noise_suppression.enabled;
+}
+
+// Returns noise suppression level in the provided `AudioProcessingConfig`.
+NoiseSuppressionLevel config_noise_suppression_get_level(
+    AudioProcessingConfig& config) {
+  return config.noise_suppression.level;
 }
 
 // Applies the provided  `AudioProcessingConfig` to the provided

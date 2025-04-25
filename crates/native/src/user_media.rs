@@ -294,21 +294,17 @@ impl Webrtc {
         };
 
         let src = if let Some(src) = self.audio_sources.get(&device_id) {
+            src.update_audio_processing(&caps.processing);
             Arc::clone(src)
         } else {
-            let ap = sys::AudioProcessing::new()?;
-            let mut config = ap.config();
-            if let Some(auto_gain_control) = caps.auto_gain_control {
-                config.set_gain_controller_enabled(auto_gain_control);
-            }
-            ap.apply_config(&config);
+            let processing =
+                sys::AudioProcessing::new((&caps.processing).into())?;
 
             let src = Arc::new(AudioSource::new(
                 device_id.clone(),
-                Arc::new(
-                    self.audio_device_module
-                        .create_audio_source(device_index, ap)?,
-                ),
+                self.audio_device_module
+                    .create_audio_source(device_index, &processing)?,
+                processing,
             ));
             self.audio_sources.insert(device_id, Arc::clone(&src));
 
@@ -565,6 +561,68 @@ impl Webrtc {
             }
         }
     }
+
+    /// Applies the provided [`api::AudioProcessingConfig`] to the
+    /// [`sys::AudioSourceInterface`] of the referred local [`AudioTrack`].
+    ///
+    /// # Errors
+    ///
+    /// If the provided [`AudioTrackId`] refers to a remote [`AudioTrack`].
+    pub fn apply_audio_processing_config(
+        &self,
+        id: String,
+        conf: &api::AudioProcessingConfig,
+    ) -> anyhow::Result<()> {
+        let id = AudioTrackId::from(id);
+        let Some(track) = self.audio_tracks.get_mut(&(id, TrackOrigin::Local))
+        else {
+            return Ok(());
+        };
+
+        let MediaTrackSource::Local(src) = &track.source else {
+            bail!("Cannot change audio processing of remote `AudioTrack`");
+        };
+
+        src.update_audio_processing(conf);
+
+        Ok(())
+    }
+
+    /// Returns the [`api::AudioProcessingConfig`] of the
+    /// [`sys::AudioSourceInterface`] of the referred local [`AudioTrack`].
+    ///
+    /// # Errors
+    ///
+    /// If the provided [`AudioTrackId`] refers to a remote [`AudioTrack`].
+    pub fn get_audio_processing_config(
+        &self,
+        id: String,
+    ) -> anyhow::Result<api::AudioProcessingConfig> {
+        let id = AudioTrackId::from(id);
+        let Some(track) = self.audio_tracks.get_mut(&(id, TrackOrigin::Local))
+        else {
+            return Ok(api::AudioProcessingConfig::default());
+        };
+
+        let MediaTrackSource::Local(src) = &track.source else {
+            bail!("Cannot get audio processing of remote `AudioTrack`");
+        };
+
+        let mut conf = src.ap.config();
+        let auto_gain_control = conf.get_gain_controller_enabled();
+        let high_pass_filter = conf.get_high_pass_filter_enabled();
+        let noise_suppression = conf.get_noise_suppression_enabled();
+        let noise_suppression_level = conf.get_noise_suppression_level();
+        let echo_cancellation = conf.get_echo_cancellation_enabled();
+
+        Ok(api::AudioProcessingConfig {
+            auto_gain_control: Some(auto_gain_control),
+            high_pass_filter: Some(high_pass_filter),
+            noise_suppression: Some(noise_suppression),
+            noise_suppression_level: Some(noise_suppression_level.into()),
+            echo_cancellation: Some(echo_cancellation),
+        })
+    }
 }
 
 /// ID of a [MediaStream].
@@ -759,7 +817,7 @@ impl AudioDeviceModule {
     pub fn create_audio_source(
         &mut self,
         device_index: u16,
-        ap: AudioProcessing,
+        ap: &AudioProcessing,
     ) -> anyhow::Result<sys::AudioSourceInterface> {
         if api::is_fake_media() {
             self.inner.create_fake_audio_source()
@@ -1358,7 +1416,10 @@ pub struct AudioSource {
     pub device_id: AudioDeviceId,
 
     /// Underlying FFI wrapper for the `LocalAudioSource`.
-    src: Arc<sys::AudioSourceInterface>,
+    src: sys::AudioSourceInterface,
+
+    /// [`sys::AudioProcessing`] used by this [`AudioSource`].
+    ap: sys::AudioProcessing,
 }
 
 impl AudioSource {
@@ -1366,13 +1427,15 @@ impl AudioSource {
     #[must_use]
     pub fn new(
         device_id: AudioDeviceId,
-        src: Arc<sys::AudioSourceInterface>,
+        src: sys::AudioSourceInterface,
+        ap: sys::AudioProcessing,
     ) -> Self {
         Self {
             device_id,
             observers: Arc::default(),
             last_observer_id: Mutex::default(),
             src,
+            ap,
         }
     }
 
@@ -1429,6 +1492,28 @@ impl AudioSource {
         if observers.is_empty() {
             self.src.unsubscribe();
         }
+    }
+
+    /// Applies the provided [`api::AudioProcessingConfig`] to the
+    /// [`sys::AudioProcessing`] of this [`AudioSource`].
+    fn update_audio_processing(&self, new_conf: &api::AudioProcessingConfig) {
+        let mut conf = self.ap.config();
+        if let Some(aec) = new_conf.echo_cancellation {
+            conf.set_echo_cancellation_enabled(aec);
+        }
+        if let Some(hpf) = new_conf.high_pass_filter {
+            conf.set_high_pass_filter_enabled(hpf);
+        }
+        if let Some(agc) = new_conf.auto_gain_control {
+            conf.set_gain_controller_enabled(agc);
+        }
+        if let Some(ns) = new_conf.noise_suppression {
+            conf.set_noise_suppression_enabled(ns);
+        }
+        if let Some(nsl) = new_conf.noise_suppression_level {
+            conf.set_noise_suppression_level(nsl.into());
+        }
+        self.ap.apply_config(&conf);
     }
 }
 
@@ -1547,5 +1632,32 @@ impl AudioSourceAudioLevelHandler {
             (level * 1000.0).round() as u32,
             100,
         )));
+    }
+}
+
+impl From<&api::AudioProcessingConfig> for sys::AudioProcessingConfig {
+    fn from(caps: &api::AudioProcessingConfig) -> Self {
+        let mut conf = Self::default();
+
+        conf.set_high_pass_filter_enabled(
+            caps.high_pass_filter.unwrap_or(true),
+        );
+        conf.set_echo_cancellation_enabled(
+            caps.echo_cancellation.unwrap_or(true),
+        );
+        conf.set_gain_controller_enabled(
+            caps.auto_gain_control.unwrap_or(true),
+        );
+
+        conf.set_noise_suppression_enabled(
+            caps.noise_suppression.unwrap_or(true),
+        );
+        conf.set_noise_suppression_level(
+            caps.noise_suppression_level
+                .unwrap_or(api::NoiseSuppressionLevel::VeryHigh)
+                .into(),
+        );
+
+        conf
     }
 }

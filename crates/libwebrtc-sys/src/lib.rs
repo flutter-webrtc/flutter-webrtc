@@ -167,12 +167,13 @@ use self::bridge::webrtc;
 pub use crate::webrtc::{
     AudioLayer, BundlePolicy, Candidate, CandidatePairChangeEvent,
     CandidateType, IceConnectionState, IceGatheringState, IceTransportsType,
-    MediaType, PeerConnectionState, RTCStatsIceCandidatePairState,
-    RtcpFeedbackMessageType, RtcpFeedbackType, RtpTransceiverDirection,
-    ScalabilityMode, SdpType, SignalingState, TrackState, VideoFrame,
-    VideoRotation, candidate_to_string, get_candidate_pair,
-    get_estimated_disconnected_time_ms, get_last_data_received_ms, get_reason,
-    video_frame_to_abgr, video_frame_to_argb,
+    MediaType, NoiseSuppressionLevel, PeerConnectionState,
+    RTCStatsIceCandidatePairState, RtcpFeedbackMessageType, RtcpFeedbackType,
+    RtpTransceiverDirection, ScalabilityMode, SdpType, SignalingState,
+    TrackState, VideoFrame, VideoRotation, candidate_to_string,
+    get_candidate_pair, get_estimated_disconnected_time_ms,
+    get_last_data_received_ms, get_reason, video_frame_to_abgr,
+    video_frame_to_argb,
 };
 
 /// Handler of events firing from a [`MediaStreamTrackInterface`].
@@ -469,12 +470,12 @@ impl AudioDeviceModule {
     pub fn create_audio_source(
         &self,
         device_index: u16,
-        audio_processing: AudioProcessing,
+        audio_processing: &AudioProcessing,
     ) -> anyhow::Result<AudioSourceInterface> {
         let ptr = webrtc::create_audio_source(
             &self.0,
             device_index,
-            audio_processing.0,
+            &audio_processing.0,
         );
 
         if ptr.is_null() {
@@ -673,12 +674,67 @@ impl AudioProcessingConfig {
     pub fn set_gain_controller_enabled(&mut self, enabled: bool) {
         webrtc::config_gain_controller1_set_enabled(self.0.pin_mut(), enabled);
     }
+
+    /// Enables/disables noise suppression in this [`AudioProcessingConfig`].
+    pub fn set_noise_suppression_enabled(&mut self, enabled: bool) {
+        webrtc::config_noise_suppression_set_enabled(self.0.pin_mut(), enabled);
+    }
+
+    /// Changes [`NoiseSuppressionLevel`] for the noise suppression module of
+    /// this [`AudioProcessingConfig`].
+    pub fn set_noise_suppression_level(
+        &mut self,
+        level: NoiseSuppressionLevel,
+    ) {
+        webrtc::config_noise_suppression_set_level(self.0.pin_mut(), level);
+    }
+
+    /// Enables/disables high pass filter in this [`AudioProcessingConfig`].
+    pub fn set_high_pass_filter_enabled(&mut self, enabled: bool) {
+        webrtc::config_high_pass_filter_set_enabled(self.0.pin_mut(), enabled);
+    }
+
+    /// Enables/disables acoustic echo cancellation in this
+    /// [`AudioProcessingConfig`].
+    pub fn set_echo_cancellation_enabled(&mut self, enabled: bool) {
+        webrtc::config_echo_cancellation_set_enabled(self.0.pin_mut(), enabled);
+    }
+
+    /// Indicates whether auto gain control is enabled in this
+    /// [`AudioProcessingConfig`].
+    pub fn get_gain_controller_enabled(&mut self) -> bool {
+        webrtc::config_gain_controller1_get_enabled(self.0.pin_mut())
+    }
+
+    /// Indicates whether noise suppression is enabled in this
+    /// [`AudioProcessingConfig`].
+    pub fn get_noise_suppression_enabled(&mut self) -> bool {
+        webrtc::config_noise_suppression_get_enabled(self.0.pin_mut())
+    }
+
+    /// Returns the configured [`NoiseSuppressionLevel`] of this
+    /// [`AudioProcessingConfig`].
+    pub fn get_noise_suppression_level(&mut self) -> NoiseSuppressionLevel {
+        webrtc::config_noise_suppression_get_level(self.0.pin_mut())
+    }
+
+    /// Indicates whether high pass filter is enabled in this
+    /// [`AudioProcessingConfig`].
+    pub fn get_high_pass_filter_enabled(&mut self) -> bool {
+        webrtc::config_high_pass_filter_get_enabled(self.0.pin_mut())
+    }
+
+    /// Indicates whether acoustic echo cancellation is enabled in this
+    /// [`AudioProcessingConfig`].
+    pub fn get_echo_cancellation_enabled(&mut self) -> bool {
+        webrtc::config_echo_cancellation_get_enabled(self.0.pin_mut())
+    }
 }
 
 impl AudioProcessing {
     /// Creates a new [`AudioProcessing`].
-    pub fn new() -> anyhow::Result<Self> {
-        let ptr = webrtc::create_audio_processing();
+    pub fn new(config: AudioProcessingConfig) -> anyhow::Result<Self> {
+        let ptr = webrtc::create_audio_processing(config.0);
 
         if ptr.is_null() {
             bail!("`null` pointer returned from `AudioProcessing::Create()`");
