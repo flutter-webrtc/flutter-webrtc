@@ -29,10 +29,12 @@ All user visible changes to this project will be documented in this file. This p
 ### Fixed
 
 - Audio processing not working properly on multiple local audio sources. ([#195])
+- Default device video resolution to 640x480. ([#198])
 
 [#193]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/193
 [#195]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/195
 [#197]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/197
+[#198]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/198
 [openal-1.24.3]: https://github.com/kcat/openal-soft/releases/tag/1.24.3
 
 

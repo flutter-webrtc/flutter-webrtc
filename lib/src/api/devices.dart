@@ -8,10 +8,10 @@ import 'bridge/api.dart' as ffi;
 import 'channel.dart';
 
 /// Default video width when capturing user's camera.
-const defaultUserMediaWidth = 480;
+const defaultUserMediaWidth = 640;
 
 /// Default video height when capturing user's camera.
-const defaultUserMediaHeight = 640;
+const defaultUserMediaHeight = 480;
 
 /// Default video width when capturing user's display.
 const defaultDisplayMediaWidth = 1280;
