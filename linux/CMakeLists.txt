@@ -24,6 +24,7 @@ add_library(${PLUGIN_NAME} SHARED
   "flutter/core_implementations.cc"
   "flutter/standard_codec.cc"
   "flutter/plugin_registrar.cc"
+  "task_runner_linux.cc"
 )
 
 include_directories(

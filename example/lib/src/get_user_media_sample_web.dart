@@ -1,10 +1,11 @@
 // ignore: uri_does_not_exist
 import 'dart:core';
-import 'dart:html' as html;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+
+import 'package:web/web.dart' as web;
 
 /*
  * getUserMedia sample
@@ -115,7 +116,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     });
     print(objectUrl);
     // ignore: unsafe_html
-    html.window.open(objectUrl, '_blank');
+    web.window.open(objectUrl, '_blank');
   }
 
   void _captureFrame() async {

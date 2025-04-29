@@ -1,6 +1,49 @@
+
 # Changelog
 
---------------------------------------------
+[0.13.1+hotfix.1] - 2024-04-07
+
+* [Android] fix: Fix `clearAndroidCommunicationDevice` call blocking.
+
+[0.13.1] - 2025-04-03
+
+* [Android] fix: remove setPreferredInputDevice when getUserAduio. (#1808)
+* [Web] fix: race condition in RTCVideoRenderer for Web (#1805)
+* [Android] fix: Migrate from onSurfaceDestroyed to onSurfaceCleanup for SurfaceProducer.Callback. (#1806)
+
+[0.13.0] - 2025-03-24
+
+* [All] feat: add getBufferedAmount for DataChannel. (#1796)
+* [Windows] fix: fixed non-platform thread call error. (#1795)
+
+[0.12.12+hotfix.1] - 2025-03-12
+
+* [Android] fix: fixed video not rendered after resume from background.
+
+[0.12.12] - 2025-03-09
+
+* [Android] feat: Migrate to the new Surface API. (#1726)
+* [Chore] chore: fix sponsors logo and links.
+
+[0.12.11] - 2025-02-23
+
+* [web] bump version for dart_webrtc.
+* [web] fix: compile error for web with --wasm.
+
+[0.12.10] - 2025-02-18
+
+* [web] bump version for dart_webrtc.
+* [web] fix: compile error for web with --wasm.
+
+[0.12.9] - 2025-02-13
+
+* [iOS] feat: Add option to start capture without broadcast picker (#1764)
+
+[0.12.8] - 2025-02-07
+
+* [Dart] feat: expose rtc video value (#1754)
+* [Dart] chore: bump webrtc-interface to 1.2.1.
+  
 [0.12.7] - 2025-01-24
 
 * [iOS] More robustness for video renderer. (#1751)
@@ -70,7 +113,6 @@
 * [Web] change VideoElement to HTMLVideoElement.
 * [iOS] added shared singleton for FlutterWebRTCPlugin (#1634)
 * [iOS] Using av samplebuffer for PlatformView (#1635)
-
 
 [0.11.5] - 2024-07-23
 

@@ -6,7 +6,8 @@ namespace flutter_webrtc_plugin {
 
 FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
     : FlutterWebRTCBase::FlutterWebRTCBase(plugin->messenger(),
-                                           plugin->textures()),
+                                           plugin->textures(),
+                                           plugin->task_runner()),
       FlutterVideoRendererManager::FlutterVideoRendererManager(this),
       FlutterMediaStream::FlutterMediaStream(this),
       FlutterPeerConnection::FlutterPeerConnection(this),
@@ -351,6 +352,29 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     DataChannelSend(data_channel, type, data, std::move(result));
+  } else if (method_call.method_name().compare("dataChannelGetBufferedAmount") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("dataChannelGetBufferedAmountFailed",
+                    "dataChannelGetBufferedAmount() peerConnection is null");
+      return;
+    }
+
+    const std::string dataChannelId = findString(params, "dataChannelId");
+    RTCDataChannel* data_channel = DataChannelForId(dataChannelId);
+    if (data_channel == nullptr) {
+      result->Error("dataChannelGetBufferedAmountFailed",
+                    "dataChannelGetBufferedAmount() data_channel is null");
+      return;
+    }
+    DataChannelGetBufferedAmount(data_channel, std::move(result));
   } else if (method_call.method_name().compare("dataChannelClose") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");

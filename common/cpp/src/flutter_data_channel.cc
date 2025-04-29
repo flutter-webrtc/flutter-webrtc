@@ -7,8 +7,9 @@ namespace flutter_webrtc_plugin {
 FlutterRTCDataChannelObserver::FlutterRTCDataChannelObserver(
     scoped_refptr<RTCDataChannel> data_channel,
     BinaryMessenger* messenger,
+    TaskRunner* task_runner,
     const std::string& channelName)
-    : event_channel_(EventChannelProxy::Create(messenger, channelName)),
+    : event_channel_(EventChannelProxy::Create(messenger, task_runner, channelName)),
       data_channel_(data_channel) {
   data_channel_->RegisterObserver(this);
 }
@@ -53,7 +54,7 @@ void FlutterDataChannel::CreateDataChannel(
       "FlutterWebRTC/dataChannelEvent" + peerConnectionId + uuid;
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
-      new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
+      new FlutterRTCDataChannelObserver(data_channel, base_->messenger_, base_->task_runner_,
                                         event_channel));
 
   base_->lock();
@@ -84,6 +85,13 @@ void FlutterDataChannel::DataChannelSend(
                        static_cast<uint32_t>(str.length()), false);
   }
   result->Success();
+}
+
+void FlutterDataChannel::DataChannelGetBufferedAmount(RTCDataChannel* data_channel,
+                             std::unique_ptr<MethodResultProxy> result) {
+  EncodableMap params;
+  params[EncodableValue("bufferedAmount")] = EncodableValue((int64_t)data_channel->buffered_amount());
+  result->Success(EncodableValue(params));
 }
 
 void FlutterDataChannel::DataChannelClose(

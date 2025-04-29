@@ -118,6 +118,21 @@
   }
 }
 
+- (void)dataChannelGetBufferedAmount:(nonnull NSString*)peerConnectionId
+          dataChannelId:(nonnull NSString*)dataChannelId 
+                result:(nonnull FlutterResult)result {
+  RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
+  RTCDataChannel* dataChannel = peerConnection.dataChannels[dataChannelId];
+  if(dataChannel == NULL || dataChannel.readyState != RTCDataChannelStateOpen) {
+    result([FlutterError
+          errorWithCode:[NSString stringWithFormat:@"%@Failed", @"dataChannelGetBufferedAmount"]
+                message:[NSString stringWithFormat:@"Error: dataChannel not found or not opened!"]
+                details:nil]);
+  } else {
+    result(@{@"bufferedAmount": @(dataChannel.bufferedAmount)});
+  }
+}
+
 - (void)dataChannelSend:(nonnull NSString*)peerConnectionId
           dataChannelId:(nonnull NSString*)dataChannelId
                    data:(id)data

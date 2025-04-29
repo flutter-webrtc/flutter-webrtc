@@ -14,6 +14,7 @@ import android.media.AudioDeviceInfo;
 import android.os.Build;
 import android.util.Log;
 import android.util.LongSparseArray;
+import android.view.Surface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -481,6 +482,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         createDataChannel(peerConnectionId, label, new ConstraintsMap(dataChannelDict), result);
         break;
       }
+      case "dataChannelGetBufferedAmount": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        String dataChannelId = call.argument("dataChannelId");
+        dataChannelGetBufferedAmount(peerConnectionId, dataChannelId, result);
+        break;
+      }
       case "dataChannelSend": {
         String peerConnectionId = call.argument("peerConnectionId");
         String dataChannelId = call.argument("dataChannelId");
@@ -565,22 +572,21 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       case "createVideoRenderer": {
-        SurfaceTextureEntry entry = textures.createSurfaceTexture();
-        SurfaceTexture surfaceTexture = entry.surfaceTexture();
-        FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(surfaceTexture, entry);
-        renders.put(entry.id(), render);
+        TextureRegistry.SurfaceProducer producer = textures.createSurfaceProducer();
+        FlutterRTCVideoRenderer render = new FlutterRTCVideoRenderer(producer);
+        renders.put(producer.id(), render);
 
         EventChannel eventChannel =
                 new EventChannel(
                         messenger,
-                        "FlutterWebRTC/Texture" + entry.id());
+                        "FlutterWebRTC/Texture" + producer.id());
 
         eventChannel.setStreamHandler(render);
         render.setEventChannel(eventChannel);
-        render.setId((int) entry.id());
+        render.setId((int) producer.id());
 
         ConstraintsMap params = new ConstraintsMap();
-        params.putInt("textureId", (int) entry.id());
+        params.putInt("textureId", (int) producer.id());
         result.success(params.toMap());
         break;
       }
@@ -690,6 +696,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       case "clearAndroidCommunicationDevice": {
         AudioSwitchManager.instance.clearCommunicationDevice();
+        result.success(null);
         break;
       }
       case "setMicrophoneMute":
@@ -763,7 +770,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       case "stopRecordToFile":
         Integer recorderId = call.argument("recorderId");
-        getUserMediaImpl.stopRecording(recorderId);
+        String albumName = call.argument("albumName");
+        getUserMediaImpl.stopRecording(recorderId, albumName);
         result.success(null);
         break;
       case "captureFrame": {
@@ -2036,6 +2044,17 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       Log.d(TAG, "dataChannelSend() peerConnection is null");
     } else {
       pco.dataChannelSend(dataChannelId, bytebuffer, isBinary);
+    }
+  }
+
+  public void dataChannelGetBufferedAmount(String peerConnectionId, String dataChannelId, Result result) {
+    PeerConnectionObserver pco
+            = mPeerConnectionObservers.get(peerConnectionId);
+    if (pco == null || pco.getPeerConnection() == null) {
+      Log.d(TAG, "dataChannelGetBufferedAmount() peerConnection is null");
+      resultError("dataChannelGetBufferedAmount", "peerConnection is null", result);
+    } else {
+      pco.dataChannelGetBufferedAmount(dataChannelId, result);
     }
   }
 
