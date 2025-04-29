@@ -7,22 +7,12 @@ class MediaRecorder extends rtc.MediaRecorder {
   final rtc.MediaRecorder _delegate;
 
   @override
-  Future<void> start(
-    String path, {
-    MediaStreamTrack? videoTrack,
-    RecorderAudioChannel? audioChannel,
-    int rotationDegrees = 0,
-  }) {
-    return _delegate.start(
-      path,
-      videoTrack: videoTrack,
-      audioChannel: audioChannel,
-    );
-  }
+  Future<void> start(String path,
+          {MediaStreamTrack? videoTrack, RecorderAudioChannel? audioChannel}) =>
+      _delegate.start(path, videoTrack: videoTrack, audioChannel: audioChannel);
 
   @override
-  Future stop({String? albumName}) =>
-      _delegate.stop(albumName: albumName ?? "FlutterWebRtc");
+  Future stop() => _delegate.stop();
 
   @override
   void startWeb(
