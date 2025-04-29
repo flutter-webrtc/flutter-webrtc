@@ -9,19 +9,12 @@ environment:
 
 dependencies:
   collection: ^1.17.0
-  dart_webrtc:
-    git:
-      url: https://github.com/daniel-g-favoreto-opl/dart-webrtc.git
-      ref: ios-record
-
+  dart_webrtc: ^1.5.4
   flutter:
     sdk: flutter
   path_provider: ^2.0.2
   web: ^1.0.0
-  webrtc_interface:
-    git:
-      url: https://github.com/daniel-g-favoreto-opl/webrtc-interface.git
-      ref: media-recording-changes
+  webrtc_interface: ^1.2.3
 
 dev_dependencies:
   flutter_test:
@@ -47,9 +40,3 @@ flutter:
         pluginClass: FlutterWebRTCPlugin
       elinux:
         pluginClass: FlutterWebRTCPlugin
-
-dependency_overrides:
-  webrtc_interface:
-    git:
-      url: https://github.com/daniel-g-favoreto-opl/webrtc-interface.git
-      ref: media-recording-changes
