@@ -12,6 +12,4 @@
                        toPath:(NSString*)path
                        result:(FlutterResult)result;
 
-+ (CVPixelBufferRef)convertToCVPixelBuffer:(RTCVideoFrame *) frame;
-
 @end
