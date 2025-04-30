@@ -1,6 +1,10 @@
 
 # Changelog
 
+[0.13.2+hotfix.1] - 2025-04-30
+
+* [macOS] fix: Fixed compilation errors introduced by Media Recorder implementation.
+
 [0.13.2] - 2025-04-29
 
 * [iOS/Android]feat: Media Recorder implementation Android and iOS (#1810)
