@@ -42,7 +42,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.9.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -192817599;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -40294053;
 
 // Section: executor
 
@@ -85,18 +85,18 @@ let api_init = <crate::api::RtpTransceiverInit>::sse_decode(&mut deserializer);d
                     })())
                 } })
 }
-fn wire__crate__api__audio_processing_config_default_impl(
+fn wire__crate__api__audio_processing_constraints_default_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "audio_processing_config_default", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "audio_processing_constraints_default", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
             let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
             let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             deserializer.end(); move |context|  {
                     transform_result_sse::<_, ()>((move ||  {
-                         let output_ok = Result::<_,()>::Ok(crate::api::AudioProcessingConfig::default())?;   Ok(output_ok)
+                         let output_ok = Result::<_,()>::Ok(crate::api::AudioProcessingConstraints::default())?;   Ok(output_ok)
                     })())
                 } })
 }
@@ -781,7 +781,7 @@ fn wire__crate__api__update_audio_processing_impl(
             let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
             let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_track_id = <String>::sse_decode(&mut deserializer);
-let api_conf = <crate::api::AudioProcessingConfig>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
+let api_conf = <crate::api::AudioProcessingConstraints>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
                     transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move ||  {
                          let output_ok = crate::api::update_audio_processing(api_track_id, api_conf)?;   Ok(output_ok)
                     })())
@@ -955,7 +955,7 @@ impl SseDecode for crate::api::AudioConstraints {
     ) -> Self {
         let mut var_deviceId = <Option<String>>::sse_decode(deserializer);
         let mut var_processing =
-            <crate::api::AudioProcessingConfig>::sse_decode(deserializer);
+            <crate::api::AudioProcessingConstraints>::sse_decode(deserializer);
         return crate::api::AudioConstraints {
             device_id: var_deviceId,
             processing: var_processing,
@@ -968,6 +968,27 @@ impl SseDecode for crate::api::AudioProcessingConfig {
     fn sse_decode(
         deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
     ) -> Self {
+        let mut var_autoGainControl = <bool>::sse_decode(deserializer);
+        let mut var_highPassFilter = <bool>::sse_decode(deserializer);
+        let mut var_noiseSuppression = <bool>::sse_decode(deserializer);
+        let mut var_noiseSuppressionLevel =
+            <crate::api::NoiseSuppressionLevel>::sse_decode(deserializer);
+        let mut var_echoCancellation = <bool>::sse_decode(deserializer);
+        return crate::api::AudioProcessingConfig {
+            auto_gain_control: var_autoGainControl,
+            high_pass_filter: var_highPassFilter,
+            noise_suppression: var_noiseSuppression,
+            noise_suppression_level: var_noiseSuppressionLevel,
+            echo_cancellation: var_echoCancellation,
+        };
+    }
+}
+
+impl SseDecode for crate::api::AudioProcessingConstraints {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(
+        deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
+    ) -> Self {
         let mut var_autoGainControl = <Option<bool>>::sse_decode(deserializer);
         let mut var_highPassFilter = <Option<bool>>::sse_decode(deserializer);
         let mut var_noiseSuppression = <Option<bool>>::sse_decode(deserializer);
@@ -975,7 +996,7 @@ impl SseDecode for crate::api::AudioProcessingConfig {
             crate::api::NoiseSuppressionLevel,
         >>::sse_decode(deserializer);
         let mut var_echoCancellation = <Option<bool>>::sse_decode(deserializer);
-        return crate::api::AudioProcessingConfig {
+        return crate::api::AudioProcessingConstraints {
             auto_gain_control: var_autoGainControl,
             high_pass_filter: var_highPassFilter,
             noise_suppression: var_noiseSuppression,
@@ -2808,7 +2829,7 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        3 => wire__crate__api__audio_processing_config_default_impl(
+        3 => wire__crate__api__audio_processing_constraints_default_impl(
             port,
             ptr,
             rust_vec_len,
@@ -3141,6 +3162,30 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::AudioProcessingConfig>
     for crate::api::AudioProcessingConfig
 {
     fn into_into_dart(self) -> crate::api::AudioProcessingConfig {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::AudioProcessingConstraints {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.auto_gain_control.into_into_dart().into_dart(),
+            self.high_pass_filter.into_into_dart().into_dart(),
+            self.noise_suppression.into_into_dart().into_dart(),
+            self.noise_suppression_level.into_into_dart().into_dart(),
+            self.echo_cancellation.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::AudioProcessingConstraints
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::AudioProcessingConstraints>
+    for crate::api::AudioProcessingConstraints
+{
+    fn into_into_dart(self) -> crate::api::AudioProcessingConstraints {
         self
     }
 }
@@ -4739,7 +4784,7 @@ impl SseEncode for crate::api::AudioConstraints {
         serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
     ) {
         <Option<String>>::sse_encode(self.device_id, serializer);
-        <crate::api::AudioProcessingConfig>::sse_encode(
+        <crate::api::AudioProcessingConstraints>::sse_encode(
             self.processing,
             serializer,
         );
@@ -4747,6 +4792,23 @@ impl SseEncode for crate::api::AudioConstraints {
 }
 
 impl SseEncode for crate::api::AudioProcessingConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(
+        self,
+        serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
+    ) {
+        <bool>::sse_encode(self.auto_gain_control, serializer);
+        <bool>::sse_encode(self.high_pass_filter, serializer);
+        <bool>::sse_encode(self.noise_suppression, serializer);
+        <crate::api::NoiseSuppressionLevel>::sse_encode(
+            self.noise_suppression_level,
+            serializer,
+        );
+        <bool>::sse_encode(self.echo_cancellation, serializer);
+    }
+}
+
+impl SseEncode for crate::api::AudioProcessingConstraints {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(
         self,

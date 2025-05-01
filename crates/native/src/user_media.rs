@@ -13,7 +13,9 @@ use sys::AudioProcessing;
 use xxhash::xxh3::xxh3_64;
 
 use crate::{
-    PeerConnection, VideoSink, VideoSinkId, Webrtc, api, devices,
+    PeerConnection, VideoSink, VideoSinkId, Webrtc, api,
+    api::NoiseSuppressionLevel,
+    devices,
     frb_generated::StreamSink,
     next_id,
     pc::{PeerConnectionId, RtpTransceiver},
@@ -562,7 +564,7 @@ impl Webrtc {
         }
     }
 
-    /// Applies the provided [`api::AudioProcessingConfig`] to the
+    /// Applies the provided [`api::AudioProcessingConstraints`] to the
     /// [`sys::AudioSourceInterface`] of the referred local [`AudioTrack`].
     ///
     /// # Errors
@@ -571,7 +573,7 @@ impl Webrtc {
     pub fn apply_audio_processing_config(
         &self,
         id: String,
-        conf: &api::AudioProcessingConfig,
+        conf: &api::AudioProcessingConstraints,
     ) -> anyhow::Result<()> {
         let id = AudioTrackId::from(id);
         let Some(track) = self.audio_tracks.get_mut(&(id, TrackOrigin::Local))
@@ -588,7 +590,7 @@ impl Webrtc {
         Ok(())
     }
 
-    /// Returns the [`api::AudioProcessingConfig`] of the
+    /// Returns the [`api::AudioProcessingConstraints`] of the
     /// [`sys::AudioSourceInterface`] of the referred local [`AudioTrack`].
     ///
     /// # Errors
@@ -601,7 +603,16 @@ impl Webrtc {
         let id = AudioTrackId::from(id);
         let Some(track) = self.audio_tracks.get_mut(&(id, TrackOrigin::Local))
         else {
-            return Ok(api::AudioProcessingConfig::default());
+            // This means that the `AudioTrack` was already removed, so to omit
+            // erroring something should be returned. It shouldn't really matter
+            // what is returned, so default values are just okay.
+            return Ok(api::AudioProcessingConfig {
+                auto_gain_control: true,
+                high_pass_filter: true,
+                noise_suppression: true,
+                noise_suppression_level: NoiseSuppressionLevel::VeryHigh,
+                echo_cancellation: true,
+            });
         };
 
         let MediaTrackSource::Local(src) = &track.source else {
@@ -609,18 +620,13 @@ impl Webrtc {
         };
 
         let mut conf = src.ap.config();
-        let auto_gain_control = conf.get_gain_controller_enabled();
-        let high_pass_filter = conf.get_high_pass_filter_enabled();
-        let noise_suppression = conf.get_noise_suppression_enabled();
-        let noise_suppression_level = conf.get_noise_suppression_level();
-        let echo_cancellation = conf.get_echo_cancellation_enabled();
 
         Ok(api::AudioProcessingConfig {
-            auto_gain_control: Some(auto_gain_control),
-            high_pass_filter: Some(high_pass_filter),
-            noise_suppression: Some(noise_suppression),
-            noise_suppression_level: Some(noise_suppression_level.into()),
-            echo_cancellation: Some(echo_cancellation),
+            auto_gain_control: conf.get_gain_controller_enabled(),
+            high_pass_filter: conf.get_high_pass_filter_enabled(),
+            noise_suppression: conf.get_noise_suppression_enabled(),
+            noise_suppression_level: conf.get_noise_suppression_level().into(),
+            echo_cancellation: conf.get_echo_cancellation_enabled(),
         })
     }
 }
@@ -1494,9 +1500,12 @@ impl AudioSource {
         }
     }
 
-    /// Applies the provided [`api::AudioProcessingConfig`] to the
+    /// Applies the provided [`api::AudioProcessingConstraints`] to the
     /// [`sys::AudioProcessing`] of this [`AudioSource`].
-    fn update_audio_processing(&self, new_conf: &api::AudioProcessingConfig) {
+    fn update_audio_processing(
+        &self,
+        new_conf: &api::AudioProcessingConstraints,
+    ) {
         let mut conf = self.ap.config();
         if let Some(aec) = new_conf.echo_cancellation {
             conf.set_echo_cancellation_enabled(aec);
@@ -1635,8 +1644,8 @@ impl AudioSourceAudioLevelHandler {
     }
 }
 
-impl From<&api::AudioProcessingConfig> for sys::AudioProcessingConfig {
-    fn from(caps: &api::AudioProcessingConfig) -> Self {
+impl From<&api::AudioProcessingConstraints> for sys::AudioProcessingConfig {
+    fn from(caps: &api::AudioProcessingConstraints) -> Self {
         let mut conf = Self::default();
 
         conf.set_high_pass_filter_enabled(

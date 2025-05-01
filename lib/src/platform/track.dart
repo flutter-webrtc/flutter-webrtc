@@ -87,40 +87,69 @@ abstract class MediaStreamTrack {
   /// - [MediaStreamTrack.setHighPassFilterEnabled]
   /// - [MediaStreamTrack.setEchoCancellationEnabled]
   /// - [MediaStreamTrack.setAutoGainControlEnabled]
+  /// - [MediaStreamTrack.isNoiseSuppressionEnabled]
+  /// - [MediaStreamTrack.getNoiseSuppressionLevel]
+  /// - [MediaStreamTrack.isHighPassFilterEnabled]
+  /// - [MediaStreamTrack.isEchoCancellationEnabled]
+  /// - [MediaStreamTrack.isAutoGainControlEnabled]
   ///
   /// Only supported for local audio [MediaStreamTrack]s on desktop platforms.
   bool isAudioProcessingAvailable() {
     return false;
   }
 
+  /// Enables/disables noise suppression in the provided [MediaStreamTrack].
   Future<void> setNoiseSuppressionEnabled(bool enabled) {
-    throw 'setNoiseSuppressionEnabled is only support for local audio tracks '
-        'on desktop platforms. isAudioProcessingAvailable() should be called '
-        'before trying to call setNoiseSuppressionEnabled';
+    throw _apNotSupported('setNoiseSuppressionEnabled');
   }
 
+  /// Configures noise suppression level in the provided [MediaStreamTrack].
   Future<void> setNoiseSuppressionLevel(NoiseSuppressionLevel level) {
-    throw 'setNoiseSuppressionEnabled is only support for local audio tracks '
-        'on desktop platforms. isAudioProcessingAvailable() should be called '
-        'before trying to call setNoiseSuppressionEnabled';
+    throw _apNotSupported('setNoiseSuppressionLevel');
   }
 
+  /// Enables/disables high pass filter in the provided [MediaStreamTrack].
   Future<void> setHighPassFilterEnabled(bool enabled) {
-    throw 'setHighPassFilterEnabled is only support for local audio tracks '
-        'on desktop platforms. isAudioProcessingAvailable() should be called '
-        'before trying to call setHighPassFilterEnabled';
+    throw _apNotSupported('setHighPassFilterEnabled');
   }
 
+  /// Enables/disables echo cancellation in the provided [MediaStreamTrack].
   Future<void> setEchoCancellationEnabled(bool enabled) {
-    throw 'setEchoCancellationEnabled is only support for local audio tracks '
-        'on desktop platforms. isAudioProcessingAvailable() should be called '
-        'before trying to call setEchoCancellationEnabled';
+    throw _apNotSupported('setEchoCancellationEnabled');
   }
 
+  /// Enables/disables automatic gain control in the provided
+  /// [MediaStreamTrack].
   Future<void> setAutoGainControlEnabled(bool enabled) {
-    throw 'setAutoGainControlEnabled is only support for local audio tracks '
-        'on desktop platforms. isAudioProcessingAvailable() should be called '
-        'before trying to call setAutoGainControlEnabled';
+    throw _apNotSupported('setAutoGainControlEnabled');
+  }
+
+  /// Indicates whether noise suppression is enabled in the provided
+  /// [MediaStreamTrack].
+  Future<bool> isNoiseSuppressionEnabled() {
+    throw _apNotSupported('isNoiseSuppressionEnabled');
+  }
+
+  Future<NoiseSuppressionLevel> getNoiseSuppressionLevel() {
+    throw _apNotSupported('getNoiseSuppressionLevel');
+  }
+
+  /// Indicates whether high pass filter is enabled in the provided
+  /// [MediaStreamTrack].
+  Future<bool> isHighPassFilterEnabled() {
+    throw _apNotSupported('isHighPassFilterEnabled');
+  }
+
+  /// Indicates whether acoustic echo cancellation is enabled in the provided
+  /// [MediaStreamTrack].
+  Future<bool> isEchoCancellationEnabled() {
+    throw _apNotSupported('isEchoCancellationEnabled');
+  }
+
+  /// Indicates whether automatic gain control is enabled in the provided
+  /// [MediaStreamTrack].
+  Future<bool> isAutoGainControlEnabled() {
+    throw _apNotSupported('isAutoGainControlEnabled');
   }
 
   /// Creates a new instance of [MediaStreamTrack], which will depend on the same
@@ -148,3 +177,14 @@ abstract class MediaStreamTrack {
   /// [height]: https://w3.org/TR/mediacapture-streams#dfn-height
   FutureOr<int?> height();
 }
+
+/// Creates an [UnsupportedError] to be thrown from audio processing [method]s.
+UnsupportedError _apNotSupported(String method) {
+  return UnsupportedError(
+    '$method is only support for local audio tracks '
+    'on desktop platforms. isAudioProcessingAvailable() should be called '
+    'before trying to call $method',
+  );
+}
+
+abstract class AudioProcessingConfig {}

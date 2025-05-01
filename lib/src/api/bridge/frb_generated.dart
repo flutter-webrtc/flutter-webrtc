@@ -67,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.9.0';
 
   @override
-  int get rustContentHash => -192817599;
+  int get rustContentHash => -40294053;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -91,7 +91,8 @@ abstract class RustLibApi extends BaseApi {
     required RtpTransceiverInit init,
   });
 
-  Future<AudioProcessingConfig> crateApiAudioProcessingConfigDefault();
+  Future<AudioProcessingConstraints>
+  crateApiAudioProcessingConstraintsDefault();
 
   Future<MediaStreamTrack?> crateApiCloneTrack({
     required String trackId,
@@ -277,7 +278,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiUpdateAudioProcessing({
     required String trackId,
-    required AudioProcessingConfig conf,
+    required AudioProcessingConstraints conf,
   });
 
   Future<List<VideoCodecInfo>> crateApiVideoDecoders();
@@ -404,7 +405,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<AudioProcessingConfig> crateApiAudioProcessingConfigDefault() {
+  Future<AudioProcessingConstraints>
+  crateApiAudioProcessingConstraintsDefault() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -417,19 +419,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_audio_processing_config,
+          decodeSuccessData: sse_decode_audio_processing_constraints,
           decodeErrorData: null,
         ),
-        constMeta: kCrateApiAudioProcessingConfigDefaultConstMeta,
+        constMeta: kCrateApiAudioProcessingConstraintsDefaultConstMeta,
         argValues: [],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiAudioProcessingConfigDefaultConstMeta =>
+  TaskConstMeta get kCrateApiAudioProcessingConstraintsDefaultConstMeta =>
       const TaskConstMeta(
-        debugName: "audio_processing_config_default",
+        debugName: "audio_processing_constraints_default",
         argNames: [],
       );
 
@@ -1847,14 +1849,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<void> crateApiUpdateAudioProcessing({
     required String trackId,
-    required AudioProcessingConfig conf,
+    required AudioProcessingConstraints conf,
   }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(trackId, serializer);
-          sse_encode_box_autoadd_audio_processing_config(conf, serializer);
+          sse_encode_box_autoadd_audio_processing_constraints(conf, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -2042,7 +2044,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
     return AudioConstraints(
       deviceId: dco_decode_opt_String(arr[0]),
-      processing: dco_decode_audio_processing_config(arr[1]),
+      processing: dco_decode_audio_processing_constraints(arr[1]),
     );
   }
 
@@ -2053,6 +2055,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (arr.length != 5)
       throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
     return AudioProcessingConfig(
+      autoGainControl: dco_decode_bool(arr[0]),
+      highPassFilter: dco_decode_bool(arr[1]),
+      noiseSuppression: dco_decode_bool(arr[2]),
+      noiseSuppressionLevel: dco_decode_noise_suppression_level(arr[3]),
+      echoCancellation: dco_decode_bool(arr[4]),
+    );
+  }
+
+  @protected
+  AudioProcessingConstraints dco_decode_audio_processing_constraints(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return AudioProcessingConstraints(
       autoGainControl: dco_decode_opt_box_autoadd_bool(arr[0]),
       highPassFilter: dco_decode_opt_box_autoadd_bool(arr[1]),
       noiseSuppression: dco_decode_opt_box_autoadd_bool(arr[2]),
@@ -2076,11 +2095,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  AudioProcessingConfig dco_decode_box_autoadd_audio_processing_config(
-    dynamic raw,
-  ) {
+  AudioProcessingConstraints
+  dco_decode_box_autoadd_audio_processing_constraints(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_audio_processing_config(raw);
+    return dco_decode_audio_processing_constraints(raw);
   }
 
   @protected
@@ -3292,12 +3310,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   AudioConstraints sse_decode_audio_constraints(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_deviceId = sse_decode_opt_String(deserializer);
-    var var_processing = sse_decode_audio_processing_config(deserializer);
+    var var_processing = sse_decode_audio_processing_constraints(deserializer);
     return AudioConstraints(deviceId: var_deviceId, processing: var_processing);
   }
 
   @protected
   AudioProcessingConfig sse_decode_audio_processing_config(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_autoGainControl = sse_decode_bool(deserializer);
+    var var_highPassFilter = sse_decode_bool(deserializer);
+    var var_noiseSuppression = sse_decode_bool(deserializer);
+    var var_noiseSuppressionLevel = sse_decode_noise_suppression_level(
+      deserializer,
+    );
+    var var_echoCancellation = sse_decode_bool(deserializer);
+    return AudioProcessingConfig(
+      autoGainControl: var_autoGainControl,
+      highPassFilter: var_highPassFilter,
+      noiseSuppression: var_noiseSuppression,
+      noiseSuppressionLevel: var_noiseSuppressionLevel,
+      echoCancellation: var_echoCancellation,
+    );
+  }
+
+  @protected
+  AudioProcessingConstraints sse_decode_audio_processing_constraints(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -3307,7 +3346,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_noiseSuppressionLevel =
         sse_decode_opt_box_autoadd_noise_suppression_level(deserializer);
     var var_echoCancellation = sse_decode_opt_box_autoadd_bool(deserializer);
-    return AudioProcessingConfig(
+    return AudioProcessingConstraints(
       autoGainControl: var_autoGainControl,
       highPassFilter: var_highPassFilter,
       noiseSuppression: var_noiseSuppression,
@@ -3331,11 +3370,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  AudioProcessingConfig sse_decode_box_autoadd_audio_processing_config(
+  AudioProcessingConstraints
+  sse_decode_box_autoadd_audio_processing_constraints(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_audio_processing_config(deserializer));
+    return (sse_decode_audio_processing_constraints(deserializer));
   }
 
   @protected
@@ -4983,12 +5023,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_opt_String(self.deviceId, serializer);
-    sse_encode_audio_processing_config(self.processing, serializer);
+    sse_encode_audio_processing_constraints(self.processing, serializer);
   }
 
   @protected
   void sse_encode_audio_processing_config(
     AudioProcessingConfig self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.autoGainControl, serializer);
+    sse_encode_bool(self.highPassFilter, serializer);
+    sse_encode_bool(self.noiseSuppression, serializer);
+    sse_encode_noise_suppression_level(self.noiseSuppressionLevel, serializer);
+    sse_encode_bool(self.echoCancellation, serializer);
+  }
+
+  @protected
+  void sse_encode_audio_processing_constraints(
+    AudioProcessingConstraints self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -5018,12 +5071,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_box_autoadd_audio_processing_config(
-    AudioProcessingConfig self,
+  void sse_encode_box_autoadd_audio_processing_constraints(
+    AudioProcessingConstraints self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_audio_processing_config(self, serializer);
+    sse_encode_audio_processing_constraints(self, serializer);
   }
 
   @protected

@@ -13,7 +13,7 @@ import 'renderer.dart';
 part 'api.freezed.dart';
 
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `TrackKind`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `hash`, `hash`, `hash`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `hash`, `hash`, `hash`
 
 /// Returns all [`VideoCodecInfo`]s of the supported video encoders.
 Future<List<VideoCodecInfo>> videoEncoders() =>
@@ -376,11 +376,11 @@ Future<void> setAudioLevelObserverEnabled({
   enabled: enabled,
 );
 
-/// Applies the provided [`AudioProcessingConfig`] to specified local audio
+/// Applies the provided [`AudioProcessingConstraints`] to specified local audio
 /// track.
 Future<void> updateAudioProcessing({
   required String trackId,
-  required AudioProcessingConfig conf,
+  required AudioProcessingConstraints conf,
 }) => RustLib.instance.api.crateApiUpdateAudioProcessing(
   trackId: trackId,
   conf: conf,
@@ -437,7 +437,7 @@ class AudioConstraints {
   final String? deviceId;
 
   /// Audio processing configuration of the [`MediaStreamTrack`].
-  final AudioProcessingConfig processing;
+  final AudioProcessingConstraints processing;
 
   const AudioConstraints({this.deviceId, required this.processing});
 
@@ -453,8 +453,56 @@ class AudioConstraints {
           processing == other.processing;
 }
 
-/// Audio processing configuration.
 class AudioProcessingConfig {
+  /// Indicator whether the audio volume level should be automatically tuned
+  /// to maintain a steady overall volume level.
+  final bool autoGainControl;
+
+  /// Indicator whether a high-pass filter should be enabled to eliminate
+  /// low-frequency noise.
+  final bool highPassFilter;
+
+  /// Indicator whether noise suppression should be enabled to reduce
+  /// background sounds.
+  final bool noiseSuppression;
+
+  /// Level of aggressiveness for noise suppression.
+  final NoiseSuppressionLevel noiseSuppressionLevel;
+
+  /// Indicator whether echo cancellation should be enabled to prevent
+  /// feedback.
+  final bool echoCancellation;
+
+  const AudioProcessingConfig({
+    required this.autoGainControl,
+    required this.highPassFilter,
+    required this.noiseSuppression,
+    required this.noiseSuppressionLevel,
+    required this.echoCancellation,
+  });
+
+  @override
+  int get hashCode =>
+      autoGainControl.hashCode ^
+      highPassFilter.hashCode ^
+      noiseSuppression.hashCode ^
+      noiseSuppressionLevel.hashCode ^
+      echoCancellation.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AudioProcessingConfig &&
+          runtimeType == other.runtimeType &&
+          autoGainControl == other.autoGainControl &&
+          highPassFilter == other.highPassFilter &&
+          noiseSuppression == other.noiseSuppression &&
+          noiseSuppressionLevel == other.noiseSuppressionLevel &&
+          echoCancellation == other.echoCancellation;
+}
+
+/// Audio processing configuration constraints.
+class AudioProcessingConstraints {
   /// Indicator whether the audio volume level should be automatically tuned
   /// to maintain a steady overall volume level.
   final bool? autoGainControl;
@@ -474,7 +522,7 @@ class AudioProcessingConfig {
   /// feedback.
   final bool? echoCancellation;
 
-  const AudioProcessingConfig({
+  const AudioProcessingConstraints({
     this.autoGainControl,
     this.highPassFilter,
     this.noiseSuppression,
@@ -482,8 +530,8 @@ class AudioProcessingConfig {
     this.echoCancellation,
   });
 
-  static Future<AudioProcessingConfig> default_() =>
-      RustLib.instance.api.crateApiAudioProcessingConfigDefault();
+  static Future<AudioProcessingConstraints> default_() =>
+      RustLib.instance.api.crateApiAudioProcessingConstraintsDefault();
 
   @override
   int get hashCode =>
@@ -496,7 +544,7 @@ class AudioProcessingConfig {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AudioProcessingConfig &&
+      other is AudioProcessingConstraints &&
           runtimeType == other.runtimeType &&
           autoGainControl == other.autoGainControl &&
           highPassFilter == other.highPassFilter &&

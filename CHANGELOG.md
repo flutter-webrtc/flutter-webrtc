@@ -20,6 +20,12 @@ All user visible changes to this project will be documented in this file. This p
     - `MediaStreamTrack.setEchoCancellationEnabled` method enabling/disabling acoustic echo cancellation for local audio `MediaStreamTrack`.
     - `MediaStreamTrack.setAutoGainControlEnabled` method enabling/disabling auto gain control for local audio `MediaStreamTrack`.
     - `AudioConstraints.noiseSuppression`, `AudioConstraints.noiseSuppressionLevel`, `AudioConstraints.highPassFilter`, `AudioConstraints.echoCancellation` fields to control audio processing when creating local audio `MediaStreamTrack`.
+- Support for getting audio processing settings for local audio `MediaStreamTrack`s on desktop: ([#199])
+    - `MediaStreamTrack.isNoiseSuppressionEnabled` method checking whether noise suppression is enabled for local audio `MediaStreamTrack`.
+    - `MediaStreamTrack.getNoiseSuppressionLevel` method returning noise suppression level of local audio `MediaStreamTrack`.
+    - `MediaStreamTrack.isHighPassFilterEnabled` method checking whether high pass filter is enabled for local audio `MediaStreamTrack`.
+    - `MediaStreamTrack.isEchoCancellationEnabled` method checking whether acoustic echo cancellation is enabled for local audio `MediaStreamTrack`.
+    - `MediaStreamTrack.isAutoGainControlEnabled` method checking whether automatic gain control is enabled for local audio `MediaStreamTrack`.
 
 ### Changed
 
@@ -35,6 +41,7 @@ All user visible changes to this project will be documented in this file. This p
 [#195]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/195
 [#197]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/197
 [#198]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/198
+[#199]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/199
 [openal-1.24.3]: https://github.com/kcat/openal-soft/releases/tag/1.24.3
 
 

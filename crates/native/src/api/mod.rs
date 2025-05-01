@@ -2087,7 +2087,7 @@ pub struct VideoConstraints {
     /// Identifier of the device generating the content of the
     /// [`MediaStreamTrack`].
     ///
-    /// First device will be chosen if an empty [`String`] is provided.
+    /// The first device will be chosen if an empty [`String`] is provided.
     pub device_id: Option<String>,
 
     /// Width in pixels.
@@ -2114,13 +2114,13 @@ pub struct AudioConstraints {
     /// First device will be chosen if an empty [`String`] is provided.
     pub device_id: Option<String>,
 
-    /// Audio processing configuration of the [`MediaStreamTrack`].
-    pub processing: AudioProcessingConfig,
+    /// Audio processing configuration constraints of the [`MediaStreamTrack`].
+    pub processing: AudioProcessingConstraints,
 }
 
-/// Audio processing configuration.
+/// Constraints of an [`AudioProcessingConfig`].
 #[derive(Debug, Default)]
-pub struct AudioProcessingConfig {
+pub struct AudioProcessingConstraints {
     /// Indicator whether the audio volume level should be automatically tuned
     /// to maintain a steady overall volume level.
     pub auto_gain_control: Option<bool>,
@@ -2139,6 +2139,30 @@ pub struct AudioProcessingConfig {
     /// Indicator whether echo cancellation should be enabled to prevent
     /// feedback.
     pub echo_cancellation: Option<bool>,
+}
+
+/// Audio processing configuration for some local audio [`MediaStreamTrack`].
+#[expect(clippy::struct_excessive_bools, reason = "that's ok")]
+#[derive(Debug)]
+pub struct AudioProcessingConfig {
+    /// Indicator whether the audio volume level should be automatically tuned
+    /// to maintain a steady overall volume level.
+    pub auto_gain_control: bool,
+
+    /// Indicator whether a high-pass filter should be enabled to eliminate
+    /// low-frequency noise.
+    pub high_pass_filter: bool,
+
+    /// Indicator whether noise suppression should be enabled to reduce
+    /// background sounds.
+    pub noise_suppression: bool,
+
+    /// Level of aggressiveness for noise suppression.
+    pub noise_suppression_level: NoiseSuppressionLevel,
+
+    /// Indicator whether echo cancellation should be enabled to prevent
+    /// feedback.
+    pub echo_cancellation: bool,
 }
 
 /// [`AudioProcessingConfig`] noise suppression aggressiveness.
@@ -3000,12 +3024,12 @@ pub fn set_audio_level_observer_enabled(
     );
 }
 
-/// Applies the provided [`AudioProcessingConfig`] to specified local audio
+/// Applies the provided [`AudioProcessingConstraints`] to specified local audio
 /// track.
 #[expect(clippy::needless_pass_by_value, reason = "FFI")]
 pub fn update_audio_processing(
     track_id: String,
-    conf: AudioProcessingConfig,
+    conf: AudioProcessingConstraints,
 ) -> anyhow::Result<()> {
     WEBRTC.lock().unwrap().apply_audio_processing_config(track_id, &conf)
 }

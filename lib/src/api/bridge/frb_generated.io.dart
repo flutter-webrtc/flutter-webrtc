@@ -80,15 +80,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AudioProcessingConfig dco_decode_audio_processing_config(dynamic raw);
 
   @protected
+  AudioProcessingConstraints dco_decode_audio_processing_constraints(
+    dynamic raw,
+  );
+
+  @protected
   bool dco_decode_bool(dynamic raw);
 
   @protected
   AudioConstraints dco_decode_box_autoadd_audio_constraints(dynamic raw);
 
   @protected
-  AudioProcessingConfig dco_decode_box_autoadd_audio_processing_config(
-    dynamic raw,
-  );
+  AudioProcessingConstraints
+  dco_decode_box_autoadd_audio_processing_constraints(dynamic raw);
 
   @protected
   bool dco_decode_box_autoadd_bool(dynamic raw);
@@ -515,6 +519,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  AudioProcessingConstraints sse_decode_audio_processing_constraints(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
@@ -523,7 +532,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  AudioProcessingConfig sse_decode_box_autoadd_audio_processing_config(
+  AudioProcessingConstraints
+  sse_decode_box_autoadd_audio_processing_constraints(
     SseDeserializer deserializer,
   );
 
@@ -1056,6 +1066,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_audio_processing_constraints(
+    AudioProcessingConstraints self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
@@ -1065,8 +1081,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_box_autoadd_audio_processing_config(
-    AudioProcessingConfig self,
+  void sse_encode_box_autoadd_audio_processing_constraints(
+    AudioProcessingConstraints self,
     SseSerializer serializer,
   );
 
