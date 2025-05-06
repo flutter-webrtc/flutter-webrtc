@@ -125,7 +125,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     if (await file.exists()) {
       await file.delete();
     }
-    _mediaRecorder = MediaRecorder();
+    _mediaRecorder = MediaRecorder(albumName: 'FlutterWebRTC');
     setState(() {});
 
     final videoTrack = _localStream!
@@ -145,7 +145,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     }
 
     // album name works only for android, for ios use gallerySaver
-    await _mediaRecorder?.stop(albumName: 'FlutterWebRTC');
+    await _mediaRecorder?.stop();
     setState(() {
       _mediaRecorder = null;
     });

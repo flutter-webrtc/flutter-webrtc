@@ -7,9 +7,13 @@ import 'media_stream_track_impl.dart';
 import 'utils.dart';
 
 class MediaRecorderNative extends MediaRecorder {
+  MediaRecorderNative({
+    String? albumName = 'FlutterWebRTC',
+  }) : _albumName = albumName;
   static final _random = Random();
   final _recorderId = _random.nextInt(0x7FFFFFFF);
   var _isStarted = false;
+  final String? _albumName;
 
   @override
   Future<void> start(
@@ -42,13 +46,13 @@ class MediaRecorderNative extends MediaRecorder {
   }
 
   @override
-  Future<dynamic> stop({String? albumName}) async {
+  Future<dynamic> stop() async {
     if (!_isStarted) {
       throw "Media recorder not started!";
     }
     return await WebRTC.invokeMethod('stopRecordToFile', {
       'recorderId': _recorderId,
-      'albumName': albumName,
+      'albumName': _albumName,
     });
   }
 }
