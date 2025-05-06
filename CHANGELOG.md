@@ -30,6 +30,7 @@ All user visible changes to this project will be documented in this file. This p
 ### Changed
 
 - Upgraded [OpenAL] library to [1.24.3][openal-1.24.3] version. ([#193])
+- Upgraded [libwebrtc] to [136.0.7103.59] version. ([#196])
 - Increased default noise suppression level for local audio `MediaStreamTrack`s on desktop from `moderate` to `veryHigh`. ([#197])
 
 ### Fixed
@@ -39,9 +40,11 @@ All user visible changes to this project will be documented in this file. This p
 
 [#193]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/193
 [#195]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/195
+[#196]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/196
 [#197]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/197
 [#198]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/198
 [#199]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/199
+[136.0.7103.59]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/136.0.7103.59
 [openal-1.24.3]: https://github.com/kcat/openal-soft/releases/tag/1.24.3
 
 

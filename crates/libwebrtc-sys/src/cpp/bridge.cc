@@ -776,7 +776,7 @@ rust::Vec<RtpCodecCapabilityContainer> rtp_capabilities_codecs(
         std::make_unique<RtpCodecCapability>(capabilty.codecs[i])};
     result.push_back(std::move(capability));
   }
-  return std::move(result);
+  return result;
 }
 
 // Returns the `RtpHeaderExtensionCapability` of the provided `RtpCapabilities`.
@@ -789,7 +789,7 @@ rtp_capabilities_header_extensions(const RtpCapabilities& capabilty) {
             capabilty.header_extensions[i])};
     result.push_back(std::move(header_extensions));
   }
-  return std::move(result);
+  return result;
 }
 
 // Returns the `uri` of the provided `RtpHeaderExtensionCapability`.
@@ -901,7 +901,7 @@ rust::Vec<RtcpFeedbackContainer> rtc_codec_rtcp_feedback(
         std::make_unique<webrtc::RtcpFeedback>(capabilty.rtcp_feedback[i])};
     result.push_back(std::move(feedback));
   }
-  return std::move(result);
+  return result;
 }
 
 // Returns the `type` of the provided `RtcpFeedback`.
@@ -1088,7 +1088,7 @@ rust::Vec<RtpCodecParametersContainer> rtp_parameters_codecs(
         std::make_unique<webrtc::RtpCodecParameters>(parameters.codecs[i])};
     result.push_back(std::move(codec));
   }
-  return std::move(result);
+  return result;
 }
 
 // Returns the `RtpParameters.header_extensions` field value.
@@ -1100,7 +1100,7 @@ rust::Vec<RtpExtensionContainer> rtp_parameters_header_extensions(
         parameters.header_extensions[i])};
     result.push_back(std::move(codec));
   }
-  return std::move(result);
+  return result;
 }
 
 // Returns the `RtpParameters.encodings` field value.
@@ -1113,7 +1113,7 @@ rust::Vec<RtpEncodingParametersContainer> rtp_parameters_encodings(
             parameters.encodings[i])};
     result.push_back(std::move(codec));
   }
-  return std::move(result);
+  return result;
 }
 
 // Calls `IceCandidateInterface->sdp_mid()`.

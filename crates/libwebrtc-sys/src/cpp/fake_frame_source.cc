@@ -16,7 +16,7 @@
 #include "rtc_base/checks.h"
 #include "rtc_base/time_utils.h"
 
-namespace cricket {
+namespace webrtc {
 
 FakeFrameSource::FakeFrameSource(int width,
                                  int height,

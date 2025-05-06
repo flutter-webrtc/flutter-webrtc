@@ -78,7 +78,7 @@ struct OptionString;
 using Thread = rtc::Thread;
 using VideoSinkInterface = rtc::VideoSinkInterface<webrtc::VideoFrame>;
 
-using MediaType = cricket::MediaType;
+using MediaType = webrtc::MediaType;
 
 using AudioLayer = webrtc::AudioDeviceModule::AudioLayer;
 using BundlePolicy = webrtc::PeerConnectionInterface::BundlePolicy;

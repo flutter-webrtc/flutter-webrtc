@@ -9,8 +9,10 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
-    await initFfiBridge();
-    await enableFakeMedia();
+    if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+      await initFfiBridge();
+      await enableFakeMedia();
+    }
   });
 
   testWidgets('Add transceiver', (WidgetTester tester) async {
@@ -1444,8 +1446,18 @@ void main() {
 
       var track = (await getUserMedia(capsAudioOnly))[0];
       expect(track.isAudioProcessingAvailable(), isFalse);
-      expect(track.setNoiseSuppressionEnabled(true), throwsUnsupportedError);
-      expect(track.isNoiseSuppressionEnabled(), throwsUnsupportedError);
+      try {
+        await track.setNoiseSuppressionEnabled(true);
+        fail("exception not thrown");
+      } catch (e) {
+        expect(e, isInstanceOf<UnsupportedError>());
+      }
+      try {
+        await track.isNoiseSuppressionEnabled();
+        fail("exception not thrown");
+      } catch (e) {
+        expect(e, isInstanceOf<UnsupportedError>());
+      }
 
       await track.stop();
 
