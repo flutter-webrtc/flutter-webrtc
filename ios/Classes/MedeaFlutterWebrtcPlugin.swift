@@ -4,7 +4,7 @@ import UIKit
 import WebRTC
 
 /// Representation of a `medea_flutter_webrtc` plugin.
-public class SwiftMedeaFlutterWebrtcPlugin: NSObject, FlutterPlugin {
+public class MedeaFlutterWebrtcPlugin: NSObject, FlutterPlugin {
   var messenger: FlutterBinaryMessenger
   var peerConnectionFactory: PeerConnectionFactoryController
   var mediaDevices: MediaDevicesController
@@ -12,7 +12,7 @@ public class SwiftMedeaFlutterWebrtcPlugin: NSObject, FlutterPlugin {
   var textures: FlutterTextureRegistry
   var state: State
 
-  /// Initializes a new `SwiftMedeaFlutterWebrtcPlugin` with the provided
+  /// Initializes a new `MedeaFlutterWebrtcPlugin` with the provided
   /// parameters.
   init(messenger: FlutterBinaryMessenger, textures: FlutterTextureRegistry) {
     // Uncomment the underlying line for `libwebrtc` debug logs:
@@ -31,13 +31,13 @@ public class SwiftMedeaFlutterWebrtcPlugin: NSObject, FlutterPlugin {
     )
   }
 
-  /// Registers this `SwiftMedeaFlutterWebrtcPlugin` in the provided
+  /// Registers this `MedeaFlutterWebrtcPlugin` in the provided
   /// `FlutterPluginRegistrar`.
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(
       name: "medea_flutter_webrtc", binaryMessenger: registrar.messenger()
     )
-    let instance = SwiftMedeaFlutterWebrtcPlugin(
+    let instance = MedeaFlutterWebrtcPlugin(
       messenger: registrar.messenger(), textures: registrar.textures()
     )
     registrar.addMethodCallDelegate(instance, channel: channel)

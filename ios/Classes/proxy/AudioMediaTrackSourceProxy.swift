@@ -1,3 +1,5 @@
+import WebRTC
+
 /// Object representing a source of an input audio of the user.
 ///
 /// This source can create new `MediaStreamTrackProxy`s with the same audio

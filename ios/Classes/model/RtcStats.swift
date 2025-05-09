@@ -1,3 +1,5 @@
+import WebRTC
+
 /// Representation of an `RTCStatisticsReport`.
 class RtcStats {
   /// List of all RTC stats reports converted to flat `Map`.

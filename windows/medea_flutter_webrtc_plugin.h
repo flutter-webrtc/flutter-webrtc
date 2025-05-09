@@ -3,9 +3,9 @@
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
-#include "video_renderer.h"
-
 #include <memory>
+
+#include "video_renderer.h"
 
 namespace medea_flutter_webrtc {
 

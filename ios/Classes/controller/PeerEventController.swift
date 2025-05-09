@@ -1,3 +1,5 @@
+import Flutter
+
 /// Controller of `PeerConnection` events.
 class PeerEventController: PeerEventObserver {
   /// Controller of the `PeerConnection` event channel.

@@ -1,3 +1,5 @@
+import Flutter
+
 /// Controller of `VideoRenderer` events.
 class VideoRendererEventController: VideoRendererEvent {
   /// Controller of the `VideoRenderer` event channel.

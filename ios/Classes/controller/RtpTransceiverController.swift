@@ -1,4 +1,5 @@
 import Flutter
+import WebRTC
 
 /// Controller of an `RtpTransceiver`.
 class RtpTransceiverController {
