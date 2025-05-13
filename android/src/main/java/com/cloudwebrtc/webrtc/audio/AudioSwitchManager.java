@@ -73,7 +73,7 @@ public class AudioSwitchManager {
      * <br />
      * Defaults to AudioManager.MODE_NORMAL.
      */
-    private int audioMode = AudioManager.MODE_IN_COMMUNICATION;
+    private int audioMode = AudioManager.MODE_NORMAL;
 
     /**
      * The audio stream type to use when requesting audio focus on pre-O devices.
