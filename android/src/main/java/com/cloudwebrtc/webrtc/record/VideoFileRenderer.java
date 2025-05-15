@@ -155,8 +155,11 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                     encoder.release();
                 }
                 eglBase.release();
-                mediaMuxer.stop();
-                mediaMuxer.release();
+                if (muxerStarted) {
+                    mediaMuxer.stop();
+                    mediaMuxer.release();
+                    muxerStarted = false;
+                }
                 renderThread.quit();
             } finally {
                 latch.countDown();
@@ -197,7 +200,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
 
                 Log.e(TAG, "encoder output format changed: " + newFormat);
                 trackIndex = mediaMuxer.addTrack(newFormat);
-                if (audioTrackIndex != -1 && !muxerStarted) {
+                if (trackIndex != -1 && !muxerStarted) {
                     mediaMuxer.start();
                     muxerStarted = true;
                 }
@@ -253,7 +256,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
 
                 Log.w(TAG, "encoder output format changed: " + newFormat);
                 audioTrackIndex = mediaMuxer.addTrack(newFormat);
-                if (trackIndex != -1 && !muxerStarted) {
+                if (audioTrackIndex != -1 && !muxerStarted) {
                     mediaMuxer.start();
                     muxerStarted = true;
                 }
