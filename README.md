@@ -2,7 +2,7 @@ Medea Flutter-WebRTC
 ====================
 
 [![pub](https://img.shields.io/pub/v/medea_flutter_webrtc "pub")](https://pub.dev/packages/medea_flutter_webrtc)
-[![libwebrtc](https://img.shields.io/badge/libwebrtc-136.0.7103.92-blue "libwebrtc")](https://github.com/instrumentisto/libwebrtc-bin/releases/tag/136.0.7103.92)
+[![libwebrtc](https://img.shields.io/badge/libwebrtc-136.0.7103.113-blue "libwebrtc")](https://github.com/instrumentisto/libwebrtc-bin/releases/tag/136.0.7103.113)
 [![OpenAL](https://img.shields.io/badge/OpenAL-1.24.3-blue "OpenAL")](https://github.com/kcat/openal-soft/releases/tag/1.24.3)
 
 [Changelog](https://github.com/instrumentisto/medea-flutter-webrtc/blob/main/CHANGELOG.md)
@@ -103,7 +103,7 @@ Copyright © 2021-2025  Instrumentisto Team <https://github.com/instrumentisto>
 
 This Source Code Form is subject to the terms of the [Mozilla Public License, v. 2.0](https://github.com/instrumentisto/medea-flutter-webrtc/blob/main/LICENSE). If a copy of the MPL was not distributed with this file, You can obtain one at <http://mozilla.org/MPL/2.0/>.
 
-The [original upstream source code][0] is licensed under [MIT license][1] with modifications following [Apache License 2.0][2]. 
+The [original upstream source code][0] is licensed under [MIT license][1] with modifications following [Apache License 2.0][2].
 
 
 

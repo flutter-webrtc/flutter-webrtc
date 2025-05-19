@@ -6,6 +6,20 @@ All user visible changes to this project will be documented in this file. This p
 
 
 
+## main
+
+[Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.14.0...main)
+
+### Changed
+
+- Upgraded [libwebrtc] to [136.0.7103.113] version. ([todo])
+
+[todo]: https://github.com/instrumentisto/medea-flutter-webrtc/commit/todo
+[136.0.7103.113]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/136.0.7103.113
+
+
+
+
 ## [0.14.0] · 2025-05-15
 [0.14.0]: https://github.com/instrumentisto/medea-flutter-webrtc/tree/0.14.0
 
@@ -379,7 +393,7 @@ All user visible changes to this project will be documented in this file. This p
 - `enableFakeMedia` method. ([#65], [#71], [#82])
 - Atomic `RtpTransceiver.setRecv` and `RtpTransceiver.setSend` methods. ([#73])
 - Way to disable context menu over `RTCVideoView` on Web platform. ([#9])
-  
+
 ### Fixed
 
 - `WebVideoRenderer` not applying `mirror` and `enableContextMenu` values. ([#62])

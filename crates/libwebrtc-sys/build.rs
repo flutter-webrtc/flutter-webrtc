@@ -1,4 +1,4 @@
-//! Downloads, compiles and links [`libwebrtc-bin`] and [OpenAL] libraries.
+//! Downloads, compiles, and links [`libwebrtc-bin`] and [OpenAL] libraries.
 //!
 //! [`libwebrtc-bin`]: https://github.com/instrumentisto/libwebrtc-bin
 //! [OpenAL]: https://github.com/kcat/openal-soft
@@ -173,7 +173,7 @@ use walkdir::{DirEntry, WalkDir};
 /// [`libwebrtc-bin`]: https://github.com/instrumentisto/libwebrtc-bin
 static LIBWEBRTC_URL: &str = "\
     https://github.com/instrumentisto/libwebrtc-bin/releases/download\
-                                                            /136.0.7103.92";
+                                                            /136.0.7103.113";
 
 /// URL for downloading `openal-soft` source code.
 static OPENAL_URL: &str =
@@ -295,19 +295,19 @@ fn get_target() -> anyhow::Result<String> {
 fn get_expected_libwebrtc_hash() -> anyhow::Result<&'static str> {
     Ok(match get_target()?.as_str() {
         "aarch64-unknown-linux-gnu" => {
-            "ecbb5eedf8ddd7b834767f83e7407921cc28b409e830b13f551633de5f4d37bc"
+            "6547fedfb2280e2fb9403c68bb2a6a329e5bf14698044628c12b903fc988581a"
         }
         "x86_64-unknown-linux-gnu" => {
-            "de699b4a280114e8c591c2f709c799ed4f5dc1e9548ad927d7adeac6560c2275"
+            "2e09bd6c67f8811c90d9433615035fa740acc680a446f1cd8c196ae3d92fb1bf"
         }
         "aarch64-apple-darwin" => {
-            "b8bf690e89531b59daca202d3e277b1f9140c2ce9a0e8b2cc6cb6cc917e11f6b"
+            "d2e48ae5106e5cc5b5f50af5f9fa42fc7296fb3e2e88d41fbd794999e17f4a3b"
         }
         "x86_64-apple-darwin" => {
-            "44dcbdd2f6e5f62649a64fe2ac23b82935f9a235405d31b7f0ea3b3393407a57"
+            "5c6479c785c939979e612ee5867b574e15b6dedad200dc0e1a977bcfbe9cf9a2"
         }
         "x86_64-pc-windows-msvc" => {
-            "19878f707df76ca364f169ef330dc789d97bc83b0dcd6f877803c3a5a2539aec"
+            "58a6c6d0c5c094679fd7c7361af22c640d36161b0ba3982544797a47c471cf53"
         }
         arch => return Err(anyhow::anyhow!("Unsupported target: {arch}")),
     })
