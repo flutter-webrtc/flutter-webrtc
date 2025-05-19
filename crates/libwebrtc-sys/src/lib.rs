@@ -89,6 +89,7 @@
     clippy::shadow_unrelated,
     clippy::significant_drop_in_scrutinee,
     clippy::significant_drop_tightening,
+    clippy::single_option_map,
     clippy::str_to_string,
     clippy::string_add,
     clippy::string_lit_as_bytes,
@@ -2813,7 +2814,7 @@ pub enum RtcInboundRtpStreamMediaType {
 /// Transport protocols used in [WebRTC].
 ///
 /// [WebRTC]: https://w3.org/TR/webrtc
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone, Copy, Debug)]
 pub enum Protocol {
     /// [Transmission Control Protocol][1].
     ///

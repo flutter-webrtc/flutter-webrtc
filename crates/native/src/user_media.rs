@@ -425,7 +425,7 @@ impl Webrtc {
                         }
                         MediaTrackSource::Remote { mid, peer } => {
                             MediaTrackSource::Remote {
-                                mid: mid.to_string(),
+                                mid: mid.clone(),
                                 peer: Weak::clone(peer),
                             }
                         }
@@ -466,7 +466,7 @@ impl Webrtc {
                         }
                         MediaTrackSource::Remote { mid, peer } => {
                             MediaTrackSource::Remote {
-                                mid: mid.to_string(),
+                                mid: mid.clone(),
                                 peer: Weak::clone(peer),
                             }
                         }

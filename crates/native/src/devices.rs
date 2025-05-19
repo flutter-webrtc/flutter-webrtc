@@ -467,9 +467,9 @@ mod linux {
             //         `socket`.
             let socket_fd =
                 unsafe { BorrowedFd::borrow_raw(socket.as_raw_fd()) };
-            let fds = PollFd::new(socket_fd, PollFlags::POLLIN);
+            let mut fds = [PollFd::new(socket_fd, PollFlags::POLLIN)];
             loop {
-                ppoll(&mut [fds], None, None)?;
+                ppoll(&mut fds, None, None)?;
 
                 let Some(event) = socket.receive_event() else {
                     continue;

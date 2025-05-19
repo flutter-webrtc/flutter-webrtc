@@ -90,6 +90,7 @@
     clippy::shadow_unrelated,
     clippy::significant_drop_in_scrutinee,
     clippy::significant_drop_tightening,
+    clippy::single_option_map,
     clippy::str_to_string,
     clippy::string_add,
     clippy::string_lit_as_bytes,

@@ -1,9 +1,12 @@
+# Project configuration for Clippy Rust code linter.
 # See full lints list at:
 # https://rust-lang.github.io/rust-clippy/master/index.html
 
 absolute-paths-allowed-crates = [
     "reqwest",
 ]
+
+allow-expect-in-tests = true
 
 doc-valid-idents = [
     "KiB", "MiB", "GiB", "TiB", "PiB", "EiB",

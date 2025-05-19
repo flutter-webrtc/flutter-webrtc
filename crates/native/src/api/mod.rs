@@ -436,9 +436,9 @@ impl From<sys::Protocol> for Protocol {
 ///
 /// [RFC 5245]: https://tools.ietf.org/html/rfc5245
 /// [1]: https://w3.org/TR/webrtc#dom-icetransport-role
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone, Copy, Debug)]
 pub enum IceRole {
-    /// Agent whose role as defined by [Section 3 in RFC 5245][1], has not yet
+    /// Agent whose role, as defined by [Section 3 in RFC 5245][1], has not yet
     /// been determined.
     ///
     /// [1]: https://tools.ietf.org/html/rfc5245#section-3
@@ -2166,7 +2166,7 @@ pub struct AudioProcessingConfig {
 }
 
 /// [`AudioProcessingConfig`] noise suppression aggressiveness.
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone, Copy, Debug)]
 pub enum NoiseSuppressionLevel {
     /// Minimal noise suppression.
     Low,

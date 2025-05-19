@@ -1,7 +1,7 @@
 [package]
 name = "medea-flutter-webrtc-native"
 edition = "2024"
-rust-version = "1.86"
+rust-version = "1.87"
 publish = false
 
 [lib]
@@ -20,7 +20,7 @@ xxhash = { package = "xxhash-rust", version = "0.8", features = ["xxh3"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libudev = "0.3"
-nix = { version = "0.29", features = ["poll", "signal"] }
+nix = { version = "0.30", features = ["poll", "signal"] }
 pulse = { version = "2.30", package = "libpulse-binding" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
