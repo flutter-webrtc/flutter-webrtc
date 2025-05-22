@@ -100,10 +100,9 @@ class WebAudioRenderer extends AudioRenderer {
     stream.addTrack(srcObject.jsTrack);
 
     if (_element == null) {
-      _element =
-          web.HTMLAudioElement()
-            ..id = _elementId
-            ..autoplay = true;
+      _element = web.HTMLAudioElement()
+        ..id = _elementId
+        ..autoplay = true;
       _getAudioManagerDiv().append(_element!);
 
       try {
@@ -128,10 +127,9 @@ class WebAudioRenderer extends AudioRenderer {
       return div as web.HTMLDivElement;
     }
 
-    div =
-        web.HTMLDivElement()
-          ..id = _elementIdForAudioManager
-          ..style.display = 'none';
+    div = web.HTMLDivElement()
+      ..id = _elementIdForAudioManager
+      ..style.display = 'none';
     web.document.body?.append(div);
 
     return div as web.HTMLDivElement;

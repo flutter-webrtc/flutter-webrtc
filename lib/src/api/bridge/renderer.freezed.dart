@@ -98,11 +98,10 @@ class _$TextureEventCopyWithImpl<$Res, $Val extends TextureEvent>
   $Res call({Object? textureId = null}) {
     return _then(
       _value.copyWith(
-            textureId:
-                null == textureId
-                    ? _value.textureId
-                    : textureId // ignore: cast_nullable_to_non_nullable
-                        as int,
+            textureId: null == textureId
+                ? _value.textureId
+                : textureId // ignore: cast_nullable_to_non_nullable
+                      as int,
           )
           as $Val,
     );
@@ -142,26 +141,22 @@ class __$$TextureEvent_OnTextureChangeImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$TextureEvent_OnTextureChangeImpl(
-        textureId:
-            null == textureId
-                ? _value.textureId
-                : textureId // ignore: cast_nullable_to_non_nullable
-                    as int,
-        width:
-            null == width
-                ? _value.width
-                : width // ignore: cast_nullable_to_non_nullable
-                    as int,
-        height:
-            null == height
-                ? _value.height
-                : height // ignore: cast_nullable_to_non_nullable
-                    as int,
-        rotation:
-            null == rotation
-                ? _value.rotation
-                : rotation // ignore: cast_nullable_to_non_nullable
-                    as int,
+        textureId: null == textureId
+            ? _value.textureId
+            : textureId // ignore: cast_nullable_to_non_nullable
+                  as int,
+        width: null == width
+            ? _value.width
+            : width // ignore: cast_nullable_to_non_nullable
+                  as int,
+        height: null == height
+            ? _value.height
+            : height // ignore: cast_nullable_to_non_nullable
+                  as int,
+        rotation: null == rotation
+            ? _value.rotation
+            : rotation // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -223,9 +218,10 @@ class _$TextureEvent_OnTextureChangeImpl extends TextureEvent_OnTextureChange {
   _$$TextureEvent_OnTextureChangeImplCopyWith<
     _$TextureEvent_OnTextureChangeImpl
   >
-  get copyWith => __$$TextureEvent_OnTextureChangeImplCopyWithImpl<
-    _$TextureEvent_OnTextureChangeImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$TextureEvent_OnTextureChangeImplCopyWithImpl<
+        _$TextureEvent_OnTextureChangeImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -366,11 +362,10 @@ class __$$TextureEvent_OnFirstFrameRenderedImplCopyWithImpl<$Res>
   $Res call({Object? textureId = null}) {
     return _then(
       _$TextureEvent_OnFirstFrameRenderedImpl(
-        textureId:
-            null == textureId
-                ? _value.textureId
-                : textureId // ignore: cast_nullable_to_non_nullable
-                    as int,
+        textureId: null == textureId
+            ? _value.textureId
+            : textureId // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -412,9 +407,10 @@ class _$TextureEvent_OnFirstFrameRenderedImpl
   _$$TextureEvent_OnFirstFrameRenderedImplCopyWith<
     _$TextureEvent_OnFirstFrameRenderedImpl
   >
-  get copyWith => __$$TextureEvent_OnFirstFrameRenderedImplCopyWithImpl<
-    _$TextureEvent_OnFirstFrameRenderedImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$TextureEvent_OnFirstFrameRenderedImplCopyWithImpl<
+        _$TextureEvent_OnFirstFrameRenderedImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs

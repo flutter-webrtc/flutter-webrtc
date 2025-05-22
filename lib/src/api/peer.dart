@@ -32,10 +32,9 @@ Future<void> initFfiBridge() async {
 
   const base = 'medea_flutter_webrtc_native';
   final path = Platform.isWindows ? '$base.dll' : 'lib$base.so';
-  late final lib =
-      Platform.isMacOS
-          ? ExternalLibrary.process(iKnowHowToUseIt: true)
-          : ExternalLibrary.open(path);
+  late final lib = Platform.isMacOS
+      ? ExternalLibrary.process(iKnowHowToUseIt: true)
+      : ExternalLibrary.open(path);
 
   await RustLib.init(externalLibrary: lib);
 }
@@ -506,16 +505,15 @@ class _PeerConnectionFFI extends PeerConnection {
     var cfg = ffi.RtcConfiguration(
       iceTransportPolicy: ffi.IceTransportsType.values[iceType.index],
       bundlePolicy: ffi.BundlePolicy.maxBundle,
-      iceServers:
-          iceServers
-              .map(
-                (server) => ffi.RtcIceServer(
-                  urls: server.urls,
-                  username: server.username != null ? server.username! : '',
-                  credential: server.password != null ? server.password! : '',
-                ),
-              )
-              .toList(),
+      iceServers: iceServers
+          .map(
+            (server) => ffi.RtcIceServer(
+              urls: server.urls,
+              username: server.username != null ? server.username! : '',
+              credential: server.password != null ? server.password! : '',
+            ),
+          )
+          .toList(),
     );
 
     var peer = _PeerConnectionFFI();
@@ -687,10 +685,9 @@ class _PeerConnectionFFI extends PeerConnection {
   Future<List<RtpTransceiver>> getTransceivers() async {
     _checkNotClosed();
 
-    var transceivers =
-        (await ffi.getTransceivers(
-          peer: _peer!,
-        )).map((transceiver) => RtpTransceiver.fromFFI(transceiver)).toList();
+    var transceivers = (await ffi.getTransceivers(
+      peer: _peer!,
+    )).map((transceiver) => RtpTransceiver.fromFFI(transceiver)).toList();
     _transceivers.addAll(transceivers);
 
     return transceivers;

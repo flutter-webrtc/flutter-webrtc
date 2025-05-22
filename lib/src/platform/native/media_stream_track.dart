@@ -244,14 +244,13 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
 
   @override
   Future<MediaStreamTrack> clone() async {
-    var ffiTrack =
-        _stopped
-            ? null
-            : await ffi.cloneTrack(
-              trackId: _id,
-              peerId: _peerId,
-              kind: ffi.MediaType.values[_kind.index],
-            );
+    var ffiTrack = _stopped
+        ? null
+        : await ffi.cloneTrack(
+            trackId: _id,
+            peerId: _peerId,
+            kind: ffi.MediaType.values[_kind.index],
+          );
 
     if (ffiTrack != null) {
       return NativeMediaStreamTrack.from(ffiTrack);
@@ -291,10 +290,10 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
   Future<MediaStreamTrackState> state() async {
     return !_stopped
         ? MediaStreamTrackState.values[(await ffi.trackState(
-          peerId: _peerId,
-          trackId: _id,
-          kind: ffi.MediaType.values[_kind.index],
-        )).index]
+            peerId: _peerId,
+            trackId: _id,
+            kind: ffi.MediaType.values[_kind.index],
+          )).index]
         : MediaStreamTrackState.ended;
   }
 
@@ -426,10 +425,9 @@ class _NativeMediaStreamTrackFFI extends NativeMediaStreamTrack {
       super.getNoiseSuppressionLevel();
     }
 
-    var level =
-        (await ffi.getAudioProcessingConfig(
-          trackId: _id,
-        )).noiseSuppressionLevel;
+    var level = (await ffi.getAudioProcessingConfig(
+      trackId: _id,
+    )).noiseSuppressionLevel;
 
     return NoiseSuppressionLevel.values[level.index];
   }

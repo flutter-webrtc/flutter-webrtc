@@ -64,11 +64,10 @@ class _RtpParametersFFI extends RtpParameters {
   @override
   ffi.RtcRtpSendParameters toFFI() {
     return ffi.RtcRtpSendParameters(
-      encodings:
-          encodings.map((e) {
-            var r = e.toFFI();
-            return (r.$1, r.$2!);
-          }).toList(),
+      encodings: encodings.map((e) {
+        var r = e.toFFI();
+        return (r.$1, r.$2!);
+      }).toList(),
       inner: _inner,
     );
   }

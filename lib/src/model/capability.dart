@@ -17,17 +17,15 @@ class RtpCapabilities {
   }
 
   static RtpCapabilities fromMap(dynamic map) {
-    var codecs =
-        (map['codecs'] as List<Object?>)
-            .where((element) => element != null)
-            .map((c) => RtpCodecCapability.fromMap(c))
-            .toList();
+    var codecs = (map['codecs'] as List<Object?>)
+        .where((element) => element != null)
+        .map((c) => RtpCodecCapability.fromMap(c))
+        .toList();
 
-    var headerExtensions =
-        (map['headerExtensions'] as List<Object?>)
-            .where((element) => element != null)
-            .map((h) => RtpHeaderExtensionCapability.fromMap(h))
-            .toList();
+    var headerExtensions = (map['headerExtensions'] as List<Object?>)
+        .where((element) => element != null)
+        .map((h) => RtpHeaderExtensionCapability.fromMap(h))
+        .toList();
     return RtpCapabilities(codecs, headerExtensions);
   }
 
@@ -55,10 +53,9 @@ class RtpHeaderExtensionCapability {
   }
 
   static RtpHeaderExtensionCapability fromMap(dynamic map) {
-    var direction =
-        map['direction'] == null
-            ? TransceiverDirection.sendRecv
-            : TransceiverDirection.values[map['direction']];
+    var direction = map['direction'] == null
+        ? TransceiverDirection.sendRecv
+        : TransceiverDirection.values[map['direction']];
     return RtpHeaderExtensionCapability(map['uri'], direction);
   }
 

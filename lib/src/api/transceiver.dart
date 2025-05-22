@@ -190,22 +190,20 @@ class _RtpTransceiverFFI extends RtpTransceiver {
 
   @override
   Future<void> setCodecPreferences(List<RtpCodecCapability> codecs) async {
-    var ffiCodecs =
-        codecs.map((c) {
-          var params =
-              c.parameters.entries.map((e) => (e.key, e.value)).toList();
-          return ffi.RtpCodecCapability(
-            clockRate: c.clockRate,
-            numChannels: c.numChannels,
-            preferredPayloadType: c.preferredPayloadType,
-            scalabilityModes: List.empty(),
-            mimeType: c.mimeType,
-            name: c.name,
-            kind: ffi.MediaType.values[c.kind.index],
-            parameters: params,
-            feedback: List.empty(),
-          );
-        }).toList();
+    var ffiCodecs = codecs.map((c) {
+      var params = c.parameters.entries.map((e) => (e.key, e.value)).toList();
+      return ffi.RtpCodecCapability(
+        clockRate: c.clockRate,
+        numChannels: c.numChannels,
+        preferredPayloadType: c.preferredPayloadType,
+        scalabilityModes: List.empty(),
+        mimeType: c.mimeType,
+        name: c.name,
+        kind: ffi.MediaType.values[c.kind.index],
+        parameters: params,
+        feedback: List.empty(),
+      );
+    }).toList();
     await ffi.setCodecPreferences(transceiver: _transceiver, codecs: ffiCodecs);
   }
 

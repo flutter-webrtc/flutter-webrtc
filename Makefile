@@ -103,10 +103,10 @@ flutter.build:
 #	make flutter.fmt [check=(no|yes)]
 
 flutter.fmt:
-	dart format $(if $(call eq,$(check),yes), --set-exit-if-changed,) .
-ifeq ($(wildcard .packages),)
+ifeq ($(wildcard .dart_tool),)
 	flutter pub get
 endif
+	dart format $(if $(call eq,$(check),yes), --set-exit-if-changed,) .
 	flutter pub run import_sorter:main --no-comments \
 		$(if $(call eq,$(check),yes),--exit-if-changed,)
 

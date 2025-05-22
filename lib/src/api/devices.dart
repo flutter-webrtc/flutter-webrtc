@@ -202,8 +202,9 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaChannel(
       'getUserMedia',
       {'constraints': constraints.toMap()},
     );
-    List<Future<NativeMediaStreamTrack>> tracks =
-        res!.map((t) => NativeMediaStreamTrack.from(t)).toList();
+    List<Future<NativeMediaStreamTrack>> tracks = res!
+        .map((t) => NativeMediaStreamTrack.from(t))
+        .toList();
     return await Future.wait(tracks);
   } on PlatformException catch (e) {
     if (e.code == 'GetUserMediaAudioException') {
@@ -225,50 +226,49 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
       constraints.audio.optional?.noiseSuppressionLevel?.index;
   var audioConstraints =
       constraints.audio.mandatory != null || constraints.audio.optional != null
-          ? ffi.AudioConstraints(
-            deviceId: constraints.audio.mandatory?.deviceId,
-            processing: ffi.AudioProcessingConstraints(
-              autoGainControl:
-                  constraints.audio.mandatory?.autoGainControl ??
-                  constraints.audio.optional?.autoGainControl,
-              highPassFilter:
-                  constraints.audio.mandatory?.highPassFilter ??
-                  constraints.audio.optional?.highPassFilter,
-              echoCancellation:
-                  constraints.audio.mandatory?.echoCancellation ??
-                  constraints.audio.optional?.echoCancellation,
-              noiseSuppression:
-                  constraints.audio.mandatory?.noiseSuppression ??
-                  constraints.audio.optional?.noiseSuppression,
-              noiseSuppressionLevel:
-                  nsLevel != null
-                      ? ffi.NoiseSuppressionLevel.values[nsLevel]
-                      : null,
-            ),
-          )
-          : null;
+      ? ffi.AudioConstraints(
+          deviceId: constraints.audio.mandatory?.deviceId,
+          processing: ffi.AudioProcessingConstraints(
+            autoGainControl:
+                constraints.audio.mandatory?.autoGainControl ??
+                constraints.audio.optional?.autoGainControl,
+            highPassFilter:
+                constraints.audio.mandatory?.highPassFilter ??
+                constraints.audio.optional?.highPassFilter,
+            echoCancellation:
+                constraints.audio.mandatory?.echoCancellation ??
+                constraints.audio.optional?.echoCancellation,
+            noiseSuppression:
+                constraints.audio.mandatory?.noiseSuppression ??
+                constraints.audio.optional?.noiseSuppression,
+            noiseSuppressionLevel: nsLevel != null
+                ? ffi.NoiseSuppressionLevel.values[nsLevel]
+                : null,
+          ),
+        )
+      : null;
 
   var videoConstraints =
       constraints.video.mandatory != null || constraints.video.optional != null
-          ? ffi.VideoConstraints(
-            deviceId:
-                constraints.video.mandatory?.deviceId ??
-                constraints.video.optional?.deviceId,
-            height:
-                constraints.video.mandatory?.height ??
-                constraints.video.optional?.height ??
-                defaultUserMediaHeight,
-            width:
-                constraints.video.mandatory?.width ??
-                constraints.video.optional?.width ??
-                defaultUserMediaWidth,
-            frameRate:
-                constraints.video.mandatory?.fps ??
-                constraints.video.optional?.fps ??
-                defaultFrameRate,
-            isDisplay: false,
-          )
-          : null;
+      ? ffi.VideoConstraints(
+          deviceId:
+              constraints.video.mandatory?.deviceId ??
+              constraints.video.optional?.deviceId,
+          height:
+              constraints.video.mandatory?.height ??
+              constraints.video.optional?.height ??
+              defaultUserMediaHeight,
+          width:
+              constraints.video.mandatory?.width ??
+              constraints.video.optional?.width ??
+              defaultUserMediaWidth,
+          frameRate:
+              constraints.video.mandatory?.fps ??
+              constraints.video.optional?.fps ??
+              defaultFrameRate,
+          isDisplay: false,
+        )
+      : null;
 
   var result = await ffi.getMedia(
     constraints: ffi.MediaStreamConstraints(
@@ -278,8 +278,9 @@ Future<List<NativeMediaStreamTrack>> _getUserMediaFFI(
   );
 
   if (result is ffi.GetMediaResult_Ok) {
-    List<Future<NativeMediaStreamTrack>> tracks =
-        result.field0.map((e) => NativeMediaStreamTrack.from(e)).toList();
+    List<Future<NativeMediaStreamTrack>> tracks = result.field0
+        .map((e) => NativeMediaStreamTrack.from(e))
+        .toList();
     return await Future.wait(tracks);
   } else {
     if ((result as ffi.GetMediaResult_Err).field0 is ffi.GetMediaError_Video) {
@@ -304,8 +305,9 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaChannel(
     'getDisplayMedia',
     {'constraints': constraints.toMap()},
   );
-  List<Future<NativeMediaStreamTrack>> tracks =
-      res!.map((t) => NativeMediaStreamTrack.from(t)).toList();
+  List<Future<NativeMediaStreamTrack>> tracks = res!
+      .map((t) => NativeMediaStreamTrack.from(t))
+      .toList();
   return await Future.wait(tracks);
 }
 
@@ -315,31 +317,31 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaFFI(
 ) async {
   var audioConstraints =
       constraints.audio.mandatory != null || constraints.audio.optional != null
-          ? ffi.AudioConstraints(
-            deviceId: constraints.audio.mandatory?.deviceId,
-            processing: ffi.AudioProcessingConstraints(),
-          )
-          : null;
+      ? ffi.AudioConstraints(
+          deviceId: constraints.audio.mandatory?.deviceId,
+          processing: ffi.AudioProcessingConstraints(),
+        )
+      : null;
 
   var videoConstraints =
       constraints.video.mandatory != null || constraints.video.optional != null
-          ? ffi.VideoConstraints(
-            deviceId: constraints.video.mandatory?.deviceId,
-            height:
-                constraints.video.mandatory?.height ??
-                constraints.video.optional?.height ??
-                defaultDisplayMediaHeight,
-            width:
-                constraints.video.mandatory?.width ??
-                constraints.video.optional?.width ??
-                defaultDisplayMediaWidth,
-            frameRate:
-                constraints.video.mandatory?.fps ??
-                constraints.video.optional?.fps ??
-                defaultFrameRate,
-            isDisplay: true,
-          )
-          : null;
+      ? ffi.VideoConstraints(
+          deviceId: constraints.video.mandatory?.deviceId,
+          height:
+              constraints.video.mandatory?.height ??
+              constraints.video.optional?.height ??
+              defaultDisplayMediaHeight,
+          width:
+              constraints.video.mandatory?.width ??
+              constraints.video.optional?.width ??
+              defaultDisplayMediaWidth,
+          frameRate:
+              constraints.video.mandatory?.fps ??
+              constraints.video.optional?.fps ??
+              defaultFrameRate,
+          isDisplay: true,
+        )
+      : null;
 
   var result = await ffi.getMedia(
     constraints: ffi.MediaStreamConstraints(
@@ -349,8 +351,9 @@ Future<List<NativeMediaStreamTrack>> _getDisplayMediaFFI(
   );
 
   if (result is ffi.GetMediaResult_Ok) {
-    List<Future<NativeMediaStreamTrack>> tracks =
-        result.field0.map((e) => NativeMediaStreamTrack.from(e)).toList();
+    List<Future<NativeMediaStreamTrack>> tracks = result.field0
+        .map((e) => NativeMediaStreamTrack.from(e))
+        .toList();
     return await Future.wait(tracks);
   } else {
     if ((result as ffi.GetMediaResult_Err) is ffi.GetMediaError_Video) {

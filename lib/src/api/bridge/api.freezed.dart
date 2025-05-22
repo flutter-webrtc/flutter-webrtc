@@ -85,11 +85,10 @@ class _$GetMediaErrorCopyWithImpl<$Res, $Val extends GetMediaError>
   $Res call({Object? field0 = null}) {
     return _then(
       _value.copyWith(
-            field0:
-                null == field0
-                    ? _value.field0
-                    : field0 // ignore: cast_nullable_to_non_nullable
-                        as String,
+            field0: null == field0
+                ? _value.field0
+                : field0 // ignore: cast_nullable_to_non_nullable
+                      as String,
           )
           as $Val,
     );
@@ -127,7 +126,7 @@ class __$$GetMediaError_AudioImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as String,
+                  as String,
       ),
     );
   }
@@ -278,7 +277,7 @@ class __$$GetMediaError_VideoImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as String,
+                  as String,
       ),
     );
   }
@@ -486,7 +485,7 @@ class __$$GetMediaResult_OkImplCopyWithImpl<$Res>
         null == field0
             ? _value._field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as List<MediaStreamTrack>,
+                  as List<MediaStreamTrack>,
       ),
     );
   }
@@ -644,7 +643,7 @@ class __$$GetMediaResult_ErrImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as GetMediaError,
+                  as GetMediaError,
       ),
     );
   }
@@ -954,11 +953,10 @@ class __$$PeerConnectionEvent_PeerCreatedImplCopyWithImpl<$Res>
   $Res call({Object? peer = null}) {
     return _then(
       _$PeerConnectionEvent_PeerCreatedImpl(
-        peer:
-            null == peer
-                ? _value.peer
-                : peer // ignore: cast_nullable_to_non_nullable
-                    as ArcPeerConnection,
+        peer: null == peer
+            ? _value.peer
+            : peer // ignore: cast_nullable_to_non_nullable
+                  as ArcPeerConnection,
       ),
     );
   }
@@ -998,9 +996,10 @@ class _$PeerConnectionEvent_PeerCreatedImpl
   _$$PeerConnectionEvent_PeerCreatedImplCopyWith<
     _$PeerConnectionEvent_PeerCreatedImpl
   >
-  get copyWith => __$$PeerConnectionEvent_PeerCreatedImplCopyWithImpl<
-    _$PeerConnectionEvent_PeerCreatedImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$PeerConnectionEvent_PeerCreatedImplCopyWithImpl<
+        _$PeerConnectionEvent_PeerCreatedImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1210,21 +1209,18 @@ class __$$PeerConnectionEvent_IceCandidateImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$PeerConnectionEvent_IceCandidateImpl(
-        sdpMid:
-            null == sdpMid
-                ? _value.sdpMid
-                : sdpMid // ignore: cast_nullable_to_non_nullable
-                    as String,
-        sdpMlineIndex:
-            null == sdpMlineIndex
-                ? _value.sdpMlineIndex
-                : sdpMlineIndex // ignore: cast_nullable_to_non_nullable
-                    as int,
-        candidate:
-            null == candidate
-                ? _value.candidate
-                : candidate // ignore: cast_nullable_to_non_nullable
-                    as String,
+        sdpMid: null == sdpMid
+            ? _value.sdpMid
+            : sdpMid // ignore: cast_nullable_to_non_nullable
+                  as String,
+        sdpMlineIndex: null == sdpMlineIndex
+            ? _value.sdpMlineIndex
+            : sdpMlineIndex // ignore: cast_nullable_to_non_nullable
+                  as int,
+        candidate: null == candidate
+            ? _value.candidate
+            : candidate // ignore: cast_nullable_to_non_nullable
+                  as String,
       ),
     );
   }
@@ -1296,9 +1292,10 @@ class _$PeerConnectionEvent_IceCandidateImpl
   _$$PeerConnectionEvent_IceCandidateImplCopyWith<
     _$PeerConnectionEvent_IceCandidateImpl
   >
-  get copyWith => __$$PeerConnectionEvent_IceCandidateImplCopyWithImpl<
-    _$PeerConnectionEvent_IceCandidateImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$PeerConnectionEvent_IceCandidateImplCopyWithImpl<
+        _$PeerConnectionEvent_IceCandidateImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1533,7 +1530,7 @@ class __$$PeerConnectionEvent_IceGatheringStateChangeImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as IceGatheringState,
+                  as IceGatheringState,
       ),
     );
   }
@@ -1794,31 +1791,26 @@ class __$$PeerConnectionEvent_IceCandidateErrorImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$PeerConnectionEvent_IceCandidateErrorImpl(
-        address:
-            null == address
-                ? _value.address
-                : address // ignore: cast_nullable_to_non_nullable
-                    as String,
-        port:
-            null == port
-                ? _value.port
-                : port // ignore: cast_nullable_to_non_nullable
-                    as int,
-        url:
-            null == url
-                ? _value.url
-                : url // ignore: cast_nullable_to_non_nullable
-                    as String,
-        errorCode:
-            null == errorCode
-                ? _value.errorCode
-                : errorCode // ignore: cast_nullable_to_non_nullable
-                    as int,
-        errorText:
-            null == errorText
-                ? _value.errorText
-                : errorText // ignore: cast_nullable_to_non_nullable
-                    as String,
+        address: null == address
+            ? _value.address
+            : address // ignore: cast_nullable_to_non_nullable
+                  as String,
+        port: null == port
+            ? _value.port
+            : port // ignore: cast_nullable_to_non_nullable
+                  as int,
+        url: null == url
+            ? _value.url
+            : url // ignore: cast_nullable_to_non_nullable
+                  as String,
+        errorCode: null == errorCode
+            ? _value.errorCode
+            : errorCode // ignore: cast_nullable_to_non_nullable
+                  as int,
+        errorText: null == errorText
+            ? _value.errorText
+            : errorText // ignore: cast_nullable_to_non_nullable
+                  as String,
       ),
     );
   }
@@ -1900,9 +1892,10 @@ class _$PeerConnectionEvent_IceCandidateErrorImpl
   _$$PeerConnectionEvent_IceCandidateErrorImplCopyWith<
     _$PeerConnectionEvent_IceCandidateErrorImpl
   >
-  get copyWith => __$$PeerConnectionEvent_IceCandidateErrorImplCopyWithImpl<
-    _$PeerConnectionEvent_IceCandidateErrorImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$PeerConnectionEvent_IceCandidateErrorImplCopyWithImpl<
+        _$PeerConnectionEvent_IceCandidateErrorImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2350,7 +2343,7 @@ class __$$PeerConnectionEvent_SignallingChangeImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as SignalingState,
+                  as SignalingState,
       ),
     );
   }
@@ -2389,9 +2382,10 @@ class _$PeerConnectionEvent_SignallingChangeImpl
   _$$PeerConnectionEvent_SignallingChangeImplCopyWith<
     _$PeerConnectionEvent_SignallingChangeImpl
   >
-  get copyWith => __$$PeerConnectionEvent_SignallingChangeImplCopyWithImpl<
-    _$PeerConnectionEvent_SignallingChangeImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$PeerConnectionEvent_SignallingChangeImplCopyWithImpl<
+        _$PeerConnectionEvent_SignallingChangeImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2603,7 +2597,7 @@ class __$$PeerConnectionEvent_IceConnectionStateChangeImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as IceConnectionState,
+                  as IceConnectionState,
       ),
     );
   }
@@ -2855,7 +2849,7 @@ class __$$PeerConnectionEvent_ConnectionStateChangeImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as PeerConnectionState,
+                  as PeerConnectionState,
       ),
     );
   }
@@ -2895,9 +2889,10 @@ class _$PeerConnectionEvent_ConnectionStateChangeImpl
   _$$PeerConnectionEvent_ConnectionStateChangeImplCopyWith<
     _$PeerConnectionEvent_ConnectionStateChangeImpl
   >
-  get copyWith => __$$PeerConnectionEvent_ConnectionStateChangeImplCopyWithImpl<
-    _$PeerConnectionEvent_ConnectionStateChangeImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$PeerConnectionEvent_ConnectionStateChangeImplCopyWithImpl<
+        _$PeerConnectionEvent_ConnectionStateChangeImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -3103,7 +3098,7 @@ class __$$PeerConnectionEvent_TrackImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as RtcTrackEvent,
+                  as RtcTrackEvent,
       ),
     );
   }
@@ -3139,9 +3134,10 @@ class _$PeerConnectionEvent_TrackImpl extends PeerConnectionEvent_Track {
   @override
   @pragma('vm:prefer-inline')
   _$$PeerConnectionEvent_TrackImplCopyWith<_$PeerConnectionEvent_TrackImpl>
-  get copyWith => __$$PeerConnectionEvent_TrackImplCopyWithImpl<
-    _$PeerConnectionEvent_TrackImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$PeerConnectionEvent_TrackImplCopyWithImpl<
+        _$PeerConnectionEvent_TrackImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -3386,11 +3382,10 @@ class _$RtcIceCandidateStatsCopyWithImpl<
   $Res call({Object? field0 = null}) {
     return _then(
       _value.copyWith(
-            field0:
-                null == field0
-                    ? _value.field0
-                    : field0 // ignore: cast_nullable_to_non_nullable
-                        as IceCandidateStats,
+            field0: null == field0
+                ? _value.field0
+                : field0 // ignore: cast_nullable_to_non_nullable
+                      as IceCandidateStats,
           )
           as $Val,
     );
@@ -3432,7 +3427,7 @@ class __$$RtcIceCandidateStats_LocalImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as IceCandidateStats,
+                  as IceCandidateStats,
       ),
     );
   }
@@ -3468,9 +3463,10 @@ class _$RtcIceCandidateStats_LocalImpl extends RtcIceCandidateStats_Local {
   @override
   @pragma('vm:prefer-inline')
   _$$RtcIceCandidateStats_LocalImplCopyWith<_$RtcIceCandidateStats_LocalImpl>
-  get copyWith => __$$RtcIceCandidateStats_LocalImplCopyWithImpl<
-    _$RtcIceCandidateStats_LocalImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcIceCandidateStats_LocalImplCopyWithImpl<
+        _$RtcIceCandidateStats_LocalImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -3586,7 +3582,7 @@ class __$$RtcIceCandidateStats_RemoteImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as IceCandidateStats,
+                  as IceCandidateStats,
       ),
     );
   }
@@ -3622,9 +3618,10 @@ class _$RtcIceCandidateStats_RemoteImpl extends RtcIceCandidateStats_Remote {
   @override
   @pragma('vm:prefer-inline')
   _$$RtcIceCandidateStats_RemoteImplCopyWith<_$RtcIceCandidateStats_RemoteImpl>
-  get copyWith => __$$RtcIceCandidateStats_RemoteImplCopyWithImpl<
-    _$RtcIceCandidateStats_RemoteImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcIceCandidateStats_RemoteImplCopyWithImpl<
+        _$RtcIceCandidateStats_RemoteImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -3882,41 +3879,34 @@ class __$$RtcInboundRtpStreamMediaType_AudioImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcInboundRtpStreamMediaType_AudioImpl(
-        voiceActivityFlag:
-            freezed == voiceActivityFlag
-                ? _value.voiceActivityFlag
-                : voiceActivityFlag // ignore: cast_nullable_to_non_nullable
-                    as bool?,
-        totalSamplesReceived:
-            freezed == totalSamplesReceived
-                ? _value.totalSamplesReceived
-                : totalSamplesReceived // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        concealedSamples:
-            freezed == concealedSamples
-                ? _value.concealedSamples
-                : concealedSamples // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        silentConcealedSamples:
-            freezed == silentConcealedSamples
-                ? _value.silentConcealedSamples
-                : silentConcealedSamples // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        audioLevel:
-            freezed == audioLevel
-                ? _value.audioLevel
-                : audioLevel // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        totalAudioEnergy:
-            freezed == totalAudioEnergy
-                ? _value.totalAudioEnergy
-                : totalAudioEnergy // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        totalSamplesDuration:
-            freezed == totalSamplesDuration
-                ? _value.totalSamplesDuration
-                : totalSamplesDuration // ignore: cast_nullable_to_non_nullable
-                    as double?,
+        voiceActivityFlag: freezed == voiceActivityFlag
+            ? _value.voiceActivityFlag
+            : voiceActivityFlag // ignore: cast_nullable_to_non_nullable
+                  as bool?,
+        totalSamplesReceived: freezed == totalSamplesReceived
+            ? _value.totalSamplesReceived
+            : totalSamplesReceived // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        concealedSamples: freezed == concealedSamples
+            ? _value.concealedSamples
+            : concealedSamples // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        silentConcealedSamples: freezed == silentConcealedSamples
+            ? _value.silentConcealedSamples
+            : silentConcealedSamples // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        audioLevel: freezed == audioLevel
+            ? _value.audioLevel
+            : audioLevel // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        totalAudioEnergy: freezed == totalAudioEnergy
+            ? _value.totalAudioEnergy
+            : totalAudioEnergy // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        totalSamplesDuration: freezed == totalSamplesDuration
+            ? _value.totalSamplesDuration
+            : totalSamplesDuration // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -4039,9 +4029,10 @@ class _$RtcInboundRtpStreamMediaType_AudioImpl
   _$$RtcInboundRtpStreamMediaType_AudioImplCopyWith<
     _$RtcInboundRtpStreamMediaType_AudioImpl
   >
-  get copyWith => __$$RtcInboundRtpStreamMediaType_AudioImplCopyWithImpl<
-    _$RtcInboundRtpStreamMediaType_AudioImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcInboundRtpStreamMediaType_AudioImplCopyWithImpl<
+        _$RtcInboundRtpStreamMediaType_AudioImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -4322,61 +4313,50 @@ class __$$RtcInboundRtpStreamMediaType_VideoImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcInboundRtpStreamMediaType_VideoImpl(
-        framesDecoded:
-            freezed == framesDecoded
-                ? _value.framesDecoded
-                : framesDecoded // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        keyFramesDecoded:
-            freezed == keyFramesDecoded
-                ? _value.keyFramesDecoded
-                : keyFramesDecoded // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        frameWidth:
-            freezed == frameWidth
-                ? _value.frameWidth
-                : frameWidth // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        frameHeight:
-            freezed == frameHeight
-                ? _value.frameHeight
-                : frameHeight // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        totalInterFrameDelay:
-            freezed == totalInterFrameDelay
-                ? _value.totalInterFrameDelay
-                : totalInterFrameDelay // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        framesPerSecond:
-            freezed == framesPerSecond
-                ? _value.framesPerSecond
-                : framesPerSecond // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        firCount:
-            freezed == firCount
-                ? _value.firCount
-                : firCount // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        pliCount:
-            freezed == pliCount
-                ? _value.pliCount
-                : pliCount // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        sliCount:
-            freezed == sliCount
-                ? _value.sliCount
-                : sliCount // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        concealmentEvents:
-            freezed == concealmentEvents
-                ? _value.concealmentEvents
-                : concealmentEvents // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        framesReceived:
-            freezed == framesReceived
-                ? _value.framesReceived
-                : framesReceived // ignore: cast_nullable_to_non_nullable
-                    as int?,
+        framesDecoded: freezed == framesDecoded
+            ? _value.framesDecoded
+            : framesDecoded // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        keyFramesDecoded: freezed == keyFramesDecoded
+            ? _value.keyFramesDecoded
+            : keyFramesDecoded // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        frameWidth: freezed == frameWidth
+            ? _value.frameWidth
+            : frameWidth // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        frameHeight: freezed == frameHeight
+            ? _value.frameHeight
+            : frameHeight // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        totalInterFrameDelay: freezed == totalInterFrameDelay
+            ? _value.totalInterFrameDelay
+            : totalInterFrameDelay // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        framesPerSecond: freezed == framesPerSecond
+            ? _value.framesPerSecond
+            : framesPerSecond // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        firCount: freezed == firCount
+            ? _value.firCount
+            : firCount // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        pliCount: freezed == pliCount
+            ? _value.pliCount
+            : pliCount // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        sliCount: freezed == sliCount
+            ? _value.sliCount
+            : sliCount // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        concealmentEvents: freezed == concealmentEvents
+            ? _value.concealmentEvents
+            : concealmentEvents // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        framesReceived: freezed == framesReceived
+            ? _value.framesReceived
+            : framesReceived // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -4531,9 +4511,10 @@ class _$RtcInboundRtpStreamMediaType_VideoImpl
   _$$RtcInboundRtpStreamMediaType_VideoImplCopyWith<
     _$RtcInboundRtpStreamMediaType_VideoImpl
   >
-  get copyWith => __$$RtcInboundRtpStreamMediaType_VideoImplCopyWithImpl<
-    _$RtcInboundRtpStreamMediaType_VideoImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcInboundRtpStreamMediaType_VideoImplCopyWithImpl<
+        _$RtcInboundRtpStreamMediaType_VideoImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -4943,26 +4924,22 @@ class __$$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcMediaSourceStatsMediaType_RtcVideoSourceStatsImpl(
-        width:
-            freezed == width
-                ? _value.width
-                : width // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        height:
-            freezed == height
-                ? _value.height
-                : height // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        frames:
-            freezed == frames
-                ? _value.frames
-                : frames // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        framesPerSecond:
-            freezed == framesPerSecond
-                ? _value.framesPerSecond
-                : framesPerSecond // ignore: cast_nullable_to_non_nullable
-                    as double?,
+        width: freezed == width
+            ? _value.width
+            : width // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        height: freezed == height
+            ? _value.height
+            : height // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        frames: freezed == frames
+            ? _value.frames
+            : frames // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        framesPerSecond: freezed == framesPerSecond
+            ? _value.framesPerSecond
+            : framesPerSecond // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -5228,31 +5205,26 @@ class __$$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcMediaSourceStatsMediaType_RtcAudioSourceStatsImpl(
-        audioLevel:
-            freezed == audioLevel
-                ? _value.audioLevel
-                : audioLevel // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        totalAudioEnergy:
-            freezed == totalAudioEnergy
-                ? _value.totalAudioEnergy
-                : totalAudioEnergy // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        totalSamplesDuration:
-            freezed == totalSamplesDuration
-                ? _value.totalSamplesDuration
-                : totalSamplesDuration // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        echoReturnLoss:
-            freezed == echoReturnLoss
-                ? _value.echoReturnLoss
-                : echoReturnLoss // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        echoReturnLossEnhancement:
-            freezed == echoReturnLossEnhancement
-                ? _value.echoReturnLossEnhancement
-                : echoReturnLossEnhancement // ignore: cast_nullable_to_non_nullable
-                    as double?,
+        audioLevel: freezed == audioLevel
+            ? _value.audioLevel
+            : audioLevel // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        totalAudioEnergy: freezed == totalAudioEnergy
+            ? _value.totalAudioEnergy
+            : totalAudioEnergy // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        totalSamplesDuration: freezed == totalSamplesDuration
+            ? _value.totalSamplesDuration
+            : totalSamplesDuration // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        echoReturnLoss: freezed == echoReturnLoss
+            ? _value.echoReturnLoss
+            : echoReturnLoss // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        echoReturnLossEnhancement: freezed == echoReturnLossEnhancement
+            ? _value.echoReturnLossEnhancement
+            : echoReturnLossEnhancement // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -5631,16 +5603,14 @@ class __$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcOutboundRtpStreamStatsMediaType_AudioImpl(
-        totalSamplesSent:
-            freezed == totalSamplesSent
-                ? _value.totalSamplesSent
-                : totalSamplesSent // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        voiceActivityFlag:
-            freezed == voiceActivityFlag
-                ? _value.voiceActivityFlag
-                : voiceActivityFlag // ignore: cast_nullable_to_non_nullable
-                    as bool?,
+        totalSamplesSent: freezed == totalSamplesSent
+            ? _value.totalSamplesSent
+            : totalSamplesSent // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        voiceActivityFlag: freezed == voiceActivityFlag
+            ? _value.voiceActivityFlag
+            : voiceActivityFlag // ignore: cast_nullable_to_non_nullable
+                  as bool?,
       ),
     );
   }
@@ -5692,9 +5662,10 @@ class _$RtcOutboundRtpStreamStatsMediaType_AudioImpl
   _$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWith<
     _$RtcOutboundRtpStreamStatsMediaType_AudioImpl
   >
-  get copyWith => __$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWithImpl<
-    _$RtcOutboundRtpStreamStatsMediaType_AudioImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcOutboundRtpStreamStatsMediaType_AudioImplCopyWithImpl<
+        _$RtcOutboundRtpStreamStatsMediaType_AudioImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -5835,21 +5806,18 @@ class __$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcOutboundRtpStreamStatsMediaType_VideoImpl(
-        frameWidth:
-            freezed == frameWidth
-                ? _value.frameWidth
-                : frameWidth // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        frameHeight:
-            freezed == frameHeight
-                ? _value.frameHeight
-                : frameHeight // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        framesPerSecond:
-            freezed == framesPerSecond
-                ? _value.framesPerSecond
-                : framesPerSecond // ignore: cast_nullable_to_non_nullable
-                    as double?,
+        frameWidth: freezed == frameWidth
+            ? _value.frameWidth
+            : frameWidth // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        frameHeight: freezed == frameHeight
+            ? _value.frameHeight
+            : frameHeight // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        framesPerSecond: freezed == framesPerSecond
+            ? _value.framesPerSecond
+            : framesPerSecond // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -5926,9 +5894,10 @@ class _$RtcOutboundRtpStreamStatsMediaType_VideoImpl
   _$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWith<
     _$RtcOutboundRtpStreamStatsMediaType_VideoImpl
   >
-  get copyWith => __$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWithImpl<
-    _$RtcOutboundRtpStreamStatsMediaType_VideoImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcOutboundRtpStreamStatsMediaType_VideoImplCopyWithImpl<
+        _$RtcOutboundRtpStreamStatsMediaType_VideoImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -6360,16 +6329,14 @@ class __$$RtcStatsType_RtcMediaSourceStatsImplCopyWithImpl<$Res>
   $Res call({Object? trackIdentifier = freezed, Object? kind = null}) {
     return _then(
       _$RtcStatsType_RtcMediaSourceStatsImpl(
-        trackIdentifier:
-            freezed == trackIdentifier
-                ? _value.trackIdentifier
-                : trackIdentifier // ignore: cast_nullable_to_non_nullable
-                    as String?,
-        kind:
-            null == kind
-                ? _value.kind
-                : kind // ignore: cast_nullable_to_non_nullable
-                    as RtcMediaSourceStatsMediaType,
+        trackIdentifier: freezed == trackIdentifier
+            ? _value.trackIdentifier
+            : trackIdentifier // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        kind: null == kind
+            ? _value.kind
+            : kind // ignore: cast_nullable_to_non_nullable
+                  as RtcMediaSourceStatsMediaType,
       ),
     );
   }
@@ -6430,9 +6397,10 @@ class _$RtcStatsType_RtcMediaSourceStatsImpl
   _$$RtcStatsType_RtcMediaSourceStatsImplCopyWith<
     _$RtcStatsType_RtcMediaSourceStatsImpl
   >
-  get copyWith => __$$RtcStatsType_RtcMediaSourceStatsImplCopyWithImpl<
-    _$RtcStatsType_RtcMediaSourceStatsImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcStatsType_RtcMediaSourceStatsImplCopyWithImpl<
+        _$RtcStatsType_RtcMediaSourceStatsImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -6772,7 +6740,7 @@ class __$$RtcStatsType_RtcIceCandidateStatsImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as RtcIceCandidateStats,
+                  as RtcIceCandidateStats,
       ),
     );
   }
@@ -6821,9 +6789,10 @@ class _$RtcStatsType_RtcIceCandidateStatsImpl
   _$$RtcStatsType_RtcIceCandidateStatsImplCopyWith<
     _$RtcStatsType_RtcIceCandidateStatsImpl
   >
-  get copyWith => __$$RtcStatsType_RtcIceCandidateStatsImplCopyWithImpl<
-    _$RtcStatsType_RtcIceCandidateStatsImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcStatsType_RtcIceCandidateStatsImplCopyWithImpl<
+        _$RtcStatsType_RtcIceCandidateStatsImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -7165,31 +7134,26 @@ class __$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcStatsType_RtcOutboundRtpStreamStatsImpl(
-        trackId:
-            freezed == trackId
-                ? _value.trackId
-                : trackId // ignore: cast_nullable_to_non_nullable
-                    as String?,
-        mediaType:
-            null == mediaType
-                ? _value.mediaType
-                : mediaType // ignore: cast_nullable_to_non_nullable
-                    as RtcOutboundRtpStreamStatsMediaType,
-        bytesSent:
-            freezed == bytesSent
-                ? _value.bytesSent
-                : bytesSent // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        packetsSent:
-            freezed == packetsSent
-                ? _value.packetsSent
-                : packetsSent // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        mediaSourceId:
-            freezed == mediaSourceId
-                ? _value.mediaSourceId
-                : mediaSourceId // ignore: cast_nullable_to_non_nullable
-                    as String?,
+        trackId: freezed == trackId
+            ? _value.trackId
+            : trackId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        mediaType: null == mediaType
+            ? _value.mediaType
+            : mediaType // ignore: cast_nullable_to_non_nullable
+                  as RtcOutboundRtpStreamStatsMediaType,
+        bytesSent: freezed == bytesSent
+            ? _value.bytesSent
+            : bytesSent // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        packetsSent: freezed == packetsSent
+            ? _value.packetsSent
+            : packetsSent // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        mediaSourceId: freezed == mediaSourceId
+            ? _value.mediaSourceId
+            : mediaSourceId // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -7285,9 +7249,10 @@ class _$RtcStatsType_RtcOutboundRtpStreamStatsImpl
   _$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWith<
     _$RtcStatsType_RtcOutboundRtpStreamStatsImpl
   >
-  get copyWith => __$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWithImpl<
-    _$RtcStatsType_RtcOutboundRtpStreamStatsImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcStatsType_RtcOutboundRtpStreamStatsImplCopyWithImpl<
+        _$RtcStatsType_RtcOutboundRtpStreamStatsImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -7677,46 +7642,38 @@ class __$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcStatsType_RtcInboundRtpStreamStatsImpl(
-        remoteId:
-            freezed == remoteId
-                ? _value.remoteId
-                : remoteId // ignore: cast_nullable_to_non_nullable
-                    as String?,
-        bytesReceived:
-            freezed == bytesReceived
-                ? _value.bytesReceived
-                : bytesReceived // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        packetsReceived:
-            freezed == packetsReceived
-                ? _value.packetsReceived
-                : packetsReceived // ignore: cast_nullable_to_non_nullable
-                    as int?,
-        packetsLost:
-            freezed == packetsLost
-                ? _value.packetsLost
-                : packetsLost // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        jitter:
-            freezed == jitter
-                ? _value.jitter
-                : jitter // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        totalDecodeTime:
-            freezed == totalDecodeTime
-                ? _value.totalDecodeTime
-                : totalDecodeTime // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        jitterBufferEmittedCount:
-            freezed == jitterBufferEmittedCount
-                ? _value.jitterBufferEmittedCount
-                : jitterBufferEmittedCount // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        mediaType:
-            freezed == mediaType
-                ? _value.mediaType
-                : mediaType // ignore: cast_nullable_to_non_nullable
-                    as RtcInboundRtpStreamMediaType?,
+        remoteId: freezed == remoteId
+            ? _value.remoteId
+            : remoteId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        bytesReceived: freezed == bytesReceived
+            ? _value.bytesReceived
+            : bytesReceived // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        packetsReceived: freezed == packetsReceived
+            ? _value.packetsReceived
+            : packetsReceived // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        packetsLost: freezed == packetsLost
+            ? _value.packetsLost
+            : packetsLost // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        jitter: freezed == jitter
+            ? _value.jitter
+            : jitter // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        totalDecodeTime: freezed == totalDecodeTime
+            ? _value.totalDecodeTime
+            : totalDecodeTime // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        jitterBufferEmittedCount: freezed == jitterBufferEmittedCount
+            ? _value.jitterBufferEmittedCount
+            : jitterBufferEmittedCount // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        mediaType: freezed == mediaType
+            ? _value.mediaType
+            : mediaType // ignore: cast_nullable_to_non_nullable
+                  as RtcInboundRtpStreamMediaType?,
       ),
     );
   }
@@ -7863,9 +7820,10 @@ class _$RtcStatsType_RtcInboundRtpStreamStatsImpl
   _$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWith<
     _$RtcStatsType_RtcInboundRtpStreamStatsImpl
   >
-  get copyWith => __$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWithImpl<
-    _$RtcStatsType_RtcInboundRtpStreamStatsImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcStatsType_RtcInboundRtpStreamStatsImplCopyWithImpl<
+        _$RtcStatsType_RtcInboundRtpStreamStatsImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -8292,41 +8250,34 @@ class __$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcStatsType_RtcIceCandidatePairStatsImpl(
-        state:
-            null == state
-                ? _value.state
-                : state // ignore: cast_nullable_to_non_nullable
-                    as RtcStatsIceCandidatePairState,
-        nominated:
-            freezed == nominated
-                ? _value.nominated
-                : nominated // ignore: cast_nullable_to_non_nullable
-                    as bool?,
-        bytesSent:
-            freezed == bytesSent
-                ? _value.bytesSent
-                : bytesSent // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        bytesReceived:
-            freezed == bytesReceived
-                ? _value.bytesReceived
-                : bytesReceived // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        totalRoundTripTime:
-            freezed == totalRoundTripTime
-                ? _value.totalRoundTripTime
-                : totalRoundTripTime // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        currentRoundTripTime:
-            freezed == currentRoundTripTime
-                ? _value.currentRoundTripTime
-                : currentRoundTripTime // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        availableOutgoingBitrate:
-            freezed == availableOutgoingBitrate
-                ? _value.availableOutgoingBitrate
-                : availableOutgoingBitrate // ignore: cast_nullable_to_non_nullable
-                    as double?,
+        state: null == state
+            ? _value.state
+            : state // ignore: cast_nullable_to_non_nullable
+                  as RtcStatsIceCandidatePairState,
+        nominated: freezed == nominated
+            ? _value.nominated
+            : nominated // ignore: cast_nullable_to_non_nullable
+                  as bool?,
+        bytesSent: freezed == bytesSent
+            ? _value.bytesSent
+            : bytesSent // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        bytesReceived: freezed == bytesReceived
+            ? _value.bytesReceived
+            : bytesReceived // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        totalRoundTripTime: freezed == totalRoundTripTime
+            ? _value.totalRoundTripTime
+            : totalRoundTripTime // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        currentRoundTripTime: freezed == currentRoundTripTime
+            ? _value.currentRoundTripTime
+            : currentRoundTripTime // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        availableOutgoingBitrate: freezed == availableOutgoingBitrate
+            ? _value.availableOutgoingBitrate
+            : availableOutgoingBitrate // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -8461,9 +8412,10 @@ class _$RtcStatsType_RtcIceCandidatePairStatsImpl
   _$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWith<
     _$RtcStatsType_RtcIceCandidatePairStatsImpl
   >
-  get copyWith => __$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWithImpl<
-    _$RtcStatsType_RtcIceCandidatePairStatsImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcStatsType_RtcIceCandidatePairStatsImplCopyWithImpl<
+        _$RtcStatsType_RtcIceCandidatePairStatsImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -8888,31 +8840,26 @@ class __$$RtcStatsType_RtcTransportStatsImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcStatsType_RtcTransportStatsImpl(
-        packetsSent:
-            freezed == packetsSent
-                ? _value.packetsSent
-                : packetsSent // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        packetsReceived:
-            freezed == packetsReceived
-                ? _value.packetsReceived
-                : packetsReceived // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        bytesSent:
-            freezed == bytesSent
-                ? _value.bytesSent
-                : bytesSent // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        bytesReceived:
-            freezed == bytesReceived
-                ? _value.bytesReceived
-                : bytesReceived // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        iceRole:
-            freezed == iceRole
-                ? _value.iceRole
-                : iceRole // ignore: cast_nullable_to_non_nullable
-                    as IceRole?,
+        packetsSent: freezed == packetsSent
+            ? _value.packetsSent
+            : packetsSent // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        packetsReceived: freezed == packetsReceived
+            ? _value.packetsReceived
+            : packetsReceived // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        bytesSent: freezed == bytesSent
+            ? _value.bytesSent
+            : bytesSent // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        bytesReceived: freezed == bytesReceived
+            ? _value.bytesReceived
+            : bytesReceived // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        iceRole: freezed == iceRole
+            ? _value.iceRole
+            : iceRole // ignore: cast_nullable_to_non_nullable
+                  as IceRole?,
       ),
     );
   }
@@ -9000,9 +8947,10 @@ class _$RtcStatsType_RtcTransportStatsImpl
   _$$RtcStatsType_RtcTransportStatsImplCopyWith<
     _$RtcStatsType_RtcTransportStatsImpl
   >
-  get copyWith => __$$RtcStatsType_RtcTransportStatsImplCopyWithImpl<
-    _$RtcStatsType_RtcTransportStatsImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$RtcStatsType_RtcTransportStatsImplCopyWithImpl<
+        _$RtcStatsType_RtcTransportStatsImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -9393,36 +9341,30 @@ class __$$RtcStatsType_RtcRemoteInboundRtpStreamStatsImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl(
-        localId:
-            freezed == localId
-                ? _value.localId
-                : localId // ignore: cast_nullable_to_non_nullable
-                    as String?,
-        jitter:
-            freezed == jitter
-                ? _value.jitter
-                : jitter // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        roundTripTime:
-            freezed == roundTripTime
-                ? _value.roundTripTime
-                : roundTripTime // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        fractionLost:
-            freezed == fractionLost
-                ? _value.fractionLost
-                : fractionLost // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        reportsReceived:
-            freezed == reportsReceived
-                ? _value.reportsReceived
-                : reportsReceived // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
-        roundTripTimeMeasurements:
-            freezed == roundTripTimeMeasurements
-                ? _value.roundTripTimeMeasurements
-                : roundTripTimeMeasurements // ignore: cast_nullable_to_non_nullable
-                    as int?,
+        localId: freezed == localId
+            ? _value.localId
+            : localId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        jitter: freezed == jitter
+            ? _value.jitter
+            : jitter // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        roundTripTime: freezed == roundTripTime
+            ? _value.roundTripTime
+            : roundTripTime // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        fractionLost: freezed == fractionLost
+            ? _value.fractionLost
+            : fractionLost // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        reportsReceived: freezed == reportsReceived
+            ? _value.reportsReceived
+            : reportsReceived // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
+        roundTripTimeMeasurements: freezed == roundTripTimeMeasurements
+            ? _value.roundTripTimeMeasurements
+            : roundTripTimeMeasurements // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -9944,21 +9886,18 @@ class __$$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl(
-        localId:
-            freezed == localId
-                ? _value.localId
-                : localId // ignore: cast_nullable_to_non_nullable
-                    as String?,
-        remoteTimestamp:
-            freezed == remoteTimestamp
-                ? _value.remoteTimestamp
-                : remoteTimestamp // ignore: cast_nullable_to_non_nullable
-                    as double?,
-        reportsSent:
-            freezed == reportsSent
-                ? _value.reportsSent
-                : reportsSent // ignore: cast_nullable_to_non_nullable
-                    as BigInt?,
+        localId: freezed == localId
+            ? _value.localId
+            : localId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        remoteTimestamp: freezed == remoteTimestamp
+            ? _value.remoteTimestamp
+            : remoteTimestamp // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        reportsSent: freezed == reportsSent
+            ? _value.reportsSent
+            : reportsSent // ignore: cast_nullable_to_non_nullable
+                  as BigInt?,
       ),
     );
   }
@@ -10906,7 +10845,7 @@ class __$$TrackEvent_AudioLevelUpdatedImplCopyWithImpl<$Res>
         null == field0
             ? _value.field0
             : field0 // ignore: cast_nullable_to_non_nullable
-                as int,
+                  as int,
       ),
     );
   }
@@ -10944,9 +10883,10 @@ class _$TrackEvent_AudioLevelUpdatedImpl extends TrackEvent_AudioLevelUpdated {
   _$$TrackEvent_AudioLevelUpdatedImplCopyWith<
     _$TrackEvent_AudioLevelUpdatedImpl
   >
-  get copyWith => __$$TrackEvent_AudioLevelUpdatedImplCopyWithImpl<
-    _$TrackEvent_AudioLevelUpdatedImpl
-  >(this, _$identity);
+  get copyWith =>
+      __$$TrackEvent_AudioLevelUpdatedImplCopyWithImpl<
+        _$TrackEvent_AudioLevelUpdatedImpl
+      >(this, _$identity);
 
   @override
   @optionalTypeArgs

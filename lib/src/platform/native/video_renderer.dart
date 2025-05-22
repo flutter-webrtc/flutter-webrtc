@@ -116,10 +116,9 @@ class _NativeVideoRendererChannel extends NativeVideoRenderer {
       _canPlayCalled = false;
     }
 
-    value =
-        (track == null)
-            ? RTCVideoValue.empty
-            : value.copyWith(renderVideo: renderVideo);
+    value = (track == null)
+        ? RTCVideoValue.empty
+        : value.copyWith(renderVideo: renderVideo);
   }
 
   @override

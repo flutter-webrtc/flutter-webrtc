@@ -213,254 +213,238 @@ class _LoopbackState extends State<Loopback> {
         title: Text(
           'WebRTC loopback test. ${_inCalling ? (_microIsAvailable ? 'Micro volume: $_volume .' : 'Micro volume is not available') : ''}',
         ),
-        actions:
-            _inCalling
-                ? <Widget>[
-                  PopupMenuButton<String>(
-                    itemBuilder: (context) {
-                      return [
-                        PopupMenuItem(
-                          enabled: false,
-                          child: StatefulBuilder(
-                            builder: (context, setStatePopup) {
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children:
-                                    [
-                                      CheckboxListTile(
-                                            dense: true,
-                                            title: Text("Noise Suppression"),
-                                            value: _noiseSupressionEnabled,
-                                            onChanged: (bool? value) async {
-                                              for (var track in _tracks!) {
-                                                if (track.kind() ==
-                                                    MediaKind.audio) {
-                                                  await track
-                                                      .setNoiseSuppressionEnabled(
-                                                        value!,
-                                                      );
-                                                }
+        actions: _inCalling
+            ? <Widget>[
+                PopupMenuButton<String>(
+                  itemBuilder: (context) {
+                    return [
+                      PopupMenuItem(
+                        enabled: false,
+                        child: StatefulBuilder(
+                          builder: (context, setStatePopup) {
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children:
+                                  [
+                                    CheckboxListTile(
+                                          dense: true,
+                                          title: Text("Noise Suppression"),
+                                          value: _noiseSupressionEnabled,
+                                          onChanged: (bool? value) async {
+                                            for (var track in _tracks!) {
+                                              if (track.kind() ==
+                                                  MediaKind.audio) {
+                                                await track
+                                                    .setNoiseSuppressionEnabled(
+                                                      value!,
+                                                    );
                                               }
-
-                                              setState(() {
-                                                _noiseSupressionEnabled =
-                                                    value!;
-                                              });
-                                              setStatePopup(() {});
-                                            },
-                                          )
-                                          as StatelessWidget,
-                                      CheckboxListTile(
-                                        dense: true,
-                                        title: Text("High Pass Filter"),
-                                        value: _highPassFilterEnabled,
-                                        onChanged: (bool? value) async {
-                                          for (var track in _tracks!) {
-                                            if (track.kind() ==
-                                                MediaKind.audio) {
-                                              await track
-                                                  .setHighPassFilterEnabled(
-                                                    value!,
-                                                  );
                                             }
+
+                                            setState(() {
+                                              _noiseSupressionEnabled = value!;
+                                            });
+                                            setStatePopup(() {});
+                                          },
+                                        )
+                                        as StatelessWidget,
+                                    CheckboxListTile(
+                                      dense: true,
+                                      title: Text("High Pass Filter"),
+                                      value: _highPassFilterEnabled,
+                                      onChanged: (bool? value) async {
+                                        for (var track in _tracks!) {
+                                          if (track.kind() == MediaKind.audio) {
+                                            await track
+                                                .setHighPassFilterEnabled(
+                                                  value!,
+                                                );
                                           }
+                                        }
 
-                                          setState(() {
-                                            _highPassFilterEnabled = value!;
-                                          });
-                                          setStatePopup(() {});
-                                        },
-                                      ),
-                                      CheckboxListTile(
-                                        dense: true,
-                                        title: Text("Echo cancellation"),
-                                        value: _echoCancellationEnabled,
-                                        onChanged: (bool? value) async {
-                                          for (var track in _tracks!) {
-                                            if (track.kind() ==
-                                                MediaKind.audio) {
-                                              await track
-                                                  .setEchoCancellationEnabled(
-                                                    value!,
-                                                  );
-                                            }
+                                        setState(() {
+                                          _highPassFilterEnabled = value!;
+                                        });
+                                        setStatePopup(() {});
+                                      },
+                                    ),
+                                    CheckboxListTile(
+                                      dense: true,
+                                      title: Text("Echo cancellation"),
+                                      value: _echoCancellationEnabled,
+                                      onChanged: (bool? value) async {
+                                        for (var track in _tracks!) {
+                                          if (track.kind() == MediaKind.audio) {
+                                            await track
+                                                .setEchoCancellationEnabled(
+                                                  value!,
+                                                );
                                           }
+                                        }
 
-                                          setState(() {
-                                            _echoCancellationEnabled = value!;
-                                          });
-                                          setStatePopup(() {});
-                                        },
-                                      ),
-                                      CheckboxListTile(
-                                        dense: true,
-                                        title: Text("Auto gain control"),
-                                        value: _autoGainControlEnabled,
-                                        onChanged: (bool? value) async {
-                                          for (var track in _tracks!) {
-                                            if (track.kind() ==
-                                                MediaKind.audio) {
-                                              await track
-                                                  .setAutoGainControlEnabled(
-                                                    value!,
-                                                  );
-                                            }
+                                        setState(() {
+                                          _echoCancellationEnabled = value!;
+                                        });
+                                        setStatePopup(() {});
+                                      },
+                                    ),
+                                    CheckboxListTile(
+                                      dense: true,
+                                      title: Text("Auto gain control"),
+                                      value: _autoGainControlEnabled,
+                                      onChanged: (bool? value) async {
+                                        for (var track in _tracks!) {
+                                          if (track.kind() == MediaKind.audio) {
+                                            await track
+                                                .setAutoGainControlEnabled(
+                                                  value!,
+                                                );
                                           }
+                                        }
 
-                                          setState(() {
-                                            _autoGainControlEnabled = value!;
-                                          });
-                                          setStatePopup(() {});
-                                        },
-                                      ),
-                                      Text('Noise suppression level'),
-                                    ] +
-                                    NoiseSuppressionLevel.values.map((level) {
-                                      return RadioListTile<
-                                        NoiseSuppressionLevel
-                                      >(
-                                        title: Text(level.name),
-                                        value: level,
-                                        groupValue: _noiseSuppressionLevel,
-                                        dense: true,
-                                        onChanged: (
-                                          NoiseSuppressionLevel? value,
-                                        ) async {
-                                          for (var track in _tracks!) {
-                                            if (track.kind() ==
-                                                MediaKind.audio) {
-                                              await track
-                                                  .setNoiseSuppressionLevel(
-                                                    value!,
-                                                  );
+                                        setState(() {
+                                          _autoGainControlEnabled = value!;
+                                        });
+                                        setStatePopup(() {});
+                                      },
+                                    ),
+                                    Text('Noise suppression level'),
+                                  ] +
+                                  NoiseSuppressionLevel.values.map((level) {
+                                    return RadioListTile<NoiseSuppressionLevel>(
+                                      title: Text(level.name),
+                                      value: level,
+                                      groupValue: _noiseSuppressionLevel,
+                                      dense: true,
+                                      onChanged:
+                                          (NoiseSuppressionLevel? value) async {
+                                            for (var track in _tracks!) {
+                                              if (track.kind() ==
+                                                  MediaKind.audio) {
+                                                await track
+                                                    .setNoiseSuppressionLevel(
+                                                      value!,
+                                                    );
+                                              }
                                             }
-                                          }
 
-                                          setState(() {
-                                            if (value != null) {
-                                              _noiseSuppressionLevel = value;
-                                            }
-                                          });
-                                          setStatePopup(() {});
-                                        },
-                                      );
-                                    }).toList(),
-                              );
-                            },
-                          ),
+                                            setState(() {
+                                              if (value != null) {
+                                                _noiseSuppressionLevel = value;
+                                              }
+                                            });
+                                            setStatePopup(() {});
+                                          },
+                                    );
+                                  }).toList(),
+                            );
+                          },
                         ),
-                      ];
-                    },
-                    icon: const Icon(Icons.multitrack_audio),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.remove),
-                    tooltip: 'Micro lower',
-                    onPressed:
-                        _microIsAvailable
-                            ? () async {
-                              setState(() {
-                                _volume = _volume >= 10 ? _volume - 10 : 0;
-                              });
-                              await setMicrophoneVolume(_volume);
-                            }
-                            : null,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: 'Micro louder',
-                    onPressed:
-                        _microIsAvailable
-                            ? () async {
-                              setState(() {
-                                _volume = _volume <= 90 ? _volume + 10 : 100;
-                              });
-                              await setMicrophoneVolume(_volume);
-                            }
-                            : null,
-                  ),
-                  IconButton(
-                    icon:
-                        _mic
-                            ? const Icon(Icons.mic_off)
-                            : const Icon(Icons.mic),
-                    tooltip: _mic ? 'Disable audio rec' : 'Enable audio rec',
-                    onPressed: () {
-                      setState(() {
-                        _mic = !_mic;
-                      });
-                      _tracks!
-                          .firstWhere(
-                            (track) => track.kind() == MediaKind.audio,
+                      ),
+                    ];
+                  },
+                  icon: const Icon(Icons.multitrack_audio),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.remove),
+                  tooltip: 'Micro lower',
+                  onPressed: _microIsAvailable
+                      ? () async {
+                          setState(() {
+                            _volume = _volume >= 10 ? _volume - 10 : 0;
+                          });
+                          await setMicrophoneVolume(_volume);
+                        }
+                      : null,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Micro louder',
+                  onPressed: _microIsAvailable
+                      ? () async {
+                          setState(() {
+                            _volume = _volume <= 90 ? _volume + 10 : 100;
+                          });
+                          await setMicrophoneVolume(_volume);
+                        }
+                      : null,
+                ),
+                IconButton(
+                  icon: _mic
+                      ? const Icon(Icons.mic_off)
+                      : const Icon(Icons.mic),
+                  tooltip: _mic ? 'Disable audio rec' : 'Enable audio rec',
+                  onPressed: () {
+                    setState(() {
+                      _mic = !_mic;
+                    });
+                    _tracks!
+                        .firstWhere((track) => track.kind() == MediaKind.audio)
+                        .setEnabled(_mic);
+                  },
+                ),
+                IconButton(
+                  icon: _cam
+                      ? const Icon(Icons.videocam_off)
+                      : const Icon(Icons.videocam),
+                  tooltip: _cam ? 'Disable video rec' : 'Enable video rec',
+                  onPressed: () {
+                    setState(() {
+                      _cam = !_cam;
+                    });
+                    _tracks!
+                        .firstWhere((track) => track.kind() == MediaKind.video)
+                        .setEnabled(_cam);
+                  },
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (id) {
+                    _setInputAudioId(id);
+                  },
+                  itemBuilder: (BuildContext context) {
+                    if (_mediaDevicesList != null) {
+                      return _mediaDevicesList!
+                          .where(
+                            (device) =>
+                                device.kind == MediaDeviceKind.audioinput,
                           )
-                          .setEnabled(_mic);
-                    },
-                  ),
-                  IconButton(
-                    icon:
-                        _cam
-                            ? const Icon(Icons.videocam_off)
-                            : const Icon(Icons.videocam),
-                    tooltip: _cam ? 'Disable video rec' : 'Enable video rec',
-                    onPressed: () {
-                      setState(() {
-                        _cam = !_cam;
-                      });
-                      _tracks!
-                          .firstWhere(
-                            (track) => track.kind() == MediaKind.video,
+                          .map((device) {
+                            return PopupMenuItem<String>(
+                              value: device.deviceId,
+                              child: Text(device.label),
+                            );
+                          })
+                          .toList();
+                    }
+                    return [];
+                  },
+                  icon: const Icon(Icons.mic),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (id) {
+                    setOutputAudioId(id);
+                  },
+                  itemBuilder: (BuildContext context) {
+                    if (_mediaDevicesList != null) {
+                      return _mediaDevicesList!
+                          .where(
+                            (device) =>
+                                device.kind == MediaDeviceKind.audiooutput,
                           )
-                          .setEnabled(_cam);
-                    },
-                  ),
-                  PopupMenuButton<String>(
-                    onSelected: (id) {
-                      _setInputAudioId(id);
-                    },
-                    itemBuilder: (BuildContext context) {
-                      if (_mediaDevicesList != null) {
-                        return _mediaDevicesList!
-                            .where(
-                              (device) =>
-                                  device.kind == MediaDeviceKind.audioinput,
-                            )
-                            .map((device) {
-                              return PopupMenuItem<String>(
-                                value: device.deviceId,
-                                child: Text(device.label),
-                              );
-                            })
-                            .toList();
-                      }
-                      return [];
-                    },
-                    icon: const Icon(Icons.mic),
-                  ),
-                  PopupMenuButton<String>(
-                    onSelected: (id) {
-                      setOutputAudioId(id);
-                    },
-                    itemBuilder: (BuildContext context) {
-                      if (_mediaDevicesList != null) {
-                        return _mediaDevicesList!
-                            .where(
-                              (device) =>
-                                  device.kind == MediaDeviceKind.audiooutput,
-                            )
-                            .map((device) {
-                              return PopupMenuItem<String>(
-                                value: device.deviceId,
-                                child: Text(device.label),
-                              );
-                            })
-                            .toList();
-                      }
-                      return [];
-                    },
-                    icon: const Icon(Icons.volume_down),
-                  ),
-                ]
-                : null,
+                          .map((device) {
+                            return PopupMenuItem<String>(
+                              value: device.deviceId,
+                              child: Text(device.label),
+                            );
+                          })
+                          .toList();
+                    }
+                    return [];
+                  },
+                  icon: const Icon(Icons.volume_down),
+                ),
+              ]
+            : null,
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {

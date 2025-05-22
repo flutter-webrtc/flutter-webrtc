@@ -27,9 +27,8 @@ class VideoView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-      builder:
-          (BuildContext context, BoxConstraints constraints) =>
-              _buildVideoView(constraints),
+      builder: (BuildContext context, BoxConstraints constraints) =>
+          _buildVideoView(constraints),
     );
   }
 
@@ -40,43 +39,40 @@ class VideoView extends StatelessWidget {
         height: constraints.maxHeight,
         child: FittedBox(
           clipBehavior: Clip.hardEdge,
-          fit:
-              objectFit == VideoViewObjectFit.contain
-                  ? BoxFit.contain
-                  : BoxFit.cover,
+          fit: objectFit == VideoViewObjectFit.contain
+              ? BoxFit.contain
+              : BoxFit.cover,
           child: Center(
             child: ValueListenableBuilder<RTCVideoValue>(
               valueListenable: videoRenderer,
-              builder: (
-                BuildContext context,
-                RTCVideoValue value,
-                Widget? child,
-              ) {
-                Widget result = SizedBox(
-                  width: constraints.maxHeight * value.aspectRatio,
-                  height: constraints.maxHeight,
-                  child: child,
-                );
-                if (_autoRotate) {
-                  result = RotatedBox(
-                    quarterTurns: (value.rotation / 90).round(),
-                    child: result,
-                  );
-                }
-                return Transform(
-                  transform: Matrix4.identity()..rotateY(mirror ? -pi : 0.0),
-                  alignment: FractionalOffset.center,
-                  child: result,
-                );
-              },
+              builder:
+                  (BuildContext context, RTCVideoValue value, Widget? child) {
+                    Widget result = SizedBox(
+                      width: constraints.maxHeight * value.aspectRatio,
+                      height: constraints.maxHeight,
+                      child: child,
+                    );
+                    if (_autoRotate) {
+                      result = RotatedBox(
+                        quarterTurns: (value.rotation / 90).round(),
+                        child: result,
+                      );
+                    }
+                    return Transform(
+                      transform: Matrix4.identity()
+                        ..rotateY(mirror ? -pi : 0.0),
+                      alignment: FractionalOffset.center,
+                      child: result,
+                    );
+                  },
               child:
                   videoRenderer.textureId != null &&
-                          videoRenderer.srcObject != null
-                      ? Texture(
-                        textureId: videoRenderer.textureId!,
-                        filterQuality: filterQuality,
-                      )
-                      : Container(),
+                      videoRenderer.srcObject != null
+                  ? Texture(
+                      textureId: videoRenderer.textureId!,
+                      filterQuality: filterQuality,
+                    )
+                  : Container(),
             ),
           ),
         ),

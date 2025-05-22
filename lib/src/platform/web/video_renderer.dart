@@ -197,23 +197,22 @@ class WebVideoRenderer extends VideoRenderer {
       }
       _subscriptions.clear();
 
-      final element =
-          web.HTMLVideoElement()
-            ..autoplay = true
-            ..muted = true
-            ..controls = false
-            ..style.objectFit = _objectFit
-            ..style.border = 'none'
-            ..style.width = '100%'
-            ..style.height = '100%'
-            ..style.transform = _mirror ? 'rotateY(0.5turn)' : ''
-            ..srcObject = _videoStream
-            ..id = _elementIdForVideo
-            ..setAttribute('playsinline', 'true')
-            ..setAttribute(
-              'oncontextmenu',
-              _enableContextMenu ? '' : 'return false;',
-            );
+      final element = web.HTMLVideoElement()
+        ..autoplay = true
+        ..muted = true
+        ..controls = false
+        ..style.objectFit = _objectFit
+        ..style.border = 'none'
+        ..style.width = '100%'
+        ..style.height = '100%'
+        ..style.transform = _mirror ? 'rotateY(0.5turn)' : ''
+        ..srcObject = _videoStream
+        ..id = _elementIdForVideo
+        ..setAttribute('playsinline', 'true')
+        ..setAttribute(
+          'oncontextmenu',
+          _enableContextMenu ? '' : 'return false;',
+        );
 
       _subscriptions.add(
         element.onCanPlay.listen((dynamic _) {
@@ -238,8 +237,9 @@ class WebVideoRenderer extends VideoRenderer {
           final error = element.error;
           throw PlatformException(
             code: _kErrorValueToErrorName[error!.code]!,
-            message:
-                error.message != '' ? error.message : _kDefaultErrorMessage,
+            message: error.message != ''
+                ? error.message
+                : _kDefaultErrorMessage,
             details: _kErrorValueToErrorDescription[error.code],
           );
         }),

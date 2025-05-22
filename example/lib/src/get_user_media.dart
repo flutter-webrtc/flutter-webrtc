@@ -44,13 +44,12 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     await _localRenderer.initialize();
 
     _localRenderer.onCanPlay = () => {print('onCanPlay fired')};
-    _localRenderer.onResize =
-        () => {
-          print(
-            'resize: width = ${_localRenderer.videoWidth}, '
-            'height = ${_localRenderer.videoHeight}',
-          ),
-        };
+    _localRenderer.onResize = () => {
+      print(
+        'resize: width = ${_localRenderer.videoWidth}, '
+        'height = ${_localRenderer.videoHeight}',
+      ),
+    };
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -111,74 +110,73 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('GetUserMedia API Test'),
-        actions:
-            _inCalling
-                ? <Widget>[
-                  PopupMenuButton<String>(
-                    onSelected: _selectAudioOutput,
-                    itemBuilder: (BuildContext context) {
-                      if (_mediaDevicesList != null) {
-                        return _mediaDevicesList!
-                            .where(
-                              (device) =>
-                                  device.kind == MediaDeviceKind.audiooutput,
-                            )
-                            .map((device) {
-                              return PopupMenuItem<String>(
-                                value: device.deviceId,
-                                child: Text(device.label),
-                              );
-                            })
-                            .toList();
-                      }
-                      return [];
-                    },
-                    icon: const Icon(Icons.volume_down),
-                  ),
-                  PopupMenuButton<String>(
-                    onSelected: _selectAudioInput,
-                    itemBuilder: (BuildContext context) {
-                      if (_mediaDevicesList != null) {
-                        return _mediaDevicesList!
-                            .where(
-                              (device) =>
-                                  device.kind == MediaDeviceKind.audioinput,
-                            )
-                            .map((device) {
-                              return PopupMenuItem<String>(
-                                value: device.deviceId,
-                                child: Text(device.label),
-                              );
-                            })
-                            .toList();
-                      }
-                      return [];
-                    },
-                    icon: const Icon(Icons.mic),
-                  ),
-                  PopupMenuButton<String>(
-                    onSelected: _selectVideoInput,
-                    itemBuilder: (BuildContext context) {
-                      if (_mediaDevicesList != null) {
-                        return _mediaDevicesList!
-                            .where(
-                              (device) =>
-                                  device.kind == MediaDeviceKind.videoinput,
-                            )
-                            .map((device) {
-                              return PopupMenuItem<String>(
-                                value: device.deviceId,
-                                child: Text(device.label),
-                              );
-                            })
-                            .toList();
-                      }
-                      return [];
-                    },
-                    icon: const Icon(Icons.camera_alt),
-                  ),
-                ]
-                : null,
+        actions: _inCalling
+            ? <Widget>[
+                PopupMenuButton<String>(
+                  onSelected: _selectAudioOutput,
+                  itemBuilder: (BuildContext context) {
+                    if (_mediaDevicesList != null) {
+                      return _mediaDevicesList!
+                          .where(
+                            (device) =>
+                                device.kind == MediaDeviceKind.audiooutput,
+                          )
+                          .map((device) {
+                            return PopupMenuItem<String>(
+                              value: device.deviceId,
+                              child: Text(device.label),
+                            );
+                          })
+                          .toList();
+                    }
+                    return [];
+                  },
+                  icon: const Icon(Icons.volume_down),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: _selectAudioInput,
+                  itemBuilder: (BuildContext context) {
+                    if (_mediaDevicesList != null) {
+                      return _mediaDevicesList!
+                          .where(
+                            (device) =>
+                                device.kind == MediaDeviceKind.audioinput,
+                          )
+                          .map((device) {
+                            return PopupMenuItem<String>(
+                              value: device.deviceId,
+                              child: Text(device.label),
+                            );
+                          })
+                          .toList();
+                    }
+                    return [];
+                  },
+                  icon: const Icon(Icons.mic),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: _selectVideoInput,
+                  itemBuilder: (BuildContext context) {
+                    if (_mediaDevicesList != null) {
+                      return _mediaDevicesList!
+                          .where(
+                            (device) =>
+                                device.kind == MediaDeviceKind.videoinput,
+                          )
+                          .map((device) {
+                            return PopupMenuItem<String>(
+                              value: device.deviceId,
+                              child: Text(device.label),
+                            );
+                          })
+                          .toList();
+                    }
+                    return [];
+                  },
+                  icon: const Icon(Icons.camera_alt),
+                ),
+              ]
+            : null,
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {

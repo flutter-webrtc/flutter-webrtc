@@ -38,8 +38,9 @@ class _VideoViewState extends State<VideoView> {
     widget._renderer.addListener(_onRendererListener);
     videoRenderer.mirror = widget.mirror;
     videoRenderer.enableContextMenu = widget.enableContextMenu;
-    videoRenderer.objectFit =
-        widget.objectFit == VideoViewObjectFit.contain ? 'contain' : 'cover';
+    videoRenderer.objectFit = widget.objectFit == VideoViewObjectFit.contain
+        ? 'contain'
+        : 'cover';
   }
 
   void _onRendererListener() {
@@ -61,8 +62,9 @@ class _VideoViewState extends State<VideoView> {
       () => videoRenderer.mirror = widget.mirror,
     );
     videoRenderer.enableContextMenu = widget.enableContextMenu;
-    videoRenderer.objectFit =
-        widget.objectFit == VideoViewObjectFit.contain ? 'contain' : 'cover';
+    videoRenderer.objectFit = widget.objectFit == VideoViewObjectFit.contain
+        ? 'contain'
+        : 'cover';
   }
 
   Widget buildVideoElementView() {
@@ -79,10 +81,9 @@ class _VideoViewState extends State<VideoView> {
           child: SizedBox(
             width: constraints.maxWidth,
             height: constraints.maxHeight,
-            child:
-                widget._renderer.renderVideo
-                    ? buildVideoElementView()
-                    : Container(),
+            child: widget._renderer.renderVideo
+                ? buildVideoElementView()
+                : Container(),
           ),
         );
       },

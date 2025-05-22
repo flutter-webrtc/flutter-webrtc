@@ -404,10 +404,9 @@ void main() {
       expect(names.contains("H265"), isFalse);
     }
 
-    var vp8Preferences =
-        capabilities.codecs.where((element) {
-          return element.name == 'VP8';
-        }).toList();
+    var vp8Preferences = capabilities.codecs.where((element) {
+      return element.name == 'VP8';
+    }).toList();
 
     await vtrans.setCodecPreferences(vp8Preferences);
 
