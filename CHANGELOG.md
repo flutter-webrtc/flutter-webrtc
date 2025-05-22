@@ -1,6 +1,12 @@
 
 # Changelog
 
+[0.14.1] - 2025-05-22
+
+* [Android] fix: Recording bug (#1839)
+* [Android] fix: calls in terminated mode by disabling orientation manager (#1840)
+* [Android] fix: Wait for audio and video thread to fully stop to avoid corrupted recordings (#1836)
+
 [0.14.0] - 2025-05-06
 
 * [iOS/Android]feat: Media Recorder implementation Android and iOS (#1810)
