@@ -200,7 +200,9 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
 
                 Log.e(TAG, "encoder output format changed: " + newFormat);
                 trackIndex = mediaMuxer.addTrack(newFormat);
-                if (trackIndex != -1 && !muxerStarted) {
+                // Start Signify modification
+                if (trackIndex != -1 && audioTrackIndex != -1 && !muxerStarted) {
+                // End Signify modification
                     mediaMuxer.start();
                     muxerStarted = true;
                 }
@@ -256,7 +258,9 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
 
                 Log.w(TAG, "encoder output format changed: " + newFormat);
                 audioTrackIndex = mediaMuxer.addTrack(newFormat);
-                if (audioTrackIndex != -1 && !muxerStarted) {
+                // Start Signify modification
+                if (trackIndex != -1 && audioTrackIndex != -1 && !muxerStarted) {
+                // End Signify modification
                     mediaMuxer.start();
                     muxerStarted = true;
                 }
