@@ -9,7 +9,7 @@ PlayoutDelegatingAPM::~PlayoutDelegatingAPM() = default;
 
 void PlayoutDelegatingAPM::AddDelegate(
     std::string deviceId,
-    rtc::scoped_refptr<webrtc::AudioProcessing> delegate) {
+    webrtc::scoped_refptr<webrtc::AudioProcessing> delegate) {
   std::unique_lock lock(delegates_lock_);
 
   delegates_[deviceId] = delegate;
@@ -182,7 +182,7 @@ int PlayoutDelegatingAPM::AnalyzeReverseStream(
 }
 
 bool PlayoutDelegatingAPM::GetLinearAecOutput(
-    rtc::ArrayView<std::array<float, 160>> linear_output) const {
+    webrtc::ArrayView<std::array<float, 160>> linear_output) const {
   // Not used.
   RTC_LOG(LS_ERROR)
       << "`PlayoutDelegatingAPM::GetLinearAecOutput()` is unsupported";

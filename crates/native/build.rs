@@ -153,7 +153,7 @@ use std::{env, path::PathBuf, process};
 fn main() -> anyhow::Result<()> {
     #[cfg(target_os = "macos")]
     {
-        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.11");
+        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.15");
         println!("cargo:rustc-link-arg=-Wl,-undefined,dynamic_lookup");
         println!(
             "cargo:rustc-link-arg=-Wl,-install_name,\

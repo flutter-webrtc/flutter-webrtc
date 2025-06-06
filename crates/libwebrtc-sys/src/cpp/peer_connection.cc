@@ -59,7 +59,7 @@ void PeerConnectionObserver::OnIceCandidateError(const std::string& address,
 
 // Propagates the removed `Candidate`s to the Rust side.
 void PeerConnectionObserver::OnIceCandidatesRemoved(
-    const std::vector<cricket::Candidate>& candidates) {
+    const std::vector<webrtc::Candidate>& candidates) {
   bridge::on_ice_candidates_removed(*cb_, candidates);
 }
 
@@ -70,32 +70,32 @@ void PeerConnectionObserver::OnIceConnectionReceivingChange(bool receiving) {
 
 // Propagates the received `CandidatePairChangeEvent` to the Rust side.
 void PeerConnectionObserver::OnIceSelectedCandidatePairChanged(
-    const cricket::CandidatePairChangeEvent& event) {
+    const webrtc::CandidatePairChangeEvent& event) {
   bridge::on_ice_selected_candidate_pair_changed(*cb_, event);
 }
 
 // Propagates the received `RtpTransceiverInterface` to the Rust side.
 void PeerConnectionObserver::OnTrack(
-    rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
+    webrtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
   bridge::on_track(
       *cb_, std::make_unique<bridge::RtpTransceiverInterface>(transceiver));
 }
 
 // Propagates the received `RtpReceiverInterface` to the Rust side.
 void PeerConnectionObserver::OnRemoveTrack(
-    rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver) {
+    webrtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver) {
   bridge::on_remove_track(
       *cb_, std::make_unique<bridge::RtpReceiverInterface>(receiver));
 }
 
 // Does nothing since we do not use `DataChannel`s at the moment.
 void PeerConnectionObserver::OnDataChannel(
-    rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel) {};
+    webrtc::scoped_refptr<webrtc::DataChannelInterface> data_channel) {};
 
 // Does nothing since we do not plan to support "Plan B" semantics.
 void PeerConnectionObserver::OnAddTrack(
-    rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
-    const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>&
+    webrtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
+    const std::vector<webrtc::scoped_refptr<webrtc::MediaStreamInterface>>&
         streams) {}
 
 // Creates a new `CreateSessionDescriptionObserver` backed by the provided
@@ -203,7 +203,7 @@ void set_local_description(PeerConnectionInterface& peer_connection_interface,
                            std::unique_ptr<SessionDescriptionInterface> desc,
                            std::unique_ptr<SetLocalDescriptionObserver> obs) {
   auto observer =
-      rtc::scoped_refptr<webrtc::SetLocalDescriptionObserverInterface>(
+      webrtc::scoped_refptr<webrtc::SetLocalDescriptionObserverInterface>(
           obs.release());
   peer_connection_interface->SetLocalDescription(std::move(desc), observer);
 }
@@ -213,7 +213,7 @@ void set_remote_description(PeerConnectionInterface& peer_connection_interface,
                             std::unique_ptr<SessionDescriptionInterface> desc,
                             std::unique_ptr<SetRemoteDescriptionObserver> obs) {
   auto observer =
-      rtc::scoped_refptr<SetRemoteDescriptionObserver>(obs.release());
+      webrtc::scoped_refptr<SetRemoteDescriptionObserver>(obs.release());
   peer_connection_interface->SetRemoteDescription(std::move(desc), observer);
 }
 

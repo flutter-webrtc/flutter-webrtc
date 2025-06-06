@@ -23,7 +23,7 @@ class PlayoutDelegatingAPM : public webrtc::AudioProcessing {
   ~PlayoutDelegatingAPM() override;
 
   void AddDelegate(std::string device_id,
-                   rtc::scoped_refptr<webrtc::AudioProcessing> delegate);
+                   webrtc::scoped_refptr<webrtc::AudioProcessing> delegate);
   void RemoveDelegate(std::string device_id);
 
   int Initialize() override;
@@ -70,7 +70,7 @@ class PlayoutDelegatingAPM : public webrtc::AudioProcessing {
                            const webrtc::StreamConfig& reverse_config) override;
 
   bool GetLinearAecOutput(
-      rtc::ArrayView<std::array<float, 160>> linear_output) const override;
+      webrtc::ArrayView<std::array<float, 160>> linear_output) const override;
 
   void set_stream_analog_level(int level) override;
   int recommended_stream_analog_level() const override;
@@ -102,7 +102,7 @@ class PlayoutDelegatingAPM : public webrtc::AudioProcessing {
 
  private:
   std::shared_mutex delegates_lock_;
-  std::unordered_map<std::string, rtc::scoped_refptr<webrtc::AudioProcessing>>
+  std::unordered_map<std::string, webrtc::scoped_refptr<webrtc::AudioProcessing>>
       delegates_;
 };
 

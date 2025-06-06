@@ -2,7 +2,7 @@ Medea Flutter-WebRTC
 ====================
 
 [![pub](https://img.shields.io/pub/v/medea_flutter_webrtc "pub")](https://pub.dev/packages/medea_flutter_webrtc)
-[![libwebrtc](https://img.shields.io/badge/libwebrtc-136.0.7103.113-blue "libwebrtc")](https://github.com/instrumentisto/libwebrtc-bin/releases/tag/136.0.7103.113)
+[![libwebrtc](https://img.shields.io/badge/libwebrtc-137.0.7151.55-blue "libwebrtc")](https://github.com/instrumentisto/libwebrtc-bin/releases/tag/137.0.7151.55)
 [![OpenAL](https://img.shields.io/badge/OpenAL-1.24.3-blue "OpenAL")](https://github.com/kcat/openal-soft/releases/tag/1.24.3)
 
 [Changelog](https://github.com/instrumentisto/medea-flutter-webrtc/blob/main/CHANGELOG.md)
@@ -16,7 +16,7 @@ Initially, represented a fork of the [Flutter-WebRTC] plugin, but at the moment,
 
 ## Supported platforms
 
-- [macOS] 10.11+
+- [macOS] 10.15+
 - [Linux] (with [PulseAudio] and [X11] for screen sharing)
 - [Windows] 7+
 - [Android] 24+

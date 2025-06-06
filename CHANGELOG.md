@@ -10,14 +10,18 @@ All user visible changes to this project will be documented in this file. This p
 
 [Diff](https://github.com/instrumentisto/medea-flutter-webrtc/compare/0.14.0...main)
 
+## BC Breaks
+
+- Bumped up [macOS] deployment target to 10.15. ([#203])
+
 ### Changed
 
-- Upgraded [libwebrtc] to [136.0.7103.113] version. ([9613c018])
+- Upgraded [libwebrtc] to [137.0.7151.55] version. ([#203])
 - Upgraded [`flutter_rust_bridge`] crate to [2.10.0][frb-2.10.0] version. ([#201])
 
 [#201]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/201
-[9613c018]: https://github.com/instrumentisto/medea-flutter-webrtc/commit/9613c018f9c08739f1121366f6049f23d7d1b51c
-[136.0.7103.113]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/136.0.7103.113
+[#203]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/203
+[137.0.7151.55]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/137.0.7151.55
 [frb-2.10.0]: https://github.com/fzyzcjy/flutter_rust_bridge/releases/tag/v2.10.0
 
 

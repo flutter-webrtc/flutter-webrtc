@@ -30,7 +30,7 @@ constexpr auto kRecordingPart =
 class AudioDeviceRecorder {
  public:
   AudioDeviceRecorder(std::string deviceId,
-                      rtc::scoped_refptr<webrtc::AudioProcessing> ap);
+                      webrtc::scoped_refptr<webrtc::AudioProcessing> ap);
 
   // Captures a new batch of audio samples and propagates it to the inner
   // `bridge::LocalAudioSource`.
@@ -44,7 +44,7 @@ class AudioDeviceRecorder {
 
   // Returns the `bridge::LocalAudioSource` that this `AudioDeviceRecorder`
   // writes the recorded audio to.
-  rtc::scoped_refptr<bridge::LocalAudioSource> GetSource();
+  webrtc::scoped_refptr<bridge::LocalAudioSource> GetSource();
 
  private:
   void openRecordingDevice();
@@ -53,8 +53,8 @@ class AudioDeviceRecorder {
   void restartRecording();
   bool validateRecordingDeviceId();
 
-  rtc::scoped_refptr<bridge::LocalAudioSource> _source;
-  rtc::scoped_refptr<webrtc::AudioProcessing> _audio_processing;
+  webrtc::scoped_refptr<bridge::LocalAudioSource> _source;
+  webrtc::scoped_refptr<webrtc::AudioProcessing> _audio_processing;
   ALCdevice* _device;
   std::string _deviceId;
   std::recursive_mutex _mutex;

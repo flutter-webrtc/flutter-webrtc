@@ -2069,14 +2069,14 @@ pub(crate) mod webrtc {
 
     #[rustfmt::skip]
     unsafe extern "C++" {
-        #[namespace = "cricket"]
+        #[namespace = "webrtc"]
         pub type Candidate;
-        #[namespace = "cricket"]
+        #[namespace = "webrtc"]
         pub type CandidatePairChangeEvent;
         pub type IceCandidateInterface;
         pub type MediaType;
         pub type TrackState;
-        #[namespace = "cricket"]
+        #[namespace = "webrtc"]
         pub type CandidatePair;
         pub type CreateSessionDescriptionObserver;
         pub type IceConnectionState;

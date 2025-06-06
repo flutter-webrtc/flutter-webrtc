@@ -18,12 +18,12 @@ PROXY_METHOD1(int32_t, RegisterAudioCallback, AudioTransport*)
 PROXY_METHOD0(int32_t, Init)
 PROXY_METHOD0(int32_t, Terminate)
 PROXY_CONSTMETHOD0(bool, Initialized)
-PROXY_METHOD2(rtc::scoped_refptr<bridge::LocalAudioSource>,
+PROXY_METHOD2(webrtc::scoped_refptr<bridge::LocalAudioSource>,
               CreateAudioSource,
               uint32_t,
-              rtc::scoped_refptr<webrtc::AudioProcessing>)
+              webrtc::scoped_refptr<webrtc::AudioProcessing>)
 PROXY_METHOD1(void, DisposeAudioSource, std::string)
-PROXY_METHOD0(rtc::scoped_refptr<PlayoutDelegatingAPM>, AudioProcessing)
+PROXY_METHOD0(webrtc::scoped_refptr<PlayoutDelegatingAPM>, AudioProcessing)
 PROXY_METHOD0(int16_t, PlayoutDevices)
 PROXY_METHOD0(int16_t, RecordingDevices)
 PROXY_METHOD3(int32_t, PlayoutDeviceName, uint16_t, char*, char*)

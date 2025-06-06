@@ -19,7 +19,7 @@ namespace video_sink {
 
 // `VideoSinkInterface<webrtc::VideoFrame>` forwarding `VideoFrame`s to the Rust
 // side via `DynOnFrameCallback`.
-class ForwardingVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame> {
+class ForwardingVideoSink : public webrtc::VideoSinkInterface<webrtc::VideoFrame> {
  public:
   // Creates a new `ForwardingVideoSink` backed by the provided
   // `DynOnFrameCallback`.

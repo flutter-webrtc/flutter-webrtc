@@ -16,9 +16,9 @@
 @synthesize capturer = _capturer;
 
 - (void)capturer:(RTCVideoCapturer*)capturer didCaptureVideoFrame:(RTCVideoFrame*)frame {
-  const int64_t timestamp_us = frame.timeStampNs / rtc::kNumNanosecsPerMicrosec;
-  rtc::scoped_refptr<webrtc::VideoFrameBuffer> buffer =
-      rtc::make_ref_counted<webrtc::ObjCFrameBuffer>(frame.buffer);
+  const int64_t timestamp_us = frame.timeStampNs / webrtc::kNumNanosecsPerMicrosec;
+  webrtc::scoped_refptr<webrtc::VideoFrameBuffer> buffer =
+      webrtc::make_ref_counted<webrtc::ObjCFrameBuffer>(frame.buffer);
   _capturer->OnFrame(webrtc::VideoFrame::Builder()
                          .set_video_frame_buffer(buffer)
                          .set_rotation(webrtc::kVideoRotation_0)
@@ -72,7 +72,7 @@ MacCapturer::~MacCapturer() {
 }
 
 // Creates a new `MacCapturer`.
-rtc::scoped_refptr<MacCapturer> MacCapturer::Create(size_t width,
+webrtc::scoped_refptr<MacCapturer> MacCapturer::Create(size_t width,
                                                     size_t height,
                                                     size_t target_fps,
                                                     uint32_t capture_device_index) {
@@ -92,7 +92,7 @@ rtc::scoped_refptr<MacCapturer> MacCapturer::Create(size_t width,
     return nullptr;
   }
 
-  return rtc::make_ref_counted<MacCapturer>(width, height, target_fps, device);
+  return webrtc::make_ref_counted<MacCapturer>(width, height, target_fps, device);
 }
 
 // Propagates a `VideoFrame` to the `AdaptedVideoTrackSource::OnFrame()`.

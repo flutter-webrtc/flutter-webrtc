@@ -22,14 +22,14 @@ struct DynAudioSourceOnAudioLevelChangeCallback;
 class LocalAudioSource : public webrtc::Notifier<webrtc::AudioSourceInterface> {
  public:
   // Creates a new `LocalAudioSource`.
-  static rtc::scoped_refptr<LocalAudioSource> Create(
-      cricket::AudioOptions audio_options,
-      rtc::scoped_refptr<webrtc::AudioProcessing> ap);
+  static webrtc::scoped_refptr<LocalAudioSource> Create(
+      webrtc::AudioOptions audio_options,
+      webrtc::scoped_refptr<webrtc::AudioProcessing> ap);
 
   SourceState state() const override { return kLive; }
   bool remote() const override { return false; }
 
-  const cricket::AudioOptions options() const override { return _options; }
+  const webrtc::AudioOptions options() const override { return _options; }
 
   void AddSink(webrtc::AudioTrackSinkInterface* sink) override;
   void RemoveSink(webrtc::AudioTrackSinkInterface* sink) override;
@@ -50,11 +50,11 @@ class LocalAudioSource : public webrtc::Notifier<webrtc::AudioSourceInterface> {
   ~LocalAudioSource() override {}
 
  private:
-  cricket::AudioOptions _options;
+  webrtc::AudioOptions _options;
   std::recursive_mutex sink_lock_;
   std::list<webrtc::AudioTrackSinkInterface*> sinks_;
   webrtc::AudioFrame audio_frame_;
-  rtc::scoped_refptr<webrtc::AudioProcessing> audio_processing_;
+  webrtc::scoped_refptr<webrtc::AudioProcessing> audio_processing_;
 
   // Rust side callback that audio level changes are forwarded to.
   std::optional<rust::Box<bridge::DynAudioSourceOnAudioLevelChangeCallback>>

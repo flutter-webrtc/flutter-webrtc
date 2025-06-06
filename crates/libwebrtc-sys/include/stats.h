@@ -7,7 +7,7 @@
 
 namespace bridge {
 
-using RTCStatsReport = rtc::scoped_refptr<const webrtc::RTCStatsReport>;
+using RTCStatsReport = webrtc::scoped_refptr<const webrtc::RTCStatsReport>;
 using RTCStats = webrtc::RTCStats;
 
 struct RTCStatsWrap;

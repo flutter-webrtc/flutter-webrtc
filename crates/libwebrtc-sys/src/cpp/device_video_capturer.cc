@@ -13,13 +13,13 @@ DeviceVideoCapturer::~DeviceVideoCapturer() {
 }
 
 // Creates a new `DeviceVideoCapturer`.
-rtc::scoped_refptr<DeviceVideoCapturer> DeviceVideoCapturer::Create(
+webrtc::scoped_refptr<DeviceVideoCapturer> DeviceVideoCapturer::Create(
     size_t width,
     size_t height,
     size_t max_fps,
     uint32_t device_index) {
-  rtc::scoped_refptr<DeviceVideoCapturer> capturer(
-      new rtc::RefCountedObject<DeviceVideoCapturer>());
+  webrtc::scoped_refptr<DeviceVideoCapturer> capturer(
+      new webrtc::RefCountedObject<DeviceVideoCapturer>());
 
   if (!capturer->Init(width, height, max_fps, device_index)) {
     RTC_LOG(LS_ERROR) << "Failed to create DeviceVideoCapturer(w = " << width

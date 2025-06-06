@@ -33,7 +33,7 @@ FakeFrameSource::FakeFrameSource(int width,
 }
 
 FakeFrameSource::FakeFrameSource(int width, int height, int interval_us)
-    : FakeFrameSource(width, height, interval_us, rtc::TimeMicros()) {}
+    : FakeFrameSource(width, height, interval_us, webrtc::TimeMicros()) {}
 
 webrtc::VideoRotation FakeFrameSource::GetRotation() const {
   return rotation_;
@@ -69,7 +69,7 @@ webrtc::VideoFrame FakeFrameSource::GetFrame(int width,
   RTC_CHECK_GT(height, 0);
   RTC_CHECK_GT(interval_us, 0);
 
-  rtc::scoped_refptr<webrtc::I420Buffer> buffer(
+  webrtc::scoped_refptr<webrtc::I420Buffer> buffer(
       webrtc::I420Buffer::Create(width, height));
 
   buffer->InitializeData();
@@ -83,4 +83,4 @@ webrtc::VideoFrame FakeFrameSource::GetFrame(int width,
   return frame;
 }
 
-}  // namespace cricket
+}  // namespace webrtc

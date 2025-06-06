@@ -45,7 +45,7 @@ void TrackEventObserver::OnChanged() {
 
 // Sets the inner `MediaStreamTrackInterface`.
 void TrackEventObserver::set_track(
-    rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) {
+    webrtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) {
   track_ = track;
 }
 
@@ -62,7 +62,7 @@ std::unique_ptr<VideoTrackSourceInterface> create_fake_device_video_source(
   int fps_ms = 1000 / fps;
   int timestamp_offset_us = 1000000 / fps;
   auto th = std::thread([=] {
-    auto frame = cricket::FakeFrameSource(width, height, timestamp_offset_us);
+    auto frame = webrtc::FakeFrameSource(width, height, timestamp_offset_us);
     while (true) {
       src->InjectFrame(frame.GetFrame());
       std::this_thread::sleep_for(std::chrono::milliseconds(fps_ms));
@@ -292,8 +292,8 @@ int32_t video_device_name(VideoDeviceInfo& device_info,
 }
 
 // Calls `Thread->Create()`.
-std::unique_ptr<rtc::Thread> create_thread() {
-  return rtc::Thread::Create();
+std::unique_ptr<webrtc::Thread> create_thread() {
+  return webrtc::Thread::Create();
 }
 
 // Creates a default `TaskQueueFactory`, basing on the current platform.
@@ -302,8 +302,8 @@ std::unique_ptr<TaskQueueFactory> create_default_task_queue_factory() {
 }
 
 // Calls `Thread->CreateWithSocketServer()`.
-std::unique_ptr<rtc::Thread> create_thread_with_socket_server() {
-  return rtc::Thread::CreateWithSocketServer();
+std::unique_ptr<webrtc::Thread> create_thread_with_socket_server() {
+  return webrtc::Thread::CreateWithSocketServer();
 }
 
 // Creates a new `ScreenVideoCapturer` with the specified constraints and
@@ -315,8 +315,8 @@ std::unique_ptr<VideoTrackSourceInterface> create_display_video_source(
     size_t width,
     size_t height,
     size_t fps) {
-  rtc::scoped_refptr<ScreenVideoCapturer> capturer(
-      new rtc::RefCountedObject<ScreenVideoCapturer>(id, width, height, fps));
+  webrtc::scoped_refptr<ScreenVideoCapturer> capturer(
+      new webrtc::RefCountedObject<ScreenVideoCapturer>(id, width, height, fps));
 
   auto src = webrtc::CreateVideoTrackSourceProxy(
       &signaling_thread, &worker_thread, capturer.get());
@@ -350,7 +350,7 @@ void dispose_audio_source(const AudioDeviceModule& audio_device_module,
 // Creates a new fake `AudioSource`.
 std::unique_ptr<AudioSourceInterface> create_fake_audio_source() {
   return std::make_unique<AudioSourceInterface>(
-      bridge::LocalAudioSource::Create(cricket::AudioOptions(), nullptr));
+      bridge::LocalAudioSource::Create(webrtc::AudioOptions(), nullptr));
 }
 
 // Calls `PeerConnectionFactoryInterface->CreateVideoTrack`.
@@ -446,7 +446,7 @@ TrackState audio_track_state(const AudioTrackInterface& track) {
 // Used to connect the given `track` to the underlying video engine.
 void add_or_update_video_sink(const VideoTrackInterface& track,
                               VideoSinkInterface& sink) {
-  track->AddOrUpdateSink(&sink, rtc::VideoSinkWants());
+  track->AddOrUpdateSink(&sink, webrtc::VideoSinkWants());
 }
 
 // Detaches the provided video `sink` from the given `track`.
@@ -464,7 +464,7 @@ std::unique_ptr<VideoSinkInterface> create_forwarding_video_sink(
 // Converts the provided `webrtc::VideoFrame` pixels to the ABGR scheme and
 // writes the result to the provided `dst_abgr`.
 void video_frame_to_abgr(const webrtc::VideoFrame& frame, uint8_t* dst_abgr) {
-  rtc::scoped_refptr<webrtc::I420BufferInterface> buffer(
+  webrtc::scoped_refptr<webrtc::I420BufferInterface> buffer(
       frame.video_frame_buffer()->ToI420());
 
   libyuv::I420ToABGR(buffer->DataY(), buffer->StrideY(), buffer->DataU(),
@@ -478,7 +478,7 @@ void video_frame_to_abgr(const webrtc::VideoFrame& frame, uint8_t* dst_abgr) {
 void video_frame_to_argb(const webrtc::VideoFrame& frame,
                          int argb_stride,
                          uint8_t* dst_argb) {
-  rtc::scoped_refptr<webrtc::I420BufferInterface> buffer(
+  webrtc::scoped_refptr<webrtc::I420BufferInterface> buffer(
       frame.video_frame_buffer()->ToI420());
 
   libyuv::I420ToARGB(buffer->DataY(), buffer->StrideY(), buffer->DataU(),
@@ -705,32 +705,32 @@ std::unique_ptr<std::string> ice_candidate_interface_to_string(
 
 // Calls `Candidate->ToString`.
 std::unique_ptr<std::string> candidate_to_string(
-    const cricket::Candidate& candidate) {
+    const webrtc::Candidate& candidate) {
   return std::make_unique<std::string>(candidate.ToString());
 };
 
 // Returns `CandidatePairChangeEvent.candidate_pair` field value.
-const cricket::CandidatePair& get_candidate_pair(
-    const cricket::CandidatePairChangeEvent& event) {
+const webrtc::CandidatePair& get_candidate_pair(
+    const webrtc::CandidatePairChangeEvent& event) {
   return event.selected_candidate_pair;
 };
 
 // Returns `CandidatePairChangeEvent.last_data_received_ms` field value.
 int64_t get_last_data_received_ms(
-    const cricket::CandidatePairChangeEvent& event) {
+    const webrtc::CandidatePairChangeEvent& event) {
   return event.last_data_received_ms;
 }
 
 // Returns `CandidatePairChangeEvent.reason` field value.
 std::unique_ptr<std::string> get_reason(
-    const cricket::CandidatePairChangeEvent& event) {
+    const webrtc::CandidatePairChangeEvent& event) {
   return std::make_unique<std::string>(event.reason);
 }
 
 // Returns `CandidatePairChangeEvent.estimated_disconnected_time_ms` field
 // value.
 int64_t get_estimated_disconnected_time_ms(
-    const cricket::CandidatePairChangeEvent& event) {
+    const webrtc::CandidatePairChangeEvent& event) {
   return event.estimated_disconnected_time_ms;
 }
 
@@ -1029,7 +1029,7 @@ void set_codec_preferences(const RtpTransceiverInterface& transceiver,
   for (int i = 0; i < codecs.size(); ++i) {
     array[i] = *codecs[i].ptr.get();
   }
-  rtc::ArrayView<RtpCodecCapability> rtp_codecs(array, codecs.size());
+  webrtc::ArrayView<RtpCodecCapability> rtp_codecs(array, codecs.size());
   transceiver->SetCodecPreferences(rtp_codecs);
 }
 

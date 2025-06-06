@@ -63,22 +63,22 @@ class ExtendedADM : public webrtc::AudioDeviceModule {
  public:
   // Creates a new `bridge::LocalAudioSource` that will record audio from the
   // device with the provided ID.
-  virtual rtc::scoped_refptr<bridge::LocalAudioSource> CreateAudioSource(
+  virtual webrtc::scoped_refptr<bridge::LocalAudioSource> CreateAudioSource(
       uint32_t device_index,
-      rtc::scoped_refptr<webrtc::AudioProcessing> audio_processing) = 0;
+      webrtc::scoped_refptr<webrtc::AudioProcessing> audio_processing) = 0;
 
   // Stops the `bridge::LocalAudioSource` for the provided device ID.
   virtual void DisposeAudioSource(std::string device_id) = 0;
 
   // Returns the inner `PlayoutDelegatingAPM`.
-  virtual rtc::scoped_refptr<PlayoutDelegatingAPM> AudioProcessing() = 0;
+  virtual webrtc::scoped_refptr<PlayoutDelegatingAPM> AudioProcessing() = 0;
 };
 
 class OpenALAudioDeviceModule : public ExtendedADM {
  public:
   ~OpenALAudioDeviceModule() override;
 
-  static rtc::scoped_refptr<OpenALAudioDeviceModule> Create(
+  static webrtc::scoped_refptr<OpenALAudioDeviceModule> Create(
       AudioLayer audio_layer,
       webrtc::TaskQueueFactory* task_queue_factory);
 
@@ -89,15 +89,15 @@ class OpenALAudioDeviceModule : public ExtendedADM {
 
   // Creates a new `bridge::LocalAudioSource` that will record audio from the
   // device with the provided ID.
-  rtc::scoped_refptr<bridge::LocalAudioSource> CreateAudioSource(
+  webrtc::scoped_refptr<bridge::LocalAudioSource> CreateAudioSource(
       uint32_t device_index,
-      rtc::scoped_refptr<webrtc::AudioProcessing> ap) override;
+      webrtc::scoped_refptr<webrtc::AudioProcessing> ap) override;
 
   // Stops the `bridge::LocalAudioSource` for the provided device ID.
   void DisposeAudioSource(std::string device_id) override;
 
   // Returns the `PlayoutDelegatingAPM` used by this `OpenALAudioDeviceModule`.
-  rtc::scoped_refptr<PlayoutDelegatingAPM> AudioProcessing() override;
+  webrtc::scoped_refptr<PlayoutDelegatingAPM> AudioProcessing() override;
 
   // Playout control.
   int16_t PlayoutDevices() override;
@@ -225,7 +225,7 @@ class OpenALAudioDeviceModule : public ExtendedADM {
   void processRecordingQueued();
 
   std::unique_ptr<webrtc::AudioDeviceBuffer> audio_device_buffer_ = nullptr;
-  rtc::scoped_refptr<PlayoutDelegatingAPM> apm_;
+  webrtc::scoped_refptr<PlayoutDelegatingAPM> apm_;
 
   std::recursive_mutex _recording_mutex;
   bool _recordingInitialized = false;

@@ -14,10 +14,10 @@ float calculate_audio_level(int16_t* data, int size) {
   return std::sqrt(sum / size) / INT16_MAX;
 }
 
-rtc::scoped_refptr<LocalAudioSource> LocalAudioSource::Create(
-    cricket::AudioOptions audio_options,
-    rtc::scoped_refptr<webrtc::AudioProcessing> ap) {
-  auto source = rtc::make_ref_counted<LocalAudioSource>();
+webrtc::scoped_refptr<LocalAudioSource> LocalAudioSource::Create(
+    webrtc::AudioOptions audio_options,
+    webrtc::scoped_refptr<webrtc::AudioProcessing> ap) {
+  auto source = webrtc::make_ref_counted<LocalAudioSource>();
 
   source->audio_processing_ = ap;
   source->_options = audio_options;

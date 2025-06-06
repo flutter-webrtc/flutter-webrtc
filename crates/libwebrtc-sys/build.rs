@@ -173,7 +173,7 @@ use walkdir::{DirEntry, WalkDir};
 /// [`libwebrtc-bin`]: https://github.com/instrumentisto/libwebrtc-bin
 static LIBWEBRTC_URL: &str = "\
     https://github.com/instrumentisto/libwebrtc-bin/releases/download\
-                                                            /136.0.7103.113";
+                                                            /137.0.7151.55";
 
 /// URL for downloading `openal-soft` source code.
 static OPENAL_URL: &str =
@@ -221,6 +221,13 @@ fn main() -> anyhow::Result<()> {
             );
         }
         println!("cargo:rustc-link-arg=-fuse-ld=lld");
+
+        // Prefer `clang` over `gcc`, because Chromium uses `clang` and `gcc` is
+        // known to have issues, is not guaranteed to run and not tested by
+        // bots. See:
+        // https://issues.chromium.org/issues/40565911
+        // https://chromium.googlesource.com/chromium/src/+/main/docs/clang.md
+        build.compiler("clang");
         build
             .flag("-DWEBRTC_LINUX")
             .flag("-DWEBRTC_POSIX")
@@ -229,7 +236,7 @@ fn main() -> anyhow::Result<()> {
     }
     #[cfg(target_os = "macos")]
     {
-        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.11");
+        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.15");
         build
             .include(libpath.join("include/sdk/objc/base"))
             .include(libpath.join("include/sdk/objc"));
@@ -295,19 +302,19 @@ fn get_target() -> anyhow::Result<String> {
 fn get_expected_libwebrtc_hash() -> anyhow::Result<&'static str> {
     Ok(match get_target()?.as_str() {
         "aarch64-unknown-linux-gnu" => {
-            "6547fedfb2280e2fb9403c68bb2a6a329e5bf14698044628c12b903fc988581a"
+            "2e36cae8070fe2d34282a7f8f8bdfe4fd275e4bb7056e9416733a8d482c6c378"
         }
         "x86_64-unknown-linux-gnu" => {
-            "2e09bd6c67f8811c90d9433615035fa740acc680a446f1cd8c196ae3d92fb1bf"
+            "310056b5b5bee2cd70067729610f8926fff5d8d62b702a7633c08f3bed9f8b40"
         }
         "aarch64-apple-darwin" => {
-            "d2e48ae5106e5cc5b5f50af5f9fa42fc7296fb3e2e88d41fbd794999e17f4a3b"
+            "64cd985f6e2cc780a83d685461ebec52184c508804830d7f4b279daf190ecf8a"
         }
         "x86_64-apple-darwin" => {
-            "5c6479c785c939979e612ee5867b574e15b6dedad200dc0e1a977bcfbe9cf9a2"
+            "058c5c7776c6fbd1e38ce3c646a6cd767d0a700b015d5635324ec763f73ddcf8"
         }
         "x86_64-pc-windows-msvc" => {
-            "58a6c6d0c5c094679fd7c7361af22c640d36161b0ba3982544797a47c471cf53"
+            "e71fb1f8d333b9e83bf56b031f916e3586967d10a2ae9b6fae9dc9cdea43811b"
         }
         arch => return Err(anyhow::anyhow!("Unsupported target: {arch}")),
     })
