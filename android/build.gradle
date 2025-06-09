@@ -53,6 +53,6 @@ android {
     }
 
     dependencies {
-        implementation "com.github.instrumentisto:libwebrtc-bin:137.0.7151.55@aar"
+        implementation "com.github.instrumentisto:libwebrtc-bin:137.0.7151.68@aar"
     }
 }

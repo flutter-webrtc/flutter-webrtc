@@ -16,12 +16,13 @@ All user visible changes to this project will be documented in this file. This p
 
 ### Changed
 
-- Upgraded [libwebrtc] to [137.0.7151.55] version. ([#203])
+- Upgraded [libwebrtc] to [137.0.7151.68] version. ([#203], [todo])
 - Upgraded [`flutter_rust_bridge`] crate to [2.10.0][frb-2.10.0] version. ([#201])
 
 [#201]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/201
 [#203]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/203
-[137.0.7151.55]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/137.0.7151.55
+[todo]: https://github.com/instrumentisto/medea-flutter-webrtc/commit/todo
+[137.0.7151.68]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/137.0.7151.68
 [frb-2.10.0]: https://github.com/fzyzcjy/flutter_rust_bridge/releases/tag/v2.10.0
 
 
