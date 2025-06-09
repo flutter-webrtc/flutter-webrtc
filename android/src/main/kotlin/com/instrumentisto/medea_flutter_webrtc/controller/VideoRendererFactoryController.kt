@@ -15,7 +15,7 @@ import io.flutter.view.TextureRegistry
 class VideoRendererFactoryController(
     private val messenger: BinaryMessenger,
     private val textureRegistry: TextureRegistry
-) : MethodChannel.MethodCallHandler {
+) : Controller {
   /** Channel listened for the [MethodCall]s. */
   private val chan = MethodChannel(messenger, ChannelNameGenerator.name("VideoRendererFactory", 0))
 
@@ -30,5 +30,10 @@ class VideoRendererFactoryController(
         result.success(VideoRendererController(messenger, renderer).asFlutterResult())
       }
     }
+  }
+
+  /** Releases all the allocated resources. */
+  override fun dispose() {
+    chan.setMethodCallHandler(null)
   }
 }

@@ -9,6 +9,9 @@ plugins {
 android {
     namespace = "com.instrumentisto.medea_flutter_webrtc_example"
     compileSdk = flutter.compileSdkVersion
+    // TODO: Using default version provided by Flutter produces a warning.
+    //       Just ignore it and wait for a fix:
+    //       https://github.com/flutter/flutter/issues/139427
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

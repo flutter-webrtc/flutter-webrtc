@@ -15,7 +15,7 @@ class RtpTransceiverProxy(obj: RtpTransceiver) : Proxy<RtpTransceiver>(obj) {
     private set
 
   /** Disposed state of the [obj]. */
-  private var disposed: Boolean = false
+  private var disposed = false
 
   /** mID of the underlying [RtpTransceiver]. */
   var mid: String? = null
@@ -51,9 +51,11 @@ class RtpTransceiverProxy(obj: RtpTransceiver) : Proxy<RtpTransceiver>(obj) {
 
   /** Sets [disposed] to `true` for the [obj], [receiver] and [sender]. */
   fun setDisposed() {
-    disposed = true
+    if (disposed) return
+
     receiver.setDisposed()
     sender.setDisposed()
+    disposed = true
   }
 
   /** Sets [RtpTransceiverDirection] of the underlying [RtpTransceiver]. */
@@ -65,7 +67,7 @@ class RtpTransceiverProxy(obj: RtpTransceiver) : Proxy<RtpTransceiver>(obj) {
     obj.direction = direction.intoWebRtc()
   }
 
-  /** Changes the preferred [RtpTransceiver] codecs to the providded [List<CodecCapability>]. */
+  /** Changes the preferred [RtpTransceiver] codecs to the provided [List<CodecCapability>]. */
   fun setCodecPreferences(codecs: List<CodecCapability>) {
     var webrtcCodecs =
         codecs.map {
@@ -149,7 +151,7 @@ class RtpTransceiverProxy(obj: RtpTransceiver) : Proxy<RtpTransceiver>(obj) {
   fun stop() {
     receiver.notifyRemoved()
     if (!disposed) {
-      obj.stop()
+      obj.stopStandard()
     }
   }
 

@@ -10,6 +10,8 @@ import org.webrtc.MediaStreamTrack
 import org.webrtc.VideoSink
 import org.webrtc.VideoTrack
 
+private val TAG = MediaStreamTrackProxy::class.java.simpleName
+
 /**
  * Wrapper around a [MediaStreamTrack].
  *
@@ -41,7 +43,7 @@ class MediaStreamTrackProxy(
   private var disposed: Boolean = false
 
   /** [VideoSink] that tracks height and width changes. */
-  private lateinit var sink: VideoSink
+  private var sink: VideoSink? = null
 
   /** Provides asynchronous wait for [width] and [height] initialization. */
   private val fetchDimensions = CompletableDeferred<Unit>()
@@ -131,6 +133,7 @@ class MediaStreamTrackProxy(
     return object : EventObserver {
       override fun onEnded() {
         eventObservers.forEach { it.onEnded() }
+        eventObservers.clear()
       }
     }
   }
@@ -142,6 +145,15 @@ class MediaStreamTrackProxy(
    */
   fun addEventObserver(eventObserver: EventObserver) {
     eventObservers.add(eventObserver)
+  }
+
+  /**
+   * Removes the specified [EventObserver] from the list of [EventObserver]s.
+   *
+   * @param eventObserver [EventObserver] to be removed.
+   */
+  fun removeEventObserver(eventObserver: EventObserver) {
+    eventObservers.remove(eventObserver)
   }
 
   /**
@@ -172,8 +184,13 @@ class MediaStreamTrackProxy(
     if (!isStopped) {
       isStopped = true
       onStopSubscribers.forEach { sub -> sub() }
+      onStopSubscribers.clear()
+      if (sink != null) {
+        (obj as VideoTrack).removeSink(sink)
+        sink = null
+      }
     } else {
-      Log.w("FlutterWebRTC", "Double stop detected [deviceId: $deviceId]!")
+      Log.w(TAG, "Double stop detected [deviceId: $deviceId]!")
     }
   }
 

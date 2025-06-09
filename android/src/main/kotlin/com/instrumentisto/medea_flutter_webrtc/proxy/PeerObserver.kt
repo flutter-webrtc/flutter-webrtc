@@ -71,12 +71,12 @@ class PeerObserver : PeerConnection.Observer {
           for (trans in transceivers) {
             if (trans.receiver.id == receiverId) {
               peer?.observableEventBroadcaster()?.onTrack(trans.receiver.track, trans)
+              return@post
             }
           }
         }
       }
     }
-    super.onTrack(transceiver)
   }
 
   override fun onRenegotiationNeeded() {
@@ -89,7 +89,6 @@ class PeerObserver : PeerConnection.Observer {
     if (receiver != null) {
       Handler(Looper.getMainLooper()).post { peer?.receiverEnded(receiver) }
     }
-    super.onRemoveTrack(receiver)
   }
 
   override fun onIceConnectionReceivingChange(receiving: Boolean) {}

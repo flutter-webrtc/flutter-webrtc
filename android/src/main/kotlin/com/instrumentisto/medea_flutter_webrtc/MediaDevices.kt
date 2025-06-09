@@ -77,7 +77,7 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
    * Enumerator for the camera devices, based on which new video [MediaStreamTrackProxy]s will be
    * created.
    */
-  private val cameraEnumerator: CameraEnumerator = getCameraEnumerator(state.getAppContext())
+  private val cameraEnumerator: CameraEnumerator = getCameraEnumerator(state.context)
 
   /** List of [EventObserver]s of these [MediaDevices]. */
   private var eventObservers: HashSet<EventObserver> = HashSet()
@@ -102,6 +102,14 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
 
   /** Indicator whether bluetooth SCO is connected. */
   private var scoAudioStateConnected: Boolean = false
+
+  /**
+   * [AudioDeviceCallback] provided to [AudioManager.registerAudioDeviceCallback] which fires once
+   * new audio device is connected.
+   *
+   * [isBluetoothHeadsetConnected] will be updated based on this subscription.
+   */
+  private var audioDeviceCallback: AudioDeviceCallback? = null
 
   companion object {
     /** Observer of [MediaDevices] events. */
@@ -134,21 +142,7 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
   }
 
   init {
-    state
-        .getAppContext()
-        .registerReceiver(this, IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED))
-    synchronizeHeadsetState()
-    registerHeadsetStateReceiver()
-  }
-
-  /**
-   * Subscribes to the [AudioManager.registerAudioDeviceCallback] which fires once new audio device
-   * is connected.
-   *
-   * [isBluetoothHeadsetConnected] will be updated based on this subscription.
-   */
-  private fun registerHeadsetStateReceiver() {
-    audioManager.registerAudioDeviceCallback(
+    audioDeviceCallback =
         object : AudioDeviceCallback() {
           override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
             if (addedDevices.any { isBluetoothDevice(it) }) {
@@ -161,8 +155,11 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
               synchronizeHeadsetState()
             }
           }
-        },
-        null)
+        }
+
+    state.context.registerReceiver(this, IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED))
+    synchronizeHeadsetState()
+    audioManager.registerAudioDeviceCallback(audioDeviceCallback, null)
   }
 
   /** Actualizes Bluetooth headset state based on the [AudioManager.getDevices]. */
@@ -405,19 +402,8 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
 
     val surfaceTextureRenderer =
         SurfaceTextureHelper.create(Thread.currentThread().name, EglUtils.rootEglBaseContext)
-    val videoCapturer =
-        cameraEnumerator.createCapturer(
-            deviceId,
-            object : CameraVideoCapturer.CameraEventsHandler {
-              override fun onCameraError(p0: String?) {}
-              override fun onCameraDisconnected() {}
-              override fun onCameraFreezed(p0: String?) {}
-              override fun onCameraOpening(p0: String?) {}
-              override fun onFirstFrameAvailable() {}
-              override fun onCameraClosed() {}
-            })
-    videoCapturer.initialize(
-        surfaceTextureRenderer, state.getAppContext(), videoSource.capturerObserver)
+    val videoCapturer = cameraEnumerator.createCapturer(deviceId, null)
+    videoCapturer.initialize(surfaceTextureRenderer, state.context, videoSource.capturerObserver)
     videoCapturer.startCapture(width, height, fps)
 
     val facingMode =
@@ -490,5 +476,12 @@ class MediaDevices(val state: State, private val permissions: Permissions) : Bro
         }
       }
     }
+  }
+
+  /** Releases all the allocated resources. */
+  fun dispose() {
+    state.context.unregisterReceiver(this)
+    audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
+    audioDeviceCallback = null
   }
 }

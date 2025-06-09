@@ -12,8 +12,10 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -26,7 +28,10 @@ class MediaDevicesController(
     private val messenger: BinaryMessenger,
     state: State,
     permissions: Permissions
-) : MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
+) : EventChannel.StreamHandler, Controller {
+  /** [CoroutineScope] for this [MediaDevicesController] */
+  private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
   /** Underlying [MediaDevices] to perform [MethodCall]s on. */
   private val mediaDevices = MediaDevices(state, permissions)
 
@@ -60,7 +65,7 @@ class MediaDevicesController(
   override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
     when (call.method) {
       "enumerateDevices" -> {
-        GlobalScope.launch(Dispatchers.Main) {
+        scope.launch {
           try {
             result.success(mediaDevices.enumerateDevices().map { it.asFlutterResult() })
           } catch (e: GetUserMediaException) {
@@ -74,7 +79,7 @@ class MediaDevicesController(
         }
       }
       "getUserMedia" -> {
-        GlobalScope.launch(Dispatchers.Main) {
+        scope.launch {
           val constraintsArg: Map<String, Any> = call.argument("constraints")!!
           try {
             val tracks = mediaDevices.getUserMedia(Constraints.fromMap(constraintsArg))
@@ -92,7 +97,7 @@ class MediaDevicesController(
       }
       "setOutputAudioId" -> {
         val deviceId: String = call.argument("deviceId")!!
-        GlobalScope.launch(Dispatchers.Main) {
+        scope.launch {
           try {
             mediaDevices.setOutputAudioId(deviceId)
             result.success(null)
@@ -111,6 +116,16 @@ class MediaDevicesController(
   }
 
   override fun onCancel(obj: Any?) {
+    eventChannel.setStreamHandler(null)
+    eventSink?.endOfStream()
     eventSink = null
+  }
+
+  /** Releases all the allocated resources. */
+  override fun dispose() {
+    mediaDevices.dispose()
+    chan.setMethodCallHandler(null)
+    scope.cancel("disposed")
+    onCancel(null)
   }
 }

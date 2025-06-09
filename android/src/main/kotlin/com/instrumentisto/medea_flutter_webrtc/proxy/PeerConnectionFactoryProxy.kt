@@ -3,13 +3,14 @@ package com.instrumentisto.medea_flutter_webrtc.proxy
 import android.media.AudioManager.*
 import com.instrumentisto.medea_flutter_webrtc.State
 import com.instrumentisto.medea_flutter_webrtc.model.PeerConnectionConfiguration
+import org.webrtc.PeerConnectionFactory
 
 /**
  * Creator of new [PeerConnectionProxy]s.
  *
  * @property state Global state used for creation.
  */
-class PeerConnectionFactoryProxy(val state: State) {
+class PeerConnectionFactoryProxy(private val state: State) {
   /** Counter for generating new [PeerConnectionProxy] IDs. */
   private var lastPeerConnectionId: Int = 0
 
@@ -19,6 +20,9 @@ class PeerConnectionFactoryProxy(val state: State) {
    * [PeerObserver]s will be removed on a [PeerConnectionProxy] dispose.
    */
   private var peerObservers: HashMap<Int, PeerObserver> = HashMap()
+
+  /** Disposed state of this [PeerConnectionFactoryProxy]. */
+  private var disposed = false
 
   /**
    * Creates a new [PeerConnectionProxy] based on the provided [PeerConnectionConfiguration].
@@ -44,6 +48,19 @@ class PeerConnectionFactoryProxy(val state: State) {
     peerObservers[id] = peerObserver
 
     return peerProxy
+  }
+
+  /** Returns the underlying [PeerConnectionFactory]. */
+  fun getPeerConnectionFactory(): PeerConnectionFactory {
+    return state.getPeerConnectionFactory()
+  }
+
+  /** Disposes the underlying [PeerConnectionFactory]. */
+  fun dispose() {
+    if (disposed) return
+
+    state.getPeerConnectionFactory().dispose()
+    disposed = true
   }
 
   /** Removes the specified [PeerObserver] from the [peerObservers]. */

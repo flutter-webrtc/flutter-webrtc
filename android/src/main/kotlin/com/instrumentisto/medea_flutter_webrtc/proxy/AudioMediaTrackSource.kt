@@ -25,6 +25,9 @@ class AudioMediaTrackSource(
    */
   private var aliveTracksCount: Int = 0
 
+  /** Disposed state of this [AudioMediaTrackSource]. */
+  private var disposed = false
+
   /**
    * Creates a new [MediaStreamTrackProxy] with the underlying [AudioSource].
    *
@@ -58,6 +61,9 @@ class AudioMediaTrackSource(
 
   /** Disposes this [AudioMediaTrackSource]. */
   private fun dispose() {
+    if (disposed) return
+
     source.dispose()
+    disposed = true
   }
 }

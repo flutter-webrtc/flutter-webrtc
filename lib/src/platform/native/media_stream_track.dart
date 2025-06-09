@@ -67,11 +67,13 @@ abstract class NativeMediaStreamTrack extends MediaStreamTrack {
 
   /// Listener for all the [MediaStreamTrack] events received from the native
   /// side.
-  void eventListener(dynamic event) {
+  void eventListener(dynamic event) async {
     final dynamic e = event;
     switch (e['event']) {
       case 'onEnded':
         _onEnded?.call();
+        await _eventSub?.cancel();
+        _eventSub = null;
         break;
     }
   }
@@ -151,13 +153,11 @@ class _NativeMediaStreamTrackChannel extends NativeMediaStreamTrack {
   Future<void> dispose() async {
     if (!_disposed) {
       _disposed = true;
+      _stopped = true;
       _onEnded = null;
-      if (!_stopped) {
-        _stopped = true;
-        await _chan.invokeMethod('stop');
-      }
       await _chan.invokeMethod('dispose');
       await _eventSub?.cancel();
+      _eventSub = null;
     }
   }
 

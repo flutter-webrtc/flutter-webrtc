@@ -11,6 +11,7 @@ import com.instrumentisto.medea_flutter_webrtc.proxy.PeerConnectionFactoryProxy
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import kotlin.collections.set
 import org.webrtc.MediaStreamTrack
 
 /**
@@ -19,13 +20,12 @@ import org.webrtc.MediaStreamTrack
  * @property messenger Messenger used for creating new [MethodChannel]s.
  * @param state State used for creating new [PeerConnectionFactoryProxy]s.
  */
-class PeerConnectionFactoryController(private val messenger: BinaryMessenger, state: State) :
-    MethodChannel.MethodCallHandler {
+class PeerConnectionFactoryController(
+    private val messenger: BinaryMessenger,
+    private val state: State
+) : Controller {
   /** Factory creating new [PeerConnectionController]s. */
   private val factory: PeerConnectionFactoryProxy = PeerConnectionFactoryProxy(state)
-
-  /** Application context to access encoder and decoder used. */
-  private val state: State = state
 
   /** Channel listened for the [MethodCall]s. */
   private val chan = MethodChannel(messenger, ChannelNameGenerator.name("PeerConnectionFactory", 0))
@@ -60,7 +60,6 @@ class PeerConnectionFactoryController(private val messenger: BinaryMessenger, st
         val capabilities =
             RtpCapabilities.fromWebRtc(
                 factory
-                    .state
                     .getPeerConnectionFactory()
                     .getRtpSenderCapabilities(MediaStreamTrack.MediaType.values()[kind!!]))
         result.success(capabilities.asFlutterResult())
@@ -70,7 +69,6 @@ class PeerConnectionFactoryController(private val messenger: BinaryMessenger, st
         val capabilities =
             RtpCapabilities.fromWebRtc(
                 factory
-                    .state
                     .getPeerConnectionFactory()
                     .getRtpReceiverCapabilities(MediaStreamTrack.MediaType.values()[kind!!]))
         result.success(capabilities.asFlutterResult())
@@ -100,9 +98,15 @@ class PeerConnectionFactoryController(private val messenger: BinaryMessenger, st
         result.success(map.values.map { it.asFlutterResult() })
       }
       "dispose" -> {
-        chan.setMethodCallHandler(null)
+        dispose()
         result.success(null)
       }
     }
+  }
+
+  /** Releases all the allocated resources. */
+  override fun dispose() {
+    chan.setMethodCallHandler(null)
+    factory.dispose()
   }
 }
