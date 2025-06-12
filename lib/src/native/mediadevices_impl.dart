@@ -4,6 +4,24 @@ import 'package:flutter/services.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
+// Define custom exception classes
+class MediaDeviceAcquireError extends Error {
+  final String? message;
+  MediaDeviceAcquireError([this.message]);
+  @override
+  String toString() => message ?? 'Failed to acquire media device';
+}
+
+class PermissionDeniedError extends MediaDeviceAcquireError {
+  PermissionDeniedError([String? message]) : super(message ?? 'Permission denied by user');
+}
+
+class NotFoundError extends MediaDeviceAcquireError {
+  NotFoundError([String? message]) : super(message ?? 'Requested device not found');
+}
+
+// TODO: Add other specific error types like OverconstrainedError, NotReadableError if needed.
+
 import 'event_channel.dart';
 import 'media_stream_impl.dart';
 import 'utils.dart';
@@ -45,7 +63,26 @@ class MediaDeviceNative extends MediaDevices {
           response['audioTracks'] ?? [], response['videoTracks'] ?? []);
       return stream;
     } on PlatformException catch (e) {
-      throw 'Unable to getUserMedia: ${e.message}';
+      // Basic error code/message parsing. Native platforms might have more specific codes.
+      // Common codes from web: 'NotFoundError', 'NotAllowedError', 'NotReadableError', 'OverconstrainedError', 'TypeError'
+      // For native, codes might be like 'DOMException 1' for permission.
+      // This is a simplified parsing.
+      final message = e.message?.toLowerCase() ?? '';
+      final code = e.code.toLowerCase();
+
+      if (message.contains('permission denied') ||
+          message.contains('not allowed') ||
+          code == 'permissiondeniederror' ||
+          code == 'notallowederror' ||
+          // Android specific for permission denial often includes this
+          message.contains('java.lang.securityexception') ||
+          // iOS specific for permission denial
+          message.contains('permission has been denied')) {
+        throw PermissionDeniedError('Unable to getUserMedia: ${e.message}');
+      } else if (code == 'notfounderror' || message.contains('not found')) {
+        throw NotFoundError('Unable to getUserMedia: ${e.message}');
+      }
+      throw MediaDeviceAcquireError('Unable to getUserMedia: ${e.code} ${e.message}');
     }
   }
 
@@ -65,7 +102,19 @@ class MediaDeviceNative extends MediaDevices {
       stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
       return stream;
     } on PlatformException catch (e) {
-      throw 'Unable to getDisplayMedia: ${e.message}';
+      final message = e.message?.toLowerCase() ?? '';
+      final code = e.code.toLowerCase();
+
+      if (message.contains('permission denied') ||
+          message.contains('not allowed') ||
+          code == 'permissiondeniederror' ||
+          code == 'notallowederror') {
+        throw PermissionDeniedError('Unable to getDisplayMedia: ${e.message}');
+      } else if (code == 'notfounderror' || message.contains('not found')) {
+        // This might not be typical for getDisplayMedia, but included for consistency
+        throw NotFoundError('Unable to getDisplayMedia: ${e.message}');
+      }
+      throw MediaDeviceAcquireError('Unable to getDisplayMedia: ${e.code} ${e.message}');
     }
   }
 

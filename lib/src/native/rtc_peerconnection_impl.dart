@@ -17,7 +17,8 @@ import 'utils.dart';
  *  PeerConnection
  */
 class RTCPeerConnectionNative extends RTCPeerConnection {
-  RTCPeerConnectionNative(this._peerConnectionId, this._configuration) {
+  RTCPeerConnectionNative(this._peerConnectionId, Map<String, dynamic> configurationMap)
+      : _rtcConfiguration = RTCConfiguration.fromMap(configurationMap) {
     _eventSubscription = _eventChannelFor(_peerConnectionId)
         .receiveBroadcastStream()
         .listen(eventListener, onError: errorListener);
@@ -29,7 +30,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   final _localStreams = <MediaStream>[];
   final _remoteStreams = <MediaStream>[];
   RTCDataChannelNative? _dataChannel;
-  Map<String, dynamic> _configuration;
+  RTCConfiguration _rtcConfiguration; // Changed type from Map<String, dynamic>
   RTCSignalingState? _signalingState;
   RTCIceGatheringState? _iceGatheringState;
   RTCIceConnectionState? _iceConnectionState;
@@ -218,15 +219,47 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         onAddTrack?.call(stream, newTrack);
         break;
       case 'onRemoveTrack':
-        String trackId = map['trackId'];
-        for (var stream in _remoteStreams) {
-          stream.getTracks().forEach((track) {
-            if (track.id == trackId) {
-              onRemoveTrack?.call(stream, track);
-              stream.removeTrack(track, removeFromNative: false);
-              return;
+        // The C++ side sends a map for 'track' which contains 'id', 'kind', etc.
+        Map<dynamic, dynamic>? trackInfo = map['track'] as Map<dynamic, dynamic>?;
+        if (trackInfo != null) {
+          String trackId = trackInfo['id'] as String;
+          MediaStreamTrack? removedTrack;
+          MediaStream? parentStream;
+
+          for (var stream in _remoteStreams) {
+            // Attempt to find the track in this stream's list of tracks
+            // Note: getTracks() returns a new list, so modifications to it don't affect the original.
+            var track = stream.getTracks().firstWhere(
+                  (t) => t.id == trackId,
+                  orElse: () => null, // Return type needs to match, so can't be null if list non-nullable
+                                      // This part of the loop might need adjustment if getTracks() can't fail.
+                                      // However, we are just searching.
+                );
+
+            if (track != null) {
+              removedTrack = track;
+              parentStream = stream;
+              break;
             }
-          });
+          }
+
+          if (removedTrack != null && parentStream != null) {
+            print('onRemoveTrack: trackId $trackId found in stream ${parentStream.id}');
+            // Call the user-facing callback
+            onRemoveTrack?.call(parentStream, removedTrack);
+
+            // Mark the track as ended
+            if (removedTrack is MediaStreamTrackNative) {
+              removedTrack.setEnded();
+            }
+
+            // Remove the track from the stream's internal list on the Dart side
+            parentStream.removeTrack(removedTrack, removeFromNative: false);
+          } else {
+            print('onRemoveTrack: trackId $trackId not found in any remote stream.');
+          }
+        } else {
+          print('onRemoveTrack: Received event with no track information.');
         }
         break;
       case 'didOpenDataChannel':
@@ -305,15 +338,17 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   }
 
   @override
-  Map<String, dynamic> get getConfiguration => _configuration;
+  Map<String, dynamic> get getConfiguration => _rtcConfiguration.toMap(); // Use toMap
 
   @override
-  Future<void> setConfiguration(Map<String, dynamic> configuration) async {
-    _configuration = configuration;
+  Future<void> setConfiguration(Map<String, dynamic> configurationMap) async {
+    // Update the internal RTCConfiguration object
+    _rtcConfiguration = RTCConfiguration.fromMap(configurationMap);
     try {
-      await WebRTC.invokeMethod('setConfiguration', <String, dynamic>{
+      // Pass the map representation from the updated _rtcConfiguration
+      await WebRTC.invokeMethod('peerConnectionSetConfiguration', <String, dynamic>{ // Corrected method name
         'peerConnectionId': _peerConnectionId,
-        'configuration': configuration,
+        'configuration': _rtcConfiguration.toMap(), // Use toMap to include degradationPreference
       });
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::setConfiguration: ${e.message}';

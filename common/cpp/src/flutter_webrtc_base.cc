@@ -306,6 +306,65 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap& map,
   if (it != map.end()) {
     conf.max_ipv6_networks = GetValue<int>(it->second);
   }
+
+  // hardwareAcceleration preference
+  it = map.find(EncodableValue("hardwareAcceleration"));
+  if (it != map.end() && TypeIs<bool>(it->second)) {
+    hardware_acceleration_preference_ = GetValue<bool>(it->second);
+    // Log this preference if needed:
+    // Log.v("Hardware acceleration preference set to: %s", hardware_acceleration_preference_ ? "true" : "false");
+  } else {
+    // Default to true if not specified or wrong type
+    hardware_acceleration_preference_ = true;
+  }
+
+  // allowedIceCandidateTypes
+  allowed_ice_candidate_types_.clear();
+  it = map.find(EncodableValue("allowedIceCandidateTypes"));
+  if (it != map.end() && TypeIs<EncodableList>(it->second)) {
+    EncodableList typesList = GetValue<EncodableList>(it->second);
+    for (const auto& typeValue : typesList) {
+      if (TypeIs<std::string>(typeValue)) {
+        allowed_ice_candidate_types_.push_back(GetValue<std::string>(typeValue));
+      }
+    }
+  }
+
+  // allowedIceProtocols
+  allowed_ice_protocols_.clear();
+  it = map.find(EncodableValue("allowedIceProtocols"));
+  if (it != map.end() && TypeIs<EncodableList>(it->second)) {
+    EncodableList protocolsList = GetValue<EncodableList>(it->second);
+    for (const auto& protocolValue : protocolsList) {
+      if (TypeIs<std::string>(protocolValue)) {
+        allowed_ice_protocols_.push_back(GetValue<std::string>(protocolValue));
+      }
+    }
+  }
+
+  // iceGatheringTimeoutSeconds
+  it = map.find(EncodableValue("iceGatheringTimeoutSeconds"));
+  if (it != map.end() && TypeIs<int>(it->second)) {
+    ice_gathering_timeout_seconds_ = GetValue<int>(it->second);
+  } else {
+    ice_gathering_timeout_seconds_ = 0; // Default to no timeout if not present or wrong type
+  }
+
+  // degradationPreference (public api)
+  it = map.find(EncodableValue("degradationPreference"));
+  if (it != map.end() && TypeIs<std::string>(it->second)) {
+    std::string v = GetValue<std::string>(it->second);
+    if (v == "maintain-framerate")
+      conf.degradation_preference = libwebrtc::RTCDegradationPreference::MAINTAIN_FRAMERATE;
+    else if (v == "maintain-resolution")
+      conf.degradation_preference = libwebrtc::RTCDegradationPreference::MAINTAIN_RESOLUTION;
+    else if (v == "balanced")
+      conf.degradation_preference = libwebrtc::RTCDegradationPreference::BALANCED;
+    else if (v == "disabled")
+      conf.degradation_preference = libwebrtc::RTCDegradationPreference::DISABLED;
+    // If the string is not recognized, it will keep the default set in rtc_types.h (BALANCED)
+  }
+
   return true;
 }
 

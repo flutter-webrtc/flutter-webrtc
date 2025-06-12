@@ -15,6 +15,7 @@
 #include "base/portable.h"
 #include "base/refcount.h"
 #include "base/scoped_ref_ptr.h"
+#include "rtc_rtp_parameters.h"  // Added for RTCDegradationPreference
 
 namespace libwebrtc {
 
@@ -96,6 +97,9 @@ struct RTCConfiguration {
   bool use_rtp_mux = true;
   uint32_t local_audio_bandwidth = 128;
   uint32_t local_video_bandwidth = 512;
+
+  // Added for degradation preference
+  RTCDegradationPreference degradation_preference = RTCDegradationPreference::BALANCED;
 };
 
 struct SdpParseError {

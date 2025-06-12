@@ -165,13 +165,28 @@ EncodableMap rtpParametersToMap(
     map[EncodableValue("clockRate")] = EncodableValue(codec->clock_rate());
     map[EncodableValue("numChannels")] = EncodableValue(codec->num_channels());
 
-    EncodableMap param;
-    auto parameters = codec->parameters();
-    for (auto item : parameters.std_vector()) {
-      param[EncodableValue(item.first.std_string())] =
+    EncodableMap param_map; // Changed variable name for clarity
+    std::string profile_value = ""; // To store profile if found
+    auto codec_specific_parameters = codec->parameters();
+    for (const auto& item : codec_specific_parameters.std_vector()) {
+      param_map[EncodableValue(item.first.std_string())] =
           EncodableValue(item.second.std_string());
+      if (item.first == "profile") { // Or "profile-level-id" etc. if that's the actual key
+        profile_value = item.second.std_string();
+      }
+      // Example: also check for H264 profile-level-id and map it to profile
+      // For simplicity, this example primarily uses a direct "profile" key.
+      // Real SDP parsing might involve more complex fmtp line interpretation.
+      if (item.first == "profile-level-id" && profile_value.empty()) {
+        // This is a common key for H.264 profiles in SDP fmtp lines.
+        // You might want to store this or a processed version of it as 'profile'.
+        // profile_value = item.second.std_string();
+      }
     }
-    map[EncodableValue("parameters")] = EncodableValue(param);
+    map[EncodableValue("parameters")] = EncodableValue(param_map);
+    if (!profile_value.empty()) {
+      map[EncodableValue("profile")] = EncodableValue(profile_value);
+    }
 
     map[EncodableValue("kind")] =
         EncodableValue(RTCMediaTypeToString(codec->kind()));
@@ -508,6 +523,48 @@ RTCRtpTransceiverDirection FlutterPeerConnection::stringToTransceiverDirection(
   return RTCRtpTransceiverDirection::kInactive;
 }
 
+// Helper function to parse a list of CodecCapability maps from Dart
+std::vector<libwebrtc::scoped_refptr<libwebrtc::RTCRtpCodecCapability>>
+FlutterPeerConnection::parseCodecCapabilitiesFromList(const EncodableList& codecs_list) {
+  std::vector<libwebrtc::scoped_refptr<libwebrtc::RTCRtpCodecCapability>> capabilities_vector;
+  for (const auto& codec_info_obj : codecs_list) {
+    const auto& codec_map = GetValue<EncodableMap>(codec_info_obj);
+
+    auto mime_type = findString(codec_map, "mimeType");
+    auto clock_rate = findInt(codec_map, "clockRate");
+    auto channels = findInt(codec_map, "channels"); // -1 if not found by findInt
+    std::string sdp_fmtp_line = findString(codec_map, "sdpFmtpLine");
+    std::string profile = findString(codec_map, "profile");
+
+    auto capability = libwebrtc::RTCRtpCodecCapability::Create();
+
+    if (!profile.empty()) {
+      if (!sdp_fmtp_line.empty()) {
+        sdp_fmtp_line += ";";
+      }
+      sdp_fmtp_line += "profile=" + profile; // Simplified profile appending
+    }
+
+    if (!sdp_fmtp_line.empty()) {
+      capability->set_sdp_fmtp_line(sdp_fmtp_line.c_str());
+    }
+
+    capability->set_clock_rate(clock_rate);
+
+    if (channels != -1) { // findInt returns -1 if not found
+      capability->set_channels(channels);
+    } else {
+      if(mime_type.find("audio") != std::string::npos) {
+        capability->set_channels(1); // Default to 1 for audio if not specified
+      }
+      // For video, channels might be 0 or unspecified, let native decide or handle as error if needed.
+    }
+    capability->set_mime_type(mime_type.c_str());
+    capabilities_vector.push_back(capability);
+  }
+  return capabilities_vector;
+}
+
 libwebrtc::scoped_refptr<libwebrtc::RTCRtpEncodingParameters>
 FlutterPeerConnection::mapToEncoding(const EncodableMap& params) {
   libwebrtc::scoped_refptr<libwebrtc::RTCRtpEncodingParameters> encoding =
@@ -594,6 +651,16 @@ void FlutterPeerConnection::AddTransceiver(
                          : pc->AddTransceiver(
                                type, mapToRtpTransceiverInit(transceiverInit));
     if (nullptr != transceiver.get()) {
+      // Check for preferredCodecs in transceiverInit and apply them
+      EncodableList preferred_codecs_list = findList(transceiverInit, "preferredCodecs");
+      if (!preferred_codecs_list.empty()) {
+        std::vector<libwebrtc::scoped_refptr<libwebrtc::RTCRtpCodecCapability>> native_codec_capabilities =
+            parseCodecCapabilitiesFromList(preferred_codecs_list);
+        if (!native_codec_capabilities.empty()) {
+          transceiver->SetCodecPreferences(native_codec_capabilities);
+          // Log that preferences were applied if needed
+        }
+      }
       result_ptr->Success(EncodableValue(transceiverToMap(transceiver)));
       return;
     }
@@ -603,6 +670,8 @@ void FlutterPeerConnection::AddTransceiver(
     auto transceiver =
         track != nullptr ? pc->AddTransceiver(track) : pc->AddTransceiver(type);
     if (nullptr != transceiver.get()) {
+      // Note: If transceiverInit is empty, preferredCodecs cannot be passed here.
+      // This path is for AddTransceiver(trackOrMediaType) without init dictionary.
       result_ptr->Success(EncodableValue(transceiverToMap(transceiver)));
       return;
     }
@@ -738,8 +807,45 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
     }
   }
 
-  EncodableValue value =
-      findEncodableValue(newParameters, "degradationPreference");
+  EncodableValue value;
+
+  // Update Codec Parameters (including profile)
+  // This assumes 'newParameters' may contain a 'codecs' list,
+  // and this list corresponds in order and length to the existing native codecs.
+  EncodableList dart_codecs_list = findList(newParameters, "codecs");
+  if (!dart_codecs_list.empty()) {
+    auto native_codecs_vector = parameters->codecs();
+    if (dart_codecs_list.size() == native_codecs_vector.size()) {
+      for (size_t i = 0; i < dart_codecs_list.size(); ++i) {
+        EncodableMap dart_codec_map = GetValue<EncodableMap>(dart_codecs_list[i]);
+        scoped_refptr<RTCRtpCodecParameters> native_codec = native_codecs_vector[i];
+
+        value = findEncodableValue(dart_codec_map, "profile");
+        if (!value.IsNull()) {
+          std::string dart_profile_value = GetValue<std::string>(value);
+
+          // Get current native codec parameters map
+          std::map<std::string, std::string> native_params_map;
+          auto native_params_vector = native_codec->parameters();
+          for (const auto& pair_item : native_params_vector.std_vector()) {
+            native_params_map[pair_item.first.std_string()] = pair_item.second.std_string();
+          }
+
+          // Update profile in the map
+          native_params_map["profile"] = dart_profile_value;
+
+          // Set the modified parameters map back
+          native_codec->set_parameters(native_params_map);
+          // Log that profile was updated for codec native_codec->name().std_string()
+        }
+        // Potentially update other RTCRtpCodecParameters fields here if needed
+      }
+    } else {
+      // Log warning: dart_codecs_list size mismatch with native_codecs_vector size
+    }
+  }
+
+  value = findEncodableValue(newParameters, "degradationPreference");
   if (!value.IsNull()) {
     const std::string degradationPreference = GetValue<std::string>(value);
     if (degradationPreference == "maintain-framerate") {
@@ -872,7 +978,7 @@ void FlutterPeerConnection::RtpTransceiverSetDirection(
 void FlutterPeerConnection::RtpTransceiverSetCodecPreferences(
     RTCPeerConnection* pc,
     std::string transceiverId,
-    const EncodableList codecs,
+    const EncodableList dart_codecs_list,
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
   auto transceiver = getRtpTransceiverById(pc, transceiverId);
@@ -881,23 +987,11 @@ void FlutterPeerConnection::RtpTransceiverSetCodecPreferences(
                       " transceiver is null ");
     return;
   }
-  std::vector<scoped_refptr<RTCRtpCodecCapability>> codecList;
-  for (auto codec : codecs) {
-    auto codecMap = GetValue<EncodableMap>(codec);
-    auto codecMimeType = findString(codecMap, "mimeType");
-    auto codecClockRate = findInt(codecMap, "clockRate");
-    auto codecNumChannels = findInt(codecMap, "channels");
-    auto codecSdpFmtpLine = findString(codecMap, "sdpFmtpLine");
-    auto codecCapability = RTCRtpCodecCapability::Create();
-    if (codecSdpFmtpLine != std::string() && codecSdpFmtpLine.length() != 0)
-      codecCapability->set_sdp_fmtp_line(codecSdpFmtpLine);
-    codecCapability->set_clock_rate(codecClockRate);
-    if (codecNumChannels != -1)
-      codecCapability->set_channels(codecNumChannels);
-    codecCapability->set_mime_type(codecMimeType);
-    codecList.push_back(codecCapability);
-  }
-  transceiver->SetCodecPreferences(codecList);
+
+  std::vector<libwebrtc::scoped_refptr<libwebrtc::RTCRtpCodecCapability>> native_codec_capabilities =
+      parseCodecCapabilitiesFromList(dart_codecs_list);
+
+  transceiver->SetCodecPreferences(native_codec_capabilities);
   result_ptr->Success();
 }
 
@@ -1125,10 +1219,40 @@ FlutterPeerConnectionObserver::FlutterPeerConnectionObserver(
     : event_channel_(EventChannelProxy::Create(messenger, task_runner, channel_name)),
       peerconnection_(peerconnection),
       base_(base),
+      task_runner_(task_runner), // Store task_runner
       id_(peerConnectionId) {
   peerconnection->RegisterRTCPeerConnectionObserver(this);
+  if (base_) {
+    ice_gathering_timeout_sec_ = base_->ice_gathering_timeout_seconds_;
+  }
 }
 
+FlutterPeerConnectionObserver::~FlutterPeerConnectionObserver() {
+  // Invalidate any pending timers
+  ice_gathering_timer_sequence_++;
+}
+
+void FlutterPeerConnectionObserver::HandleIceGatheringTimeout(uint64_t expected_sequence) {
+  if (ice_gathering_timer_sequence_ != expected_sequence || !peerconnection_) {
+    // Timer was cancelled or observer is being destroyed
+    return;
+  }
+
+  if (peerconnection_->ice_gathering_state() == RTCIceGatheringStateGathering) {
+    ice_gathering_timed_out_ = true;
+    // Log that ICE gathering timed out.
+    // std::cout << "ICE Gathering timed out for peer connection: " << id_ << std::endl;
+
+    // Send a null candidate to Dart to signal the end of ICE gathering due to timeout
+    EncodableMap params;
+    params[EncodableValue("event")] = "onCandidate";
+    params[EncodableValue("candidate")] = EncodableValue(); // Null candidate signals end
+    event_channel_->Success(EncodableValue(params));
+
+    // Optionally, could call peerconnection_->RestartIce(); but this restarts the whole ICE process.
+    // Forcing gathering complete by sending null candidate is usually preferred for a timeout.
+  }
+}
 
 void FlutterPeerConnectionObserver::OnSignalingState(RTCSignalingState state) {
   EncodableMap params;
@@ -1148,6 +1272,20 @@ void FlutterPeerConnectionObserver::OnPeerConnectionState(
 
 void FlutterPeerConnectionObserver::OnIceGatheringState(
     RTCIceGatheringState state) {
+  if (state == RTCIceGatheringStateGathering) {
+    ice_gathering_timed_out_ = false; // Reset timeout flag
+    ice_gathering_timer_sequence_++; // Invalidate previous timers
+    if (ice_gathering_timeout_sec_ > 0 && task_runner_) {
+      uint64_t current_sequence = ice_gathering_timer_sequence_;
+      task_runner_->PostDelayedTask(
+          [this, current_sequence]() { this->HandleIceGatheringTimeout(current_sequence); },
+          ice_gathering_timeout_sec_ * 1000);
+    }
+  } else if (state == RTCIceGatheringStateComplete) {
+    ice_gathering_timer_sequence_++; // Cancel any pending timer
+    ice_gathering_timed_out_ = false; // Reset, as gathering completed naturally
+  }
+
   EncodableMap params;
   params[EncodableValue("event")] = "iceGatheringState";
   params[EncodableValue("state")] = iceGatheringStateString(state);
@@ -1164,15 +1302,92 @@ void FlutterPeerConnectionObserver::OnIceConnectionState(
 
 void FlutterPeerConnectionObserver::OnIceCandidate(
     scoped_refptr<RTCIceCandidate> candidate) {
+
+  // If WebRTC signals end of candidates, cancel our timer.
+  if (candidate == nullptr) {
+    ice_gathering_timer_sequence_++; // Cancel timer
+    ice_gathering_timed_out_ = false; // Reset flag
+    // Proceed to send this null candidate to Dart
+  } else if (ice_gathering_timed_out_) {
+    // If timed out, drop subsequent candidates.
+    // std::cout << "ICE candidate dropped due to timeout for peer connection: " << id_ << std::endl;
+    return;
+  }
+
+  // Existing candidate processing logic starts here
+  // If candidate is null (end of candidates), sdp, sdp_mid, sdp_mline_index will be based on that.
+  // The event_channel_->Success call later will handle sending a null for the candidate map value.
+  std::string sdp = candidate ? candidate->candidate().std_string() : "";
+  std::string sdp_mid = candidate ? candidate->sdp_mid().std_string() : "";
+  int sdp_mline_index = candidate ? candidate->sdp_mline_index() : -1;
+
+  // Apply filters if they are set and candidate is not null
+  if (candidate && base_ && (!base_->allowed_ice_candidate_types_.empty() || !base_->allowed_ice_protocols_.empty())) {
+    std::string current_candidate_type_str;
+    size_t type_pos = sdp.find(" typ ");
+    if (type_pos != std::string::npos) {
+      size_t type_val_pos = type_pos + 5; // length of " typ "
+      size_t type_end_pos = sdp.find(" ", type_val_pos);
+      if (type_end_pos != std::string::npos) {
+        current_candidate_type_str = sdp.substr(type_val_pos, type_end_pos - type_val_pos);
+      } else {
+        current_candidate_type_str = sdp.substr(type_val_pos);
+      }
+    }
+
+    // Parse candidate protocol (typically the 3rd component of the candidate string attribute)
+    // Example: "candidate:4234997385 1 udp 2122260223 10.0.1.1 8999 typ host generation 0 ufrag ABCDEFGH network-id 1"
+    std::string current_candidate_protocol_str;
+    std::istringstream iss(sdp);
+    std::string component;
+    int component_index = 0;
+    while (iss >> component) {
+        if (component_index == 2) { // Protocol is usually the 3rd component (index 2)
+            current_candidate_protocol_str = component;
+            // Standardize to lowercase for comparison
+            std::transform(current_candidate_protocol_str.begin(), current_candidate_protocol_str.end(), current_candidate_protocol_str.begin(), ::tolower);
+            break;
+        }
+        component_index++;
+    }
+
+    // Filter by type
+    if (!base_->allowed_ice_candidate_types_.empty() && !current_candidate_type_str.empty()) {
+      bool type_allowed = false;
+      for (const auto& allowed_type : base_->allowed_ice_candidate_types_) {
+        if (current_candidate_type_str == allowed_type) {
+          type_allowed = true;
+          break;
+        }
+      }
+      if (!type_allowed) {
+        // Log.v("Filtered out ICE candidate by type: %s (Allowed: %s)", sdp.c_str(), ...);
+        return; // Drop candidate
+      }
+    }
+
+    // Filter by protocol
+    if (!base_->allowed_ice_protocols_.empty() && !current_candidate_protocol_str.empty()) {
+      bool protocol_allowed = false;
+      for (const auto& allowed_protocol : base_->allowed_ice_protocols_) {
+        if (current_candidate_protocol_str == allowed_protocol) {
+          protocol_allowed = true;
+          break;
+        }
+      }
+      if (!protocol_allowed) {
+        // Log.v("Filtered out ICE candidate by protocol: %s (Allowed: %s)", sdp.c_str(), ...);
+        return; // Drop candidate
+      }
+    }
+  }
+
   EncodableMap params;
   params[EncodableValue("event")] = "onCandidate";
   EncodableMap cand;
-  cand[EncodableValue("candidate")] =
-      EncodableValue(candidate->candidate().std_string());
-  cand[EncodableValue("sdpMLineIndex")] =
-      EncodableValue(candidate->sdp_mline_index());
-  cand[EncodableValue("sdpMid")] =
-      EncodableValue(candidate->sdp_mid().std_string());
+  cand[EncodableValue("candidate")] = EncodableValue(sdp);
+  cand[EncodableValue("sdpMLineIndex")] = EncodableValue(sdp_mline_index);
+  cand[EncodableValue("sdpMid")] = EncodableValue(sdp_mid);
   params[EncodableValue("candidate")] = EncodableValue(cand);
   event_channel_->Success(EncodableValue(params));
 }

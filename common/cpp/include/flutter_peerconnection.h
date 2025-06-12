@@ -14,6 +14,7 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
                                 TaskRunner* task_runner,
                                 const std::string& channel_name,
                                 std::string& peerConnectionId);
+  ~FlutterPeerConnectionObserver(); // Declare destructor
 
   virtual void OnSignalingState(RTCSignalingState state) override;
   virtual void OnPeerConnectionState(RTCPeerConnectionState state) override;
@@ -39,11 +40,17 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
   void RemoveStreamForId(const std::string& id);
 
  private:
+  void HandleIceGatheringTimeout(uint64_t expected_sequence);
+
   std::unique_ptr<EventChannelProxy> event_channel_;
   scoped_refptr<RTCPeerConnection> peerconnection_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> remote_streams_;
   FlutterWebRTCBase* base_;
+  TaskRunner* task_runner_; // To schedule the timeout task
   std::string id_;
+  int ice_gathering_timeout_sec_ = 0;
+  bool ice_gathering_timed_out_ = false;
+  uint64_t ice_gathering_timer_sequence_ = 0; // To invalidate old timers
 };
 
 class FlutterPeerConnection {

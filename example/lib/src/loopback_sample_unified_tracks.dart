@@ -4,6 +4,8 @@ import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+// Import the CallQualityManager
+import 'package:flutter_webrtc/src/call_quality_manager.dart';
 
 class LoopBackSampleUnifiedTracks extends StatefulWidget {
   static String tag = 'loopback_sample_unified_tracks';
@@ -31,6 +33,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   RTCPeerConnection? _remotePeerConnection;
   RTCRtpSender? _videoSender;
   RTCRtpSender? _audioSender;
+  CallQualityManager? _callQualityManager; // Add CallQualityManager field
   final _localRenderer = RTCVideoRenderer();
   final _remoteRenderer = RTCVideoRenderer();
   bool _inCalling = false;
@@ -150,6 +153,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       _remoteRenderer.srcObject = null;
       await _localRenderer.dispose();
       await _remoteRenderer.dispose();
+
+      // Dispose CallQualityManager
+      await _callQualityManager?.dispose();
+      _callQualityManager = null;
+      print('CallQualityManager disposed in _cleanUp.');
     } catch (e) {
       print(e.toString());
     }
@@ -194,6 +202,36 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       pc.onRenegotiationNeeded = _onLocalRenegotiationNeeded;
 
       _localPeerConnection = pc;
+
+      // Instantiate CallQualityManager for the local peer connection
+      if (_localPeerConnection != null) {
+        final customCQMSettings = CallQualityManagerSettings(
+          packetLossThresholdPercent: 15.0, // Be more tolerant to packet loss
+          rttThresholdSeconds: 0.7,        // Be more tolerant to RTT
+          minSensibleBitrateBps: 75000,    // Set a higher minimum bitrate
+          autoRestartLocallyEndedTracks: true, // Enable auto-restart
+          defaultVideoRestartConstraints: { // Constraints for video restart
+            'audio': false, // Ensure we only request video
+            'video': {'width': 640, 'height': 480, 'frameRate': 30}
+          },
+          defaultAudioRestartConstraints: { // Constraints for audio restart
+             'video': false, // Ensure we only request audio
+             'audio': true
+          }
+        );
+        _callQualityManager = CallQualityManager(_localPeerConnection!, customCQMSettings);
+        print('CallQualityManager instantiated for localPeerConnection with custom settings.');
+
+        _callQualityManager!.onTrackRestarted.listen((MediaStreamTrack newTrack) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('CallQualityManager automatically restarted track: ${newTrack.id} (${newTrack.kind})'),
+          ));
+          // If UI needs to update based on the new track, handle here.
+          // For example, if localRenderer.srcObject was using the old track's stream,
+          // it might need to be updated if the stream itself was recreated.
+          // However, replaceTrack should handle this transparently for the stream.
+        });
+      }
     } catch (e) {
       print(e.toString());
     }
@@ -249,8 +287,22 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   void _makeCall() async {
-    initRenderers();
-    initLocalConnection();
+    initRenderers(); // This also disposes previous CQM if any.
+    initLocalConnection(); // This now instantiates CQM with new PC.
+
+    // Setup listeners for local stream and track events
+    _localStream?.onActiveStateChanged.listen((isActive) {
+      print('Local stream active state changed: $isActive');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Local stream active state: ${isActive ? "Active" : "Inactive"}'),
+        duration: Duration(seconds: 1),
+      ));
+    });
+
+    // Example of listening to a specific track's onEnded (e.g., first video track)
+    // This needs to be done after the track is available in _localStream
+    // For demonstration, we'll assume _startVideo or _startAudio will set this up
+    // if they successfully add a track. See _startVideo/_startAudio modifications.
 
     var keyProviderOptions = KeyProviderOptions(
       sharedKey: true,
@@ -305,6 +357,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     setState(() {
       _inCalling = true;
     });
+
+    // Start CallQualityManager when the call is established
+    // This could also be placed after negotiation completes successfully.
+    _callQualityManager?.start();
+    print('CallQualityManager started.');
   }
 
   Future<void> _negotiate() async {
@@ -396,6 +453,12 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     } catch (e) {
       print(e.toString());
     }
+
+    // Stop and dispose CallQualityManager
+    await _callQualityManager?.dispose();
+    _callQualityManager = null;
+    print('CallQualityManager disposed on hangup.');
+
     setState(() {
       _inCalling = false;
     });
@@ -429,19 +492,76 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void _startVideo() async {
-    var newStream = await navigator.mediaDevices
-        .getUserMedia(_getMediaConstraints(audio: false, video: true));
-    if (_localStream != null) {
-      await _removeExistingVideoTrack();
-      var tracks = newStream.getVideoTracks();
-      for (var newTrack in tracks) {
-        await _localStream!.addTrack(newTrack);
-      }
-    } else {
-      _localStream = newStream;
-    }
+    try {
+      var newStream = await navigator.mediaDevices
+          .getUserMedia(_getMediaConstraints(audio: false, video: true));
 
-    await _addOrReplaceVideoTracks();
+      // Stop existing video tracks before adding new ones to avoid multiple video tracks in _localStream
+      if (_localStream != null) {
+        await _removeExistingVideoTrack(stopTracks: true); // Ensure old tracks are stopped
+      }
+
+      if (_localStream == null) {
+        _localStream = newStream;
+        // Listen to active state of the newly created local stream
+        _localStream?.onActiveStateChanged.listen((isActive) {
+          print('Local stream active state changed: $isActive');
+          if(mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Local stream active state: ${isActive ? "Active" : "Inactive"}'),
+              duration: Duration(seconds: 1),
+            ));
+          }
+        });
+      } else {
+        // Add new video tracks to existing _localStream
+        for (var track in newStream.getVideoTracks()) {
+          await _localStream!.addTrack(track); // This will also subscribe in MediaStreamNative
+        }
+      }
+
+      // Setup onEnded listener for the first video track of the local stream
+      _localStream?.getVideoTracks().firstOrNull?.onEnded.listen((_) {
+        print('Local video track ${ _localStream?.getVideoTracks().firstOrNull?.id} ended.');
+         if(mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Your video track ended!'),
+            ));
+            // CallQualityManager will attempt auto-restart if enabled.
+            // UI might need to reflect that camera is off.
+            setState(() { _cameraOn = false; });
+         }
+      });
+
+      await _addOrReplaceVideoTracks(); // This adds tracks to PC and sets _videoSender
+    } on PermissionDeniedError catch (e) {
+      print('Permission denied for video: ${e.message}');
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Video permission denied: ${e.message}. Please check settings.'),
+          backgroundColor: Colors.red,
+        ));
+      }
+      return; // Don't proceed if permission denied
+    } on NotFoundError catch (e) {
+      print('Video device not found: ${e.message}');
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('No video device found: ${e.message}'),
+          backgroundColor: Colors.red,
+        ));
+      }
+      return; // Don't proceed if no device
+    } catch (e) {
+      print('Error starting video: $e');
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error starting video: $e'),
+          backgroundColor: Colors.red,
+        ));
+      }
+      return;
+    }
 
     var transceivers = await _localPeerConnection?.getTransceivers();
     transceivers?.forEach((transceiver) {
@@ -493,19 +613,75 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void _startAudio() async {
-    var newStream = await navigator.mediaDevices
-        .getUserMedia(_getMediaConstraints(audio: true, video: false));
+    try {
+      var newStream = await navigator.mediaDevices
+          .getUserMedia(_getMediaConstraints(audio: true, video: false));
 
-    if (_localStream != null) {
-      await _removeExistingAudioTrack();
-      for (var newTrack in newStream.getAudioTracks()) {
-        await _localStream!.addTrack(newTrack);
+      // Stop existing audio tracks before adding new ones
+      if (_localStream != null) {
+         await _removeExistingAudioTrack(stopTracks: true); // Ensure old tracks are stopped
       }
-    } else {
-      _localStream = newStream;
-    }
 
-    await _addOrReplaceAudioTracks();
+      if (_localStream == null) {
+        _localStream = newStream;
+         // Listen to active state of the newly created local stream
+        _localStream?.onActiveStateChanged.listen((isActive) {
+          print('Local stream active state changed: $isActive');
+           if(mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Local stream active state: ${isActive ? "Active" : "Inactive"}'),
+              duration: Duration(seconds: 1),
+            ));
+          }
+        });
+      } else {
+        for (var track in newStream.getAudioTracks()) {
+          await _localStream!.addTrack(track);
+        }
+      }
+
+      // Setup onEnded listener for the first audio track of the local stream
+      _localStream?.getAudioTracks().firstOrNull?.onEnded.listen((_) {
+        print('Local audio track ${ _localStream?.getAudioTracks().firstOrNull?.id} ended.');
+        if(mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Your audio track ended!'),
+            ));
+            // CallQualityManager will attempt auto-restart if enabled.
+            // UI might need to reflect that mic is off.
+            setState(() { _micOn = false; });
+        }
+      });
+
+      await _addOrReplaceAudioTracks(); // This adds tracks to PC and sets _audioSender
+    } on PermissionDeniedError catch (e) {
+      print('Permission denied for audio: ${e.message}');
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Audio permission denied: ${e.message}. Please check settings.'),
+          backgroundColor: Colors.red,
+        ));
+      }
+      return;
+    } on NotFoundError catch (e) {
+      print('Audio device not found: ${e.message}');
+       if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('No audio device found: ${e.message}'),
+          backgroundColor: Colors.red,
+        ));
+      }
+      return;
+    } catch (e) {
+      print('Error starting audio: $e');
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error starting audio: $e'),
+          backgroundColor: Colors.red,
+        ));
+      }
+      return;
+    }
     var transceivers = await _localPeerConnection?.getTransceivers();
     transceivers?.forEach((transceiver) {
       if (transceiver.sender.senderId != _audioSender?.senderId) return;
@@ -578,7 +754,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     }
   }
 
-  Future<void> _removeExistingVideoTrack({bool fromConnection = false}) async {
+  // Added stopTracks parameter to ensure tracks are fully stopped.
+  Future<void> _removeExistingVideoTrack({bool fromConnection = false, bool stopTracks = false}) async {
+    if (_localStream == null) return;
     var tracks = _localStream!.getVideoTracks();
     for (var i = tracks.length - 1; i >= 0; i--) {
       var track = tracks[i];
@@ -586,15 +764,19 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
         await _connectionRemoveTrack(track);
       }
       try {
+        // Removing from MediaStream also cancels its onEnded subscription internally
         await _localStream!.removeTrack(track);
       } catch (e) {
         print(e.toString());
       }
-      await track.stop();
+      if (stopTracks) { // Explicitly stop if requested
+        await track.stop();
+      }
     }
   }
 
-  Future<void> _removeExistingAudioTrack({bool fromConnection = false}) async {
+  Future<void> _removeExistingAudioTrack({bool fromConnection = false, bool stopTracks = false}) async {
+    if (_localStream == null) return;
     var tracks = _localStream!.getAudioTracks();
     for (var i = tracks.length - 1; i >= 0; i--) {
       var track = tracks[i];
@@ -606,9 +788,65 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       } catch (e) {
         print(e.toString());
       }
-      await track.stop();
+       if (stopTracks) { // Explicitly stop if requested
+        await track.stop();
+      }
     }
   }
+
+  // Example function to demonstrate setting preferred codecs with addTransceiver
+  // This is not directly integrated into the main call flow to keep changes minimal,
+  // but shows how it could be used.
+  Future<void> _addVideoTransceiverWithPreferredCodecs() async {
+    if (_localPeerConnection == null || _localStream == null) {
+      print('PeerConnection or LocalStream not ready for addTransceiver example.');
+      return;
+    }
+    var videoTrack = _localStream!.getVideoTracks().firstOrNull;
+    if (videoTrack == null) {
+      print('No local video track available to add with transceiver.');
+      return;
+    }
+
+    try {
+      print('Getting video capabilities for preferred codecs example...');
+      var videoCapabilities = await RTCRtpSender.getCapabilities('video');
+      List<RTCRtpCodecCapability> preferredCodecs = [];
+
+      // Example: Prefer VP9, then H264 with a specific profile
+      var vp9Cap = videoCapabilities.codecs?.firstWhere((c) => c.mimeType.toLowerCase() == 'video/vp9', orElse: () => null);
+      if (vp9Cap != null) preferredCodecs.add(vp9Cap);
+
+      var h264Cap = videoCapabilities.codecs?.firstWhere((c) => c.mimeType.toLowerCase() == 'video/h264', orElse: () => null);
+      if (h264Cap != null) {
+        h264Cap.profile = '42e01f'; // Example: Constrained Baseline profile-level-id
+        // h264Cap.sdpFmtpLine = 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f'; // More explicit
+        preferredCodecs.add(h264Cap);
+      }
+
+      if (preferredCodecs.isEmpty) {
+         print('Could not find specified preferred codecs in capabilities.');
+         // Fallback or error
+      }
+
+      print('Adding video transceiver with preferred codecs: $preferredCodecs');
+      await _localPeerConnection!.addTransceiver(
+        track: videoTrack,
+        init: RTCRtpTransceiverInit(
+          direction: TransceiverDirection.SendRecv,
+          streams: [_localStream!],
+          preferredCodecs: preferredCodecs.isNotEmpty ? preferredCodecs : null,
+        ),
+      );
+      print('Video transceiver added with preferred codecs (if any were chosen).');
+      // Note: This might replace an existing sender if one was already created by addTrack.
+      // This example doesn't manage _videoSender variable update for simplicity here.
+      await _negotiate(); // Renegotiation needed after addTransceiver
+    } catch (e) {
+      print('Error in _addVideoTransceiverWithPreferredCodecs: $e');
+    }
+  }
+
 
   Future<void> _addOrReplaceVideoTracks() async {
     for (var track in _localStream!.getVideoTracks()) {

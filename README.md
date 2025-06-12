@@ -36,6 +36,287 @@ Enterprise Grade APIs for Feeds, Chat, & Video. <a href="https://getstream.io/vi
 | End to End Encryption | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | |
 | Insertable Streams | | | | | | | | |
 
+## Configuring RTCConfiguration
+
+The `RTCConfiguration` object allows you to specify various parameters for how a peer connection should be established and managed. One key setting for adapting to network conditions is `degradationPreference`.
+
+### `degradationPreference`
+
+This setting, of type `RTCDegradationPreference`, hints to the WebRTC engine how to handle situations where network quality degrades and available bandwidth is limited. It helps balance between maintaining frame rate and maintaining resolution for video streams.
+
+The possible values for `RTCDegradationPreference` are:
+
+*   **`RTCDegradationPreference.disabled`**:
+    *   Video quality will not be intentionally degraded. The WebRTC engine may still adapt, but it won't prioritize frame rate or resolution based on this hint. This can lead to choppy video if bandwidth is insufficient.
+*   **`RTCDegradationPreference.maintainFramerate`**:
+    *   Prioritizes keeping the frame rate smooth. If bandwidth is limited, the resolution will be reduced to maintain the frame rate. Use this if motion smoothness is critical.
+*   **`RTCDegradationPreference.maintainResolution`**:
+    *   Prioritizes keeping the video resolution clear. If bandwidth is limited, the frame rate will be reduced to maintain resolution. Use this if image clarity is more important than smooth motion.
+*   **`RTCDegradationPreference.balanced`** (Default in native WebRTC, though default might vary by platform if not explicitly set):
+    *   Attempts to strike a balance between frame rate and resolution. The WebRTC engine will make trade-offs based on its internal heuristics.
+
+**Example Usage:**
+
+To set the `degradationPreference`, include it in your `RTCConfiguration` map when creating a peer connection:
+
+```dart
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
+// ...
+
+Map<String, dynamic> configuration = {
+  'iceServers': [
+    {'urls': 'stun:stun.l.google.com:19302'},
+  ],
+  'sdpSemantics': 'unified-plan', // Or 'plan-b'
+  // Add degradationPreference
+  'degradationPreference': RTCDegradationPreference.maintainFramerate.toString().split('.').last
+};
+
+// When creating a peer connection:
+// RTCPeerConnection pc = await createPeerConnection(configuration, offerSdpConstraints);
+
+// Or if you are using the RTCConfiguration object directly (recommended):
+RTCConfiguration rtcConfig = RTCConfiguration(
+  iceServers: [RTCIceServer(urls: ['stun:stun.l.google.com:19302'])],
+  sdpSemantics: SDPSemantics.UnifiedPlan, // Assuming an enum SDPSemantics exists or use string
+  degradationPreference: RTCDegradationPreference.maintainFramerate,
+);
+
+// The toMap() method of RTCConfiguration will handle the correct string conversion for native platforms.
+// Map<String, dynamic> configurationMap = rtcConfig.toMap();
+// RTCPeerConnection pc = await createPeerConnection(configurationMap);
+```
+
+Setting `degradationPreference` can be particularly useful in mobile applications or any scenario where network conditions can vary significantly, helping to provide a better user experience during video calls.
+
+### Hardware Acceleration Hint
+
+*   **`hardwareAcceleration`**: `bool?`
+    *   This field in `RTCConfiguration` serves as a hint for enabling or disabling hardware-accelerated video encoding/decoding.
+    *   **Default Behavior**: WebRTC typically attempts to use hardware acceleration by default where available. Setting this to `true` (default if null on native) aligns with that.
+    *   **Disabling**: Setting to `false` suggests a preference for software codecs.
+    *   **Note**: Actual enforcement depends on platform capabilities and the underlying WebRTC implementation. The native layer in this plugin attempts to honor this by selecting software-only video factories if set to `false` *at the time the PeerConnectionFactory is initialized*. Since the factory is often initialized once globally, this hint is typically a global preference for the application's lifetime or until the factory is re-initialized. Changing it in `RTCConfiguration` for an already created factory might not change the active encoder/decoder factories for that specific peer connection.
+
+### ICE Candidate Filtering
+
+*   **`allowedIceCandidateTypes`: `List<RTCIceCandidateType>?`**
+    *   Allows you to specify which types of ICE candidates should be collected and used. If set, candidates not matching these types will be filtered out at the native level before being sent to the Dart application.
+    *   `RTCIceCandidateType` enum values: `host`, `srflx` (Server Reflexive), `prflx` (Peer Reflexive), `relay` (TURN relay).
+    *   Example: `allowedIceCandidateTypes: [RTCIceCandidateType.host, RTCIceCandidateType.relay]`
+*   **`allowedIceProtocols`: `List<RTCIceProtocol>?`**
+    *   Allows you to filter ICE candidates by their transport protocol.
+    *   `RTCIceProtocol` enum values: `udp`, `tcp`.
+    *   Example: `allowedIceProtocols: [RTCIceProtocol.udp]`
+
+### ICE Gathering Timeout
+
+*   **`iceGatheringTimeoutSeconds`: `int?`**
+    *   Specifies a timeout in seconds for the ICE gathering process.
+    *   If ICE gathering does not complete (i.e., state does not become `complete`) within this duration, the gathering process is considered timed out.
+    *   The plugin will then send a null ICE candidate to Dart, signaling the end of candidates, and will ignore further candidates from that gathering cycle.
+    *   Set to `0` or `null` to disable the timeout (relying on WebRTC's default behavior).
+    *   Example: `iceGatheringTimeoutSeconds: 10` (10 seconds)
+
+```dart
+// Example demonstrating new RTCConfiguration fields
+RTCConfiguration rtcConfig = RTCConfiguration(
+  iceServers: [RTCIceServer(urls: ['stun:stun.l.google.com:19302'])],
+  sdpSemantics: SDPSemantics.UnifiedPlan, // Or your desired semantics
+  degradationPreference: RTCDegradationPreference.balanced,
+  hardwareAcceleration: true, // Hint for hardware acceleration
+  allowedIceCandidateTypes: [RTCIceCandidateType.host, RTCIceCandidateType.srflx, RTCIceCandidateType.relay],
+  allowedIceProtocols: [RTCIceProtocol.udp],
+  iceGatheringTimeoutSeconds: 15,
+);
+
+// Map<String, dynamic> configurationMap = rtcConfig.toMap();
+// RTCPeerConnection pc = await createPeerConnection(configurationMap);
+```
+
+## Advanced Codec Control
+
+This plugin provides mechanisms to influence codec selection and parameters.
+
+### Codec Profile Specification
+
+*   **`RTCRtpCodecCapability.profile`: `String?`**
+    *   When defining preferred codecs for an `RTCRtpTransceiver` (see below), you can specify a `profile` string within an `RTCRtpCodecCapability` object.
+    *   This `profile` string is appended to the `sdpfmtpLine` attribute of the native `RTCRtpCodecCapability` when passed to the underlying WebRTC engine (e.g., `a=fmtp:...;profile=your_profile_string`). The exact interpretation and validity of the profile string are codec-specific (e.g., for H.264, this might relate to `profile-level-id`).
+*   **`RTCRtpCodecParameters.profile`: `String?`**
+    *   When RTP parameters are retrieved (e.g., from `RTCRtpSender.getParameters()` or `RTCRtpReceiver.getParameters()`), the `profile` field on `RTCRtpCodecParameters` will be populated if a "profile" key (or a recognized key like "profile-level-id") was found in the native codec's specific parameters map.
+    *   When setting RTP parameters via `RTCRtpSender.setParameters()`, you can include a `codecs` list in the parameters map. Each codec map in this list can have a `profile` string, which will be stored in the native codec's parameter map under the key "profile".
+
+### Preferred Codecs for Transceivers
+
+*   **`RTCRtpTransceiverInit.preferredCodecs`: `List<RTCRtpCodecCapability>?`**
+    *   When adding a new transceiver using `pc.addTransceiver(trackOrKind, init: rtpTransceiverInit)`, you can provide a list of `RTCRtpCodecCapability` objects in `rtpTransceiverInit.preferredCodecs`.
+    *   This list tells the WebRTC engine your preferred order and configuration for codecs to be negotiated for that transceiver. The actual negotiated codec will depend on the capabilities of both peers.
+    *   Each `RTCRtpCodecCapability` in the list can specify `mimeType`, `clockRate`, `channels`, `sdpFmtpLine`, and the new `profile` field.
+
+**Example of setting preferred codecs:**
+
+```dart
+// Assuming 'pc' is your RTCPeerConnection instance
+// and 'videoTrack' is a MediaStreamTrack
+
+var videoCapabilities = await RTCRtpSender.getCapabilities('video'); // Or RTCRtpReceiver.getCapabilities('video')
+// Example: Prefer H264 Constrained Baseline, then VP8
+List<RTCRtpCodecCapability> preferredVideoCodecs = [];
+
+// Find H264 capability and specify a profile (example profile-level-id for Constrained Baseline)
+var h264Cap = videoCapabilities.codecs?.firstWhere(
+  (c) => c.mimeType.toLowerCase() == 'video/h264',
+  orElse: () => null, // Handle case where H264 might not be supported
+);
+if (h264Cap != null) {
+  // Modify sdpFmtpLine or use profile if your parsing logic handles it.
+  // For H264, profile-level-id is standard.
+  // This example uses the custom 'profile' field which gets appended to sdpFmtpLine in native.
+  h264Cap.profile = '42e01f'; // Example profile-level-id for Constrained Baseline
+  // Alternatively, manipulate sdpFmtpLine directly if needed:
+  // h264Cap.sdpFmtpLine = 'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f';
+  preferredVideoCodecs.add(h264Cap);
+}
+
+// Find VP8 capability
+var vp8Cap = videoCapabilities.codecs?.firstWhere(
+  (c) => c.mimeType.toLowerCase() == 'video/vp8',
+  orElse: () => null,
+);
+if (vp8Cap != null) {
+  preferredVideoCodecs.add(vp8Cap);
+}
+
+if (preferredVideoCodecs.isNotEmpty) {
+  await pc.addTransceiver(
+    track: videoTrack, // Or kind: RTCRtpMediaType.Video
+    init: RTCRtpTransceiverInit(
+      direction: TransceiverDirection.SendRecv,
+      preferredCodecs: preferredVideoCodecs,
+    ),
+  );
+}
+```
+
+## Track and Stream Lifecycle, Recovery, and Error Handling
+
+Understanding the state and lifecycle of media tracks and streams is crucial for building robust applications.
+
+### MediaStreamTrack Lifecycle
+
+*   **`MediaStreamTrack.readyState`: `String`**
+    *   Indicates the current state of the track. Can be `'live'` or `'ended'`.
+*   **`MediaStreamTrack.onEnded`: `Stream<void>`**
+    *   A stream that fires an event when the track transitions to the `'ended'` state. This can happen if `stop()` is called, if a remote track is removed by the peer, or potentially if a local device is disconnected or its permissions are revoked (platform-dependent for automatic detection).
+*   **`MediaStreamTrack.stop()`: `Future<void>`**
+    *   Stops the track, releasing its underlying native resources. The track's `readyState` becomes `'ended'`, and the `onEnded` event is fired.
+*   **`MediaStreamTrack.restart(Map<String, dynamic> mediaConstraints)`: `Future<MediaStreamTrack?>`**
+    *   This method is available on local tracks (`MediaStreamTrackNative.isLocal == true`).
+    *   It first stops the current track (firing `onEnded`).
+    *   Then, it attempts to re-acquire a new track of the same kind using the provided `mediaConstraints` via `navigator.mediaDevices.getUserMedia()`.
+    *   If successful, it returns a *new* `MediaStreamTrack` instance. The original track instance remains 'ended'.
+    *   The application is responsible for updating any `RTCRtpSender` to use this new track via `sender.replaceTrack(newTrack)`.
+    *   Returns `null` if re-acquisition fails. Throws `MediaDeviceAcquireError` or its subtypes if `getUserMedia` fails with a known error.
+
+### MediaStream Lifecycle
+
+*   **`MediaStream.active`: `bool`**
+    *   A getter that returns `true` if the stream has at least one track with `readyState == 'live'`. Returns `false` if all tracks are 'ended' or if the stream has no tracks.
+*   **`MediaStream.onActiveStateChanged`: `Stream<bool>`**
+    *   A stream that fires `true` when the stream transitions from inactive to active, and `false` when it transitions from active to inactive. This is determined by the `readyState` of its constituent tracks.
+
+### Specific Exceptions for Media Device Access
+
+When using `navigator.mediaDevices.getUserMedia()` or `navigator.mediaDevices.getDisplayMedia()`, more specific exceptions can be caught:
+
+*   **`PermissionDeniedError`**: Thrown if the user denies permission for camera/microphone access, or if the OS/browser policies prevent access.
+*   **`NotFoundError`**: Thrown if no media tracks of the requested kind are found (e.g., no camera available).
+*   **`MediaDeviceAcquireError`**: A more generic error for other issues encountered during device acquisition (e.g., hardware errors, constraints that cannot be satisfied).
+
+**Example: Handling Permission Error**
+```dart
+try {
+  final stream = await navigator.mediaDevices.getUserMedia({'audio': true, 'video': true});
+  // ... use the stream
+} on PermissionDeniedError catch (e) {
+  print('Permission denied: ${e.message}');
+  // Show UI to user explaining the need for permissions
+} on NotFoundError catch (e) {
+  print('Device not found: ${e.message}');
+  // Handle missing devices
+} catch (e) {
+  print('Error acquiring media: $e');
+}
+```
+
+## Call Quality Management (`CallQualityManager`)
+
+The `CallQualityManager` is a utility class (found in `package:flutter_webrtc/src/call_quality_manager.dart`) designed to proactively monitor and adapt call quality based on network conditions.
+
+### Enhanced Adaptive Bitrate Algorithm
+The manager's core logic (`_monitorCallQuality`) periodically performs the following:
+1.  **Bandwidth Estimation**: It fetches `availableOutgoingBitrate` from active ICE candidate pair statistics to estimate available send bandwidth.
+2.  **Per-Sender Stats Analysis**: For each video `RTCRtpSender`:
+    *   It analyzes WebRTC statistics (`outbound-rtp`) for packet loss, round-trip time (RTT), and jitter.
+3.  **Bitrate Adjustment**:
+    *   **Downward**: If `availableOutgoingBitrate` is significantly lower than the current video sender's `maxBitrate`, the `maxBitrate` is reduced to target a percentage (e.g., 90%) of the estimated available bandwidth.
+    *   If high packet loss, excessive RTT, or high jitter are detected, the `maxBitrate` is further reduced by configurable factors. These reductions are multiplicative if multiple issues occur.
+    *   The bitrate will not be reduced below a configurable `minSensibleBitrateBps`.
+    *   **Upward (Cautious)**: If network quality metrics (packet loss, RTT, jitter) are good, and `availableOutgoingBitrate` is significantly higher than the current `maxBitrate`, the `maxBitrate` may be cautiously increased (e.g., by 10%), but capped by a percentage of the `availableOutgoingBitrate`.
+
+### Configuration (`CallQualityManagerSettings`)
+The behavior of `CallQualityManager` is controlled by `CallQualityManagerSettings`. You can pass an instance of this class to the `CallQualityManager` constructor.
+
+Key settings include:
+*   `packetLossThresholdPercent`: e.g., `10.0` (10%)
+*   `rttThresholdSeconds`: e.g., `0.5` (500ms)
+*   `jitterThresholdSeconds`: e.g., `0.03` (30ms)
+*   `bweMinDecreaseFactor`, `bweMinIncreaseFactor`, `bweTargetHeadroomFactor`: Control sensitivity to bandwidth estimation.
+*   `packetLossBitrateFactor`, `rttBitrateFactor`, `jitterBitrateFactor`: Multiplicative factors for bitrate reduction (e.g., `0.8` for a 20% reduction).
+*   `cautiousIncreaseFactor`: Factor for increasing bitrate (e.g., `1.1` for a 10% increase).
+*   `minSensibleBitrateBps`: Minimum bitrate to target (e.g., `50000` for 50kbps).
+*   `autoRestartLocallyEndedTracks`: `bool` (default `true`), enables the auto-restart policy.
+*   `defaultAudioRestartConstraints`, `defaultVideoRestartConstraints`: Default constraints used by the auto-restart policy if a local track ends.
+
+**Example: Customizing CallQualityManager**
+```dart
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+// Make sure to import CallQualityManager and CallQualityManagerSettings,
+// typically from: package:flutter_webrtc/src/call_quality_manager.dart (if not re-exported)
+
+// ... Assuming 'peerConnection' is your RTCPeerConnection instance
+
+final customSettings = CallQualityManagerSettings(
+  packetLossThresholdPercent: 15.0, // Be more tolerant to packet loss
+  rttThresholdSeconds: 0.7,        // Be more tolerant to RTT
+  minSensibleBitrateBps: 75000,    // Set a higher minimum bitrate
+  autoRestartLocallyEndedTracks: true,
+  defaultVideoRestartConstraints: {'video': {'width': 640, 'height': 480}} // Custom restart constraints
+);
+
+final callQualityManager = CallQualityManager(peerConnection, customSettings);
+callQualityManager.start(); // Default period is 5 seconds
+
+// Listen for track restart events
+callQualityManager.onTrackRestarted.listen((MediaStreamTrack newTrack) {
+  print('CallQualityManager automatically restarted track: ${newTrack.id}, kind: ${newTrack.kind}');
+  // You might want to update UI or other application logic here.
+});
+
+// Don't forget to dispose the manager when the call ends
+// callQualityManager.dispose();
+```
+
+### Auto-Restart Policy for Local Tracks
+*   If `autoRestartLocallyEndedTracks` is true in settings, `CallQualityManager` will monitor local tracks associated with active `RTCRtpSender`s.
+*   If such a track's `onEnded` event fires (signaling it has stopped, possibly unexpectedly), the manager will:
+    1.  Attempt to call `track.restart()` using the `defaultAudioRestartConstraints` or `defaultVideoRestartConstraints` from its settings.
+    2.  If `restart()` successfully returns a `newTrack`, the manager will call `sender.replaceTrack(newTrack)` to replace the ended track with the new one on the corresponding `RTCRtpSender`.
+    3.  The `CallQualityManager.onTrackRestarted` stream will emit the `newTrack`.
+
+This policy helps in automatically recovering from situations where a local media source might be temporarily lost and then re-acquired.
+
 Additional platform/OS support from the other community
 
 - flutter-tizen: <https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_webrtc>

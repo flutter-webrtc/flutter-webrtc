@@ -105,6 +105,10 @@ class FlutterWebRTCBase {
   scoped_refptr<RTCVideoDevice> video_device_;
   scoped_refptr<RTCDesktopDevice> desktop_device_;
   RTCConfiguration configuration_;
+  bool hardware_acceleration_preference_ = true; // Default to true
+  std::vector<std::string> allowed_ice_candidate_types_;
+  std::vector<std::string> allowed_ice_protocols_;
+  int ice_gathering_timeout_seconds_ = 0; // 0 or negative means no timeout
 
   std::map<std::string, scoped_refptr<RTCPeerConnection>> peerconnections_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
