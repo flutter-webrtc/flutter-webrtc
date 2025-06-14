@@ -16,6 +16,7 @@ namespace libwebrtc {
 
 class RTCPeerConnection;
 class RTCAudioDevice;
+class RTCAudioProcessing;
 class RTCVideoDevice;
 class RTCRtpCapabilities;
 
@@ -33,12 +34,16 @@ class RTCPeerConnectionFactory : public RefCountInterface {
 
   virtual scoped_refptr<RTCAudioDevice> GetAudioDevice() = 0;
 
+  virtual scoped_refptr<RTCAudioProcessing> GetAudioProcessing() = 0;
+
   virtual scoped_refptr<RTCVideoDevice> GetVideoDevice() = 0;
 #ifdef RTC_DESKTOP_DEVICE
   virtual scoped_refptr<RTCDesktopDevice> GetDesktopDevice() = 0;
 #endif
   virtual scoped_refptr<RTCAudioSource> CreateAudioSource(
-      const string audio_source_label) = 0;
+      const string audio_source_label,
+      RTCAudioSource::SourceType source_type =
+          RTCAudioSource::SourceType::kMicrophone) = 0;
 
   virtual scoped_refptr<RTCVideoSource> CreateVideoSource(
       scoped_refptr<RTCVideoCapturer> capturer, const string video_source_label,

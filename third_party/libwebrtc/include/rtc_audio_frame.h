@@ -1,17 +1,17 @@
-#ifndef AUDIO_FRAME_HXX
-#define AUDIO_FRAME_HXX
+#ifndef LIB_WEBRTC_RTC_AUDIO_FRAME_HXX
+#define LIB_WEBRTC_RTC_AUDIO_FRAME_HXX
 
-#include "media_manager_types.h"
+#include "rtc_types.h"
 
-namespace b2bua {
+namespace libwebrtc {
 
-class AudioFrame {
+class AudioFrame : public RefCountInterface {
  public:
   /**
    * @brief Creates a new instance of AudioFrame.
    * @return AudioFrame*: a pointer to the newly created AudioFrame.
    */
-  MEDIA_MANAGER_API static AudioFrame* Create();
+  LIB_WEBRTC_API static AudioFrame* Create();
 
   /**
    * @brief Creates a new instance of AudioFrame with specified parameters.
@@ -23,16 +23,11 @@ class AudioFrame {
    * @param num_channels: the number of audio channels.
    * @return AudioFrame*: a pointer to the newly created AudioFrame.
    */
-  MEDIA_MANAGER_API static AudioFrame* Create(int id, uint32_t timestamp,
-                                              const int16_t* data,
-                                              size_t samples_per_channel,
-                                              int sample_rate_hz,
-                                              size_t num_channels = 1);
-
-  /**
-   * @brief Releases the memory of this AudioFrame.
-   */
-  virtual void Release() = 0;
+  LIB_WEBRTC_API static AudioFrame* Create(int id, uint32_t timestamp,
+                                           const int16_t* data,
+                                           size_t samples_per_channel,
+                                           int sample_rate_hz,
+                                           size_t num_channels = 1);
 
  public:
   /**
@@ -103,6 +98,6 @@ class AudioFrame {
   virtual int id() = 0;
 };
 
-};  // namespace b2bua
+};  // namespace libwebrtc
 
-#endif
+#endif  // LIB_WEBRTC_RTC_AUDIO_FRAME_HXX
