@@ -17,6 +17,10 @@ class RTCAudioTrack : public RTCMediaTrack {
   // volume in [0-10]
   virtual void SetVolume(double volume) = 0;
 
+  virtual void AddSink(AudioTrackSink* sink) = 0;
+
+  virtual void RemoveSink(AudioTrackSink* sink) = 0;
+
  protected:
   /**
    * The destructor for the RTCAudioTrack class.
