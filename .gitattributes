@@ -1,3 +1,6 @@
+third_party/libwebrtc/lib/win64/libwebrtc.dll filter=lfs diff=lfs merge=lfs -text
+third_party/libwebrtc/lib/linux-arm64/libwebrtc.so filter=lfs diff=lfs merge=lfs -text
+third_party/libwebrtc/lib/linux-x64/libwebrtc.so filter=lfs diff=lfs merge=lfs -text
 *.dll filter=lfs diff=lfs merge=lfs -text
 *.so filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
