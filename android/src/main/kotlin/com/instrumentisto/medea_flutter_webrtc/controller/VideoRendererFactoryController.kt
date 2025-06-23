@@ -20,6 +20,7 @@ class VideoRendererFactoryController(
   private val chan = MethodChannel(messenger, ChannelNameGenerator.name("VideoRendererFactory", 0))
 
   init {
+    ControllerRegistry.register(this)
     chan.setMethodCallHandler(this)
   }
 
@@ -34,6 +35,7 @@ class VideoRendererFactoryController(
 
   /** Releases all the allocated resources. */
   override fun dispose() {
+    ControllerRegistry.unregister(this)
     chan.setMethodCallHandler(null)
   }
 }

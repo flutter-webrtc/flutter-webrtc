@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import androidx.annotation.MainThread
 import androidx.core.app.ActivityCompat
 import com.instrumentisto.medea_flutter_webrtc.exception.PermissionException
+import com.instrumentisto.medea_flutter_webrtc.proxy.MediaStreamTrackProxy
 import io.flutter.plugin.common.PluginRegistry
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
@@ -18,6 +19,10 @@ const val PERMISSIONS_REQUEST_ID = 856146223
 /** Service for requesting Android Permissions. */
 class Permissions(private val activity: Activity) :
     PluginRegistry.RequestPermissionsResultListener {
+
+  /** [GrantedObserver]s to be notified whenever a new permission is granted. */
+  private val grantedListeners = HashSet<GrantedObserver>()
+
   /**
    * Ongoing permission request [Continuation].
    *
@@ -35,8 +40,17 @@ class Permissions(private val activity: Activity) :
   /** Flag which indicates that [Permissions] service has ongoing permission request. */
   private var hasOngoingRequest: Boolean = false
 
+  companion object {
+    /** Observer of [MediaStreamTrackProxy] events. */
+    interface GrantedObserver {
+      fun onGranted(granted: String)
+    }
+  }
+
   /**
    * Requests user for provided permission granting.
+   *
+   * Resolves immediately if permission is already granted.
    *
    * @throws [PermissionException] if user rejected permission request.
    */
@@ -52,6 +66,16 @@ class Permissions(private val activity: Activity) :
       ActivityCompat.requestPermissions(activity, arrayOf(permission), PERMISSIONS_REQUEST_ID)
       permissionRequest = it
     }
+  }
+
+  /** Adds [GrantedObserver] that will be notified whenever a new permission is granted. */
+  fun addObserver(listener: GrantedObserver) {
+    grantedListeners.add(listener)
+  }
+
+  /** Removes the provided [GrantedObserver]. */
+  fun removeObserver(listener: GrantedObserver) {
+    grantedListeners.remove(listener)
   }
 
   /**
@@ -88,6 +112,7 @@ class Permissions(private val activity: Activity) :
     return if (requestCode == PERMISSIONS_REQUEST_ID) {
       for (entry in permissions.withIndex()) {
         if (grantResults[entry.index] == PackageManager.PERMISSION_GRANTED) {
+          grantedListeners.forEach { it.onGranted(permissions[entry.index]) }
           permissionRequest?.resume(Unit)
         } else {
           permissionRequest?.resumeWithException(

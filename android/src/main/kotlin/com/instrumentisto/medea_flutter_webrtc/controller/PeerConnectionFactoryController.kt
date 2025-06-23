@@ -1,5 +1,6 @@
 package com.instrumentisto.medea_flutter_webrtc.controller
 
+import com.instrumentisto.medea_flutter_webrtc.Permissions
 import com.instrumentisto.medea_flutter_webrtc.State
 import com.instrumentisto.medea_flutter_webrtc.model.IceServer
 import com.instrumentisto.medea_flutter_webrtc.model.IceTransportType
@@ -8,10 +9,16 @@ import com.instrumentisto.medea_flutter_webrtc.model.RtpCapabilities
 import com.instrumentisto.medea_flutter_webrtc.model.VideoCodec
 import com.instrumentisto.medea_flutter_webrtc.model.VideoCodecInfo
 import com.instrumentisto.medea_flutter_webrtc.proxy.PeerConnectionFactoryProxy
+import com.instrumentisto.medea_flutter_webrtc.utils.resultUnhandledException
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlin.collections.set
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.webrtc.MediaStreamTrack
 
 /**
@@ -22,15 +29,20 @@ import org.webrtc.MediaStreamTrack
  */
 class PeerConnectionFactoryController(
     private val messenger: BinaryMessenger,
-    private val state: State
+    private val state: State,
+    permissions: Permissions
 ) : Controller {
+  /** [CoroutineScope] for this [PeerConnectionFactoryController] */
+  private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
   /** Factory creating new [PeerConnectionController]s. */
-  private val factory: PeerConnectionFactoryProxy = PeerConnectionFactoryProxy(state)
+  private val factory: PeerConnectionFactoryProxy = PeerConnectionFactoryProxy(state, permissions)
 
   /** Channel listened for the [MethodCall]s. */
   private val chan = MethodChannel(messenger, ChannelNameGenerator.name("PeerConnectionFactory", 0))
 
   init {
+    ControllerRegistry.register(this)
     chan.setMethodCallHandler(this)
   }
 
@@ -51,9 +63,15 @@ class PeerConnectionFactoryController(
               IceServer(urls ?: listOf(), username, password)
             }
 
-        val newPeer = factory.create(PeerConnectionConfiguration(iceServers, iceTransportType))
-        val peerController = PeerConnectionController(messenger, newPeer)
-        result.success(peerController.asFlutterResult())
+        scope.launch {
+          try {
+            val newPeer = factory.create(PeerConnectionConfiguration(iceServers, iceTransportType))
+            val peerController = PeerConnectionController(messenger, newPeer)
+            result.success(peerController.asFlutterResult())
+          } catch (e: Exception) {
+            resultUnhandledException(result, e)
+          }
+        }
       }
       "getRtpSenderCapabilities" -> {
         val kind: Int? = call.argument("kind")
@@ -106,7 +124,9 @@ class PeerConnectionFactoryController(
 
   /** Releases all the allocated resources. */
   override fun dispose() {
+    ControllerRegistry.unregister(this)
     chan.setMethodCallHandler(null)
+    scope.cancel("disposed")
     factory.dispose()
   }
 }

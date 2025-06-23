@@ -53,7 +53,7 @@ class MedeaFlutterWebrtcPlugin : FlutterPlugin, ActivityAware {
     permissions = Permissions(activityPluginBinding!!.activity)
     activityPluginBinding!!.addRequestPermissionsResultListener(permissions!!)
     mediaDevices = MediaDevicesController(messenger!!, state!!, permissions!!)
-    peerConnectionFactory = PeerConnectionFactoryController(messenger!!, state!!)
+    peerConnectionFactory = PeerConnectionFactoryController(messenger!!, state!!, permissions!!)
     videoRendererFactory = VideoRendererFactoryController(messenger!!, textureRegistry!!)
   }
 
@@ -64,6 +64,7 @@ class MedeaFlutterWebrtcPlugin : FlutterPlugin, ActivityAware {
   override fun onDetachedFromActivity() {
     Log.i(TAG, "Detached from activity")
 
+    ForegroundCallService.stop(state!!.context, permissions!!)
     activityPluginBinding!!.removeRequestPermissionsResultListener(permissions!!)
     activityPluginBinding = null
   }

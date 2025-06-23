@@ -31,7 +31,7 @@ class _LoopbackState extends State<Loopback> {
   bool _microIsAvailable = false;
   double currentAudioLevel = 0.0;
 
-  bool _noiseSupressionEnabled = true;
+  bool _noiseSuppressionEnabled = true;
   bool _highPassFilterEnabled = true;
   bool _echoCancellationEnabled = true;
   bool _autoGainControlEnabled = true;
@@ -77,6 +77,13 @@ class _LoopbackState extends State<Loopback> {
     caps.video.mandatory!.fps = 30;
 
     try {
+      await setupForegroundService(
+        ForegroundServiceConfig(
+          notificationTitle: 'medea-flutter-webrtc',
+          notificationText: 'Ongoing loopback test',
+        ),
+      );
+
       _mediaDevicesList = await enumerateDevices();
       _tracks = await getUserMedia(caps);
       await _localRenderer.setSrcObject(
@@ -229,7 +236,7 @@ class _LoopbackState extends State<Loopback> {
                                     CheckboxListTile(
                                           dense: true,
                                           title: Text("Noise Suppression"),
-                                          value: _noiseSupressionEnabled,
+                                          value: _noiseSuppressionEnabled,
                                           onChanged: (bool? value) async {
                                             for (var track in _tracks!) {
                                               if (track.kind() ==
@@ -242,7 +249,7 @@ class _LoopbackState extends State<Loopback> {
                                             }
 
                                             setState(() {
-                                              _noiseSupressionEnabled = value!;
+                                              _noiseSuppressionEnabled = value!;
                                             });
                                             setStatePopup(() {});
                                           },

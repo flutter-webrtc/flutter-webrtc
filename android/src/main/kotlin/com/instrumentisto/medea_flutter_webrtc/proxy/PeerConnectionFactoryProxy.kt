@@ -1,6 +1,8 @@
 package com.instrumentisto.medea_flutter_webrtc.proxy
 
 import android.media.AudioManager.*
+import com.instrumentisto.medea_flutter_webrtc.ForegroundCallService
+import com.instrumentisto.medea_flutter_webrtc.Permissions
 import com.instrumentisto.medea_flutter_webrtc.State
 import com.instrumentisto.medea_flutter_webrtc.model.PeerConnectionConfiguration
 import org.webrtc.PeerConnectionFactory
@@ -10,7 +12,7 @@ import org.webrtc.PeerConnectionFactory
  *
  * @property state Global state used for creation.
  */
-class PeerConnectionFactoryProxy(private val state: State) {
+class PeerConnectionFactoryProxy(private val state: State, private val permissions: Permissions) {
   /** Counter for generating new [PeerConnectionProxy] IDs. */
   private var lastPeerConnectionId: Int = 0
 
@@ -31,11 +33,7 @@ class PeerConnectionFactoryProxy(private val state: State) {
    *
    * @return Newly created [PeerConnectionProxy].
    */
-  fun create(config: PeerConnectionConfiguration): PeerConnectionProxy {
-    if (peerObservers.isEmpty()) {
-      state.getAudioManager().mode = MODE_IN_COMMUNICATION
-    }
-
+  suspend fun create(config: PeerConnectionConfiguration): PeerConnectionProxy {
     val id = nextId()
     val peerObserver = PeerObserver()
     val peer =
@@ -44,6 +42,11 @@ class PeerConnectionFactoryProxy(private val state: State) {
     val peerProxy = PeerConnectionProxy(id, peer)
     peerObserver.setPeerConnection(peerProxy)
     peerProxy.onDispose(::removePeerObserver)
+
+    if (peerObservers.isEmpty()) {
+      state.getAudioManager().mode = MODE_IN_COMMUNICATION
+      ForegroundCallService.start(state.context, permissions)
+    }
 
     peerObservers[id] = peerObserver
 
@@ -68,6 +71,7 @@ class PeerConnectionFactoryProxy(private val state: State) {
     peerObservers.remove(id)
     if (peerObservers.isEmpty()) {
       state.getAudioManager().mode = MODE_NORMAL
+      ForegroundCallService.stop(state.context, permissions)
     }
   }
 

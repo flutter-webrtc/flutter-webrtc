@@ -59,6 +59,15 @@ If you need to use a [Bluetooth] device (like headphones), then also add:
 <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
 
+It also comes with an optional foreground service that keeps audio/video recording/playout active, it requires the following permission to work, if used:
+```xml
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+```
+
 The [Flutter] project template usually adds them, so they may already be there.
 
 Also, you will need to set your build settings to [Java 8], because the [official WebRTC JAR][5] on [Android] uses static methods in `EglBase` interface. Just add this to your app level `build.gradle`:

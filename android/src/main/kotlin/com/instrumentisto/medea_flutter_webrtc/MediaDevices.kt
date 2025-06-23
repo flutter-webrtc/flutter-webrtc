@@ -69,7 +69,7 @@ private val videoTracks: HashMap<VideoConstraints, MediaStreamTrackProxy> = Hash
  * @property state Global state used for enumerating devices and creation new
  * [MediaStreamTrackProxy]s.
  */
-class MediaDevices(val state: State, private val permissions: Permissions) : BroadcastReceiver() {
+class MediaDevices(val state: State, val permissions: Permissions) : BroadcastReceiver() {
   /** Indicator of bluetooth headset connection state. */
   private var isBluetoothHeadsetConnected: Boolean = false
 

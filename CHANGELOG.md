@@ -14,6 +14,10 @@ All user visible changes to this project will be documented in this file. This p
 
 - Bumped up [macOS] deployment target to 10.15. ([#203])
 
+### Added
+
+- `setupForegroundService()` function for maintaining camera/microphone/audio when application is in background on Android. ([#204])
+
 ### Changed
 
 - Upgraded [libwebrtc] to [137.0.7151.119] version. ([#203], [todo])
@@ -26,6 +30,7 @@ All user visible changes to this project will be documented in this file. This p
 [#201]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/201
 [#202]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/202
 [#203]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/203
+[#204]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/204
 [todo]: https://github.com/instrumentisto/medea-flutter-webrtc/commit/todo
 [137.0.7151.119]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/137.0.7151.119
 [frb-2.10.0]: https://github.com/fzyzcjy/flutter_rust_bridge/releases/tag/v2.10.0

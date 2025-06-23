@@ -1,5 +1,6 @@
 package com.instrumentisto.medea_flutter_webrtc.controller
 
+import com.instrumentisto.medea_flutter_webrtc.ForegroundCallService
 import com.instrumentisto.medea_flutter_webrtc.MediaDevices
 import com.instrumentisto.medea_flutter_webrtc.Permissions
 import com.instrumentisto.medea_flutter_webrtc.State
@@ -57,6 +58,7 @@ class MediaDevicesController(
       }
 
   init {
+    ControllerRegistry.register(this)
     chan.setMethodCallHandler(this)
     eventChannel.setStreamHandler(this)
     mediaDevices.addObserver(eventObserver)
@@ -106,6 +108,21 @@ class MediaDevicesController(
           }
         }
       }
+      "setupForegroundService" -> {
+        scope.launch {
+          try {
+            val configArg: Map<String, Any> = call.argument("config")!!
+            val config = ForegroundCallService.Config.fromMap(configArg)
+            ForegroundCallService.setup(
+                config, mediaDevices.state.context, mediaDevices.permissions)
+
+            result.success(null)
+          } catch (e: Exception) {
+            e.printStackTrace()
+            result.error("SetupForegroundService Exception", e.message, null)
+          }
+        }
+      }
     }
   }
 
@@ -123,6 +140,7 @@ class MediaDevicesController(
 
   /** Releases all the allocated resources. */
   override fun dispose() {
+    ControllerRegistry.unregister(this)
     mediaDevices.dispose()
     chan.setMethodCallHandler(null)
     scope.cancel("disposed")
