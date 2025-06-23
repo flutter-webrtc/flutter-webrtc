@@ -3,6 +3,8 @@
 #include "flutter_data_channel.h"
 #include "flutter_peerconnection.h"
 
+#include "helper.h"
+
 namespace flutter_webrtc_plugin {
 
 const char* kEventChannelName = "FlutterWebRTC.Event";
@@ -16,6 +18,7 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger* messenger,
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
   desktop_device_ = factory_->GetDesktopDevice();
+  audio_processing_ = factory_->GetAudioProcessing();
   event_channel_ = EventChannelProxy::Create(messenger_, task_runner_, kEventChannelName);
 }
 
@@ -28,7 +31,7 @@ EventChannelProxy* FlutterWebRTCBase::event_channel() {
 }
 
 std::string FlutterWebRTCBase::GenerateUUID() {
-  return uuidxx::uuid::Generate().ToString(false);
+  return libwebrtc::Helper::CreateRandomUuid().std_string();
 }
 
 RTCPeerConnection* FlutterWebRTCBase::PeerConnectionForId(
