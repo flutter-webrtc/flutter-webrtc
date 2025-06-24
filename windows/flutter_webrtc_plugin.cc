@@ -7,6 +7,7 @@
 #include <flutter/plugin_registrar_windows.h>
 
 const char* kChannelName = "FlutterWebRTC.Method";
+static flutter_webrtc_plugin::FlutterWebRTC* g_shared_instance = nullptr;
 
 namespace flutter_webrtc_plugin {
 
@@ -23,7 +24,6 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
     // Uses new instead of make_unique due to private constructor.
     std::unique_ptr<FlutterWebRTCPluginImpl> plugin(
         new FlutterWebRTCPluginImpl(registrar, std::move(channel)));
-
     channel_pointer->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto& call, auto result) {
           plugin_pointer->HandleMethodCall(call, std::move(result));
@@ -49,6 +49,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
         textures_(registrar->texture_registrar()),
         task_runner_(std::make_unique<TaskRunnerWindows>()) {
     webrtc_ = std::make_unique<FlutterWebRTC>(this);
+    g_shared_instance = webrtc_.get();
   }
 
   // Called when a method is called on |channel_|;
@@ -77,3 +78,7 @@ void FlutterWebRTCPluginRegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
 }
+
+flutter_webrtc_plugin::FlutterWebRTC* FlutterWebRTCPluginSharedInstance() {
+  return g_shared_instance;
+} 

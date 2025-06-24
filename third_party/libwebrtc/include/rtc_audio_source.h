@@ -13,6 +13,16 @@ namespace libwebrtc {
  * processing and transmission mechanisms.
  */
 class RTCAudioSource : public RefCountInterface {
+ public:
+  enum SourceType { kMicrophone, kCustom };
+
+ public:
+  virtual void CaptureFrame(const void* audio_data, int bits_per_sample,
+                            int sample_rate, size_t number_of_channels,
+                            size_t number_of_frames) = 0;
+
+  virtual SourceType GetSourceType() const = 0;
+
  protected:
   /**
    * The destructor for the RTCAudioSource class.
