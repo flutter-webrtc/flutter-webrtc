@@ -45,13 +45,17 @@ class FlutterWebRTCBase {
   FlutterWebRTCBase(BinaryMessenger* messenger, TextureRegistrar* textures, TaskRunner* task_runner);
   ~FlutterWebRTCBase();
 
+  virtual scoped_refptr<RTCAudioProcessing> audio_processing() {
+    return audio_processing_;
+  }
+
+  virtual scoped_refptr<RTCMediaTrack> MediaTrackForId(const std::string& id);
+
   std::string GenerateUUID();
 
   RTCPeerConnection* PeerConnectionForId(const std::string& id);
 
   void RemovePeerConnectionForId(const std::string& id);
-
-  virtual RTCMediaTrack* MediaTrackForId(const std::string& id);
 
   void RemoveMediaTrackForId(const std::string& id);
 

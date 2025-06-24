@@ -50,11 +50,11 @@ void FlutterWebRTCBase::RemovePeerConnectionForId(const std::string& id) {
     peerconnections_.erase(it);
 }
 
-RTCMediaTrack* FlutterWebRTCBase ::MediaTrackForId(const std::string& id) {
+scoped_refptr<RTCMediaTrack> FlutterWebRTCBase ::MediaTrackForId(const std::string& id) {
   auto it = local_tracks_.find(id);
 
   if (it != local_tracks_.end())
-    return (*it).second.get();
+    return (*it).second;
 
   for (auto kv : peerconnection_observers_) {
     auto pco = kv.second.get();
