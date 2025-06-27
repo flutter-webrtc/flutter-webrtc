@@ -241,6 +241,27 @@ jobs:
   # Testing #
   ###########
 
+  changelog:
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse release version
+        id: release
+        run: echo "version=${GITHUB_REF#refs/tags/}"
+             >> $GITHUB_OUTPUT
+
+      - name: Ensure CHANGELOG date is today
+        run: |
+          today="$(date '+%Y-%m-%d')"
+          changelog="$(grep -E '^## \[${{ steps.release.outputs.version }}\] ·'\
+                            CHANGELOG.md \
+                       | cut -d' ' -f4 | tr -d ' ')"
+          echo "Changelog: $changelog"
+          echo "Today: $today"
+          [ "$changelog" = "$today" ]
+
   test-flutter:
     name: test (example, ${{ matrix.platform }})
     needs: ["build-rust", "build-rust-linux"]
@@ -409,6 +430,7 @@ jobs:
       - build-rust
       - build-rust-linux
       - build-flutter
+      - changelog
       - clippy
       - dartanalyze
       - dartfmt
