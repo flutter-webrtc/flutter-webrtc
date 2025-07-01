@@ -21,6 +21,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 
 @interface FlutterWebRTCPlugin : NSObject <FlutterPlugin,
                                            RTCPeerConnectionDelegate,
+                                           RTCAudioDeviceModuleDelegate,
                                            FlutterStreamHandler
 #if TARGET_OS_OSX
                                            ,
