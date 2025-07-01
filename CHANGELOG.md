@@ -1,6 +1,12 @@
 
 # Changelog
 
+[0.14.2] - 2025-07-01
+
+* [Windows/Linux] feat: Add audio processing and sink API for cpp. (#1867)
+* [Linux] fix: Fixed audio device selection error for Linux. (#1864)
+* [Android] fix: Fix screen capture orientation for landscape-native devices (#1854)
+
 [0.14.1] - 2025-05-22
 
 * [Android] fix: Recording bug (#1839)
