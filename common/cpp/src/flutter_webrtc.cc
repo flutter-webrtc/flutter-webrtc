@@ -352,7 +352,8 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     DataChannelSend(data_channel, type, data, std::move(result));
-  } else if (method_call.method_name().compare("dataChannelGetBufferedAmount") == 0) {
+  } else if (method_call.method_name().compare(
+                 "dataChannelGetBufferedAmount") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
       return;
