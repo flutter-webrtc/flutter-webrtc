@@ -1,6 +1,35 @@
 
 # Changelog
 
+[0.14.2] - 2025-07-01
+
+* [Windows/Linux] feat: Add audio processing and sink API for cpp. (#1867)
+* [Linux] fix: Fixed audio device selection error for Linux. (#1864)
+* [Android] fix: Fix screen capture orientation for landscape-native devices (#1854)
+
+[0.14.1] - 2025-05-22
+
+* [Android] fix: Recording bug (#1839)
+* [Android] fix: calls in terminated mode by disabling orientation manager (#1840)
+* [Android] fix: Wait for audio and video thread to fully stop to avoid corrupted recordings (#1836)
+
+[0.14.0] - 2025-05-06
+
+* [iOS/Android]feat: Media Recorder implementation Android and iOS (#1810)
+* [Wndows] fix: Pickup registrar for plugin by plugin registrar manager (#1752)
+* [Linux] fix: add task runner for linux. (#1821)
+* [iOS/macOS] fix: Fix deadlock when creating a frame cryptor on iOS/macOS.
+
+[0.13.1+hotfix.1] - 2025-04-07
+
+* [Android] fix: Fix `clearAndroidCommunicationDevice` call blocking.
+
+[0.13.1] - 2025-04-03
+
+* [Android] fix: remove setPreferredInputDevice when getUserAduio. (#1808)
+* [Web] fix: race condition in RTCVideoRenderer for Web (#1805)
+* [Android] fix: Migrate from onSurfaceDestroyed to onSurfaceCleanup for SurfaceProducer.Callback. (#1806)
+
 [0.13.0] - 2025-03-24
 
 * [All] feat: add getBufferedAmount for DataChannel. (#1796)

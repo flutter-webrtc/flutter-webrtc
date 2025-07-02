@@ -15,6 +15,7 @@ import android.view.Surface;
 import android.view.WindowManager;
 import android.app.Activity;
 import android.hardware.display.DisplayManager;
+import android.util.DisplayMetrics;
 import android.hardware.display.VirtualDisplay;
 import android.media.projection.MediaProjectionManager;
 import android.os.Looper;
@@ -76,9 +77,11 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
     }
 
     private boolean isDeviceOrientationPortrait() {
-        final int surfaceRotation = windowManager.getDefaultDisplay().getRotation();
-
-        return surfaceRotation != Surface.ROTATION_90 && surfaceRotation != Surface.ROTATION_270;
+        final Display display = windowManager.getDefaultDisplay();
+        final DisplayMetrics metrics = new DisplayMetrics();
+        display.getRealMetrics(metrics);
+        
+        return metrics.heightPixels > metrics.widthPixels;
     }
 
 

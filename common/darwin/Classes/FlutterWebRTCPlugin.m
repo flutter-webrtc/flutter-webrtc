@@ -8,6 +8,7 @@
 #import "FlutterRTCVideoRenderer.h"
 #import "FlutterRTCFrameCryptor.h"
 #if TARGET_OS_IPHONE
+#import "FlutterRTCMediaRecorder.h"
 #import "FlutterRTCVideoPlatformViewFactory.h"
 #import "FlutterRTCVideoPlatformViewController.h"
 #endif
@@ -190,6 +191,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
   self.frameCryptors = [NSMutableDictionary new];
   self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
+  self.recorders = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
   self.focusMode = @"locked";
   self.exposureMode = @"locked";
@@ -1511,7 +1513,41 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
                 message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                 details:nil]);
     }
-  } else {
+#if TARGET_OS_IOS
+  } else if ([@"startRecordToFile" isEqualToString:call.method]){
+
+            NSDictionary* argsMap = call.arguments;
+            NSNumber* recorderId = argsMap[@"recorderId"];
+            NSString* path = argsMap[@"path"];
+            NSString* trackId = argsMap[@"videoTrackId"];
+            NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+            NSString* audioTrackId = [self audioTrackIdForVideoTrackId:trackId];
+
+            RTCMediaStreamTrack *track = [self trackForId:trackId peerConnectionId:peerConnectionId];
+            RTCMediaStreamTrack *audioTrack = [self trackForId:audioTrackId peerConnectionId:peerConnectionId];
+            if (track != nil && [track isKindOfClass:[RTCVideoTrack class]]) {
+                NSURL* pathUrl = [NSURL fileURLWithPath:path];
+                self.recorders[recorderId] = [[FlutterRTCMediaRecorder alloc]
+                        initWithVideoTrack:(RTCVideoTrack *)track
+                        audioTrack:(RTCAudioTrack *)audioTrack
+                        outputFile:pathUrl
+                ];
+            }
+            result(nil);
+    } else if ([@"stopRecordToFile" isEqualToString:call.method]) {
+                NSDictionary* argsMap = call.arguments;
+                NSNumber* recorderId = argsMap[@"recorderId"];
+                FlutterRTCMediaRecorder* recorder = self.recorders[recorderId];
+                if (recorder != nil) {
+                    [recorder stop:result];
+                    [self.recorders removeObjectForKey:recorderId];
+                } else {
+                    result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
+                                              message:[NSString stringWithFormat:@"Error: recorder with id %@ not found!",recorderId]
+                                                details:nil]);
+                }
+#endif
+    } else {
     [self handleFrameCryptorMethodCall:call result:result];
   }
 }
@@ -1633,6 +1669,38 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
       }
 
     return mediaStreamTrack;
+}
+
+- (NSString *)audioTrackIdForVideoTrackId:(NSString *)videoTrackId {
+    NSString *audioTrackId = nil;
+
+    // Iterate through all peerConnections
+    for (NSString *peerConnectionId in self.peerConnections) {
+        RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+
+        // Iterate through the receivers to find the video track
+        for (RTCRtpReceiver *receiver in peerConnection.receivers) {
+            RTCMediaStreamTrack *track = [receiver valueForKey:@"track"];
+            if ([track.kind isEqualToString:@"video"] && [track.trackId isEqualToString:videoTrackId]) {
+                // Found the video track, now look for the audio track in the same peerConnection
+                for (RTCRtpReceiver *audioReceiver in peerConnection.receivers) {
+                    RTCMediaStreamTrack *audioTrack = [audioReceiver valueForKey:@"track"];
+                    if ([audioTrack.kind isEqualToString:@"audio"]) {
+                        audioTrackId = audioTrack.trackId;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        // If the audioTrackId is found, break out of the loop
+        if (audioTrackId != nil) {
+            break;
+        }
+    }
+
+    return audioTrackId;
 }
 
 - (RTCMediaStreamTrack*)trackForId:(NSString*)trackId peerConnectionId:(NSString*)peerConnectionId {

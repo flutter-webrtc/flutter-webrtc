@@ -9,7 +9,6 @@ set(CMAKE_CXX_STANDARD 17)
 add_definitions(-DRTC_DESKTOP_DEVICE)
 
 add_library(${PLUGIN_NAME} SHARED
-  "../third_party/uuidxx/uuidxx.cc"
   "../common/cpp/src/flutter_data_channel.cc"
   "../common/cpp/src/flutter_frame_cryptor.cc"
   "../common/cpp/src/flutter_media_stream.cc"
@@ -24,13 +23,13 @@ add_library(${PLUGIN_NAME} SHARED
   "flutter/core_implementations.cc"
   "flutter/standard_codec.cc"
   "flutter/plugin_registrar.cc"
+  "task_runner_linux.cc"
 )
 
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   "${CMAKE_CURRENT_SOURCE_DIR}/flutter/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../common/cpp/include"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/uuidxx"
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/svpng"
 )
@@ -40,7 +39,10 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
   CXX_VISIBILITY_PRESET hidden)
 target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
 target_include_directories(${PLUGIN_NAME} INTERFACE
-"${CMAKE_CURRENT_SOURCE_DIR}")
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../common/cpp/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/include"
+)
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter)
 target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
 
