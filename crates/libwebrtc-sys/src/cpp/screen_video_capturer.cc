@@ -21,7 +21,7 @@
 #include "modules/desktop_capture/cropped_desktop_frame.h"
 #include "modules/desktop_capture/desktop_and_cursor_composer.h"
 #include "rtc_base/logging.h"
-#include "system_wrappers/include/sleep.h"
+#include "rtc_base/thread.h"
 #include "third_party/libyuv/include/libyuv.h"
 
 #if __APPLE__
@@ -131,7 +131,7 @@ bool ScreenVideoCapturer::CaptureProcess() {
                requested_frame_duration_);
   int delta_time = capture_period - last_capture_duration;
   if (delta_time > 0) {
-    webrtc::SleepMs(delta_time);
+    webrtc::Thread::SleepMs(delta_time);
   }
   return true;
 }
