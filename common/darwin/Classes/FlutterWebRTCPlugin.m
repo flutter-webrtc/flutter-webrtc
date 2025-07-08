@@ -1538,9 +1538,48 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
                                                 details:nil]);
                 }
 #endif
+    } else if ([@"startLocalRecording" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSInteger admResult = [adm initAndStartRecording];
+
+      if (admResult == 0) {
+        result(nil);
+      } else {
+        result([FlutterError
+            errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
+                  message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
+                                                     (long)admResult]
+                  details:nil]);
+      }
+    } else if ([@"stopLocalRecording" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSInteger admResult = [adm stopRecording];
+
+      if (admResult == 0) {
+        result(nil);
+      } else {
+        result([FlutterError
+            errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
+                  message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
+                                                     (long)admResult]
+                  details:nil]);
+      }
+    } else if ([@"isVoiceProcessingEnabled" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSNumber* admResult = [NSNumber numberWithBool:adm.isVoiceProcessingEnabled];
+      result(admResult);
+    } else if ([@"isVoiceProcessingBypassed" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSNumber* admResult = [NSNumber numberWithBool:adm.isVoiceProcessingBypassed];
+      result(admResult);
+    } else if ([@"setIsVoiceProcessingBypassed" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSNumber* value = call.arguments[@"value"];
+      adm.voiceProcessingBypassed = value.boolValue;
+      result(nil);
     } else {
-    [self handleFrameCryptorMethodCall:call result:result];
-  }
+      [self handleFrameCryptorMethodCall:call result:result];
+    }
 }
 
 - (void)dealloc {
