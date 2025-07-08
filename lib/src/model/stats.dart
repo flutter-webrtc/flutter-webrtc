@@ -1,6 +1,14 @@
 import 'package:collection/collection.dart';
 
-import '/src/api/bridge/api.dart' as ffi;
+import '/src/api/bridge/api/stats.dart' as ffi;
+import '/src/api/bridge/api/stats/rtc_ice_candidate_stats.dart' as ffi;
+
+import '/src/api/bridge/api/stats/rtc_inbound_rtp_stream_media_type.dart'
+    as ffi;
+import '/src/api/bridge/api/stats/rtc_media_source_stats_media_type.dart'
+    as ffi;
+import '/src/api/bridge/api/stats/rtc_outbound_rtp_stream_media_type.dart'
+    as ffi;
 
 /// Tries to parse the provided [value] as [int].
 ///

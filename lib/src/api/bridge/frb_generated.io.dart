@@ -11,6 +11,13 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 
 import 'api.dart';
 import 'api/media_info.dart';
+import 'api/stats.dart';
+import 'api/stats/ice_role.dart';
+import 'api/stats/rtc_ice_candidate_stats.dart';
+import 'api/stats/rtc_inbound_rtp_stream_media_type.dart';
+import 'api/stats/rtc_media_source_stats_media_type.dart';
+import 'api/stats/rtc_outbound_rtp_stream_media_type.dart';
+import 'api/stats/rtc_stats_ice_candidate_pair_state.dart';
 import 'frb_generated.dart';
 import 'lib.dart';
 import 'renderer.dart';
