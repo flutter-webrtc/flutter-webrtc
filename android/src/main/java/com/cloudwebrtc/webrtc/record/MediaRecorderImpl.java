@@ -16,10 +16,12 @@ public class MediaRecorderImpl {
     private final AudioSamplesInterceptor audioInterceptor;
     private VideoFileRenderer videoFileRenderer;
     private AudioFileRenderer audioFileRenderer;
+    private AudioFileRenderer audioFileRenderer;
     private boolean isRunning = false;
     private File recordFile;
 
-    public MediaRecorderImpl(Integer id, @Nullable VideoTrack videoTrack, @Nullable AudioSamplesInterceptor audioInterceptor) {
+    public MediaRecorderImpl(Integer id, @Nullable VideoTrack videoTrack,
+            @Nullable AudioSamplesInterceptor audioInterceptor) {
         this.id = id;
         this.videoTrack = videoTrack;
         this.audioInterceptor = audioInterceptor;
@@ -30,14 +32,13 @@ public class MediaRecorderImpl {
         if (isRunning)
             return;
         isRunning = true;
-        //noinspection ResultOfMethodCallIgnored
+        // noinspection ResultOfMethodCallIgnored
         file.getParentFile().mkdirs();
         if (videoTrack != null) {
             videoFileRenderer = new VideoFileRenderer(
-                file.getAbsolutePath(),
-                EglUtils.getRootEglBaseContext(),
-                audioInterceptor != null
-            );
+                    file.getAbsolutePath(),
+                    EglUtils.getRootEglBaseContext(),
+                    audioInterceptor != null);
             videoTrack.addSink(videoFileRenderer);
             if (audioInterceptor != null)
                 audioInterceptor.attachCallback(id, videoFileRenderer);
@@ -53,7 +54,9 @@ public class MediaRecorderImpl {
         }
     }
 
-    public File getRecordFile() { return recordFile; }
+    public File getRecordFile() {
+        return recordFile;
+    }
 
     public void stopRecording() {
         isRunning = false;
@@ -63,6 +66,10 @@ public class MediaRecorderImpl {
             videoTrack.removeSink(videoFileRenderer);
             videoFileRenderer.release();
             videoFileRenderer = null;
+        }
+        if (audioFileRenderer != null) {
+            audioFileRenderer.release();
+            audioFileRenderer = null;
         }
         if (audioFileRenderer != null) {
             audioFileRenderer.release();
