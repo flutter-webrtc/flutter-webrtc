@@ -14,7 +14,7 @@ use crate::{
     Webrtc, api,
     api::WEBRTC,
     frb_generated::StreamSink,
-    user_media::{AudioDeviceId, MediaTrackSource, TrackOrigin, VideoDeviceId},
+    media::{AudioDeviceId, MediaTrackSource, TrackOrigin, VideoDeviceId},
 };
 
 /// Returns a list of all available displays that can be used for screen
@@ -328,7 +328,7 @@ impl Webrtc {
             for (_, delete_ai) in old_audio_ins {
                 for track in self.audio_tracks.iter() {
                     if let MediaTrackSource::Local(s) = track.source() {
-                        if s.device_id == delete_ai {
+                        if s.device_id() == &delete_ai {
                             tracks_to_remove.push((
                                 track.id().into(),
                                 api::MediaType::Audio,
@@ -344,7 +344,7 @@ impl Webrtc {
             for (_, delete_vi) in old_video_ins {
                 for track in self.video_tracks.iter() {
                     if let MediaTrackSource::Local(s) = track.source() {
-                        if s.device_id == delete_vi {
+                        if s.device_id() == &delete_vi {
                             tracks_to_remove.push((
                                 track.id().into(),
                                 api::MediaType::Video,

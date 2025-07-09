@@ -4,9 +4,7 @@ use cxx::UniquePtr;
 use derive_more::with_trait::{AsMut, AsRef};
 use libwebrtc_sys as sys;
 
-use crate::{
-    VideoTrackId, Webrtc, renderer::FrameHandler, user_media::TrackOrigin,
-};
+use crate::{VideoTrackId, Webrtc, media::TrackOrigin, renderer::FrameHandler};
 
 impl Webrtc {
     /// Creates a new [`VideoSink`].

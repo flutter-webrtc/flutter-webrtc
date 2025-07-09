@@ -150,7 +150,6 @@
     clippy::missing_docs_in_private_items,
     clippy::missing_panics_doc,
     clippy::multiple_inherent_impl,
-    clippy::partial_pub_fields,
     clippy::undocumented_unsafe_blocks,
     clippy::unwrap_in_result,
     clippy::unwrap_used,
@@ -188,9 +187,9 @@ pub mod api;
 mod frb_generated;
 mod devices;
 pub mod frb;
+mod media;
 mod pc;
 mod renderer;
-mod user_media;
 pub mod video_sink;
 
 use std::{
@@ -208,17 +207,17 @@ use threadpool::ThreadPool;
 #[doc(inline)]
 pub use crate::{
     devices::DevicesState,
+    media::{
+        AudioDeviceId, AudioDeviceModule, AudioSource, AudioTrack,
+        AudioTrackId, MediaStreamId, Track, VideoDeviceId, VideoDeviceInfo,
+        VideoSource, VideoTrack, VideoTrackId,
+    },
     pc::{
         PeerConnection, RtpEncodingParameters, RtpParameters, RtpTransceiver,
     },
-    user_media::{
-        AudioDeviceId, AudioDeviceModule, AudioSource, AudioTrack,
-        AudioTrackId, MediaStreamId, VideoDeviceId, VideoDeviceInfo,
-        VideoSource, VideoTrack, VideoTrackId,
-    },
     video_sink::VideoSink,
 };
-use crate::{user_media::TrackOrigin, video_sink::Id as VideoSinkId};
+use crate::{media::TrackOrigin, video_sink::Id as VideoSinkId};
 
 /// Main [`ThreadPool`] used by [`flutter_rust_bridge`] when calling
 /// synchronous Rust code to avoid locking [`libwebrtc`] threads.
