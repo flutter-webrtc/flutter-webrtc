@@ -16,7 +16,6 @@ public class MediaRecorderImpl {
     private final AudioSamplesInterceptor audioInterceptor;
     private VideoFileRenderer videoFileRenderer;
     private AudioFileRenderer audioFileRenderer;
-    private AudioFileRenderer audioFileRenderer;
     private boolean isRunning = false;
     private File recordFile;
 
