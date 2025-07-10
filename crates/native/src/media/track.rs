@@ -207,7 +207,7 @@ impl<T> Track<T> {
         }
     }
 
-    /// Sets the provided [`StreamSink`] for this [`Track`] to use for
+    /// Sets the provided `StreamSink` for this [`Track`] to use for
     /// [`api::TrackEvent`]s emitting.
     pub fn set_track_events_tx(&mut self, sink: StreamSink<api::TrackEvent>) {
         drop(self.events_tx.replace(sink));
@@ -264,7 +264,7 @@ impl<T> Track<T> {
     }
 }
 
-/// Representation of a [`kind::Video`] [`Track`] interface.
+/// Representation of a video [`Track`] interface.
 pub type VideoTrack = Track<kind::Video>;
 
 impl VideoTrack {
@@ -466,7 +466,7 @@ impl sys::OnFrameCallback for VideoFormatSink {
     }
 }
 
-/// Representation of a [`kind::Audio`] [`Track`] interface.
+/// Representation of an audio [`Track`] interface.
 pub type AudioTrack = Track<kind::Audio>;
 
 impl AudioTrack {
