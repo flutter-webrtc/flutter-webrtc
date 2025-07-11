@@ -4,7 +4,13 @@ import 'package:flutter/services.dart';
 
 import '/medea_flutter_webrtc.dart';
 import '/src/api/bridge/api.dart' as ffi;
+import '/src/api/bridge/api/media_stream_track.dart' as ffi;
+import '/src/api/bridge/api/media_stream_track/media_type.dart' as ffi;
+import '/src/api/bridge/api/media_stream_track/track_event.dart' as ffi;
 import '/src/api/channel.dart';
+
+import '/src/api/bridge/api/media_stream_track/audio_processing_config.dart'
+    as ffi;
 
 /// Representation of a single media unit.
 abstract class NativeMediaStreamTrack extends MediaStreamTrack {

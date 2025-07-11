@@ -5,9 +5,9 @@
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-import '../../api.dart';
 import '../../frb_generated.dart';
 import '../../lib.dart';
+import '../media_stream_track/media_type.dart';
 import 'rtp_codec/rtcp_feedback.dart';
 import 'rtp_codec/scalability_mode.dart';
 

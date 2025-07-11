@@ -2,6 +2,7 @@
 
 pub mod capability;
 pub mod media_info;
+pub mod media_stream_track;
 pub mod stats;
 
 use std::{
@@ -24,6 +25,14 @@ pub use self::{
         get_rtp_sender_capabilities, set_codec_preferences,
     },
     media_info::{MediaDeviceInfo, MediaDeviceKind, MediaDisplayInfo},
+    media_stream_track::{
+        AudioProcessingConfig, GetMediaError, GetMediaResult, MediaStreamTrack,
+        MediaType, NoiseSuppressionLevel, TrackEvent, TrackState, clone_track,
+        create_video_sink, dispose_track, dispose_video_sink,
+        get_audio_processing_config, get_media, register_track_observer,
+        set_audio_level_observer_enabled, set_track_enabled, track_height,
+        track_state, track_width, update_audio_processing,
+    },
     stats::{
         CandidateType, IceCandidateStats, IceRole, Protocol,
         RtcIceCandidateStats, RtcInboundRtpStreamMediaType,
@@ -42,9 +51,6 @@ use crate::{
     frb_generated::{
         FLUTTER_RUST_BRIDGE_CODEGEN_VERSION, RustOpaque, StreamSink,
     },
-    media::TrackOrigin,
-    pc::PeerConnectionId,
-    renderer::FrameHandler,
 };
 
 /// Custom [`Handler`] for executing Rust code called from Dart.
@@ -94,22 +100,6 @@ impl From<sys::TrackKind> for TrackKind {
             sys::TrackKind::Video => Self::Video,
         }
     }
-}
-
-/// Indicator of the current state of a [`MediaStreamTrack`].
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum TrackEvent {
-    /// Ended event of the [`MediaStreamTrack`] interface is fired when playback
-    /// or streaming has stopped because the end of the media was reached or
-    /// because no further data is available.
-    Ended,
-
-    /// Event indicating an audio level change in the [`MediaStreamTrack`].
-    AudioLevelUpdated(u32),
-
-    /// Event indicating that the [`MediaStreamTrack`] has completely
-    /// initialized and can be used on Flutter side.
-    TrackCreated,
 }
 
 /// [RTCIceGatheringState][1] representation.
@@ -393,33 +383,6 @@ impl From<sys::PeerConnectionState> for PeerConnectionState {
     }
 }
 
-/// Indicator of the current [MediaStreamTrackState][0] of a
-/// [`MediaStreamTrack`].
-///
-/// [0]: https://w3.org/TR/mediacapture-streams#dom-mediastreamtrackstate
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum TrackState {
-    /// [MediaStreamTrackState.live][0] representation.
-    ///
-    /// [0]: https://tinyurl.com/w3mcs#idl-def-MediaStreamTrackState.live
-    Live,
-
-    /// [MediaStreamTrackState.ended][0] representation.
-    ///
-    /// [0]: https://tinyurl.com/w3mcs#idl-def-MediaStreamTrackState.ended
-    Ended,
-}
-
-impl From<sys::TrackState> for TrackState {
-    fn from(state: sys::TrackState) -> Self {
-        match state {
-            sys::TrackState::kLive => Self::Live,
-            sys::TrackState::kEnded => Self::Ended,
-            _ => unreachable!(),
-        }
-    }
-}
-
 /// [RTCRtpTransceiverDirection][1] representation.
 ///
 /// [1]: https://w3.org/TR/webrtc#dom-rtcrtptransceiverdirection
@@ -495,35 +458,6 @@ impl From<RtpTransceiverDirection> for sys::RtpTransceiverDirection {
             RtpTransceiverDirection::RecvOnly => Self::kRecvOnly,
             RtpTransceiverDirection::Inactive => Self::kInactive,
             RtpTransceiverDirection::Stopped => Self::kStopped,
-        }
-    }
-}
-
-/// Possible media types of a [`MediaStreamTrack`].
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum MediaType {
-    /// Audio [`MediaStreamTrack`].
-    Audio,
-
-    /// Video [`MediaStreamTrack`].
-    Video,
-}
-
-impl From<MediaType> for sys::MediaType {
-    fn from(state: MediaType) -> Self {
-        match state {
-            MediaType::Audio => Self::MEDIA_TYPE_AUDIO,
-            MediaType::Video => Self::MEDIA_TYPE_VIDEO,
-        }
-    }
-}
-
-impl From<sys::MediaType> for MediaType {
-    fn from(state: sys::MediaType) -> Self {
-        match state {
-            sys::MediaType::MEDIA_TYPE_AUDIO => Self::Audio,
-            sys::MediaType::MEDIA_TYPE_VIDEO => Self::Video,
-            _ => unreachable!(),
         }
     }
 }
@@ -661,99 +595,6 @@ pub struct AudioProcessingConstraints {
     /// Indicator whether echo cancellation should be enabled to prevent
     /// feedback.
     pub echo_cancellation: Option<bool>,
-}
-
-/// Audio processing configuration for some local audio [`MediaStreamTrack`].
-#[expect(clippy::struct_excessive_bools, reason = "that's ok")]
-#[derive(Debug)]
-pub struct AudioProcessingConfig {
-    /// Indicator whether the audio volume level should be automatically tuned
-    /// to maintain a steady overall volume level.
-    pub auto_gain_control: bool,
-
-    /// Indicator whether a high-pass filter should be enabled to eliminate
-    /// low-frequency noise.
-    pub high_pass_filter: bool,
-
-    /// Indicator whether noise suppression should be enabled to reduce
-    /// background sounds.
-    pub noise_suppression: bool,
-
-    /// Level of aggressiveness for noise suppression.
-    pub noise_suppression_level: NoiseSuppressionLevel,
-
-    /// Indicator whether echo cancellation should be enabled to prevent
-    /// feedback.
-    pub echo_cancellation: bool,
-}
-
-/// [`AudioProcessingConfig`] noise suppression aggressiveness.
-#[derive(Clone, Copy, Debug)]
-pub enum NoiseSuppressionLevel {
-    /// Minimal noise suppression.
-    Low,
-
-    /// Moderate level of suppression.
-    Moderate,
-
-    /// Aggressive noise suppression.
-    High,
-
-    /// Maximum suppression.
-    VeryHigh,
-}
-
-impl From<NoiseSuppressionLevel> for sys::NoiseSuppressionLevel {
-    fn from(level: NoiseSuppressionLevel) -> Self {
-        match level {
-            NoiseSuppressionLevel::Low => Self::kLow,
-            NoiseSuppressionLevel::Moderate => Self::kModerate,
-            NoiseSuppressionLevel::High => Self::kHigh,
-            NoiseSuppressionLevel::VeryHigh => Self::kVeryHigh,
-        }
-    }
-}
-
-impl From<sys::NoiseSuppressionLevel> for NoiseSuppressionLevel {
-    fn from(level: sys::NoiseSuppressionLevel) -> Self {
-        match level {
-            sys::NoiseSuppressionLevel::kLow => Self::Low,
-            sys::NoiseSuppressionLevel::kModerate => Self::Moderate,
-            sys::NoiseSuppressionLevel::kHigh => Self::High,
-            sys::NoiseSuppressionLevel::kVeryHigh => Self::VeryHigh,
-            _ => unreachable!(),
-        }
-    }
-}
-
-/// Representation of a single media track within a [MediaStream].
-///
-/// Typically, these are audio or video tracks, but other track types may exist
-/// as well.
-///
-/// [MediaStream]: https://w3.org/TR/mediacapture-streams#dom-mediastream
-#[derive(Clone, Debug)]
-pub struct MediaStreamTrack {
-    /// Unique identifier (GUID) of this [`MediaStreamTrack`].
-    pub id: String,
-
-    /// Unique identifier of the [`PeerConnection`] from which this
-    /// [`MediaStreamTrack`] was received.
-    ///
-    /// Always [`None`] for local [`MediaStreamTrack`]s.
-    pub peer_id: Option<u32>,
-
-    /// Label identifying the track source, as in "internal microphone".
-    pub device_id: String,
-
-    /// [`MediaType`] of this [`MediaStreamTrack`].
-    pub kind: MediaType,
-
-    /// Indicator whether this [`MediaStreamTrack`] is allowed to render the
-    /// source stream.
-    ///
-    /// This can be used to intentionally mute a track.
-    pub enabled: bool,
 }
 
 /// Representation of [RTCRtpEncodingParameters][0].
@@ -987,24 +828,6 @@ impl From<BundlePolicy> for sys::BundlePolicy {
             BundlePolicy::MaxCompat => Self::kBundlePolicyMaxCompat,
         }
     }
-}
-
-/// [`get_media()`] function result.
-pub enum GetMediaResult {
-    /// Requested media tracks.
-    Ok(Vec<MediaStreamTrack>),
-
-    /// Failed to get requested media.
-    Err(GetMediaError),
-}
-
-/// Media acquisition error.
-pub enum GetMediaError {
-    /// Could not acquire audio track.
-    Audio(String),
-
-    /// Could not acquire video track.
-    Video(String),
 }
 
 /// Description of STUN and TURN servers that can be used by an [ICE Agent][1]
@@ -1336,19 +1159,6 @@ pub fn dispose_peer_connection(peer: RustOpaque<Arc<PeerConnection>>) {
     WEBRTC.lock().unwrap().dispose_peer_connection(&peer);
 }
 
-/// Creates a [MediaStream] with tracks according to provided
-/// [`MediaStreamConstraints`].
-///
-/// [MediaStream]: https://w3.org/TR/mediacapture-streams#dom-mediastream
-#[must_use]
-pub fn get_media(constraints: MediaStreamConstraints) -> GetMediaResult {
-    #[expect(clippy::significant_drop_in_scrutinee, reason = "no problems")]
-    match WEBRTC.lock().unwrap().get_media(constraints) {
-        Ok(tracks) => GetMediaResult::Ok(tracks),
-        Err(err) => GetMediaResult::Err(err),
-    }
-}
-
 /// Sets the specified `audio playout` device.
 pub fn set_audio_playout_device(device_id: String) -> anyhow::Result<()> {
     WEBRTC.lock().unwrap().set_audio_playout_device(device_id)
@@ -1372,147 +1182,6 @@ pub fn microphone_volume() -> anyhow::Result<u32> {
     WEBRTC.lock().unwrap().microphone_volume()
 }
 
-/// Disposes the specified [`MediaStreamTrack`].
-pub fn dispose_track(track_id: String, peer_id: Option<u32>, kind: MediaType) {
-    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
-
-    WEBRTC.lock().unwrap().dispose_track(track_origin, track_id, kind, false);
-}
-
-/// Returns the [readyState][0] property of the [`MediaStreamTrack`] by its ID
-/// and [`MediaType`].
-///
-/// [0]: https://w3.org/TR/mediacapture-streams#dfn-readystate
-pub fn track_state(
-    track_id: String,
-    peer_id: Option<u32>,
-    kind: MediaType,
-) -> TrackState {
-    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
-
-    WEBRTC.lock().unwrap().track_state(track_id, track_origin, kind)
-}
-
-/// Returns the [height] property of the media track by its ID and
-/// [`MediaType`].
-///
-/// Blocks until the [height] is initialized.
-///
-/// [height]: https://w3.org/TR/mediacapture-streams#dfn-height
-pub fn track_height(
-    track_id: String,
-    peer_id: Option<u32>,
-    kind: MediaType,
-) -> Option<i32> {
-    if kind == MediaType::Audio {
-        return None;
-    }
-
-    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
-
-    WEBRTC.lock().unwrap().track_height(track_id, track_origin)
-}
-
-/// Returns the [width] property of the media track by its ID and [`MediaType`].
-///
-/// Blocks until the [width] is initialized.
-///
-/// [width]: https://w3.org/TR/mediacapture-streams#dfn-height
-pub fn track_width(
-    track_id: String,
-    peer_id: Option<u32>,
-    kind: MediaType,
-) -> Option<i32> {
-    if kind == MediaType::Audio {
-        return None;
-    }
-
-    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
-
-    WEBRTC.lock().unwrap().track_width(track_id, track_origin)
-}
-
-/// Changes the [enabled][1] property of the [`MediaStreamTrack`] by its ID and
-/// [`MediaType`].
-///
-/// [1]: https://w3.org/TR/mediacapture-streams#track-enabled
-pub fn set_track_enabled(
-    track_id: String,
-    peer_id: Option<u32>,
-    kind: MediaType,
-    enabled: bool,
-) {
-    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
-
-    WEBRTC.lock().unwrap().set_track_enabled(
-        track_id,
-        track_origin,
-        kind,
-        enabled,
-    );
-}
-
-/// Clones the specified [`MediaStreamTrack`].
-pub fn clone_track(
-    track_id: String,
-    peer_id: Option<u32>,
-    kind: MediaType,
-) -> Option<MediaStreamTrack> {
-    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
-
-    WEBRTC.lock().unwrap().clone_track(track_id, track_origin, kind)
-}
-
-/// Registers an observer to the [`MediaStreamTrack`] events.
-pub fn register_track_observer(
-    cb: StreamSink<TrackEvent>,
-    peer_id: Option<u32>,
-    track_id: String,
-    kind: MediaType,
-) {
-    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
-
-    WEBRTC.lock().unwrap().register_track_observer(
-        track_id,
-        track_origin,
-        kind,
-        cb,
-    );
-}
-
-/// Enables or disables audio level observing of the audio [`MediaStreamTrack`]
-/// with the provided `track_id`.
-pub fn set_audio_level_observer_enabled(
-    track_id: String,
-    peer_id: Option<u32>,
-    enabled: bool,
-) {
-    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
-    WEBRTC.lock().unwrap().set_audio_level_observer_enabled(
-        track_id,
-        track_origin,
-        enabled,
-    );
-}
-
-/// Applies the provided [`AudioProcessingConstraints`] to specified local audio
-/// track.
-#[expect(clippy::needless_pass_by_value, reason = "FFI")]
-pub fn update_audio_processing(
-    track_id: String,
-    conf: AudioProcessingConstraints,
-) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().apply_audio_processing_config(track_id, &conf)
-}
-
-/// Returns the current [`AudioProcessingConfig`] for the specified local audio
-/// track.
-pub fn get_audio_processing_config(
-    track_id: String,
-) -> anyhow::Result<AudioProcessingConfig> {
-    WEBRTC.lock().unwrap().get_audio_processing_config(track_id)
-}
-
 /// Sets the provided `OnDeviceChangeCallback` as the callback to be called
 /// whenever a set of available media devices changes.
 ///
@@ -1520,37 +1189,4 @@ pub fn get_audio_processing_config(
 /// if any.
 pub fn set_on_device_changed(cb: StreamSink<()>) {
     WEBRTC.lock().unwrap().set_on_device_changed(cb);
-}
-
-/// Creates a new [`VideoSink`] attached to the specified video track.
-///
-/// `callback_ptr` argument should be a pointer to an [`UniquePtr`] pointing to
-/// an [`sys::OnFrameCallback`].
-///
-/// [`UniquePtr`]: cxx::UniquePtr
-/// [`VideoSink`]: crate::VideoSink
-pub fn create_video_sink(
-    cb: StreamSink<TextureEvent>,
-    sink_id: i64,
-    peer_id: Option<u32>,
-    track_id: String,
-    callback_ptr: i64,
-    texture_id: i64,
-) {
-    let handler = FrameHandler::new(callback_ptr as _, cb, texture_id);
-    let track_origin = TrackOrigin::from(peer_id.map(PeerConnectionId::from));
-
-    WEBRTC.lock().unwrap().create_video_sink(
-        sink_id,
-        track_id,
-        track_origin,
-        handler,
-    );
-}
-
-/// Destroys a [`VideoSink`] by the provided ID.
-///
-/// [`VideoSink`]: crate::VideoSink
-pub fn dispose_video_sink(sink_id: i64) {
-    WEBRTC.lock().unwrap().dispose_video_sink(sink_id);
 }

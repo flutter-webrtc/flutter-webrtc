@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 import '../../api/peer.dart';
-import '/src/api/bridge/api.dart' as ffi;
+import '/src/api/bridge/api/media_stream_track.dart' as ffi;
 import '/src/api/bridge/renderer.dart' as ffi_renderer;
 import '/src/api/channel.dart';
 import '/src/model/track.dart';

@@ -6,6 +6,7 @@ import '/src/api/parameters.dart';
 import '/src/platform/track.dart';
 import 'bridge/api.dart' as ffi;
 import 'bridge/api/capability.dart' as ffi;
+import 'bridge/api/media_stream_track/media_type.dart' as ffi;
 import 'bridge/lib.dart';
 import 'channel.dart';
 import 'peer.dart';
