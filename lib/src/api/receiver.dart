@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:medea_flutter_webrtc/src/model/track.dart';
 import '../model/capability.dart';
 import 'bridge/api.dart' as ffi;
+import 'bridge/api/capability.dart' as ffi;
 import 'channel.dart';
 import 'peer.dart';
 

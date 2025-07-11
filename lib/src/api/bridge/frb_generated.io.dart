@@ -10,6 +10,11 @@ import 'dart:ffi' as ffi;
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 
 import 'api.dart';
+import 'api/capability.dart';
+import 'api/capability/rtp_codec.dart';
+import 'api/capability/rtp_codec/rtcp_feedback.dart';
+import 'api/capability/rtp_codec/scalability_mode.dart';
+import 'api/capability/rtp_header_extension_capability.dart';
 import 'api/media_info.dart';
 import 'api/stats.dart';
 import 'api/stats/ice_role.dart';

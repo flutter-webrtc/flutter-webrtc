@@ -42,7 +42,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.10.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -15912171;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -509992149;
 
 // Section: executor
 
@@ -326,7 +326,7 @@ fn wire__crate__api__stats__get_peer_stats_impl(
                     })())
                 } })
 }
-fn wire__crate__api__get_rtp_receiver_capabilities_impl(
+fn wire__crate__api__capability__get_rtp_receiver_capabilities_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -337,11 +337,11 @@ fn wire__crate__api__get_rtp_receiver_capabilities_impl(
             let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_kind = <crate::api::MediaType>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
                     transform_result_sse::<_, ()>((move ||  {
-                         let output_ok = Result::<_,()>::Ok(crate::api::get_rtp_receiver_capabilities(api_kind))?;   Ok(output_ok)
+                         let output_ok = Result::<_,()>::Ok(crate::api::capability::get_rtp_receiver_capabilities(api_kind))?;   Ok(output_ok)
                     })())
                 } })
 }
-fn wire__crate__api__get_rtp_sender_capabilities_impl(
+fn wire__crate__api__capability__get_rtp_sender_capabilities_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -352,7 +352,7 @@ fn wire__crate__api__get_rtp_sender_capabilities_impl(
             let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_kind = <crate::api::MediaType>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
                     transform_result_sse::<_, ()>((move ||  {
-                         let output_ok = Result::<_,()>::Ok(crate::api::get_rtp_sender_capabilities(api_kind))?;   Ok(output_ok)
+                         let output_ok = Result::<_,()>::Ok(crate::api::capability::get_rtp_sender_capabilities(api_kind))?;   Ok(output_ok)
                     })())
                 } })
 }
@@ -559,7 +559,7 @@ fn wire__crate__api__set_audio_playout_device_impl(
                     })())
                 } })
 }
-fn wire__crate__api__set_codec_preferences_impl(
+fn wire__crate__api__capability__rtp_codec__set_codec_preferences_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -569,9 +569,9 @@ fn wire__crate__api__set_codec_preferences_impl(
             let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
             let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_transceiver = <RustOpaqueMoi<Arc < RtpTransceiver >>>::sse_decode(&mut deserializer);
-let api_codecs = <Vec<crate::api::RtpCodecCapability>>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
+let api_codecs = <Vec<crate::api::capability::rtp_codec::RtpCodecCapability>>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
                     transform_result_sse::<_, ()>((move ||  {
-                         let output_ok = Result::<_,()>::Ok({ crate::api::set_codec_preferences(api_transceiver, api_codecs); })?;   Ok(output_ok)
+                         let output_ok = Result::<_,()>::Ok({ crate::api::capability::rtp_codec::set_codec_preferences(api_transceiver, api_codecs); })?;   Ok(output_ok)
                     })())
                 } })
 }
@@ -1404,7 +1404,9 @@ impl SseDecode for Vec<crate::api::stats::RtcStats> {
     }
 }
 
-impl SseDecode for Vec<crate::api::RtcpFeedback> {
+impl SseDecode
+    for Vec<crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback>
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(
         deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
@@ -1412,13 +1414,13 @@ impl SseDecode for Vec<crate::api::RtcpFeedback> {
         let mut len_ = <i32>::sse_decode(deserializer);
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
-            ans_.push(<crate::api::RtcpFeedback>::sse_decode(deserializer));
+            ans_.push(<crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback>::sse_decode(deserializer));
         }
         return ans_;
     }
 }
 
-impl SseDecode for Vec<crate::api::RtpCodecCapability> {
+impl SseDecode for Vec<crate::api::capability::rtp_codec::RtpCodecCapability> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(
         deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
@@ -1426,31 +1428,25 @@ impl SseDecode for Vec<crate::api::RtpCodecCapability> {
         let mut len_ = <i32>::sse_decode(deserializer);
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
-            ans_.push(<crate::api::RtpCodecCapability>::sse_decode(
-                deserializer,
-            ));
+            ans_.push(<crate::api::capability::rtp_codec::RtpCodecCapability>::sse_decode(deserializer));
         }
         return ans_;
     }
 }
 
-impl SseDecode for Vec<crate::api::RtpHeaderExtensionCapability> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(
-        deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
-    ) -> Self {
-        let mut len_ = <i32>::sse_decode(deserializer);
+impl SseDecode for Vec<crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability> {
+                    // Codec=Sse (Serialization based), see doc to use other codecs
+                    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {let mut len_ = <i32>::sse_decode(deserializer);
         let mut ans_ = vec![];
-        for idx_ in 0..len_ {
-            ans_.push(<crate::api::RtpHeaderExtensionCapability>::sse_decode(
-                deserializer,
-            ));
-        }
-        return ans_;
-    }
-}
+        for idx_ in 0..len_ { ans_.push(<crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability>::sse_decode(deserializer)); }
+        return ans_;}
+                }
 
-impl SseDecode for Vec<crate::api::ScalabilityMode> {
+impl SseDecode
+    for Vec<
+        crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode,
+    >
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(
         deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
@@ -1458,7 +1454,7 @@ impl SseDecode for Vec<crate::api::ScalabilityMode> {
         let mut len_ = <i32>::sse_decode(deserializer);
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
-            ans_.push(<crate::api::ScalabilityMode>::sse_decode(deserializer));
+            ans_.push(<crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -1729,20 +1725,14 @@ impl SseDecode for Option<crate::api::stats::rtc_inbound_rtp_stream_media_type::
             }}
                 }
 
-impl SseDecode for Option<crate::api::RtcpFeedbackMessageType> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(
-        deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
-    ) -> Self {
-        if (<bool>::sse_decode(deserializer)) {
-            return Some(<crate::api::RtcpFeedbackMessageType>::sse_decode(
-                deserializer,
-            ));
-        } else {
-            return None;
-        }
-    }
-}
+impl SseDecode for Option<crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType> {
+                    // Codec=Sse (Serialization based), see doc to use other codecs
+                    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {if (<bool>::sse_decode(deserializer)) {
+                return Some(<crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType>::sse_decode(deserializer));
+            } else {
+                return None;
+            }}
+                }
 
 impl SseDecode for Option<u32> {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -2286,87 +2276,73 @@ impl SseDecode for crate::api::RtcTrackEvent {
     }
 }
 
-impl SseDecode for crate::api::RtcpFeedback {
+impl SseDecode
+    for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(
         deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
     ) -> Self {
-        let mut var_messageType =
-            <Option<crate::api::RtcpFeedbackMessageType>>::sse_decode(
-                deserializer,
-            );
-        let mut var_kind =
-            <crate::api::RtcpFeedbackType>::sse_decode(deserializer);
-        return crate::api::RtcpFeedback {
-            message_type: var_messageType,
-            kind: var_kind,
-        };
+        let mut var_messageType = <Option<crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType>>::sse_decode(deserializer);
+        let mut var_kind = <crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType>::sse_decode(deserializer);
+        return crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback{message_type: var_messageType, kind: var_kind};
     }
 }
 
-impl SseDecode for crate::api::RtcpFeedbackMessageType {
+impl SseDecode for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType {
+                    // Codec=Sse (Serialization based), see doc to use other codecs
+                    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType::GenericNACK,
+1 => crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType::Pli,
+2 => crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType::Fir,
+            _ => unreachable!("Invalid variant for RtcpFeedbackMessageType: {}", inner),
+        };}
+                }
+
+impl SseDecode
+    for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(
         deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
     ) -> Self {
         let mut inner = <i32>::sse_decode(deserializer);
         return match inner {
-            0 => crate::api::RtcpFeedbackMessageType::GenericNACK,
-            1 => crate::api::RtcpFeedbackMessageType::Pli,
-            2 => crate::api::RtcpFeedbackMessageType::Fir,
-            _ => unreachable!(
-                "Invalid variant for RtcpFeedbackMessageType: {}",
-                inner
-            ),
+            0 => crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType::Ccm,
+1 => crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType::Lntf,
+2 => crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType::Nack,
+3 => crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType::Remb,
+4 => crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType::TransportCC,
+            _ => unreachable!("Invalid variant for RtcpFeedbackType: {}", inner),
         };
     }
 }
 
-impl SseDecode for crate::api::RtcpFeedbackType {
+impl SseDecode for crate::api::capability::RtpCapabilities {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(
         deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
     ) -> Self {
-        let mut inner = <i32>::sse_decode(deserializer);
-        return match inner {
-            0 => crate::api::RtcpFeedbackType::Ccm,
-            1 => crate::api::RtcpFeedbackType::Lntf,
-            2 => crate::api::RtcpFeedbackType::Nack,
-            3 => crate::api::RtcpFeedbackType::Remb,
-            4 => crate::api::RtcpFeedbackType::TransportCC,
-            _ => {
-                unreachable!("Invalid variant for RtcpFeedbackType: {}", inner)
-            }
-        };
-    }
-}
-
-impl SseDecode for crate::api::RtpCapabilities {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(
-        deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
-    ) -> Self {
-        let mut var_codecs =
-            <Vec<crate::api::RtpCodecCapability>>::sse_decode(deserializer);
-        let mut var_headerExtensions = <Vec<
-            crate::api::RtpHeaderExtensionCapability,
+        let mut var_codecs = <Vec<
+            crate::api::capability::rtp_codec::RtpCodecCapability,
         >>::sse_decode(deserializer);
-        return crate::api::RtpCapabilities {
+        let mut var_headerExtensions = <Vec<crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability>>::sse_decode(deserializer);
+        return crate::api::capability::RtpCapabilities {
             codecs: var_codecs,
             header_extensions: var_headerExtensions,
         };
     }
 }
 
-impl SseDecode for crate::api::RtpCodecCapability {
+impl SseDecode for crate::api::capability::rtp_codec::RtpCodecCapability {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(
         deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
     ) -> Self {
         let mut var_preferredPayloadType =
             <Option<i32>>::sse_decode(deserializer);
-        let mut var_scalabilityModes =
-            <Vec<crate::api::ScalabilityMode>>::sse_decode(deserializer);
+        let mut var_scalabilityModes = <Vec<crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode>>::sse_decode(deserializer);
         let mut var_mimeType = <String>::sse_decode(deserializer);
         let mut var_name = <String>::sse_decode(deserializer);
         let mut var_kind = <crate::api::MediaType>::sse_decode(deserializer);
@@ -2374,9 +2350,10 @@ impl SseDecode for crate::api::RtpCodecCapability {
         let mut var_numChannels = <Option<i32>>::sse_decode(deserializer);
         let mut var_parameters =
             <Vec<(String, String)>>::sse_decode(deserializer);
-        let mut var_feedback =
-            <Vec<crate::api::RtcpFeedback>>::sse_decode(deserializer);
-        return crate::api::RtpCodecCapability {
+        let mut var_feedback = <Vec<
+            crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback,
+        >>::sse_decode(deserializer);
+        return crate::api::capability::rtp_codec::RtpCodecCapability {
             preferred_payload_type: var_preferredPayloadType,
             scalability_modes: var_scalabilityModes,
             mime_type: var_mimeType,
@@ -2390,24 +2367,14 @@ impl SseDecode for crate::api::RtpCodecCapability {
     }
 }
 
-impl SseDecode for crate::api::RtpHeaderExtensionCapability {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(
-        deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
-    ) -> Self {
-        let mut var_uri = <String>::sse_decode(deserializer);
-        let mut var_preferredId = <Option<i32>>::sse_decode(deserializer);
-        let mut var_preferredEncrypted = <bool>::sse_decode(deserializer);
-        let mut var_direction =
-            <crate::api::RtpTransceiverDirection>::sse_decode(deserializer);
-        return crate::api::RtpHeaderExtensionCapability {
-            uri: var_uri,
-            preferred_id: var_preferredId,
-            preferred_encrypted: var_preferredEncrypted,
-            direction: var_direction,
-        };
-    }
-}
+impl SseDecode for crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability {
+                    // Codec=Sse (Serialization based), see doc to use other codecs
+                    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {let mut var_uri = <String>::sse_decode(deserializer);
+let mut var_preferredId = <Option<i32>>::sse_decode(deserializer);
+let mut var_preferredEncrypted = <bool>::sse_decode(deserializer);
+let mut var_direction = <crate::api::RtpTransceiverDirection>::sse_decode(deserializer);
+return crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability{uri: var_uri, preferred_id: var_preferredId, preferred_encrypted: var_preferredEncrypted, direction: var_direction};}
+                }
 
 impl SseDecode for crate::api::RtpTransceiverDirection {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -2447,47 +2414,49 @@ impl SseDecode for crate::api::RtpTransceiverInit {
     }
 }
 
-impl SseDecode for crate::api::ScalabilityMode {
+impl SseDecode
+    for crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(
         deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer,
     ) -> Self {
         let mut inner = <i32>::sse_decode(deserializer);
         return match inner {
-            0 => crate::api::ScalabilityMode::L1T1,
-            1 => crate::api::ScalabilityMode::L1T2,
-            2 => crate::api::ScalabilityMode::L1T3,
-            3 => crate::api::ScalabilityMode::L2T1,
-            4 => crate::api::ScalabilityMode::L2T1h,
-            5 => crate::api::ScalabilityMode::L2t1Key,
-            6 => crate::api::ScalabilityMode::L2T2,
-            7 => crate::api::ScalabilityMode::L2T2h,
-            8 => crate::api::ScalabilityMode::L2T2Key,
-            9 => crate::api::ScalabilityMode::L2T2KeyShift,
-            10 => crate::api::ScalabilityMode::L2T3,
-            11 => crate::api::ScalabilityMode::L2T3h,
-            12 => crate::api::ScalabilityMode::L2T3Key,
-            13 => crate::api::ScalabilityMode::L3T1,
-            14 => crate::api::ScalabilityMode::L3T1h,
-            15 => crate::api::ScalabilityMode::L3T1Key,
-            16 => crate::api::ScalabilityMode::L3T2,
-            17 => crate::api::ScalabilityMode::L3T2h,
-            18 => crate::api::ScalabilityMode::L3T2Key,
-            19 => crate::api::ScalabilityMode::L3T3,
-            20 => crate::api::ScalabilityMode::L3T3h,
-            21 => crate::api::ScalabilityMode::L3T3Key,
-            22 => crate::api::ScalabilityMode::S2T1,
-            23 => crate::api::ScalabilityMode::S2T1h,
-            24 => crate::api::ScalabilityMode::S2T2,
-            25 => crate::api::ScalabilityMode::S2T2h,
-            26 => crate::api::ScalabilityMode::S2T3,
-            27 => crate::api::ScalabilityMode::S2T3h,
-            28 => crate::api::ScalabilityMode::S3T1,
-            29 => crate::api::ScalabilityMode::S3T1h,
-            30 => crate::api::ScalabilityMode::S3T2,
-            31 => crate::api::ScalabilityMode::S3T2h,
-            32 => crate::api::ScalabilityMode::S3T3,
-            33 => crate::api::ScalabilityMode::S3T3h,
+            0 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L1T1,
+1 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L1T2,
+2 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L1T3,
+3 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T1,
+4 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T1h,
+5 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2t1Key,
+6 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T2,
+7 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T2h,
+8 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T2Key,
+9 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T2KeyShift,
+10 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T3,
+11 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T3h,
+12 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T3Key,
+13 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T1,
+14 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T1h,
+15 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T1Key,
+16 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T2,
+17 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T2h,
+18 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T2Key,
+19 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T3,
+20 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T3h,
+21 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T3Key,
+22 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T1,
+23 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T1h,
+24 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T2,
+25 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T2h,
+26 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T3,
+27 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T3h,
+28 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T1,
+29 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T1h,
+30 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T2,
+31 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T2h,
+32 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T3,
+33 => crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T3h,
             _ => unreachable!("Invalid variant for ScalabilityMode: {}", inner),
         };
     }
@@ -2800,13 +2769,13 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        18 => wire__crate__api__get_rtp_receiver_capabilities_impl(
+        18 => wire__crate__api__capability__get_rtp_receiver_capabilities_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        19 => wire__crate__api__get_rtp_sender_capabilities_impl(
+        19 => wire__crate__api__capability__get_rtp_sender_capabilities_impl(
             port,
             ptr,
             rust_vec_len,
@@ -2890,12 +2859,14 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        33 => wire__crate__api__set_codec_preferences_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
+        33 => {
+            wire__crate__api__capability__rtp_codec__set_codec_preferences_impl(
+                port,
+                ptr,
+                rust_vec_len,
+                data_len,
+            )
+        }
         34 => wire__crate__api__set_local_description_impl(
             port,
             ptr,
@@ -3945,7 +3916,9 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::RtcTrackEvent>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::RtcpFeedback {
+impl flutter_rust_bridge::IntoDart
+    for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback
+{
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.message_type.into_into_dart().into_dart(),
@@ -3955,40 +3928,41 @@ impl flutter_rust_bridge::IntoDart for crate::api::RtcpFeedback {
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::RtcpFeedback
+    for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::RtcpFeedback>
-    for crate::api::RtcpFeedback
+impl
+    flutter_rust_bridge::IntoIntoDart<
+        crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback,
+    > for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback
 {
-    fn into_into_dart(self) -> crate::api::RtcpFeedback {
+    fn into_into_dart(
+        self,
+    ) -> crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback {
         self
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::RtcpFeedbackMessageType {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        match self {
-            Self::GenericNACK => 0.into_dart(),
-            Self::Pli => 1.into_dart(),
-            Self::Fir => 2.into_dart(),
-            _ => unreachable!(),
+impl flutter_rust_bridge::IntoDart for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType {
+                fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+                    match self {
+                    Self::GenericNACK => 0.into_dart(),
+Self::Pli => 1.into_dart(),
+Self::Fir => 2.into_dart(),
+                    _ => unreachable!(),
+                }
+                }
+            }
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType> for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType {
+            fn into_into_dart(self) -> crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType {
+                self
+            }
         }
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::RtcpFeedbackMessageType
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::RtcpFeedbackMessageType>
-    for crate::api::RtcpFeedbackMessageType
-{
-    fn into_into_dart(self) -> crate::api::RtcpFeedbackMessageType {
-        self
-    }
-}
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::RtcpFeedbackType {
+impl flutter_rust_bridge::IntoDart
+    for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType
+{
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
             Self::Ccm => 0.into_dart(),
@@ -4001,18 +3975,23 @@ impl flutter_rust_bridge::IntoDart for crate::api::RtcpFeedbackType {
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::RtcpFeedbackType
+    for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::RtcpFeedbackType>
-    for crate::api::RtcpFeedbackType
+impl
+    flutter_rust_bridge::IntoIntoDart<
+        crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType,
+    > for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType
 {
-    fn into_into_dart(self) -> crate::api::RtcpFeedbackType {
+    fn into_into_dart(
+        self,
+    ) -> crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType
+    {
         self
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::RtpCapabilities {
+impl flutter_rust_bridge::IntoDart for crate::api::capability::RtpCapabilities {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.codecs.into_into_dart().into_dart(),
@@ -4022,18 +4001,20 @@ impl flutter_rust_bridge::IntoDart for crate::api::RtpCapabilities {
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::RtpCapabilities
+    for crate::api::capability::RtpCapabilities
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::RtpCapabilities>
-    for crate::api::RtpCapabilities
+impl flutter_rust_bridge::IntoIntoDart<crate::api::capability::RtpCapabilities>
+    for crate::api::capability::RtpCapabilities
 {
-    fn into_into_dart(self) -> crate::api::RtpCapabilities {
+    fn into_into_dart(self) -> crate::api::capability::RtpCapabilities {
         self
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::RtpCodecCapability {
+impl flutter_rust_bridge::IntoDart
+    for crate::api::capability::rtp_codec::RtpCodecCapability
+{
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.preferred_payload_type.into_into_dart().into_dart(),
@@ -4050,41 +4031,37 @@ impl flutter_rust_bridge::IntoDart for crate::api::RtpCodecCapability {
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::RtpCodecCapability
+    for crate::api::capability::rtp_codec::RtpCodecCapability
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::RtpCodecCapability>
-    for crate::api::RtpCodecCapability
+impl
+    flutter_rust_bridge::IntoIntoDart<
+        crate::api::capability::rtp_codec::RtpCodecCapability,
+    > for crate::api::capability::rtp_codec::RtpCodecCapability
 {
-    fn into_into_dart(self) -> crate::api::RtpCodecCapability {
+    fn into_into_dart(
+        self,
+    ) -> crate::api::capability::rtp_codec::RtpCodecCapability {
         self
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart
-    for crate::api::RtpHeaderExtensionCapability
-{
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.uri.into_into_dart().into_dart(),
-            self.preferred_id.into_into_dart().into_dart(),
-            self.preferred_encrypted.into_into_dart().into_dart(),
-            self.direction.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::RtpHeaderExtensionCapability
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::RtpHeaderExtensionCapability>
-    for crate::api::RtpHeaderExtensionCapability
-{
-    fn into_into_dart(self) -> crate::api::RtpHeaderExtensionCapability {
-        self
-    }
-}
+impl flutter_rust_bridge::IntoDart for crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability {
+                fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+                    [
+                    self.uri.into_into_dart().into_dart(),
+self.preferred_id.into_into_dart().into_dart(),
+self.preferred_encrypted.into_into_dart().into_dart(),
+self.direction.into_into_dart().into_dart()
+                ].into_dart()
+                }
+            }
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability> for crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability {
+            fn into_into_dart(self) -> crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability {
+                self
+            }
+        }
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::RtpTransceiverDirection {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -4131,7 +4108,9 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::RtpTransceiverInit>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::ScalabilityMode {
+impl flutter_rust_bridge::IntoDart
+    for crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode
+{
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
             Self::L1T1 => 0.into_dart(),
@@ -4173,13 +4152,18 @@ impl flutter_rust_bridge::IntoDart for crate::api::ScalabilityMode {
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::ScalabilityMode
+    for crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::ScalabilityMode>
-    for crate::api::ScalabilityMode
+impl
+    flutter_rust_bridge::IntoIntoDart<
+        crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode,
+    > for crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode
 {
-    fn into_into_dart(self) -> crate::api::ScalabilityMode {
+    fn into_into_dart(
+        self,
+    ) -> crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode
+    {
         self
     }
 }
@@ -4946,7 +4930,9 @@ impl SseEncode for Vec<crate::api::stats::RtcStats> {
     }
 }
 
-impl SseEncode for Vec<crate::api::RtcpFeedback> {
+impl SseEncode
+    for Vec<crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback>
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(
         self,
@@ -4954,12 +4940,12 @@ impl SseEncode for Vec<crate::api::RtcpFeedback> {
     ) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
-            <crate::api::RtcpFeedback>::sse_encode(item, serializer);
+            <crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback>::sse_encode(item, serializer);
         }
     }
 }
 
-impl SseEncode for Vec<crate::api::RtpCodecCapability> {
+impl SseEncode for Vec<crate::api::capability::rtp_codec::RtpCodecCapability> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(
         self,
@@ -4967,27 +4953,24 @@ impl SseEncode for Vec<crate::api::RtpCodecCapability> {
     ) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
-            <crate::api::RtpCodecCapability>::sse_encode(item, serializer);
-        }
-    }
-}
-
-impl SseEncode for Vec<crate::api::RtpHeaderExtensionCapability> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(
-        self,
-        serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
-    ) {
-        <i32>::sse_encode(self.len() as _, serializer);
-        for item in self {
-            <crate::api::RtpHeaderExtensionCapability>::sse_encode(
+            <crate::api::capability::rtp_codec::RtpCodecCapability>::sse_encode(
                 item, serializer,
             );
         }
     }
 }
 
-impl SseEncode for Vec<crate::api::ScalabilityMode> {
+impl SseEncode for Vec<crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability> {
+                    // Codec=Sse (Serialization based), see doc to use other codecs
+                    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {<i32>::sse_encode(self.len() as _, serializer);
+        for item in self { <crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability>::sse_encode(item, serializer); }}
+                }
+
+impl SseEncode
+    for Vec<
+        crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode,
+    >
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(
         self,
@@ -4995,7 +4978,7 @@ impl SseEncode for Vec<crate::api::ScalabilityMode> {
     ) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
-            <crate::api::ScalabilityMode>::sse_encode(item, serializer);
+            <crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode>::sse_encode(item, serializer);
         }
     }
 }
@@ -5258,20 +5241,13 @@ impl SseEncode for Option<crate::api::stats::rtc_inbound_rtp_stream_media_type::
                 }}
                 }
 
-impl SseEncode for Option<crate::api::RtcpFeedbackMessageType> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(
-        self,
-        serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
-    ) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <crate::api::RtcpFeedbackMessageType>::sse_encode(
-                value, serializer,
-            );
-        }
-    }
-}
+impl SseEncode for Option<crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType> {
+                    // Codec=Sse (Serialization based), see doc to use other codecs
+                    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {<bool>::sse_encode(self.is_some(), serializer);
+                if let Some(value) = self {
+                    <crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType>::sse_encode(value, serializer);
+                }}
+                }
 
 impl SseEncode for Option<u32> {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -5708,115 +5684,80 @@ impl SseEncode for crate::api::RtcTrackEvent {
     }
 }
 
-impl SseEncode for crate::api::RtcpFeedback {
+impl SseEncode
+    for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(
         self,
         serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
     ) {
-        <Option<crate::api::RtcpFeedbackMessageType>>::sse_encode(
-            self.message_type,
-            serializer,
-        );
-        <crate::api::RtcpFeedbackType>::sse_encode(self.kind, serializer);
+        <Option<crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType>>::sse_encode(self.message_type, serializer);
+        <crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType>::sse_encode(self.kind, serializer);
     }
 }
 
-impl SseEncode for crate::api::RtcpFeedbackMessageType {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(
-        self,
-        serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
-    ) {
-        <i32>::sse_encode(
-            match self {
-                crate::api::RtcpFeedbackMessageType::GenericNACK => 0,
-                crate::api::RtcpFeedbackMessageType::Pli => 1,
-                crate::api::RtcpFeedbackMessageType::Fir => 2,
-                _ => {
-                    unimplemented!("");
+impl SseEncode for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType {
+                    // Codec=Sse (Serialization based), see doc to use other codecs
+                    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {<i32>::sse_encode(match self {crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType::GenericNACK => { 0 }
+crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType::Pli => { 1 }
+crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackMessageType::Fir => { 2 }
+ _ => { unimplemented!(""); }}, serializer);}
                 }
-            },
-            serializer,
-        );
-    }
-}
 
-impl SseEncode for crate::api::RtcpFeedbackType {
+impl SseEncode
+    for crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(
         self,
         serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
     ) {
-        <i32>::sse_encode(
-            match self {
-                crate::api::RtcpFeedbackType::Ccm => 0,
-                crate::api::RtcpFeedbackType::Lntf => 1,
-                crate::api::RtcpFeedbackType::Nack => 2,
-                crate::api::RtcpFeedbackType::Remb => 3,
-                crate::api::RtcpFeedbackType::TransportCC => 4,
-                _ => {
-                    unimplemented!("");
-                }
-            },
-            serializer,
-        );
+        <i32>::sse_encode(match self {crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType::Ccm => { 0 }
+crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType::Lntf => { 1 }
+crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType::Nack => { 2 }
+crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType::Remb => { 3 }
+crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedbackType::TransportCC => { 4 }
+ _ => { unimplemented!(""); }}, serializer);
     }
 }
 
-impl SseEncode for crate::api::RtpCapabilities {
+impl SseEncode for crate::api::capability::RtpCapabilities {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(
         self,
         serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
     ) {
-        <Vec<crate::api::RtpCodecCapability>>::sse_encode(
-            self.codecs,
-            serializer,
-        );
-        <Vec<crate::api::RtpHeaderExtensionCapability>>::sse_encode(
-            self.header_extensions,
-            serializer,
-        );
+        <Vec<crate::api::capability::rtp_codec::RtpCodecCapability>>::sse_encode(self.codecs, serializer);
+        <Vec<crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability>>::sse_encode(self.header_extensions, serializer);
     }
 }
 
-impl SseEncode for crate::api::RtpCodecCapability {
+impl SseEncode for crate::api::capability::rtp_codec::RtpCodecCapability {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(
         self,
         serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
     ) {
         <Option<i32>>::sse_encode(self.preferred_payload_type, serializer);
-        <Vec<crate::api::ScalabilityMode>>::sse_encode(
-            self.scalability_modes,
-            serializer,
-        );
+        <Vec<crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode>>::sse_encode(self.scalability_modes, serializer);
         <String>::sse_encode(self.mime_type, serializer);
         <String>::sse_encode(self.name, serializer);
         <crate::api::MediaType>::sse_encode(self.kind, serializer);
         <Option<i32>>::sse_encode(self.clock_rate, serializer);
         <Option<i32>>::sse_encode(self.num_channels, serializer);
         <Vec<(String, String)>>::sse_encode(self.parameters, serializer);
-        <Vec<crate::api::RtcpFeedback>>::sse_encode(self.feedback, serializer);
+        <Vec<crate::api::capability::rtp_codec::rtcp_feedback::RtcpFeedback>>::sse_encode(self.feedback, serializer);
     }
 }
 
-impl SseEncode for crate::api::RtpHeaderExtensionCapability {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(
-        self,
-        serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
-    ) {
-        <String>::sse_encode(self.uri, serializer);
-        <Option<i32>>::sse_encode(self.preferred_id, serializer);
-        <bool>::sse_encode(self.preferred_encrypted, serializer);
-        <crate::api::RtpTransceiverDirection>::sse_encode(
-            self.direction,
-            serializer,
-        );
-    }
-}
+impl SseEncode for crate::api::capability::rtp_header_extension_capability::RtpHeaderExtensionCapability {
+                    // Codec=Sse (Serialization based), see doc to use other codecs
+                    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {<String>::sse_encode(self.uri, serializer);
+<Option<i32>>::sse_encode(self.preferred_id, serializer);
+<bool>::sse_encode(self.preferred_encrypted, serializer);
+<crate::api::RtpTransceiverDirection>::sse_encode(self.direction, serializer);}
+                }
 
 impl SseEncode for crate::api::RtpTransceiverDirection {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -5857,54 +5798,49 @@ impl SseEncode for crate::api::RtpTransceiverInit {
     }
 }
 
-impl SseEncode for crate::api::ScalabilityMode {
+impl SseEncode
+    for crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(
         self,
         serializer: &mut flutter_rust_bridge::for_generated::SseSerializer,
     ) {
-        <i32>::sse_encode(
-            match self {
-                crate::api::ScalabilityMode::L1T1 => 0,
-                crate::api::ScalabilityMode::L1T2 => 1,
-                crate::api::ScalabilityMode::L1T3 => 2,
-                crate::api::ScalabilityMode::L2T1 => 3,
-                crate::api::ScalabilityMode::L2T1h => 4,
-                crate::api::ScalabilityMode::L2t1Key => 5,
-                crate::api::ScalabilityMode::L2T2 => 6,
-                crate::api::ScalabilityMode::L2T2h => 7,
-                crate::api::ScalabilityMode::L2T2Key => 8,
-                crate::api::ScalabilityMode::L2T2KeyShift => 9,
-                crate::api::ScalabilityMode::L2T3 => 10,
-                crate::api::ScalabilityMode::L2T3h => 11,
-                crate::api::ScalabilityMode::L2T3Key => 12,
-                crate::api::ScalabilityMode::L3T1 => 13,
-                crate::api::ScalabilityMode::L3T1h => 14,
-                crate::api::ScalabilityMode::L3T1Key => 15,
-                crate::api::ScalabilityMode::L3T2 => 16,
-                crate::api::ScalabilityMode::L3T2h => 17,
-                crate::api::ScalabilityMode::L3T2Key => 18,
-                crate::api::ScalabilityMode::L3T3 => 19,
-                crate::api::ScalabilityMode::L3T3h => 20,
-                crate::api::ScalabilityMode::L3T3Key => 21,
-                crate::api::ScalabilityMode::S2T1 => 22,
-                crate::api::ScalabilityMode::S2T1h => 23,
-                crate::api::ScalabilityMode::S2T2 => 24,
-                crate::api::ScalabilityMode::S2T2h => 25,
-                crate::api::ScalabilityMode::S2T3 => 26,
-                crate::api::ScalabilityMode::S2T3h => 27,
-                crate::api::ScalabilityMode::S3T1 => 28,
-                crate::api::ScalabilityMode::S3T1h => 29,
-                crate::api::ScalabilityMode::S3T2 => 30,
-                crate::api::ScalabilityMode::S3T2h => 31,
-                crate::api::ScalabilityMode::S3T3 => 32,
-                crate::api::ScalabilityMode::S3T3h => 33,
-                _ => {
-                    unimplemented!("");
-                }
-            },
-            serializer,
-        );
+        <i32>::sse_encode(match self {crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L1T1 => { 0 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L1T2 => { 1 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L1T3 => { 2 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T1 => { 3 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T1h => { 4 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2t1Key => { 5 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T2 => { 6 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T2h => { 7 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T2Key => { 8 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T2KeyShift => { 9 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T3 => { 10 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T3h => { 11 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L2T3Key => { 12 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T1 => { 13 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T1h => { 14 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T1Key => { 15 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T2 => { 16 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T2h => { 17 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T2Key => { 18 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T3 => { 19 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T3h => { 20 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::L3T3Key => { 21 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T1 => { 22 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T1h => { 23 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T2 => { 24 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T2h => { 25 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T3 => { 26 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S2T3h => { 27 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T1 => { 28 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T1h => { 29 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T2 => { 30 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T2h => { 31 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T3 => { 32 }
+crate::api::capability::rtp_codec::scalability_mode::ScalabilityMode::S3T3h => { 33 }
+ _ => { unimplemented!(""); }}, serializer);
     }
 }
 
