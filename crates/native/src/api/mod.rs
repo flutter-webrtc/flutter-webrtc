@@ -3,6 +3,7 @@
 pub mod capability;
 pub mod media_info;
 pub mod media_stream_track;
+pub mod rtc_rtp_encoding_parameters;
 pub mod stats;
 
 use std::{
@@ -33,6 +34,7 @@ pub use self::{
         set_audio_level_observer_enabled, set_track_enabled, track_height,
         track_state, track_width, update_audio_processing,
     },
+    rtc_rtp_encoding_parameters::RtcRtpEncodingParameters,
     stats::{
         CandidateType, IceCandidateStats, IceRole, Protocol,
         RtcIceCandidateStats, RtcInboundRtpStreamMediaType,
@@ -595,48 +597,6 @@ pub struct AudioProcessingConstraints {
     /// Indicator whether echo cancellation should be enabled to prevent
     /// feedback.
     pub echo_cancellation: Option<bool>,
-}
-
-/// Representation of [RTCRtpEncodingParameters][0].
-///
-/// [0]: https://w3.org/TR/webrtc#rtcrtpencodingparameters
-pub struct RtcRtpEncodingParameters {
-    /// [RTP stream ID (RID)][0] to be sent using the RID header extension.
-    ///
-    /// [0]: https://w3.org/TR/webrtc#dom-rtcrtpcodingparameters-rid
-    pub rid: String,
-
-    /// Indicator whether the described [`RtcRtpEncodingParameters`] are
-    /// currently actively being used.
-    pub active: bool,
-
-    /// Maximum number of bits per second to allow for these
-    /// [`RtcRtpEncodingParameters`].
-    pub max_bitrate: Option<i32>,
-
-    /// Maximum number of frames per second to allow for these
-    /// [`RtcRtpEncodingParameters`].
-    pub max_framerate: Option<f64>,
-
-    /// Factor for scaling down the video with these
-    /// [`RtcRtpEncodingParameters`].
-    pub scale_resolution_down_by: Option<f64>,
-
-    /// Scalability mode describing layers within the media stream.
-    pub scalability_mode: Option<String>,
-}
-
-impl From<&sys::RtpEncodingParameters> for RtcRtpEncodingParameters {
-    fn from(sys: &sys::RtpEncodingParameters) -> Self {
-        Self {
-            rid: sys.rid(),
-            active: sys.active(),
-            max_bitrate: sys.max_bitrate(),
-            max_framerate: sys.max_framerate(),
-            scale_resolution_down_by: sys.scale_resolution_down_by(),
-            scalability_mode: sys.scalability_mode(),
-        }
-    }
 }
 
 /// Representation of an [RTCRtpTransceiverInit][0].
