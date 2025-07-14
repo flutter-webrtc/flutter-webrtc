@@ -6,6 +6,7 @@ pub mod media_stream_track;
 pub mod rtc_rtp_encoding_parameters;
 pub mod rtc_rtp_send_parameters;
 pub mod stats;
+pub mod transceiver;
 
 use std::{
     sync::{
@@ -42,6 +43,12 @@ pub use self::{
         RtcIceCandidateStats, RtcInboundRtpStreamMediaType,
         RtcMediaSourceStatsMediaType, RtcOutboundRtpStreamStatsMediaType,
         RtcStats, RtcStatsIceCandidatePairState, RtcStatsType, get_peer_stats,
+    },
+    transceiver::{
+        RtcRtpTransceiver, RtpTransceiverDirection, RtpTransceiverInit,
+        add_transceiver, get_transceiver_direction, get_transceiver_mid,
+        get_transceivers, set_transceiver_direction, set_transceiver_recv,
+        set_transceiver_send, stop_transceiver,
     },
 };
 // Re-exporting since it is used in the generated code.
@@ -387,85 +394,6 @@ impl From<sys::PeerConnectionState> for PeerConnectionState {
     }
 }
 
-/// [RTCRtpTransceiverDirection][1] representation.
-///
-/// [1]: https://w3.org/TR/webrtc#dom-rtcrtptransceiverdirection
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RtpTransceiverDirection {
-    /// The [RTCRtpTransceiver]'s [RTCRtpSender] will offer to send RTP, and
-    /// will send RTP if the remote peer accepts. The [RTCRtpTransceiver]'s
-    /// [RTCRtpReceiver] will offer to receive RTP, and will receive RTP if the
-    /// remote peer accepts.
-    ///
-    /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-    /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-    /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-    SendRecv,
-
-    /// The [RTCRtpTransceiver]'s [RTCRtpSender] will offer to send RTP, and
-    /// will send RTP if the remote peer accepts. The [RTCRtpTransceiver]'s
-    /// [RTCRtpReceiver] will not offer to receive RTP, and will not receive
-    /// RTP.
-    ///
-    /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-    /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-    /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-    SendOnly,
-
-    /// The [RTCRtpTransceiver]'s [RTCRtpSender] will not offer to send RTP,
-    /// and will not send RTP. The [RTCRtpTransceiver]'s [RTCRtpReceiver] will
-    /// offer to receive RTP, and will receive RTP if the remote peer accepts.
-    ///
-    /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-    /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-    /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-    RecvOnly,
-
-    /// The [RTCRtpTransceiver]'s [RTCRtpSender] will not offer to send RTP,
-    /// and will not send RTP. The [RTCRtpTransceiver]'s [RTCRtpReceiver] will
-    /// not offer to receive RTP, and will not receive RTP.
-    ///
-    /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-    /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-    /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-    Inactive,
-
-    /// The [RTCRtpTransceiver] will neither send nor receive RTP. It will
-    /// generate a zero port in the offer. In answers, its [RTCRtpSender] will
-    /// not offer to send RTP, and its [RTCRtpReceiver] will not offer to
-    /// receive RTP. This is a terminal state.
-    ///
-    /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-    /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-    /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-    Stopped,
-}
-
-impl From<sys::RtpTransceiverDirection> for RtpTransceiverDirection {
-    fn from(state: sys::RtpTransceiverDirection) -> Self {
-        match state {
-            sys::RtpTransceiverDirection::kSendRecv => Self::SendRecv,
-            sys::RtpTransceiverDirection::kSendOnly => Self::SendOnly,
-            sys::RtpTransceiverDirection::kRecvOnly => Self::RecvOnly,
-            sys::RtpTransceiverDirection::kInactive => Self::Inactive,
-            sys::RtpTransceiverDirection::kStopped => Self::Stopped,
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl From<RtpTransceiverDirection> for sys::RtpTransceiverDirection {
-    fn from(state: RtpTransceiverDirection) -> Self {
-        match state {
-            RtpTransceiverDirection::SendRecv => Self::kSendRecv,
-            RtpTransceiverDirection::SendOnly => Self::kSendOnly,
-            RtpTransceiverDirection::RecvOnly => Self::kRecvOnly,
-            RtpTransceiverDirection::Inactive => Self::kInactive,
-            RtpTransceiverDirection::Stopped => Self::kStopped,
-        }
-    }
-}
-
 /// [RTCSdpType] representation.
 ///
 /// [RTCSdpType]: https://w3.org/TR/webrtc#dom-rtcsdptype
@@ -599,48 +527,6 @@ pub struct AudioProcessingConstraints {
     /// Indicator whether echo cancellation should be enabled to prevent
     /// feedback.
     pub echo_cancellation: Option<bool>,
-}
-
-/// Representation of an [RTCRtpTransceiverInit][0].
-///
-/// [0]: https://w3.org/TR/webrtc#dom-rtcrtptransceiverinit
-pub struct RtpTransceiverInit {
-    /// Direction of the [RTCRtpTransceiver].
-    ///
-    /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-    pub direction: RtpTransceiverDirection,
-
-    /// Sequence containing parameters for sending [RTP] encodings of media.
-    ///
-    /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
-    pub send_encodings: Vec<RtcRtpEncodingParameters>,
-}
-
-/// Representation of a permanent pair of an [RTCRtpSender] and an
-/// [RTCRtpReceiver], along with some shared state.
-///
-/// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-/// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-#[derive(Clone)]
-pub struct RtcRtpTransceiver {
-    /// [`PeerConnection`] that this [`RtcRtpTransceiver`] belongs to.
-    pub peer: RustOpaque<Arc<PeerConnection>>,
-
-    /// Rust side [`RtpTransceiver`].
-    pub transceiver: RustOpaque<Arc<RtpTransceiver>>,
-
-    /// [Negotiated media ID (mid)][1] which the local and remote peers have
-    /// agreed upon to uniquely identify the [MediaStream]'s pairing of sender
-    /// and receiver.
-    ///
-    /// [MediaStream]: https://w3.org/TR/mediacapture-streams#dom-mediastream
-    /// [1]: https://w3.org/TR/webrtc#dfn-media-stream-identification-tag
-    pub mid: Option<String>,
-
-    /// Preferred [`direction`][1] of this [`RtcRtpTransceiver`].
-    ///
-    /// [1]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver-direction
-    pub direction: RtpTransceiverDirection,
 }
 
 /// Representation of a track event, sent when a new [`MediaStreamTrack`] is
@@ -949,86 +835,6 @@ pub fn set_remote_description(
     sdp: String,
 ) -> anyhow::Result<()> {
     peer.set_remote_description(kind.into(), &sdp)
-}
-
-/// Creates a new [`RtcRtpTransceiver`] and adds it to the set of transceivers
-/// of the specified [`PeerConnection`].
-pub fn add_transceiver(
-    peer: RustOpaque<Arc<PeerConnection>>,
-    media_type: MediaType,
-    init: RtpTransceiverInit,
-) -> anyhow::Result<RtcRtpTransceiver> {
-    PeerConnection::add_transceiver(peer, media_type.into(), init)
-}
-
-/// Returns a sequence of [`RtcRtpTransceiver`] objects representing the RTP
-/// transceivers currently attached to the specified [`PeerConnection`].
-#[expect(clippy::needless_pass_by_value, reason = "FFI")]
-#[must_use]
-pub fn get_transceivers(
-    peer: RustOpaque<Arc<PeerConnection>>,
-) -> Vec<RtcRtpTransceiver> {
-    Webrtc::get_transceivers(&peer)
-}
-
-/// Changes the preferred `direction` of the specified [`RtcRtpTransceiver`].
-#[expect(clippy::needless_pass_by_value, reason = "FFI")]
-pub fn set_transceiver_direction(
-    transceiver: RustOpaque<Arc<RtpTransceiver>>,
-    direction: RtpTransceiverDirection,
-) -> anyhow::Result<()> {
-    transceiver.set_direction(direction)
-}
-
-/// Changes the receive direction of the specified [`RtcRtpTransceiver`].
-#[expect(clippy::needless_pass_by_value, reason = "FFI")]
-pub fn set_transceiver_recv(
-    transceiver: RustOpaque<Arc<RtpTransceiver>>,
-    recv: bool,
-) -> anyhow::Result<()> {
-    transceiver.set_recv(recv)
-}
-
-/// Changes the send direction of the specified [`RtcRtpTransceiver`].
-#[expect(clippy::needless_pass_by_value, reason = "FFI")]
-pub fn set_transceiver_send(
-    transceiver: RustOpaque<Arc<RtpTransceiver>>,
-    send: bool,
-) -> anyhow::Result<()> {
-    transceiver.set_send(send)
-}
-
-/// Returns the [negotiated media ID (mid)][1] of the specified
-/// [`RtcRtpTransceiver`].
-///
-/// [1]: https://w3.org/TR/webrtc#dfn-media-stream-identification-tag
-#[expect(clippy::needless_pass_by_value, reason = "FFI")]
-#[must_use]
-pub fn get_transceiver_mid(
-    transceiver: RustOpaque<Arc<RtpTransceiver>>,
-) -> Option<String> {
-    transceiver.mid()
-}
-
-/// Returns the preferred direction of the specified [`RtcRtpTransceiver`].
-#[expect(clippy::needless_pass_by_value, reason = "FFI")]
-#[must_use]
-pub fn get_transceiver_direction(
-    transceiver: RustOpaque<Arc<RtpTransceiver>>,
-) -> RtpTransceiverDirection {
-    transceiver.direction().into()
-}
-
-/// Irreversibly marks the specified [`RtcRtpTransceiver`] as stopping, unless
-/// it's already stopped.
-///
-/// This will immediately cause the transceiver's sender to no longer send, and
-/// its receiver to no longer receive.
-#[expect(clippy::needless_pass_by_value, reason = "FFI")]
-pub fn stop_transceiver(
-    transceiver: RustOpaque<Arc<RtpTransceiver>>,
-) -> anyhow::Result<()> {
-    transceiver.stop()
 }
 
 /// Replaces the specified [`AudioTrack`] (or [`VideoTrack`]) on the

@@ -5,13 +5,13 @@
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-import '../api.dart';
 import '../frb_generated.dart';
 import 'capability/rtp_codec.dart';
 import 'capability/rtp_codec/rtcp_feedback.dart';
 import 'capability/rtp_codec/scalability_mode.dart';
 import 'capability/rtp_header_extension_capability.dart';
 import 'media_stream_track/media_type.dart';
+import 'transceiver/direction.dart';
 
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `from`
 

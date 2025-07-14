@@ -12,13 +12,15 @@ import 'api/media_stream_track/audio_processing_config.dart';
 import 'api/media_stream_track/media_type.dart';
 import 'api/rtc_rtp_encoding_parameters.dart';
 import 'api/rtc_rtp_send_parameters.dart';
+import 'api/transceiver.dart';
+import 'api/transceiver/direction.dart';
 import 'frb_generated.dart';
 import 'lib.dart';
 
 part 'api.freezed.dart';
 
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `TrackKind`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Returns all [`VideoCodecInfo`]s of the supported video encoders.
 Future<List<VideoCodecInfo>> videoEncoders() =>
@@ -103,73 +105,6 @@ Future<void> setRemoteDescription({
   kind: kind,
   sdp: sdp,
 );
-
-/// Creates a new [`RtcRtpTransceiver`] and adds it to the set of transceivers
-/// of the specified [`PeerConnection`].
-Future<RtcRtpTransceiver> addTransceiver({
-  required ArcPeerConnection peer,
-  required MediaType mediaType,
-  required RtpTransceiverInit init,
-}) => RustLib.instance.api.crateApiAddTransceiver(
-  peer: peer,
-  mediaType: mediaType,
-  init: init,
-);
-
-/// Returns a sequence of [`RtcRtpTransceiver`] objects representing the RTP
-/// transceivers currently attached to the specified [`PeerConnection`].
-Future<List<RtcRtpTransceiver>> getTransceivers({
-  required ArcPeerConnection peer,
-}) => RustLib.instance.api.crateApiGetTransceivers(peer: peer);
-
-/// Changes the preferred `direction` of the specified [`RtcRtpTransceiver`].
-Future<void> setTransceiverDirection({
-  required ArcRtpTransceiver transceiver,
-  required RtpTransceiverDirection direction,
-}) => RustLib.instance.api.crateApiSetTransceiverDirection(
-  transceiver: transceiver,
-  direction: direction,
-);
-
-/// Changes the receive direction of the specified [`RtcRtpTransceiver`].
-Future<void> setTransceiverRecv({
-  required ArcRtpTransceiver transceiver,
-  required bool recv,
-}) => RustLib.instance.api.crateApiSetTransceiverRecv(
-  transceiver: transceiver,
-  recv: recv,
-);
-
-/// Changes the send direction of the specified [`RtcRtpTransceiver`].
-Future<void> setTransceiverSend({
-  required ArcRtpTransceiver transceiver,
-  required bool send,
-}) => RustLib.instance.api.crateApiSetTransceiverSend(
-  transceiver: transceiver,
-  send: send,
-);
-
-/// Returns the [negotiated media ID (mid)][1] of the specified
-/// [`RtcRtpTransceiver`].
-///
-/// [1]: https://w3.org/TR/webrtc#dfn-media-stream-identification-tag
-Future<String?> getTransceiverMid({required ArcRtpTransceiver transceiver}) =>
-    RustLib.instance.api.crateApiGetTransceiverMid(transceiver: transceiver);
-
-/// Returns the preferred direction of the specified [`RtcRtpTransceiver`].
-Future<RtpTransceiverDirection> getTransceiverDirection({
-  required ArcRtpTransceiver transceiver,
-}) => RustLib.instance.api.crateApiGetTransceiverDirection(
-  transceiver: transceiver,
-);
-
-/// Irreversibly marks the specified [`RtcRtpTransceiver`] as stopping, unless
-/// it's already stopped.
-///
-/// This will immediately cause the transceiver's sender to no longer send, and
-/// its receiver to no longer receive.
-Future<void> stopTransceiver({required ArcRtpTransceiver transceiver}) =>
-    RustLib.instance.api.crateApiStopTransceiver(transceiver: transceiver);
 
 /// Replaces the specified [`AudioTrack`] (or [`VideoTrack`]) on the
 /// [`sys::RtpTransceiverInterface`]'s `sender`.
@@ -685,53 +620,6 @@ class RtcIceServer {
           credential == other.credential;
 }
 
-/// Representation of a permanent pair of an [RTCRtpSender] and an
-/// [RTCRtpReceiver], along with some shared state.
-///
-/// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-/// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-class RtcRtpTransceiver {
-  /// [`PeerConnection`] that this [`RtcRtpTransceiver`] belongs to.
-  final ArcPeerConnection peer;
-
-  /// Rust side [`RtpTransceiver`].
-  final ArcRtpTransceiver transceiver;
-
-  /// [Negotiated media ID (mid)][1] which the local and remote peers have
-  /// agreed upon to uniquely identify the [MediaStream]'s pairing of sender
-  /// and receiver.
-  ///
-  /// [MediaStream]: https://w3.org/TR/mediacapture-streams#dom-mediastream
-  /// [1]: https://w3.org/TR/webrtc#dfn-media-stream-identification-tag
-  final String? mid;
-
-  /// Preferred [`direction`][1] of this [`RtcRtpTransceiver`].
-  ///
-  /// [1]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver-direction
-  final RtpTransceiverDirection direction;
-
-  const RtcRtpTransceiver({
-    required this.peer,
-    required this.transceiver,
-    this.mid,
-    required this.direction,
-  });
-
-  @override
-  int get hashCode =>
-      peer.hashCode ^ transceiver.hashCode ^ mid.hashCode ^ direction.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RtcRtpTransceiver &&
-          runtimeType == other.runtimeType &&
-          peer == other.peer &&
-          transceiver == other.transceiver &&
-          mid == other.mid &&
-          direction == other.direction;
-}
-
 /// [RTCSessionDescription] representation.
 ///
 /// [RTCSessionDescription]: https://w3.org/TR/webrtc#dom-rtcsessiondescription
@@ -780,90 +668,6 @@ class RtcTrackEvent {
           runtimeType == other.runtimeType &&
           track == other.track &&
           transceiver == other.transceiver;
-}
-
-/// [RTCRtpTransceiverDirection][1] representation.
-///
-/// [1]: https://w3.org/TR/webrtc#dom-rtcrtptransceiverdirection
-enum RtpTransceiverDirection {
-  /// The [RTCRtpTransceiver]'s [RTCRtpSender] will offer to send RTP, and
-  /// will send RTP if the remote peer accepts. The [RTCRtpTransceiver]'s
-  /// [RTCRtpReceiver] will offer to receive RTP, and will receive RTP if the
-  /// remote peer accepts.
-  ///
-  /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-  /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-  /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-  sendRecv,
-
-  /// The [RTCRtpTransceiver]'s [RTCRtpSender] will offer to send RTP, and
-  /// will send RTP if the remote peer accepts. The [RTCRtpTransceiver]'s
-  /// [RTCRtpReceiver] will not offer to receive RTP, and will not receive
-  /// RTP.
-  ///
-  /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-  /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-  /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-  sendOnly,
-
-  /// The [RTCRtpTransceiver]'s [RTCRtpSender] will not offer to send RTP,
-  /// and will not send RTP. The [RTCRtpTransceiver]'s [RTCRtpReceiver] will
-  /// offer to receive RTP, and will receive RTP if the remote peer accepts.
-  ///
-  /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-  /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-  /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-  recvOnly,
-
-  /// The [RTCRtpTransceiver]'s [RTCRtpSender] will not offer to send RTP,
-  /// and will not send RTP. The [RTCRtpTransceiver]'s [RTCRtpReceiver] will
-  /// not offer to receive RTP, and will not receive RTP.
-  ///
-  /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-  /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-  /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-  inactive,
-
-  /// The [RTCRtpTransceiver] will neither send nor receive RTP. It will
-  /// generate a zero port in the offer. In answers, its [RTCRtpSender] will
-  /// not offer to send RTP, and its [RTCRtpReceiver] will not offer to
-  /// receive RTP. This is a terminal state.
-  ///
-  /// [RTCRtpReceiver]: https://w3.org/TR/webrtc#dom-rtcrtpreceiver
-  /// [RTCRtpSender]: https://w3.org/TR/webrtc#dom-rtcrtpsender
-  /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-  stopped,
-}
-
-/// Representation of an [RTCRtpTransceiverInit][0].
-///
-/// [0]: https://w3.org/TR/webrtc#dom-rtcrtptransceiverinit
-class RtpTransceiverInit {
-  /// Direction of the [RTCRtpTransceiver].
-  ///
-  /// [RTCRtpTransceiver]: https://w3.org/TR/webrtc#dom-rtcrtptransceiver
-  final RtpTransceiverDirection direction;
-
-  /// Sequence containing parameters for sending [RTP] encodings of media.
-  ///
-  /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
-  final List<RtcRtpEncodingParameters> sendEncodings;
-
-  const RtpTransceiverInit({
-    required this.direction,
-    required this.sendEncodings,
-  });
-
-  @override
-  int get hashCode => direction.hashCode ^ sendEncodings.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RtpTransceiverInit &&
-          runtimeType == other.runtimeType &&
-          direction == other.direction &&
-          sendEncodings == other.sendEncodings;
 }
 
 /// [RTCSdpType] representation.

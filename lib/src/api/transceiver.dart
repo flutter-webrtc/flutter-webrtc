@@ -2,9 +2,10 @@ import 'package:flutter/services.dart';
 
 import 'package:medea_flutter_webrtc/src/model/capability.dart';
 import '/src/model/transceiver.dart';
-import 'bridge/api.dart' as ffi;
 import 'bridge/api/capability/rtp_codec.dart' as ffi;
 import 'bridge/api/media_stream_track/media_type.dart' as ffi;
+import 'bridge/api/transceiver.dart' as ffi;
+import 'bridge/api/transceiver/direction.dart' as ffi;
 import 'bridge/lib.dart';
 import 'channel.dart';
 import 'sender.dart';
