@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-import 'bridge/api.dart' as ffi;
+import 'bridge/api/rtc_rtp_send_parameters.dart' as ffi;
 import 'bridge/lib.dart' as ffi_ty;
 import 'send_encoding_parameters.dart';
 

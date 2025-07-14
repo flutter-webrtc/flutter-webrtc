@@ -11,13 +11,14 @@ import 'api/media_stream_track.dart';
 import 'api/media_stream_track/audio_processing_config.dart';
 import 'api/media_stream_track/media_type.dart';
 import 'api/rtc_rtp_encoding_parameters.dart';
+import 'api/rtc_rtp_send_parameters.dart';
 import 'frb_generated.dart';
 import 'lib.dart';
 
 part 'api.freezed.dart';
 
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `TrackKind`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Returns all [`VideoCodecInfo`]s of the supported video encoders.
 Future<List<VideoCodecInfo>> videoEncoders() =>
@@ -682,32 +683,6 @@ class RtcIceServer {
           urls == other.urls &&
           username == other.username &&
           credential == other.credential;
-}
-
-/// Representation of [RTCRtpSendParameters][0].
-///
-/// [0]: https://w3.org/TR/webrtc#dom-rtcrtpsendparameters
-class RtcRtpSendParameters {
-  /// Sequence containing parameters for sending [RTP] encodings of media.
-  ///
-  /// [RTP]: https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
-  final List<(RtcRtpEncodingParameters, ArcRtpEncodingParameters)> encodings;
-
-  /// Reference to the Rust side [`RtpParameters`].
-  final ArcRtpParameters inner;
-
-  const RtcRtpSendParameters({required this.encodings, required this.inner});
-
-  @override
-  int get hashCode => encodings.hashCode ^ inner.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RtcRtpSendParameters &&
-          runtimeType == other.runtimeType &&
-          encodings == other.encodings &&
-          inner == other.inner;
 }
 
 /// Representation of a permanent pair of an [RTCRtpSender] and an
