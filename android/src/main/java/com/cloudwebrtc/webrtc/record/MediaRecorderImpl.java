@@ -57,8 +57,10 @@ public class MediaRecorderImpl {
             audioInterceptor.detachCallback(id);
         if (videoTrack != null && videoFileRenderer != null) {
             videoTrack.removeSink(videoFileRenderer);
-            videoFileRenderer.release();
-            videoFileRenderer = null;
+            new Thread(() -> {
+                videoFileRenderer.release();
+                videoFileRenderer = null;
+            }).start();
         }
     }
 
