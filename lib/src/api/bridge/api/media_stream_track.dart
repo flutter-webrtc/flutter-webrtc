@@ -6,9 +6,11 @@
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 
-import '../api.dart';
 import '../frb_generated.dart';
 import '../renderer.dart';
+import 'media/constraints.dart';
+import 'media/constraints/audio.dart';
+import 'media/constraints/video.dart';
 import 'media_stream_track/audio_processing_config.dart';
 import 'media_stream_track/media_type.dart';
 import 'media_stream_track/track_event.dart';

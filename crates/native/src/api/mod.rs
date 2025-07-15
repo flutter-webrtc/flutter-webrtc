@@ -1,6 +1,7 @@
 //! API surface and implementation for Flutter.
 
 pub mod capability;
+pub mod media;
 pub mod media_info;
 pub mod media_stream_track;
 pub mod peer;
@@ -12,10 +13,7 @@ pub mod transceiver;
 #[cfg(doc)]
 use std::sync::mpsc;
 use std::{
-    sync::{
-        Arc, LazyLock, Mutex,
-        atomic::{AtomicBool, Ordering},
-    },
+    sync::{Arc, LazyLock, Mutex},
     time::Duration,
 };
 
@@ -28,6 +26,13 @@ pub use self::{
         RtpCapabilities, RtpCodecCapability, RtpHeaderExtensionCapability,
         ScalabilityMode, get_rtp_receiver_capabilities,
         get_rtp_sender_capabilities, set_codec_preferences,
+    },
+    media::{
+        AudioConstraints, AudioProcessingConstraints, MediaStreamConstraints,
+        VideoConstraints, enable_fake_media, enumerate_devices,
+        enumerate_displays, is_fake_media, microphone_volume,
+        microphone_volume_is_available, set_audio_playout_device,
+        set_microphone_volume, set_on_device_changed,
     },
     media_info::{MediaDeviceInfo, MediaDeviceKind, MediaDisplayInfo},
     media_stream_track::{
@@ -68,11 +73,9 @@ pub use crate::{
     renderer::TextureEvent,
 };
 use crate::{
-    Webrtc, devices,
+    Webrtc,
     frb::{FrbHandler, new_frb_handler},
-    frb_generated::{
-        FLUTTER_RUST_BRIDGE_CODEGEN_VERSION, RustOpaque, StreamSink,
-    },
+    frb_generated::{FLUTTER_RUST_BRIDGE_CODEGEN_VERSION, RustOpaque},
 };
 
 /// Custom [`Handler`] for executing Rust code called from Dart.
@@ -100,9 +103,6 @@ pub(crate) static WEBRTC: LazyLock<Mutex<Webrtc>> =
 /// Timeout for [`mpsc::Receiver::recv_timeout()`] operations.
 pub static RX_TIMEOUT: Duration = Duration::from_secs(5);
 
-/// Indicator whether application is configured to use fake media devices.
-static FAKE_MEDIA: AtomicBool = AtomicBool::new(false);
-
 /// [MediaStreamTrack.kind][1] representation.
 ///
 /// [1]: https://w3.org/TR/mediacapture-streams#dfn-kind
@@ -122,104 +122,6 @@ impl From<sys::TrackKind> for TrackKind {
             sys::TrackKind::Video => Self::Video,
         }
     }
-}
-
-/// [MediaStreamConstraints], used to instruct what sort of
-/// [`MediaStreamTrack`]s to return by the [`Webrtc::get_media()`].
-///
-/// [1]: https://w3.org/TR/mediacapture-streams#dom-mediastreamconstraints
-#[derive(Debug)]
-pub struct MediaStreamConstraints {
-    /// Specifies the nature and settings of the audio [`MediaStreamTrack`].
-    pub audio: Option<AudioConstraints>,
-
-    /// Specifies the nature and settings of the video [`MediaStreamTrack`].
-    pub video: Option<VideoConstraints>,
-}
-
-/// Nature and settings of the video [`MediaStreamTrack`] returned by
-/// [`Webrtc::get_media()`].
-#[derive(Debug)]
-pub struct VideoConstraints {
-    /// Identifier of the device generating the content of the
-    /// [`MediaStreamTrack`].
-    ///
-    /// The first device will be chosen if an empty [`String`] is provided.
-    pub device_id: Option<String>,
-
-    /// Width in pixels.
-    pub width: u32,
-
-    /// Height in pixels.
-    pub height: u32,
-
-    /// Exact frame rate (frames per second).
-    pub frame_rate: u32,
-
-    /// Indicator whether the request video track should be acquired via screen
-    /// capturing.
-    pub is_display: bool,
-}
-
-/// Nature and settings of the audio [`MediaStreamTrack`] returned by
-/// [`Webrtc::get_media()`].
-#[derive(Debug)]
-pub struct AudioConstraints {
-    /// Identifier of the device generating the content of the
-    /// [`MediaStreamTrack`].
-    ///
-    /// First device will be chosen if an empty [`String`] is provided.
-    pub device_id: Option<String>,
-
-    /// Audio processing configuration constraints of the [`MediaStreamTrack`].
-    pub processing: AudioProcessingConstraints,
-}
-
-/// Constraints of an [`AudioProcessingConfig`].
-#[derive(Debug, Default)]
-pub struct AudioProcessingConstraints {
-    /// Indicator whether the audio volume level should be automatically tuned
-    /// to maintain a steady overall volume level.
-    pub auto_gain_control: Option<bool>,
-
-    /// Indicator whether a high-pass filter should be enabled to eliminate
-    /// low-frequency noise.
-    pub high_pass_filter: Option<bool>,
-
-    /// Indicator whether noise suppression should be enabled to reduce
-    /// background sounds.
-    pub noise_suppression: Option<bool>,
-
-    /// Level of aggressiveness for noise suppression.
-    pub noise_suppression_level: Option<NoiseSuppressionLevel>,
-
-    /// Indicator whether echo cancellation should be enabled to prevent
-    /// feedback.
-    pub echo_cancellation: Option<bool>,
-}
-
-/// Configures media acquisition to use fake devices instead of actual camera
-/// and microphone.
-pub fn enable_fake_media() {
-    FAKE_MEDIA.store(true, Ordering::Release);
-}
-
-/// Indicates whether application is configured to use fake media devices.
-pub fn is_fake_media() -> bool {
-    FAKE_MEDIA.load(Ordering::Acquire)
-}
-
-/// Returns a list of all available media input and output devices, such as
-/// microphones, cameras, headsets, and so forth.
-pub fn enumerate_devices() -> anyhow::Result<Vec<MediaDeviceInfo>> {
-    WEBRTC.lock().unwrap().enumerate_devices()
-}
-
-/// Returns a list of all available displays that can be used for screen
-/// capturing.
-#[must_use]
-pub fn enumerate_displays() -> Vec<MediaDisplayInfo> {
-    devices::enumerate_displays()
 }
 
 /// Replaces the specified [`AudioTrack`] (or [`VideoTrack`]) on the
@@ -252,36 +154,4 @@ pub fn sender_set_parameters(
     params: RtcRtpSendParameters,
 ) -> anyhow::Result<()> {
     transceiver.sender_set_parameters(params)
-}
-
-/// Sets the specified `audio playout` device.
-pub fn set_audio_playout_device(device_id: String) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().set_audio_playout_device(device_id)
-}
-
-/// Indicates whether the microphone is available to set volume.
-pub fn microphone_volume_is_available() -> anyhow::Result<bool> {
-    WEBRTC.lock().unwrap().microphone_volume_is_available()
-}
-
-/// Sets the microphone system volume according to the specified `level` in
-/// percents.
-///
-/// Valid values range is `[0; 100]`.
-pub fn set_microphone_volume(level: u8) -> anyhow::Result<()> {
-    WEBRTC.lock().unwrap().set_microphone_volume(level)
-}
-
-/// Returns the current level of the microphone volume in `[0; 100]` range.
-pub fn microphone_volume() -> anyhow::Result<u32> {
-    WEBRTC.lock().unwrap().microphone_volume()
-}
-
-/// Sets the provided `OnDeviceChangeCallback` as the callback to be called
-/// whenever a set of available media devices changes.
-///
-/// Only one callback can be set at a time, so the previous one will be dropped,
-/// if any.
-pub fn set_on_device_changed(cb: StreamSink<()>) {
-    WEBRTC.lock().unwrap().set_on_device_changed(cb);
 }

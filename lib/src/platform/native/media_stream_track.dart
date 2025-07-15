@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 import '/medea_flutter_webrtc.dart';
-import '/src/api/bridge/api.dart' as ffi;
+import '/src/api/bridge/api/media/constraints/audio.dart' as ffi;
 import '/src/api/bridge/api/media_stream_track.dart' as ffi;
 import '/src/api/bridge/api/media_stream_track/media_type.dart' as ffi;
 import '/src/api/bridge/api/media_stream_track/track_event.dart' as ffi;
