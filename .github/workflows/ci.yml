@@ -242,15 +242,20 @@ jobs:
   ###########
 
   changelog:
-    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    if: ${{ startsWith(github.ref, 'refs/tags/')
+         || github.ref_name == 'main'
+         || (github.event_name == 'pull_request'
+             && github.event.pull_request.head.repo.owner.login == 'instrumentisto') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
 
       - name: Parse release version
         id: release
         run: echo "version=${GITHUB_REF#refs/tags/}"
              >> $GITHUB_OUTPUT
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
 
       - name: Ensure CHANGELOG date is today
         run: |
@@ -261,6 +266,7 @@ jobs:
           echo "Changelog: $changelog"
           echo "Today: $today"
           [ "$changelog" = "$today" ]
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
 
   test-flutter:
     name: test (example, ${{ matrix.platform }})
