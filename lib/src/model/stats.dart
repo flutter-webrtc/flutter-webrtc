@@ -222,75 +222,30 @@ abstract class RtcStatsType {
   /// Creates an [RtcStatsType] basing on the [ffi.RtcStatsType] received from
   /// the native side.
   static RtcStatsType? fromFFI(ffi.RtcStatsType stats) {
-    switch (stats.runtimeType.toString().substring(2)) // Skip '_$' prefix.
-    {
-      case 'RtcStatsType_RtcMediaSourceStatsImpl':
-        {
-          var source = (stats as ffi.RtcStatsType_RtcMediaSourceStats);
-          if (source.kind
-              is ffi.RtcMediaSourceStatsMediaType_RtcAudioSourceStats) {
-            return RtcAudioSourceStats.fromFFI(
-              stats.kind
-                  as ffi.RtcMediaSourceStatsMediaType_RtcAudioSourceStats,
-              stats.trackIdentifier,
-            );
-          } else {
-            return RtcVideoSourceStats.fromFFI(
-              stats.kind
-                  as ffi.RtcMediaSourceStatsMediaType_RtcVideoSourceStats,
-              stats.trackIdentifier,
-            );
-          }
+    switch (stats) {
+      case ffi.RtcStatsType_RtcMediaSourceStats s:
+        switch (s.kind) {
+          case ffi.RtcMediaSourceStatsMediaType_RtcVideoSourceStats k:
+            return RtcVideoSourceStats.fromFFI(k, s.trackIdentifier);
+          case ffi.RtcMediaSourceStatsMediaType_RtcAudioSourceStats k:
+            return RtcAudioSourceStats.fromFFI(k, s.trackIdentifier);
         }
-
-      case 'RtcStatsType_RtcIceCandidateStatsImpl':
-        {
-          return RtcIceCandidateStats.fromFFI(
-            stats as ffi.RtcStatsType_RtcIceCandidateStats,
-          );
-        }
-
-      case 'RtcStatsType_RtcOutboundRtpStreamStatsImpl':
-        {
-          return RtcOutboundRtpStreamStats.fromFFI(
-            stats as ffi.RtcStatsType_RtcOutboundRtpStreamStats,
-          );
-        }
-
-      case 'RtcStatsType_RtcInboundRtpStreamStatsImpl':
-        {
-          return RtcInboundRtpStreamStats.fromFFI(
-            stats as ffi.RtcStatsType_RtcInboundRtpStreamStats,
-          );
-        }
-      case 'RtcStatsType_RtcTransportStatsImpl':
-        {
-          return RtcTransportStats.fromFFI(
-            stats as ffi.RtcStatsType_RtcTransportStats,
-          );
-        }
-      case 'RtcStatsType_RtcRemoteInboundRtpStreamStatsImpl':
-        {
-          return RtcRemoteInboundRtpStreamStats.fromFFI(
-            stats as ffi.RtcStatsType_RtcRemoteInboundRtpStreamStats,
-          );
-        }
-      case 'RtcStatsType_RtcRemoteOutboundRtpStreamStatsImpl':
-        {
-          return RtcRemoteOutboundRtpStreamStats.fromFFI(
-            stats as ffi.RtcStatsType_RtcRemoteOutboundRtpStreamStats,
-          );
-        }
-      case 'RtcStatsType_RtcIceCandidatePairStatsImpl':
-        {
-          return RtcIceCandidatePairStats.fromFFI(
-            stats as ffi.RtcStatsType_RtcIceCandidatePairStats,
-          );
-        }
+      case ffi.RtcStatsType_RtcIceCandidateStats s:
+        return RtcIceCandidateStats.fromFFI(s);
+      case ffi.RtcStatsType_RtcOutboundRtpStreamStats s:
+        return RtcOutboundRtpStreamStats.fromFFI(s);
+      case ffi.RtcStatsType_RtcInboundRtpStreamStats s:
+        return RtcInboundRtpStreamStats.fromFFI(s);
+      case ffi.RtcStatsType_RtcTransportStats s:
+        return RtcTransportStats.fromFFI(s);
+      case ffi.RtcStatsType_RtcRemoteInboundRtpStreamStats s:
+        return RtcRemoteInboundRtpStreamStats.fromFFI(s);
+      case ffi.RtcStatsType_RtcRemoteOutboundRtpStreamStats s:
+        return RtcRemoteOutboundRtpStreamStats.fromFFI(s);
+      case ffi.RtcStatsType_RtcIceCandidatePairStats s:
+        return RtcIceCandidatePairStats.fromFFI(s);
       default:
-        {
-          return null;
-        }
+        return null;
     }
   }
 
@@ -735,24 +690,20 @@ class RtcOutboundRtpStreamStats extends RtcStatsType {
   static RtcOutboundRtpStreamStats fromFFI(
     ffi.RtcStatsType_RtcOutboundRtpStreamStats stats,
   ) {
-    RtcOutboundRtpStreamStatsMediaType? mediaType;
-    var kind = stats.mediaType.runtimeType.toString().substring(2);
-    if (kind == 'RtcOutboundRtpStreamStatsMediaType_AudioImpl') {
-      var cast =
-          stats.mediaType as ffi.RtcOutboundRtpStreamStatsMediaType_Audio;
-      mediaType = RtcOutboundRtpStreamStatsAudio(
-        cast.totalSamplesSent?.toInt(),
-        cast.voiceActivityFlag,
-      );
-    } else if (kind == 'RtcOutboundRtpStreamStatsMediaType_VideoImpl') {
-      var cast =
-          stats.mediaType as ffi.RtcOutboundRtpStreamStatsMediaType_Video;
-      mediaType = RtcOutboundRtpStreamStatsVideo(
-        cast.frameWidth,
-        cast.frameHeight,
-        cast.framesPerSecond,
-      );
-    }
+    RtcOutboundRtpStreamStatsMediaType? mediaType = switch (stats.mediaType) {
+      ffi.RtcOutboundRtpStreamStatsMediaType_Audio m =>
+        RtcOutboundRtpStreamStatsAudio(
+          m.totalSamplesSent?.toInt(),
+          m.voiceActivityFlag,
+        ),
+      ffi.RtcOutboundRtpStreamStatsMediaType_Video m =>
+        RtcOutboundRtpStreamStatsVideo(
+          m.frameWidth,
+          m.frameHeight,
+          m.framesPerSecond,
+        ),
+    };
+
     return RtcOutboundRtpStreamStats(
       stats.trackId,
       mediaType,
@@ -972,35 +923,31 @@ class RtcInboundRtpStreamStats extends RtcStatsType {
   static RtcInboundRtpStreamStats fromFFI(
     ffi.RtcStatsType_RtcInboundRtpStreamStats stats,
   ) {
-    RtcInboundRtpStreamMediaType? mediaType;
-    var type = stats.mediaType.runtimeType.toString().substring(2);
-    if (type == 'RtcInboundRtpStreamMediaType_AudioImpl') {
-      var cast = stats.mediaType as ffi.RtcInboundRtpStreamMediaType_Audio;
-      mediaType = RtcInboundRtpStreamAudio(
-        cast.totalSamplesReceived?.toInt(),
-        cast.concealedSamples?.toInt(),
-        cast.silentConcealedSamples?.toInt(),
-        cast.audioLevel,
-        cast.totalAudioEnergy,
-        cast.totalSamplesDuration,
-        cast.voiceActivityFlag,
-      );
-    } else if (type == 'RtcInboundRtpStreamMediaType_VideoImpl') {
-      var cast = stats.mediaType as ffi.RtcInboundRtpStreamMediaType_Video;
-      mediaType = RtcInboundRtpStreamVideo(
-        cast.framesDecoded,
-        cast.keyFramesDecoded,
-        cast.frameWidth,
-        cast.frameHeight,
-        cast.totalInterFrameDelay,
-        cast.framesPerSecond,
-        cast.firCount,
-        cast.pliCount,
-        cast.concealmentEvents?.toInt(),
-        cast.framesReceived,
-        cast.sliCount,
-      );
-    }
+    RtcInboundRtpStreamMediaType? mediaType = switch (stats.mediaType) {
+      ffi.RtcInboundRtpStreamMediaType_Audio m => RtcInboundRtpStreamAudio(
+        m.totalSamplesReceived?.toInt(),
+        m.concealedSamples?.toInt(),
+        m.silentConcealedSamples?.toInt(),
+        m.audioLevel,
+        m.totalAudioEnergy,
+        m.totalSamplesDuration,
+        m.voiceActivityFlag,
+      ),
+      ffi.RtcInboundRtpStreamMediaType_Video m => RtcInboundRtpStreamVideo(
+        m.framesDecoded,
+        m.keyFramesDecoded,
+        m.frameWidth,
+        m.frameHeight,
+        m.totalInterFrameDelay,
+        m.framesPerSecond,
+        m.firCount,
+        m.pliCount,
+        m.concealmentEvents?.toInt(),
+        m.framesReceived,
+        m.sliCount,
+      ),
+      null => null,
+    };
 
     return RtcInboundRtpStreamStats(
       stats.remoteId,

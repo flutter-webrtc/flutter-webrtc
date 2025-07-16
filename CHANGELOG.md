@@ -12,11 +12,19 @@ All user visible changes to this project will be documented in this file. This p
 
 ### Changed
 
-- Upgraded [libwebrtc] to [138.0.7204.100] version. ([#233], [todo])
+- Upgraded [libwebrtc] to [138.0.7204.100] version. ([#233], [a8382e48])
+- Upgraded [`flutter_rust_bridge`] crate to [2.11.1][frb-2.11.1] version. ([#237])
+
+### Fixed
+
+- [Android]:
+    - Unhandled exception due to race when new remote track is discovered. ([#237])
 
 [#233]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/233
-[todo]: https://github.com/instrumentisto/medea-flutter-webrtc/commit/todo
+[#237]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/237
+[a8382e48]: https://github.com/instrumentisto/medea-flutter-webrtc/commit/a8382e482550892d262c5bd00d3a29898a739777
 [138.0.7204.100]: https://github.com/instrumentisto/libwebrtc-bin/releases/tag/138.0.7204.100
+[frb-2.11.1]: https://github.com/fzyzcjy/flutter_rust_bridge/releases/tag/v2.11.1
 
 
 
@@ -32,7 +40,7 @@ All user visible changes to this project will be documented in this file. This p
 
 ### Added
 
-- `setupForegroundService()` function for maintaining camera/microphone/audio when application is in background on Android. ([#204])
+- `setupForegroundService()` function for maintaining camera/microphone/audio when application is in background on [Android]. ([#204])
 
 ### Changed
 
@@ -41,7 +49,7 @@ All user visible changes to this project will be documented in this file. This p
 
 ### Fixed
 
-- Resources cleanup when `medea_flutter_webrtc` Flutter plugin is detached on Android. ([#202])
+- Resources cleanup when `medea_flutter_webrtc` Flutter plugin is detached on [Android]. ([#202])
 
 [#201]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/201
 [#202]: https://github.com/instrumentisto/medea-flutter-webrtc/pull/202

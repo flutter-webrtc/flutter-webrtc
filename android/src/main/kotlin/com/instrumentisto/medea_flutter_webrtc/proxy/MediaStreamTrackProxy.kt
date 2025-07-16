@@ -89,7 +89,11 @@ class MediaStreamTrackProxy(
       }
       (obj as VideoTrack).addSink(sink)
 
-      addOnSyncListener { (obj as VideoTrack).addSink(sink) }
+      addOnSyncListener {
+        if (sink != null) {
+          (obj as VideoTrack).addSink(sink)
+        }
+      }
     }
   }
 

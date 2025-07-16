@@ -305,7 +305,7 @@ endif
 		--no-add-mod-to-lib \
 		--dart-output=lib/src/api/bridge \
 		--no-web
-	flutter pub run build_runner build --delete-conflicting-outputs
+	dart run build_runner build --delete-conflicting-outputs
 
 
 # Lint Rust sources with Clippy.
