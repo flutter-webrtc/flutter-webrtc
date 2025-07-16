@@ -98,15 +98,20 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         try {
             encoder = MediaCodec.createEncoderByType(MIME_TYPE);
             encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+
+            CountDownLatch latch = new CountDownLatch(1);
             renderThreadHandler.post(() -> {
                 eglBase = EglBase.create(sharedContext, EglBase.CONFIG_RECORDABLE);
                 surface = encoder.createInputSurface();
                 eglBase.createSurface(surface);
                 eglBase.makeCurrent();
                 drawer = new GlRectDrawer();
+                latch.countDown();
             });
+            latch.await(); // espera EGL estar pronto
         } catch (Exception e) {
             Log.wtf(TAG, e);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -164,7 +169,10 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                     encoder.stop();
                     encoder.release();
                 }
-                eglBase.release();
+                if (eglBase != null) {
+                    eglBase.release();
+                    eglBase = null;
+                }
                 if (muxerStarted) {
                     mediaMuxer.stop();
                     mediaMuxer.release();
