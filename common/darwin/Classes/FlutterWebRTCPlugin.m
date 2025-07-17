@@ -257,7 +257,8 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
             [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
 
         _peerConnectionFactory =
-            [[RTCPeerConnectionFactory alloc] initWithBypassVoiceProcessing:bypassVoiceProcessing
+            [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:RTCAudioDeviceModuleTypeAudioEngine
+                                                      bypassVoiceProcessing:bypassVoiceProcessing
                                                              encoderFactory:simulcastFactory
                                                              decoderFactory:decoderFactory
                                                       audioProcessingModule:_audioManager.audioProcessingModule];
