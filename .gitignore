@@ -1,21 +1,3 @@
-*.iml
-.idea
-.DS_Store
-example/pubspec.lock
-pubspec.lock
-example/ios/Podfile.lock
-GeneratedPluginRegistrant.java
-example/android/.gradle
-WorkspaceSettings.xcsettings
-example/.flutter-plugins
-example/android/local.properties
-.dart_tool/package_config.json
-android/.project
-example/ios/Runner/GeneratedPluginRegistrant.m
-example/ios/Runner/GeneratedPluginRegistrant.h
-example/ios/Flutter/Generated.xcconfig
-example/ios/Flutter/flutter_export_environment.sh
-
 # Miscellaneous
 *.class
 *.log
@@ -26,6 +8,7 @@ example/ios/Flutter/flutter_export_environment.sh
 .buildlog/
 .history
 .svn/
+migrate_working_dir/
 
 # IntelliJ related
 *.iml
@@ -33,26 +16,16 @@ example/ios/Flutter/flutter_export_environment.sh
 *.iws
 .idea/
 
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
 # Flutter/Dart/Pub related
+# Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
+/pubspec.lock
 **/doc/api/
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
-.packages
-.pub-cache/
-.pub/
-/build/
-/android/.gradle/
-
-
-android/.classpath
-android/.settings/org.eclipse.buildship.core.prefs
-
-# VSCode
-.vscode/
-
-!webrtc_android.iml
-!webrtc.iml
-
-# vs
-*.pdb
+build/
