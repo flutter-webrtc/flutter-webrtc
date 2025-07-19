@@ -195,8 +195,10 @@ static FlutterWebRTCPlugin *sharedSingleton;
                                                name:AVAudioSessionRouteChangeNotification
                                              object:session];
 #endif
+
   // Observe audio device module events.
   _peerConnectionFactory.audioDeviceModule.observer = self;
+
   return self;
 }
 
