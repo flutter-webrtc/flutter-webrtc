@@ -11,6 +11,7 @@
 #include "flutter_video_renderer.h"
 
 #include "libwebrtc.h"
+#include "rtc_logging.h"
 
 namespace flutter_webrtc_plugin {
 
@@ -38,6 +39,10 @@ class FlutterWebRTC : public FlutterWebRTCBase,
 
   void HandleMethodCall(const MethodCallProxy& method_call,
                         std::unique_ptr<MethodResultProxy> result);
+
+ private:
+  void initLoggerCallback(RTCLoggingSeverity severity);
+  RTCLoggingSeverity str2LogSeverity(std::string str);
 };
 
 }  // namespace flutter_webrtc_plugin
