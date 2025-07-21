@@ -21,7 +21,19 @@ jobs:
   ################
 
   pr:
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request'
+         && needs.build-rust.result == 'success'
+         && needs.build-rust-linux.result == 'success'
+         && needs.build-flutter.result == 'success'
+         && needs.clippy.result == 'success'
+         && needs.codegen.result == 'success'
+         && needs.dartanalyze.result == 'success'
+         && needs.dartfmt.result == 'success'
+         && needs.ktfmt.result == 'success'
+         && needs.rustdoc.result == 'success'
+         && needs.rustfmt.result == 'success'
+         && needs.swiftformat.result == 'success'
+         && needs.test-flutter.result == 'success' }}
     needs:
       - build-rust
       - build-rust-linux
