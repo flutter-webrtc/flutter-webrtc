@@ -279,7 +279,7 @@ endif
 # Generates Rust and Dart side interop bridge.
 #
 # Usage:
-#	make cargo.gen
+#	make cargo.gen [fmt=(yes|no)]
 
 cargo.gen:
 ifeq ($(shell which flutter_rust_bridge_codegen),)
@@ -306,6 +306,9 @@ endif
 		--dart-output=lib/src/api/bridge \
 		--no-web
 	dart run build_runner build --delete-conflicting-outputs
+ifneq ($(fmt),no)
+	make flutter.fmt
+endif
 
 
 # Lint Rust sources with Clippy.

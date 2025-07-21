@@ -27,6 +27,7 @@ jobs:
       - build-rust-linux
       - build-flutter
       - clippy
+      - codegen
       - dartanalyze
       - dartfmt
       - ktfmt
@@ -78,6 +79,34 @@ jobs:
         if: ${{ matrix.platform == 'linux' }}
 
       - run: make cargo.lint
+
+  codegen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install `linux` platform dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+                       libgtk-3-dev libpulse-dev libudev-dev libxcomposite-dev \
+                       libxdamage-dev libxfixes-dev libxrandr-dev libxtst-dev \
+                       ninja-build lld-19 binutils build-essential clang
+          # TODO: Remove once lld-19 becomes the default in Ubuntu repositories
+          sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-19 100
+          sudo update-alternatives --config lld
+          sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-19 100
+          sudo update-alternatives --config ld.lld
+
+      - run: cargo install cargo-expand
+
+      - run: make cargo.gen fmt=yes
+
+      - run: git status --short | (! read -t 1 -N 1)
 
   dartanalyze:
     runs-on: ubuntu-latest
@@ -438,6 +467,7 @@ jobs:
       - build-flutter
       - changelog
       - clippy
+      - codegen
       - dartanalyze
       - dartfmt
       - ktfmt
