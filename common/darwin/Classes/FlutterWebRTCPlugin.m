@@ -201,14 +201,10 @@ static FlutterWebRTCPlugin *sharedSingleton;
                                                name:AVAudioSessionRouteChangeNotification
                                              object:session];
 #endif
-#if TARGET_OS_OSX
-  [_peerConnectionFactory.audioDeviceModule setDevicesUpdatedHandler:^(void) {
-    NSLog(@"Handle Devices Updated!");
-    if (self.eventSink) {
-      postEvent( self.eventSink, @{@"event" : @"onDeviceChange"});
-    }
-  }];
-#endif
+
+  // Observe audio device module events.
+  _peerConnectionFactory.audioDeviceModule.observer = self;
+
   return self;
 }
 
@@ -263,7 +259,8 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
             [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
 
         _peerConnectionFactory =
-            [[RTCPeerConnectionFactory alloc] initWithBypassVoiceProcessing:bypassVoiceProcessing
+            [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:RTCAudioDeviceModuleTypeAudioEngine
+                                                      bypassVoiceProcessing:bypassVoiceProcessing
                                                              encoderFactory:simulcastFactory
                                                              decoderFactory:decoderFactory
                                                       audioProcessingModule:_audioManager.audioProcessingModule];
@@ -2385,4 +2382,14 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     }
     return nil;
 }
+
+#pragma mark - RTCAudioDeviceModuleDelegate methods
+
+- (void)audioDeviceModuleDidUpdateDevices:(RTCAudioDeviceModule *)audioDeviceModule {
+    NSLog(@"audioDeviceModule did update devices");
+    if (self.eventSink) {
+      postEvent( self.eventSink, @{@"event" : @"onDeviceChange"});
+    }
+}
+
 @end
