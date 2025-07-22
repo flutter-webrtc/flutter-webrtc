@@ -159,18 +159,34 @@
 - (void)peerConnectionAddICECandidate:(RTCIceCandidate*)candidate
                        peerConnection:(RTCPeerConnection*)peerConnection
                                result:(FlutterResult)result {
-  [peerConnection
-        addIceCandidate:candidate
-      completionHandler:^(NSError* _Nullable error) {
-        if (error) {
-          result([FlutterError
-              errorWithCode:@"AddIceCandidateFailed"
-                    message:[NSString stringWithFormat:@"Error %@", error.localizedDescription]
-                    details:nil]);
-        } else {
-          result(nil);
+    @try {
+      [peerConnection addIceCandidate:candidate completionHandler:^(NSError * _Nullable error) {
+        // Itt még kell belső @try/@catch, mert ez a blokk később fut
+        @try {
+          if (error && [error isKindOfClass:[NSError class]]) {
+            NSString *message = [NSString stringWithFormat:@"Error %@", error.localizedDescription ?: @"Unknown"];
+            result([FlutterError errorWithCode:@"AddIceCandidateFailed" message:message details:nil]);
+          } else if (error) {
+            NSString *message = [NSString stringWithFormat:@"Unknown error: %@", NSStringFromClass([error class])];
+            result([FlutterError errorWithCode:@"AddIceCandidateFailed" message:message details:nil]);
+          } else {
+            result(nil);
+          }
+        } @catch (NSException *exception) {
+          NSLog(@"[AddIceCandidate callback] Exception: %@\nReason: %@\nStack: %@",
+                exception.name, exception.reason, exception.callStackSymbols);
+          NSString *details = [NSString stringWithFormat:@"Reason: %@\n%@", exception.reason,
+                               [exception.callStackSymbols componentsJoinedByString:@"\n"]];
+          result([FlutterError errorWithCode:@"AddIceCandidateCallbackException" message:exception.name details:details]);
         }
       }];
+    } @catch (NSException *exception) {
+      NSLog(@"[AddIceCandidate call] Exception: %@\nReason: %@\nStack: %@",
+            exception.name, exception.reason, exception.callStackSymbols);
+      NSString *details = [NSString stringWithFormat:@"Reason: %@\n%@", exception.reason,
+                           [exception.callStackSymbols componentsJoinedByString:@"\n"]];
+      result([FlutterError errorWithCode:@"AddIceCandidateException" message:exception.name details:details]);
+    }
 }
 
 - (void)peerConnectionClose:(RTCPeerConnection*)peerConnection {
