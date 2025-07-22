@@ -161,7 +161,6 @@
                                result:(FlutterResult)result {
     @try {
       [peerConnection addIceCandidate:candidate completionHandler:^(NSError * _Nullable error) {
-        // Itt még kell belső @try/@catch, mert ez a blokk később fut
         @try {
           if (error && [error isKindOfClass:[NSError class]]) {
             NSString *message = [NSString stringWithFormat:@"Error %@", error.localizedDescription ?: @"Unknown"];
