@@ -1,5 +1,3 @@
-// Modifications by Signify, Copyright 2025, Signify Holding -  SPDX-License-Identifier: MIT
-
 package com.cloudwebrtc.webrtc.record;
 
 import android.media.MediaCodec;
