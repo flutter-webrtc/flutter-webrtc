@@ -1,6 +1,18 @@
 
 # Changelog
 
+[1.0.0] - 2025-07-25
+
+* Bump version to 1.0.0
+* [Native] feat: Upgrade libwebrtc to m137. (#1877).
+* [Doc] fix: typo in package description (#1895)
+* [Android] fix: Video recording crashing and freezing on Android 14 Devices (#1886)
+* [Android] fix: Add audio recording for Android Platform (#1884)
+* [Dart] fix: Removed outdated code to avoid UI not being displayed in Windows release mode (#1890)
+* [Apple] fix: Fix compile warnings (#1887)
+* [Apple] feat: Update to m137 with audio engine (#1875)
+* [Android] fix: Ensure both video and audio tracks are added before starting the muxer (#1879)
+
 [0.14.2] - 2025-07-01
 
 * [Windows/Linux] feat: Add audio processing and sink API for cpp. (#1867)
