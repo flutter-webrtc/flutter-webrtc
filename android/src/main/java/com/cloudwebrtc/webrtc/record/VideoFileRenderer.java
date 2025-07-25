@@ -78,39 +78,66 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         audioTrackIndex = withAudio ? -1 : 0;
     }
 
-    private void initVideoEncoder() {
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, outputFileWidth, outputFileHeight);
-
-        // Set some properties.  Failing to specify some of these can cause the MediaCodec
-        // configure() call to throw an unhelpful exception.
-        format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
-                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, 6000000);
-        format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
-
-        format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0); // Para Surface input
-        format.setInteger(MediaFormat.KEY_PRIORITY, 0); // Background priority
-        format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline); // AVC baseline
-
-        // Create a MediaCodec encoder, and configure it with our format.  Get a Surface
-        // we can use for input and wrap it with a class that handles the EGL work.
+    private boolean tryConfigureEncoder(int width, int height) {
         try {
+            MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, width, height);
+            format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
+                    MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, 6000000);
+            format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
+            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
+            format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
+            format.setInteger(MediaFormat.KEY_PRIORITY, 0);
+            format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline);
+
             encoder = MediaCodec.createEncoderByType(MIME_TYPE);
             encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-
-            CountDownLatch latch = new CountDownLatch(1);
-            renderThreadHandler.post(() -> {
-                eglBase = EglBase.create(sharedContext, EglBase.CONFIG_RECORDABLE);
-                surface = encoder.createInputSurface();
-                eglBase.createSurface(surface);
-                eglBase.makeCurrent();
-                drawer = new GlRectDrawer();
-                latch.countDown();
-            });
-            latch.await(); // espera EGL estar pronto
+            outputFileWidth = width;
+            outputFileHeight = height;
+            return true;
         } catch (Exception e) {
-            Log.wtf(TAG, e);
+            if (encoder != null) {
+                try { encoder.release(); } catch (Exception ignored) {}
+                encoder = null;
+            }
+            return false;
+        }
+    }
+
+    private void initVideoEncoder(int frameWidth, int frameHeight) {
+        List<int[]> resolutions = new ArrayList<>();
+        resolutions.add(new int[]{frameWidth, frameHeight});
+        resolutions.addAll(Arrays.asList(
+            new int[]{1920, 1080},
+            new int[]{1280, 720},
+            new int[]{854, 480},
+            new int[]{640, 360},
+            new int[]{426, 240}
+        ));
+
+        for (int[] res : resolutions) {
+            if (tryConfigureEncoder(res[0], res[1])) {
+                break;
+            }
+        }
+
+        if (encoder == null) {
+            Log.e(TAG, "Failed to configure encoder with any supported resolution.");
+            return;
+        }
+        
+        CountDownLatch latch = new CountDownLatch(1);
+        renderThreadHandler.post(() -> {
+            eglBase = EglBase.create(sharedContext, EglBase.CONFIG_RECORDABLE);
+            surface = encoder.createInputSurface();
+            eglBase.createSurface(surface);
+            eglBase.makeCurrent();
+            drawer = new GlRectDrawer();
+            latch.countDown();
+        });
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
@@ -119,9 +146,9 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     public void onFrame(VideoFrame frame) {
         frame.retain();
         if (outputFileWidth == -1) {
-            outputFileWidth = frame.getRotatedWidth();
-            outputFileHeight = frame.getRotatedHeight();
-            initVideoEncoder();
+            int frameWidth = frame.getRotatedWidth();
+            int frameHeight = frame.getRotatedHeight();
+            initVideoEncoder(frameWidth, frameHeight);
         }
         renderThreadHandler.post(() -> renderFrameOnRenderThread(frame));
     }
