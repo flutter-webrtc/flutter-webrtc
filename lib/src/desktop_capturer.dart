@@ -1,10 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-enum SourceType {
-  Screen,
-  Window,
-}
+enum SourceType { Screen, Window }
 
 final desktopSourceTypeToString = <SourceType, String>{
   SourceType.Screen: 'screen',
@@ -32,7 +29,7 @@ abstract class DesktopCapturerSource {
   /// chromeMediaSourceId constraint when calling
   String get id;
 
-  /// A screen source will be named either Entire Screen or Screen <index>,
+  /// A screen source will be named either Entire Screen or Screen index,
   /// while the name of a window source will match the window title.
   String get name;
 
@@ -63,8 +60,10 @@ abstract class DesktopCapturer {
       throw UnimplementedError();
 
   ///Get the screen source of the specified types
-  Future<List<DesktopCapturerSource>> getSources(
-      {required List<SourceType> types, ThumbnailSize? thumbnailSize});
+  Future<List<DesktopCapturerSource>> getSources({
+    required List<SourceType> types,
+    ThumbnailSize? thumbnailSize,
+  });
 
   /// Updates the list of screen sources of the specified types
   Future<bool> updateSources({required List<SourceType> types});
