@@ -89,20 +89,29 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
 
+        format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0); // Para Surface input
+        format.setInteger(MediaFormat.KEY_PRIORITY, 0); // Background priority
+        format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline); // AVC baseline
+
         // Create a MediaCodec encoder, and configure it with our format.  Get a Surface
         // we can use for input and wrap it with a class that handles the EGL work.
         try {
             encoder = MediaCodec.createEncoderByType(MIME_TYPE);
             encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+
+            CountDownLatch latch = new CountDownLatch(1);
             renderThreadHandler.post(() -> {
                 eglBase = EglBase.create(sharedContext, EglBase.CONFIG_RECORDABLE);
                 surface = encoder.createInputSurface();
                 eglBase.createSurface(surface);
                 eglBase.makeCurrent();
                 drawer = new GlRectDrawer();
+                latch.countDown();
             });
+            latch.await(); // espera EGL estar pronto
         } catch (Exception e) {
             Log.wtf(TAG, e);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -118,6 +127,12 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     }
 
     private void renderFrameOnRenderThread(VideoFrame frame) {
+        if (drawer == null) {
+            Log.e(TAG, "drawer is null — skipping frame render");
+            frame.release();
+            return;
+        }
+
         if (frameDrawer == null) {
             frameDrawer = new VideoFrameDrawer();
         }
@@ -154,7 +169,10 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                     encoder.stop();
                     encoder.release();
                 }
-                eglBase.release();
+                if (eglBase != null) {
+                    eglBase.release();
+                    eglBase = null;
+                }
                 if (muxerStarted) {
                     mediaMuxer.stop();
                     mediaMuxer.release();
