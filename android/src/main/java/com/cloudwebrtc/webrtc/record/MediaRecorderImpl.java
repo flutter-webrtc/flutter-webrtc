@@ -8,6 +8,8 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import org.webrtc.VideoTrack;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MediaRecorderImpl {
 
@@ -57,14 +59,25 @@ public class MediaRecorderImpl {
         return recordFile;
     }
 
-    public void stopRecording() {
+    private final ExecutorService releaseExecutor = Executors.newSingleThreadExecutor();
+
+    public void stopRecording(Runnable onStopped) {
         isRunning = false;
         if (audioInterceptor != null)
             audioInterceptor.detachCallback(id);
         if (videoTrack != null && videoFileRenderer != null) {
             videoTrack.removeSink(videoFileRenderer);
-            videoFileRenderer.release();
-            videoFileRenderer = null;
+            releaseExecutor.submit(() -> {
+                videoFileRenderer.release();
+                videoFileRenderer = null;
+                if (onStopped != null)
+                    onStopped.run();
+                releaseExecutor.shutdown(); // libera o executor
+            });
+        } else {
+            if (onStopped != null)
+                onStopped.run();
+            releaseExecutor.shutdown();
         }
         if (audioFileRenderer != null) {
             audioFileRenderer.release();
