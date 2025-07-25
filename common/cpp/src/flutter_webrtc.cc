@@ -1,8 +1,11 @@
 #include "flutter_webrtc.h"
+#include "flutter_data_channel.h"
 
 #include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
 
 namespace flutter_webrtc_plugin {
+
+static EventChannelProxy* eventChannelProxy = nullptr;
 
 FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
     : FlutterWebRTCBase::FlutterWebRTCBase(plugin->messenger(),
@@ -24,6 +27,11 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableMap params =
         GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap options = findMap(params, "options");
+    std::string severityStr = findString(options, "logSeverity");
+    if (severityStr.empty() == false) {
+      RTCLoggingSeverity severity = str2LogSeverity(severityStr);
+      initLoggerCallback(severity);
+    }
     result->Success();
   } else if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {
@@ -1266,6 +1274,18 @@ void FlutterWebRTC::HandleMethodCall(
     state[EncodableValue("state")] =
         peerConnectionStateString(pc->peer_connection_state());
     result->Success(EncodableValue(state));
+  } else if (method_call.method_name().compare("setLogSeverity") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Bad arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    std::string severityStr = findString(params, "severity");
+    if (severityStr.empty() == false) {
+      RTCLoggingSeverity severity = str2LogSeverity(severityStr);
+      initLoggerCallback(severity);
+    }
   } else {
     if (HandleFrameCryptorMethodCall(method_call, std::move(result), &result)) {
       return;
@@ -1273,6 +1293,34 @@ void FlutterWebRTC::HandleMethodCall(
       result->NotImplemented();
     }
   }
+}
+
+void FlutterWebRTC::initLoggerCallback(RTCLoggingSeverity severity) {
+  if(eventChannelProxy == nullptr) {
+    eventChannelProxy = event_channel();
+  }
+
+  libwebrtc::LibWebRTCLogging::setLogSink(severity, [](const string& message){
+    EncodableMap info;
+    info[EncodableValue("event")] = "onLogData";
+    info[EncodableValue("data")] = message.c_string();
+    eventChannelProxy->Success(EncodableValue(info), false);
+  });
+}
+
+RTCLoggingSeverity FlutterWebRTC::str2LogSeverity(std::string str) {
+  if(str == "verbose")
+    return Verbose;
+  else if(str == "info")
+    return Info;
+  else if(str == "warning")
+    return Warning;
+  else if(str == "error")
+    return Error;
+  else if(str == "none")
+    return None;
+
+  return None;
 }
 
 }  // namespace flutter_webrtc_plugin
