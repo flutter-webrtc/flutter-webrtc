@@ -4,8 +4,8 @@
 [1.0.0] - 2025-07-25
 
 * Bump version to 1.0.0
-* [Native] chore: Upgrade libwebrtc to m137.
-* [Doc] Fix: typo in package description (#1895)
+* [Native] feat: Upgrade libwebrtc to m137. (#1877).
+* [Doc] fix: typo in package description (#1895)
 * [Android] fix: Video recording crashing and freezing on Android 14 Devices (#1886)
 * [Android] fix: Add audio recording for Android Platform (#1884)
 * [Dart] fix: Removed outdated code to avoid UI not being displayed in Windows release mode (#1890)
