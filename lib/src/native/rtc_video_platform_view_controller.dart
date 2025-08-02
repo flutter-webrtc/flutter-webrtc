@@ -180,4 +180,18 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
     }
     return true;
   }
+
+  @override
+  Future<void> setVolume(double value) async {
+    try {
+      if (_srcObject == null) {
+        throw Exception('Can\'t set volume: The MediaStream is null');
+      }
+      for(MediaStreamTrack track in  _srcObject!.getAudioTracks()) {
+        await Helper.setVolume(value, track);
+      }
+    } catch (e) {
+      print('Helper.setVolume ${e.toString()}');
+    }
+  }
 }

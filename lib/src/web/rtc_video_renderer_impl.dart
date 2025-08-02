@@ -326,4 +326,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
   @override
   Function? onFirstFrameRendered;
+
+  @override
+  Future<void> setVolume(double volume) async {
+    _audioElement?.volume = volume.clamp(0.0, 1.0);
+  }
 }
