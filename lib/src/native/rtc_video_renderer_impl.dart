@@ -7,9 +7,10 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../helper.dart';
 import 'utils.dart';
+import '../video_renderer_extension.dart' show AudioControl;
 
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
-    implements VideoRenderer {
+    implements VideoRenderer, AudioControl {
   RTCVideoRenderer() : super(RTCVideoValue.empty);
   Completer? _initializing;
   int? _textureId;

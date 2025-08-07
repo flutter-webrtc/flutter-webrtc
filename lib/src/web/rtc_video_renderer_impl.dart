@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import 'package:dart_webrtc/dart_webrtc.dart';
 import 'package:web/web.dart' as web;
+import '../video_renderer_extension.dart' show AudioControl;
 
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
@@ -32,7 +33,7 @@ const String _kDefaultErrorMessage =
     'No further diagnostic information can be determined or provided.';
 
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
-    implements VideoRenderer {
+    implements VideoRenderer, AudioControl {
   RTCVideoRenderer()
       : _textureId = _textureCounter++,
         super(RTCVideoValue.empty);
