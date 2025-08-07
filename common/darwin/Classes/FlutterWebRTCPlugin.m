@@ -18,6 +18,9 @@
 #import <WebRTC/RTCFieldTrials.h>
 #import <WebRTC/WebRTC.h>
 
+#import <WebRTC/RTCLogging.h>
+#import <WebRTC/RTCCallbackLogger.h>
+
 #import "LocalTrack.h"
 #import "LocalAudioTrack.h"
 #import "LocalVideoTrack.h"
@@ -107,6 +110,8 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
 #if TARGET_OS_IPHONE
   FLutterRTCVideoPlatformViewFactory *_platformViewFactory;
 #endif
+
+  RTC_OBJC_TYPE(RTCCallbackLogger) * loggerCallback;
 }
 
 static FlutterWebRTCPlugin *sharedSingleton;
@@ -242,9 +247,42 @@ static FlutterWebRTCPlugin *sharedSingleton;
 #endif
 }
 
+-(void) initLoggerCallback:(RTCLoggingSeverity)severity {
+  if(loggerCallback == nil) {
+    loggerCallback = [RTC_OBJC_TYPE(RTCCallbackLogger) new];
+    [loggerCallback start:^(NSString *logMessage) {
+      postEvent(self.eventSink, @{
+        @"event" : @"onLogData",
+        @"data" : logMessage
+      });
+    }];
+  }
+
+  loggerCallback.severity = severity;
+}
+
+-(RTCLoggingSeverity)str2LogSeverity:(NSString*)str {
+  if ([@"verbose" isEqualToString:str]) {
+    return RTCLoggingSeverityVerbose;
+  } else if ([@"info" isEqualToString:str]) {
+    return RTCLoggingSeverityInfo;
+  } else if ([@"warning" isEqualToString:str]) {
+    return RTCLoggingSeverityWarning;
+  } else if ([@"error" isEqualToString:str]) {
+    return RTCLoggingSeverityError;
+  } else if ([@"none" isEqualToString:str]) {
+    return RTCLoggingSeverityNone;
+  }
+
+  return RTCLoggingSeverityNone;
+}
+
 - (void)initialize:(NSArray*)networkIgnoreMask
-bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
-    // RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
+    bypassVoiceProcessing:(BOOL)bypassVoiceProcessing
+                 severity:(RTCLoggingSeverity)severity {
+    // RTCSetMinDebugLogLevel(severity);
+    [self initLoggerCallback:severity];
+
     if (!_peerConnectionFactory) {
         VideoDecoderFactory* decoderFactory = [[VideoDecoderFactory alloc] init];
         VideoEncoderFactory* encoderFactory = [[VideoEncoderFactory alloc] init];
@@ -297,7 +335,14 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     if (options[@"networkIgnoreMask"] != nil) {
       networkIgnoreMask = ((NSArray*)options[@"networkIgnoreMask"]);
     }
-    [self initialize:networkIgnoreMask bypassVoiceProcessing:enableBypassVoiceProcessing];
+    RTCLoggingSeverity severity = RTCLoggingSeverityNone;
+    if (options[@"logSeverity"] != nil) {
+      NSString* severityStr = ((NSString*)options[@"logSeverity"]);
+      severity = [self str2LogSeverity:severityStr];
+    }
+
+    [self initialize:networkIgnoreMask bypassVoiceProcessing:enableBypassVoiceProcessing
+                     severity:severity];
     result(@"");
   } else if ([@"createPeerConnection" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
@@ -1504,6 +1549,11 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
                 message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                 details:nil]);
     }
+  } else if ([@"setLogSeverity" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* severityStr = argsMap[@"severity"];
+    RTCLoggingSeverity severity = [self str2LogSeverity:severityStr];
+    [self initLoggerCallback:severity];
 #if TARGET_OS_IOS
   } else if ([@"startRecordToFile" isEqualToString:call.method]){
 

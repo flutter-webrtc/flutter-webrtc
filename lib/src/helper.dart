@@ -1,10 +1,20 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-
+import 'package:logger/logger.dart';
 import '../flutter_webrtc.dart';
+import 'native_logs_listener.dart';
 
 class Helper {
+  /// Set Logger object for webrtc;
+  ///
+  /// Params:
+  ///
+  /// "severity": possible values: ['verbose', 'info', 'warning', 'error', 'none']
+  static void setLogger(Logger logger, [String severity = 'none']) {
+    NativeLogsListener.instance.setLogger(logger, severity);
+  }
+
   static Future<List<MediaDeviceInfo>> enumerateDevices(String type) async {
     var devices = await navigator.mediaDevices.enumerateDevices();
     return devices.where((d) => d.kind == type).toList();
