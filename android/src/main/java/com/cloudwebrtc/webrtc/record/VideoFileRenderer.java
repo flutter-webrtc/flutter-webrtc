@@ -416,18 +416,15 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     }
 
     private long presTime = 0L;
-    
+
 
 
     private void drainAudio() {
         if (audioBufferInfo == null)
             audioBufferInfo = new MediaCodec.BufferInfo();
 
-        int processedBuffers = 0;
-        final int MAX_BUFFERS_PER_DRAIN = 5;
-
-        while (processedBuffers < MAX_BUFFERS_PER_DRAIN) {
-            int encoderStatus = audioEncoder.dequeueOutputBuffer(audioBufferInfo, 1000); 
+        while (true) {
+            int encoderStatus = audioEncoder.dequeueOutputBuffer(audioBufferInfo, 1000);
 
             if (encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                 break;
@@ -451,39 +448,31 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                     break;
             } else if (encoderStatus < 0) {
                 Log.e(TAG, "unexpected result from encoder.dequeueOutputBuffer: " + encoderStatus);
-                break;
             } else { // encoderStatus >= 0
-                processedBuffers++;
 
                 try {
                     ByteBuffer encodedData = audioOutputBuffers[encoderStatus];
                     if (encodedData == null) {
                         Log.e(TAG, "encoderOutputBuffer " + encoderStatus + " was null");
-                        audioEncoder.releaseOutputBuffer(encoderStatus, false);
-                        continue;
+                        break;
                     }
 
-                    if (audioBufferInfo.size > 0) {
-                        // It's usually necessary to adjust the ByteBuffer values to match BufferInfo.
-                        encodedData.position(audioBufferInfo.offset);
-                        encodedData.limit(audioBufferInfo.offset + audioBufferInfo.size);
+                    // It's usually necessary to adjust the ByteBuffer values to match BufferInfo.
+                    encodedData.position(audioBufferInfo.offset);
+                    encodedData.limit(audioBufferInfo.offset + audioBufferInfo.size);
 
-                        if (muxerStarted)
-                            mediaMuxer.writeSampleData(audioTrackIndex, encodedData, audioBufferInfo);
-                    }
+                    if (muxerStarted)
+                        mediaMuxer.writeSampleData(audioTrackIndex, encodedData, audioBufferInfo);
 
-                    boolean isEndOfStream = (audioBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0;
-                    isRunning = isRunning && !isEndOfStream;
-
+                    isRunning = isRunning && (audioBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) == 0;
                     audioEncoder.releaseOutputBuffer(encoderStatus, false);
 
-                    if (isEndOfStream) {
+                    if ((audioBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                         break;
                     }
 
                 } catch (Exception e) {
                     Log.wtf(TAG, e);
-                    audioEncoder.releaseOutputBuffer(encoderStatus, false);
                     break;
                 }
             }
@@ -511,7 +500,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                 Log.wtf(TAG, exception);
             }
 
-            int bufferIndex = audioEncoder.dequeueInputBuffer(1000);
+            int bufferIndex = audioEncoder.dequeueInputBuffer(0);
             if (bufferIndex >= 0) {
                 ByteBuffer buffer = audioInputBuffers[bufferIndex];
                 buffer.clear();
