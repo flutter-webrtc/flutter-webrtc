@@ -148,6 +148,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     }
 
     private List<EncoderConfig> getSupportedConfigurations(int frameWidth, int frameHeight) {
+        Log.d(TAG, "FRAMES:" + frameWidth + " " + frameHeight);
         int[] bitrates = {6000000, 4000000, 2000000, 1000000};
         int[] profiles = {
                 MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline,
@@ -156,13 +157,17 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         };
         List<int[]> resolutions = new ArrayList<>();
         resolutions.add(new int[]{frameWidth, frameHeight});
-        resolutions.addAll(Arrays.asList(
+        for (int[] res : Arrays.asList(
                 new int[]{1920, 1080},
                 new int[]{1280, 720},
                 new int[]{854, 480},
                 new int[]{640, 360},
-                new int[]{426, 240}
-        ));
+                new int[]{426, 240})) {
+            // only add resolutions bellow the original stream resolution
+            if (res[0] <= frameWidth && res[1] <= frameHeight) {
+                resolutions.add(res);
+            }
+        }
 
         List<EncoderConfig> configs = new ArrayList<>();
         for (int[] res : resolutions) {
