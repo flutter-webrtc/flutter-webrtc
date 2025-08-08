@@ -416,7 +416,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     }
 
     private long presTime = 0L;
-    private int drainCounter = 0;
+    
 
 
     private void drainAudio() {
