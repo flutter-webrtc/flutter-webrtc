@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.10)
 set(PROJECT_NAME "flutter_webrtc")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
+# Add the libwebrtc dependency
+include("${CMAKE_CURRENT_SOURCE_DIR}/../third_party/CMakeLists.txt")
+
 set(PLUGIN_NAME "${PROJECT_NAME}_plugin")
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON )
 set(CMAKE_CXX_STANDARD 17)
