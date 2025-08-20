@@ -19,7 +19,13 @@ const List<String> audioCodecList = <String>[
   'PCMU',
   'G729'
 ];
-const List<String> videoCodecList = <String>['VP8', 'VP9', 'H264', 'AV1'];
+const List<String> videoCodecList = <String>[
+  'VP8',
+  'VP9',
+  'H264',
+  'H265',
+  'AV1'
+];
 
 class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   String audioDropdownValue = audioCodecList.first;
