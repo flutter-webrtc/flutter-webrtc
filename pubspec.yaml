@@ -11,6 +11,7 @@ dependencies:
   dart_webrtc: ^1.5.3+hotfix.3
   flutter:
     sdk: flutter
+  logger: ^2.0.2+1
   path_provider: ^2.0.2
   web: ^1.0.0
   webrtc_interface: ^1.2.2+hotfix.2
