@@ -6,9 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../helper.dart';
-import 'utils.dart';
 import '../video_renderer_extension.dart' show AudioControl;
-
+import 'utils.dart';
 
 class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
     implements VideoRenderer, AudioControl {
@@ -189,7 +188,7 @@ class RTCVideoPlatformViewController extends ValueNotifier<RTCVideoValue>
       if (_srcObject == null) {
         throw Exception('Can\'t set volume: The MediaStream is null');
       }
-      for(MediaStreamTrack track in  _srcObject!.getAudioTracks()) {
+      for (MediaStreamTrack track in _srcObject!.getAudioTracks()) {
         await Helper.setVolume(value, track);
       }
     } catch (e) {

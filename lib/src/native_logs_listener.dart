@@ -1,6 +1,7 @@
 import 'package:logger/logger.dart';
-import 'native/event_channel.dart';
+
 import './native/utils.dart';
+import 'native/event_channel.dart';
 
 class NativeLogsListener {
   NativeLogsListener._internal() {
@@ -34,7 +35,7 @@ class NativeLogsListener {
   void handleEvent(String event, final Map<dynamic, dynamic> map) async {
     switch (map['event']) {
       case 'onLogData':
-        if(_logger != null) {
+        if (_logger != null) {
           _logger?.i('webrtc: ${map['data']}');
         }
         break;
