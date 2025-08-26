@@ -41,7 +41,11 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     private LifeCycleObserver observer;
     private Lifecycle lifecycle;
     private EventChannel eventChannel;
-    public EventChannel.EventSink eventSink;
+
+    // eventSink is static because FlutterWebRTCPlugin can be instantiated multiple times
+    // but the onListen(Object, EventChannel.EventSink) event only fires once for the first
+    // FlutterWebRTCPlugin instance, so for the next instances eventSink will be == null
+    public static EventChannel.EventSink eventSink;
 
     public FlutterWebRTCPlugin() {
         sharedSingleton = this;
