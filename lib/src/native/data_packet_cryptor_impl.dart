@@ -16,7 +16,7 @@ class DataPacketCryptorImpl implements DataPacketCryptor {
     required Uint8List data,
   }) {
     try {
-      return WebRTC.invokeMethod('encryptDataPacket', {
+      return WebRTC.invokeMethod('dataPacketCryptorEncrypt', {
         'dataCryptorId': dataCryptorId,
         'participantId': participantId,
         'keyIndex': keyIndex,
@@ -39,7 +39,7 @@ class DataPacketCryptorImpl implements DataPacketCryptor {
     required EncryptedPacket encryptedPacket,
   }) async {
     try {
-      final response = await WebRTC.invokeMethod('decryptDataPacket', {
+      final response = await WebRTC.invokeMethod('dataPacketCryptorDecrypt', {
         'dataCryptorId': dataCryptorId,
         'participantId': participantId,
         'data': encryptedPacket.data,
@@ -54,7 +54,7 @@ class DataPacketCryptorImpl implements DataPacketCryptor {
 
   @override
   Future<void> dispose() {
-    return WebRTC.invokeMethod('disposeDataPacketCryptor', {
+    return WebRTC.invokeMethod('dataPacketCryptorDispose', {
       'dataCryptorId': dataCryptorId,
     });
   }
