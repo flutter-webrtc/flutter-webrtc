@@ -1592,10 +1592,10 @@ static FlutterWebRTCPlugin *sharedSingleton;
                 }
 #endif
     } else {
-      if(![self handleFrameCryptorMethodCall:call result:result]) {
-        result(FlutterMethodNotImplemented);
+      if([self handleFrameCryptorMethodCall:call result:result]) {
+          return;
       } else {
-        [self handleDataPacketCryptorMethodCall:call result:result];
+          [self handleDataPacketCryptorMethodCall:call result:result];
       }
     }
 }
