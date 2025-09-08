@@ -1590,30 +1590,42 @@ static FlutterWebRTCPlugin *sharedSingleton;
 #endif
     } else if ([@"startLocalRecording" isEqualToString:call.method]) {
       RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
-      NSInteger admResult = [adm initAndStartRecording];
+      // Run on background queue
+      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        NSInteger admResult = [adm initAndStartRecording];
 
-      if (admResult == 0) {
-        result(nil);
-      } else {
-        result([FlutterError
-            errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
-                  message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
-                                                     (long)admResult]
-                  details:nil]);
-      }
+        // Return to main queue
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if (admResult == 0) {
+            result(nil);
+          } else {
+            result([FlutterError
+                errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
+                      message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
+                                                         (long)admResult]
+                      details:nil]);
+          }
+        });
+      });
     } else if ([@"stopLocalRecording" isEqualToString:call.method]) {
       RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
-      NSInteger admResult = [adm stopRecording];
+      // Run on background queue
+      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        NSInteger admResult = [adm stopRecording];
 
-      if (admResult == 0) {
-        result(nil);
-      } else {
-        result([FlutterError
-            errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
-                  message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
-                                                     (long)admResult]
-                  details:nil]);
-      }
+        // Return to main queue
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if (admResult == 0) {
+            result(nil);
+          } else {
+            result([FlutterError
+                errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
+                      message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
+                                                         (long)admResult]
+                      details:nil]);
+          }
+        });
+      });
     } else if ([@"isVoiceProcessingEnabled" isEqualToString:call.method]) {
       RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
       NSNumber* admResult = [NSNumber numberWithBool:adm.isVoiceProcessingEnabled];
