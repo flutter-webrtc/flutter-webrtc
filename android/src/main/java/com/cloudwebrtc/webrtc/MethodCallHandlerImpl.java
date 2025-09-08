@@ -123,7 +123,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   private CameraUtils cameraUtils;
 
-  private AudioDeviceModule audioDeviceModule;
+  private JavaAudioDeviceModule audioDeviceModule;
 
   private FlutterRTCFrameCryptor frameCryptor;
 
@@ -1035,6 +1035,16 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           params.putString("state", Utils.connectionStateString(pc.connectionState()));
           result.success(params.toMap());
         }
+        break;
+      }
+      case "startLocalRecording": {
+        audioDeviceModule.prewarmRecording();
+        result.success(null);
+        break;
+      }
+      case "stopLocalRecording": {
+        audioDeviceModule.requestStopRecording();
+        result.success(null);
         break;
       }
       case "setLogSeverity": {
