@@ -12,6 +12,8 @@ import android.media.MediaRecorder;
 import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.Surface;
@@ -90,6 +92,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
@@ -144,6 +148,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       FlutterWebRTCPlugin.sharedSingleton.sendEvent(params.toMap());
     }
   }
+
+  ExecutorService executor = Executors.newSingleThreadExecutor();
+  Handler mainHandler = new Handler(Looper.getMainLooper());
 
   public static LogSink logSink = new LogSink();
 
@@ -1038,13 +1045,21 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       case "startLocalRecording": {
-        audioDeviceModule.prewarmRecording();
-        result.success(null);
+        executor.execute(() -> {
+          audioDeviceModule.prewarmRecording();
+          mainHandler.post(() -> {
+            result.success(null);
+          });
+        });
         break;
       }
       case "stopLocalRecording": {
-        audioDeviceModule.requestStopRecording();
-        result.success(null);
+        executor.execute(() -> {
+          audioDeviceModule.requestStopRecording();
+          mainHandler.post(() -> {
+            result.success(null);
+          });
+        });
         break;
       }
       case "setLogSeverity": {
