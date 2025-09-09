@@ -127,6 +127,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   private FlutterRTCFrameCryptor frameCryptor;
 
+  private FlutterDataPacketCryptor dataPacketCryptor;
+
   private Activity activity;
 
   private CustomVideoEncoderFactory videoEncoderFactory;
@@ -191,6 +193,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     cameraUtils = new CameraUtils(getUserMediaImpl, activity);
 
     frameCryptor = new FlutterRTCFrameCryptor(this);
+
+    dataPacketCryptor = new FlutterDataPacketCryptor(frameCryptor);
 
     AudioAttributes audioAttributes = null;
     if (androidAudioConfiguration != null) {
@@ -1045,6 +1049,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       default:
         if(frameCryptor.handleMethodCall(call, result)) {
           break;
+        } else if(dataPacketCryptor.handleMethodCall(call, result)) {
+          break;
         }
         result.notImplemented();
         break;
@@ -1594,7 +1600,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       ConstraintsMap audioOutputMap = new ConstraintsMap();
       audioOutputMap.putString("label", audioOutput.getName());
       audioOutputMap.putString("deviceId", AudioDeviceKind.fromAudioDevice(audioOutput).typeName);
-      audioOutputMap.putString("groupId", "" + AudioDeviceKind.fromAudioDevice(audioOutput).typeName);
+      audioOutputMap.putString("groupId", AudioDeviceKind.fromAudioDevice(audioOutput).typeName);
       audioOutputMap.putString("kind", "audiooutput");
       array.pushMap(audioOutputMap);
     }

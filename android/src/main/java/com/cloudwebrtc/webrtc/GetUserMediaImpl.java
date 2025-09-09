@@ -184,7 +184,6 @@ public class GetUserMediaImpl {
                 Log.w(
                         TAG,
                         "Can't run requestStart() due to a low API level. API level 21 or higher is required.");
-                return;
             } else {
                 MediaProjectionManager mediaProjectionManager =
                         (MediaProjectionManager) activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
