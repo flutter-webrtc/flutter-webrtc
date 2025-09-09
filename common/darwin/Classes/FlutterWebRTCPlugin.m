@@ -620,7 +620,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
     NSString* dataChannelId = argsMap[@"dataChannelId"];
 
     [self dataChannelGetBufferedAmount:peerConnectionId dataChannelId:dataChannelId result:result];
-  } 
+  }
   else if ([@"dataChannelClose" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -1940,7 +1940,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
     NSNumber* maxIPv6Networks = json[@"maxIPv6Networks"];
      config.maxIPv6Networks = [maxIPv6Networks intValue];
   }
-    
+
   // === below is private api in webrtc ===
   if (json[@"tcpCandidatePolicy"] != nil &&
       [json[@"tcpCandidatePolicy"] isKindOfClass:[NSString class]]) {
@@ -2158,7 +2158,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
       @"kind" : codec.kind
     }];
   }
-    
+
   NSString *degradationPreference = @"balanced";
   if(parameters.degradationPreference != nil) {
     if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainFramerate ) {
@@ -2374,7 +2374,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
   NSArray<RTCRtpEncodingParameters*>* currentEncodings = parameters.encodings;
   // new encodings
   NSArray* newEncodings = [newParameters objectForKey:@"encodings"];
-    
+
   NSString *degradationPreference = [newParameters objectForKey:@"degradationPreference"];
 
   if( degradationPreference != nil) {
