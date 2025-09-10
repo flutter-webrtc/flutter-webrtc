@@ -18,6 +18,9 @@
 #import <WebRTC/RTCFieldTrials.h>
 #import <WebRTC/WebRTC.h>
 
+#import <WebRTC/RTCLogging.h>
+#import <WebRTC/RTCCallbackLogger.h>
+
 #import "LocalTrack.h"
 #import "LocalAudioTrack.h"
 #import "LocalVideoTrack.h"
@@ -113,6 +116,8 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
 #if TARGET_OS_IPHONE
   FLutterRTCVideoPlatformViewFactory *_platformViewFactory;
 #endif
+
+  RTC_OBJC_TYPE(RTCCallbackLogger) * loggerCallback;
 }
 
 static FlutterWebRTCPlugin *sharedSingleton;
@@ -248,9 +253,42 @@ static FlutterWebRTCPlugin *sharedSingleton;
 #endif
 }
 
+-(void) initLoggerCallback:(RTCLoggingSeverity)severity {
+  if(loggerCallback == nil) {
+    loggerCallback = [RTC_OBJC_TYPE(RTCCallbackLogger) new];
+    [loggerCallback start:^(NSString *logMessage) {
+      postEvent(self.eventSink, @{
+        @"event" : @"onLogData",
+        @"data" : logMessage
+      });
+    }];
+  }
+
+  loggerCallback.severity = severity;
+}
+
+-(RTCLoggingSeverity)str2LogSeverity:(NSString*)str {
+  if ([@"verbose" isEqualToString:str]) {
+    return RTCLoggingSeverityVerbose;
+  } else if ([@"info" isEqualToString:str]) {
+    return RTCLoggingSeverityInfo;
+  } else if ([@"warning" isEqualToString:str]) {
+    return RTCLoggingSeverityWarning;
+  } else if ([@"error" isEqualToString:str]) {
+    return RTCLoggingSeverityError;
+  } else if ([@"none" isEqualToString:str]) {
+    return RTCLoggingSeverityNone;
+  }
+
+  return RTCLoggingSeverityNone;
+}
+
 - (void)initialize:(NSArray*)networkIgnoreMask
-bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
-    // RTCSetMinDebugLogLevel(RTCLoggingSeverityVerbose);
+    bypassVoiceProcessing:(BOOL)bypassVoiceProcessing
+                 severity:(RTCLoggingSeverity)severity {
+    // RTCSetMinDebugLogLevel(severity);
+    [self initLoggerCallback:severity];
+
     if (!_peerConnectionFactory) {
         VideoDecoderFactory* decoderFactory = [[VideoDecoderFactory alloc] init];
         VideoEncoderFactory* encoderFactory = [[VideoEncoderFactory alloc] init];
@@ -303,7 +341,14 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     if (options[@"networkIgnoreMask"] != nil) {
       networkIgnoreMask = ((NSArray*)options[@"networkIgnoreMask"]);
     }
-    [self initialize:networkIgnoreMask bypassVoiceProcessing:enableBypassVoiceProcessing];
+    RTCLoggingSeverity severity = RTCLoggingSeverityNone;
+    if (options[@"logSeverity"] != nil) {
+      NSString* severityStr = ((NSString*)options[@"logSeverity"]);
+      severity = [self str2LogSeverity:severityStr];
+    }
+
+    [self initialize:networkIgnoreMask bypassVoiceProcessing:enableBypassVoiceProcessing
+                     severity:severity];
     result(@"");
   } else if ([@"createPeerConnection" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
@@ -583,7 +628,7 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     NSString* dataChannelId = argsMap[@"dataChannelId"];
 
     [self dataChannelGetBufferedAmount:peerConnectionId dataChannelId:dataChannelId result:result];
-  } 
+  }
   else if ([@"dataChannelClose" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -1512,6 +1557,11 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
                 message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                 details:nil]);
     }
+  } else if ([@"setLogSeverity" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* severityStr = argsMap[@"severity"];
+    RTCLoggingSeverity severity = [self str2LogSeverity:severityStr];
+    [self initLoggerCallback:severity];
 #if TARGET_OS_IOS
   } else if ([@"startRecordToFile" isEqualToString:call.method]){
 
@@ -1546,9 +1596,60 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
                                                 details:nil]);
                 }
 #endif
+    } else if ([@"startLocalRecording" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      // Run on background queue
+      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        NSInteger admResult = [adm initAndStartRecording];
+
+        // Return to main queue
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if (admResult == 0) {
+            result(nil);
+          } else {
+            result([FlutterError
+                errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
+                      message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
+                                                         (long)admResult]
+                      details:nil]);
+          }
+        });
+      });
+    } else if ([@"stopLocalRecording" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      // Run on background queue
+      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        NSInteger admResult = [adm stopRecording];
+
+        // Return to main queue
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if (admResult == 0) {
+            result(nil);
+          } else {
+            result([FlutterError
+                errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
+                      message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
+                                                         (long)admResult]
+                      details:nil]);
+          }
+        });
+      });
+    } else if ([@"isVoiceProcessingEnabled" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSNumber* admResult = [NSNumber numberWithBool:adm.isVoiceProcessingEnabled];
+      result(admResult);
+    } else if ([@"isVoiceProcessingBypassed" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSNumber* admResult = [NSNumber numberWithBool:adm.isVoiceProcessingBypassed];
+      result(admResult);
+    } else if ([@"setIsVoiceProcessingBypassed" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSNumber* value = call.arguments[@"value"];
+      adm.voiceProcessingBypassed = value.boolValue;
+      result(nil);
     } else {
-    [self handleFrameCryptorMethodCall:call result:result];
-  }
+      [self handleFrameCryptorMethodCall:call result:result];
+    }
 }
 
 - (void)dealloc {
@@ -1847,7 +1948,7 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
     NSNumber* maxIPv6Networks = json[@"maxIPv6Networks"];
      config.maxIPv6Networks = [maxIPv6Networks intValue];
   }
-    
+
   // === below is private api in webrtc ===
   if (json[@"tcpCandidatePolicy"] != nil &&
       [json[@"tcpCandidatePolicy"] isKindOfClass:[NSString class]]) {
@@ -2065,7 +2166,7 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
       @"kind" : codec.kind
     }];
   }
-    
+
   NSString *degradationPreference = @"balanced";
   if(parameters.degradationPreference != nil) {
     if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainFramerate ) {
@@ -2281,7 +2382,7 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
   NSArray<RTCRtpEncodingParameters*>* currentEncodings = parameters.encodings;
   // new encodings
   NSArray* newEncodings = [newParameters objectForKey:@"encodings"];
-    
+
   NSString *degradationPreference = [newParameters objectForKey:@"degradationPreference"];
 
   if( degradationPreference != nil) {

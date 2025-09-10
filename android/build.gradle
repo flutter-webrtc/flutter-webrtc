@@ -2,7 +2,7 @@ group 'com.cloudwebrtc.webrtc'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.7.10'
+    ext.kotlin_version = '1.8.10'
     repositories {
         google()
         mavenCentral()
@@ -29,7 +29,7 @@ android {
     if (project.android.hasProperty("namespace")) {
         namespace 'com.cloudwebrtc.webrtc'
     }
-    compileSdkVersion 31
+    compileSdkVersion 36
 
     defaultConfig {
         minSdkVersion 21
@@ -47,12 +47,12 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
-    implementation 'io.github.webrtc-sdk:android:137.7151.01'
+    implementation 'io.github.webrtc-sdk:android:137.7151.03'
     implementation 'com.github.davidliu:audioswitch:89582c47c9a04c62f90aa5e57251af4800a62c9a'
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

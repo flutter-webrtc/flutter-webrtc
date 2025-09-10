@@ -1,6 +1,16 @@
 
 # Changelog
 
+[1.1.0] - 2025-08-20
+
+* [Apple/Android] feat: Add H265/HEVC support.
+* [Mobile/Desktop] feat: Support write logs with Logger (logger package) (#1891)
+* [Android] fix: Reduce Recording Stop Delay and Prevent Encoder OOM Crashes (Android) (#1912)
+* [Native/Web] feat: small setVolume addition (#1904)
+* [Web] feat: Add texture-based video rendering for web (#1911)
+* [Android] fix: RECORDINGS - Add fallback resolutions for unsupported stream frame sizes on low-end Android devices (#1900)
+* [Android] fix: Update proguard-rules.pro (#1902)
+
 [1.0.0] - 2025-07-25
 
 * Bump version to 1.0.0

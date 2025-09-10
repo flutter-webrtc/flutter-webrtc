@@ -12,6 +12,8 @@ import android.media.MediaRecorder;
 import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.Surface;
@@ -49,6 +51,8 @@ import org.webrtc.DtmfSender;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
+import org.webrtc.Logging.Severity;
+import org.webrtc.Loggable;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaConstraints.KeyValuePair;
 import org.webrtc.MediaStream;
@@ -88,6 +92,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
@@ -121,7 +127,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   private CameraUtils cameraUtils;
 
-  private AudioDeviceModule audioDeviceModule;
+  private JavaAudioDeviceModule audioDeviceModule;
 
   private FlutterRTCFrameCryptor frameCryptor;
 
@@ -132,6 +138,21 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   private CustomVideoDecoderFactory videoDecoderFactory;
 
   public AudioProcessingController audioProcessingController;
+
+  public static class LogSink implements Loggable {
+    @Override
+    public void onLogMessage(String message, Severity sev, String tag) {
+      ConstraintsMap params = new ConstraintsMap();
+      params.putString("event", "onLogData");
+      params.putString("data", message);
+      FlutterWebRTCPlugin.sharedSingleton.sendEvent(params.toMap());
+    }
+  }
+
+  ExecutorService executor = Executors.newSingleThreadExecutor();
+  Handler mainHandler = new Handler(Looper.getMainLooper());
+
+  public static LogSink logSink = new LogSink();
 
   MethodCallHandlerImpl(Context context, BinaryMessenger messenger, TextureRegistry textureRegistry) {
     this.context = context;
@@ -161,7 +182,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mPeerConnectionObservers.clear();
   }
   private void initialize(boolean bypassVoiceProcessing, int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
-  @Nullable ConstraintsMap androidAudioConfiguration) {
+  @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity) {
     if (mFactory != null) {
       return;
     }
@@ -169,6 +190,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     PeerConnectionFactory.initialize(
             InitializationOptions.builder(context)
                     .setEnableInternalTracer(true)
+                    .setInjectableLogger(logSink, logSeverity)
                     .createInitializationOptions());
 
     getUserMediaImpl = new GetUserMediaImpl(this, context);
@@ -342,7 +364,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         if(options.get("bypassVoiceProcessing") != null) {
           enableBypassVoiceProcessing = (boolean)options.get("bypassVoiceProcessing");
         }
-        initialize(enableBypassVoiceProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration);
+
+        Severity logSeverity = Severity.LS_NONE;
+        if (constraintsMap.hasKey("logSeverity")
+                && constraintsMap.getType("logSeverity") == ObjectType.String) {
+          String logSeverityStr = constraintsMap.getString("logSeverity");
+          logSeverity = str2LogSeverity(logSeverityStr);
+        }
+
+        initialize(enableBypassVoiceProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity);
         result.success(null);
         break;
       }
@@ -1012,6 +1042,29 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           params.putString("state", Utils.connectionStateString(pc.connectionState()));
           result.success(params.toMap());
         }
+        break;
+      }
+      case "startLocalRecording": {
+        executor.execute(() -> {
+          audioDeviceModule.prewarmRecording();
+          mainHandler.post(() -> {
+            result.success(null);
+          });
+        });
+        break;
+      }
+      case "stopLocalRecording": {
+        executor.execute(() -> {
+          audioDeviceModule.requestStopRecording();
+          mainHandler.post(() -> {
+            result.success(null);
+          });
+        });
+        break;
+      }
+      case "setLogSeverity": {
+        //now it's possible to setup logSeverity only via PeerConnectionFactory.initialize method
+        //Log.d(TAG, "no implementation for 'setLogSeverity'");
         break;
       }
       default:
@@ -2017,6 +2070,22 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       if (renderer.checkVideoTrack(trackId, "local")) {
         renderer.setStream(null, null);
       }
+    }
+  }
+
+  private Severity str2LogSeverity(String severity) {
+    switch (severity) {
+      case "verbose":
+        return Severity.LS_VERBOSE;
+      case "info":
+        return Severity.LS_INFO;
+      case "warning":
+        return Severity.LS_WARNING;
+      case "error":
+        return Severity.LS_ERROR;
+      case "none":
+      default:
+        return Severity.LS_NONE;
     }
   }
 

@@ -61,6 +61,8 @@ jobs:
           channel: 'stable'
       - name: Install project dependencies
         run: flutter pub get
+      - name: Install xcode platform support for iOS
+        run: xcodebuild -downloadPlatform iOS
       - name: Build for iOS
         working-directory: ./example
         run: flutter build ios --release --no-codesign
