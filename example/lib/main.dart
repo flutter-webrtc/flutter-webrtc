@@ -5,6 +5,7 @@ import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_webrtc_example/src/capture_frame_sample.dart';
 
 import 'src/adm_sample.dart';
+import 'src/data_packet_cryptor_sample.dart';
 import 'src/device_enumeration_sample.dart';
 import 'src/get_display_media_sample.dart';
 import 'src/get_user_media_sample.dart'
@@ -128,7 +129,7 @@ class _MyAppState extends State<MyApp> {
                 MaterialPageRoute(
                     builder: (BuildContext context) => CaptureFrameSample()));
           }),
-          RouteItem(
+      RouteItem(
           title: 'ADM Sample',
           push: (BuildContext context) {
             Navigator.push(
@@ -136,7 +137,14 @@ class _MyAppState extends State<MyApp> {
                 MaterialPageRoute(
                     builder: (BuildContext context) => AdmSample()));
           }),
-          
+      RouteItem(
+          title: 'Data Packet Cryptor Sample',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) => DataPacketCryptorSample()));
+          }),
     ];
   }
 }

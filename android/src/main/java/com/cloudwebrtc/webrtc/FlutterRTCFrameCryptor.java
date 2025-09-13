@@ -148,7 +148,7 @@ public class FlutterRTCFrameCryptor {
         return true;
     }
 
-    private FrameCryptorAlgorithm frameCryptorAlgorithmFromInt(int algorithm) {
+    public FrameCryptorAlgorithm frameCryptorAlgorithmFromInt(int algorithm) {
         switch (algorithm) {
             case 0:
                 return FrameCryptorAlgorithm.AES_GCM;
@@ -210,7 +210,6 @@ public class FlutterRTCFrameCryptor {
             result.success(paramsResult.toMap());
         } else {
             result.error("frameCryptorFactoryCreateFrameCryptorFailed", "type must be sender or receiver", null);
-            return;
         }
     }
 
@@ -430,5 +429,9 @@ public class FlutterRTCFrameCryptor {
         ConstraintsMap paramsResult = new ConstraintsMap();
         paramsResult.putString("result", "success");
         result.success(paramsResult.toMap());
+    }
+
+    public FrameCryptorKeyProvider getKeyProvider(String id) {
+        return keyProviders.get(id);
     }
 }
