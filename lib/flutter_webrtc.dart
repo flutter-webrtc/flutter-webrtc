@@ -5,8 +5,6 @@ export 'package:webrtc_interface/webrtc_interface.dart'
 
 export 'src/helper.dart';
 export 'src/desktop_capturer.dart';
-export 'src/native/data_packet_cryptor_impl.dart'
-    if (dart.library.js_interop) 'src/web/data_packet_cryptor_impl.dart';
 export 'src/media_devices.dart';
 export 'src/media_recorder.dart';
 export 'src/video_renderer_extension.dart';

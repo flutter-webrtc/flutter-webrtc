@@ -82,6 +82,3 @@ class DataPacketCryptorFactoryImpl implements DataPacketCryptorFactory {
     }
   }
 }
-
-DataPacketCryptorFactory get dataPacketCryptorFactory =>
-    DataPacketCryptorFactoryImpl.instance;
