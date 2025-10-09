@@ -114,6 +114,9 @@ void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
 #endif
 
   RTC_OBJC_TYPE(RTCCallbackLogger) * loggerCallback;
+  
+  // External video tracks registry
+  NSMutableDictionary<NSString*, RTCVideoTrack*>* _externalVideoTracks;
 }
 
 static FlutterWebRTCPlugin *sharedSingleton;
@@ -194,6 +197,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
   self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
   self.recorders = [NSMutableDictionary new];
+  _externalVideoTracks = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
   self.focusMode = @"locked";
   self.exposureMode = @"locked";
@@ -1642,6 +1646,12 @@ static FlutterWebRTCPlugin *sharedSingleton;
       NSNumber* value = call.arguments[@"value"];
       adm.voiceProcessingBypassed = value.boolValue;
       result(nil);
+    } else if ([@"registerExternalVideoTrack" isEqualToString:call.method]) {
+      [self registerExternalVideoTrack:call.arguments result:result];
+    } else if ([@"createMediaStreamWithExternalVideo" isEqualToString:call.method]) {
+      [self createMediaStreamWithExternalVideo:call.arguments result:result];
+    } else if ([@"addExternalTrackToPeerConnection" isEqualToString:call.method]) {
+      [self addExternalTrackToPeerConnection:call.arguments result:result];
     } else {
       if([self handleFrameCryptorMethodCall:call result:result]) {
           return;
@@ -1688,6 +1698,131 @@ static FlutterWebRTCPlugin *sharedSingleton;
     [AudioUtils deactiveRtcAudioSession];
   }
 #endif
+}
+
+#pragma mark - External Video Track Support
+
+- (void)registerExternalVideoTrack:(NSDictionary*)arguments result:(FlutterResult)result {
+  NSString* trackId = arguments[@"trackId"];
+  NSNumber* trackPointer = arguments[@"trackPointer"];
+  
+  if (!trackId || !trackPointer) {
+    result([FlutterError errorWithCode:@"INVALID_ARGS"
+                               message:@"trackId and trackPointer required"
+                               details:nil]);
+    return;
+  }
+  
+  // Get RTCVideoTrack from pointer
+  RTCVideoTrack* track = (__bridge RTCVideoTrack*)(void*)[trackPointer longValue];
+  
+  if (!track) {
+    result([FlutterError errorWithCode:@"INVALID_TRACK"
+                               message:@"Cannot get track from pointer"
+                               details:nil]);
+    return;
+  }
+  
+  // Store in registry
+  _externalVideoTracks[trackId] = track;
+  
+  NSLog(@"✅ External video track registered: %@", trackId);
+  result(@{@"success": @YES, @"trackId": trackId});
+}
+
+- (void)createMediaStreamWithExternalVideo:(NSDictionary*)arguments result:(FlutterResult)result {
+  NSString* trackId = arguments[@"externalVideoTrackId"];
+  
+  if (!trackId) {
+    result([FlutterError errorWithCode:@"INVALID_ARGS"
+                               message:@"externalVideoTrackId required"
+                               details:nil]);
+    return;
+  }
+  
+  // Get track from registry
+  RTCVideoTrack* externalTrack = _externalVideoTracks[trackId];
+  
+  if (!externalTrack) {
+    result([FlutterError errorWithCode:@"TRACK_NOT_FOUND"
+                               message:@"External video track not found"
+                               details:trackId]);
+    return;
+  }
+  
+  // Create MediaStream
+  NSString* streamId = [[NSUUID UUID] UUIDString];
+  RTCMediaStream* mediaStream = [_peerConnectionFactory mediaStreamWithStreamId:streamId];
+  
+  // Add external video track
+  [mediaStream addVideoTrack:externalTrack];
+  
+  // Store in registry
+  self.localStreams[streamId] = mediaStream;
+  
+  NSLog(@"✅ MediaStream created with external video: %@", streamId);
+  result(@{
+    @"streamId": streamId,
+    @"audioTracks": @[],
+    @"videoTracks": @[@{
+      @"id": externalTrack.trackId,
+      @"label": externalTrack.trackId,
+      @"kind": @"video",
+      @"enabled": @(externalTrack.isEnabled)
+    }]
+  });
+}
+
+- (void)addExternalTrackToPeerConnection:(NSDictionary*)arguments result:(FlutterResult)result {
+  NSString* peerConnectionId = arguments[@"peerConnectionId"];
+  NSString* trackId = arguments[@"trackId"];
+  NSString* streamId = arguments[@"streamId"] ?: @"composite_stream";
+  
+  if (!peerConnectionId || !trackId) {
+    result([FlutterError errorWithCode:@"INVALID_ARGS"
+                               message:@"peerConnectionId and trackId required"
+                               details:nil]);
+    return;
+  }
+  
+  // Get peer connection
+  RTCPeerConnection* peerConnection = _peerConnections[peerConnectionId];
+  if (!peerConnection) {
+    result([FlutterError errorWithCode:@"PC_NOT_FOUND"
+                               message:@"Peer connection not found"
+                               details:peerConnectionId]);
+    return;
+  }
+  
+  // Get external video track
+  RTCVideoTrack* track = _externalVideoTracks[trackId];
+  if (!track) {
+    result([FlutterError errorWithCode:@"TRACK_NOT_FOUND"
+                               message:@"External video track not found"
+                               details:trackId]);
+    return;
+  }
+  
+  // Add track to peer connection
+  RTCRtpSender* sender = [peerConnection addTrack:track streamIds:@[streamId]];
+  
+  if (!sender) {
+    result([FlutterError errorWithCode:@"ADD_TRACK_FAILED"
+                               message:@"Failed to add track to peer connection"
+                               details:nil]);
+    return;
+  }
+  
+  NSLog(@"✅ External video track added to peer connection");
+  NSLog(@"   Track ID: %@", trackId);
+  NSLog(@"   Peer Connection ID: %@", peerConnectionId);
+  NSLog(@"   Stream ID: %@", streamId);
+  
+  result(@{
+    @"success": @YES,
+    @"trackId": trackId,
+    @"senderId": sender.senderId
+  });
 }
 
 - (void)mediaStreamGetTracks:(NSString*)streamId result:(FlutterResult)result {
