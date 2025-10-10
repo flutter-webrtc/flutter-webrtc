@@ -290,4 +290,33 @@ class Helper {
       throw Exception('Failed to add external track to peer connection: $e');
     }
   }
+
+  /// Unregister an external video track
+  ///
+  /// This method removes a previously registered external video track from the registry.
+  /// Call this when you're done with the track to free up resources.
+  ///
+  /// Parameters:
+  /// - trackId: The trackId of the registered external track
+  ///
+  /// iOS only.
+  static Future<void> unregisterExternalVideoTrack({
+    required String trackId,
+  }) async {
+    if (!WebRTC.platformIsIOS) {
+      return; // No-op on non-iOS platforms
+    }
+
+    try {
+      await WebRTC.invokeMethod(
+        'unregisterExternalVideoTrack',
+        {
+          'trackId': trackId,
+        },
+      );
+    } catch (e) {
+      // Log but don't throw - cleanup should be forgiving
+      print('Warning: Failed to unregister external video track: $e');
+    }
+  }
 }

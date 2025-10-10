@@ -1648,6 +1648,8 @@ static FlutterWebRTCPlugin *sharedSingleton;
       result(nil);
     } else if ([@"registerExternalVideoTrack" isEqualToString:call.method]) {
       [self registerExternalVideoTrack:call.arguments result:result];
+    } else if ([@"unregisterExternalVideoTrack" isEqualToString:call.method]) {
+      [self unregisterExternalVideoTrack:call.arguments result:result];
     } else if ([@"createMediaStreamWithExternalVideo" isEqualToString:call.method]) {
       [self createMediaStreamWithExternalVideo:call.arguments result:result];
     } else if ([@"addExternalTrackToPeerConnection" isEqualToString:call.method]) {
@@ -1728,6 +1730,27 @@ static FlutterWebRTCPlugin *sharedSingleton;
   
   NSLog(@"✅ External video track registered: %@", trackId);
   result(@{@"success": @YES, @"trackId": trackId});
+}
+
+- (void)unregisterExternalVideoTrack:(NSDictionary*)arguments result:(FlutterResult)result {
+  NSString* trackId = arguments[@"trackId"];
+  
+  if (!trackId) {
+    result([FlutterError errorWithCode:@"INVALID_ARGS"
+                               message:@"trackId required"
+                               details:nil]);
+    return;
+  }
+  
+  // Remove from registry
+  if (_externalVideoTracks[trackId]) {
+    [_externalVideoTracks removeObjectForKey:trackId];
+    NSLog(@"✅ External video track unregistered: %@", trackId);
+    result(@{@"success": @YES, @"trackId": trackId});
+  } else {
+    NSLog(@"⚠️ External video track not found for unregistration: %@", trackId);
+    result(@{@"success": @YES, @"trackId": trackId}); // Return success even if not found
+  }
 }
 
 - (void)createMediaStreamWithExternalVideo:(NSDictionary*)arguments result:(FlutterResult)result {
