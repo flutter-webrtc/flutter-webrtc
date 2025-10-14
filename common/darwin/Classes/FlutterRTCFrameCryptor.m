@@ -38,7 +38,7 @@
 
 @implementation FlutterWebRTCPlugin (FrameCryptor)
 
-- (void)handleFrameCryptorMethodCall:(nonnull FlutterMethodCall*)call
+- (BOOL)handleFrameCryptorMethodCall:(nonnull FlutterMethodCall*)call
                               result:(nonnull FlutterResult)result {
   NSDictionary* constraints = call.arguments;
   NSString* method = call.method;
@@ -73,8 +73,10 @@
   } else if ([method isEqualToString:@"keyProviderDispose"]) {
     [self keyProviderDispose:constraints result:result];
   } else {
-    result(FlutterMethodNotImplemented);
+    return NO;
   }
+
+  return YES;
 }
 
 - (RTCCryptorAlgorithm)getAlgorithm:(NSNumber*)algorithm {

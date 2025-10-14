@@ -12,6 +12,8 @@ import android.media.MediaRecorder;
 import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.Surface;
@@ -90,6 +92,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
@@ -123,9 +127,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   private CameraUtils cameraUtils;
 
-  private AudioDeviceModule audioDeviceModule;
+  private JavaAudioDeviceModule audioDeviceModule;
 
   private FlutterRTCFrameCryptor frameCryptor;
+
+  private FlutterDataPacketCryptor dataPacketCryptor;
 
   private Activity activity;
 
@@ -144,6 +150,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       FlutterWebRTCPlugin.sharedSingleton.sendEvent(params.toMap());
     }
   }
+
+  ExecutorService executor = Executors.newSingleThreadExecutor();
+  Handler mainHandler = new Handler(Looper.getMainLooper());
 
   public static LogSink logSink = new LogSink();
 
@@ -191,6 +200,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     cameraUtils = new CameraUtils(getUserMediaImpl, activity);
 
     frameCryptor = new FlutterRTCFrameCryptor(this);
+
+    dataPacketCryptor = new FlutterDataPacketCryptor(frameCryptor);
 
     AudioAttributes audioAttributes = null;
     if (androidAudioConfiguration != null) {
@@ -1037,6 +1048,24 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         }
         break;
       }
+      case "startLocalRecording": {
+        executor.execute(() -> {
+          audioDeviceModule.prewarmRecording();
+          mainHandler.post(() -> {
+            result.success(null);
+          });
+        });
+        break;
+      }
+      case "stopLocalRecording": {
+        executor.execute(() -> {
+          audioDeviceModule.requestStopRecording();
+          mainHandler.post(() -> {
+            result.success(null);
+          });
+        });
+        break;
+      }
       case "setLogSeverity": {
         //now it's possible to setup logSeverity only via PeerConnectionFactory.initialize method
         //Log.d(TAG, "no implementation for 'setLogSeverity'");
@@ -1044,6 +1073,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       default:
         if(frameCryptor.handleMethodCall(call, result)) {
+          break;
+        } else if(dataPacketCryptor.handleMethodCall(call, result)) {
           break;
         }
         result.notImplemented();
@@ -1594,7 +1625,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       ConstraintsMap audioOutputMap = new ConstraintsMap();
       audioOutputMap.putString("label", audioOutput.getName());
       audioOutputMap.putString("deviceId", AudioDeviceKind.fromAudioDevice(audioOutput).typeName);
-      audioOutputMap.putString("groupId", "" + AudioDeviceKind.fromAudioDevice(audioOutput).typeName);
+      audioOutputMap.putString("groupId", AudioDeviceKind.fromAudioDevice(audioOutput).typeName);
       audioOutputMap.putString("kind", "audiooutput");
       array.pushMap(audioOutputMap);
     }
