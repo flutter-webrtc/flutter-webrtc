@@ -1,7 +1,9 @@
 #import "FlutterWebRTCPlugin.h"
 #import "AudioUtils.h"
 #import "CameraUtils.h"
+
 #import "FlutterRTCDataChannel.h"
+#import "FlutterDataPacketCryptor.h"
 #import "FlutterRTCDesktopCapturer.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
@@ -188,6 +190,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
   self.localTracks = [NSMutableDictionary new];
   self.renders = [NSMutableDictionary new];
   self.frameCryptors = [NSMutableDictionary new];
+  self.dataCryptors = [NSMutableDictionary new];
   self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
   self.recorders = [NSMutableDictionary new];
@@ -620,7 +623,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
     NSString* dataChannelId = argsMap[@"dataChannelId"];
 
     [self dataChannelGetBufferedAmount:peerConnectionId dataChannelId:dataChannelId result:result];
-  } 
+  }
   else if ([@"dataChannelClose" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* peerConnectionId = argsMap[@"peerConnectionId"];
@@ -1588,9 +1591,64 @@ static FlutterWebRTCPlugin *sharedSingleton;
                                                 details:nil]);
                 }
 #endif
+    } else if ([@"startLocalRecording" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      // Run on background queue
+      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        NSInteger admResult = [adm initAndStartRecording];
+
+        // Return to main queue
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if (admResult == 0) {
+            result(nil);
+          } else {
+            result([FlutterError
+                errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
+                      message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
+                                                         (long)admResult]
+                      details:nil]);
+          }
+        });
+      });
+    } else if ([@"stopLocalRecording" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      // Run on background queue
+      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        NSInteger admResult = [adm stopRecording];
+
+        // Return to main queue
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if (admResult == 0) {
+            result(nil);
+          } else {
+            result([FlutterError
+                errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
+                      message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
+                                                         (long)admResult]
+                      details:nil]);
+          }
+        });
+      });
+    } else if ([@"isVoiceProcessingEnabled" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSNumber* admResult = [NSNumber numberWithBool:adm.isVoiceProcessingEnabled];
+      result(admResult);
+    } else if ([@"isVoiceProcessingBypassed" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSNumber* admResult = [NSNumber numberWithBool:adm.isVoiceProcessingBypassed];
+      result(admResult);
+    } else if ([@"setIsVoiceProcessingBypassed" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSNumber* value = call.arguments[@"value"];
+      adm.voiceProcessingBypassed = value.boolValue;
+      result(nil);
     } else {
-    [self handleFrameCryptorMethodCall:call result:result];
-  }
+      if([self handleFrameCryptorMethodCall:call result:result]) {
+          return;
+      } else {
+          [self handleDataPacketCryptorMethodCall:call result:result];
+      }
+    }
 }
 
 - (void)dealloc {
@@ -1889,7 +1947,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
     NSNumber* maxIPv6Networks = json[@"maxIPv6Networks"];
      config.maxIPv6Networks = [maxIPv6Networks intValue];
   }
-    
+
   // === below is private api in webrtc ===
   if (json[@"tcpCandidatePolicy"] != nil &&
       [json[@"tcpCandidatePolicy"] isKindOfClass:[NSString class]]) {
@@ -2107,7 +2165,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
       @"kind" : codec.kind
     }];
   }
-    
+
   NSString *degradationPreference = @"balanced";
   if(parameters.degradationPreference != nil) {
     if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainFramerate ) {
@@ -2323,7 +2381,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
   NSArray<RTCRtpEncodingParameters*>* currentEncodings = parameters.encodings;
   // new encodings
   NSArray* newEncodings = [newParameters objectForKey:@"encodings"];
-    
+
   NSString *degradationPreference = [newParameters objectForKey:@"degradationPreference"];
 
   if( degradationPreference != nil) {

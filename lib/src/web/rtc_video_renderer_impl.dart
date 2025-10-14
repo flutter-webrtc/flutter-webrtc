@@ -347,6 +347,8 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       element.style.pointerEvents = "none";
       element.style.opacity = "0";
       element.style.position = "absolute";
+      element.style.left = "0px";
+      element.style.top = "0px";
     }
   }
 
