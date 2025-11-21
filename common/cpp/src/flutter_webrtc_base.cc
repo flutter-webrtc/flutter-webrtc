@@ -15,6 +15,7 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger* messenger,
     : messenger_(messenger), task_runner_(task_runner), textures_(textures) {
   LibWebRTC::Initialize();
   factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
+  factory_->Initialize();
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
   desktop_device_ = factory_->GetDesktopDevice();
