@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-
 import 'package:logger/logger.dart';
 
 import '../flutter_webrtc.dart';
+import 'native/media_stream_impl.dart';
 import 'native_logs_listener.dart';
 
 class Helper {
@@ -27,20 +27,17 @@ class Helper {
   /// Note: Make sure to call this gettet after
   /// navigator.mediaDevices.getUserMedia(), otherwise the devices will not be
   /// listed.
-  static Future<List<MediaDeviceInfo>> get cameras =>
-      enumerateDevices('videoinput');
+  static Future<List<MediaDeviceInfo>> get cameras => enumerateDevices('videoinput');
 
   /// Return the available audiooutputs
   ///
   /// Note: Make sure to call this gettet after
   /// navigator.mediaDevices.getUserMedia(), otherwise the devices will not be
   /// listed.
-  static Future<List<MediaDeviceInfo>> get audiooutputs =>
-      enumerateDevices('audiooutput');
+  static Future<List<MediaDeviceInfo>> get audiooutputs => enumerateDevices('audiooutput');
 
   /// For web implementation, make sure to pass the target deviceId
-  static Future<bool> switchCamera(MediaStreamTrack track,
-      [String? deviceId, MediaStream? stream]) async {
+  static Future<bool> switchCamera(MediaStreamTrack track, [String? deviceId, MediaStream? stream]) async {
     if (track.kind != 'video') {
       throw 'The is not a video track => $track';
     }
@@ -83,20 +80,16 @@ class Helper {
   static Future<void> setZoom(MediaStreamTrack videoTrack, double zoomLevel) =>
       CameraUtils.setZoom(videoTrack, zoomLevel);
 
-  static Future<void> setFocusMode(
-          MediaStreamTrack videoTrack, CameraFocusMode focusMode) =>
+  static Future<void> setFocusMode(MediaStreamTrack videoTrack, CameraFocusMode focusMode) =>
       CameraUtils.setFocusMode(videoTrack, focusMode);
 
-  static Future<void> setFocusPoint(
-          MediaStreamTrack videoTrack, Point<double>? point) =>
+  static Future<void> setFocusPoint(MediaStreamTrack videoTrack, Point<double>? point) =>
       CameraUtils.setFocusPoint(videoTrack, point);
 
-  static Future<void> setExposureMode(
-          MediaStreamTrack videoTrack, CameraExposureMode exposureMode) =>
+  static Future<void> setExposureMode(MediaStreamTrack videoTrack, CameraExposureMode exposureMode) =>
       CameraUtils.setExposureMode(videoTrack, exposureMode);
 
-  static Future<void> setExposurePoint(
-          MediaStreamTrack videoTrack, Point<double>? point) =>
+  static Future<void> setExposurePoint(MediaStreamTrack videoTrack, Point<double>? point) =>
       CameraUtils.setExposurePoint(videoTrack, point);
 
   /// Used to select a specific audio output device.
@@ -109,26 +102,22 @@ class Helper {
   /// speaker and the preferred device
   /// web: flutter web can use RTCVideoRenderer.audioOutput instead
   static Future<void> selectAudioOutput(String deviceId) async {
-    await navigator.mediaDevices
-        .selectAudioOutput(AudioOutputOptions(deviceId: deviceId));
+    await navigator.mediaDevices.selectAudioOutput(AudioOutputOptions(deviceId: deviceId));
   }
 
   /// Set audio input device for Flutter native
   /// Note: The usual practice in flutter web is to use deviceId as the
   /// `getUserMedia` parameter to get a new audio track and replace it with the
   ///  audio track in the original rtpsender.
-  static Future<void> selectAudioInput(String deviceId) =>
-      NativeAudioManagement.selectAudioInput(deviceId);
+  static Future<void> selectAudioInput(String deviceId) => NativeAudioManagement.selectAudioInput(deviceId);
 
   /// Enable or disable speakerphone
   /// for iOS/Android only
-  static Future<void> setSpeakerphoneOn(bool enable) =>
-      NativeAudioManagement.setSpeakerphoneOn(enable);
+  static Future<void> setSpeakerphoneOn(bool enable) => NativeAudioManagement.setSpeakerphoneOn(enable);
 
   /// Ensure audio session
   /// for iOS only
-  static Future<void> ensureAudioSession() =>
-      NativeAudioManagement.ensureAudioSession();
+  static Future<void> ensureAudioSession() => NativeAudioManagement.ensureAudioSession();
 
   /// Enable speakerphone, but use bluetooth if audio output device available
   /// for iOS/Android only
@@ -161,27 +150,20 @@ class Helper {
   /// Set the audio configuration to for Android.
   /// Must be set before initiating a WebRTC session and cannot be changed
   /// mid session.
-  static Future<void> setAndroidAudioConfiguration(
-          AndroidAudioConfiguration androidAudioConfiguration) =>
-      AndroidNativeAudioManagement.setAndroidAudioConfiguration(
-          androidAudioConfiguration);
+  static Future<void> setAndroidAudioConfiguration(AndroidAudioConfiguration androidAudioConfiguration) =>
+      AndroidNativeAudioManagement.setAndroidAudioConfiguration(androidAudioConfiguration);
 
   /// After Android app finishes a session, on audio focus loss, clear the active communication device.
-  static Future<void> clearAndroidCommunicationDevice() =>
-      WebRTC.invokeMethod('clearAndroidCommunicationDevice');
+  static Future<void> clearAndroidCommunicationDevice() => WebRTC.invokeMethod('clearAndroidCommunicationDevice');
 
   /// Set the audio configuration for iOS
-  static Future<void> setAppleAudioConfiguration(
-          AppleAudioConfiguration appleAudioConfiguration) =>
-      AppleNativeAudioManagement.setAppleAudioConfiguration(
-          appleAudioConfiguration);
+  static Future<void> setAppleAudioConfiguration(AppleAudioConfiguration appleAudioConfiguration) =>
+      AppleNativeAudioManagement.setAppleAudioConfiguration(appleAudioConfiguration);
 
   /// Set the audio configuration for iOS
-  static Future<void> setAppleAudioIOMode(AppleAudioIOMode mode,
-          {bool preferSpeakerOutput = false}) =>
+  static Future<void> setAppleAudioIOMode(AppleAudioIOMode mode, {bool preferSpeakerOutput = false}) =>
       AppleNativeAudioManagement.setAppleAudioConfiguration(
-          AppleNativeAudioManagement.getAppleAudioConfigurationForMode(mode,
-              preferSpeakerOutput: preferSpeakerOutput));
+          AppleNativeAudioManagement.getAppleAudioConfigurationForMode(mode, preferSpeakerOutput: preferSpeakerOutput));
 
   /// Request capture permission for Android
   static Future<bool> requestCapturePermission() async {
@@ -189,6 +171,152 @@ class Helper {
       return await WebRTC.invokeMethod('requestCapturePermission');
     } else {
       throw Exception('requestCapturePermission only support for Android');
+    }
+  }
+
+  /// Register an external video track
+  ///
+  /// This allows you to use an RTCVideoTrack created from an external source
+  /// (e.g., custom camera manager) with flutter_webrtc.
+  ///
+  /// Parameters:
+  /// - trackId: Unique identifier for the track
+  /// - trackPointer: Pointer to the native RTCVideoTrack object
+  ///
+  /// Returns a map with 'success' and 'trackId' fields
+  ///
+  /// iOS only.
+  static Future<Map<String, dynamic>> registerExternalVideoTrack({
+    required String trackId,
+    required int trackPointer,
+  }) async {
+    if (!WebRTC.platformIsIOS) {
+      throw Exception('registerExternalVideoTrack only supports iOS');
+    }
+
+    try {
+      final result = await WebRTC.invokeMethod('registerExternalVideoTrack', {
+        'trackId': trackId,
+        'trackPointer': trackPointer,
+      });
+      return Map<String, dynamic>.from(result as Map);
+    } catch (e) {
+      throw Exception('Failed to register external video track: $e');
+    }
+  }
+
+  /// Create a MediaStream with an external video track
+  ///
+  /// Creates a new MediaStream containing a previously registered external video track.
+  /// The track must be registered first using registerExternalVideoTrack.
+  ///
+  /// Parameters:
+  /// - externalVideoTrackId: The trackId used when registering the track
+  ///
+  /// Returns a MediaStream containing the external video track
+  ///
+  /// iOS only.
+  static Future<MediaStream> createMediaStreamWithExternalVideo({
+    required String externalVideoTrackId,
+  }) async {
+    if (!WebRTC.platformIsIOS) {
+      throw Exception('createMediaStreamWithExternalVideo only supports iOS');
+    }
+
+    try {
+      final response = await WebRTC.invokeMethod(
+        'createMediaStreamWithExternalVideo',
+        {
+          'externalVideoTrackId': externalVideoTrackId,
+        },
+      );
+
+      if (response == null) {
+        throw Exception('createMediaStreamWithExternalVideo returned null');
+      }
+
+      final Map<dynamic, dynamic> params = response as Map;
+      final String streamId = params['streamId'] as String;
+      final audioTracks = params['audioTracks'] ?? [];
+      final videoTracks = params['videoTracks'] ?? [];
+
+      // Create MediaStreamNative and set tracks
+      final stream = MediaStreamNative(streamId, 'local');
+      stream.setMediaTracks(audioTracks as List, videoTracks as List);
+      return stream;
+    } catch (e) {
+      throw Exception('Failed to create stream with external video: $e');
+    }
+  }
+
+  /// Add an external video track to an existing RTCPeerConnection
+  ///
+  /// This method adds a previously registered external video track directly
+  /// to the native RTCPeerConnection, bypassing Dart MediaStream API.
+  ///
+  /// Parameters:
+  /// - peerConnectionId: The ID of the peer connection
+  /// - trackId: The trackId of the registered external track
+  /// - streamId: Optional stream ID (defaults to "composite_stream")
+  ///
+  /// Returns a map with success status and sender ID
+  ///
+  /// iOS only.
+  static Future<Map<String, dynamic>> addExternalTrackToPeerConnection({
+    required String peerConnectionId,
+    required String trackId,
+    String streamId = 'composite_stream',
+  }) async {
+    if (!WebRTC.platformIsIOS) {
+      throw Exception('addExternalTrackToPeerConnection only supports iOS');
+    }
+
+    try {
+      final result = await WebRTC.invokeMethod(
+        'addExternalTrackToPeerConnection',
+        {
+          'peerConnectionId': peerConnectionId,
+          'trackId': trackId,
+          'streamId': streamId,
+        },
+      );
+
+      if (result == null) {
+        throw Exception('addExternalTrackToPeerConnection returned null');
+      }
+
+      return Map<String, dynamic>.from(result as Map);
+    } catch (e) {
+      throw Exception('Failed to add external track to peer connection: $e');
+    }
+  }
+
+  /// Unregister an external video track
+  ///
+  /// This method removes a previously registered external video track from the registry.
+  /// Call this when you're done with the track to free up resources.
+  ///
+  /// Parameters:
+  /// - trackId: The trackId of the registered external track
+  ///
+  /// iOS only.
+  static Future<void> unregisterExternalVideoTrack({
+    required String trackId,
+  }) async {
+    if (!WebRTC.platformIsIOS) {
+      return; // No-op on non-iOS platforms
+    }
+
+    try {
+      await WebRTC.invokeMethod(
+        'unregisterExternalVideoTrack',
+        {
+          'trackId': trackId,
+        },
+      );
+    } catch (e) {
+      // Log but don't throw - cleanup should be forgiving
+      print('Warning: Failed to unregister external video track: $e');
     }
   }
 }
