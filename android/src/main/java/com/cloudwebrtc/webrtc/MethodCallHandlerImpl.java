@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.media.AudioManager;
 import android.media.MediaRecorder;
 import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
@@ -184,7 +185,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mPeerConnectionObservers.clear();
   }
   private void initialize(boolean bypassVoiceProcessing, int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
-  @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity) {
+  @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity, @Nullable Integer audioSampleRate, @Nullable Integer audioOutputSampleRate) {
     if (mFactory != null) {
       return;
     }
@@ -239,6 +240,39 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       audioDeviceModuleBuilder.setUseHardwareAcousticEchoCanceler(useHardwareAudioProcessing)
                         .setUseLowLatency(useLowLatency)
                         .setUseHardwareNoiseSuppressor(useHardwareAudioProcessing);
+    }
+
+    // Configure audio sample rates if specified
+    // This allows high-quality audio playback instead of defaulting to WebRtcAudioManager's queried rate
+    if (audioSampleRate != null) {
+      Log.i(TAG, "Setting audio sample rate (both input and output) to: " + audioSampleRate + " Hz");
+      audioDeviceModuleBuilder.setSampleRate(audioSampleRate);
+    }
+
+    // audioOutputSampleRate takes precedence over audioSampleRate for output
+    if (audioOutputSampleRate != null) {
+      Log.i(TAG, "Setting audio output sample rate to: " + audioOutputSampleRate + " Hz");
+      audioDeviceModuleBuilder.setOutputSampleRate(audioOutputSampleRate);
+    } else if (bypassVoiceProcessing && audioSampleRate == null && audioOutputSampleRate == null) {
+      // When bypassVoiceProcessing is enabled, use the device's native optimal sample rate
+      // This prevents the default behavior which may use a low sample rate based on audio mode
+      AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+      if (audioManager != null) {
+        String nativeSampleRateStr = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+        int nativeSampleRate = 48000; // fallback default
+        if (nativeSampleRateStr != null) {
+          try {
+            nativeSampleRate = Integer.parseInt(nativeSampleRateStr);
+          } catch (NumberFormatException e) {
+            Log.w(TAG, "Failed to parse native sample rate, using default: " + e.getMessage());
+          }
+        }
+        Log.i(TAG, "bypassVoiceProcessing enabled with no explicit sample rate - using device's native optimal rate: " + nativeSampleRate + " Hz");
+        audioDeviceModuleBuilder.setOutputSampleRate(nativeSampleRate);
+      } else {
+        Log.w(TAG, "AudioManager not available, defaulting to 48000 Hz output");
+        audioDeviceModuleBuilder.setOutputSampleRate(48000);
+      }
     }
 
     audioDeviceModuleBuilder.setSamplesReadyCallback(recordSamplesReadyCallbackAdapter);
@@ -376,7 +410,19 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           logSeverity = str2LogSeverity(logSeverityStr);
         }
 
-        initialize(enableBypassVoiceProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity);
+        Integer audioSampleRate = null;
+        if (constraintsMap.hasKey("audioSampleRate")
+                && constraintsMap.getType("audioSampleRate") == ObjectType.Number) {
+          audioSampleRate = constraintsMap.getInt("audioSampleRate");
+        }
+
+        Integer audioOutputSampleRate = null;
+        if (constraintsMap.hasKey("audioOutputSampleRate")
+                && constraintsMap.getType("audioOutputSampleRate") == ObjectType.Number) {
+          audioOutputSampleRate = constraintsMap.getInt("audioOutputSampleRate");
+        }
+
+        initialize(enableBypassVoiceProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate);
         result.success(null);
         break;
       }
