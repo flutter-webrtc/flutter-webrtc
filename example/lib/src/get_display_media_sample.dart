@@ -99,6 +99,7 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
         'video': selected_source_ == null
             ? true
             : {
+                'cursor': 'never',
                 'deviceId': {'exact': selected_source_!.id},
                 'mandatory': {'frameRate': 30.0}
               }
