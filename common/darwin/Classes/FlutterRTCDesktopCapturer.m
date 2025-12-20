@@ -80,6 +80,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
       {
           'audio': false,
           'video": {
+              'cursur': 'always' , // 'nerver'
               'deviceId':  {'exact': sourceId},
               'mandatory': {
                   'frameRate': 30.0
@@ -91,6 +92,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
   BOOL useDefaultScreen = NO;
   NSInteger fps = 30;
   id videoConstraints = constraints[@"video"];
+  BOOL showCursor = YES; // 默认显示鼠标
   if ([videoConstraints isKindOfClass:[NSNumber class]] && [videoConstraints boolValue] == YES) {
     useDefaultScreen = YES;
   } else if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
@@ -114,13 +116,24 @@ NSArray<RTCDesktopSource*>* _captureSources;
         fps = [frameRate integerValue];
       }
     }
+    id cursorValue = videoConstraints[@"cursor"];
+    if (cursorValue != nil && [cursorValue isKindOfClass:[NSString class]]) {
+      NSString* cursorStr = (NSString*)cursorValue;
+      if ([cursorStr isEqualToString:@"never"]) {
+        showCursor = NO;
+      } else {
+        // "always", "motion", 或其他值都视为显示
+        showCursor = YES;
+      }
+    }
   }
   RTCDesktopCapturer* desktopCapturer;
   RTCDesktopSource* source = nil;
 
   if (useDefaultScreen) {
     desktopCapturer = [[RTCDesktopCapturer alloc] initWithDefaultScreen:self
-                                                        captureDelegate:videoProcessingAdapter];
+                                                        captureDelegate:videoProcessingAdapter
+                                                             showCursor:showCursor];
   } else {
     source = [self getSourceById:sourceId];
     if (source == nil) {
@@ -129,7 +142,8 @@ NSArray<RTCDesktopSource*>* _captureSources;
     }
     desktopCapturer = [[RTCDesktopCapturer alloc] initWithSource:source
                                                         delegate:self
-                                                 captureDelegate:videoProcessingAdapter];
+                                                 captureDelegate:videoProcessingAdapter
+                                                      showCursor:showCursor];
   }
   [desktopCapturer startCaptureWithFPS:fps];
   NSLog(@"start desktop capture: sourceId: %@, type: %@, fps: %lu", sourceId,
