@@ -80,7 +80,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
       {
           'audio': false,
           'video": {
-              'cursur': 'always' , // 'nerver'
+              'cursur': 'always' , // 'never'
               'deviceId':  {'exact': sourceId},
               'mandatory': {
                   'frameRate': 30.0
