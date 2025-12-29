@@ -188,7 +188,8 @@ class Helper {
     if (WebRTC.platformIsAndroid || WebRTC.platformIsMacOS) {
       return await WebRTC.invokeMethod('requestCapturePermission');
     } else {
-      throw Exception('requestCapturePermission only support for Android/macOS');
+      throw Exception(
+          'requestCapturePermission only support for Android/macOS');
     }
   }
 }
