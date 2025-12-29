@@ -23,7 +23,7 @@
 #import <WebRTC/RTCLogging.h>
 #import <WebRTC/RTCCallbackLogger.h>
 
-#if TARGET_OS_OSX
+#if TARGET_OS_OSX || TARGET_OS_MACCATALYST
 #import <CoreGraphics/CoreGraphics.h>
 #endif
 
@@ -386,8 +386,8 @@ static FlutterWebRTCPlugin *sharedSingleton;
     NSDictionary* constraints = argsMap[@"constraints"];
     [self getDisplayMedia:constraints result:result];
   } else if ([@"requestCapturePermission" isEqualToString:call.method]) {
-#if TARGET_OS_OSX
-    if (@available(macOS 10.15, *)) {
+#if TARGET_OS_OSX || TARGET_OS_MACCATALYST
+    if (@available(macOS 10.15, macCatalyst 13.1, *)) {
       dispatch_async(dispatch_get_main_queue(), ^{
         if (CGPreflightScreenCaptureAccess()) {
           result(@(YES));
