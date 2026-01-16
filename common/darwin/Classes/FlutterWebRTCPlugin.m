@@ -2150,6 +2150,8 @@ static FlutterWebRTCPlugin *sharedSingleton;
       [obj setObject:encoding.scaleResolutionDownBy forKey:@"scaleResolutionDownBy"];
     if (encoding.ssrc != nil)
       [obj setObject:encoding.ssrc forKey:@"ssrc"];
+    [obj setObject:[self bitratePriorityToString:encoding.bitratePriority] forKey:@"priority"];
+    [obj setObject:[self rtcPriorityToString:encoding.networkPriority] forKey:@"networkPriority"];
 
     [encodings addObject:obj];
   }
@@ -2289,10 +2291,8 @@ static FlutterWebRTCPlugin *sharedSingleton;
   encoding.isActive = YES;
   encoding.scaleResolutionDownBy = [NSNumber numberWithDouble:1.0];
   encoding.numTemporalLayers = [NSNumber numberWithInt:1];
-#if TARGET_OS_IPHONE
   encoding.networkPriority = RTCPriorityLow;
   encoding.bitratePriority = 1.0;
-#endif
   [encoding setRid:map[@"rid"]];
 
   if (map[@"active"] != nil) {
@@ -2321,6 +2321,13 @@ static FlutterWebRTCPlugin *sharedSingleton;
 
   if (map[@"scalabilityMode"] != nil) {
     [encoding setScalabilityMode:(NSString*)map[@"scalabilityMode"]];
+  }
+
+  if (map[@"priority"] != nil) {
+    encoding.bitratePriority = [self stringToBitratePriority:(NSString*)map[@"priority"]];
+  }
+  if (map[@"networkPriority"] != nil) {
+    encoding.networkPriority = [self stringToRTCPriority:(NSString*)map[@"networkPriority"]];
   }
 
   return encoding;
@@ -2373,6 +2380,57 @@ static FlutterWebRTCPlugin *sharedSingleton;
     return RTCRtpTransceiverDirectionInactive;
   }
   return RTCRtpTransceiverDirectionInactive;
+}
+
+- (RTCPriority)stringToRTCPriority:(NSString*)priority {
+  if ([priority isEqualToString:@"very-low"]) {
+    return RTCPriorityVeryLow;
+  } else if ([priority isEqualToString:@"low"]) {
+    return RTCPriorityLow;
+  } else if ([priority isEqualToString:@"medium"]) {
+    return RTCPriorityMedium;
+  } else if ([priority isEqualToString:@"high"]) {
+    return RTCPriorityHigh;
+  }
+  return RTCPriorityLow;
+}
+
+- (NSString*)rtcPriorityToString:(RTCPriority)priority {
+  switch (priority) {
+    case RTCPriorityVeryLow:
+      return @"very-low";
+    case RTCPriorityLow:
+      return @"low";
+    case RTCPriorityMedium:
+      return @"medium";
+    case RTCPriorityHigh:
+      return @"high";
+  }
+  return @"low";
+}
+
+- (double)stringToBitratePriority:(NSString*)priority {
+  if ([priority isEqualToString:@"very-low"]) {
+    return 0.5;
+  } else if ([priority isEqualToString:@"low"]) {
+    return 1.0;
+  } else if ([priority isEqualToString:@"medium"]) {
+    return 2.0;
+  } else if ([priority isEqualToString:@"high"]) {
+    return 4.0;
+  }
+  return 1.0;
+}
+
+- (NSString*)bitratePriorityToString:(double)bitratePriority {
+  if (bitratePriority <= 0.5) {
+    return @"very-low";
+  } else if (bitratePriority <= 1.0) {
+    return @"low";
+  } else if (bitratePriority <= 2.0) {
+    return @"medium";
+  }
+  return @"high";
 }
 
 - (RTCRtpParameters*)updateRtpParameters:(RTCRtpParameters*)parameters
@@ -2441,6 +2499,12 @@ static FlutterWebRTCPlugin *sharedSingleton;
       NSNumber* scaleResolutionDownBy = [newParams objectForKey:@"scaleResolutionDownBy"];
       if (scaleResolutionDownBy != nil)
         currentParams.scaleResolutionDownBy = scaleResolutionDownBy;
+      NSString* priority = [newParams objectForKey:@"priority"];
+      if (priority != nil)
+        currentParams.bitratePriority = [self stringToBitratePriority:priority];
+      NSString* networkPriority = [newParams objectForKey:@"networkPriority"];
+      if (networkPriority != nil)
+        currentParams.networkPriority = [self stringToRTCPriority:networkPriority];
     }
   }
 

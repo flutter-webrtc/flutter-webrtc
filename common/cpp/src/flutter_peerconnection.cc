@@ -108,6 +108,39 @@ const char* iceGatheringStateString(RTCIceGatheringState state) {
   return "";
 }
 
+double stringToBitratePriority(const std::string& priority) {
+  if (priority == "very-low") return 0.5;
+  if (priority == "low") return 1.0;
+  if (priority == "medium") return 2.0;
+  if (priority == "high") return 4.0;
+  return 1.0;
+}
+
+std::string bitratePriorityToString(double bitratePriority) {
+  if (bitratePriority <= 0.5) return "very-low";
+  if (bitratePriority <= 1.0) return "low";
+  if (bitratePriority <= 2.0) return "medium";
+  return "high";
+}
+
+libwebrtc::RTCPriority stringToRTCPriority(const std::string& priority) {
+  if (priority == "very-low") return libwebrtc::RTCPriority::kVeryLow;
+  if (priority == "low") return libwebrtc::RTCPriority::kLow;
+  if (priority == "medium") return libwebrtc::RTCPriority::kMedium;
+  if (priority == "high") return libwebrtc::RTCPriority::kHigh;
+  return libwebrtc::RTCPriority::kLow;
+}
+
+std::string rtcPriorityToString(libwebrtc::RTCPriority priority) {
+  switch (priority) {
+    case libwebrtc::RTCPriority::kVeryLow: return "very-low";
+    case libwebrtc::RTCPriority::kLow: return "low";
+    case libwebrtc::RTCPriority::kMedium: return "medium";
+    case libwebrtc::RTCPriority::kHigh: return "high";
+  }
+  return "low";
+}
+
 EncodableMap rtpParametersToMap(
     libwebrtc::scoped_refptr<libwebrtc::RTCRtpParameters> rtpParameters) {
   EncodableMap info;
@@ -152,6 +185,10 @@ EncodableMap rtpParametersToMap(
         EncodableValue(encoding->scalability_mode().std_string());
     map[EncodableValue("ssrc")] =
         EncodableValue(static_cast<int>(encoding->ssrc()));
+    map[EncodableValue("priority")] =
+        EncodableValue(bitratePriorityToString(encoding->bitrate_priority()));
+    map[EncodableValue("networkPriority")] =
+        EncodableValue(rtcPriorityToString(encoding->network_priority()));
     encodings_info.push_back(EncodableValue(map));
   }
   info[EncodableValue("encodings")] = EncodableValue(encodings_info);
@@ -515,6 +552,8 @@ FlutterPeerConnection::mapToEncoding(const EncodableMap& params) {
 
   encoding->set_active(true);
   encoding->set_scale_resolution_down_by(1.0);
+  encoding->set_bitrate_priority(1.0);
+  encoding->set_network_priority(libwebrtc::RTCPriority::kLow);
 
   EncodableValue value = findEncodableValue(params, "active");
   if (!value.IsNull()) {
@@ -560,6 +599,16 @@ FlutterPeerConnection::mapToEncoding(const EncodableMap& params) {
   value = findEncodableValue(params, "scalabilityMode");
   if (!value.IsNull()) {
     encoding->set_scalability_mode(GetValue<std::string>(value));
+  }
+
+  value = findEncodableValue(params, "priority");
+  if (!value.IsNull()) {
+    encoding->set_bitrate_priority(stringToBitratePriority(GetValue<std::string>(value)));
+  }
+
+  value = findEncodableValue(params, "networkPriority");
+  if (!value.IsNull()) {
+    encoding->set_network_priority(stringToRTCPriority(GetValue<std::string>(value)));
   }
 
   return encoding;
@@ -733,6 +782,14 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
       value = findEncodableValue(map, "scalabilityMode");
       if (!value.IsNull()) {
         param->set_scalability_mode(GetValue<std::string>(value));
+      }
+      value = findEncodableValue(map, "priority");
+      if (!value.IsNull()) {
+        param->set_bitrate_priority(stringToBitratePriority(GetValue<std::string>(value)));
+      }
+      value = findEncodableValue(map, "networkPriority");
+      if (!value.IsNull()) {
+        param->set_network_priority(stringToRTCPriority(GetValue<std::string>(value)));
       }
       encoding++;
     }
