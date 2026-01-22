@@ -35,6 +35,7 @@ import org.webrtc.IceCandidate;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
+import org.webrtc.Priority;
 import org.webrtc.RTCStats;
 import org.webrtc.RTCStatsReport;
 import org.webrtc.RtpCapabilities;
@@ -642,30 +643,30 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   private int stringToPriority(String priority) {
-    if (priority == null) return RtpParameters.Priority.LOW;
+    if (priority == null) return Priority.LOW;
     switch (priority) {
       case "very-low":
-        return RtpParameters.Priority.VERY_LOW;
+        return Priority.VERY_LOW;
       case "low":
-        return RtpParameters.Priority.LOW;
+        return Priority.LOW;
       case "medium":
-        return RtpParameters.Priority.MEDIUM;
+        return Priority.MEDIUM;
       case "high":
-        return RtpParameters.Priority.HIGH;
+        return Priority.HIGH;
       default:
-        return RtpParameters.Priority.LOW;
+        return Priority.LOW;
     }
   }
 
   private String priorityToString(int priority) {
     switch (priority) {
-      case RtpParameters.Priority.VERY_LOW:
+      case Priority.VERY_LOW:
         return "very-low";
-      case RtpParameters.Priority.LOW:
+      case Priority.LOW:
         return "low";
-      case RtpParameters.Priority.MEDIUM:
+      case Priority.MEDIUM:
         return "medium";
-      case RtpParameters.Priority.HIGH:
+      case Priority.HIGH:
         return "high";
       default:
         return "low";
