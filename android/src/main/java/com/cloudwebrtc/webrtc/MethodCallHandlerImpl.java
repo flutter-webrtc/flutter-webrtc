@@ -1330,6 +1330,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
     }
 
+    if (map.hasKey("enableDscp")
+            && map.getType("enableDscp") == ObjectType.Boolean) {
+      conf.enableDscp = map.getBoolean("enableDscp");
+    }
+
     // maxIPv6Networks
     if (map.hasKey("maxIPv6Networks")
             && map.getType("maxIPv6Networks") == ObjectType.Number) {

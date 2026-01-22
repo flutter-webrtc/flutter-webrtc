@@ -1925,6 +1925,10 @@ static FlutterWebRTCPlugin *sharedSingleton;
     }
   }
 
+  if (json[@"enableDscp"] != nil && [json[@"enableDscp"] isKindOfClass:[NSNumber class]]) {
+    config.enableDscp = [json[@"enableDscp"] boolValue];
+  }
+
   if (json[@"rtcpMuxPolicy"] != nil && [json[@"rtcpMuxPolicy"] isKindOfClass:[NSString class]]) {
     NSString* rtcpMuxPolicy = json[@"rtcpMuxPolicy"];
     if ([rtcpMuxPolicy isEqualToString:@"negotiate"]) {

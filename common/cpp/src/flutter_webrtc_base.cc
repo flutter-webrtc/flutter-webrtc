@@ -305,6 +305,11 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap& map,
     conf.sdp_semantics = SdpSemantics::kUnifiedPlan;
   }
 
+  it = map.find(EncodableValue("enableDscp"));
+  if (it != map.end() && TypeIs<bool>(it->second)) {
+    conf.set_dscp(GetValue<bool>(it->second));
+  }
+
   // maxIPv6Networks
   it = map.find(EncodableValue("maxIPv6Networks"));
   if (it != map.end()) {
