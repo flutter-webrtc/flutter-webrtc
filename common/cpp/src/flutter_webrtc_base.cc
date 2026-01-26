@@ -307,7 +307,7 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap& map,
 
   it = map.find(EncodableValue("enableDscp"));
   if (it != map.end() && TypeIs<bool>(it->second)) {
-    conf.set_dscp(GetValue<bool>(it->second));
+    conf.enable_dscp = GetValue<bool>(it->second);
   }
 
   // maxIPv6Networks
