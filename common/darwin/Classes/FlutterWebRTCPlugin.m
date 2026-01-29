@@ -91,7 +91,11 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
 }
 @end
 
-void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
+void postEvent(FlutterEventSink _Nullable sink, id _Nullable event) {
+    if (sink == nil) {
+        NSLog(@"postEvent: sink is nil, skipping event dispatch");
+        return;
+    }
     dispatch_async(dispatch_get_main_queue(), ^{
       sink(event);
     });
@@ -293,12 +297,36 @@ static FlutterWebRTCPlugin *sharedSingleton;
         VideoEncoderFactorySimulcast* simulcastFactory =
             [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
 
+        // macOS Screen Share Audio Crash Fix:
+        // Use CoreAudio ADM (value 0) instead of AVAudioEngine (RTCAudioDeviceModuleTypeAudioEngine)
+        // AVAudioEngine crashes when screen share audio and microphone coexist due to
+        // format conflicts in AVAudioIONodeImpl::SetOutputFormat
+        // See: https://github.com/flutter-webrtc/flutter-webrtc/issues/1986
         _peerConnectionFactory =
-            [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:RTCAudioDeviceModuleTypeAudioEngine
+            [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:0
                                                       bypassVoiceProcessing:bypassVoiceProcessing
                                                              encoderFactory:simulcastFactory
                                                              decoderFactory:decoderFactory
                                                       audioProcessingModule:_audioManager.audioProcessingModule];
+
+#if TARGET_OS_OSX
+        // CoreAudio ADM requires explicit device initialization on macOS
+        RTCAudioDeviceModule* audioDeviceModule = [_peerConnectionFactory audioDeviceModule];
+        if (audioDeviceModule) {
+            NSArray* inputDevices = [audioDeviceModule inputDevices];
+            if (inputDevices.count > 0) {
+                RTCIODevice* defaultInput = inputDevices[0];
+                [audioDeviceModule setInputDevice:defaultInput];
+                NSLog(@"CoreAudio ADM: Selected input device: %@", defaultInput.name);
+            }
+            NSArray* outputDevices = [audioDeviceModule outputDevices];
+            if (outputDevices.count > 0) {
+                RTCIODevice* defaultOutput = outputDevices[0];
+                [audioDeviceModule setOutputDevice:defaultOutput];
+                NSLog(@"CoreAudio ADM: Selected output device: %@", defaultOutput.name);
+            }
+        }
+#endif
 
         RTCPeerConnectionFactoryOptions *options = [[RTCPeerConnectionFactoryOptions alloc] init];
         for (NSString* adapter in networkIgnoreMask)
