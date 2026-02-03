@@ -364,6 +364,11 @@ NSArray<RTCDesktopSource*>* _captureSources;
     return NO;
   }
 
+  if (forceReload) {
+    _screen = nil;
+    _window = nil;
+  }
+
   if (captureWindow) {
     if (!_window)
       _window = [[RTCDesktopMediaList alloc] initWithType:RTCDesktopSourceTypeWindow delegate:self];
