@@ -107,23 +107,28 @@
   [session lockForConfiguration];
   NSError* error = nil;
   [session setMode:config.mode error:&error];
+  // Do NOT use DefaultToSpeaker — it is a persistent category option that
+  // prevents CallKit from toggling the speaker off via overrideOutputAudioPort.
+  // See Apple QA1754 for the difference between DefaultToSpeaker and PortOverrideSpeaker.
   BOOL success = [session setCategory:config.category
                           withOptions:AVAudioSessionCategoryOptionAllowAirPlay |
                                       AVAudioSessionCategoryOptionAllowBluetoothA2DP |
-                                      AVAudioSessionCategoryOptionAllowBluetooth |
-                                      AVAudioSessionCategoryOptionDefaultToSpeaker
+                                      AVAudioSessionCategoryOptionAllowBluetooth
                                 error:&error];
 
-  success = [session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
+  // Use AVAudioSessionPortOverrideSpeaker (transient override) instead of
+  // DefaultToSpeaker (persistent category option). CallKit can undo this
+  // with overrideOutputAudioPort(.none).
+  success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker
                                         error:&error];
   if (!success)
     NSLog(@"setSpeakerphoneOnButPreferBluetooth: Port override failed due to: %@", error);
-
-  success = [session setActive:YES error:&error];
-  if (!success)
-    NSLog(@"setSpeakerphoneOnButPreferBluetooth: Audio session override failed: %@", error);
   else
-    NSLog(@"AudioSession override with bluetooth preference via setSpeakerphoneOnButPreferBluetooth successfull ");
+    NSLog(@"setSpeakerphoneOnButPreferBluetooth: Port override to Speaker OK");
+
+  // Do NOT call setActive:YES here. During a CallKit call the audio session
+  // is already active. Re-activating resets the transient port override,
+  // moving audio back from Speaker to Receiver (reason=3 categoryChange).
   [session unlockForConfiguration];
 }
 
