@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.webrtc.AudioTrack;
@@ -781,7 +782,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
     String degradationPreference = (String) newParameters.get("degradationPreference");
     if (degradationPreference != null) {
-      parameters.degradationPreference = RtpParameters.DegradationPreference.valueOf(degradationPreference.toUpperCase().replace("-", "_"));
+      parameters.degradationPreference = RtpParameters.DegradationPreference.valueOf(degradationPreference.toUpperCase(Locale.US).replace("-", "_"));
     }
 
     for (Map<String, Object> encoding : encodings) {
