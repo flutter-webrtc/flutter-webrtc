@@ -1,6 +1,13 @@
 
 # Changelog
 
+[1.3.1] - 2026-02-25
+
+* [iOS/macOS] chore: bump webrtc to v137.7151.12.
+* [Android] fix: avoid Turkish locale issue in DegradationPreference.valueOf (#2002)
+* [macOS] Refresh screen capture sources & permission check (#1977)
+* [macOS] fix(macos): use CoreAudio ADM to prevent screen share crash (#1990)
+
 [1.3.0] - 2026-01-26
 
 * [Mobile/Desktop/Web] feat: Add `priority` and `networkPriority` to RTCRtpEncoding (#1983)
