@@ -1,4 +1,4 @@
-#include "flutter_screen_capture.h"
+﻿#include "flutter_screen_capture.h"
 
 namespace flutter_webrtc_plugin {
 
@@ -182,6 +182,7 @@ void FlutterScreenCapture::GetDisplayMedia(
   std::string source_id = "0";
   // DesktopType source_type = kScreen;
   double fps = 30.0;
+  bool showCursor = true;
 
   const EncodableMap video = findMap(constraints, "video");
   if (video != EncodableMap()) {
@@ -202,6 +203,10 @@ void FlutterScreenCapture::GetDisplayMedia(
       if (frameRate != 0.0) {
         fps = frameRate;
       }
+    }
+    std::string cursor = findString(video, "cursor");
+    if (!cursor.empty() && cursor == "never") {
+      showCursor = false;
     }
   }
 
@@ -238,7 +243,7 @@ void FlutterScreenCapture::GetDisplayMedia(
   }
 
   scoped_refptr<RTCDesktopCapturer> desktop_capturer =
-      base_->desktop_device_->CreateDesktopCapturer(source);
+      base_->desktop_device_->CreateDesktopCapturer(source, showCursor);
 
   if (!desktop_capturer.get()) {
     result->Error("Bad Arguments", "CreateDesktopCapturer failed!");
