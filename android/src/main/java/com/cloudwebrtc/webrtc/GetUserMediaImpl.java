@@ -703,6 +703,28 @@ public class GetUserMediaImpl {
 
         Log.i(TAG, "getUserMedia(video): " + videoConstraintsMap);
 
+        // If a camera is already active, reuse its VideoSource instead of opening a second
+        // Camera2 session for the same camera device.
+        //
+        // When the same camera is opened twice from one process, cameraserver "steals" it from
+        // the first client: the first CaptureSession receives onDisconnected(), which internally
+        // calls close() -> stopRepeating() -> cancelRequest(). The camera HAL returns ENOSYS
+        // (-38 / "Function not implemented") for cancelRequest when the pipeline is already being
+        // torn down, and Android's CameraCaptureSessionImpl does not handle that error - it
+        // propagates as CameraAccessException(CAMERA_ERROR=3).
+        //
+        // This is reproducible on stock AOSP (Pixel) and any Android device: it is a bug in the
+        // Android Camera2 framework (CameraCaptureSessionImpl.onDisconnected does not guard
+        // against ENOSYS from cancelRequest), not an OEM-specific issue.
+        for (Map.Entry<String, VideoCapturerInfoEx> entry : mVideoCapturers.entrySet()) {
+            VideoCapturerInfoEx existing = entry.getValue();
+            if (!existing.isScreenCapture && existing.primaryTrackId == null && existing.videoSource != null) {
+                Log.w(TAG, "getUserMedia(video): camera already active (track=" + entry.getKey()
+                        + "), reusing VideoSource to prevent concurrent camera access");
+                return buildSharedVideoTrack(existing, entry.getKey(), mediaStream);
+            }
+        }
+
         // NOTE: to support Camera2, the device should:
         //   1. Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
         //   2. all camera support level should greater than LEGACY
@@ -798,6 +820,7 @@ public class GetUserMediaImpl {
         }
 
         info.cameraEventsHandler = cameraEventsHandler;
+        info.videoSource = videoSource;
         videoCapturer.startCapture(targetWidth, targetHeight, targetFps);
 
         cameraEventsHandler.waitForCameraOpen();
@@ -838,9 +861,97 @@ public class GetUserMediaImpl {
         return trackParams;
     }
 
+    /**
+     * Creates a secondary VideoTrack that shares the already-open camera session of {@code primary}.
+     * No new camera is opened; a new VideoTrack is simply derived from the existing VideoSource.
+     * The returned entry in mVideoCapturers has primaryTrackId set so that removeVideoCapturer
+     * knows not to stop the underlying capturer when only this secondary track is removed.
+     */
+    private ConstraintsMap buildSharedVideoTrack(VideoCapturerInfoEx primary, String primaryTrackId, MediaStream mediaStream) {
+        PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
+        String trackId = stateProvider.getNextTrackUUID();
+
+        VideoCapturerInfoEx sharedInfo = new VideoCapturerInfoEx();
+        sharedInfo.width = primary.width;
+        sharedInfo.height = primary.height;
+        sharedInfo.fps = primary.fps;
+        sharedInfo.cameraName = primary.cameraName;
+        sharedInfo.isScreenCapture = false;
+        sharedInfo.capturer = null;
+        sharedInfo.videoSource = primary.videoSource;
+        sharedInfo.primaryTrackId = primaryTrackId;
+        mVideoCapturers.put(trackId, sharedInfo);
+
+        VideoTrack track = pcFactory.createVideoTrack(trackId, primary.videoSource);
+        mediaStream.addTrack(track);
+        stateProvider.putLocalTrack(track.id(), new LocalVideoTrack(track));
+
+        ConstraintsMap trackParams = new ConstraintsMap();
+        trackParams.putBoolean("enabled", track.enabled());
+        trackParams.putString("id", track.id());
+        trackParams.putString("kind", "video");
+        trackParams.putString("label", track.id());
+        trackParams.putString("readyState", track.state().toString());
+        trackParams.putBoolean("remote", false);
+
+        ConstraintsMap settings = new ConstraintsMap();
+        settings.putString("deviceId", primary.cameraName != null ? primary.cameraName : "");
+        settings.putString("kind", "videoinput");
+        settings.putInt("width", primary.width);
+        settings.putInt("height", primary.height);
+        settings.putInt("frameRate", primary.fps);
+        trackParams.putMap("settings", settings.toMap());
+
+        Log.d(TAG, "buildSharedVideoTrack: created shared track " + trackId
+                + " from primary " + primaryTrackId);
+        return trackParams;
+    }
+
     void removeVideoCapturer(String id) {
         VideoCapturerInfoEx info = mVideoCapturers.get(id);
-        if (info != null) {
+        if (info == null) return;
+
+        if (info.primaryTrackId != null) {
+            // Shared (secondary) track - the underlying capturer belongs to the primary.
+            // Just unregister this entry; the capturer keeps running.
+            Log.d(TAG, "removeVideoCapturer: removing shared track " + id
+                    + " (primary=" + info.primaryTrackId + ")");
+            mVideoCapturers.remove(id);
+            return;
+        }
+
+        // Primary capturer being removed. Check whether any shared track still references it.
+        String newPrimaryId = null;
+        for (Map.Entry<String, VideoCapturerInfoEx> entry : mVideoCapturers.entrySet()) {
+            if (id.equals(entry.getValue().primaryTrackId)) {
+                newPrimaryId = entry.getKey();
+                break;
+            }
+        }
+
+        if (newPrimaryId != null) {
+            // At least one shared track is still alive. Promote it to primary so the
+            // capturer keeps running and remaining shared tracks stay valid.
+            VideoCapturerInfoEx promoted = mVideoCapturers.get(newPrimaryId);
+            promoted.primaryTrackId = null;
+            promoted.capturer = info.capturer;
+            promoted.cameraEventsHandler = info.cameraEventsHandler;
+
+            SurfaceTextureHelper helper = mSurfaceTextureHelpers.remove(id);
+            if (helper != null) mSurfaceTextureHelpers.put(newPrimaryId, helper);
+
+            // Re-point every remaining shared track to the new primary.
+            for (Map.Entry<String, VideoCapturerInfoEx> entry : mVideoCapturers.entrySet()) {
+                if (id.equals(entry.getValue().primaryTrackId)) {
+                    entry.getValue().primaryTrackId = newPrimaryId;
+                }
+            }
+
+            mVideoCapturers.remove(id);
+            Log.d(TAG, "removeVideoCapturer: promoted " + newPrimaryId
+                    + " to primary capturer (was " + id + ")");
+        } else {
+            // No shared tracks - stop and dispose the capturer normally.
             try {
                 info.capturer.stopCapture();
                 if (info.cameraEventsHandler != null) {
@@ -904,7 +1015,17 @@ public class GetUserMediaImpl {
     }
 
     void switchCamera(String id, Result result) {
-        VideoCapturer videoCapturer = mVideoCapturers.get(id).capturer;
+        VideoCapturerInfoEx info = mVideoCapturers.get(id);
+        if (info == null) {
+            resultError("switchCamera", "Video capturer not found for id: " + id, result);
+            return;
+        }
+        // Shared tracks have capturer=null - resolve to the primary entry that owns the capturer.
+        if (info.primaryTrackId != null) {
+            VideoCapturerInfoEx primary = mVideoCapturers.get(info.primaryTrackId);
+            if (primary != null) info = primary;
+        }
+        VideoCapturer videoCapturer = info.capturer;
         if (videoCapturer == null) {
             resultError("switchCamera", "Video capturer not found for id: " + id, result);
             return;
@@ -982,12 +1103,10 @@ public class GetUserMediaImpl {
 
     public void reStartCamera(IsCameraEnabled getCameraId) {
         for (Map.Entry<String, VideoCapturerInfoEx> item : mVideoCapturers.entrySet()) {
-            if (!item.getValue().isScreenCapture && getCameraId.isEnabled(item.getKey())) {
-                item.getValue().capturer.startCapture(
-                        item.getValue().width,
-                        item.getValue().height,
-                        item.getValue().fps
-                );
+            VideoCapturerInfoEx info = item.getValue();
+            // Skip screen captures and shared (secondary) tracks - they have no capturer.
+            if (!info.isScreenCapture && info.primaryTrackId == null && getCameraId.isEnabled(item.getKey())) {
+                info.capturer.startCapture(info.width, info.height, info.fps);
             }
         }
     }
@@ -998,6 +1117,13 @@ public class GetUserMediaImpl {
 
     public static class VideoCapturerInfoEx extends VideoCapturerInfo  {
         public CameraEventsHandler cameraEventsHandler;
+        /** The VideoSource used to create the VideoTrack for this capturer. */
+        public VideoSource videoSource;
+        /**
+         * Non-null when this is a shared (secondary) track that reuses an existing camera session.
+         * Points to the trackId of the primary capturer entry. Null for primary entries.
+         */
+        public String primaryTrackId;
     }
 
     public VideoCapturerInfoEx getCapturerInfo(String trackId) {
