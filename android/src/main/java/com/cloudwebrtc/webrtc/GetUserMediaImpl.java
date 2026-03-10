@@ -716,6 +716,10 @@ public class GetUserMediaImpl {
         // This is reproducible on stock AOSP (Pixel) and any Android device: it is a bug in the
         // Android Camera2 framework (CameraCaptureSessionImpl.onDisconnected does not guard
         // against ENOSYS from cancelRequest), not an OEM-specific issue.
+        // NOTE: reuses the first active primary camera entry regardless of camera ID (front/back).
+        // This is intentional for the current use case where all calls share the same camera.
+        // If a future use case requires different calls to use different cameras simultaneously,
+        // add a cameraName check here before reusing.
         for (Map.Entry<String, VideoCapturerInfoEx> entry : mVideoCapturers.entrySet()) {
             VideoCapturerInfoEx existing = entry.getValue();
             if (!existing.isScreenCapture && existing.primaryTrackId == null && existing.videoSource != null) {
