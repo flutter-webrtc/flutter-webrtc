@@ -889,6 +889,7 @@ public class GetUserMediaImpl {
         mediaStream.addTrack(track);
         stateProvider.putLocalTrack(track.id(), new LocalVideoTrack(track));
 
+        // TODO: extract into a helper method - same block (enabled, id, kind, label, readyState, remote) repeated in getUserAudio() and getUserVideo()
         ConstraintsMap trackParams = new ConstraintsMap();
         trackParams.putBoolean("enabled", track.enabled());
         trackParams.putString("id", track.id());
@@ -897,6 +898,7 @@ public class GetUserMediaImpl {
         trackParams.putString("readyState", track.state().toString());
         trackParams.putBoolean("remote", false);
 
+        // TODO: extract into a helper method - same block (deviceId, kind, width, height, frameRate) repeated in getUserVideo()
         ConstraintsMap settings = new ConstraintsMap();
         settings.putString("deviceId", primary.cameraName != null ? primary.cameraName : "");
         settings.putString("kind", "videoinput");
