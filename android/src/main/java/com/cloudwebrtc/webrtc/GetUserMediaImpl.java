@@ -703,32 +703,6 @@ public class GetUserMediaImpl {
 
         Log.i(TAG, "getUserMedia(video): " + videoConstraintsMap);
 
-        // If a camera is already active, reuse its VideoSource instead of opening a second
-        // Camera2 session for the same camera device.
-        //
-        // When the same camera is opened twice from one process, cameraserver "steals" it from
-        // the first client: the first CaptureSession receives onDisconnected(), which internally
-        // calls close() -> stopRepeating() -> cancelRequest(). The camera HAL returns ENOSYS
-        // (-38 / "Function not implemented") for cancelRequest when the pipeline is already being
-        // torn down, and Android's CameraCaptureSessionImpl does not handle that error - it
-        // propagates as CameraAccessException(CAMERA_ERROR=3).
-        //
-        // This is reproducible on stock AOSP (Pixel) and any Android device: it is a bug in the
-        // Android Camera2 framework (CameraCaptureSessionImpl.onDisconnected does not guard
-        // against ENOSYS from cancelRequest), not an OEM-specific issue.
-        // NOTE: reuses the first active primary camera entry regardless of camera ID (front/back).
-        // This is intentional for the current use case where all calls share the same camera.
-        // If a future use case requires different calls to use different cameras simultaneously,
-        // add a cameraName check here before reusing.
-        for (Map.Entry<String, VideoCapturerInfoEx> entry : mVideoCapturers.entrySet()) {
-            VideoCapturerInfoEx existing = entry.getValue();
-            if (!existing.isScreenCapture && existing.primaryTrackId == null && existing.videoSource != null) {
-                Log.w(TAG, "getUserMedia(video): camera already active (track=" + entry.getKey()
-                        + "), reusing VideoSource to prevent concurrent camera access");
-                return buildSharedVideoTrack(existing, entry.getKey(), mediaStream);
-            }
-        }
-
         // NOTE: to support Camera2, the device should:
         //   1. Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
         //   2. all camera support level should greater than LEGACY
@@ -748,6 +722,31 @@ public class GetUserMediaImpl {
         String facingMode = getFacingMode(videoConstraintsMap);
         isFacing = facingMode == null || !facingMode.equals("environment");
         String deviceId = getSourceIdConstraint(videoConstraintsMap);
+
+        // If a camera is already active for the same facing direction, reuse its VideoSource
+        // instead of opening a second Camera2 session for the same camera device.
+        //
+        // When the same camera is opened twice from one process, cameraserver "steals" it from
+        // the first client: the first CaptureSession receives onDisconnected(), which internally
+        // calls close() -> stopRepeating() -> cancelRequest(). The camera HAL returns ENOSYS
+        // (-38 / "Function not implemented") for cancelRequest when the pipeline is already being
+        // torn down, and Android's CameraCaptureSessionImpl does not handle that error - it
+        // propagates as CameraAccessException(CAMERA_ERROR=3).
+        //
+        // This is reproducible on stock AOSP (Pixel) and any Android device: it is a bug in the
+        // Android Camera2 framework (CameraCaptureSessionImpl.onDisconnected does not guard
+        // against ENOSYS from cancelRequest), not an OEM-specific issue.
+        final boolean requestedFacingFront = isFacing;
+        for (Map.Entry<String, VideoCapturerInfoEx> entry : mVideoCapturers.entrySet()) {
+            VideoCapturerInfoEx existing = entry.getValue();
+            if (!existing.isScreenCapture && existing.primaryTrackId == null
+                    && existing.videoSource != null && existing.cameraName != null
+                    && cameraEnumerator.isFrontFacing(existing.cameraName) == requestedFacingFront) {
+                Log.w(TAG, "getUserMedia(video): camera already active (track=" + entry.getKey()
+                        + "), reusing VideoSource to prevent concurrent camera access");
+                return buildSharedVideoTrack(existing, entry.getKey(), mediaStream);
+            }
+        }
         CameraEventsHandler cameraEventsHandler = new CameraEventsHandler();
         Pair<String, VideoCapturer> result = createVideoCapturer(cameraEnumerator, isFacing, deviceId, cameraEventsHandler);
 
