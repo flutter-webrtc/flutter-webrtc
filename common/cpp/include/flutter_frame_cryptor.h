@@ -95,7 +95,6 @@ class FlutterFrameCryptor {
       frame_cryptors_;
   std::map<std::string, scoped_refptr<FlutterFrameCryptorObserver>>
       frame_cryptor_observers_;
-  std::map<std::string, scoped_refptr<libwebrtc::KeyProvider>> key_providers_;
 };
 
 }  // namespace flutter_webrtc_plugin
