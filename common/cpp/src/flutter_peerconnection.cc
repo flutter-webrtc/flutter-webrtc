@@ -230,9 +230,9 @@ EncodableMap rtpParametersToMap(
       info[EncodableValue("degradationPreference")] =
           EncodableValue("balanced");
       break;
-    case libwebrtc::RTCDegradationPreference::DISABLED:
+    case libwebrtc::RTCDegradationPreference::MAINTAIN_FRAMERATE_AND_RESOLUTION:
       info[EncodableValue("degradationPreference")] =
-          EncodableValue("disabled");
+          EncodableValue("maintain-framerate-and-resolution");
       break;
     default:
       info[EncodableValue("degradationPreference")] =

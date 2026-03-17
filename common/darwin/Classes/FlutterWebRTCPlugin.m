@@ -2231,8 +2231,8 @@ static FlutterWebRTCPlugin *sharedSingleton;
        degradationPreference = @"maintain-resolution";
     } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceBalanced) {
        degradationPreference = @"balanced";
-    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceDisabled) {
-       degradationPreference = @"disabled";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainFramerateAndResolution) {
+       degradationPreference = @"maintain-framerate-and-resolution";
     }
   }
 
@@ -2504,8 +2504,8 @@ static FlutterWebRTCPlugin *sharedSingleton;
           parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceMaintainResolution];
       } else if ([degradationPreference isEqualToString:@"balanced"]) {
           parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceBalanced];
-      } else if ([degradationPreference isEqualToString:@"disabled"]) {
-          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceDisabled];
+      } else if ([degradationPreference isEqualToString:@"maintain-framerate-and-resolution"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceMaintainFramerateAndResolution];
       }
   }
 
