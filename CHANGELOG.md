@@ -1,6 +1,12 @@
 
 # Changelog
 
+[1.4.0] -2026-03-17
+
+* [macOS]: use ScreenCaptureKit for screen capture (fallback to RTCDesktopCapturer) by @EnterDevelopers in https://github.com/flutter-webrtc/flutter-webrtc/pull/1991
+* [libwebrtc]: bump version for libwebrtc to m144.
+* [Win/Linux]: DataPacketCryptor for win/linux.
+
 [1.3.1] - 2026-02-25
 
 * [iOS/macOS] chore: bump webrtc to v137.7151.12.
