@@ -902,6 +902,33 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
                                    details:nil]);
       }
     }
+  } else if ([@"mediaStreamTrackSetCaptureFormat" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* trackId = argsMap[@"trackId"];
+    NSInteger captureWidth = [argsMap[@"captureWidth"] integerValue];
+    NSInteger captureHeight = [argsMap[@"captureHeight"] integerValue];
+    NSInteger outputWidth = [argsMap[@"outputWidth"] integerValue];
+    NSInteger outputHeight = [argsMap[@"outputHeight"] integerValue];
+    NSInteger fps = [argsMap[@"fps"] integerValue];
+    id<LocalTrack> track = self.localTracks[trackId];
+    if (track != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
+      [self mediaStreamTrackSetCaptureFormat:(LocalVideoTrack*)track
+                                captureWidth:captureWidth
+                               captureHeight:captureHeight
+                                 outputWidth:outputWidth
+                                outputHeight:outputHeight
+                                         fps:fps
+                                      result:result];
+    } else {
+      if (track == nil) {
+        result([FlutterError errorWithCode:@"Track is nil" message:nil details:nil]);
+      } else {
+        result([FlutterError errorWithCode:[@"Track is class of "
+                                               stringByAppendingString:[[track class] description]]
+                                   message:nil
+                                   details:nil]);
+      }
+    }
   } else if ([@"mediaStreamTrackSetFocusMode" isEqualToString:call.method]) {
       NSDictionary* argsMap = call.arguments;
       NSString* trackId = argsMap[@"trackId"];

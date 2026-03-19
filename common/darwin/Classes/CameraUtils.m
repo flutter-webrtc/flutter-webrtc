@@ -87,6 +87,82 @@
 #endif
 }
 
+- (void)mediaStreamTrackSetCaptureFormat:(LocalVideoTrack*)localTrack
+                            captureWidth:(NSInteger)captureWidth
+                           captureHeight:(NSInteger)captureHeight
+                             outputWidth:(NSInteger)outputWidth
+                            outputHeight:(NSInteger)outputHeight
+                                     fps:(NSInteger)fps
+                                  result:(FlutterResult)result {
+#if TARGET_OS_IPHONE
+  AVCaptureDevice* device = [self currentDevice];
+  if (!device) {
+    NSLog(@"Video capturer is null. Can't set capture format");
+    result([FlutterError errorWithCode:@"setCaptureFormatFailed" message:@"device is nil" details:nil]);
+    return;
+  }
+
+  // Find the best format that meets the requested capture dimensions
+  AVCaptureDeviceFormat* bestFormat = nil;
+  for (AVCaptureDeviceFormat* format in device.formats) {
+    CMVideoDimensions dims = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
+    FourCharCode pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription);
+    // Prefer 420v (NV12) which is the standard video format
+    if (pixelFormat != kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange &&
+        pixelFormat != kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+      continue;
+    }
+    if (dims.width >= captureWidth && dims.height >= captureHeight) {
+      if (bestFormat == nil) {
+        bestFormat = format;
+      } else {
+        // Pick the smallest format that still meets the requirement
+        CMVideoDimensions bestDims = CMVideoFormatDescriptionGetDimensions(bestFormat.formatDescription);
+        if (dims.width < bestDims.width) {
+          bestFormat = format;
+        }
+      }
+    }
+  }
+
+  if (!bestFormat) {
+    NSLog(@"No format found matching %ldx%ld", (long)captureWidth, (long)captureHeight);
+    result([FlutterError errorWithCode:@"setCaptureFormatFailed"
+                               message:@"No suitable capture format found"
+                               details:nil]);
+    return;
+  }
+
+  NSError* error;
+  if ([device lockForConfiguration:&error] == NO) {
+    NSLog(@"Failed to acquire configuration lock for capture format. %@", error.localizedDescription);
+    result([FlutterError errorWithCode:@"setCaptureFormatFailed"
+                               message:error.localizedDescription
+                               details:nil]);
+    return;
+  }
+
+  device.activeFormat = bestFormat;
+  // Set frame rate
+  device.activeVideoMinFrameDuration = CMTimeMake(1, (int32_t)fps);
+  device.activeVideoMaxFrameDuration = CMTimeMake(1, (int32_t)fps);
+  [device unlockForConfiguration];
+
+  CMVideoDimensions activeDims = CMVideoFormatDescriptionGetDimensions(bestFormat.formatDescription);
+  NSLog(@"Set capture format to %dx%d, output will be %ldx%ld@%ldfps",
+        activeDims.width, activeDims.height, (long)outputWidth, (long)outputHeight, (long)fps);
+
+  // Now tell the RTCVideoSource to adapt output to the desired encoding resolution
+  RTCVideoSource* videoSource = [localTrack.processing source];
+  [videoSource adaptOutputFormatToWidth:(int)outputWidth height:(int)outputHeight fps:(int)fps];
+
+  result(nil);
+#else
+  NSLog(@"Not supported on macOS. Can't set capture format");
+  result([FlutterError errorWithCode:@"setCaptureFormatFailed" message:@"Not supported on macOS" details:nil]);
+#endif
+}
+
 - (void)applyFocusMode:(NSString*)focusMode onDevice:(AVCaptureDevice *)captureDevice {
 #if TARGET_OS_IPHONE
   [captureDevice lockForConfiguration:nil];

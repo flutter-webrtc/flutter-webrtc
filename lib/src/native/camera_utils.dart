@@ -90,4 +90,32 @@ class CameraUtils {
       throw Exception('setExposurePoint only support for mobile devices!');
     }
   }
+
+  /// Set the capture format to a high resolution (e.g. 4K) while adapting
+  /// the output format to a lower resolution (e.g. 1080p) for encoding.
+  /// This allows the ISP to use more sensor photosites when zoomed,
+  /// resulting in significantly better quality at high zoom levels.
+  /// iOS only.
+  static Future<void> setCaptureFormat(
+    MediaStreamTrack videoTrack, {
+    int captureWidth = 3840,
+    int captureHeight = 2160,
+    int outputWidth = 1920,
+    int outputHeight = 1080,
+    int fps = 30,
+  }) async {
+    if (WebRTC.platformIsIOS) {
+      await WebRTC.invokeMethod(
+        'mediaStreamTrackSetCaptureFormat',
+        <String, dynamic>{
+          'trackId': videoTrack.id,
+          'captureWidth': captureWidth,
+          'captureHeight': captureHeight,
+          'outputWidth': outputWidth,
+          'outputHeight': outputHeight,
+          'fps': fps,
+        },
+      );
+    }
+  }
 }

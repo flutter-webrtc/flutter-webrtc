@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "FlutterWebRTCPlugin.h"
+#import "LocalVideoTrack.h"
 
 @interface FlutterWebRTCPlugin (CameraUtils)
 
@@ -12,6 +13,14 @@
 - (void)mediaStreamTrackSetZoom:(nonnull RTCMediaStreamTrack*)track
                            zoomLevel:(double)zoomLevel
                           result:(nonnull FlutterResult)result;
+
+- (void)mediaStreamTrackSetCaptureFormat:(nonnull LocalVideoTrack*)localTrack
+                            captureWidth:(NSInteger)captureWidth
+                           captureHeight:(NSInteger)captureHeight
+                             outputWidth:(NSInteger)outputWidth
+                            outputHeight:(NSInteger)outputHeight
+                                     fps:(NSInteger)fps
+                                  result:(nonnull FlutterResult)result;
 
 - (void)mediaStreamTrackSetFocusMode:(nonnull RTCMediaStreamTrack*)track
                            focusMode:(nonnull NSString*)focusMode
