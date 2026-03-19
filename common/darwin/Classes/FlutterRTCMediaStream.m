@@ -1,4 +1,5 @@
 #import <objc/runtime.h>
+#import <WebRTC/RTCLogging.h>
 #import "AudioUtils.h"
 #import "CameraUtils.h"
 #import "FlutterRTCFrameCapturer.h"
@@ -33,6 +34,10 @@
   return nil;
 }
 
+@end
+
+@interface FlutterWebRTCPlugin (TVoxRouteLogging)
+- (void)tvoxRouteLog:(NSString*)format, ...;
 @end
 
 @implementation FlutterWebRTCPlugin (RTCMediaStream)
@@ -793,18 +798,52 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   }
 #endif
 #if TARGET_OS_IPHONE
+  NSString* normalized = [deviceId lowercaseString];
+  BOOL wantsSpeaker =
+      [normalized isEqualToString:@"speaker"] ||
+      [normalized isEqualToString:@"speakerphone"] ||
+      [normalized containsString:@"speaker"] ||
+      [normalized containsString:@"altoparlante"];
+  BOOL wantsReceiver =
+      [normalized isEqualToString:@"earpiece"] ||
+      [normalized isEqualToString:@"receiver"] ||
+      [normalized containsString:@"earpiece"] ||
+      [normalized containsString:@"receiver"] ||
+      [normalized containsString:@"ricevitore"];
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
-  NSError* setCategoryError = nil;
+  NSString* outputBefore = session.currentRoute.outputs.firstObject.portType;
+  [self tvoxRouteLog:@"[TVoxRouteDebug] mediaStream selectAudioOutput requested=%@ normalized=%@ wantsSpeaker=%d wantsReceiver=%d outputBefore=%@",
+        deviceId,
+        normalized,
+        wantsSpeaker,
+        wantsReceiver,
+        outputBefore];
 
-  if ([deviceId isEqualToString:@"Speaker"]) {
-    [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_Speaker
-                                       error:&setCategoryError];
-  } else {
-    [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
-                                       error:&setCategoryError];
+  if (wantsSpeaker) {
+    [AudioUtils setSpeakerphoneOn:YES];
+    NSString* outputAfter = [RTCAudioSession sharedInstance].currentRoute.outputs.firstObject.portType;
+    [self tvoxRouteLog:@"[TVoxRouteDebug] mediaStream selectAudioOutput applied speaker outputAfter=%@",
+          outputAfter];
+    result(nil);
+    return;
+  }
+  if (wantsReceiver) {
+    [AudioUtils setSpeakerphoneOn:NO];
+    NSString* outputAfter = [RTCAudioSession sharedInstance].currentRoute.outputs.firstObject.portType;
+    [self tvoxRouteLog:@"[TVoxRouteDebug] mediaStream selectAudioOutput applied receiver outputAfter=%@",
+          outputAfter];
+    result(nil);
+    return;
   }
 
+  // Fallback behavior: keep iOS default route selection for unknown/physical ids.
+  NSError* setCategoryError = nil;
+  [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
+                                     error:&setCategoryError];
   if (setCategoryError == nil) {
+    NSString* outputAfter = [RTCAudioSession sharedInstance].currentRoute.outputs.firstObject.portType;
+    [self tvoxRouteLog:@"[TVoxRouteDebug] mediaStream selectAudioOutput fallback-none outputAfter=%@",
+          outputAfter];
     result(nil);
     return;
   }
@@ -814,6 +853,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
             message:[NSString
                         stringWithFormat:@"Error: %@", [setCategoryError localizedFailureReason]]
             details:nil]);
+  return;
 
 #endif
   result([FlutterError errorWithCode:@"selectAudioOutputFailed"
