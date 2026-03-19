@@ -263,19 +263,11 @@ static FlutterWebRTCPlugin *sharedSingleton;
       _speakerOn && onBuiltInReceiver;
   BOOL shouldRestoreSpeakerOrBluetooth =
       _speakerOnButPreferBluetooth && onBuiltInReceiver;
-  [self tvoxRouteLog:@"[TVoxRouteDebug] didSessionRouteChange reason=%ld output=%@ speakerOn=%d speakerPrefBt=%d restoreSpeaker=%d restoreSpeakerOrBt=%d",
-        (long)routeChangeReason,
-        currentOutputPortType,
-        _speakerOn,
-        _speakerOnButPreferBluetooth,
-        shouldRestoreSpeaker,
-        shouldRestoreSpeakerOrBluetooth];
 
   if (routeChangeReason == AVAudioSessionRouteChangeReasonCategoryChange &&
       !_isRestoringRouteAfterCategoryChange &&
       !_didRouteRecoveryForCurrentCall &&
       (shouldRestoreSpeaker || shouldRestoreSpeakerOrBluetooth)) {
-    [self tvoxRouteLog:@"[TVoxRouteDebug] restoring route after categoryChange"];
     _isRestoringRouteAfterCategoryChange = YES;
     if (_speakerOnButPreferBluetooth) {
       [AudioUtils setSpeakerphoneOnButPreferBluetooth];
@@ -284,8 +276,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
     }
     _isRestoringRouteAfterCategoryChange = NO;
     _didRouteRecoveryForCurrentCall = YES;
-    currentOutputPortType = [self currentOutputPortType];
-    [self tvoxRouteLog:@"[TVoxRouteDebug] route restored output=%@", currentOutputPortType];
   }
 
   // Some iOS/CallKit transitions leave RTCAudioSession inactive while a call is alive,
@@ -335,21 +325,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
   }
 
   return RTCLoggingSeverityNone;
-}
-
-- (void)tvoxRouteLog:(NSString*)format, ... {
-  va_list args;
-  va_start(args, format);
-  NSString* message = [[NSString alloc] initWithFormat:format arguments:args];
-  va_end(args);
-
-  RTCLog(@"%@", message);
-  if (self.eventSink) {
-    postEvent(self.eventSink, @{
-      @"event" : @"onLogData",
-      @"data" : message
-    });
-  }
 }
 
 - (void)initialize:(NSArray*)networkIgnoreMask
@@ -447,10 +422,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
     NSDictionary* argsMap = call.arguments;
     NSDictionary* configuration = argsMap[@"configuration"];
     NSDictionary* constraints = argsMap[@"constraints"];
-    [self tvoxRouteLog:@"[TVoxRouteDebug] createPeerConnection start output=%@ speakerOn=%d speakerPrefBt=%d",
-          [self currentOutputPortType],
-          _speakerOn,
-          _speakerOnButPreferBluetooth];
     // New call lifecycle: start with neutral route memory.
     // Prevent stale speaker preference from previous calls affecting fresh calls.
     _speakerOn = NO;
@@ -459,10 +430,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
     _didRouteRecoveryForCurrentCall = NO;
     _audioSessionRecoveryPending = NO;
     _isRunningAudioSessionRecovery = NO;
-    [self tvoxRouteLog:@"[TVoxRouteDebug] createPeerConnection reset output=%@ speakerOn=%d speakerPrefBt=%d",
-          [self currentOutputPortType],
-          _speakerOn,
-          _speakerOnButPreferBluetooth];
 
     RTCPeerConnection* peerConnection = [self.peerConnectionFactory
         peerConnectionWithConfiguration:[self RTCConfiguration:configuration]
@@ -529,11 +496,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
         [normalized isEqualToString:@"speakerphone"] ||
         [normalized containsString:@"speaker"] ||
         [normalized containsString:@"altoparlante"];
-    [self tvoxRouteLog:@"[TVoxRouteDebug] selectAudioOutput requested=%@ normalized=%@ selectingSpeaker=%d outputBefore=%@",
-          deviceId,
-          normalized,
-          selectingSpeaker,
-          [self currentOutputPortType]];
     _speakerOn = selectingSpeaker;
     _speakerOnButPreferBluetooth = NO;
     _didRouteRecoveryForCurrentCall = NO;
@@ -950,11 +912,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
       _audioSessionRecoveryPending = NO;
       _isRunningAudioSessionRecovery = NO;
     }
-    [self tvoxRouteLog:@"[TVoxRouteDebug] peerConnection closed/disposed output=%@ speakerOn=%d speakerPrefBt=%d peers=%lu",
-          [self currentOutputPortType],
-          _speakerOn,
-          _speakerOnButPreferBluetooth,
-          (unsigned long)self.peerConnections.count];
     [self deactiveRtcAudioSession];
     result(nil);
   } else if ([@"createVideoRenderer" isEqualToString:call.method]) {
@@ -1856,12 +1813,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
     return;
   }
 
-  [self tvoxRouteLog:@"[TVoxRouteDebug] adm recovery requested reason=%@ playInit=%d playing=%d recInit=%d recording=%d",
-        reason,
-        adm.isPlayoutInitialized,
-        adm.isPlaying,
-        adm.isRecordingInitialized,
-        adm.isRecording];
 
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
     NSInteger initPlayoutResult = 0;
@@ -1883,16 +1834,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
     }
 
     dispatch_async(dispatch_get_main_queue(), ^{
-      [self tvoxRouteLog:@"[TVoxRouteDebug] adm recovery completed reason=%@ initPlayout=%ld startPlayout=%ld initRecording=%ld startRecording=%ld playInit=%d playing=%d recInit=%d recording=%d",
-            reason,
-            (long)initPlayoutResult,
-            (long)startPlayoutResult,
-            (long)initRecordingResult,
-            (long)startRecordingResult,
-            adm.isPlayoutInitialized,
-            adm.isPlaying,
-            adm.isRecordingInitialized,
-            adm.isRecording];
     });
   });
 #endif
@@ -1900,6 +1841,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
 
 - (void)restartAudioDeviceModule:(NSString*)reason result:(FlutterResult)result {
 #if TARGET_OS_IPHONE
+  (void)reason;
   if (self.peerConnectionFactory == nil) {
     result([FlutterError errorWithCode:@"restartLocalAudio failed"
                                message:@"Error: peerConnectionFactory is nil"
@@ -1915,28 +1857,15 @@ static FlutterWebRTCPlugin *sharedSingleton;
     return;
   }
 
-  [self tvoxRouteLog:@"[TVoxRouteDebug] restartLocalAudio requested reason=%@", reason];
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-    NSInteger stopPlayoutResult = [adm stopPlayout];
-    NSInteger stopRecordingResult = [adm stopRecording];
-    NSInteger initPlayoutResult = [adm initPlayout];
-    NSInteger startPlayoutResult = [adm startPlayout];
-    NSInteger initRecordingResult = [adm initRecording];
-    NSInteger startRecordingResult = [adm startRecording];
+    [adm stopPlayout];
+    [adm stopRecording];
+    [adm initPlayout];
+    [adm startPlayout];
+    [adm initRecording];
+    [adm startRecording];
 
     dispatch_async(dispatch_get_main_queue(), ^{
-      [self tvoxRouteLog:@"[TVoxRouteDebug] restartLocalAudio completed reason=%@ stopPlayout=%ld stopRecording=%ld initPlayout=%ld startPlayout=%ld initRecording=%ld startRecording=%ld playInit=%d playing=%d recInit=%d recording=%d",
-            reason,
-            (long)stopPlayoutResult,
-            (long)stopRecordingResult,
-            (long)initPlayoutResult,
-            (long)startPlayoutResult,
-            (long)initRecordingResult,
-            (long)startRecordingResult,
-            adm.isPlayoutInitialized,
-            adm.isPlaying,
-            adm.isRecordingInitialized,
-            adm.isRecording];
       result(nil);
     });
   });
@@ -1950,10 +1879,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
   BOOL hasLocalAudio = [self hasLocalAudioTrack];
   NSUInteger peers = self.peerConnections.count;
   BOOL shouldRecord = hasLocalAudio || peers > 0;
-  [self tvoxRouteLog:@"[TVoxRouteDebug] ensureAudioSession before output=%@ hasLocalAudio=%d peers=%lu",
-        [self currentOutputPortType],
-        hasLocalAudio,
-        (unsigned long)peers];
   [AudioUtils ensureAudioSessionWithRecording:shouldRecord];
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
   if (shouldRecord && !session.isActive) {
@@ -1962,19 +1887,14 @@ static FlutterWebRTCPlugin *sharedSingleton;
     BOOL activated = [session setActive:YES error:&error];
     [session unlockForConfiguration];
     if (!activated) {
-      [self tvoxRouteLog:@"[TVoxRouteDebug] ensureAudioSession setActive failed: %@", error];
       if (peers > 0 && !_isRunningAudioSessionRecovery) {
         [self scheduleAudioSessionRecovery:@"ensureAudioSession.setActive.failed"];
       }
-    } else {
-      [self tvoxRouteLog:@"[TVoxRouteDebug] ensureAudioSession activated session"];
     }
   }
   if (peers > 0 && session.isActive) {
     [self recoverAudioDeviceModuleIfNeeded:@"ensureAudioSession"];
   }
-  [self tvoxRouteLog:@"[TVoxRouteDebug] ensureAudioSession after output=%@",
-        [self currentOutputPortType]];
 #endif
 }
 
@@ -1987,11 +1907,7 @@ static FlutterWebRTCPlugin *sharedSingleton;
     _didRouteRecoveryForCurrentCall = NO;
     _audioSessionRecoveryPending = NO;
     _isRunningAudioSessionRecovery = NO;
-    [self tvoxRouteLog:@"[TVoxRouteDebug] deactiveRtcAudioSession outputBefore=%@",
-          [self currentOutputPortType]];
     [AudioUtils deactiveRtcAudioSession];
-    [self tvoxRouteLog:@"[TVoxRouteDebug] deactiveRtcAudioSession outputAfter=%@",
-          [self currentOutputPortType]];
   }
 #endif
 }
@@ -2002,9 +1918,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
     return;
   }
   _audioSessionRecoveryPending = YES;
-  [self tvoxRouteLog:@"[TVoxRouteDebug] scheduling audio session recovery reason=%@ peers=%lu",
-        reason,
-        (unsigned long)self.peerConnections.count];
   [self runAudioSessionRecoveryAttempt:1 maxAttempts:4 reason:reason];
 #endif
 }
@@ -2025,10 +1938,6 @@ static FlutterWebRTCPlugin *sharedSingleton;
     RTCAudioSession* session = [RTCAudioSession sharedInstance];
     if (!session.isActive) {
       _isRunningAudioSessionRecovery = YES;
-      [self tvoxRouteLog:@"[TVoxRouteDebug] recovery attempt=%ld/%ld reason=%@ sessionActive=0",
-            (long)attempt,
-            (long)maxAttempts,
-            reason];
       [self ensureAudioSession];
       _isRunningAudioSessionRecovery = NO;
 
@@ -2043,17 +1952,11 @@ static FlutterWebRTCPlugin *sharedSingleton;
     if (session.isActive) {
       [self recoverAudioDeviceModuleIfNeeded:[NSString stringWithFormat:@"recovery.%@", reason ?: @"unknown"]];
       _audioSessionRecoveryPending = NO;
-      [self tvoxRouteLog:@"[TVoxRouteDebug] recovery completed on attempt=%ld reason=%@",
-            (long)attempt,
-            reason];
       return;
     }
 
     if (attempt >= maxAttempts) {
       _audioSessionRecoveryPending = NO;
-      [self tvoxRouteLog:@"[TVoxRouteDebug] recovery exhausted after %ld attempts reason=%@",
-            (long)maxAttempts,
-            reason];
       return;
     }
 
