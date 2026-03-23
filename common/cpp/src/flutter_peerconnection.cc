@@ -395,10 +395,6 @@ void FlutterPeerConnection::RTCPeerConnectionClose(
     base_->peerconnections_.erase(it2);
   }
 
-  auto it = base_->peerconnection_observers_.find(uuid);
-  if (it != base_->peerconnection_observers_.end())
-    base_->peerconnection_observers_.erase(it);
-
   result->Success();
 }
 
@@ -406,6 +402,10 @@ void FlutterPeerConnection::RTCPeerConnectionDispose(
     RTCPeerConnection* pc,
     const std::string& uuid,
     std::unique_ptr<MethodResultProxy> result) {
+  auto it = base_->peerconnection_observers_.find(uuid);
+  if (it != base_->peerconnection_observers_.end())
+    base_->peerconnection_observers_.erase(it);
+
   result->Success();
 }
 
