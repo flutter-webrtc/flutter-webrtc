@@ -15,7 +15,7 @@
 @property(nonatomic, weak) id<RTCVideoCapturerDelegate> delegate;
 @property(nonatomic, strong) dispatch_queue_t captureQueue;
 #if __has_include(<ScreenCaptureKit/ScreenCaptureKit.h>)
-@property(nonatomic, strong) SCStream *stream;
+@property(nonatomic, strong) SCStream *stream API_AVAILABLE(macos(12.3));
 #endif
 @end
 
