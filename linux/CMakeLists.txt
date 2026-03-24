@@ -20,6 +20,7 @@ add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/src/flutter_data_packet_cryptor.cc"
   "../common/cpp/src/flutter_frame_cryptor.cc"
   "../common/cpp/src/flutter_media_stream.cc"
+  "../common/cpp/src/flutter_utf8_sanitize.cc"
   "../common/cpp/src/flutter_peerconnection.cc"
   "../common/cpp/src/flutter_frame_capturer.cc"
   "../common/cpp/src/flutter_video_renderer.cc"
