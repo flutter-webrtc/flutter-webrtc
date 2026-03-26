@@ -44,11 +44,16 @@ NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *>* motifyH264ProfileLevelId(
       NSString* hexString = info.parameters[@"profile-level-id"];
       RTCH264ProfileLevelId* profileLevelId =
           [[RTCH264ProfileLevelId alloc] initWithHexString:hexString];
-      if (profileLevelId.level < RTCH264Level5_1) {
+      // Force High Profile @ Level 5.1 for all H.264 codecs.
+      // High Profile enables CABAC entropy coding and 8×8 transforms which
+      // give ~15-25% better compression than Constrained Baseline at the same
+      // bitrate.  Level 5.1 is required for 4K@30fps (3840×2160).
+      // iOS VideoToolbox hardware encoder fully supports High Profile.
+      if (profileLevelId.profile != RTCH264ProfileHigh ||
+          profileLevelId.level < RTCH264Level5_1) {
         RTCH264ProfileLevelId* newProfileLevelId =
-            [[RTCH264ProfileLevelId alloc] initWithProfile:profileLevelId.profile
+            [[RTCH264ProfileLevelId alloc] initWithProfile:RTCH264ProfileHigh
                                                      level:RTCH264Level5_1];
-        // NSLog(@"profile-level-id: %@ => %@", hexString, [newProfileLevelId hexString]);
         NSMutableDictionary* parametersCopy = [[NSMutableDictionary alloc] init];
         [parametersCopy addEntriesFromDictionary:info.parameters];
         [parametersCopy setObject:[newProfileLevelId hexString] forKey:@"profile-level-id"];
@@ -963,6 +968,23 @@ bypassVoiceProcessing:(BOOL)bypassVoiceProcessing {
                                                  stringByAppendingString:[[track class] description]]
                                      message:nil
                                      details:nil]);
+        }
+      }
+  } else if ([@"mediaStreamTrackSetLensPosition" isEqualToString:call.method]) {
+      NSDictionary* argsMap = call.arguments;
+      NSString* trackId = argsMap[@"trackId"];
+      double position = [argsMap[@"position"] doubleValue];
+      id<LocalTrack> track = self.localTracks[trackId];
+      if (track != nil && [track isKindOfClass:[LocalVideoTrack class]]) {
+        RTCVideoTrack* videoTrack = (RTCVideoTrack*)track.track;
+        [self mediaStreamTrackSetLensPosition:videoTrack position:position result:result];
+      } else {
+        if (track == nil) {
+          result([FlutterError errorWithCode:@"Track is nil" message:nil details:nil]);
+        } else {
+          result([FlutterError errorWithCode:[@"Track is class of "
+                                                 stringByAppendingString:[[track class] description]]
+                                     message:nil details:nil]);
         }
       }
   } else if ([@"mediaStreamTrackSetExposureMode" isEqualToString:call.method]) {

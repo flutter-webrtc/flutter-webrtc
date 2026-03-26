@@ -38,6 +38,7 @@
                            exposurePoint:(nonnull NSDictionary*)exposurePoint
                             result:(nonnull FlutterResult)result;
 
+
 - (void)mediaStreamTrackSwitchCamera:(nonnull RTCMediaStreamTrack*)track result:(nonnull FlutterResult)result;
 
 - (NSInteger)selectFpsForFormat:(nonnull AVCaptureDeviceFormat*)format targetFps:(NSInteger)targetFps;
@@ -48,5 +49,12 @@
 
 - (nullable AVCaptureDevice*)findDeviceForPosition:(AVCaptureDevicePosition)position;
 
+
+
+
+
+- (void)mediaStreamTrackSetLensPosition:(nonnull RTCMediaStreamTrack*)track
+                               position:(double)position
+                                 result:(nonnull FlutterResult)result;
 
 @end

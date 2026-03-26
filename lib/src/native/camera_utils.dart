@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
+import 'event_channel.dart';
 import 'utils.dart';
 
 enum CameraFocusMode { auto, locked }
@@ -89,6 +91,31 @@ class CameraUtils {
     } else {
       throw Exception('setExposurePoint only support for mobile devices!');
     }
+  }
+
+  /// Sets the focus to a specific lens position [0.0 = far/infinity, 1.0 = near/macro].
+  /// Locks the lens at that position (manual focus). iOS only.
+  static Future<void> setLensPosition(
+      MediaStreamTrack videoTrack, double position) async {
+    if (WebRTC.platformIsIOS) {
+      await WebRTC.invokeMethod(
+        'mediaStreamTrackSetLensPosition',
+        <String, dynamic>{
+          'trackId': videoTrack.id,
+          'position': position.clamp(0.0, 1.0),
+        },
+      );
+    }
+  }
+
+  /// Stream of lens position values emitted by the native layer.
+  /// Fires whenever AF settles or [setLensPosition] completes.
+  /// Values are in the range [0.0, 1.0].
+  static Stream<double> lensPositionStream() {
+    return FlutterWebRTCEventChannel.instance.handleEvents.stream
+        .where((e) => e.containsKey('onLensPositionChanged'))
+        .map((e) =>
+            (e['onLensPositionChanged']['lensPosition'] as num).toDouble());
   }
 
   /// Set the capture format to a high resolution (e.g. 4K) while adapting

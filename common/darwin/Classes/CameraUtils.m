@@ -1,4 +1,39 @@
 #import "CameraUtils.h"
+#import <objc/runtime.h>
+
+// ── KVO observer for AVCaptureDevice.lensPosition during continuous AF ────────
+// Fires ~15 Hz throttled events so the Dart slider can track autofocus movement.
+// Lives as a standalone NSObject to avoid category-method conflicts on the plugin.
+
+@interface _LXLensPositionObserver : NSObject
+@end
+
+@implementation _LXLensPositionObserver {
+    CFAbsoluteTime _lastFireTime;
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary<NSKeyValueChangeKey, id> *)change
+                       context:(void *)context {
+    if (![keyPath isEqualToString:@"lensPosition"]) return;
+    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    if (now - _lastFireTime < 0.066) return;  // throttle ~15 Hz
+    _lastFireTime = now;
+    CGFloat pos = [change[NSKeyValueChangeNewKey] floatValue];
+    FlutterWebRTCPlugin *plugin = [FlutterWebRTCPlugin sharedSingleton];
+    if (plugin.eventSink) {
+        postEvent(plugin.eventSink, @{
+            @"event" : @"onLensPositionChanged",
+            @"lensPosition" : @(pos),
+        });
+    }
+}
+
+@end
+
+static _LXLensPositionObserver *_lensObserver = nil;
+static AVCaptureDevice *_observedDevice = nil;
 
 @implementation FlutterWebRTCPlugin (CameraUtils)
 
@@ -11,6 +46,36 @@
   }
   AVCaptureDeviceInput* deviceInput = [self.videoCapturer.captureSession.inputs objectAtIndex:0];
   return deviceInput.device;
+}
+
+// ── KVO helpers: start/stop observing device.lensPosition ─────────────────────
+
+- (void)startObservingLensPosition {
+  AVCaptureDevice *device = [self currentDevice];
+  if (!device) return;
+  // Already observing this exact device — nothing to do.
+  // Avoids remove+add churn that disrupts AF settling.
+  if (_observedDevice == device) return;
+  [self stopObservingLensPosition];
+  if (!_lensObserver) {
+    _lensObserver = [[_LXLensPositionObserver alloc] init];
+  }
+  _observedDevice = device;
+  [device addObserver:_lensObserver
+           forKeyPath:@"lensPosition"
+              options:NSKeyValueObservingOptionNew
+              context:nil];
+}
+
+- (void)stopObservingLensPosition {
+  if (_observedDevice && _lensObserver) {
+    @try {
+      [_observedDevice removeObserver:_lensObserver forKeyPath:@"lensPosition"];
+    } @catch (NSException *e) {
+      // observer wasn't registered — safe to ignore
+    }
+  }
+  _observedDevice = nil;
 }
 
 - (void)mediaStreamTrackHasTorch:(RTCMediaStreamTrack*)track result:(FlutterResult)result {
@@ -163,6 +228,57 @@
 #endif
 }
 
+// ── Lens position (manual focus distance) ─────────────────────────────────────
+
+- (void)postLensPositionEvent:(CGFloat)position {
+  FlutterWebRTCPlugin* plugin = [FlutterWebRTCPlugin sharedSingleton];
+  if (plugin.eventSink) {
+    postEvent(plugin.eventSink, @{
+      @"event": @"onLensPositionChanged",
+      @"lensPosition": @(position),
+    });
+  }
+}
+
+- (void)mediaStreamTrackSetLensPosition:(nonnull RTCMediaStreamTrack*)track
+                               position:(double)position
+                                 result:(nonnull FlutterResult)result {
+#if TARGET_OS_IPHONE
+  AVCaptureDevice* device = [self currentDevice];
+  if (!device) {
+    NSLog(@"Video capturer is null. Can't set lens position");
+    result([FlutterError errorWithCode:@"mediaStreamTrackSetLensPositionFailed"
+                               message:@"device is nil" details:nil]);
+    return;
+  }
+  if (![device isLockingFocusWithCustomLensPositionSupported]) {
+    NSLog(@"Lens position adjustment not supported on this device");
+    result([FlutterError errorWithCode:@"mediaStreamTrackSetLensPositionFailed"
+                               message:@"Custom lens position not supported" details:nil]);
+    return;
+  }
+  NSError* lockError = nil;
+  if ([device lockForConfiguration:&lockError] == NO) {
+    NSLog(@"Failed to lock device for lens position: %@", lockError);
+    result([FlutterError errorWithCode:@"mediaStreamTrackSetLensPositionFailed"
+                               message:lockError.localizedDescription details:nil]);
+    return;
+  }
+  // Stop KVO observation — we’re switching to manual focus
+  // (keep KVO running — Dart filters based on _focusLocked)
+  CGFloat clamped = (CGFloat)fmax(0.0, fmin(1.0, position));
+  [device setFocusModeLockedWithLensPosition:clamped completionHandler:^(CMTime syncTime) {
+    [self postLensPositionEvent:clamped];
+  }];
+  [device unlockForConfiguration];
+  result(nil);
+#else
+  NSLog(@"Not supported on macOS. Can't set lens position");
+  result([FlutterError errorWithCode:@"mediaStreamTrackSetLensPositionFailed"
+                             message:@"Not supported on macOS" details:nil]);
+#endif
+}
+
 - (void)applyFocusMode:(NSString*)focusMode onDevice:(AVCaptureDevice *)captureDevice {
 #if TARGET_OS_IPHONE
   [captureDevice lockForConfiguration:nil];
@@ -178,6 +294,8 @@
       }
   }
   [captureDevice unlockForConfiguration];
+  // Start KVO outside the config lock — idempotent if already observing same device
+  [self startObservingLensPosition];
 #endif
 }
 
