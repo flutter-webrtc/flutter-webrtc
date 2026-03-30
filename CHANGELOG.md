@@ -1,9 +1,14 @@
 
 # Changelog
 
+[1.4.1] -2026-03-24
+
+* [Dart] fixed scalabilityMode (#2022).
+* [Windows/Linux] sanitize UTF-8 for device strings before platform messages(#2021)
+
 [1.4.0] -2026-03-17
 
-* [macOS]: use ScreenCaptureKit for screen capture (fallback to RTCDesktopCapturer) by @EnterDevelopers in https://github.com/flutter-webrtc/flutter-webrtc/pull/1991
+* [macOS]: use ScreenCaptureKit for screen capture (fallback to RTCDesktopCapturer) by @EnterDevelopers in (#1991)
 * [libwebrtc]: bump version for libwebrtc to m144.
 * [Win/Linux]: DataPacketCryptor for win/linux.
 

@@ -821,6 +821,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         Double scaleResolutionDownBy = (Double) encoding.get("scaleResolutionDownBy");
         if (scaleResolutionDownBy != null)
           currentParams.scaleResolutionDownBy = scaleResolutionDownBy;
+        String scalabilityMode = (String) encoding.get("scalabilityMode");
+        if (scalabilityMode != null)
+          currentParams.scalabilityMode = scalabilityMode;
         String priority = (String) encoding.get("priority");
         if (priority != null)
           currentParams.bitratePriority = stringToBitratePriority(priority);
@@ -878,6 +881,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       }
       if (encoding.ssrc != null) {
         map.putLong("ssrc", encoding.ssrc);
+      }
+      if (encoding.scalabilityMode != null) {
+        map.putString("scalabilityMode", encoding.scalabilityMode);
       }
       map.putString("priority", bitratePriorityToString(encoding.bitratePriority));
       map.putString("networkPriority", priorityToString(encoding.networkPriority));
