@@ -60,7 +60,26 @@ class RTCDataChannelNative extends RTCDataChannel {
 
   /// RTCDataChannel event listener.
   void eventListener(dynamic event) {
-    final Map<dynamic, dynamic> map = event;
+    if (event is! Map) return;
+    final map = event.cast<dynamic, dynamic>();
+
+    // Handle batch events
+    if (map['event'] == 'dataChannelEventsBatch') {
+      final events = map['events'];
+      if (events is List) {
+        for (final dynamic batchEvent in events) {
+          if (batchEvent is Map) {
+            _handleSingleEvent(batchEvent.cast<dynamic, dynamic>());
+          }
+        }
+      }
+      return;
+    }
+
+    _handleSingleEvent(map);
+  }
+
+  void _handleSingleEvent(Map<dynamic, dynamic> map) {
     switch (map['event']) {
       case 'dataChannelStateChanged':
         _dataChannelId = map['id'];
