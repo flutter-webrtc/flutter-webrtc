@@ -200,7 +200,10 @@ static FlutterWebRTCPlugin *sharedSingleton;
   }
 
   NSDictionary* fieldTrials = @{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue};
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   RTCInitFieldTrialDictionary(fieldTrials);
+#pragma clang diagnostic pop
 
   self.peerConnections = [NSMutableDictionary new];
   self.localStreams = [NSMutableDictionary new];
@@ -345,8 +348,19 @@ static FlutterWebRTCPlugin *sharedSingleton;
         // AVAudioEngine crashes when screen share audio and microphone coexist due to
         // format conflicts in AVAudioIONodeImpl::SetOutputFormat
         // See: https://github.com/flutter-webrtc/flutter-webrtc/issues/1986
+        //
+        // Initializing the Audio Device Module Type with 0 leads to a crash on iOS
+        // in case NSMicrophoneUsageDescription is missing in Info.plist file
+        // (consumer/viewer only stream without microphone)
+        // this condition uses AVAudioEngine for iOS while preserving the fix above for macOS
+        // See: https://github.com/flutter-webrtc/flutter-webrtc/issues/2007
+#if TARGET_OS_IPHONE
+        RTCAudioDeviceModuleType audioDeviceModuleType = RTCAudioDeviceModuleTypeAudioEngine;
+#else
+        RTCAudioDeviceModuleType audioDeviceModuleType = 0;
+#endif
         _peerConnectionFactory =
-            [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:0
+            [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:audioDeviceModuleType
                                                       bypassVoiceProcessing:bypassVoiceProcessing
                                                              encoderFactory:simulcastFactory
                                                              decoderFactory:decoderFactory
