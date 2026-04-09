@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../desktop_capturer.dart';
+import 'data_packet_cryptor_impl.dart';
 import 'desktop_capturer_impl.dart';
 import 'frame_cryptor_impl.dart';
 import 'media_recorder_impl.dart';
@@ -120,3 +121,6 @@ DesktopCapturer get desktopCapturer => DesktopCapturerNative.instance;
 MediaDevices get mediaDevices => MediaDeviceNative.instance;
 
 FrameCryptorFactory get frameCryptorFactory => FrameCryptorFactoryImpl.instance;
+
+DataPacketCryptorFactory get dataPacketCryptorFactory =>
+    DataPacketCryptorFactoryImpl.instance;

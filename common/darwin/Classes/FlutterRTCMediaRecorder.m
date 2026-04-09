@@ -110,8 +110,16 @@
         pixelBufferRef = [FlutterRTCFrameCapturer convertToCVPixelBuffer:frame];
         shouldRelease = true;
     }
-    CMVideoFormatDescriptionRef formatDescription;
+    CMVideoFormatDescriptionRef formatDescription = NULL;
     OSStatus status = CMVideoFormatDescriptionCreateForImageBuffer(kCFAllocatorDefault, pixelBufferRef, &formatDescription);
+    
+    if (status != noErr || formatDescription == NULL) {
+        NSLog(@"Failed to create format description: %d", (int)status);
+        if (shouldRelease) {
+            CVPixelBufferRelease(pixelBufferRef);
+        }
+        return;
+    }
 
     CMSampleTimingInfo timingInfo;
     
@@ -123,7 +131,7 @@
     timingInfo.presentationTimeStamp = CMTimeMake(frameTime, 1000000);
     framesCount++;
 
-    CMSampleBufferRef outBuffer;
+    CMSampleBufferRef outBuffer = NULL;
 
     status = CMSampleBufferCreateReadyWithImageBuffer(
         kCFAllocatorDefault,
@@ -133,14 +141,24 @@
         &outBuffer
     );
 
-    if (![self.writerInput appendSampleBuffer:outBuffer]) {
-        NSLog(@"Frame not appended %@", self.assetWriter.error);
+    if (status == noErr && outBuffer != NULL) {
+        if (![self.writerInput appendSampleBuffer:outBuffer]) {
+            NSLog(@"Frame not appended %@", self.assetWriter.error);
+        }
+    } else {
+        NSLog(@"Failed to create sample buffer: %d", (int)status);
     }
-    #if TARGET_OS_IPHONE
+    
+    // Release Core Foundation objects to prevent memory leaks
+    if (outBuffer != NULL) {
+        CFRelease(outBuffer);
+    }
+    if (formatDescription != NULL) {
+        CFRelease(formatDescription);
+    }
     if (shouldRelease) {
         CVPixelBufferRelease(pixelBufferRef);
     }
-    #endif
 }
 
 - (void)stop:(FlutterResult _Nonnull) result {

@@ -8,6 +8,7 @@ import org.webrtc.FrameCryptor;
 import org.webrtc.FrameCryptorAlgorithm;
 import org.webrtc.FrameCryptorFactory;
 import org.webrtc.FrameCryptorKeyProvider;
+import org.webrtc.FrameCryptorKeyDerivationAlgorithm;
 import org.webrtc.RtpReceiver;
 import org.webrtc.RtpSender;
 
@@ -148,12 +149,23 @@ public class FlutterRTCFrameCryptor {
         return true;
     }
 
-    private FrameCryptorAlgorithm frameCryptorAlgorithmFromInt(int algorithm) {
+    public FrameCryptorAlgorithm frameCryptorAlgorithmFromInt(int algorithm) {
         switch (algorithm) {
             case 0:
                 return FrameCryptorAlgorithm.AES_GCM;
             default:
                 return FrameCryptorAlgorithm.AES_GCM;
+        }
+    }
+
+    public FrameCryptorKeyDerivationAlgorithm keyDerivationAlgorithmFromInt(int algorithm) {
+        switch (algorithm) {
+            case 0:
+                return FrameCryptorKeyDerivationAlgorithm.PBKDF2;
+            case 1:
+                return FrameCryptorKeyDerivationAlgorithm.HKDF;
+            default:
+                return FrameCryptorKeyDerivationAlgorithm.PBKDF2;
         }
     }
 
@@ -210,7 +222,6 @@ public class FlutterRTCFrameCryptor {
             result.success(paramsResult.toMap());
         } else {
             result.error("frameCryptorFactoryCreateFrameCryptorFailed", "type must be sender or receiver", null);
-            return;
         }
     }
 
@@ -297,7 +308,15 @@ public class FlutterRTCFrameCryptor {
         }
         int keyRingSize = (int) keyProviderOptions.get("keyRingSize");
         boolean discardFrameWhenCryptorNotReady = (boolean) keyProviderOptions.get("discardFrameWhenCryptorNotReady");
-        FrameCryptorKeyProvider keyProvider = FrameCryptorFactory.createFrameCryptorKeyProvider(sharedKey, ratchetSalt, ratchetWindowSize, uncryptedMagicBytes, failureTolerance, keyRingSize, discardFrameWhenCryptorNotReady);
+        int keyDerivationAlgorithm = (int) keyProviderOptions.get("keyDerivationAlgorithm");
+        FrameCryptorKeyProvider keyProvider = FrameCryptorFactory.createFrameCryptorKeyProvider(sharedKey, 
+            ratchetSalt, 
+            ratchetWindowSize, 
+            uncryptedMagicBytes, 
+            failureTolerance, 
+            keyRingSize, 
+            discardFrameWhenCryptorNotReady,
+            keyDerivationAlgorithmFromInt(keyDerivationAlgorithm));
         ConstraintsMap paramsResult = new ConstraintsMap();
         keyProviders.put(keyProviderId, keyProvider);
         paramsResult.putString("keyProviderId", keyProviderId);
@@ -430,5 +449,9 @@ public class FlutterRTCFrameCryptor {
         ConstraintsMap paramsResult = new ConstraintsMap();
         paramsResult.putString("result", "success");
         result.success(paramsResult.toMap());
+    }
+
+    public FrameCryptorKeyProvider getKeyProvider(String id) {
+        return keyProviders.get(id);
     }
 }

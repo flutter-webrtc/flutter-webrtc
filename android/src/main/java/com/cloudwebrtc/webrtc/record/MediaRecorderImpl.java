@@ -83,10 +83,6 @@ public class MediaRecorderImpl {
             audioFileRenderer.release();
             audioFileRenderer = null;
         }
-        if (audioFileRenderer != null) {
-            audioFileRenderer.release();
-            audioFileRenderer = null;
-        }
     }
 
     private static final String TAG = "MediaRecorderImpl";

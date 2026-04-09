@@ -54,6 +54,13 @@ class WebRTC {
   /// "androidAudioConfiguration": an AndroidAudioConfiguration object mapped with toMap()
   ///
   /// "bypassVoiceProcessing": a boolean that bypasses the audio processing for the audio device.
+  ///
+  /// "audioSampleRate": (Android only) Sets both input and output sample rate in Hz (e.g., 48000).
+  ///                    If not specified, uses the native device's default sample rate.
+  ///
+  /// "audioOutputSampleRate": (Android only) Sets only output sample rate in Hz (e.g., 48000).
+  ///                          Takes precedence over audioSampleRate for output.
+  ///                          If not specified, uses audioSampleRate or native default.
   static Future<void> initialize({Map<String, dynamic>? options}) async {
     if (!initialized) {
       await _channel.invokeMethod<void>('initialize', <String, dynamic>{

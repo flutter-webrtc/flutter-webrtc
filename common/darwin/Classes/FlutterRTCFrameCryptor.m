@@ -38,7 +38,7 @@
 
 @implementation FlutterWebRTCPlugin (FrameCryptor)
 
-- (void)handleFrameCryptorMethodCall:(nonnull FlutterMethodCall*)call
+- (BOOL)handleFrameCryptorMethodCall:(nonnull FlutterMethodCall*)call
                               result:(nonnull FlutterResult)result {
   NSDictionary* constraints = call.arguments;
   NSString* method = call.method;
@@ -73,8 +73,10 @@
   } else if ([method isEqualToString:@"keyProviderDispose"]) {
     [self keyProviderDispose:constraints result:result];
   } else {
-    result(FlutterMethodNotImplemented);
+    return NO;
   }
+
+  return YES;
 }
 
 - (RTCCryptorAlgorithm)getAlgorithm:(NSNumber*)algorithm {
@@ -83,6 +85,17 @@
       return RTCCryptorAlgorithmAesGcm;
     default:
       return RTCCryptorAlgorithmAesGcm;
+  }
+}
+
+- (RTCKeyDerivationAlgorithm)getKeyDerivationAlgorithm:(NSNumber*)algorithm {
+  switch ([algorithm intValue]) {
+    case 0:
+      return RTCKeyDerivationAlgorithmPBKDF2;
+    case 1:
+      return RTCKeyDerivationAlgorithmHKDF;
+    default:
+      return RTCKeyDerivationAlgorithmPBKDF2;
   }
 }
 
@@ -351,6 +364,8 @@
   NSNumber* keyRingSize = keyProviderOptions[@"keyRingSize"];
 
   NSNumber* discardFrameWhenCryptorNotReady = keyProviderOptions[@"discardFrameWhenCryptorNotReady"];
+
+  NSNumber* keyDerivationAlgorithm = keyProviderOptions[@"keyDerivationAlgorithm"];
   
   RTCFrameCryptorKeyProvider* keyProvider =
       [[RTCFrameCryptorKeyProvider alloc] initWithRatchetSalt:ratchetSalt.data
@@ -359,7 +374,8 @@
                                          uncryptedMagicBytes: uncryptedMagicBytes != nil ? uncryptedMagicBytes.data : nil
                                             failureTolerance:failureTolerance != nil ? [failureTolerance intValue] : -1
                                                  keyRingSize:keyRingSize != nil ? [keyRingSize intValue] : 0
-                             discardFrameWhenCryptorNotReady:discardFrameWhenCryptorNotReady != nil ? [discardFrameWhenCryptorNotReady boolValue] : NO];
+                             discardFrameWhenCryptorNotReady:discardFrameWhenCryptorNotReady != nil ? [discardFrameWhenCryptorNotReady boolValue] : NO
+                                       keyDerivationAlgorithm:[self getKeyDerivationAlgorithm:keyDerivationAlgorithm]];
   self.keyProviders[keyProviderId] = keyProvider;
   result(@{@"keyProviderId" : keyProviderId});
 }

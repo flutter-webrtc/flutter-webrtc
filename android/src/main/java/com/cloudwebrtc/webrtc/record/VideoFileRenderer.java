@@ -94,13 +94,18 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
             // Use YUV420 semi-planar size (1.5 bytes per pixel) to reduce memory usage
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, config.width * config.height * 3 / 2);
             format.setInteger(MediaFormat.KEY_PRIORITY, 0);
-            format.setInteger(MediaFormat.KEY_PROFILE, config.profile);
 
             Log.d(TAG, "Trying encoder config: " + config);
 
             encoder = MediaCodec.createEncoderByType(MIME_TYPE);
             String codecName = encoder.getName();
             Log.d(TAG, "Codec name: " + codecName);
+            if ("OMX.hisi.video.encoder.avc".equals(codecName)) {
+                Log.w(TAG, "hisi h264 encoder does not set 'MediaFormat.KEY_PROFILE'.");
+                //format.setInteger(MediaFormat.KEY_PROFILE, config.profile);
+            }else{
+                format.setInteger(MediaFormat.KEY_PROFILE, config.profile);
+            }
 
             encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             // Create input surface *before* starting the encoder

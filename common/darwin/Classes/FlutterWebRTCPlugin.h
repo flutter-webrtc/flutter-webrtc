@@ -13,7 +13,7 @@
 @class FlutterRTCMediaRecorder;
 @class AudioManager;
 
-void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event);
+void postEvent(FlutterEventSink _Nullable sink, id _Nullable event);
 
 typedef void (^CompletionHandler)(void);
 
@@ -46,6 +46,8 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
     NSMutableDictionary<NSString*, RTCFrameCryptor*>* _Nullable frameCryptors;
 @property(nonatomic, strong)
     NSMutableDictionary<NSString*, RTCFrameCryptorKeyProvider*>* _Nullable keyProviders;
+@property(nonatomic, strong)
+    NSMutableDictionary<NSString*, RTCDataPacketCryptor*>* _Nullable dataCryptors;
 
 #if TARGET_OS_IPHONE
 @property(nonatomic, retain)

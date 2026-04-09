@@ -16,7 +16,7 @@
 
 @interface FlutterWebRTCPlugin (FrameCryptor) <RTCFrameCryptorDelegate>
 
-- (void)handleFrameCryptorMethodCall:(nonnull FlutterMethodCall*)call result:(nonnull FlutterResult)result;
+- (BOOL)handleFrameCryptorMethodCall:(nonnull FlutterMethodCall*)call result:(nonnull FlutterResult)result;
 
 - (void)frameCryptorFactoryCreateFrameCryptor:(nonnull NSDictionary*)constraints
                                        result:(nonnull FlutterResult)result;
@@ -47,5 +47,7 @@
 
 - (void)keyProviderDispose:(nonnull NSDictionary*)constraints
                             result:(nonnull FlutterResult)result;
+
+- (RTCCryptorAlgorithm)getAlgorithm:(nonnull NSNumber*)algorithm;
 
 @end
