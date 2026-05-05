@@ -1,6 +1,7 @@
 #if TARGET_OS_IPHONE
 #import "AudioUtils.h"
 #import <AVFoundation/AVFoundation.h>
+#import <WebRTC/RTCLogging.h>
 
 @implementation AudioUtils
 
@@ -9,32 +10,39 @@
   // we also need to set default WebRTC audio configuration, since it may be activated after
   // this method is called
   RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
-  // require audio session to be either PlayAndRecord or MultiRoute
-  if (recording && session.category != AVAudioSessionCategoryPlayAndRecord &&
-      session.category != AVAudioSessionCategoryMultiRoute) {
+  if (recording) {
     config.category = AVAudioSessionCategoryPlayAndRecord;
+    config.mode = AVAudioSessionModeVoiceChat;
     config.categoryOptions =
         AVAudioSessionCategoryOptionAllowBluetooth |
         AVAudioSessionCategoryOptionAllowBluetoothA2DP |
         AVAudioSessionCategoryOptionAllowAirPlay;
 
-    [session lockForConfiguration];
-    NSError* error = nil;
-    bool success = [session setCategory:config.category withOptions:config.categoryOptions error:&error];
-    if (!success)
-      NSLog(@"ensureAudioSessionWithRecording[true]: setCategory failed due to: %@", error);
-    success = [session setMode:config.mode error:&error];
-    if (!success)
-      NSLog(@"ensureAudioSessionWithRecording[true]: setMode failed due to: %@", error);
-    [session unlockForConfiguration];
-  } else if (!recording && (session.category == AVAudioSessionCategoryAmbient ||
-                            session.category == AVAudioSessionCategorySoloAmbient)) {
+    BOOL isTargetCategory = [session.category isEqualToString:config.category];
+    BOOL isTargetMode = [session.mode isEqualToString:config.mode];
+    BOOL hasTargetOptions =
+        (session.categoryOptions & config.categoryOptions) == config.categoryOptions;
+    if (!isTargetCategory || !isTargetMode || !hasTargetOptions) {
+      [session lockForConfiguration];
+      NSError* error = nil;
+      BOOL success = [session setCategory:config.category
+                              withOptions:config.categoryOptions
+                                    error:&error];
+      if (!success)
+        RTCLog(@"ensureAudioSessionWithRecording[true]: setCategory failed due to: %@", error);
+      success = [session setMode:config.mode error:&error];
+      if (!success)
+        RTCLog(@"ensureAudioSessionWithRecording[true]: setMode failed due to: %@", error);
+      [session unlockForConfiguration];
+    }
+  } else if (!recording && ([session.category isEqualToString:AVAudioSessionCategoryAmbient] ||
+                            [session.category isEqualToString:AVAudioSessionCategorySoloAmbient])) {
     config.mode = AVAudioSessionModeDefault;
     [session lockForConfiguration];
     NSError* error = nil;
     bool success = [session setMode:config.mode error:&error];
     if (!success)
-      NSLog(@"ensureAudioSessionWithRecording[false]: setMode failed due to: %@", error);
+      RTCLog(@"ensureAudioSessionWithRecording[false]: setMode failed due to: %@", error);
     [session unlockForConfiguration];
   }
 }
@@ -65,8 +73,8 @@
   RTCAudioSession* session = [RTCAudioSession sharedInstance];
   RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
     
-  if(enable && config.category != AVAudioSessionCategoryPlayAndRecord) {
-    NSLog(@"setSpeakerphoneOn: Category option 'defaultToSpeaker' is only applicable with category 'playAndRecord', ignore.");
+  if (enable && ![config.category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
+    RTCLog(@"setSpeakerphoneOn: Category option 'defaultToSpeaker' is only applicable with category 'playAndRecord', ignore.");
     return;
   }
 
@@ -80,10 +88,10 @@
                                         AVAudioSessionCategoryOptionAllowBluetooth
                                   error:&error];
 
-    success = [session.session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
-                                                 error:&error];
+    success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideNone
+                                         error:&error];
     if (!success)
-      NSLog(@"setSpeakerphoneOn: Port override failed due to: %@", error);
+      RTCLog(@"setSpeakerphoneOn: Port override failed due to: %@", error);
   } else {
     [session setMode:config.mode error:&error];
     BOOL success = [session setCategory:config.category
@@ -96,8 +104,11 @@
     success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker
                                          error:&error];
     if (!success)
-      NSLog(@"setSpeakerphoneOn: Port override failed due to: %@", error);
+      RTCLog(@"setSpeakerphoneOn: Port override failed due to: %@", error);
   }
+  BOOL activeSuccess = [session setActive:YES error:&error];
+  if (!activeSuccess)
+    RTCLog(@"setSpeakerphoneOn: setActive failed due to: %@", error);
   [session unlockForConfiguration];
 }
 
@@ -114,16 +125,16 @@
                                       AVAudioSessionCategoryOptionDefaultToSpeaker
                                 error:&error];
 
-  success = [session overrideOutputAudioPort:kAudioSessionOverrideAudioRoute_None
-                                        error:&error];
+  success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideNone
+                                       error:&error];
   if (!success)
-    NSLog(@"setSpeakerphoneOnButPreferBluetooth: Port override failed due to: %@", error);
+    RTCLog(@"setSpeakerphoneOnButPreferBluetooth: Port override failed due to: %@", error);
 
   success = [session setActive:YES error:&error];
   if (!success)
-    NSLog(@"setSpeakerphoneOnButPreferBluetooth: Audio session override failed: %@", error);
+    RTCLog(@"setSpeakerphoneOnButPreferBluetooth: Audio session override failed: %@", error);
   else
-    NSLog(@"AudioSession override with bluetooth preference via setSpeakerphoneOnButPreferBluetooth successfull ");
+    RTCLog(@"AudioSession override with bluetooth preference via setSpeakerphoneOnButPreferBluetooth successfull ");
   [session unlockForConfiguration];
 }
 
@@ -134,9 +145,9 @@
   if ([session isActive]) {
     BOOL success = [session setActive:NO error:&error];
     if (!success)
-      NSLog(@"RTC Audio session deactive failed: %@", error);
+      RTCLog(@"RTC Audio session deactive failed: %@", error);
     else
-      NSLog(@"RTC AudioSession deactive is successful ");
+      RTCLog(@"RTC AudioSession deactive is successful ");
   }
   [session unlockForConfiguration];
 }
