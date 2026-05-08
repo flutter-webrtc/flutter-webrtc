@@ -171,18 +171,37 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   void dispose() {
     for (final MediaStream mediaStream : localStreams.values()) {
-      streamDispose(mediaStream);
-      mediaStream.dispose();
+      try {
+        streamDispose(mediaStream);
+      } catch (Exception e) {
+        Log.w(TAG, "dispose(): error in streamDispose", e);
+      }
+      try {
+        mediaStream.audioTracks.clear();
+        mediaStream.videoTracks.clear();
+        mediaStream.preservedVideoTracks.clear();
+        mediaStream.dispose();
+      } catch (Exception e) {
+        Log.w(TAG, "dispose(): error disposing media stream", e);
+      }
     }
     localStreams.clear();
     synchronized (localTracks) {
       for (final LocalTrack track : localTracks.values()) {
-        track.dispose();
+        try {
+          track.dispose();
+        } catch (Exception e) {
+          Log.w(TAG, "dispose(): error disposing local track", e);
+        }
       }
       localTracks.clear();
     }
     for (final PeerConnectionObserver connection : mPeerConnectionObservers.values()) {
-      peerConnectionDispose(connection);
+      try {
+        peerConnectionDispose(connection);
+      } catch (Exception e) {
+        Log.w(TAG, "dispose(): error disposing peer connection", e);
+      }
     }
     mPeerConnectionObservers.clear();
   }
@@ -2133,18 +2152,28 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void streamDispose(final MediaStream stream) {
     List<VideoTrack> videoTracks = stream.videoTracks;
     for (VideoTrack track : videoTracks) {
-      synchronized (localTracks) {
-        localTracks.remove(track.id());
+      try {
+        String trackId = track.id();
+        synchronized (localTracks) {
+          localTracks.remove(trackId);
+        }
+        getUserMediaImpl.removeVideoCapturer(trackId);
+        stream.removeTrack(track);
+      } catch (IllegalStateException e) {
+        Log.d(TAG, "streamDispose(): video track already disposed, skipping");
       }
-      getUserMediaImpl.removeVideoCapturer(track.id());
-      stream.removeTrack(track);
     }
     List<AudioTrack> audioTracks = stream.audioTracks;
     for (AudioTrack track : audioTracks) {
-      synchronized (localTracks) {
-        localTracks.remove(track.id());
+      try {
+        String trackId = track.id();
+        synchronized (localTracks) {
+          localTracks.remove(trackId);
+        }
+        stream.removeTrack(track);
+      } catch (IllegalStateException e) {
+        Log.d(TAG, "streamDispose(): audio track already disposed, skipping");
       }
-      stream.removeTrack(track);
     }
   }
 

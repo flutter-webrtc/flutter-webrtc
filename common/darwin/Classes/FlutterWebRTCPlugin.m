@@ -191,7 +191,10 @@ static FlutterWebRTCPlugin *sharedSingleton;
   }
 
   NSDictionary* fieldTrials = @{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue};
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   RTCInitFieldTrialDictionary(fieldTrials);
+#pragma clang diagnostic pop
 
   self.peerConnections = [NSMutableDictionary new];
   self.localStreams = [NSMutableDictionary new];
@@ -306,8 +309,19 @@ static FlutterWebRTCPlugin *sharedSingleton;
         // AVAudioEngine crashes when screen share audio and microphone coexist due to
         // format conflicts in AVAudioIONodeImpl::SetOutputFormat
         // See: https://github.com/flutter-webrtc/flutter-webrtc/issues/1986
+        //
+        // Initializing the Audio Device Module Type with 0 leads to a crash on iOS
+        // in case NSMicrophoneUsageDescription is missing in Info.plist file
+        // (consumer/viewer only stream without microphone)
+        // this condition uses AVAudioEngine for iOS while preserving the fix above for macOS
+        // See: https://github.com/flutter-webrtc/flutter-webrtc/issues/2007
+#if TARGET_OS_IPHONE
+        RTCAudioDeviceModuleType audioDeviceModuleType = RTCAudioDeviceModuleTypeAudioEngine;
+#else
+        RTCAudioDeviceModuleType audioDeviceModuleType = 0;
+#endif
         _peerConnectionFactory =
-            [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:0
+            [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:audioDeviceModuleType
                                                       bypassVoiceProcessing:bypassVoiceProcessing
                                                              encoderFactory:simulcastFactory
                                                              decoderFactory:decoderFactory
@@ -2205,6 +2219,8 @@ static FlutterWebRTCPlugin *sharedSingleton;
       [obj setObject:encoding.scaleResolutionDownBy forKey:@"scaleResolutionDownBy"];
     if (encoding.ssrc != nil)
       [obj setObject:encoding.ssrc forKey:@"ssrc"];
+    if (encoding.scalabilityMode != nil)
+      [obj setObject:encoding.scalabilityMode forKey:@"scalabilityMode"];
     [obj setObject:[self bitratePriorityToString:encoding.bitratePriority] forKey:@"priority"];
     [obj setObject:[self rtcPriorityToString:encoding.networkPriority] forKey:@"networkPriority"];
 
@@ -2231,8 +2247,8 @@ static FlutterWebRTCPlugin *sharedSingleton;
        degradationPreference = @"maintain-resolution";
     } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceBalanced) {
        degradationPreference = @"balanced";
-    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceDisabled) {
-       degradationPreference = @"disabled";
+    } else if ([parameters.degradationPreference intValue] == RTCDegradationPreferenceMaintainFramerateAndResolution) {
+       degradationPreference = @"maintain-framerate-and-resolution";
     }
   }
 
@@ -2504,8 +2520,8 @@ static FlutterWebRTCPlugin *sharedSingleton;
           parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceMaintainResolution];
       } else if ([degradationPreference isEqualToString:@"balanced"]) {
           parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceBalanced];
-      } else if ([degradationPreference isEqualToString:@"disabled"]) {
-          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceDisabled];
+      } else if ([degradationPreference isEqualToString:@"maintain-framerate-and-resolution"]) {
+          parameters.degradationPreference = [NSNumber numberWithInt:RTCDegradationPreferenceMaintainFramerateAndResolution];
       }
   }
 
@@ -2554,6 +2570,9 @@ static FlutterWebRTCPlugin *sharedSingleton;
       NSNumber* scaleResolutionDownBy = [newParams objectForKey:@"scaleResolutionDownBy"];
       if (scaleResolutionDownBy != nil)
         currentParams.scaleResolutionDownBy = scaleResolutionDownBy;
+      NSString* scalabilityMode = [newParams objectForKey:@"scalabilityMode"];
+      if (scalabilityMode != nil)
+        [currentParams setScalabilityMode:scalabilityMode];
       NSString* priority = [newParams objectForKey:@"priority"];
       if (priority != nil)
         currentParams.bitratePriority = [self stringToBitratePriority:priority];

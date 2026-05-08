@@ -10,6 +10,9 @@
 
 #import "VideoProcessingAdapter.h"
 #import "LocalVideoTrack.h"
+#if TARGET_OS_OSX
+#import "FlutterScreenCaptureKitCapturer.h"
+#endif
 
 #if TARGET_OS_OSX
 RTCDesktopMediaList* _screen = nil;
@@ -116,31 +119,64 @@ NSArray<RTCDesktopSource*>* _captureSources;
     }
   }
   RTCDesktopCapturer* desktopCapturer;
+  FlutterScreenCaptureKitCapturer* screenCaptureKitCapturer = nil;
   RTCDesktopSource* source = nil;
+  BOOL useScreenCaptureKit = NO;
 
   if (useDefaultScreen) {
-    desktopCapturer = [[RTCDesktopCapturer alloc] initWithDefaultScreen:self
-                                                        captureDelegate:videoProcessingAdapter];
+    useScreenCaptureKit = YES;
   } else {
     source = [self getSourceById:sourceId];
     if (source == nil) {
       result(@{@"error" : [NSString stringWithFormat:@"No source found for id: %@", sourceId]});
       return;
     }
-    desktopCapturer = [[RTCDesktopCapturer alloc] initWithSource:source
-                                                        delegate:self
-                                                 captureDelegate:videoProcessingAdapter];
+    if (source.sourceType == RTCDesktopSourceTypeScreen) {
+      useScreenCaptureKit = YES;
+    } else {
+      desktopCapturer = [[RTCDesktopCapturer alloc] initWithSource:source
+                                                          delegate:self
+                                                   captureDelegate:videoProcessingAdapter];
+    }
   }
-  [desktopCapturer startCaptureWithFPS:fps];
-  NSLog(@"start desktop capture: sourceId: %@, type: %@, fps: %lu", sourceId,
-        source.sourceType == RTCDesktopSourceTypeScreen ? @"screen" : @"window", fps);
+  if (useScreenCaptureKit) {
+    if (@available(macOS 12.3, *)) {
+      screenCaptureKitCapturer =
+          [[FlutterScreenCaptureKitCapturer alloc] initWithDelegate:videoProcessingAdapter];
+      [screenCaptureKitCapturer startCaptureWithFPS:fps
+                                           sourceId:sourceId
+                                          onStarted:^(NSError * _Nullable error) {
+                                            if (error != nil) {
+                                              NSLog(@"ScreenCaptureKit start failed: %@", error);
+                                            } else {
+                                              NSLog(@"start screencapturekit capture: for  sourceId: %@, fps: %lu",
+                                                    sourceId, fps);
+                                            }
+                                          }];
+    } else {
+      NSLog(@"ScreenCaptureKit not available, falling back to RTCDesktopCapturer");
+      desktopCapturer = [[RTCDesktopCapturer alloc] initWithDefaultScreen:self
+                                                          captureDelegate:videoProcessingAdapter];
+    }
+  }
 
-  self.videoCapturerStopHandlers[trackUUID] = ^(CompletionHandler handler) {
-    NSLog(@"stop desktop capture: sourceId: %@, type: %@, trackID %@", sourceId,
-          source.sourceType == RTCDesktopSourceTypeScreen ? @"screen" : @"window", trackUUID);
-    [desktopCapturer stopCapture];
-    handler();
-  };
+  if (screenCaptureKitCapturer == nil) {
+    [desktopCapturer startCaptureWithFPS:fps];
+    NSLog(@"start desktop capture: sourceId: %@, type: %@, fps: %lu", sourceId,
+          source.sourceType == RTCDesktopSourceTypeScreen ? @"screen" : @"window", fps);
+
+    self.videoCapturerStopHandlers[trackUUID] = ^(CompletionHandler handler) {
+      NSLog(@"stop desktop capture: sourceId: %@, type: %@, trackID %@", sourceId,
+            source.sourceType == RTCDesktopSourceTypeScreen ? @"screen" : @"window", trackUUID);
+      [desktopCapturer stopCapture];
+      handler();
+    };
+  } else {
+    self.videoCapturerStopHandlers[trackUUID] = ^(CompletionHandler handler) {
+      NSLog(@"stop screencapturekit capture: trackID %@", trackUUID);
+      [screenCaptureKitCapturer stopCaptureWithCompletion:handler];
+    };
+  }
 #endif
 
   RTCVideoTrack* videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource

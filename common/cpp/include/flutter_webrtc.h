@@ -4,6 +4,7 @@
 #include "flutter_common.h"
 
 #include "flutter_data_channel.h"
+#include "flutter_data_packet_cryptor.h"
 #include "flutter_frame_cryptor.h"
 #include "flutter_media_stream.h"
 #include "flutter_peerconnection.h"
@@ -32,7 +33,8 @@ class FlutterWebRTC : public FlutterWebRTCBase,
                       public FlutterPeerConnection,
                       public FlutterScreenCapture,
                       public FlutterDataChannel,
-                      public FlutterFrameCryptor {
+                      public FlutterFrameCryptor,
+                      public FlutterDataPacketCryptor {
  public:
   FlutterWebRTC(FlutterWebRTCPlugin* plugin);
   virtual ~FlutterWebRTC();
