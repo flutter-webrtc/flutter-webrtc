@@ -1,6 +1,40 @@
 
 # Changelog
 
+[1.4.1] -2026-03-24
+
+* [Dart] fixed scalabilityMode (#2022).
+* [Windows/Linux] sanitize UTF-8 for device strings before platform messages(#2021)
+
+[1.4.0] -2026-03-17
+
+* [macOS]: use ScreenCaptureKit for screen capture (fallback to RTCDesktopCapturer) by @EnterDevelopers in (#1991)
+* [libwebrtc]: bump version for libwebrtc to m144.
+* [Win/Linux]: DataPacketCryptor for win/linux.
+
+[1.3.1] - 2026-02-25
+
+* [iOS/macOS] chore: bump webrtc to v137.7151.12.
+* [Android] fix: avoid Turkish locale issue in DegradationPreference.valueOf (#2002)
+* [macOS] Refresh screen capture sources & permission check (#1977)
+* [macOS] fix(macos): use CoreAudio ADM to prevent screen share crash (#1990)
+
+[1.3.0] - 2026-01-26
+
+* [Mobile/Desktop/Web] feat: Add `priority` and `networkPriority` to RTCRtpEncoding (#1983)
+* [Android] fix(android): Prevent ClassCastException validating track kind in method "mediaStreamAddTrack" (#1980)
+* [Android] fix(android): resolve ConcurrentModificationException in audio callback (#1985)
+* [Android] feat(android): Add configurable audio sample rate with smart defaults (#1967)
+* [Android] fix:hisi chip Error 0x80001001 (#1969)
+* [iOS] fix(ios): resolve critical memory leak in video recording (#1960)
+
+[1.2.1] - 2025-11-21
+
+* [Linux] fix: Enable software AEC/NS/AGC for linux.
+* [Android] fix: Removed redundant null check and release for audioFileRenderer.
+* [Web] fix: Fix Android chrome mobile not rendering html <video> element (#1938)
+* [Web] fix: Clip hard edge on web's rtc_video_view (#1936)
+
 [1.2.0] - 2025-09-13
 
 * [Android] upgrade compileSdk to 36 as standard for 16kb pages support (#1925)
