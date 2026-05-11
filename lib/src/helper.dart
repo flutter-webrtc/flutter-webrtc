@@ -183,12 +183,13 @@ class Helper {
           AppleNativeAudioManagement.getAppleAudioConfigurationForMode(mode,
               preferSpeakerOutput: preferSpeakerOutput));
 
-  /// Request capture permission for Android
+  /// Request capture permission for Android/macOS
   static Future<bool> requestCapturePermission() async {
-    if (WebRTC.platformIsAndroid) {
+    if (WebRTC.platformIsAndroid || WebRTC.platformIsMacOS) {
       return await WebRTC.invokeMethod('requestCapturePermission');
     } else {
-      throw Exception('requestCapturePermission only support for Android');
+      throw Exception(
+          'requestCapturePermission only support for Android/macOS');
     }
   }
 }

@@ -15,6 +15,7 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger* messenger,
     : messenger_(messenger), task_runner_(task_runner), textures_(textures) {
   LibWebRTC::Initialize();
   factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
+  factory_->Initialize();
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
   desktop_device_ = factory_->GetDesktopDevice();
@@ -304,6 +305,11 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap& map,
     conf.sdp_semantics = SdpSemantics::kUnifiedPlan;
   }
 
+  it = map.find(EncodableValue("enableDscp"));
+  if (it != map.end() && TypeIs<bool>(it->second)) {
+    conf.enable_dscp = GetValue<bool>(it->second);
+  }
+
   // maxIPv6Networks
   it = map.find(EncodableValue("maxIPv6Networks"));
   if (it != map.end()) {
@@ -361,6 +367,15 @@ FlutterWebRTCBase::GetRtpReceiverById(RTCPeerConnection* pc,
     }
   }
   return result;
+}
+
+libwebrtc::scoped_refptr<libwebrtc::KeyProvider> FlutterWebRTCBase::GetKeyProviderForId(
+      const std::string& keyProviderId) {
+  auto it = key_providers_.find(keyProviderId);
+  if (it != key_providers_.end()) {
+    return it->second;
+  }
+  return nullptr;
 }
 
 }  // namespace flutter_webrtc_plugin

@@ -13,7 +13,7 @@
 @class FlutterRTCMediaRecorder;
 @class AudioManager;
 
-void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event);
+void postEvent(FlutterEventSink _Nullable sink, id _Nullable event);
 
 typedef void (^CompletionHandler)(void);
 
