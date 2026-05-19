@@ -4,6 +4,17 @@
 
 namespace flutter_webrtc_plugin {
 
+libwebrtc::KeyDerivationAlgorithm KeyDerivationAlgorithmFromInt(int algorithm) {
+  switch (algorithm) {
+    case 0:
+      return libwebrtc::KeyDerivationAlgorithm::kPBKDF2;
+    case 1:
+      return libwebrtc::KeyDerivationAlgorithm::kHKDF;
+    default:
+      return libwebrtc::KeyDerivationAlgorithm::kPBKDF2;
+  }
+}
+
 libwebrtc::FrameCryptorAlgorithm AlgorithmFromInt(int algorithm) {
   switch (algorithm) {
     case 0:
@@ -354,6 +365,9 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyProvider(
 
   auto keyRingSize = findInt(keyProviderOptions, "keyRingSize");
   options.key_ring_size = keyRingSize;
+
+  auto kdf = findInt(keyProviderOptions, "keyDerivationAlgorithm");
+  options.key_derivation_algorithm = KeyDerivationAlgorithmFromInt(kdf);
 
   auto discardFrameWhenCryptorNotReady =
       findBoolean(keyProviderOptions, "discardFrameWhenCryptorNotReady");

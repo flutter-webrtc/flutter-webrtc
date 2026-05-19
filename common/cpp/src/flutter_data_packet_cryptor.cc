@@ -1,6 +1,7 @@
 #include "flutter_data_packet_cryptor.h"
 
 #include "base/scoped_ref_ptr.h"
+#include "flutter_frame_cryptor.h"
 
 namespace flutter_webrtc_plugin {
 
@@ -31,16 +32,6 @@ bool FlutterDataPacketCryptor::HandleDataPacketCryptorMethodCall(
   return false;
 }
 
-libwebrtc::FrameCryptorAlgorithm KeyDerivationAlgorithmFromInt(int algorithm) {
-  switch (algorithm) {
-    case 0:
-      return libwebrtc::FrameCryptorAlgorithm::kAesGcm;
-    case 1:
-      return libwebrtc::FrameCryptorAlgorithm::kAesCbc;
-    default:
-      return libwebrtc::FrameCryptorAlgorithm::kAesGcm;
-  }
-}
 
 void FlutterDataPacketCryptor::CreateDataPacketCryptor(
     const EncodableMap& constraints,
@@ -67,7 +58,7 @@ void FlutterDataPacketCryptor::CreateDataPacketCryptor(
   }
   std::string uuid = base_->GenerateUUID();
   data_packet_cryptors_[uuid] = libwebrtc::RTCDataPacketCryptor::Create(
-      keyProvider, KeyDerivationAlgorithmFromInt(algorithm));
+      keyProvider, AlgorithmFromInt(algorithm));
   EncodableMap params;
   params[EncodableValue("dataCryptorId")] = uuid;
   result->Success(EncodableValue(params));

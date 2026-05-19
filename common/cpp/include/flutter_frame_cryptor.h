@@ -8,6 +8,10 @@
 
 namespace flutter_webrtc_plugin {
 
+KeyDerivationAlgorithm KeyDerivationAlgorithmFromInt(int algorithm);
+
+libwebrtc::FrameCryptorAlgorithm AlgorithmFromInt(int algorithm);
+
 class FlutterFrameCryptorObserver : public libwebrtc::RTCFrameCryptorObserver {
  public:
   FlutterFrameCryptorObserver(BinaryMessenger* messenger, TaskRunner* task_runner, const std::string& channelName)
