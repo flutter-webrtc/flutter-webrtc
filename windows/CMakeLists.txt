@@ -56,6 +56,7 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/win64/libwebrtc.dll.lib"
   avrt.lib
   ksuser.lib
+  mmdevapi.lib
   ole32.lib
   uuid.lib
 )
