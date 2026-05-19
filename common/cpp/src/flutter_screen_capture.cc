@@ -1,5 +1,13 @@
 #include "flutter_screen_capture.h"
 
+// Include the platform-specific loopback capturer implementation.
+#ifdef _WIN32
+#include "../../windows/application_loopback_capturer.h"
+#endif
+// #ifdef __linux__
+// #include "../../linux/pulseaudio_loopback_capturer.h"
+// #endif
+
 namespace flutter_webrtc_plugin {
 
 FlutterScreenCapture::FlutterScreenCapture(FlutterWebRTCBase* base)
@@ -148,6 +156,13 @@ void FlutterScreenCapture::OnPaused(
 void FlutterScreenCapture::OnStop(scoped_refptr<RTCDesktopCapturer> capturer) {
   // std::cout << " OnStop: " << capturer->source()->id().std_string()
   //          << std::endl;
+#if defined(_WIN32) || defined(__linux__)
+  if (loopback_capturer_) {
+    loopback_capturer_->Stop();
+    loopback_capturer_.reset();
+    loopback_audio_source_ = nullptr;
+  }
+#endif
 }
 
 void FlutterScreenCapture::OnError(scoped_refptr<RTCDesktopCapturer> capturer) {
@@ -215,7 +230,71 @@ void FlutterScreenCapture::GetDisplayMedia(
 
   // AUDIO
 
+#if defined(_WIN32) || defined(__linux__)
+  // Check whether the caller requested audio capture.
+  bool capture_audio = false;
+  {
+    auto audio_it = constraints.find(EncodableValue("audio"));
+    if (audio_it != constraints.end()) {
+      if (TypeIs<bool>(audio_it->second)) {
+        capture_audio = GetValue<bool>(audio_it->second);
+      } else if (TypeIs<EncodableMap>(audio_it->second)) {
+        capture_audio = true;
+      }
+    }
+  }
+
+  if (capture_audio) {
+    // Stop any previous loopback session before starting a new one.
+    if (loopback_capturer_) {
+      loopback_capturer_->Stop();
+      loopback_capturer_.reset();
+    }
+
+    loopback_audio_source_ = base_->factory_->CreateAudioSource(
+        "screen_loopback_input", RTCAudioSource::SourceType::kCustom);
+
+    std::string audio_uuid = base_->GenerateUUID();
+    scoped_refptr<RTCAudioTrack> audio_track =
+        base_->factory_->CreateAudioTrack(loopback_audio_source_,
+                                          audio_uuid.c_str());
+
+#ifdef _WIN32
+    loopback_capturer_ = std::make_unique<ApplicationLoopbackCapturer>();
+#elif defined(__linux__)
+    // loopback_capturer_ = std::make_unique<PulseAudioLoopbackCapturer>();
+    loopback_capturer_ = nullptr;  // placeholder until Linux impl is added
+#endif
+
+    if (loopback_capturer_ && loopback_capturer_->Start(loopback_audio_source_)) {
+      EncodableMap audio_info;
+      audio_info[EncodableValue("id")] =
+          EncodableValue(audio_track->id().std_string());
+      audio_info[EncodableValue("label")] =
+          EncodableValue(audio_track->id().std_string());
+      audio_info[EncodableValue("kind")] =
+          EncodableValue(audio_track->kind().std_string());
+      audio_info[EncodableValue("enabled")] =
+          EncodableValue(audio_track->enabled());
+
+      EncodableList audioTracks;
+      audioTracks.push_back(EncodableValue(audio_info));
+      params[EncodableValue("audioTracks")] = EncodableValue(audioTracks);
+
+      stream->AddTrack(audio_track);
+      base_->local_tracks_[audio_track->id().std_string()] = audio_track;
+    } else {
+      // Loopback init failed — continue without audio.
+      loopback_capturer_.reset();
+      loopback_audio_source_ = nullptr;
+      params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
+    }
+  } else {
+    params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
+  }
+#else
   params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
+#endif
 
   // VIDEO
 
