@@ -403,13 +403,23 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                         Log.e(TAG, "encoderOutputBuffer " + encoderStatus + " was null");
                         break;
                     }
+                    if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                        bufferInfo.size = 0;
+                    }
+                    if (bufferInfo.size <= 0 || bufferInfo.offset < 0) {
+                        encoder.releaseOutputBuffer(encoderStatus, false);
+                        if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                            break;
+                        }
+                        continue;
+                    }
                     // It's usually necessary to adjust the ByteBuffer values to match BufferInfo.
                     encodedData.position(bufferInfo.offset);
                     encodedData.limit(bufferInfo.offset + bufferInfo.size);
                     if (videoFrameStart == 0 && bufferInfo.presentationTimeUs != 0) {
                         videoFrameStart = bufferInfo.presentationTimeUs;
                     }
-                    bufferInfo.presentationTimeUs -= videoFrameStart;
+                    bufferInfo.presentationTimeUs = Math.max(0, bufferInfo.presentationTimeUs - videoFrameStart);
                     if (muxerStarted)
                         mediaMuxer.writeSampleData(trackIndex, encodedData, bufferInfo);
                     isRunning = isRunning && (bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) == 0;
@@ -465,6 +475,16 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                     if (encodedData == null) {
                         Log.e(TAG, "encoderOutputBuffer " + encoderStatus + " was null");
                         break;
+                    }
+                    if ((audioBufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                        audioBufferInfo.size = 0;
+                    }
+                    if (audioBufferInfo.size <= 0 || audioBufferInfo.offset < 0) {
+                        audioEncoder.releaseOutputBuffer(encoderStatus, false);
+                        if ((audioBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                            break;
+                        }
+                        continue;
                     }
 
                     // It's usually necessary to adjust the ByteBuffer values to match BufferInfo.
