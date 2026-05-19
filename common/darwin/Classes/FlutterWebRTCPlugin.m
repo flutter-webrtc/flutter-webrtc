@@ -22,6 +22,7 @@
 
 #import <WebRTC/RTCLogging.h>
 #import <WebRTC/RTCCallbackLogger.h>
+#import <stdarg.h>
 
 #if TARGET_OS_OSX || TARGET_OS_MACCATALYST
 #import <CoreGraphics/CoreGraphics.h>
@@ -115,6 +116,10 @@ void postEvent(FlutterEventSink _Nullable sink, id _Nullable event) {
   id _textures;
   BOOL _speakerOn;
   BOOL _speakerOnButPreferBluetooth;
+  BOOL _isRestoringRouteAfterCategoryChange;
+  BOOL _didRouteRecoveryForCurrentCall;
+  BOOL _audioSessionRecoveryPending;
+  BOOL _isRunningAudioSessionRecovery;
   AVAudioSessionPort _preferredInput;
   AudioManager* _audioManager;
 #if TARGET_OS_IPHONE
@@ -179,6 +184,10 @@ static FlutterWebRTCPlugin *sharedSingleton;
     _messenger = messenger;
     _speakerOn = NO;
     _speakerOnButPreferBluetooth = NO;
+    _isRestoringRouteAfterCategoryChange = NO;
+    _didRouteRecoveryForCurrentCall = NO;
+    _audioSessionRecoveryPending = NO;
+    _isRunningAudioSessionRecovery = NO;
     _eventChannel = eventChannel;
     _audioManager = AudioManager.sharedInstance;
 
@@ -251,6 +260,36 @@ static FlutterWebRTCPlugin *sharedSingleton;
   NSDictionary* interuptionDict = notification.userInfo;
   NSInteger routeChangeReason =
       [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
+  NSString* currentOutputPortType = [self currentOutputPortType];
+  BOOL onBuiltInReceiver = [currentOutputPortType isEqualToString:AVAudioSessionPortBuiltInReceiver];
+  BOOL shouldRestoreSpeaker =
+      _speakerOn && onBuiltInReceiver;
+  BOOL shouldRestoreSpeakerOrBluetooth =
+      _speakerOnButPreferBluetooth && onBuiltInReceiver;
+
+  if (routeChangeReason == AVAudioSessionRouteChangeReasonCategoryChange &&
+      !_isRestoringRouteAfterCategoryChange &&
+      !_didRouteRecoveryForCurrentCall &&
+      (shouldRestoreSpeaker || shouldRestoreSpeakerOrBluetooth)) {
+    _isRestoringRouteAfterCategoryChange = YES;
+    if (_speakerOnButPreferBluetooth) {
+      [AudioUtils setSpeakerphoneOnButPreferBluetooth];
+    } else if (_speakerOn) {
+      [AudioUtils setSpeakerphoneOn:YES];
+    }
+    _isRestoringRouteAfterCategoryChange = NO;
+    _didRouteRecoveryForCurrentCall = YES;
+  }
+
+  // Some iOS/CallKit transitions leave RTCAudioSession inactive while a call is alive,
+  // causing playout/recording init failures ("Session activation failed").
+  // Run bounded retries from WebRTC side to recover autonomously.
+  if ((routeChangeReason == AVAudioSessionRouteChangeReasonCategoryChange ||
+       routeChangeReason == AVAudioSessionRouteChangeReasonOverride) &&
+      self.peerConnections.count > 0) {
+    [self scheduleAudioSessionRecovery:@"routeChange"];
+  }
+
   if (self.eventSink &&
       (routeChangeReason == AVAudioSessionRouteChangeReasonNewDeviceAvailable ||
        routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable ||
@@ -397,6 +436,14 @@ static FlutterWebRTCPlugin *sharedSingleton;
     NSDictionary* argsMap = call.arguments;
     NSDictionary* configuration = argsMap[@"configuration"];
     NSDictionary* constraints = argsMap[@"constraints"];
+    // New call lifecycle: start with neutral route memory.
+    // Prevent stale speaker preference from previous calls affecting fresh calls.
+    _speakerOn = NO;
+    _speakerOnButPreferBluetooth = NO;
+    _isRestoringRouteAfterCategoryChange = NO;
+    _didRouteRecoveryForCurrentCall = NO;
+    _audioSessionRecoveryPending = NO;
+    _isRunningAudioSessionRecovery = NO;
 
     RTCPeerConnection* peerConnection = [self.peerConnectionFactory
         peerConnectionWithConfiguration:[self RTCConfiguration:configuration]
@@ -457,6 +504,15 @@ static FlutterWebRTCPlugin *sharedSingleton;
   } else if ([@"selectAudioOutput" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* deviceId = argsMap[@"deviceId"];
+    NSString* normalized = [deviceId lowercaseString];
+    BOOL selectingSpeaker =
+        [normalized isEqualToString:@"speaker"] ||
+        [normalized isEqualToString:@"speakerphone"] ||
+        [normalized containsString:@"speaker"] ||
+        [normalized containsString:@"altoparlante"];
+    _speakerOn = selectingSpeaker;
+    _speakerOnButPreferBluetooth = NO;
+    _didRouteRecoveryForCurrentCall = NO;
     [self selectAudioOutput:deviceId result:result];
   } else if ([@"mediaStreamGetTracks" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
@@ -862,6 +918,14 @@ static FlutterWebRTCPlugin *sharedSingleton;
       }
       [dataChannels removeAllObjects];
     }
+    if (self.peerConnections.count == 0) {
+      _speakerOn = NO;
+      _speakerOnButPreferBluetooth = NO;
+      _isRestoringRouteAfterCategoryChange = NO;
+      _didRouteRecoveryForCurrentCall = NO;
+      _audioSessionRecoveryPending = NO;
+      _isRunningAudioSessionRecovery = NO;
+    }
     [self deactiveRtcAudioSession];
     result(nil);
   } else if ([@"createVideoRenderer" isEqualToString:call.method]) {
@@ -1141,6 +1205,12 @@ static FlutterWebRTCPlugin *sharedSingleton;
   else if ([@"ensureAudioSession" isEqualToString:call.method]) {
     [self ensureAudioSession];
     result(nil);
+  }
+  else if ([@"restartLocalAudio" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* reason = argsMap[@"reason"] ?: @"manual";
+    [self ensureAudioSession];
+    [self restartAudioDeviceModule:reason result:result];
   }
   else if ([@"enableSpeakerphoneButPreferBluetooth" isEqualToString:call.method]) {
     _speakerOn = YES;
@@ -1741,17 +1811,183 @@ static FlutterWebRTCPlugin *sharedSingleton;
   return NO;
 }
 
+- (void)recoverAudioDeviceModuleIfNeeded:(NSString*)reason {
+#if TARGET_OS_IPHONE
+  if (self.peerConnections.count == 0 || self.peerConnectionFactory == nil) {
+    return;
+  }
+  RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+  if (adm == nil) {
+    return;
+  }
+
+  BOOL needsPlayoutRecovery = !adm.isPlayoutInitialized || !adm.isPlaying;
+  BOOL needsRecordingRecovery = !adm.isRecordingInitialized || !adm.isRecording;
+  if (!needsPlayoutRecovery && !needsRecordingRecovery) {
+    return;
+  }
+
+
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+    NSInteger initPlayoutResult = 0;
+    NSInteger startPlayoutResult = 0;
+    NSInteger initRecordingResult = 0;
+    NSInteger startRecordingResult = 0;
+
+    if (!adm.isPlayoutInitialized) {
+      initPlayoutResult = [adm initPlayout];
+    }
+    if (!adm.isPlaying) {
+      startPlayoutResult = [adm startPlayout];
+    }
+    if (!adm.isRecordingInitialized) {
+      initRecordingResult = [adm initRecording];
+    }
+    if (!adm.isRecording) {
+      startRecordingResult = [adm startRecording];
+    }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    });
+  });
+#endif
+}
+
+- (void)restartAudioDeviceModule:(NSString*)reason result:(FlutterResult)result {
+#if TARGET_OS_IPHONE
+  (void)reason;
+  if (self.peerConnectionFactory == nil) {
+    result([FlutterError errorWithCode:@"restartLocalAudio failed"
+                               message:@"Error: peerConnectionFactory is nil"
+                               details:nil]);
+    return;
+  }
+
+  RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+  if (adm == nil) {
+    result([FlutterError errorWithCode:@"restartLocalAudio failed"
+                               message:@"Error: audioDeviceModule is nil"
+                               details:nil]);
+    return;
+  }
+
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+    [adm stopPlayout];
+    [adm stopRecording];
+    [adm initPlayout];
+    [adm startPlayout];
+    [adm initRecording];
+    [adm startRecording];
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+      result(nil);
+    });
+  });
+#else
+  result(nil);
+#endif
+}
+
 - (void)ensureAudioSession {
 #if TARGET_OS_IPHONE
-  [AudioUtils ensureAudioSessionWithRecording:[self hasLocalAudioTrack]];
+  BOOL hasLocalAudio = [self hasLocalAudioTrack];
+  NSUInteger peers = self.peerConnections.count;
+  BOOL shouldRecord = hasLocalAudio || peers > 0;
+  [AudioUtils ensureAudioSessionWithRecording:shouldRecord];
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  if (shouldRecord && !session.isActive) {
+    NSError* error = nil;
+    [session lockForConfiguration];
+    BOOL activated = [session setActive:YES error:&error];
+    [session unlockForConfiguration];
+    if (!activated) {
+      if (peers > 0 && !_isRunningAudioSessionRecovery) {
+        [self scheduleAudioSessionRecovery:@"ensureAudioSession.setActive.failed"];
+      }
+    }
+  }
+  if (peers > 0 && session.isActive) {
+    [self recoverAudioDeviceModuleIfNeeded:@"ensureAudioSession"];
+  }
 #endif
 }
 
 - (void)deactiveRtcAudioSession {
 #if TARGET_OS_IPHONE
   if (![self hasLocalAudioTrack] && self.peerConnections.count == 0) {
+    _speakerOn = NO;
+    _speakerOnButPreferBluetooth = NO;
+    _isRestoringRouteAfterCategoryChange = NO;
+    _didRouteRecoveryForCurrentCall = NO;
+    _audioSessionRecoveryPending = NO;
+    _isRunningAudioSessionRecovery = NO;
     [AudioUtils deactiveRtcAudioSession];
   }
+#endif
+}
+
+- (void)scheduleAudioSessionRecovery:(NSString*)reason {
+#if TARGET_OS_IPHONE
+  if (_audioSessionRecoveryPending) {
+    return;
+  }
+  _audioSessionRecoveryPending = YES;
+  [self runAudioSessionRecoveryAttempt:1 maxAttempts:4 reason:reason];
+#endif
+}
+
+- (void)runAudioSessionRecoveryAttempt:(NSInteger)attempt
+                           maxAttempts:(NSInteger)maxAttempts
+                                reason:(NSString*)reason {
+#if TARGET_OS_IPHONE
+  int64_t delayMs = (int64_t)(90 * attempt);
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delayMs * NSEC_PER_MSEC),
+                 dispatch_get_main_queue(), ^{
+    if (self.peerConnections.count == 0) {
+      _audioSessionRecoveryPending = NO;
+      _isRunningAudioSessionRecovery = NO;
+      return;
+    }
+
+    RTCAudioSession* session = [RTCAudioSession sharedInstance];
+    if (!session.isActive) {
+      _isRunningAudioSessionRecovery = YES;
+      [self ensureAudioSession];
+      _isRunningAudioSessionRecovery = NO;
+
+      if (_speakerOnButPreferBluetooth) {
+        [AudioUtils setSpeakerphoneOnButPreferBluetooth];
+      } else if (_speakerOn) {
+        [AudioUtils setSpeakerphoneOn:YES];
+      }
+      session = [RTCAudioSession sharedInstance];
+    }
+
+    if (session.isActive) {
+      [self recoverAudioDeviceModuleIfNeeded:[NSString stringWithFormat:@"recovery.%@", reason ?: @"unknown"]];
+      _audioSessionRecoveryPending = NO;
+      return;
+    }
+
+    if (attempt >= maxAttempts) {
+      _audioSessionRecoveryPending = NO;
+      return;
+    }
+
+    [self runAudioSessionRecoveryAttempt:attempt + 1
+                             maxAttempts:maxAttempts
+                                  reason:reason];
+  });
+#endif
+}
+
+- (NSString*)currentOutputPortType {
+#if TARGET_OS_IPHONE
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  AVAudioSessionPortDescription* output = session.currentRoute.outputs.firstObject;
+  return output.portType ?: @"(none)";
+#else
+  return @"(unsupported)";
 #endif
 }
 
