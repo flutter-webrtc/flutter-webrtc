@@ -60,6 +60,7 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
     private GlRectDrawer drawer;
     private Surface surface;
     private MediaCodec audioEncoder;
+    private boolean encoderInitFailed = false;
 
     VideoFileRenderer(String outputFile, final EglBase.Context sharedContext, boolean withAudio) throws IOException {
         renderThread = new HandlerThread(TAG + "RenderThread");
@@ -91,20 +92,16 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
             format.setInteger(MediaFormat.KEY_BIT_RATE, config.bitrate);
             format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
             format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
-            // Use YUV420 semi-planar size (1.5 bytes per pixel) to reduce memory usage
-            format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, config.width * config.height * 3 / 2);
-            format.setInteger(MediaFormat.KEY_PRIORITY, 0);
 
             Log.d(TAG, "Trying encoder config: " + config);
 
             encoder = MediaCodec.createEncoderByType(MIME_TYPE);
             String codecName = encoder.getName();
             Log.d(TAG, "Codec name: " + codecName);
-            if ("OMX.hisi.video.encoder.avc".equals(codecName)) {
-                Log.w(TAG, "hisi h264 encoder does not set 'MediaFormat.KEY_PROFILE'.");
-                //format.setInteger(MediaFormat.KEY_PROFILE, config.profile);
-            }else{
+            if (shouldForceCodecProfile(codecName)) {
                 format.setInteger(MediaFormat.KEY_PROFILE, config.profile);
+            } else {
+                Log.w(TAG, "Skip explicit H264 profile for codec: " + codecName);
             }
 
             encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -127,6 +124,14 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
             }
             return false;
         }
+    }
+
+    private boolean shouldForceCodecProfile(String codecName) {
+        if (codecName == null) {
+            return true;
+        }
+        return !codecName.startsWith("OMX.qcom.")
+                && !"OMX.hisi.video.encoder.avc".equals(codecName);
     }
 
     private boolean startEncoder() {
@@ -169,7 +174,8 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                 new int[]{640, 360},
                 new int[]{426, 240})) {
             // only add resolutions bellow the original stream resolution
-            if (res[0] <= frameWidth && res[1] <= frameHeight) {
+            if (res[0] <= frameWidth && res[1] <= frameHeight
+                    && !containsResolution(resolutions, res[0], res[1])) {
                 resolutions.add(res);
             }
         }
@@ -212,23 +218,103 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         return false;
     }
 
+    private boolean containsResolution(List<int[]> resolutions, int width, int height) {
+        for (int[] resolution : resolutions) {
+            if (resolution[0] == width && resolution[1] == height) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void resetVideoEncoderState() {
+        encoderStarted = false;
+        outputFileWidth = -1;
+        outputFileHeight = -1;
+        encoderOutputBuffers = null;
+        trackIndex = -1;
+        videoFrameStart = 0;
+    }
+
+    private void releaseVideoEncoderResources() {
+        drawer = null;
+        frameDrawer = null;
+
+        if (eglBase != null) {
+            try {
+                eglBase.release();
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to release EGL base", e);
+            } finally {
+                eglBase = null;
+            }
+        }
+
+        if (surface != null) {
+            try {
+                surface.release();
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to release input surface", e);
+            } finally {
+                surface = null;
+            }
+        }
+
+        if (encoder != null) {
+            try {
+                encoder.stop();
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to stop encoder during cleanup", e);
+            }
+
+            try {
+                encoder.release();
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to release encoder during cleanup", e);
+            } finally {
+                encoder = null;
+            }
+        }
+    }
+
+    private boolean setupEncoderSurface(EglBase.Context eglContext, String contextLabel) {
+        try {
+            eglBase = EglBase.create(eglContext, EglBase.CONFIG_RECORDABLE);
+            Log.d(TAG, "EGL context created with " + contextLabel + " context");
+            eglBase.createSurface(surface);
+            eglBase.makeCurrent();
+            drawer = new GlRectDrawer();
+            Log.d(TAG, "Encoder surface setup complete (" + contextLabel + "): " + surface);
+            return true;
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to setup EGL surface with " + contextLabel + " context", e);
+            if (eglBase != null) {
+                try {
+                    eglBase.release();
+                } catch (Exception releaseError) {
+                    Log.w(TAG, "Failed to release EGL base after setup failure", releaseError);
+                } finally {
+                    eglBase = null;
+                }
+            }
+            drawer = null;
+            return false;
+        }
+    }
+
 
     private void initVideoEncoder(int frameWidth, int frameHeight) {
-        if (encoder != null) {
-            encoder.stop();
-            encoder.release();
-            encoder = null;
-        }
-        if (surface != null) {
-            surface.release();
-            surface = null;
-        }
+        releaseVideoEncoderResources();
+        resetVideoEncoderState();
+        encoderInitFailed = false;
 
         // Check codec capabilities
         MediaCodecInfo codecInfo = null;
+        String codecName = null;
         try {
             MediaCodec codec = MediaCodec.createEncoderByType(MIME_TYPE);
             codecInfo = codec.getCodecInfo();
+            codecName = codecInfo.getName();
             codec.release();
         } catch (Exception e) {
             Log.e(TAG, "Failed to get codec info: " + e.getMessage());
@@ -248,7 +334,13 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                     Log.d(TAG, "Skipping unsupported bitrate: " + config);
                     continue;
                 }
-                if (!isProfileSupported(codecInfo, MIME_TYPE, config.profile)) {
+                if (!shouldForceCodecProfile(codecName)
+                        && config.profile != MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline) {
+                    Log.d(TAG, "Skipping redundant profile retry for codec " + codecName + ": " + config);
+                    continue;
+                }
+                if (shouldForceCodecProfile(codecName)
+                        && !isProfileSupported(codecInfo, MIME_TYPE, config.profile)) {
                     Log.d(TAG, "Skipping unsupported profile: " + config);
                     continue;
                 }
@@ -260,17 +352,21 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
                 CountDownLatch latch = new CountDownLatch(1);
                 renderThreadHandler.post(() -> {
                     try {
-                        eglBase = EglBase.create(sharedContext, EglBase.CONFIG_RECORDABLE);
-                        Log.d(TAG, "EGL context created");
-                        eglBase.createSurface(surface);
-                        eglBase.makeCurrent();
-                        drawer = new GlRectDrawer();
-                        encoderStarted = true;
-                        encoderInitializing = false;
-                        Log.d(TAG, "Encoder surface setup complete: " + surface);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed to setup EGL surface: " + e.getMessage());
+                        boolean didSetup = false;
+                        if (sharedContext != null) {
+                            didSetup = setupEncoderSurface(sharedContext, "shared");
+                        }
+                        if (!didSetup) {
+                            didSetup = setupEncoderSurface(null, "standalone");
+                        }
+                        encoderStarted = didSetup;
+                        if (!didSetup) {
+                            resetVideoEncoderState();
+                            releaseVideoEncoderResources();
+                            Log.e(TAG, "Failed to setup EGL surface for config: " + config);
+                        }
                     } finally {
+                        encoderInitializing = false;
                         latch.countDown();
                     }
                 });
@@ -286,10 +382,16 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
             }
         }
 
+        resetVideoEncoderState();
+        encoderInitializing = false;
+        encoderInitFailed = true;
         Log.e(TAG, "Failed to configure and start encoder with any supported configuration.");
     }
     @Override
     public void onFrame(VideoFrame frame) {
+        if (!isRunning || encoderInitFailed) {
+            return;
+        }
         frame.retain();
         if (outputFileWidth == -1 && !encoderInitializing) {
             encoderInitializing = true;
@@ -297,11 +399,15 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
             int frameHeight = frame.getRotatedHeight();
             initVideoEncoder(frameWidth, frameHeight);
         }
+        if (!encoderStarted || outputFileWidth == -1 || outputFileHeight == -1) {
+            frame.release();
+            return;
+        }
         renderThreadHandler.post(() -> renderFrameOnRenderThread(frame));
     }
 
     private void renderFrameOnRenderThread(VideoFrame frame) {
-        if (drawer == null) {
+        if (!encoderStarted || drawer == null || eglBase == null || encoder == null) {
             Log.e(TAG, "drawer is null — skipping frame render");
             frame.release();
             return;
@@ -312,8 +418,8 @@ class VideoFileRenderer implements VideoSink, SamplesReadyCallback {
         }
         frameDrawer.drawFrame(frame, drawer, null, 0, 0, outputFileWidth, outputFileHeight);
         frame.release();
-        drainEncoder();
         eglBase.swapBuffers();
+        drainEncoder();
     }
 
     /**
