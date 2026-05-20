@@ -251,8 +251,16 @@ void FlutterScreenCapture::GetDisplayMedia(
       loopback_capturer_.reset();
     }
 
+    // Disable all audio processing for loopback capture.  Echo cancellation,
+    // AGC, and noise suppression are designed for microphone input; applied to
+    // system audio they treat the captured content as echo/noise and destroy it.
+    RTCAudioOptions loopback_opts;
+    loopback_opts.echo_cancellation = false;
+    loopback_opts.auto_gain_control = false;
+    loopback_opts.noise_suppression = false;
     loopback_audio_source_ = base_->factory_->CreateAudioSource(
-        "screen_loopback_input", RTCAudioSource::SourceType::kCustom);
+        "screen_loopback_input", RTCAudioSource::SourceType::kCustom,
+        loopback_opts);
 
     std::string audio_uuid = base_->GenerateUUID();
     scoped_refptr<RTCAudioTrack> audio_track =
@@ -260,7 +268,34 @@ void FlutterScreenCapture::GetDisplayMedia(
                                           audio_uuid.c_str());
 
 #ifdef _WIN32
-    loopback_capturer_ = std::make_unique<ApplicationLoopbackCapturer>();
+    {
+      auto* app_cap = new ApplicationLoopbackCapturer();
+      // If a specific window was selected, capture only that window's audio.
+      if (source_id != "0") {
+        for (auto src : sources_) {
+          if (src->id().std_string() == source_id &&
+              src->type() == kWindow) {
+            // The source ID for a window source is the HWND as a decimal
+            // integer string. Retrieve the owning process ID from it.
+            try {
+              HWND hwnd = reinterpret_cast<HWND>(
+                  static_cast<uintptr_t>(std::stoull(source_id)));
+              if (hwnd && IsWindow(hwnd)) {
+                DWORD pid = 0;
+                GetWindowThreadProcessId(hwnd, &pid);
+                if (pid != 0) {
+                  app_cap->SetTargetProcessId(pid);
+                }
+              }
+            } catch (...) {
+              // Non-numeric ID or conversion failed — fall back to all-system audio.
+            }
+            break;
+          }
+        }
+      }
+      loopback_capturer_ = std::unique_ptr<LoopbackCapturer>(app_cap);
+    }
 #elif defined(__linux__)
     // loopback_capturer_ = std::make_unique<PulseAudioLoopbackCapturer>();
     loopback_capturer_ = nullptr;  // placeholder until Linux impl is added

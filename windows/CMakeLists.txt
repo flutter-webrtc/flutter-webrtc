@@ -58,7 +58,9 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
   ksuser.lib
   mmdevapi.lib
   ole32.lib
+  runtimeobject.lib
   uuid.lib
+  winmm.lib
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin
