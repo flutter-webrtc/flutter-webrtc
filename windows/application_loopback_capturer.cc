@@ -619,6 +619,24 @@ void ApplicationLoopbackCapturer::FeederThread() {
   due.QuadPart = -100000LL;  // 10 ms initial delay (100-ns units, negative = relative)
   SetWaitableTimer(timer, &due, /*lPeriod_ms=*/10, nullptr, nullptr, FALSE);
 
+  // Request 5 ms Windows timer resolution (half our 10 ms target period).
+  // 10 ms is an exact multiple of 5 ms, so the OS tick always lands on our
+  // due time — no burst-doubling, no missed periods.  5 ms generates 200
+  // interrupts/second vs 1000 for timeBeginPeriod(1), so it is 5× cheaper
+  // in CPU wake-ups and does not block deep C-state sleep on laptops.
+  // Without any timeBeginPeriod call the default 15.625 ms OS tick causes
+  // two periods to elapse between ticks, queuing two signals that fire
+  // back-to-back and destabilise the receiver's NetEq jitter buffer.
+  timeBeginPeriod(5);
+
+  // Drift compensation: track wall-clock vs. delivered frames so we never
+  // feed audio faster than real-time (which would steadily overfill the
+  // receiver's jitter buffer and cause it to flush).
+  auto     feeder_start       = FClock::now();
+  bool     feeder_start_valid = false;  // true after startup prebuffering
+  int64_t  total_frames_del   = 0;     // frames delivered since prebuf end
+  uint32_t w_drift_skips      = 0;     // ticks skipped this stats window
+
   while (running_) {
     if (WaitForSingleObject(timer, /*timeout_ms=*/20) == WAIT_FAILED) break;
     if (!running_) break;
@@ -639,6 +657,23 @@ void ApplicationLoopbackCapturer::FeederThread() {
     }
 
     std::fill(feed.begin(), feed.end(), int16_t{0});
+
+    // Drift compensation: if we have delivered more than one 10-ms packet
+    // worth of frames ahead of real-time, skip this tick entirely (do NOT
+    // consume from the ring and do NOT call CaptureFrame).  This keeps the
+    // RTP send rate at exactly the nominal sample rate.
+    if (feeder_start_valid) {
+      const auto   now_dc      = FClock::now();
+      const double elapsed_sec =
+          std::chrono::duration<double>(now_dc - feeder_start).count();
+      const int64_t expected_frm =
+          static_cast<int64_t>(elapsed_sec * sample_rate);
+      if (total_frames_del >
+          expected_frm + static_cast<int64_t>(frames_per_10ms)) {
+        ++w_drift_skips;
+        continue;
+      }
+    }
 
     size_t ring_snap    = 0;
     bool   tick_drain   = false;
@@ -662,6 +697,8 @@ void ApplicationLoopbackCapturer::FeederThread() {
       if (prebuffering) {
         if (ring_frames_avail_ >= target_prebuf) {
           prebuffering = false;
+          feeder_start       = FClock::now();  // start drift clock NOW
+          feeder_start_valid = true;
           std::cout << "[LoopbackCapturer] Pre-buffer ready ("
                     << (target_prebuf * 1000 / static_cast<size_t>(sample_rate))
                     << " ms), starting audio output.\n";
@@ -706,6 +743,7 @@ void ApplicationLoopbackCapturer::FeederThread() {
     if (source_) {
       source_->CaptureFrame(feed.data(), /*bits_per_sample=*/16,
                             sample_rate, out_channels, frames_per_10ms);
+      total_frames_del += static_cast<int64_t>(frames_per_10ms);
     }
 
     // Every 100 ticks (≈ 1 s) print a summary.
@@ -718,14 +756,16 @@ void ApplicationLoopbackCapturer::FeederThread() {
                 << " | silence=" << w_silence
                 << " drain=" << w_drain
                 << " partial=" << w_partial << "/100"
-                << " | cap_drops=" << w_cap_drops << " frames\n";
-      w_silence = w_drain = w_partial = w_cap_drops = 0;
+                << " | cap_drops=" << w_cap_drops
+                << " drift_skips=" << w_drift_skips << "\n";
+      w_silence = w_drain = w_partial = w_cap_drops = w_drift_skips = 0;
       w_isum = 0.0; w_imin = 1e9; w_imax = 0.0;
     }
   }
 
   CancelWaitableTimer(timer);
   CloseHandle(timer);
+  timeEndPeriod(5);
   if (task) AvRevertMmThreadCharacteristics(task);
   CoUninitialize();
 }
