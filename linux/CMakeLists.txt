@@ -28,6 +28,7 @@ add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/src/flutter_webrtc.cc"
   "../common/cpp/src/flutter_webrtc_base.cc"
   "../common/cpp/src/flutter_common.cc"
+  "loopback_capturer_factory.cc"
   "flutter_webrtc_plugin.cc"
   "flutter/core_implementations.cc"
   "flutter/standard_codec.cc"

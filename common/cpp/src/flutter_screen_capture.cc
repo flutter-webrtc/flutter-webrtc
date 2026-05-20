@@ -1,13 +1,5 @@
 #include "flutter_screen_capture.h"
 
-// Include the platform-specific loopback capturer implementation.
-#ifdef _WIN32
-#include "../../windows/application_loopback_capturer.h"
-#endif
-// #ifdef __linux__
-// #include "../../linux/pulseaudio_loopback_capturer.h"
-// #endif
-
 namespace flutter_webrtc_plugin {
 
 FlutterScreenCapture::FlutterScreenCapture(FlutterWebRTCBase* base)
@@ -156,13 +148,11 @@ void FlutterScreenCapture::OnPaused(
 void FlutterScreenCapture::OnStop(scoped_refptr<RTCDesktopCapturer> capturer) {
   // std::cout << " OnStop: " << capturer->source()->id().std_string()
   //          << std::endl;
-#if defined(_WIN32) || defined(__linux__)
   if (loopback_capturer_) {
     loopback_capturer_->Stop();
     loopback_capturer_.reset();
     loopback_audio_source_ = nullptr;
   }
-#endif
 }
 
 void FlutterScreenCapture::OnError(scoped_refptr<RTCDesktopCapturer> capturer) {
@@ -230,8 +220,6 @@ void FlutterScreenCapture::GetDisplayMedia(
 
   // AUDIO
 
-#if defined(_WIN32) || defined(__linux__)
-  // Check whether the caller requested audio capture.
   bool capture_audio = false;
   {
     auto audio_it = constraints.find(EncodableValue("audio"));
@@ -267,39 +255,7 @@ void FlutterScreenCapture::GetDisplayMedia(
         base_->factory_->CreateAudioTrack(loopback_audio_source_,
                                           audio_uuid.c_str());
 
-#ifdef _WIN32
-    {
-      auto* app_cap = new ApplicationLoopbackCapturer();
-      // If a specific window was selected, capture only that window's audio.
-      if (source_id != "0") {
-        for (auto src : sources_) {
-          if (src->id().std_string() == source_id &&
-              src->type() == kWindow) {
-            // The source ID for a window source is the HWND as a decimal
-            // integer string. Retrieve the owning process ID from it.
-            try {
-              HWND hwnd = reinterpret_cast<HWND>(
-                  static_cast<uintptr_t>(std::stoull(source_id)));
-              if (hwnd && IsWindow(hwnd)) {
-                DWORD pid = 0;
-                GetWindowThreadProcessId(hwnd, &pid);
-                if (pid != 0) {
-                  app_cap->SetTargetProcessId(pid);
-                }
-              }
-            } catch (...) {
-              // Non-numeric ID or conversion failed — fall back to all-system audio.
-            }
-            break;
-          }
-        }
-      }
-      loopback_capturer_ = std::unique_ptr<LoopbackCapturer>(app_cap);
-    }
-#elif defined(__linux__)
-    // loopback_capturer_ = std::make_unique<PulseAudioLoopbackCapturer>();
-    loopback_capturer_ = nullptr;  // placeholder until Linux impl is added
-#endif
+    loopback_capturer_ = CreateLoopbackCapturer(source_id);
 
     if (loopback_capturer_ && loopback_capturer_->Start(loopback_audio_source_)) {
       EncodableMap audio_info;
@@ -319,7 +275,7 @@ void FlutterScreenCapture::GetDisplayMedia(
       stream->AddTrack(audio_track);
       base_->local_tracks_[audio_track->id().std_string()] = audio_track;
     } else {
-      // Loopback init failed — continue without audio.
+      // Loopback init failed or not supported — continue without audio.
       loopback_capturer_.reset();
       loopback_audio_source_ = nullptr;
       params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
@@ -327,9 +283,6 @@ void FlutterScreenCapture::GetDisplayMedia(
   } else {
     params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
   }
-#else
-  params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
-#endif
 
   // VIDEO
 
