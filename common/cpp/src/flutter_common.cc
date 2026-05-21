@@ -101,7 +101,14 @@ class EventChannelProxyImpl : public EventChannelProxy {
      channel_->SetStreamHandler(std::move(handler));
    }
  
-   virtual ~EventChannelProxyImpl() {}
+   virtual ~EventChannelProxyImpl() {
+     if (channel_) {
+       channel_->SetStreamHandler(nullptr);
+     }
+     sink_.reset();
+     event_queue_.clear();
+     on_listen_called_ = false;
+   }
  
    void Success(const EncodableValue& event, bool cache_event = true) override {
      if (on_listen_called_) {

@@ -14,6 +14,7 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
                                 TaskRunner* task_runner,
                                 const std::string& channel_name,
                                 std::string& peerConnectionId);
+  ~FlutterPeerConnectionObserver() override;
 
   virtual void OnSignalingState(RTCSignalingState state) override;
   virtual void OnPeerConnectionState(RTCPeerConnectionState state) override;
