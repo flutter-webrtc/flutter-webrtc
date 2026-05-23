@@ -4,13 +4,11 @@
 #ifdef _WIN32
 
 #include <atomic>
-#include <condition_variable>
 #include <mutex>
 #include <thread>
 #include <vector>
 
 #include <audioclient.h>
-#include <mmdeviceapi.h>
 #include <windows.h>
 
 #include "loopback_capturer.h"
@@ -57,7 +55,6 @@ class ApplicationLoopbackCapturer : public LoopbackCapturer {
   // Ring buffer used to decouple the WASAPI capture thread from the
   // WebRTC feeder thread.  CaptureThread writes here; FeederThread reads.
   std::mutex ring_mutex_;
-  std::condition_variable ring_cv_;  // signalled when ring has >= 10 ms of data
   std::vector<int16_t> ring_buf_;   // capacity: ring_capacity_frames_ * cached_out_channels_
   size_t ring_capacity_frames_ = 0;
   size_t ring_write_frame_     = 0;
@@ -71,6 +68,31 @@ class ApplicationLoopbackCapturer : public LoopbackCapturer {
   // 0 = capture all system audio (EXCLUDE self).
   // Non-zero = capture only that process (INCLUDE mode).
   DWORD  target_pid_           = 0;
+
+  typedef int16_t (*SampleExtractor)(const BYTE*);
+
+  static int16_t ExtractFloat32(const BYTE* ptr) {
+    float v = *reinterpret_cast<const float*>(ptr);
+    if (v >  1.0f) v =  1.0f;
+    if (v < -1.0f) v = -1.0f;
+    return static_cast<int16_t>(v * 32767.0f);
+  }
+
+  static int16_t ExtractInt32(const BYTE* ptr) {
+    // Shift right 16 bits to get down to 16-bit range
+    return static_cast<int16_t>((*reinterpret_cast<const INT32*>(ptr)) >> 16);
+  }
+
+  static int16_t ExtractInt24(const BYTE* ptr) {
+    // Read 3 little-endian bytes
+    INT32 s = static_cast<INT32>(ptr[0] | (ptr[1] << 8) | (ptr[2] << 16));
+    if (s & 0x00800000) s |= static_cast<INT32>(0xFF000000); // sign-extend
+    return static_cast<int16_t>(s >> 8);
+  }
+
+  static int16_t ExtractInt16(const BYTE* ptr) {
+    return *reinterpret_cast<const int16_t*>(ptr);
+  }
 };
 
 }  // namespace flutter_webrtc_plugin

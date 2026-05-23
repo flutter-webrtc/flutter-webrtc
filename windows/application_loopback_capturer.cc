@@ -115,7 +115,7 @@ bool ApplicationLoopbackCapturer::Start(
     scoped_refptr<RTCAudioSource> source) {
   if (running_) return true;
 
-  source_ = source;
+    source_ = source;
 
   audio_client_ = TryInitApplicationLoopback();
   if (!audio_client_) {
@@ -169,13 +169,12 @@ bool ApplicationLoopbackCapturer::Start(
 
   // Cache audio format for FeederThread (mix_format_ lives on this thread).
   cached_sample_rate_  = static_cast<int>(mix_format_->nSamplesPerSec);
-  cached_out_channels_ = (mix_format_->nChannels > 2) ? 2 : mix_format_->nChannels;
-
-  // Initialise ring buffer: 500 ms of stereo/mono int16 samples.
+  cached_out_channels_ = 1;
+  // Initialise ring buffer: 500 ms of mono int16 samples.
   {
-    const size_t frames_per_10ms =
-        static_cast<size_t>(cached_sample_rate_) / 100;
-    ring_capacity_frames_ = 50 * frames_per_10ms;   // 500 ms headroom
+    const size_t frames_per_20ms =
+        static_cast<size_t>(cached_sample_rate_) / 50;
+    ring_capacity_frames_ = 25 * frames_per_20ms;   // 500 ms headroom
     ring_buf_.assign(ring_capacity_frames_ * cached_out_channels_, int16_t{0});
     ring_write_frame_ = 0;
     ring_read_frame_  = 0;
@@ -278,7 +277,11 @@ IAudioClient* ApplicationLoopbackCapturer::TryInitApplicationLoopback() {
     IActivateAudioInterfaceAsyncOperation* async_op = nullptr;
     HRESULT hr = ActivateAudioInterfaceAsync(
         VIRTUAL_AUDIO_DEVICE_PROCESS_LOOPBACK,
-        __uuidof(IAudioClient), &pv, handler, &async_op);
+        __uuidof(IAudioClient), 
+        &pv, 
+        handler,
+        &async_op
+      );
 
     if (FAILED(hr)) {
       std::cerr << "[LoopbackCapturer] ActivateAudioInterfaceAsync failed: 0x"
@@ -421,14 +424,21 @@ void ApplicationLoopbackCapturer::CaptureThread() {
             << " -> int16 (" << in_channels << " ch in -> "
             << out_channels << " ch out).\n";
 
+  // 1. Assign the correct extractor function pointer
+  SampleExtractor extractor = ExtractInt16; // default fallback
+  if (is_float && bits == 32) {
+    extractor = ExtractFloat32;
+  } else if (!is_float && bits == 32) {
+    extractor = ExtractInt32;
+  } else if (!is_float && bits == 24) {
+    extractor = ExtractInt24;
+  }
+
+  // 2. Calculate exactly how many bytes to jump per sample
+  const size_t bytes_per_sample = bits / 8;
+
   // Temporary conversion buffer (reused across packets).
   std::vector<int16_t> conv;
-
-  // Burst diagnostics: gap between WASAPI events + frames per burst.
-  const size_t ct_sample_rate = static_cast<size_t>(mix_format_->nSamplesPerSec);
-  using BClock = std::chrono::steady_clock;
-  auto     last_burst_time = BClock::now();
-  uint64_t burst_num       = 0;
 
   while (running_) {
     DWORD wait_result =
@@ -436,15 +446,6 @@ void ApplicationLoopbackCapturer::CaptureThread() {
     if (!running_) break;
     if (wait_result == WAIT_TIMEOUT) continue;
     if (wait_result != WAIT_OBJECT_0) break;
-
-    // Measure gap since the last WASAPI event.
-    auto   burst_now       = BClock::now();
-    double gap_ms          = std::chrono::duration<double,std::milli>(
-                                 burst_now - last_burst_time).count();
-    last_burst_time        = burst_now;
-    size_t burst_frames    = 0;
-    bool   burst_has_audio = false;
-    float  burst_peak      = 0.0f;
 
     UINT32 packet_size = 0;
     while (SUCCEEDED(capture_client_->GetNextPacketSize(&packet_size)) &&
@@ -464,54 +465,23 @@ void ApplicationLoopbackCapturer::CaptureThread() {
         const bool silent = (flags & AUDCLNT_BUFFERFLAGS_SILENT) != 0;
         if (!silent) {
           conv.resize(num_frames * out_channels);
-          if (is_float && bits == 32) {
-            // 32-bit IEEE float -> int16
-            const float* src = reinterpret_cast<const float*>(data);
-            for (size_t f = 0; f < num_frames; ++f) {
-              for (size_t c = 0; c < out_channels; ++c) {
-                float v = src[f * in_channels + c];
-                if (v >  1.0f) v =  1.0f;
-                if (v < -1.0f) v = -1.0f;
-                conv[f * out_channels + c] = static_cast<int16_t>(v * 32767.0f);
-              }
-            }
-          } else if (!is_float && bits == 32) {
-            // 32-bit PCM integer -> int16.
-            // On Windows, "24-bit" quality (wValidBitsPerSample=24) stores
-            // samples left-justified in a 32-bit container (the 8 LSBs are
-            // zero-padded).  Arithmetic right-shift by 16 yields the correct
-            // int16 value for both true 32-bit PCM and 24-in-32 containers.
-            const INT32* src = reinterpret_cast<const INT32*>(data);
-            for (size_t f = 0; f < num_frames; ++f) {
-              for (size_t c = 0; c < out_channels; ++c) {
-                conv[f * out_channels + c] = static_cast<int16_t>(
-                    src[f * in_channels + c] >> 16);
-              }
-            }
-          } else if (!is_float && bits == 24) {
-            // 24-bit packed PCM (3 bytes per sample, little-endian) -> int16.
-            const BYTE* src = reinterpret_cast<const BYTE*>(data);
-            for (size_t f = 0; f < num_frames; ++f) {
-              for (size_t c = 0; c < out_channels; ++c) {
-                const size_t off = (f * in_channels + c) * 3;
-                INT32 s = static_cast<INT32>(
-                    src[off] | (src[off + 1] << 8) | (src[off + 2] << 16));
-                if (s & 0x00800000)
-                  s |= static_cast<INT32>(0xFF000000);  // sign-extend bit 23
-                conv[f * out_channels + c] = static_cast<int16_t>(s >> 8);
-              }
-            }
-          } else {
-            // 16-bit PCM integer (or unrecognised format — treat as int16).
-            const int16_t* src = reinterpret_cast<const int16_t*>(data);
-            for (size_t f = 0; f < num_frames; ++f) {
-              for (size_t c = 0; c < out_channels; ++c) {
-                conv[f * out_channels + c] = src[f * in_channels + c];
-              }
-            }
+          
+          for (size_t f = 0; f < num_frames; ++f) {
+            // Find the start of this frame in the raw WASAPI buffer
+            const BYTE* frame_ptr = data + (f * in_channels * bytes_per_sample);
+            
+            // Extract the Left channel
+            int16_t left = extractor(frame_ptr);
+            
+            // Extract the Right channel (or duplicate Left if mono input)
+            int16_t right = (in_channels > 1) 
+                ? extractor(frame_ptr + bytes_per_sample) 
+                : left;
+                
+            // Write to our stereo output buffer
+            conv[f] = static_cast<int16_t>((static_cast<int32_t>(left) + right) / 2);
           }
         }
-
         {
           std::lock_guard<std::mutex> lock(ring_mutex_);
           for (size_t f = 0; f < num_frames; ++f) {
@@ -533,30 +503,7 @@ void ApplicationLoopbackCapturer::CaptureThread() {
           }
         }
       }
-
-      // Track peak amplitude of this packet (for diagnosing int16 silence).
-      if (num_frames > 0 && !(flags & AUDCLNT_BUFFERFLAGS_SILENT)) {
-        for (const int16_t s : conv) {
-          const float a = std::abs(static_cast<float>(s)) / 32767.0f;
-          if (a > burst_peak) burst_peak = a;
-        }
-      }
       capture_client_->ReleaseBuffer(num_frames);
-      burst_frames += num_frames;
-      if (num_frames > 0 && !(flags & AUDCLNT_BUFFERFLAGS_SILENT))
-        burst_has_audio = true;
-    }
-    if (burst_frames > 0) {
-      ++burst_num;
-      // Log every 100 bursts (1s) or whenever audio content is detected.
-      if (burst_num % 100 == 0 || burst_peak > 0.001f) {
-        std::cout << "[LoopbackCapture] Burst #" << burst_num
-                  << ": " << burst_frames << " frames ("
-                  << (burst_frames * 1000 / ct_sample_rate) << " ms, "
-                  << (burst_has_audio ? "audio" : "silent")
-                  << ") after " << static_cast<int>(gap_ms) << " ms gap"
-                  << " | peak=" << burst_peak << "\n";
-      }
     }
   }
 
@@ -566,8 +513,8 @@ void ApplicationLoopbackCapturer::CaptureThread() {
 
 // ---------------------------------------------------------------------------
 // FeederThread
-// Fires every 10 ms via a waitable timer (wall-clock paced) and calls
-// CaptureFrame with exactly frames_per_10ms samples from the ring buffer.
+// Fires every 20 ms via a waitable timer (wall-clock paced) and calls
+// CaptureFrame with exactly frames_per_20ms samples from the ring buffer.
 //
 // Jitter-buffer design (motivated by test_capture_wav diagnostics):
 //   WASAPI loopback routinely stalls for 20-80 ms and then delivers multiple
@@ -575,9 +522,9 @@ void ApplicationLoopbackCapturer::CaptureThread() {
 //   ~0-20 ms pre-buffered, so a 72 ms WASAPI stall emptied the ring and caused
 //   ~70 ms of silence to be sent to WebRTC (= audible chop).
 //
-//   Fix: pre-buffer 150 ms on startup before the first CaptureFrame call.
-//   In steady state the ring holds ~150 ms of audio, so a 72 ms WASAPI stall
-//   only drains the ring to ~78 ms -- still above the 50 ms starvation floor,
+//   Fix: pre-buffer 160 ms on startup before the first CaptureFrame call.
+//   In steady state the ring holds ~160 ms of audio, so a 72 ms WASAPI stall
+//   only drains the ring to ~88 ms -- still above the 50 ms starvation floor,
 //   meaning zero silence is emitted.  A 200 ms hard cap prevents unbounded
 //   latency growth after extended stalls or CPU spikes.
 // ---------------------------------------------------------------------------
@@ -588,16 +535,19 @@ void ApplicationLoopbackCapturer::FeederThread() {
   HANDLE task = AvSetMmThreadCharacteristicsW(L"Audio", &task_index);
 
   const int    sample_rate     = cached_sample_rate_;
-  const size_t out_channels    = cached_out_channels_;
+  const size_t out_channels    = 1;
+
+  // 480 samples = one 10 ms frame at 48 kHz.
   const size_t frames_per_10ms = static_cast<size_t>(sample_rate) / 100;
 
   // Jitter-buffer thresholds (all in frames).
-  const size_t target_prebuf  = 15 * frames_per_10ms;  // 150 ms startup fill
+  const size_t target_prebuf  = 16 * frames_per_10ms;  // 160 ms startup fill
   const size_t max_buffered   = 20 * frames_per_10ms;  // 200 ms hard cap
 
+  // Stereo ring-read buffer
   std::vector<int16_t> feed(frames_per_10ms * out_channels, int16_t{0});
 
-  // true until the ring has at least 150 ms buffered.
+  // true until the ring has at least 160 ms buffered.
   bool prebuffering = true;
 
   // Feeder diagnostics.
@@ -607,7 +557,7 @@ void ApplicationLoopbackCapturer::FeederThread() {
   uint64_t tick_count     = 0;
   uint32_t w_silence      = 0;  // ticks where CaptureFrame got all-zero feed
   uint32_t w_drain        = 0;  // ticks where ring was empty
-  uint32_t w_partial      = 0;  // ticks where ring had < frames_per_10ms
+  uint32_t w_partial      = 0;  // ticks where ring had < frames_per_20ms
   uint32_t w_cap_drops    = 0;  // frames dropped by hard cap this window
   double   w_isum         = 0.0;
   double   w_imin         = 1e9;
@@ -616,18 +566,10 @@ void ApplicationLoopbackCapturer::FeederThread() {
   // Periodic auto-reset waitable timer -- fires every 10 ms.
   HANDLE timer = CreateWaitableTimerW(nullptr, /*bManualReset=*/FALSE, nullptr);
   LARGE_INTEGER due = {};
-  due.QuadPart = -100000LL;  // 10 ms initial delay (100-ns units, negative = relative)
+  due.QuadPart = -100000LL;  // 10 ms initial delay (100-ns units)
   SetWaitableTimer(timer, &due, /*lPeriod_ms=*/10, nullptr, nullptr, FALSE);
 
-  // Request 5 ms Windows timer resolution (half our 10 ms target period).
-  // 10 ms is an exact multiple of 5 ms, so the OS tick always lands on our
-  // due time — no burst-doubling, no missed periods.  5 ms generates 200
-  // interrupts/second vs 1000 for timeBeginPeriod(1), so it is 5× cheaper
-  // in CPU wake-ups and does not block deep C-state sleep on laptops.
-  // Without any timeBeginPeriod call the default 15.625 ms OS tick causes
-  // two periods to elapse between ticks, queuing two signals that fire
-  // back-to-back and destabilise the receiver's NetEq jitter buffer.
-  timeBeginPeriod(5);
+  timeBeginPeriod(10);
 
   // Drift compensation: track wall-clock vs. delivered frames so we never
   // feed audio faster than real-time (which would steadily overfill the
@@ -638,7 +580,7 @@ void ApplicationLoopbackCapturer::FeederThread() {
   uint32_t w_drift_skips      = 0;     // ticks skipped this stats window
 
   while (running_) {
-    if (WaitForSingleObject(timer, /*timeout_ms=*/20) == WAIT_FAILED) break;
+    if (WaitForSingleObject(timer, /*timeout_ms=*/40) == WAIT_FAILED) break;
     if (!running_) break;
 
     // Measure actual timer interval.
@@ -658,7 +600,7 @@ void ApplicationLoopbackCapturer::FeederThread() {
 
     std::fill(feed.begin(), feed.end(), int16_t{0});
 
-    // Drift compensation: if we have delivered more than one 10-ms packet
+    // Drift compensation: if we have delivered more than one 20-ms packet
     // worth of frames ahead of real-time, skip this tick entirely (do NOT
     // consume from the ring and do NOT call CaptureFrame).  This keeps the
     // RTP send rate at exactly the nominal sample rate.
@@ -693,7 +635,7 @@ void ApplicationLoopbackCapturer::FeederThread() {
                   << " ms)\n";
       }
 
-      // Startup pre-buffering: wait until the ring has 150 ms of audio.
+      // Startup pre-buffering: wait until the ring has 160 ms of audio.
       if (prebuffering) {
         if (ring_frames_avail_ >= target_prebuf) {
           prebuffering = false;
@@ -709,7 +651,7 @@ void ApplicationLoopbackCapturer::FeederThread() {
 
       ring_snap = ring_frames_avail_;
 
-      // Consume up to 10 ms from the ring each tick.
+      // Consume up to 20 ms from the ring each tick.
       if (ring_frames_avail_ > 0) {
         const size_t to_copy =
             (ring_frames_avail_ < frames_per_10ms) ? ring_frames_avail_
@@ -746,16 +688,16 @@ void ApplicationLoopbackCapturer::FeederThread() {
       total_frames_del += static_cast<int64_t>(frames_per_10ms);
     }
 
-    // Every 100 ticks (≈ 1 s) print a summary.
-    if (tick_count % 100 == 0) {
-      const double avg_ms = (w_isum > 0.0) ? (w_isum / 99.0) : 10.0;
+    // Every 50 ticks (≈ 500 ms at 10 ms/tick) print a summary.
+    if (tick_count % 50 == 0) {
+      const double avg_ms = (w_isum > 0.0) ? (w_isum / 49.0) : 20.0;
       std::cout << "[LoopbackFeeder] 1s summary"
                 << " | timer avg=" << avg_ms
                 << " min=" << w_imin << " max=" << w_imax << " ms"
                 << " | ring=" << (ring_snap * 1000 / static_cast<size_t>(sample_rate)) << " ms"
                 << " | silence=" << w_silence
                 << " drain=" << w_drain
-                << " partial=" << w_partial << "/100"
+                << " partial=" << w_partial << "/50"
                 << " | cap_drops=" << w_cap_drops
                 << " drift_skips=" << w_drift_skips << "\n";
       w_silence = w_drain = w_partial = w_cap_drops = w_drift_skips = 0;
@@ -765,7 +707,7 @@ void ApplicationLoopbackCapturer::FeederThread() {
 
   CancelWaitableTimer(timer);
   CloseHandle(timer);
-  timeEndPeriod(5);
+  timeEndPeriod(10);
   if (task) AvRevertMmThreadCharacteristics(task);
   CoUninitialize();
 }
