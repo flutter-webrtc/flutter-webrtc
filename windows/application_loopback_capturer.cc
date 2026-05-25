@@ -689,20 +689,20 @@ void ApplicationLoopbackCapturer::FeederThread() {
     }
 
     // Every 50 ticks (≈ 500 ms at 10 ms/tick) print a summary.
-    if (tick_count % 50 == 0) {
-      const double avg_ms = (w_isum > 0.0) ? (w_isum / 49.0) : 20.0;
-      // std::cout << "[LoopbackFeeder] 1s summary"
-      //           << " | timer avg=" << avg_ms
-      //           << " min=" << w_imin << " max=" << w_imax << " ms"
-      //           << " | ring=" << (ring_snap * 1000 / static_cast<size_t>(sample_rate)) << " ms"
-      //           << " | silence=" << w_silence
-      //           << " drain=" << w_drain
-      //           << " partial=" << w_partial << "/50"
-      //           << " | cap_drops=" << w_cap_drops
-      //           << " drift_skips=" << w_drift_skips << "\n";
-      w_silence = w_drain = w_partial = w_cap_drops = w_drift_skips = 0;
-      w_isum = 0.0; w_imin = 1e9; w_imax = 0.0;
-    }
+    // if (tick_count % 50 == 0) {
+    //   const double avg_ms = (w_isum > 0.0) ? (w_isum / 49.0) : 20.0;
+    //   std::cout << "[LoopbackFeeder] 1s summary"
+    //             << " | timer avg=" << avg_ms
+    //             << " min=" << w_imin << " max=" << w_imax << " ms"
+    //             << " | ring=" << (ring_snap * 1000 / static_cast<size_t>(sample_rate)) << " ms"
+    //             << " | silence=" << w_silence
+    //             << " drain=" << w_drain
+    //             << " partial=" << w_partial << "/50"
+    //             << " | cap_drops=" << w_cap_drops
+    //             << " drift_skips=" << w_drift_skips << "\n";
+    //   w_silence = w_drain = w_partial = w_cap_drops = w_drift_skips = 0;
+    //   w_isum = 0.0; w_imin = 1e9; w_imax = 0.0;
+    // }
   }
 
   CancelWaitableTimer(timer);
