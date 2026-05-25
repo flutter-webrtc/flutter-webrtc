@@ -246,8 +246,10 @@ void FlutterScreenCapture::GetDisplayMedia(
     loopback_opts.echo_cancellation = false;
     loopback_opts.auto_gain_control = false;
     loopback_opts.noise_suppression = false;
+    const std::string loopback_source_label =
+      "screen_loopback_input_" + base_->GenerateUUID();
     loopback_audio_source_ = base_->factory_->CreateAudioSource(
-        "screen_loopback_input", RTCAudioSource::SourceType::kCustom,
+      loopback_source_label.c_str(), RTCAudioSource::SourceType::kCustom,
         loopback_opts);
 
     std::string audio_uuid = base_->GenerateUUID();
