@@ -61,7 +61,7 @@ void FlutterScreenCapture::GetDesktopSources(
     sources.push_back(EncodableValue(info));
   }
 
-  std::cout << " sources: " << sources.size() << std::endl;
+  //std::cout << " sources: " << sources.size() << std::endl;
   auto map = EncodableMap();
   map[EncodableValue("sources")] = sources;
   result->Success(EncodableValue(map));

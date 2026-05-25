@@ -183,11 +183,11 @@ bool ApplicationLoopbackCapturer::Start(
 
   capture_thread_ = std::thread(&ApplicationLoopbackCapturer::CaptureThread, this);
   feeder_thread_  = std::thread(&ApplicationLoopbackCapturer::FeederThread,  this);
-  std::cout << "[LoopbackCapturer] Capture started ("
-            << mix_format_->nSamplesPerSec << " Hz, "
-            << cached_out_channels_ << " ch out"
-            << " [" << mix_format_->nChannels << " ch in], "
-            << mix_format_->wBitsPerSample << "-bit).\n";
+  // std::cout << "[LoopbackCapturer] Capture started ("
+  //           << mix_format_->nSamplesPerSec << " Hz, "
+  //           << cached_out_channels_ << " ch out"
+  //           << " [" << mix_format_->nChannels << " ch in], "
+  //           << mix_format_->wBitsPerSample << "-bit).\n";
   return true;
 }
 
@@ -224,7 +224,7 @@ void ApplicationLoopbackCapturer::Stop() {
     buffer_ready_event_ = INVALID_HANDLE_VALUE;
   }
   source_ = nullptr;
-  std::cout << "[LoopbackCapturer] Capture stopped.\n";
+  // std::cout << "[LoopbackCapturer] Capture stopped.\n";
 }
 
 // ---------------------------------------------------------------------------
@@ -355,9 +355,9 @@ IAudioClient* ApplicationLoopbackCapturer::TryInitApplicationLoopback() {
           // Convert frames -> 100-ns units.
           buffer_duration = static_cast<REFERENCE_TIME>(
               10000000LL * min_period / fmt->nSamplesPerSec);
-          std::cout << "[LoopbackCapturer] IAudioClient3 min period: "
-                    << min_period << " frames ("
-                    << buffer_duration / 10000 << " ms).\n";
+          // std::cout << "[LoopbackCapturer] IAudioClient3 min period: "
+          //           << min_period << " frames ("
+          //           << buffer_duration / 10000 << " ms).\n";
         }
         client3->Release();
       }
@@ -379,7 +379,7 @@ IAudioClient* ApplicationLoopbackCapturer::TryInitApplicationLoopback() {
 
     result.client = client;
     result.fmt    = fmt;
-    std::cout << "[LoopbackCapturer] ApplicationLoopback active.\n";
+    // std::cout << "[LoopbackCapturer] ApplicationLoopback active.\n";
     RoUninitialize();
     SetEvent(done_event);
   });
@@ -419,10 +419,10 @@ void ApplicationLoopbackCapturer::CaptureThread() {
     is_float = (ext->SubFormat == kSubtypeFloat);
   }
 
-  std::cout << "[LoopbackCapturer] CaptureThread format: "
-            << (is_float ? "float" : "int") << bits
-            << " -> int16 (" << in_channels << " ch in -> "
-            << out_channels << " ch out).\n";
+  // std::cout << "[LoopbackCapturer] CaptureThread format: "
+  //           << (is_float ? "float" : "int") << bits
+  //           << " -> int16 (" << in_channels << " ch in -> "
+  //           << out_channels << " ch out).\n";
 
   // 1. Assign the correct extractor function pointer
   SampleExtractor extractor = ExtractInt16; // default fallback
@@ -629,10 +629,10 @@ void ApplicationLoopbackCapturer::FeederThread() {
         ring_read_frame_ = (ring_read_frame_ + drop) % ring_capacity_frames_;
         ring_frames_avail_ -= drop;
         w_cap_drops += static_cast<uint32_t>(drop);
-        std::cout << "[LoopbackFeeder] Hard-cap: dropped "
-                  << drop << " frames ("
-                  << (drop * 1000 / static_cast<size_t>(sample_rate))
-                  << " ms)\n";
+        // std::cout << "[LoopbackFeeder] Hard-cap: dropped "
+        //           << drop << " frames ("
+        //           << (drop * 1000 / static_cast<size_t>(sample_rate))
+        //           << " ms)\n";
       }
 
       // Startup pre-buffering: wait until the ring has 160 ms of audio.
@@ -641,9 +641,9 @@ void ApplicationLoopbackCapturer::FeederThread() {
           prebuffering = false;
           feeder_start       = FClock::now();  // start drift clock NOW
           feeder_start_valid = true;
-          std::cout << "[LoopbackCapturer] Pre-buffer ready ("
-                    << (target_prebuf * 1000 / static_cast<size_t>(sample_rate))
-                    << " ms), starting audio output.\n";
+          // std::cout << "[LoopbackCapturer] Pre-buffer ready ("
+          //           << (target_prebuf * 1000 / static_cast<size_t>(sample_rate))
+          //           << " ms), starting audio output.\n";
         } else {
           continue;  // still accumulating — skip CaptureFrame this tick
         }
@@ -678,7 +678,7 @@ void ApplicationLoopbackCapturer::FeederThread() {
     if (feed_silent) ++w_silence;
     if (tick_drain) {
       ++w_drain;
-      std::cout << "[LoopbackFeeder] Ring drained — sending silence.\n";
+      // std::cout << "[LoopbackFeeder] Ring drained — sending silence.\n";
     }
     if (tick_partial) ++w_partial;
 
@@ -691,15 +691,15 @@ void ApplicationLoopbackCapturer::FeederThread() {
     // Every 50 ticks (≈ 500 ms at 10 ms/tick) print a summary.
     if (tick_count % 50 == 0) {
       const double avg_ms = (w_isum > 0.0) ? (w_isum / 49.0) : 20.0;
-      std::cout << "[LoopbackFeeder] 1s summary"
-                << " | timer avg=" << avg_ms
-                << " min=" << w_imin << " max=" << w_imax << " ms"
-                << " | ring=" << (ring_snap * 1000 / static_cast<size_t>(sample_rate)) << " ms"
-                << " | silence=" << w_silence
-                << " drain=" << w_drain
-                << " partial=" << w_partial << "/50"
-                << " | cap_drops=" << w_cap_drops
-                << " drift_skips=" << w_drift_skips << "\n";
+      // std::cout << "[LoopbackFeeder] 1s summary"
+      //           << " | timer avg=" << avg_ms
+      //           << " min=" << w_imin << " max=" << w_imax << " ms"
+      //           << " | ring=" << (ring_snap * 1000 / static_cast<size_t>(sample_rate)) << " ms"
+      //           << " | silence=" << w_silence
+      //           << " drain=" << w_drain
+      //           << " partial=" << w_partial << "/50"
+      //           << " | cap_drops=" << w_cap_drops
+      //           << " drift_skips=" << w_drift_skips << "\n";
       w_silence = w_drain = w_partial = w_cap_drops = w_drift_skips = 0;
       w_isum = 0.0; w_imin = 1e9; w_imax = 0.0;
     }
