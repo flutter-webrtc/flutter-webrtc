@@ -80,7 +80,15 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
         creationParamsCodec: const StandardMessageCodec(),
       );
     }
-    return Text('RTCVideoPlatformView only support for iOS.');
+    if (defaultTargetPlatform == TargetPlatform.macOS) {
+      return AppKitView(
+        viewType: viewType,
+        onPlatformViewCreated: onPlatformViewCreated,
+        creationParams: <String, dynamic>{},
+        creationParamsCodec: const StandardMessageCodec(),
+      );
+    }
+    return Text('RTCVideoPlatformView only supports iOS and macOS.');
   }
 
   void showVideoView(bool show) {

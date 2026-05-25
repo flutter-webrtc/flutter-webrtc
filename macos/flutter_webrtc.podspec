@@ -18,4 +18,7 @@ A new flutter plugin project.
   s.weak_frameworks = 'ScreenCaptureKit'
   s.dependency 'WebRTC-SDK', '144.7559.04'
   s.osx.deployment_target = '10.15'
+  s.pod_target_xcconfig = {
+    'USER_HEADER_SEARCH_PATHS' => 'Classes/**/*.h'
+  }
 end
