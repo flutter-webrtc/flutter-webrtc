@@ -165,6 +165,8 @@ void FlutterScreenCapture::GetDesktopSourceThumbnail(
     int width,
     int height,
     std::unique_ptr<MethodResultProxy> result) {
+  (void)width;
+  (void)height;
   scoped_refptr<MediaSource> source;
   for (auto src : sources_) {
     if (src->id().std_string() == source_id) {
