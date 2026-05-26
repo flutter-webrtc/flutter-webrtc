@@ -1,7 +1,7 @@
 #import "FlutterRTCVideoPlatformViewFactory.h"
 #import "FlutterRTCVideoPlatformViewController.h"
 
-@implementation FLutterRTCVideoPlatformViewFactory {
+@implementation FlutterRTCVideoPlatformViewFactory {
 }
 
 @synthesize messenger = _messenger;
