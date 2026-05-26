@@ -50,10 +50,18 @@ namespace flutter_webrtc_plugin {
 // ---------------------------------------------------------------------------
 // COM completion handler for ActivateAudioInterfaceAsync
 // ---------------------------------------------------------------------------
+
+// Helper for managing the COM async activation callback used to probe for
+// ApplicationLoopbackAudio support and to activate the IAudioClient when starting capture.
+struct HandleDeleter {
+  void operator()(HANDLE h) const { CloseHandle(h); }
+};
+using UniqueHandle = std::unique_ptr<std::remove_pointer_t<HANDLE>, HandleDeleter>;
+
 class ActivationCompletionHandler
     : public IActivateAudioInterfaceCompletionHandler {
  public:
-  HANDLE event_ = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+  UniqueHandle event_{CreateEvent(nullptr, FALSE, FALSE, nullptr)};
   IAudioClient* client_ = nullptr;
   HRESULT activation_result_ = E_FAIL;
 
@@ -66,7 +74,7 @@ class ActivationCompletionHandler
       unk->QueryInterface(IID_PPV_ARGS(&client_));
       unk->Release();
     }
-    SetEvent(event_);
+    if (event_) SetEvent(event_.get());
     return S_OK;
   }
 
@@ -292,8 +300,20 @@ IAudioClient* ApplicationLoopbackCapturer::TryInitApplicationLoopback() {
       return;
     }
 
+
+    // Failed to create the event in the handler — can't continue.
+    // Abort the activation attempt and clean up, which will cause the callback to never fire.
+    if (!handler->event_) {
+      std::cerr << "[LoopbackCapturer] CreateEvent failed for activation handler.\n";
+      handler->Release();
+      RoUninitialize();
+      SetEvent(done_event);
+      return;
+    }
     // MTA: the callback fires on a threadpool thread — no message pump needed.
-    WaitForSingleObject(handler->event_, 5000);
+    // wait for the callback to signal completion (or timeout after 5 seconds, which
+    // should never happen under normal circumstances).
+    WaitForSingleObject(handler->event_.get(), 5000);
     if (async_op) async_op->Release();
 
     if (FAILED(handler->activation_result_) || !handler->client_) {
