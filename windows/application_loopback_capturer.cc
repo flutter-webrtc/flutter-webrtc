@@ -415,7 +415,7 @@ IAudioClient* ApplicationLoopbackCapturer::TryInitApplicationLoopback() {
 
 // ---------------------------------------------------------------------------
 // CaptureThread
-// Reads WASAPI packets, converts to int16 stereo, and writes to the ring
+// Reads WASAPI packets, converts to int16 mono, and writes to the ring
 // buffer.  It does NOT call CaptureFrame — that is FeederThread's job.
 // This decouples the WASAPI callback timing from the WebRTC audio thread,
 // preventing the AudioSendStream race-checker crash.
@@ -671,7 +671,7 @@ void ApplicationLoopbackCapturer::FeederThread() {
 
       ring_snap = ring_frames_avail_;
 
-      // Consume up to 20 ms from the ring each tick.
+      // Consume up to 10 ms from the ring each tick.
       if (ring_frames_avail_ > 0) {
         const size_t to_copy =
             (ring_frames_avail_ < frames_per_10ms) ? ring_frames_avail_
