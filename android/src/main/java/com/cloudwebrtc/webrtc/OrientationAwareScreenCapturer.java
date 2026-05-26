@@ -18,9 +18,6 @@ import android.hardware.display.DisplayManager;
 import android.util.DisplayMetrics;
 import android.hardware.display.VirtualDisplay;
 import android.media.projection.MediaProjectionManager;
-//import android.os.Looper;
-//import android.os.Handler;
-//import android.os.Build;
 import android.view.Display;
 
 /**
@@ -39,6 +36,7 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
     private int oldWidth;
     private int oldHeight;
     private VirtualDisplay virtualDisplay;
+    private Surface virtualDisplaySurface;
     private SurfaceTextureHelper surfaceTextureHelper;
     private CapturerObserver capturerObserver;
     private long numCapturedFrames = 0;
@@ -148,6 +146,7 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
                     virtualDisplay.release();
                     virtualDisplay = null;
                 }
+                releaseVirtualDisplaySurface();
                 if (mediaProjection != null) {
                     // Unregister the callback before stopping, otherwise the callback recursively
                     // calls this method.
@@ -190,22 +189,45 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
                     }
 
                     if (virtualDisplay != null) {
-                        virtualDisplay.release();
-                        virtualDisplay = null;
+                        resizeVirtualDisplay();
+                    } else {
+                        createVirtualDisplay();
                     }
-
-                    createVirtualDisplay();
                 }
             });
         }
     }
 
     private void createVirtualDisplay() {
+        updateSurfaceTextureSize();
+        releaseVirtualDisplaySurface();
+        virtualDisplaySurface = new Surface(surfaceTextureHelper.getSurfaceTexture());
+        virtualDisplay = mediaProjection.createVirtualDisplay("WebRTC_ScreenCapture", width, height,
+                VIRTUAL_DISPLAY_DPI, DISPLAY_FLAGS, virtualDisplaySurface,
+                null /* callback */, null /* callback handler */);
+    }
+
+    private void resizeVirtualDisplay() {
+        updateSurfaceTextureSize();
+        virtualDisplay.resize(width, height, VIRTUAL_DISPLAY_DPI);
+        final Surface oldSurface = virtualDisplaySurface;
+        virtualDisplaySurface = new Surface(surfaceTextureHelper.getSurfaceTexture());
+        virtualDisplay.setSurface(virtualDisplaySurface);
+        if (oldSurface != null) {
+            oldSurface.release();
+        }
+    }
+
+    private void updateSurfaceTextureSize() {
         surfaceTextureHelper.setTextureSize(width, height);
         surfaceTextureHelper.getSurfaceTexture().setDefaultBufferSize(width, height);
-        virtualDisplay = mediaProjection.createVirtualDisplay("WebRTC_ScreenCapture", width, height,
-                VIRTUAL_DISPLAY_DPI, DISPLAY_FLAGS, new Surface(surfaceTextureHelper.getSurfaceTexture()),
-                null /* callback */, null /* callback handler */);
+    }
+
+    private void releaseVirtualDisplaySurface() {
+        if (virtualDisplaySurface != null) {
+            virtualDisplaySurface.release();
+            virtualDisplaySurface = null;
+        }
     }
 
     @Override
