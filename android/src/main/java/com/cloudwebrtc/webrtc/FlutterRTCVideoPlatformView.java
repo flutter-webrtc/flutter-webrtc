@@ -88,16 +88,7 @@ public class FlutterRTCVideoPlatformView implements PlatformView, EventChannel.S
                 "FlutterWebRTC/PlatformViewId" + viewId);
         eventChannel.setStreamHandler(this);
 
-        EglBase.Context sharedContext = EglUtils.getRootEglBaseContext();
-        if (sharedContext == null) {
-            Log.e(TAG, "Failed to initialize FlutterRTCVideoPlatformView: no EGL context");
-            return;
-        }
-
-        renderer.init(sharedContext, rendererEvents);
-        renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
-        renderer.setEnableHardwareScaler(false);
-        rendererInitialized = true;
+        initializeRenderer();
     }
 
     @Override
@@ -182,7 +173,7 @@ public class FlutterRTCVideoPlatformView implements PlatformView, EventChannel.S
             return;
         }
 
-        if (!rendererInitialized) {
+        if (!restartRenderer()) {
             Log.e(TAG, "Failed to render a VideoTrack: platform renderer is not initialized");
             return;
         }
@@ -209,6 +200,28 @@ public class FlutterRTCVideoPlatformView implements PlatformView, EventChannel.S
         videoWidth = 0;
         videoHeight = 0;
         rotation = -1;
+    }
+
+    private boolean restartRenderer() {
+        if (rendererInitialized) {
+            renderer.release();
+            rendererInitialized = false;
+        }
+        return initializeRenderer();
+    }
+
+    private boolean initializeRenderer() {
+        EglBase.Context sharedContext = EglUtils.getRootEglBaseContext();
+        if (sharedContext == null) {
+            Log.e(TAG, "Failed to initialize FlutterRTCVideoPlatformView: no EGL context");
+            return false;
+        }
+
+        renderer.init(sharedContext, rendererEvents);
+        renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
+        renderer.setEnableHardwareScaler(false);
+        rendererInitialized = true;
+        return true;
     }
 
     private void sendFirstFrameRenderedIfNeeded() {
