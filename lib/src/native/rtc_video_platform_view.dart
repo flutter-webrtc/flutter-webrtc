@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -29,10 +30,12 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
   bool _showVideoView = false;
   @override
   void dispose() {
-    _controller?.onFirstFrameRendered = null;
-    _controller?.onSrcObjectChange = null;
-    _controller?.onResize = null;
+    final controller = _controller;
+    controller?.onFirstFrameRendered = null;
+    controller?.onSrcObjectChange = null;
+    controller?.onResize = null;
     _controller = null;
+    unawaited(controller?.dispose());
     super.dispose();
   }
 

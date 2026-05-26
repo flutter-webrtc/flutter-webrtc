@@ -120,7 +120,7 @@ void postEvent(FlutterEventSink _Nullable sink, id _Nullable event) {
   AVAudioSessionPort _preferredInput;
   AudioManager* _audioManager;
 #if TARGET_OS_IPHONE || TARGET_OS_OSX
-  FLutterRTCVideoPlatformViewFactory *_platformViewFactory;
+  FlutterRTCVideoPlatformViewFactory *_platformViewFactory;
 #endif
 
   RTC_OBJC_TYPE(RTCCallbackLogger) * loggerCallback;
@@ -189,8 +189,8 @@ static FlutterWebRTCPlugin *sharedSingleton;
     self.viewController = viewController;
 #endif
 #if TARGET_OS_IPHONE || TARGET_OS_OSX
-    _platformViewFactory  = [[FLutterRTCVideoPlatformViewFactory alloc] initWithMessenger:messenger];
-    [registrar registerViewFactory:_platformViewFactory withId:FLutterRTCVideoPlatformViewFactoryID];
+    _platformViewFactory  = [[FlutterRTCVideoPlatformViewFactory alloc] initWithMessenger:messenger];
+    [registrar registerViewFactory:_platformViewFactory withId:FlutterRTCVideoPlatformViewFactoryID];
 #endif
   }
 

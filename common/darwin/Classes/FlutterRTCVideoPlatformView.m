@@ -7,7 +7,7 @@
 
 @implementation FlutterRTCVideoPlatformView {
   AVSampleBufferDisplayLayer* _videoLayer;
-  CATransform3D _bufferTransform;
+  dispatch_queue_t _sampleBufferQueue;
   RTCVideoRotation _lastVideoRotation;
 }
 
@@ -19,7 +19,9 @@
     _videoLayer = [[AVSampleBufferDisplayLayer alloc] init];
     _videoLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
     _videoLayer.frame = CGRectZero;
-    _bufferTransform = CATransform3DIdentity;
+    _sampleBufferQueue =
+        dispatch_queue_create("com.cloudwebrtc.flutterwebrtc.video-platform-view.sample-buffer",
+                              DISPATCH_QUEUE_SERIAL);
     _lastVideoRotation = RTCVideoRotation_0;
     [self.layer addSublayer:_videoLayer];
 #if TARGET_OS_IPHONE
@@ -70,32 +72,72 @@
     return;
   }
 
-  if (_lastVideoRotation != frame.rotation) {
-    _bufferTransform = [self fromFrameRotation:frame.rotation];
-    _videoLayer.transform = _bufferTransform;
-    _lastVideoRotation = frame.rotation;
-  }
-
+  RTCVideoRotation rotation = frame.rotation;
   CMSampleBufferRef sampleBuffer = [self sampleBufferFromPixelBuffer:pixelBuffer];
-  if (sampleBuffer) {
-#if TARGET_OS_IPHONE
-    if (@available(iOS 14.0, *)) {
-      if ([_videoLayer requiresFlushToResumeDecoding]) {
-        [_videoLayer flushAndRemoveImage];
-      }
-    }
-#elif TARGET_OS_OSX
-    if (@available(macOS 11.0, *)) {
-      if ([_videoLayer requiresFlushToResumeDecoding]) {
-        [_videoLayer flushAndRemoveImage];
-      }
-    }
-#endif
-    [_videoLayer enqueueSampleBuffer:sampleBuffer];
-    CFRelease(sampleBuffer);
+  CFRelease(pixelBuffer);
+
+  if (!sampleBuffer) {
+    return;
   }
 
-  CFRelease(pixelBuffer);
+  dispatch_async(_sampleBufferQueue, ^{
+    [self renderSampleBuffer:sampleBuffer rotation:rotation];
+    CFRelease(sampleBuffer);
+  });
+}
+
+- (void)renderSampleBuffer:(CMSampleBufferRef)sampleBuffer rotation:(RTCVideoRotation)rotation {
+  [self updateVideoLayerTransformForRotation:rotation];
+
+#if TARGET_OS_IPHONE
+#if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 170000
+  if (@available(iOS 17.0, *)) {
+    AVSampleBufferVideoRenderer* renderer = _videoLayer.sampleBufferRenderer;
+    if ([renderer requiresFlushToResumeDecoding]) {
+      [renderer flushWithRemovalOfDisplayedImage:YES completionHandler:nil];
+    }
+    [renderer enqueueSampleBuffer:sampleBuffer];
+    return;
+  }
+#endif
+  if (@available(iOS 14.0, *)) {
+    if ([_videoLayer requiresFlushToResumeDecoding]) {
+      [_videoLayer flushAndRemoveImage];
+    }
+  }
+#elif TARGET_OS_OSX
+#if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 140000
+  if (@available(macOS 14.0, *)) {
+    AVSampleBufferVideoRenderer* renderer = _videoLayer.sampleBufferRenderer;
+    if ([renderer requiresFlushToResumeDecoding]) {
+      [renderer flushWithRemovalOfDisplayedImage:YES completionHandler:nil];
+    }
+    [renderer enqueueSampleBuffer:sampleBuffer];
+    return;
+  }
+#endif
+  if (@available(macOS 11.0, *)) {
+    if ([_videoLayer requiresFlushToResumeDecoding]) {
+      [_videoLayer flushAndRemoveImage];
+    }
+  }
+#endif
+  [_videoLayer enqueueSampleBuffer:sampleBuffer];
+}
+
+- (void)updateVideoLayerTransformForRotation:(RTCVideoRotation)rotation {
+  if (_lastVideoRotation != rotation) {
+    CATransform3D transform = [self fromFrameRotation:rotation];
+    _lastVideoRotation = rotation;
+
+    if ([NSThread isMainThread]) {
+      _videoLayer.transform = transform;
+    } else {
+      dispatch_sync(dispatch_get_main_queue(), ^{
+        self->_videoLayer.transform = transform;
+      });
+    }
+  }
 }
 
 - (CVPixelBufferRef)toCVPixelBuffer:(RTCVideoFrame*)frame {
@@ -153,8 +195,12 @@
 
   if (sampleBuffer) {
     CFArrayRef attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, YES);
-    CFMutableDictionaryRef dict = (CFMutableDictionaryRef)CFArrayGetValueAtIndex(attachments, 0);
-    CFDictionarySetValue(dict, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue);
+    if (attachments && CFArrayGetCount(attachments) > 0) {
+      CFMutableDictionaryRef dict = (CFMutableDictionaryRef)CFArrayGetValueAtIndex(attachments, 0);
+      if (dict) {
+        CFDictionarySetValue(dict, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue);
+      }
+    }
   }
   return sampleBuffer;
 }
