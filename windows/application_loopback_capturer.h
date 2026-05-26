@@ -50,7 +50,7 @@ class ApplicationLoopbackCapturer : public LoopbackCapturer {
   WAVEFORMATEX* mix_format_ = nullptr;
 
   // Event signalled by WASAPI when a buffer period has elapsed.
-  HANDLE buffer_ready_event_ = INVALID_HANDLE_VALUE;
+  HANDLE buffer_ready_event_ = nullptr;
 
   // Ring buffer used to decouple the WASAPI capture thread from the
   // WebRTC feeder thread.  CaptureThread writes here; FeederThread reads.

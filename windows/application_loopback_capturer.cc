@@ -124,7 +124,7 @@ bool ApplicationLoopbackCapturer::Start(
   }
 
   buffer_ready_event_ = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-  if (buffer_ready_event_ == INVALID_HANDLE_VALUE) {
+  if (buffer_ready_event_ == nullptr) {
     audio_client_->Release();
     audio_client_ = nullptr;
     return false;
@@ -137,7 +137,7 @@ bool ApplicationLoopbackCapturer::Start(
     audio_client_->Release();
     audio_client_ = nullptr;
     CloseHandle(buffer_ready_event_);
-    buffer_ready_event_ = INVALID_HANDLE_VALUE;
+    buffer_ready_event_ = nullptr;
     return false;
   }
 
@@ -148,7 +148,7 @@ bool ApplicationLoopbackCapturer::Start(
     audio_client_->Release();
     audio_client_ = nullptr;
     CloseHandle(buffer_ready_event_);
-    buffer_ready_event_ = INVALID_HANDLE_VALUE;
+    buffer_ready_event_ = nullptr;
     return false;
   }
 
@@ -161,7 +161,7 @@ bool ApplicationLoopbackCapturer::Start(
     audio_client_->Release();
     audio_client_ = nullptr;
     CloseHandle(buffer_ready_event_);
-    buffer_ready_event_ = INVALID_HANDLE_VALUE;
+    buffer_ready_event_ = nullptr;
     return false;
   }
 
@@ -196,7 +196,7 @@ void ApplicationLoopbackCapturer::Stop() {
   running_ = false;
 
   // Wake the capture thread so it can exit the WaitForSingleObject loop.
-  if (buffer_ready_event_ != INVALID_HANDLE_VALUE) {
+  if (buffer_ready_event_ != nullptr) {
     SetEvent(buffer_ready_event_);
   }
   if (capture_thread_.joinable()) {
@@ -219,9 +219,9 @@ void ApplicationLoopbackCapturer::Stop() {
     CoTaskMemFree(mix_format_);
     mix_format_ = nullptr;
   }
-  if (buffer_ready_event_ != INVALID_HANDLE_VALUE) {
+  if (buffer_ready_event_ != nullptr) {
     CloseHandle(buffer_ready_event_);
-    buffer_ready_event_ = INVALID_HANDLE_VALUE;
+    buffer_ready_event_ = nullptr;
   }
   source_ = nullptr;
   // std::cout << "[LoopbackCapturer] Capture stopped.\n";
