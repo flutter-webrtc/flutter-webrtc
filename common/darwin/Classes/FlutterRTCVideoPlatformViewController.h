@@ -10,7 +10,7 @@
 #endif
 
 @property(nonatomic, strong) NSObject<FlutterBinaryMessenger>* _Nonnull messenger;
-@property(nonatomic, strong) FlutterEventSink _Nonnull eventSink;
+@property(nonatomic, strong) FlutterEventSink _Nullable eventSink;
 @property(nonatomic) int64_t viewId;
 @property(nonatomic, strong) RTCVideoTrack* _Nullable videoTrack;
 
