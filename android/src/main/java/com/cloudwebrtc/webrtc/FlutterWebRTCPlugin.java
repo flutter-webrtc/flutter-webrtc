@@ -41,6 +41,7 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     private LifeCycleObserver observer;
     private Lifecycle lifecycle;
     private EventChannel eventChannel;
+    private FlutterRTCVideoPlatformViewFactory platformViewFactory;
 
     // eventSink is static because FlutterWebRTCPlugin can be instantiated multiple times
     // but the onListen(Object, EventChannel.EventSink) event only fires once for the first
@@ -73,6 +74,12 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
         startListening(binding.getApplicationContext(), binding.getBinaryMessenger(),
                 binding.getTextureRegistry());
+        platformViewFactory = new FlutterRTCVideoPlatformViewFactory(
+                binding.getBinaryMessenger(),
+                methodCallHandler);
+        binding.getPlatformViewRegistry().registerViewFactory(
+                FlutterRTCVideoPlatformViewFactory.VIEW_TYPE,
+                platformViewFactory);
     }
 
     @Override
@@ -130,6 +137,7 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     private void stopListening() {
         methodCallHandler.dispose();
         methodCallHandler = null;
+        platformViewFactory = null;
         methodChannel.setMethodCallHandler(null);
         eventChannel.setStreamHandler(null);
         if (AudioSwitchManager.instance != null) {

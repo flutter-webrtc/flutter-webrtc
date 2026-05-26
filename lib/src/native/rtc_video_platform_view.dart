@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -62,7 +64,7 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
             child: Transform(
               transform: Matrix4.identity()..rotateY(widget.mirror ? -pi : 0.0),
               alignment: FractionalOffset.center,
-              child: _buildNativeView(),
+              child: _buildNativeView(context),
             ),
           ),
         ),
@@ -70,7 +72,7 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
     );
   }
 
-  Widget _buildNativeView() {
+  Widget _buildNativeView(BuildContext context) {
     const viewType = 'rtc_video_platform_view';
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       return UiKitView(
@@ -88,7 +90,43 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
         creationParamsCodec: const StandardMessageCodec(),
       );
     }
-    return Text('RTCVideoPlatformView only supports iOS and macOS.');
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return IgnorePointer(
+        child: PlatformViewLink(
+          viewType: viewType,
+          surfaceFactory: (
+            BuildContext context,
+            PlatformViewController controller,
+          ) {
+            return AndroidViewSurface(
+              controller: controller as AndroidViewController,
+              gestureRecognizers: const <Factory<
+                  OneSequenceGestureRecognizer>>{},
+              hitTestBehavior: PlatformViewHitTestBehavior.opaque,
+            );
+          },
+          onCreatePlatformView: (PlatformViewCreationParams params) {
+            final AndroidViewController controller =
+                PlatformViewsService.initSurfaceAndroidView(
+              id: params.id,
+              viewType: viewType,
+              layoutDirection:
+                  Directionality.maybeOf(context) ?? TextDirection.ltr,
+              creationParams: <String, dynamic>{},
+              creationParamsCodec: const StandardMessageCodec(),
+              onFocus: () => params.onFocusChanged(true),
+            );
+            controller.addOnPlatformViewCreatedListener(
+              params.onPlatformViewCreated,
+            );
+            controller.addOnPlatformViewCreatedListener(onPlatformViewCreated);
+            controller.create();
+            return controller;
+          },
+        ),
+      );
+    }
+    return Text('RTCVideoPlatformView only supports iOS, macOS, and Android.');
   }
 
   void showVideoView(bool show) {
@@ -104,7 +142,8 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
     controller.onFirstFrameRendered = () => showVideoView(true);
     controller.onSrcObjectChange = () => showVideoView(false);
     controller.onResize = () => showVideoView(true);
+    await controller.initialize();
+    if (!mounted || _controller != controller) return;
     widget.onViewReady?.call(controller);
-    await _controller?.initialize();
   }
 }
