@@ -1,6 +1,10 @@
 
 # Changelog
 
+[Unreleased]
+
+* [Android] Migrate to built-in Kotlin: skip `kotlin-android` apply when AGP >= 9 and use the `kotlin { compilerOptions {} }` DSL. Compatible with both pre- and post-Flutter 3.44 toolchains.
+
 [1.4.1] -2026-03-24
 
 * [Dart] fixed scalabilityMode (#2022).
