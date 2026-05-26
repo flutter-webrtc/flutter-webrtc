@@ -70,32 +70,46 @@
     return;
   }
 
-  if (_lastVideoRotation != frame.rotation) {
-    _bufferTransform = [self fromFrameRotation:frame.rotation];
-    _videoLayer.transform = _bufferTransform;
-    _lastVideoRotation = frame.rotation;
-  }
-
+  RTCVideoRotation rotation = frame.rotation;
   CMSampleBufferRef sampleBuffer = [self sampleBufferFromPixelBuffer:pixelBuffer];
-  if (sampleBuffer) {
-#if TARGET_OS_IPHONE
-    if (@available(iOS 14.0, *)) {
-      if ([_videoLayer requiresFlushToResumeDecoding]) {
-        [_videoLayer flushAndRemoveImage];
-      }
-    }
-#elif TARGET_OS_OSX
-    if (@available(macOS 11.0, *)) {
-      if ([_videoLayer requiresFlushToResumeDecoding]) {
-        [_videoLayer flushAndRemoveImage];
-      }
-    }
-#endif
-    [_videoLayer enqueueSampleBuffer:sampleBuffer];
-    CFRelease(sampleBuffer);
+  CFRelease(pixelBuffer);
+
+  if (!sampleBuffer) {
+    return;
   }
 
-  CFRelease(pixelBuffer);
+  if ([NSThread isMainThread]) {
+    [self enqueueSampleBuffer:sampleBuffer rotation:rotation];
+    CFRelease(sampleBuffer);
+  } else {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self enqueueSampleBuffer:sampleBuffer rotation:rotation];
+      CFRelease(sampleBuffer);
+    });
+  }
+}
+
+- (void)enqueueSampleBuffer:(CMSampleBufferRef)sampleBuffer rotation:(RTCVideoRotation)rotation {
+  if (_lastVideoRotation != rotation) {
+    _bufferTransform = [self fromFrameRotation:rotation];
+    _videoLayer.transform = _bufferTransform;
+    _lastVideoRotation = rotation;
+  }
+
+#if TARGET_OS_IPHONE
+  if (@available(iOS 14.0, *)) {
+    if ([_videoLayer requiresFlushToResumeDecoding]) {
+      [_videoLayer flushAndRemoveImage];
+    }
+  }
+#elif TARGET_OS_OSX
+  if (@available(macOS 11.0, *)) {
+    if ([_videoLayer requiresFlushToResumeDecoding]) {
+      [_videoLayer flushAndRemoveImage];
+    }
+  }
+#endif
+  [_videoLayer enqueueSampleBuffer:sampleBuffer];
 }
 
 - (CVPixelBufferRef)toCVPixelBuffer:(RTCVideoFrame*)frame {
