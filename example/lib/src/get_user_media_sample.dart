@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 
 /*
@@ -144,17 +143,10 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       return;
     }
 
-    // album name works only for android, for ios use gallerySaver
     await _mediaRecorder?.stop();
     setState(() {
       _mediaRecorder = null;
     });
-
-    // this is only for ios, android already saves to albumName
-    await GallerySaver.saveVideo(
-      _mediaRecorderFilePath!,
-      albumName: 'FlutterWebRTC',
-    );
 
     _mediaRecorderFilePath = null;
   }
