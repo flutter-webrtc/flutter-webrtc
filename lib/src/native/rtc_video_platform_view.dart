@@ -94,7 +94,7 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
       );
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return IgnorePointer(
+      return AbsorbPointer(
         child: PlatformViewLink(
           viewType: viewType,
           surfaceFactory: (
