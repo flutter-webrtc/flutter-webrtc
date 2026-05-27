@@ -9,6 +9,10 @@
   AVSampleBufferDisplayLayer* _videoLayer;
   dispatch_queue_t _sampleBufferQueue;
   RTCVideoRotation _lastVideoRotation;
+  CVPixelBufferPoolRef _cropAndScalePixelBufferPool;
+  int _cropAndScalePixelBufferPoolWidth;
+  int _cropAndScalePixelBufferPoolHeight;
+  OSType _cropAndScalePixelBufferPoolPixelFormat;
 }
 
 - (instancetype)initWithFrame:(FlutterRTCVideoPlatformFrame)frame {
@@ -29,6 +33,13 @@
 #endif
   }
   return self;
+}
+
+- (void)dealloc {
+  if (_cropAndScalePixelBufferPool) {
+    CFRelease(_cropAndScalePixelBufferPool);
+    _cropAndScalePixelBufferPool = NULL;
+  }
 }
 
 #if TARGET_OS_IPHONE
@@ -62,8 +73,7 @@
 
   CVPixelBufferRef pixelBuffer = nil;
   if ([frame.buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
-    pixelBuffer = ((RTCCVPixelBuffer*)frame.buffer).pixelBuffer;
-    CFRetain(pixelBuffer);
+    pixelBuffer = [self pixelBufferFromRTCCVPixelBuffer:(RTCCVPixelBuffer*)frame.buffer];
   } else {
     pixelBuffer = [self toCVPixelBuffer:frame];
   }
@@ -138,6 +148,90 @@
       });
     }
   }
+}
+
+- (CVPixelBufferRef)pixelBufferFromRTCCVPixelBuffer:(RTCCVPixelBuffer*)buffer {
+  if (![buffer requiresCropping] &&
+      ![buffer requiresScalingToWidth:buffer.width height:buffer.height]) {
+    CVPixelBufferRef pixelBuffer = buffer.pixelBuffer;
+    CFRetain(pixelBuffer);
+    return pixelBuffer;
+  }
+
+  CVPixelBufferRef outputPixelBuffer = nil;
+  OSType pixelFormat = CVPixelBufferGetPixelFormatType(buffer.pixelBuffer);
+  @synchronized(self) {
+    CVPixelBufferPoolRef pixelBufferPool =
+        [self pixelBufferPoolForWidth:buffer.width height:buffer.height pixelFormat:pixelFormat];
+    if (pixelBufferPool) {
+      CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pixelBufferPool, &outputPixelBuffer);
+    }
+  }
+  if (!outputPixelBuffer) {
+    return nil;
+  }
+
+  int tempBufferSize =
+      [buffer bufferSizeForCroppingAndScalingToWidth:buffer.width height:buffer.height];
+  uint8_t* tempBuffer = nil;
+  if (tempBufferSize > 0) {
+    tempBuffer = malloc((size_t)tempBufferSize);
+    if (!tempBuffer) {
+      CFRelease(outputPixelBuffer);
+      return nil;
+    }
+  }
+
+  BOOL didCropAndScale = [buffer cropAndScaleTo:outputPixelBuffer withTempBuffer:tempBuffer];
+  if (tempBuffer) {
+    free(tempBuffer);
+  }
+  if (!didCropAndScale) {
+    CFRelease(outputPixelBuffer);
+    return nil;
+  }
+
+  return outputPixelBuffer;
+}
+
+- (CVPixelBufferPoolRef)pixelBufferPoolForWidth:(int)width
+                                         height:(int)height
+                                    pixelFormat:(OSType)pixelFormat {
+  if (_cropAndScalePixelBufferPool && _cropAndScalePixelBufferPoolWidth == width &&
+      _cropAndScalePixelBufferPoolHeight == height &&
+      _cropAndScalePixelBufferPoolPixelFormat == pixelFormat) {
+    return _cropAndScalePixelBufferPool;
+  }
+
+  NSDictionary* pixelBufferAttributes = @{
+    (id)kCVPixelBufferCGImageCompatibilityKey : @YES,
+    (id)kCVPixelBufferCGBitmapContextCompatibilityKey : @YES,
+    (id)kCVPixelBufferIOSurfacePropertiesKey : @{},
+    (id)kCVPixelBufferWidthKey : @(width),
+    (id)kCVPixelBufferHeightKey : @(height),
+    (id)kCVPixelBufferPixelFormatTypeKey : @(pixelFormat),
+  };
+  NSDictionary* poolAttributes = @{
+    (id)kCVPixelBufferPoolMinimumBufferCountKey : @4,
+  };
+
+  CVPixelBufferPoolRef pixelBufferPool = NULL;
+  CVReturn result =
+      CVPixelBufferPoolCreate(kCFAllocatorDefault, (__bridge CFDictionaryRef)poolAttributes,
+                              (__bridge CFDictionaryRef)pixelBufferAttributes, &pixelBufferPool);
+  if (result != kCVReturnSuccess) {
+    return NULL;
+  }
+
+  if (_cropAndScalePixelBufferPool) {
+    CFRelease(_cropAndScalePixelBufferPool);
+  }
+  _cropAndScalePixelBufferPool = pixelBufferPool;
+  _cropAndScalePixelBufferPoolWidth = width;
+  _cropAndScalePixelBufferPoolHeight = height;
+  _cropAndScalePixelBufferPoolPixelFormat = pixelFormat;
+
+  return _cropAndScalePixelBufferPool;
 }
 
 - (CVPixelBufferRef)toCVPixelBuffer:(RTCVideoFrame*)frame {
