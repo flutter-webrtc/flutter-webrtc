@@ -15,7 +15,7 @@ using namespace libwebrtc;
 //
 // Concrete implementations:
 //   windows/application_loopback_capturer.h  — Windows WASAPI
-//   linux/  (future)                         — PulseAudio / PipeWire
+//   linux/pipewire_loopback_capturer.h       — Linux PipeWire
 class LoopbackCapturer {
  public:
   virtual ~LoopbackCapturer() = default;
@@ -38,7 +38,7 @@ class LoopbackCapturer {
 //
 // Implemented in:
 //   windows/application_loopback_capturer.cc  — Windows WASAPI
-//   linux/loopback_capturer_factory.cc        — Linux stub (returns nullptr)
+//   linux/pipewire_loopback_capturer.cc        — Linux PipeWire
 // All other platforms: inline null implementation below.
 // ---------------------------------------------------------------------------
 namespace flutter_webrtc_plugin {
