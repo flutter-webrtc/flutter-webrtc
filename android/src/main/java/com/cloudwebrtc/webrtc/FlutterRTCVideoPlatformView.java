@@ -166,7 +166,7 @@ public class FlutterRTCVideoPlatformView implements PlatformView, EventChannel.S
             oldValue.removeSink(renderer);
         }
 
-        this.videoTrack = videoTrack;
+        this.videoTrack = null;
         resetVideoState();
 
         if (videoTrack == null) {
@@ -179,6 +179,7 @@ public class FlutterRTCVideoPlatformView implements PlatformView, EventChannel.S
         }
 
         videoTrack.addSink(renderer);
+        this.videoTrack = videoTrack;
     }
 
     public boolean checkMediaStream(String id, String ownerTag) {
