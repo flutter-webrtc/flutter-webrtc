@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_definitions(-DRTC_DESKTOP_DEVICE)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(PIPEWIRE REQUIRED pipewire-0.3)
+pkg_check_modules(PIPEWIRE REQUIRED libpipewire-0.3)
 
 add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/src/flutter_data_channel.cc"
