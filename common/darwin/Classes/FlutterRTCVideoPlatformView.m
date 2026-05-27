@@ -191,6 +191,7 @@
     return nil;
   }
 
+  CVBufferPropagateAttachments(buffer.pixelBuffer, outputPixelBuffer);
   return outputPixelBuffer;
 }
 
