@@ -246,7 +246,7 @@ void PipeWireLoopbackCapturer::OnParamChanged(void* data, uint32_t id,
   uint8_t buf[1024];
   spa_pod_builder b = SPA_POD_BUILDER_INIT(buf, sizeof(buf));
   const spa_pod* params[1] = {
-      spa_pod_builder_add_object(
+      static_cast<const spa_pod*>(spa_pod_builder_add_object(
           &b, SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
           SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(2, 2, 32),
           SPA_PARAM_BUFFERS_blocks,  SPA_POD_Int(1),
@@ -255,7 +255,7 @@ void PipeWireLoopbackCapturer::OnParamChanged(void* data, uint32_t id,
               /* default */ 4096 * 4,
               /* min */     256  * 4,
               /* max */     65536 * 4),
-          SPA_PARAM_BUFFERS_stride, SPA_POD_Int(0)),
+          SPA_PARAM_BUFFERS_stride, SPA_POD_Int(0))),
   };
   pw_stream_update_params(self->stream_, params, 1);
 }
