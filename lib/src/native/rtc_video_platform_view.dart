@@ -107,7 +107,8 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
     controller.onFirstFrameRendered = () => showVideoView(true);
     controller.onSrcObjectChange = () => showVideoView(false);
     controller.onResize = () => showVideoView(true);
+    await controller.initialize();
+    if (!mounted || _controller != controller) return;
     widget.onViewReady?.call(controller);
-    await _controller?.initialize();
   }
 }
