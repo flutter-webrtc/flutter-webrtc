@@ -237,9 +237,12 @@
 
 - (CVPixelBufferRef)toCVPixelBuffer:(RTCVideoFrame*)frame {
   CVPixelBufferRef outputPixelBuffer = nil;
-  NSDictionary* pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
-  CVPixelBufferCreate(kCFAllocatorDefault, frame.width, frame.height,
-                      kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+  NSDictionary* pixelAttributes = @{
+    (id)kCVPixelBufferCGImageCompatibilityKey : @YES,
+    (id)kCVPixelBufferCGBitmapContextCompatibilityKey : @YES,
+    (id)kCVPixelBufferIOSurfacePropertiesKey : @{},
+  };
+  CVPixelBufferCreate(kCFAllocatorDefault, frame.width, frame.height, kCVPixelFormatType_32BGRA,
                       (__bridge CFDictionaryRef)(pixelAttributes), &outputPixelBuffer);
   if (!outputPixelBuffer) {
     return nil;
@@ -248,21 +251,17 @@
   id<RTCI420Buffer> i420Buffer = [frame.buffer toI420];
 
   CVPixelBufferLockBaseAddress(outputPixelBuffer, 0);
-  uint8_t* dstY = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 0);
-  const size_t dstYStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 0);
-  uint8_t* dstUV = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 1);
-  const size_t dstUVStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 1);
+  uint8_t* dst = CVPixelBufferGetBaseAddress(outputPixelBuffer);
+  const size_t bytesPerRow = CVPixelBufferGetBytesPerRow(outputPixelBuffer);
 
-  [RTCYUVHelper I420ToNV12:i420Buffer.dataY
+  [RTCYUVHelper I420ToARGB:i420Buffer.dataY
                 srcStrideY:i420Buffer.strideY
                       srcU:i420Buffer.dataU
                 srcStrideU:i420Buffer.strideU
                       srcV:i420Buffer.dataV
                 srcStrideV:i420Buffer.strideV
-                      dstY:dstY
-                dstStrideY:(int)dstYStride
-                     dstUV:dstUV
-               dstStrideUV:(int)dstUVStride
+                   dstARGB:dst
+             dstStrideARGB:(int)bytesPerRow
                      width:i420Buffer.width
                     height:i420Buffer.height];
 
