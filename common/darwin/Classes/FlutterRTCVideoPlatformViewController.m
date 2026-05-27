@@ -57,6 +57,10 @@
 
 #pragma mark - RTCVideoRenderer methods
 - (void)renderFrame:(RTCVideoFrame*)frame {
+  if (!frame || frame.width <= 0 || frame.height <= 0) {
+    return;
+  }
+
   if (_renderSize.width != frame.width || _renderSize.height != frame.height ||
       !_isFirstFrameRendered) {
     if (self.eventSink) {
