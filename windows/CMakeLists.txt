@@ -29,6 +29,8 @@ add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/src/flutter_screen_capture.cc"
   "../common/cpp/src/flutter_webrtc.cc"
   "../common/cpp/src/flutter_webrtc_base.cc"
+  "application_loopback_capturer.cc"
+  "loopback_capturer_factory.cc"
   "flutter_webrtc_plugin.cc"
   "task_runner_windows.cc"
 )
@@ -53,6 +55,13 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
   flutter
   flutter_wrapper_plugin
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/libwebrtc.dll.lib"
+  avrt.lib
+  ksuser.lib
+  mmdevapi.lib
+  ole32.lib
+  runtimeobject.lib
+  uuid.lib
+  winmm.lib
 )
 
 # List of absolute paths to libraries that should be bundled with the plugin

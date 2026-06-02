@@ -61,7 +61,7 @@ void FlutterScreenCapture::GetDesktopSources(
     sources.push_back(EncodableValue(info));
   }
 
-  std::cout << " sources: " << sources.size() << std::endl;
+  //std::cout << " sources: " << sources.size() << std::endl;
   auto map = EncodableMap();
   map[EncodableValue("sources")] = sources;
   result->Success(EncodableValue(map));
@@ -148,6 +148,11 @@ void FlutterScreenCapture::OnPaused(
 void FlutterScreenCapture::OnStop(scoped_refptr<RTCDesktopCapturer> capturer) {
   // std::cout << " OnStop: " << capturer->source()->id().std_string()
   //          << std::endl;
+  if (loopback_capturer_) {
+    loopback_capturer_->Stop();
+    loopback_capturer_.reset();
+    loopback_audio_source_ = nullptr;
+  }
 }
 
 void FlutterScreenCapture::OnError(scoped_refptr<RTCDesktopCapturer> capturer) {
@@ -160,6 +165,8 @@ void FlutterScreenCapture::GetDesktopSourceThumbnail(
     int width,
     int height,
     std::unique_ptr<MethodResultProxy> result) {
+  (void)width;
+  (void)height;
   scoped_refptr<MediaSource> source;
   for (auto src : sources_) {
     if (src->id().std_string() == source_id) {
@@ -215,7 +222,71 @@ void FlutterScreenCapture::GetDisplayMedia(
 
   // AUDIO
 
-  params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
+  bool capture_audio = false;
+  {
+    auto audio_it = constraints.find(EncodableValue("audio"));
+    if (audio_it != constraints.end()) {
+      if (TypeIs<bool>(audio_it->second)) {
+        capture_audio = GetValue<bool>(audio_it->second);
+      } else if (TypeIs<EncodableMap>(audio_it->second)) {
+        capture_audio = true;
+      }
+    }
+  }
+
+  if (capture_audio) {
+    // Stop any previous loopback session before starting a new one.
+    if (loopback_capturer_) {
+      loopback_capturer_->Stop();
+      loopback_capturer_.reset();
+    }
+
+    // Disable all audio processing for loopback capture.  Echo cancellation,
+    // AGC, and noise suppression are designed for microphone input; applied to
+    // system audio they treat the captured content as echo/noise and destroy it.
+    RTCAudioOptions loopback_opts;
+    loopback_opts.echo_cancellation = false;
+    loopback_opts.auto_gain_control = false;
+    loopback_opts.noise_suppression = false;
+    const std::string loopback_source_label =
+      "screen_loopback_input_" + base_->GenerateUUID();
+    loopback_audio_source_ = base_->factory_->CreateAudioSource(
+      loopback_source_label.c_str(), RTCAudioSource::SourceType::kCustom,
+        loopback_opts);
+
+    std::string audio_uuid = base_->GenerateUUID();
+    scoped_refptr<RTCAudioTrack> audio_track =
+        base_->factory_->CreateAudioTrack(loopback_audio_source_,
+                                          audio_uuid.c_str());
+
+    loopback_capturer_ = CreateLoopbackCapturer(source_id);
+
+    if (loopback_capturer_ && loopback_capturer_->Start(loopback_audio_source_)) {
+      EncodableMap audio_info;
+      audio_info[EncodableValue("id")] =
+          EncodableValue(audio_track->id().std_string());
+      audio_info[EncodableValue("label")] =
+          EncodableValue(audio_track->id().std_string());
+      audio_info[EncodableValue("kind")] =
+          EncodableValue(audio_track->kind().std_string());
+      audio_info[EncodableValue("enabled")] =
+          EncodableValue(audio_track->enabled());
+
+      EncodableList audioTracks;
+      audioTracks.push_back(EncodableValue(audio_info));
+      params[EncodableValue("audioTracks")] = EncodableValue(audioTracks);
+
+      stream->AddTrack(audio_track);
+      base_->local_tracks_[audio_track->id().std_string()] = audio_track;
+    } else {
+      // Loopback init failed or not supported — continue without audio.
+      loopback_capturer_.reset();
+      loopback_audio_source_ = nullptr;
+      params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
+    }
+  } else {
+    params[EncodableValue("audioTracks")] = EncodableValue(EncodableList());
+  }
 
   // VIDEO
 
