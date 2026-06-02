@@ -1,6 +1,10 @@
 
 # Changelog
 
+[Unreleased]
+
+* [Windows/Linux] fix: Map echoCancellation/noiseSuppression/autoGainControl constraints to RTCAudioOptions so software AEC/NS/AGC can actually be toggled from Dart (#XXXX).
+
 [1.4.1] -2026-03-24
 
 * [Dart] fixed scalabilityMode (#2022).
