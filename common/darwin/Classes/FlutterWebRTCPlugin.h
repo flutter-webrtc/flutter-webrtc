@@ -63,6 +63,14 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 @property(nonatomic, strong) NSString* _Nonnull focusMode;
 @property(nonatomic, strong) NSString* _Nonnull exposureMode;
 
+@property(nonatomic, readonly) BOOL audioSessionManagementEnabled;
+
+/// Globally enable/disable Flutter WebRTC's own platform audio-session
+/// management (category/mode/focus/routing). Intended to be set once from
+/// native code (e.g. another plugin's registration) before any audio op.
+/// Defaults to YES.
++ (void)setAudioSessionManagementEnabled:(BOOL)enabled;
+
 @property(nonatomic) BOOL _usingFrontCamera;
 @property(nonatomic) NSInteger _lastTargetWidth;
 @property(nonatomic) NSInteger _lastTargetHeight;
