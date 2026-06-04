@@ -60,13 +60,13 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Install project dependencies
+        run: flutter pub get
+
       - name: Clean SPM and Derived Data Caches
         run: |
             rm -rf ~/Library/Caches/org.swift.swiftpm
             rm -rf ~/Library/Developer/Xcode/DerivedData
-
-      - name: Install project dependencies
-        run: flutter pub get
 
       - name: Build for iOS
         working-directory: ./example
@@ -97,13 +97,13 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Install project dependencies
+        run: flutter pub get
+
       - name: Clean SPM and Derived Data Caches
         run: |
             rm -rf ~/Library/Caches/org.swift.swiftpm
             rm -rf ~/Library/Developer/Xcode/DerivedData
-
-      - name: Install project dependencies
-        run: flutter pub get
 
       - name: Build for macOS
         working-directory: ./example
