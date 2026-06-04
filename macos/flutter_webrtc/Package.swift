@@ -9,6 +9,9 @@ let package = Package(
     products: [
         .library(name: "flutter-webrtc", targets: ["flutter_webrtc"])
     ],
+    dependencies: [
+        .package(name: "FlutterFramework", path: "../FlutterFramework")
+    ],
     targets: [
         .binaryTarget(
             name: "WebRTC",
@@ -17,7 +20,10 @@ let package = Package(
         ),
         .target(
             name: "flutter_webrtc",
-            dependencies: ["WebRTC"],
+            dependencies: [
+                "WebRTC",
+                .product(name: "FlutterFramework", package: "FlutterFramework")
+            ],
             cSettings: [
                 .headerSearchPath("include/flutter_webrtc")
             ],
