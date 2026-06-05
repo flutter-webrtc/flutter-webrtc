@@ -71,6 +71,14 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 /// Defaults to YES.
 + (void)setAudioSessionManagementEnabled:(BOOL)enabled;
 
+/// Register a delegate to receive the audio device module's engine-lifecycle
+/// callbacks. Intended to be set once from native code (e.g. another plugin's
+/// registration) before the peer connection factory is created, so the
+/// embedder can own audio-session policy. Held weakly — the caller must retain
+/// the delegate. When set, it takes over the audio device module's `observer`
+/// slot; when unset, the plugin's default observer behavior is unchanged.
++ (void)setAudioDeviceModuleObserver:(id<RTCAudioDeviceModuleDelegate> _Nullable)observer;
+
 @property(nonatomic) BOOL _usingFrontCamera;
 @property(nonatomic) NSInteger _lastTargetWidth;
 @property(nonatomic) NSInteger _lastTargetHeight;

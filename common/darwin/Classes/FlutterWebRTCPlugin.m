@@ -131,6 +131,12 @@ static FlutterWebRTCPlugin *sharedSingleton;
 // +setAudioSessionManagementEnabled:.
 static BOOL gAudioSessionManagementEnabled = YES;
 
+// Process-global RTCAudioDeviceModuleDelegate, set by an embedding plugin
+// (e.g. livekit_client) before the factory is created so it can own the audio
+// device module's engine-lifecycle callbacks. Held weakly — the embedder
+// retains it. See +setAudioDeviceModuleObserver:.
+static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
+
 + (FlutterWebRTCPlugin *)sharedSingleton
 {
   @synchronized(self)
@@ -141,6 +147,10 @@ static BOOL gAudioSessionManagementEnabled = YES;
 
 + (void)setAudioSessionManagementEnabled:(BOOL)enabled {
   gAudioSessionManagementEnabled = enabled;
+}
+
++ (void)setAudioDeviceModuleObserver:(id<RTCAudioDeviceModuleDelegate>)observer {
+  gAudioDeviceModuleObserver = observer;
 }
 
 - (BOOL)audioSessionManagementEnabled {
@@ -339,6 +349,13 @@ static BOOL gAudioSessionManagementEnabled = YES;
                                                              encoderFactory:simulcastFactory
                                                              decoderFactory:decoderFactory
                                                       audioProcessingModule:_audioManager.audioProcessingModule];
+
+        // Allow an embedding plugin (e.g. livekit_client) to own the audio
+        // device module's engine-lifecycle delegate. Only override the observer
+        // when one is registered, leaving default behavior unchanged otherwise.
+        if (gAudioDeviceModuleObserver != nil) {
+            _peerConnectionFactory.audioDeviceModule.observer = gAudioDeviceModuleObserver;
+        }
 
 #if TARGET_OS_OSX
         // CoreAudio ADM requires explicit device initialization on macOS
