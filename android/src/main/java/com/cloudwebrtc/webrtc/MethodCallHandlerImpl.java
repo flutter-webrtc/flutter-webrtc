@@ -115,6 +115,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   private final Map<String, MediaStream> localStreams = new HashMap<>();
   private final Map<String, LocalTrack> localTracks = new HashMap<>();
   private final LongSparseArray<FlutterRTCVideoRenderer> renders = new LongSparseArray<>();
+  private final LongSparseArray<FlutterRTCVideoPlatformView> platformViews = new LongSparseArray<>();
 
   public RecordSamplesReadyCallbackAdapter recordSamplesReadyCallbackAdapter;
 
@@ -163,6 +164,17 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     this.messenger = messenger;
   }
 
+  void registerPlatformView(long viewId, FlutterRTCVideoPlatformView view) {
+    platformViews.put(viewId, view);
+  }
+
+  void unregisterPlatformView(long viewId, FlutterRTCVideoPlatformView view) {
+    FlutterRTCVideoPlatformView currentView = platformViews.get(viewId);
+    if (currentView == view) {
+      platformViews.delete(viewId);
+    }
+  }
+
   static private void resultError(String method, String error, Result result) {
     String errorMsg = method + "(): " + error;
     result.error(method, errorMsg, null);
@@ -170,6 +182,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   void dispose() {
+    for (int i = platformViews.size() - 1; i >= 0; i--) {
+      platformViews.valueAt(i).dispose();
+    }
+    platformViews.clear();
+
     for (final MediaStream mediaStream : localStreams.values()) {
       try {
         streamDispose(mediaStream);
@@ -723,16 +740,39 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           resultError("videoRendererSetSrcObject", "render [" + textureId + "] not found !", result);
           return;
         }
-        MediaStream stream = null;
-        if (ownerTag.equals("local")) {
-          stream = localStreams.get(streamId);
-        } else {
-          stream = getStreamForId(streamId, ownerTag);
-        }
+        MediaStream stream = getStreamForRenderer(streamId, ownerTag);
         if (trackId != null && !trackId.equals("0")){
           render.setStream(stream, trackId, ownerTag);
         } else {
           render.setStream(stream, ownerTag);
+        }
+        result.success(null);
+        break;
+      }
+      case "videoPlatformViewRendererSetSrcObject": {
+        int viewId = call.argument("viewId");
+        String streamId = call.argument("streamId");
+        String ownerTag = call.argument("ownerTag");
+        String trackId = call.argument("trackId");
+        FlutterRTCVideoPlatformView render = platformViews.get(viewId);
+        if (render == null) {
+          resultError("videoPlatformViewRendererSetSrcObject", "render [" + viewId + "] not found !", result);
+          return;
+        }
+        MediaStream stream = getStreamForRenderer(streamId, ownerTag);
+        if (trackId != null && !trackId.equals("0")){
+          render.setStream(stream, trackId, ownerTag);
+        } else {
+          render.setStream(stream, ownerTag);
+        }
+        result.success(null);
+        break;
+      }
+      case "videoPlatformViewRendererDispose": {
+        int viewId = call.argument("viewId");
+        FlutterRTCVideoPlatformView render = platformViews.get(viewId);
+        if (render != null) {
+          render.dispose();
         }
         result.success(null);
         break;
@@ -2184,6 +2224,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         renderer.setStream(null, "");
       }
     }
+    for (int i = 0; i < platformViews.size(); i++) {
+      FlutterRTCVideoPlatformView renderer = platformViews.valueAt(i);
+      if (renderer.checkMediaStream(streamId, "local")) {
+        renderer.setStream(null, "");
+      }
+    }
   }
 
   private void removeTrackForRendererById(String trackId) {
@@ -2193,6 +2239,22 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         renderer.setStream(null, null);
       }
     }
+    for (int i = 0; i < platformViews.size(); i++) {
+      FlutterRTCVideoPlatformView renderer = platformViews.valueAt(i);
+      if (renderer.checkVideoTrack(trackId, "local")) {
+        renderer.setStream(null, null);
+      }
+    }
+  }
+
+  private MediaStream getStreamForRenderer(String streamId, String ownerTag) {
+    if (streamId == null || streamId.length() == 0) {
+      return null;
+    }
+    if ("local".equals(ownerTag)) {
+      return localStreams.get(streamId);
+    }
+    return getStreamForId(streamId, ownerTag == null ? "" : ownerTag);
   }
 
   private Severity str2LogSeverity(String severity) {
