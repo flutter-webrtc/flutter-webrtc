@@ -128,12 +128,35 @@ void postEvent(FlutterEventSink _Nullable sink, id _Nullable event) {
 
 static FlutterWebRTCPlugin *sharedSingleton;
 
+// Process-global so it can be set from native code (e.g. another plugin) before
+// this plugin is even registered. Defaults to enabled. See
+// +setAudioSessionManagementEnabled:.
+static BOOL gAudioSessionManagementEnabled = YES;
+
+// Process-global RTCAudioDeviceModuleDelegate, set by an embedding plugin
+// (e.g. livekit_client) before the factory is created so it can own the audio
+// device module's engine-lifecycle callbacks. Held weakly — the embedder
+// retains it. See +setAudioDeviceModuleObserver:.
+static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
+
 + (FlutterWebRTCPlugin *)sharedSingleton
 {
   @synchronized(self)
   {
     return sharedSingleton;
   }
+}
+
++ (void)setAudioSessionManagementEnabled:(BOOL)enabled {
+  gAudioSessionManagementEnabled = enabled;
+}
+
++ (void)setAudioDeviceModuleObserver:(id<RTCAudioDeviceModuleDelegate>)observer {
+  gAudioDeviceModuleObserver = observer;
+}
+
+- (BOOL)audioSessionManagementEnabled {
+  return gAudioSessionManagementEnabled;
 }
 
 @synthesize messenger = _messenger;
@@ -330,6 +353,13 @@ static FlutterWebRTCPlugin *sharedSingleton;
                                                              encoderFactory:simulcastFactory
                                                              decoderFactory:decoderFactory
                                                       audioProcessingModule:_audioManager.audioProcessingModule];
+
+        // Allow an embedding plugin (e.g. livekit_client) to own the audio
+        // device module's engine-lifecycle delegate. Only override the observer
+        // when one is registered, leaving default behavior unchanged otherwise.
+        if (gAudioDeviceModuleObserver != nil) {
+            _peerConnectionFactory.audioDeviceModule.observer = gAudioDeviceModuleObserver;
+        }
 
 #if TARGET_OS_OSX
         // CoreAudio ADM requires explicit device initialization on macOS
@@ -1138,8 +1168,10 @@ static FlutterWebRTCPlugin *sharedSingleton;
     NSNumber* enable = argsMap[@"enable"];
     _speakerOn = enable.boolValue;
     _speakerOnButPreferBluetooth = NO;
-    [AudioUtils setSpeakerphoneOn:_speakerOn];
-    postEvent(self.eventSink, @{@"event" : @"onDeviceChange"});
+    if (self.audioSessionManagementEnabled) {
+      [AudioUtils setSpeakerphoneOn:_speakerOn];
+      postEvent(self.eventSink, @{@"event" : @"onDeviceChange"});
+    }
     result(nil);
   }
   else if ([@"ensureAudioSession" isEqualToString:call.method]) {
@@ -1149,13 +1181,17 @@ static FlutterWebRTCPlugin *sharedSingleton;
   else if ([@"enableSpeakerphoneButPreferBluetooth" isEqualToString:call.method]) {
     _speakerOn = YES;
     _speakerOnButPreferBluetooth = YES;
-    [AudioUtils setSpeakerphoneOnButPreferBluetooth];
+    if (self.audioSessionManagementEnabled) {
+      [AudioUtils setSpeakerphoneOnButPreferBluetooth];
+    }
     result(nil);
   }
   else if([@"setAppleAudioConfiguration" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSDictionary* configuration = argsMap[@"configuration"];
-    [AudioUtils setAppleAudioConfiguration:configuration];
+    if (self.audioSessionManagementEnabled) {
+      [AudioUtils setAppleAudioConfiguration:configuration];
+    }
     result(nil);
   }
 #endif
@@ -1747,12 +1783,18 @@ static FlutterWebRTCPlugin *sharedSingleton;
 
 - (void)ensureAudioSession {
 #if TARGET_OS_IPHONE
+  if (!self.audioSessionManagementEnabled) {
+    return;
+  }
   [AudioUtils ensureAudioSessionWithRecording:[self hasLocalAudioTrack]];
 #endif
 }
 
 - (void)deactiveRtcAudioSession {
 #if TARGET_OS_IPHONE
+  if (!self.audioSessionManagementEnabled) {
+    return;
+  }
   if (![self hasLocalAudioTrack] && self.peerConnections.count == 0) {
     [AudioUtils deactiveRtcAudioSession];
   }

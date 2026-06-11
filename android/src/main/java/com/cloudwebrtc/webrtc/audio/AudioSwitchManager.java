@@ -55,6 +55,14 @@ public class AudioSwitchManager {
     private AudioSwitch audioSwitch;
 
     /**
+     * When false, FlutterWebRTC will not create AudioSwitch or mutate Android audio mode,
+     * focus, or routing. Process-global and intended to be set once from native code (e.g.
+     * another plugin) before any audio op; defaults to enabled. See
+     * {@link #setAudioSessionManagementEnabled(boolean)}.
+     */
+    private static boolean audioSessionManagementEnabled = true;
+
+    /**
      * When true, AudioSwitchManager will request audio focus on start and abandon on stop.
      * <br />
      * Defaults to true.
@@ -130,41 +138,46 @@ public class AudioSwitchManager {
         preferredDeviceList.add(AudioDevice.WiredHeadset.class);
         preferredDeviceList.add(AudioDevice.Speakerphone.class);
         preferredDeviceList.add(AudioDevice.Earpiece.class);
-        initAudioSwitch();
     }
 
-    private void initAudioSwitch() {
-        if (audioSwitch == null) {
-            handler.removeCallbacksAndMessages(null);
-            handler.postAtFrontOfQueue(() -> {
-                audioSwitch = new AudioSwitch(
-                        context,
-                        loggingEnabled,
-                        audioFocusChangeListener,
-                        preferredDeviceList
-                );
-                audioSwitch.setManageAudioFocus(manageAudioFocus);
-                audioSwitch.setFocusMode(focusMode);
-                audioSwitch.setAudioMode(audioMode);
-                audioSwitch.setAudioStreamType(audioStreamType);
-                audioSwitch.setAudioAttributeContentType(audioAttributeContentType);
-                audioSwitch.setAudioAttributeUsageType(audioAttributeUsageType);
-                audioSwitch.setForceHandleAudioRouting(forceHandleAudioRouting);
-                audioSwitch.start(audioDeviceChangeListener);
-            });
+    @Nullable
+    private AudioSwitch getOrCreateAudioSwitch() {
+        if (!audioSessionManagementEnabled) {
+            return null;
         }
+
+        if (audioSwitch == null) {
+            audioSwitch = new AudioSwitch(
+                    context,
+                    loggingEnabled,
+                    audioFocusChangeListener,
+                    preferredDeviceList
+            );
+            audioSwitch.setManageAudioFocus(manageAudioFocus);
+            audioSwitch.setFocusMode(focusMode);
+            audioSwitch.setAudioMode(audioMode);
+            audioSwitch.setAudioStreamType(audioStreamType);
+            audioSwitch.setAudioAttributeContentType(audioAttributeContentType);
+            audioSwitch.setAudioAttributeUsageType(audioAttributeUsageType);
+            audioSwitch.setForceHandleAudioRouting(forceHandleAudioRouting);
+            audioSwitch.start(audioDeviceChangeListener);
+        }
+
+        return audioSwitch;
     }
 
     public void start() {
-        if (audioSwitch != null) {
-            handler.removeCallbacksAndMessages(null);
-            handler.postAtFrontOfQueue(() -> {
-                if (!isActive) {
-                    Objects.requireNonNull(audioSwitch).activate();
-                    isActive = true;
-                }
-            });
+        if (!audioSessionManagementEnabled) {
+            return;
         }
+        handler.removeCallbacksAndMessages(null);
+        handler.postAtFrontOfQueue(() -> {
+            AudioSwitch audioSwitch = getOrCreateAudioSwitch();
+            if (audioSwitch != null && !isActive) {
+                audioSwitch.activate();
+                isActive = true;
+            }
+        });
     }
 
     public void stop() {
@@ -179,23 +192,38 @@ public class AudioSwitchManager {
         }
     }
 
+    public static void setAudioSessionManagementEnabled(boolean enabled) {
+        audioSessionManagementEnabled = enabled;
+    }
+
     public void setMicrophoneMute(boolean mute) {
         audioManager.setMicrophoneMute(mute);
     }
 
     @Nullable
     public AudioDevice selectedAudioDevice() {
-        return Objects.requireNonNull(audioSwitch).getSelectedAudioDevice();
+        AudioSwitch audioSwitch = getOrCreateAudioSwitch();
+        return audioSwitch == null ? null : audioSwitch.getSelectedAudioDevice();
     }
 
     @NonNull
     public List<AudioDevice> availableAudioDevices() {
-        return Objects.requireNonNull(audioSwitch).getAvailableAudioDevices();
+        AudioSwitch audioSwitch = getOrCreateAudioSwitch();
+        return audioSwitch == null ? new ArrayList<>() : audioSwitch.getAvailableAudioDevices();
     }
 
     public void selectAudioOutput(@NonNull Class<? extends AudioDevice> audioDeviceClass) {
+        if (!audioSessionManagementEnabled) {
+            return;
+        }
+
         handler.post(() -> {
-            List<AudioDevice> devices = availableAudioDevices();
+            AudioSwitch audioSwitch = getOrCreateAudioSwitch();
+            if (audioSwitch == null) {
+                return;
+            }
+
+            List<AudioDevice> devices = audioSwitch.getAvailableAudioDevices();
             AudioDevice audioDevice = null;
             for (AudioDevice device : devices) {
                 if (device.getClass().equals(audioDeviceClass)) {
@@ -204,12 +232,16 @@ public class AudioSwitchManager {
                 }
             }
             if (audioDevice != null) {
-                Objects.requireNonNull(audioSwitch).selectDevice(audioDevice);
+                audioSwitch.selectDevice(audioDevice);
             }
         });
     }
 
     private void updatePreferredDeviceList(boolean speakerOn) {
+        if (!audioSessionManagementEnabled) {
+            return;
+        }
+
         preferredDeviceList = new ArrayList<>();
         preferredDeviceList.add(AudioDevice.BluetoothHeadset.class);
         preferredDeviceList.add(AudioDevice.WiredHeadset.class);
@@ -221,11 +253,18 @@ public class AudioSwitchManager {
             preferredDeviceList.add(AudioDevice.Speakerphone.class);
         }
         handler.post(() -> {
-            Objects.requireNonNull(audioSwitch).setPreferredDeviceList(preferredDeviceList);
+            AudioSwitch audioSwitch = getOrCreateAudioSwitch();
+            if (audioSwitch != null) {
+                audioSwitch.setPreferredDeviceList(preferredDeviceList);
+            }
         });
     }
 
     public void enableSpeakerphone(boolean enable) {
+        if (!audioSessionManagementEnabled) {
+            return;
+        }
+
         updatePreferredDeviceList(enable);
         if (enable) {
             selectAudioOutput(AudioDevice.Speakerphone.class);
@@ -248,13 +287,20 @@ public class AudioSwitchManager {
                 selectAudioOutput(audioDevice.getClass());
             } else {
                 handler.post(() -> {
-                    Objects.requireNonNull(audioSwitch).selectDevice(null);
+                    AudioSwitch audioSwitch = getOrCreateAudioSwitch();
+                    if (audioSwitch != null) {
+                        audioSwitch.selectDevice(null);
+                    }
                 });
             }
         }
     }
 
     public void enableSpeakerButPreferBluetooth() {
+        if (!audioSessionManagementEnabled) {
+            return;
+        }
+
         List<AudioDevice> devices = availableAudioDevices();
         AudioDevice audioDevice = null;
         for (AudioDevice device : devices) {
@@ -281,7 +327,7 @@ public class AudioSwitchManager {
     }
 
     public void setAudioConfiguration(Map<String, Object> configuration) {
-        if (configuration == null) {
+        if (configuration == null || !audioSessionManagementEnabled) {
             return;
         }
 
@@ -329,9 +375,11 @@ public class AudioSwitchManager {
     }
 
     public void setManageAudioFocus(@Nullable Boolean manage) {
-        if (manage != null && audioSwitch != null) {
+        if (manage != null) {
             this.manageAudioFocus = manage;
-            Objects.requireNonNull(audioSwitch).setManageAudioFocus(this.manageAudioFocus);
+            if (audioSwitch != null) {
+                audioSwitch.setManageAudioFocus(this.manageAudioFocus);
+            }
         }
     }
 
@@ -396,14 +444,16 @@ public class AudioSwitchManager {
     }
 
     public void setForceHandleAudioRouting(@Nullable Boolean force) {
-        if (force != null && audioSwitch != null) {
+        if (force != null) {
             this.forceHandleAudioRouting = force;
-            Objects.requireNonNull(audioSwitch).setForceHandleAudioRouting(this.forceHandleAudioRouting);
+            if (audioSwitch != null) {
+                audioSwitch.setForceHandleAudioRouting(this.forceHandleAudioRouting);
+            }
         }
     }
 
     public void clearCommunicationDevice() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (audioSessionManagementEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             audioManager.clearCommunicationDevice();
         }
     }
