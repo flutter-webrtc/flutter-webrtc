@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -27,10 +28,12 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
   bool _showVideoView = false;
   @override
   void dispose() {
-    _controller?.onFirstFrameRendered = null;
-    _controller?.onSrcObjectChange = null;
-    _controller?.onResize = null;
+    final controller = _controller;
+    controller?.onFirstFrameRendered = null;
+    controller?.onSrcObjectChange = null;
+    controller?.onResize = null;
     _controller = null;
+    unawaited(controller?.dispose());
     super.dispose();
   }
 
@@ -80,7 +83,15 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
         creationParamsCodec: const StandardMessageCodec(),
       );
     }
-    return Text('RTCVideoPlatformView only support for iOS.');
+    if (defaultTargetPlatform == TargetPlatform.macOS) {
+      return AppKitView(
+        viewType: viewType,
+        onPlatformViewCreated: onPlatformViewCreated,
+        creationParams: <String, dynamic>{},
+        creationParamsCodec: const StandardMessageCodec(),
+      );
+    }
+    return Text('RTCVideoPlatformView only supports iOS and macOS.');
   }
 
   void showVideoView(bool show) {
@@ -96,7 +107,8 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
     controller.onFirstFrameRendered = () => showVideoView(true);
     controller.onSrcObjectChange = () => showVideoView(false);
     controller.onResize = () => showVideoView(true);
+    await controller.initialize();
+    if (!mounted || _controller != controller) return;
     widget.onViewReady?.call(controller);
-    await _controller?.initialize();
   }
 }
