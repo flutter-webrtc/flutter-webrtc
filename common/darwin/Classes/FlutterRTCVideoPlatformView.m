@@ -136,17 +136,24 @@
 }
 
 - (void)updateVideoLayerTransformForRotation:(RTCVideoRotation)rotation {
-  if (_lastVideoRotation != rotation) {
-    CATransform3D transform = [self fromFrameRotation:rotation];
-    _lastVideoRotation = rotation;
+  if (_lastVideoRotation == rotation) {
+    return;
+  }
+  _lastVideoRotation = rotation;
 
-    if ([NSThread isMainThread]) {
-      _videoLayer.transform = transform;
-    } else {
-      dispatch_sync(dispatch_get_main_queue(), ^{
-        self->_videoLayer.transform = transform;
-      });
-    }
+  CATransform3D transform = [self fromFrameRotation:rotation];
+  // CoreAnimation derives the layer's geometry from `frame` through the
+  // active transform, so both must be applied together: updating only the
+  // transform leaves the layer with bounds computed under the old rotation
+  // until the next layout pass.
+  void (^applyRotation)(void) = ^{
+    self->_videoLayer.transform = transform;
+    [self layoutVideoLayer];
+  };
+  if ([NSThread isMainThread]) {
+    applyRotation();
+  } else {
+    dispatch_async(dispatch_get_main_queue(), applyRotation);
   }
 }
 
