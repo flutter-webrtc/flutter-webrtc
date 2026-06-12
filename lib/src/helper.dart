@@ -183,10 +183,21 @@ class Helper {
           AppleNativeAudioManagement.getAppleAudioConfigurationForMode(mode,
               preferSpeakerOutput: preferSpeakerOutput));
 
-  /// Request capture permission for Android/macOS
-  static Future<bool> requestCapturePermission() async {
+  /// Request capture permission for Android/macOS.
+  ///
+  /// When [fullScreenOnly] is true and running on Android 14+ (API 34), the
+  /// MediaProjection consent dialog only offers entire-screen capture and the
+  /// single-app option is removed (via
+  /// `MediaProjectionConfig.createConfigForDefaultDisplay()`). Has no effect on
+  /// older Android versions or on macOS. Defaults to false, which keeps the
+  /// platform's default user-choice dialog.
+  static Future<bool> requestCapturePermission(
+      {bool fullScreenOnly = false}) async {
     if (WebRTC.platformIsAndroid || WebRTC.platformIsMacOS) {
-      return await WebRTC.invokeMethod('requestCapturePermission');
+      return await WebRTC.invokeMethod(
+        'requestCapturePermission',
+        <String, dynamic>{'fullScreenOnly': fullScreenOnly},
+      );
     } else {
       throw Exception(
           'requestCapturePermission only support for Android/macOS');
