@@ -3,6 +3,8 @@
 
 [Unreleased]
 
+* [Darwin/Android] Bump WebRTC-SDK to 144.7559.09 (audio processing state v2, webrtc-sdk/webrtc#254).
+* [Windows/Linux] Bump prebuilt libwebrtc to libwebrtc.m144.7559.09.
 * [Android] Support AGP 9's built-in Kotlin: apply the Kotlin Gradle Plugin only when built-in Kotlin is inactive (AGP < 9, or AGP 9 with `android.builtInKotlin=false`), set the JVM target through the `kotlin { compilerOptions {} }` DSL when available, and fall back to the legacy `kotlinOptions` DSL for apps still on Kotlin Gradle Plugin 1.8.x.
 * [Windows/Linux] fix: Map echoCancellation/noiseSuppression/autoGainControl constraints to RTCAudioOptions so software AEC/NS/AGC can actually be toggled from Dart (#XXXX).
 

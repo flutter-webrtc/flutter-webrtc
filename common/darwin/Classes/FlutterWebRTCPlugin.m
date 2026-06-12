@@ -1736,7 +1736,7 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
       });
     } else if ([@"isVoiceProcessingEnabled" isEqualToString:call.method]) {
       RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
-      NSNumber* admResult = [NSNumber numberWithBool:adm.isVoiceProcessingEnabled];
+      NSNumber* admResult = [NSNumber numberWithBool:adm.isPlatformVoiceProcessingAllowed];
       result(admResult);
     } else if ([@"isVoiceProcessingBypassed" isEqualToString:call.method]) {
       RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
