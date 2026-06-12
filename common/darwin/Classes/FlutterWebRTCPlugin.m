@@ -231,6 +231,7 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
   self.dataCryptors = [NSMutableDictionary new];
   self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
+  self.customVideoCapturers = [NSMutableDictionary new];
   self.recorders = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
   self.focusMode = @"locked";
@@ -477,6 +478,12 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
                                message:@"Not supported on iOS"
                                details:nil]);
 #endif
+  } else if ([@"createCustomVideoTrack" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    [self createCustomVideoTrack:argsMap result:result];
+  } else if ([@"customVideoSourceCommand" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    [self customVideoSourceCommand:argsMap result:result];
   } else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
     [self createLocalMediaStream:result];
   } else if ([@"getSources" isEqualToString:call.method]) {

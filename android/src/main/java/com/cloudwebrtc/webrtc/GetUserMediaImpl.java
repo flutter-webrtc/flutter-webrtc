@@ -50,6 +50,9 @@ import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
 import com.cloudwebrtc.webrtc.video.LocalVideoTrack;
 import com.cloudwebrtc.webrtc.video.VideoCapturerInfo;
+import com.cloudwebrtc.webrtc.video.custom.CustomVideoCapturer;
+import com.cloudwebrtc.webrtc.video.custom.CustomVideoCapturerFactory;
+import com.cloudwebrtc.webrtc.video.custom.CustomVideoSourceRegistry;
 
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
@@ -80,6 +83,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.flutter.plugin.common.MethodChannel.Result;
 
@@ -107,6 +111,7 @@ public class GetUserMediaImpl {
 
     private final Map<String, VideoCapturerInfoEx> mVideoCapturers = new HashMap<>();
     private final Map<String, SurfaceTextureHelper> mSurfaceTextureHelpers = new HashMap<>();
+    private final Map<String, CustomVideoCapturer> mCustomVideoCapturers = new ConcurrentHashMap<>();
     private final StateProvider stateProvider;
     private final Context applicationContext;
 
@@ -617,6 +622,138 @@ public class GetUserMediaImpl {
     }
 
     /**
+     * Creates a local video track fed by an application-registered {@link CustomVideoCapturer}
+     * (see {@link CustomVideoSourceRegistry}), following the same pipeline as the camera path.
+     */
+    void createCustomVideoTrack(ConstraintsMap constraintsMap, Result result) {
+        String sourceType = constraintsMap.getString("sourceType");
+        if (sourceType == null) {
+            resultError("createCustomVideoTrack", "sourceType is required", result);
+            return;
+        }
+
+        CustomVideoCapturerFactory factory = CustomVideoSourceRegistry.get(sourceType);
+        if (factory == null) {
+            result.error(
+                    "CustomVideoSourceNotRegistered",
+                    "createCustomVideoTrack(): no factory registered for sourceType: " + sourceType,
+                    null);
+            return;
+        }
+
+        int width = constraintsMap.hasKey("width") ? constraintsMap.getInt("width") : DEFAULT_WIDTH;
+        int height = constraintsMap.hasKey("height") ? constraintsMap.getInt("height") : DEFAULT_HEIGHT;
+        int fps = constraintsMap.hasKey("fps") ? constraintsMap.getInt("fps") : DEFAULT_FPS;
+        Map<String, Object> options =
+                constraintsMap.getType("options") == ObjectType.Map
+                        ? constraintsMap.getMap("options").toMap()
+                        : new HashMap<>();
+
+        CustomVideoCapturer videoCapturer = factory.create(applicationContext, options);
+        if (videoCapturer == null) {
+            resultError("createCustomVideoTrack",
+                    "factory returned null capturer for sourceType: " + sourceType, result);
+            return;
+        }
+
+        PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
+        String streamId = stateProvider.getNextStreamUUID();
+        MediaStream mediaStream = pcFactory.createLocalMediaStream(streamId);
+        if (mediaStream == null) {
+            resultError("createCustomVideoTrack", "Failed to create new media stream", result);
+            return;
+        }
+
+        VideoSource videoSource = pcFactory.createVideoSource(false);
+        String threadName = Thread.currentThread().getName() + "_texture_custom_thread";
+        SurfaceTextureHelper surfaceTextureHelper =
+                SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
+
+        if (surfaceTextureHelper == null) {
+            resultError("createCustomVideoTrack", "surfaceTextureHelper is null", result);
+            return;
+        }
+
+        videoCapturer.initialize(
+                surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
+
+        VideoCapturerInfoEx info = new VideoCapturerInfoEx();
+        info.width = width;
+        info.height = height;
+        info.fps = fps;
+        info.capturer = videoCapturer;
+
+        videoCapturer.startCapture(width, height, fps);
+        Log.d(TAG, "CustomVideoCapturer(" + sourceType + ").startCapture: " + width + "x" + height + "@" + fps);
+
+        String trackId = stateProvider.getNextTrackUUID();
+        mVideoCapturers.put(trackId, info);
+        mSurfaceTextureHelpers.put(trackId, surfaceTextureHelper);
+        mCustomVideoCapturers.put(trackId, videoCapturer);
+
+        VideoTrack track = pcFactory.createVideoTrack(trackId, videoSource);
+        mediaStream.addTrack(track);
+
+        LocalVideoTrack localVideoTrack = new LocalVideoTrack(track);
+        videoSource.setVideoProcessor(localVideoTrack);
+
+        stateProvider.putLocalTrack(track.id(), localVideoTrack);
+
+        ConstraintsMap trackParams = new ConstraintsMap();
+        trackParams.putBoolean("enabled", track.enabled());
+        trackParams.putString("id", track.id());
+        trackParams.putString("kind", "video");
+        trackParams.putString("label", track.id());
+        trackParams.putString("readyState", track.state().toString());
+        trackParams.putBoolean("remote", false);
+
+        ConstraintsMap settings = new ConstraintsMap();
+        settings.putString("deviceId", sourceType);
+        settings.putString("kind", "videoinput");
+        settings.putInt("width", width);
+        settings.putInt("height", height);
+        settings.putInt("frameRate", fps);
+        trackParams.putMap("settings", settings.toMap());
+
+        Log.d(TAG, "MediaStream id: " + streamId);
+        stateProvider.putLocalStream(streamId, mediaStream);
+
+        ConstraintsArray audioTracks = new ConstraintsArray();
+        ConstraintsArray videoTracks = new ConstraintsArray();
+        videoTracks.pushMap(trackParams);
+
+        ConstraintsMap successResult = new ConstraintsMap();
+        successResult.putString("streamId", streamId);
+        successResult.putArray("audioTracks", audioTracks.toArrayList());
+        successResult.putArray("videoTracks", videoTracks.toArrayList());
+        result.success(successResult.toMap());
+    }
+
+    void customVideoSourceCommand(
+            String trackId, String command, @Nullable Map<String, Object> args, Result result) {
+        CustomVideoCapturer capturer = mCustomVideoCapturers.get(trackId);
+        if (capturer == null) {
+            result.error(
+                    "CustomVideoSourceUnknownTrack",
+                    "customVideoSourceCommand(): no custom video capturer for trackId: " + trackId,
+                    null);
+            return;
+        }
+        try {
+            // Runs on the method-channel caller thread; off-loading heavy work
+            // is the capturer implementation's responsibility.
+            result.success(capturer.handleCommand(command, args));
+        } catch (UnsupportedOperationException e) {
+            result.error(
+                    "CustomVideoSourceCommandUnsupported",
+                    "customVideoSourceCommand(): unsupported command: " + command,
+                    null);
+        } catch (Exception e) {
+            resultError("customVideoSourceCommand", e.getMessage(), result);
+        }
+    }
+
+    /**
      * Implements {@code getUserMedia} with the knowledge that the necessary permissions have already
      * been granted. If the necessary permissions have not been granted yet, they will NOT be
      * requested.
@@ -998,6 +1135,7 @@ public class GetUserMediaImpl {
             } finally {
                 info.capturer.dispose();
                 mVideoCapturers.remove(id);
+                mCustomVideoCapturers.remove(id);
                 SurfaceTextureHelper helper = mSurfaceTextureHelpers.get(id);
                 if (helper != null) {
                     helper.stopListening();

@@ -7,6 +7,7 @@
 #import <Foundation/Foundation.h>
 #import <WebRTC/WebRTC.h>
 #import "LocalTrack.h"
+#import "FlutterRTCCustomVideoSource.h"
 
 @class FlutterRTCVideoRenderer;
 @class FlutterRTCFrameCapturer;
@@ -41,6 +42,12 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 @property(nonatomic, strong) NSMutableDictionary<NSNumber*, FlutterRTCMediaRecorder*>* _Nonnull recorders;
 @property(nonatomic, strong)
     NSMutableDictionary<NSString*, CapturerStopHandler>* _Nullable videoCapturerStopHandlers;
+
+/// Custom video capturers created via `createCustomVideoTrack`, keyed by
+/// trackId. Used to route `customVideoSourceCommand` calls and cleaned up by
+/// the capturer stop handler registered in `videoCapturerStopHandlers`.
+@property(nonatomic, strong)
+    NSMutableDictionary<NSString*, id<FlutterRTCCustomVideoCapturer>>* _Nullable customVideoCapturers;
 
 @property(nonatomic, strong)
     NSMutableDictionary<NSString*, RTCFrameCryptor*>* _Nullable frameCryptors;

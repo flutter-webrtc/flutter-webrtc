@@ -9,6 +9,10 @@
 
 - (void)getUserMedia:(nonnull NSDictionary*)constraints result:(nonnull FlutterResult)result;
 
+- (void)createCustomVideoTrack:(nonnull NSDictionary*)args result:(nonnull FlutterResult)result;
+
+- (void)customVideoSourceCommand:(nonnull NSDictionary*)args result:(nonnull FlutterResult)result;
+
 - (void)createLocalMediaStream:(nonnull FlutterResult)result;
 
 - (void)getSources:(nonnull FlutterResult)result;

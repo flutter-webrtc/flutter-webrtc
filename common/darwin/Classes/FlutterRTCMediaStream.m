@@ -4,6 +4,7 @@
 #import "FlutterRTCFrameCapturer.h"
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCPeerConnection.h"
+#import "FlutterRTCCustomVideoSource.h"
 #import "VideoProcessingAdapter.h"
 #import "LocalVideoTrack.h"
 #import "LocalAudioTrack.h"
@@ -234,6 +235,138 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
                                    details:nil]);
       }
       mediaStream:mediaStream];
+}
+
+/**
+ * Creates a video track fed by an app-registered {@link FlutterRTCCustomVideoCapturer}
+ * (see {@link FlutterRTCCustomVideoSourceRegistry}) instead of a camera. The capturer
+ * pushes externally composed frames into a {@link VideoProcessingAdapter}
+ * which forwards them to the {@link RTCVideoSource}. Responds with the same
+ * stream map shape as {@code getUserMedia()}.
+ */
+- (void)createCustomVideoTrack:(NSDictionary*)args result:(FlutterResult)result {
+  NSString* sourceType =
+      [args[@"sourceType"] isKindOfClass:[NSString class]] ? args[@"sourceType"] : nil;
+  FlutterRTCCustomVideoCapturerFactory factory =
+      sourceType != nil ? [FlutterRTCCustomVideoSourceRegistry factoryForSourceType:sourceType] : nil;
+  if (!factory) {
+    result([FlutterError
+        errorWithCode:@"CustomVideoSourceNotRegistered"
+              message:[NSString stringWithFormat:@"Error: no custom video source factory "
+                                                 @"registered for sourceType '%@'!",
+                                                 sourceType]
+              details:nil]);
+    return;
+  }
+
+  int width = [args[@"width"] isKindOfClass:[NSNumber class]] ? [args[@"width"] intValue] : 1280;
+  int height = [args[@"height"] isKindOfClass:[NSNumber class]] ? [args[@"height"] intValue] : 720;
+  int fps = [args[@"fps"] isKindOfClass:[NSNumber class]] ? [args[@"fps"] intValue] : 30;
+  NSDictionary* options =
+      [args[@"options"] isKindOfClass:[NSDictionary class]] ? args[@"options"] : nil;
+
+  RTCVideoSource* videoSource = [self.peerConnectionFactory videoSource];
+  VideoProcessingAdapter* videoProcessingAdapter =
+      [[VideoProcessingAdapter alloc] initWithRTCVideoSource:videoSource];
+
+  id<FlutterRTCCustomVideoCapturer> capturer = factory(videoProcessingAdapter, options);
+  if (!capturer) {
+    result([FlutterError
+        errorWithCode:@"CustomVideoSourceNotRegistered"
+              message:[NSString stringWithFormat:@"Error: factory for sourceType '%@' "
+                                                 @"returned no capturer!",
+                                                 sourceType]
+              details:nil]);
+    return;
+  }
+
+  [capturer startCaptureWithWidth:width height:height fps:fps];
+
+  NSString* trackUUID = [[NSUUID UUID] UUIDString];
+  RTCVideoTrack* videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource
+                                                                       trackId:trackUUID];
+  LocalVideoTrack* localVideoTrack = [[LocalVideoTrack alloc] initWithTrack:videoTrack
+                                                            videoProcessing:videoProcessingAdapter];
+
+  videoTrack.settings = @{
+    @"deviceId" : sourceType,
+    @"kind" : @"videoinput",
+    @"width" : [NSNumber numberWithInt:width],
+    @"height" : [NSNumber numberWithInt:height],
+    @"frameRate" : [NSNumber numberWithInt:fps],
+  };
+
+  self.customVideoCapturers[trackUUID] = capturer;
+  __weak FlutterWebRTCPlugin* weakSelf = self;
+  self.videoCapturerStopHandlers[trackUUID] = ^(CompletionHandler handler) {
+    NSLog(@"Stop custom video capturer, trackID %@", trackUUID);
+    [capturer stopCapture];
+    [weakSelf.customVideoCapturers removeObjectForKey:trackUUID];
+    handler();
+  };
+
+  [self.localTracks setObject:localVideoTrack forKey:trackUUID];
+
+  NSString* mediaStreamId = [[NSUUID UUID] UUIDString];
+  RTCMediaStream* mediaStream =
+      [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
+  [mediaStream addVideoTrack:videoTrack];
+  self.localStreams[mediaStreamId] = mediaStream;
+
+  result(@{
+    @"streamId" : mediaStreamId,
+    @"audioTracks" : @[],
+    @"videoTracks" : @[ @{
+      @"id" : videoTrack.trackId,
+      @"kind" : videoTrack.kind,
+      @"label" : videoTrack.trackId,
+      @"enabled" : @(videoTrack.isEnabled),
+      @"remote" : @(YES),
+      @"readyState" : @"live",
+      @"settings" : videoTrack.settings
+    } ]
+  });
+}
+
+/**
+ * Routes an app-defined command to the {@link FlutterRTCCustomVideoCapturer} backing
+ * the custom video track identified by {@code trackId}.
+ */
+- (void)customVideoSourceCommand:(NSDictionary*)args result:(FlutterResult)result {
+  NSString* trackId = [args[@"trackId"] isKindOfClass:[NSString class]] ? args[@"trackId"] : nil;
+  NSString* command = [args[@"command"] isKindOfClass:[NSString class]] ? args[@"command"] : @"";
+  NSDictionary* commandArgs =
+      [args[@"args"] isKindOfClass:[NSDictionary class]] ? args[@"args"] : nil;
+
+  id<FlutterRTCCustomVideoCapturer> capturer =
+      trackId != nil ? self.customVideoCapturers[trackId] : nil;
+  if (!capturer) {
+    result([FlutterError
+        errorWithCode:@"CustomVideoSourceUnknownTrack"
+              message:[NSString stringWithFormat:
+                                    @"Error: no custom video capturer for trackId '%@'!", trackId]
+              details:nil]);
+    return;
+  }
+
+  NSError* error = nil;
+  id reply = [capturer handleCommand:command args:commandArgs error:&error];
+  if (error) {
+    if ([error.domain isEqualToString:FlutterRTCCustomVideoSourceErrorDomain] &&
+        error.code == FlutterRTCCustomVideoSourceErrorUnsupportedCommand) {
+      result([FlutterError
+          errorWithCode:@"CustomVideoSourceCommandUnsupported"
+                message:[NSString stringWithFormat:@"Error: command '%@' is not supported!",
+                                                   command]
+                details:nil]);
+    } else {
+      result([FlutterError errorWithCode:@"CustomVideoSourceCommandFailed"
+                                 message:error.localizedDescription
+                                 details:nil]);
+    }
+    return;
+  }
+  result(reply);
 }
 
 /**

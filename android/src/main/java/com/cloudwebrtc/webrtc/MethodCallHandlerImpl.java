@@ -1150,6 +1150,19 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         //Log.d(TAG, "no implementation for 'setLogSeverity'");
         break;
       }
+      case "createCustomVideoTrack": {
+        Map<String, Object> arguments = call.arguments();
+        ConstraintsMap constraintsMap = new ConstraintsMap(arguments);
+        getUserMediaImpl.createCustomVideoTrack(constraintsMap, result);
+        break;
+      }
+      case "customVideoSourceCommand": {
+        String trackId = call.argument("trackId");
+        String command = call.argument("command");
+        Map<String, Object> args = call.argument("args");
+        getUserMediaImpl.customVideoSourceCommand(trackId, command, args, result);
+        break;
+      }
       default:
         if(frameCryptor.handleMethodCall(call, result)) {
           break;

@@ -75,7 +75,8 @@ if (kotlinExt?.hasProperty('compilerOptions')) {
 }
 
 dependencies {
-    implementation 'io.github.webrtc-sdk:android:144.7559.09'
+    // custom video source API (CustomVideoCapturer) exposes org.webrtc types, so expose webrtc-sdk transitively via `api`
+    api 'io.github.webrtc-sdk:android:144.7559.09'
     implementation 'com.github.davidliu:audioswitch:039a35aefab7747c557242fa216c9ea11743b604'
     implementation 'androidx.annotation:annotation:1.1.0'
 }
