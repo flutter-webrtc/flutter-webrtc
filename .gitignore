@@ -29,4 +29,8 @@ migrate_working_dir/
 .flutter-plugins
 .flutter-plugins-dependencies
 build/
-third_party/
+# Prebuilt libwebrtc artifacts fetched at configure time (see
+# third_party/CMakeLists.txt). The checked-in source under third_party/
+# (CMakeLists.txt, libwebrtc_version.ini, svpng/) is published with the package.
+third_party/downloads/
+third_party/libwebrtc/
