@@ -102,9 +102,26 @@ public class SurfaceTextureRenderer extends EglRenderer {
       producer.setSize(frame.getRotatedWidth(),frame.getRotatedHeight());
       surface = producer.getSurface();
       createEglSurface(surface);
+    } else if (frameSizeChanged(frame)) {
+      // The producer's backing buffers are fixed-size: setSize() only takes
+      // effect for a Surface obtained afterwards. Without recreating the EGL
+      // surface here, a simulcast layer upgrade keeps rendering into the old
+      // low-resolution buffer and the video stays blurry.
+      releaseEglSurface(() -> {});
+      producer.setSize(frame.getRotatedWidth(), frame.getRotatedHeight());
+      surface = producer.getSurface();
+      createEglSurface(surface);
     }
     updateFrameDimensionsAndReportEvents(frame);
     super.onFrame(frame);
+  }
+
+  private boolean frameSizeChanged(VideoFrame frame) {
+    synchronized (layoutLock) {
+      return !isRenderingPaused
+          && (rotatedFrameWidth != frame.getRotatedWidth()
+              || rotatedFrameHeight != frame.getRotatedHeight());
+    }
   }
 
   private Surface surface = null;
@@ -158,7 +175,6 @@ public class SurfaceTextureRenderer extends EglRenderer {
         }
         rotatedFrameWidth = frame.getRotatedWidth();
         rotatedFrameHeight = frame.getRotatedHeight();
-        producer.setSize(rotatedFrameWidth, rotatedFrameHeight);
         frameRotation = frame.getRotation();
       }
     }
