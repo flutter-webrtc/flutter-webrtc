@@ -331,22 +331,19 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
         VideoEncoderFactorySimulcast* simulcastFactory =
             [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
 
-        // macOS Screen Share Audio Crash Fix:
-        // Use CoreAudio ADM (value 0) instead of AVAudioEngine (RTCAudioDeviceModuleTypeAudioEngine)
-        // AVAudioEngine crashes when screen share audio and microphone coexist due to
-        // format conflicts in AVAudioIONodeImpl::SetOutputFormat
-        // See: https://github.com/flutter-webrtc/flutter-webrtc/issues/1986
+        // Use the AVAudioEngine audio device module on both iOS and macOS.
         //
-        // Initializing the Audio Device Module Type with 0 leads to a crash on iOS
-        // in case NSMicrophoneUsageDescription is missing in Info.plist file
-        // (consumer/viewer only stream without microphone)
-        // this condition uses AVAudioEngine for iOS while preserving the fix above for macOS
-        // See: https://github.com/flutter-webrtc/flutter-webrtc/issues/2007
-#if TARGET_OS_IPHONE
+        // macOS previously used the CoreAudio ADM (value 0) to avoid an
+        // AVAudioIONodeImpl::SetOutputFormat sample-rate assertion when the
+        // microphone toggled during screen share (#1986, #1990). That crash
+        // predates the audio engine stability fixes shipped in WebRTC-SDK
+        // 144.7559.04+ (webrtc-sdk/webrtc#228: guarded connect:to:format:,
+        // state-based voice-processing checks, engine recreate ordering).
+        // The AudioEngine ADM enables platform voice processing (Apple
+        // AEC/NS/AGC) and the audio processing options API on macOS.
+        // iOS also requires the AudioEngine ADM because the CoreAudio ADM
+        // crashes when NSMicrophoneUsageDescription is absent (#2007, #2009).
         RTCAudioDeviceModuleType audioDeviceModuleType = RTCAudioDeviceModuleTypeAudioEngine;
-#else
-        RTCAudioDeviceModuleType audioDeviceModuleType = 0;
-#endif
         _peerConnectionFactory =
             [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:audioDeviceModuleType
                                                       bypassVoiceProcessing:bypassVoiceProcessing
