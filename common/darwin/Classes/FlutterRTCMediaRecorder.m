@@ -5,6 +5,21 @@
 
 @import AVFoundation;
 
+// Map the capture rotation — already carried by every RTCVideoFrame, the same
+// RTCVideoRotation the live RTP path consumes — to the AVAssetWriterInput
+// display transform, so portrait recordings are written upright instead of
+// sideways. Reads the real per-frame value (front/back cameras report 90 vs
+// 270), so it is correct for selfie and rear recording alike.
+static CGAffineTransform RTCVideoRotationToCGAffineTransform(RTCVideoRotation rotation) {
+    switch (rotation) {
+        case RTCVideoRotation_90:  return CGAffineTransformMakeRotation(M_PI_2);
+        case RTCVideoRotation_180: return CGAffineTransformMakeRotation(M_PI);
+        case RTCVideoRotation_270: return CGAffineTransformMakeRotation(-M_PI_2);
+        case RTCVideoRotation_0:
+        default:                   return CGAffineTransformIdentity;
+    }
+}
+
 @implementation FlutterRTCMediaRecorder {
     int framesCount;
     bool isInitialized;
@@ -29,7 +44,7 @@
     return self;
 }
 
-- (void)initialize:(CGSize)size {
+- (void)initialize:(CGSize)size rotation:(RTCVideoRotation)rotation {
     _renderSize = size;
     NSDictionary *videoSettings = @{
         AVVideoCompressionPropertiesKey: @{AVVideoAverageBitRateKey: @(6*1024*1024)},
@@ -42,6 +57,11 @@
                outputSettings:videoSettings];
     self.writerInput.expectsMediaDataInRealTime = true;
     self.writerInput.mediaTimeScale = 30;
+    // Keep the raw buffer dimensions and express orientation via the display
+    // transform (the Apple-native pattern); do NOT also swap width/height or it
+    // would double-rotate. Set once, before -startWriting, from the first
+    // frame's rotation.
+    self.writerInput.transform = RTCVideoRotationToCGAffineTransform(rotation);
 
     if (_audioSink != nil) {
         AudioChannelLayout acl;
@@ -95,7 +115,7 @@
         return;
     }
     if (!isInitialized) {
-        [self initialize:CGSizeMake((CGFloat) frame.width, (CGFloat) frame.height)];
+        [self initialize:CGSizeMake((CGFloat) frame.width, (CGFloat) frame.height) rotation:frame.rotation];
     }
     if (!self.writerInput.readyForMoreMediaData) {
         NSLog(@"Drop frame, not ready");
