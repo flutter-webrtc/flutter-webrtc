@@ -3,6 +3,7 @@
 
 [Unreleased]
 
+* [Android] chore: bump audioswitch to 039a35ae, aligning with the LiveKit Android SDK (Communication Device API support, wired headset and Bluetooth fixes).
 [1.5.0] - 2026-06-12
 
 * [iOS/macOS] feat: enable platform rendering (`RTCVideoPlatFormView`) on macOS, with a shared Darwin implementation (#2058).
