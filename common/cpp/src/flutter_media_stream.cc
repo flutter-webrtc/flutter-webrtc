@@ -237,6 +237,7 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
                                                 strRecordingGuid);
       sourceId = SanitizeDeviceIdFromAudioBuffers(strRecordingName,
                                                   strRecordingGuid);
+      base_->audio_device_->SetRecordingDevice(0);
     }
 
     char strPlayoutName[256];
