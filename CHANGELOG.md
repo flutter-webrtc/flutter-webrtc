@@ -3,8 +3,12 @@
 
 [Unreleased]
 
-* [Android] chore: bump audioswitch to 039a35ae, aligning with the LiveKit Android SDK (Communication Device API support, wired headset and Bluetooth fixes).
-* [Android] fix: recreate the texture surface when the incoming frame size changes, so simulcast layer upgrades no longer stay blurry.
+[1.5.1] - 2026-06-14
+
+* [Android] fix: recreate the texture surface when the incoming frame size changes, so simulcast layer upgrades no longer stay blurry (#2085).
+* [Android] chore: bump audioswitch to 039a35ae, aligning with the LiveKit Android SDK (Communication Device API support, wired headset and Bluetooth fixes) (#2084).
+* [Android] feat: add `fullScreenOnly` option to `requestCapturePermission` to force entire-screen capture on API 34+ (#2079).
+* [Darwin] fix: call `SetRecordingDevice(0)` when no sourceId is supplied (#2072).
 
 [1.5.0] - 2026-06-12
 
