@@ -13,6 +13,7 @@ import android.graphics.Point;
 import android.hardware.camera2.CameraManager;
 import android.media.AudioDeviceInfo;
 import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionConfig;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
@@ -100,6 +101,7 @@ public class GetUserMediaImpl {
     private static final String PROJECTION_DATA = "PROJECTION_DATA";
     private static final String RESULT_RECEIVER = "RESULT_RECEIVER";
     private static final String REQUEST_CODE = "REQUEST_CODE";
+    private static final String FULL_SCREEN_ONLY = "FULL_SCREEN_ONLY";
 
     static final String TAG = FlutterWebRTCPlugin.TAG;
 
@@ -120,6 +122,10 @@ public class GetUserMediaImpl {
 
 
     public void screenRequestPermissions(ResultReceiver resultReceiver) {
+        screenRequestPermissions(resultReceiver, false);
+    }
+
+    public void screenRequestPermissions(ResultReceiver resultReceiver, boolean fullScreenOnly) {
         mediaProjectionData = null;
         final Activity activity = stateProvider.getActivity();
         if (activity == null) {
@@ -130,6 +136,7 @@ public class GetUserMediaImpl {
         Bundle args = new Bundle();
         args.putParcelable(RESULT_RECEIVER, resultReceiver);
         args.putInt(REQUEST_CODE, CAPTURE_PERMISSION_REQUEST_CODE);
+        args.putBoolean(FULL_SCREEN_ONLY, fullScreenOnly);
 
         ScreenRequestPermissionsFragment fragment = new ScreenRequestPermissionsFragment();
         fragment.setArguments(args);
@@ -148,6 +155,10 @@ public class GetUserMediaImpl {
     }
 
     public void requestCapturePermission(final Result result) {
+        requestCapturePermission(result, false);
+    }
+
+    public void requestCapturePermission(final Result result, final boolean fullScreenOnly) {
         screenRequestPermissions(
                 new ResultReceiver(new Handler(Looper.getMainLooper())) {
                     @Override
@@ -160,7 +171,8 @@ public class GetUserMediaImpl {
                             result.success(false);
                         }
                     }
-                });
+                },
+                fullScreenOnly);
     }
 
     public static class ScreenRequestPermissionsFragment extends Fragment {
@@ -175,11 +187,12 @@ public class GetUserMediaImpl {
                 Bundle args = getArguments();
                 resultReceiver = args.getParcelable(RESULT_RECEIVER);
                 requestCode = args.getInt(REQUEST_CODE);
-                requestStart(activity, requestCode);
+                boolean fullScreenOnly = args.getBoolean(FULL_SCREEN_ONLY, false);
+                requestStart(activity, requestCode, fullScreenOnly);
             }
         }
 
-        public void requestStart(Activity activity, int requestCode) {
+        public void requestStart(Activity activity, int requestCode, boolean fullScreenOnly) {
             if (android.os.Build.VERSION.SDK_INT < minAPILevel) {
                 Log.w(
                         TAG,
@@ -188,9 +201,21 @@ public class GetUserMediaImpl {
                 MediaProjectionManager mediaProjectionManager =
                         (MediaProjectionManager) activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
+                // On Android 14+ (API 34), opt in to capturing the entire display so the
+                // consent dialog no longer offers the single-app option.
+                Intent captureIntent;
+                if (fullScreenOnly
+                        && android.os.Build.VERSION.SDK_INT
+                                >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    captureIntent =
+                            mediaProjectionManager.createScreenCaptureIntent(
+                                    MediaProjectionConfig.createConfigForDefaultDisplay());
+                } else {
+                    captureIntent = mediaProjectionManager.createScreenCaptureIntent();
+                }
+
                 // call for the projection manager
-                this.startActivityForResult(
-                        mediaProjectionManager.createScreenCaptureIntent(), requestCode);
+                this.startActivityForResult(captureIntent, requestCode);
             }
         }
 

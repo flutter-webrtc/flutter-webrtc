@@ -98,15 +98,46 @@ public class SurfaceTextureRenderer extends EglRenderer {
   // VideoSink interface.
   @Override
   public void onFrame(VideoFrame frame) {
-    if(surface == null) {
-      producer.setSize(frame.getRotatedWidth(),frame.getRotatedHeight());
-      surface = producer.getSurface();
-      createEglSurface(surface);
+    synchronized (surfaceLock) {
+      if(surface == null) {
+        producer.setSize(frame.getRotatedWidth(),frame.getRotatedHeight());
+        surface = producer.getSurface();
+        createEglSurface(surface);
+      } else if (frameSizeChanged(frame)) {
+        // The producer's backing buffers are fixed-size: setSize() only takes
+        // effect for a Surface obtained afterwards. Without recreating the EGL
+        // surface here, a simulcast layer upgrade keeps rendering into the old
+        // low-resolution buffer and the video stays blurry.
+        releaseEglSurface(() -> {});
+        // Clear the field before re-obtaining: if getSurface() throws, the
+        // next frame takes the surface == null path and recreates cleanly
+        // rather than rendering into the already-released surface.
+        surface = null;
+        producer.setSize(frame.getRotatedWidth(), frame.getRotatedHeight());
+        surface = producer.getSurface();
+        createEglSurface(surface);
+      }
     }
     updateFrameDimensionsAndReportEvents(frame);
     super.onFrame(frame);
   }
 
+  private boolean frameSizeChanged(VideoFrame frame) {
+    synchronized (layoutLock) {
+      return !isRenderingPaused
+          && (rotatedFrameWidth != frame.getRotatedWidth()
+              || rotatedFrameHeight != frame.getRotatedHeight());
+    }
+  }
+
+  // Guards surface lifecycle transitions: creation/recreation happens on the
+  // frame delivery thread while destruction arrives on the main thread via
+  // the producer's onSurfaceCleanup callback. Serializing the two prevents a
+  // frame from re-creating the EGL surface against a Surface the producer is
+  // concurrently invalidating. surfaceDestroyed() blocks on the EGL release
+  // while holding this lock; the latch is signaled by the EglRenderer render
+  // thread, which never acquires it, so the wait cannot deadlock.
+  private final Object surfaceLock = new Object();
   private Surface surface = null;
 
   private TextureRegistry.SurfaceProducer producer;
@@ -131,10 +162,12 @@ public class SurfaceTextureRenderer extends EglRenderer {
 
   public void surfaceDestroyed() {
     ThreadUtils.checkIsOnMainThread();
-    final CountDownLatch completionLatch = new CountDownLatch(1);
-    releaseEglSurface(completionLatch::countDown);
-    ThreadUtils.awaitUninterruptibly(completionLatch);
-    surface = null;
+    synchronized (surfaceLock) {
+      final CountDownLatch completionLatch = new CountDownLatch(1);
+      releaseEglSurface(completionLatch::countDown);
+      ThreadUtils.awaitUninterruptibly(completionLatch);
+      surface = null;
+    }
   }
 
   // Update frame dimensions and report any changes to |rendererEvents|.
@@ -158,7 +191,6 @@ public class SurfaceTextureRenderer extends EglRenderer {
         }
         rotatedFrameWidth = frame.getRotatedWidth();
         rotatedFrameHeight = frame.getRotatedHeight();
-        producer.setSize(rotatedFrameWidth, rotatedFrameHeight);
         frameRotation = frame.getRotation();
       }
     }
