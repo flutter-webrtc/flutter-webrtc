@@ -19,6 +19,7 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 import org.webrtc.ExternalAudioProcessingFactory;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.audio.JavaAudioDeviceModule;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
@@ -72,6 +73,10 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
 
     public PeerConnectionFactory getPeerConnectionFactory() {
         return methodCallHandler.getPeerConnectionFactory();
+    }
+
+    public JavaAudioDeviceModule getAudioDeviceModule() {
+        return methodCallHandler.getAudioDeviceModule();
     }
 
     @Override
