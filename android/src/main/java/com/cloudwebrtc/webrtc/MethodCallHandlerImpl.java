@@ -1566,6 +1566,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     return mFactory;
   }
 
+  @Nullable
+  public JavaAudioDeviceModule getAudioDeviceModule() {
+    return audioDeviceModule;
+  }
+
   @Override
   public PeerConnectionObserver getPeerConnectionObserver(String peerConnectionId) {
     return mPeerConnectionObservers.get(peerConnectionId);
