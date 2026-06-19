@@ -1566,6 +1566,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     return mFactory;
   }
 
+  @Nullable
   public JavaAudioDeviceModule getAudioDeviceModule() {
     return audioDeviceModule;
   }

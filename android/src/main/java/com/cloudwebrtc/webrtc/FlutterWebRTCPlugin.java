@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
@@ -75,8 +76,9 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         return methodCallHandler.getPeerConnectionFactory();
     }
 
+    @Nullable
     public JavaAudioDeviceModule getAudioDeviceModule() {
-        return methodCallHandler.getAudioDeviceModule();
+        return methodCallHandler == null ? null : methodCallHandler.getAudioDeviceModule();
     }
 
     @Override
