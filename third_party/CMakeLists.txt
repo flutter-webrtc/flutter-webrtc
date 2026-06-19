@@ -1,8 +1,13 @@
 include(ExternalProject)
 
+# Flutter adds plugins to example builds through .plugin_symlinks. Windows
+# CMake refuses to extract archives through that symlink path, so resolve the
+# real third_party directory before downloading or extracting libwebrtc.
+get_filename_component(LIBWEBRTC_THIRD_PARTY_DIR "${CMAKE_CURRENT_LIST_DIR}" REALPATH)
+
 # Load binary version + download URL template from libwebrtc_version.ini so
 # bumping the prebuilt release does not require editing CMake.
-set(LIBWEBRTC_VERSION_INI "${CMAKE_CURRENT_LIST_DIR}/libwebrtc_version.ini")
+set(LIBWEBRTC_VERSION_INI "${LIBWEBRTC_THIRD_PARTY_DIR}/libwebrtc_version.ini")
 if(NOT EXISTS "${LIBWEBRTC_VERSION_INI}")
   message(FATAL_ERROR "libwebrtc: missing version manifest at ${LIBWEBRTC_VERSION_INI}")
 endif()
@@ -74,7 +79,7 @@ else()
 endif()
 
 set(LIBWEBRTC_ASSET "libwebrtc-${LIBWEBRTC_OS}-${LIBWEBRTC_ARCH}-release")
-set(ZIPFILE "${CMAKE_CURRENT_LIST_DIR}/downloads/${LIBWEBRTC_ASSET}.zip")
+set(ZIPFILE "${LIBWEBRTC_THIRD_PARTY_DIR}/downloads/${LIBWEBRTC_ASSET}.zip")
 
 # Final URL = <base>/<binary_version>/<asset>.zip
 set(DOWNLOAD_URL "${LIBWEBRTC_DOWNLOAD_URL_BASE}/${LIBWEBRTC_BINARY_VERSION}/${LIBWEBRTC_ASSET}.zip")
@@ -116,6 +121,7 @@ endfunction()
 
 if(NOT EXISTS "${ZIPFILE}")
   message(NOTICE "download: ${DOWNLOAD_URL}")
+  file(MAKE_DIRECTORY "${LIBWEBRTC_THIRD_PARTY_DIR}/downloads")
   file(DOWNLOAD "${DOWNLOAD_URL}"
       ${ZIPFILE}
       STATUS download_status
@@ -125,11 +131,11 @@ if(NOT EXISTS "${ZIPFILE}")
     message(FATAL_ERROR "Failed to download dependency: ${download_log}")
   endif()
 
-  _libwebrtc_extract_and_normalize("${ZIPFILE}" "${CMAKE_CURRENT_LIST_DIR}")
+  _libwebrtc_extract_and_normalize("${ZIPFILE}" "${LIBWEBRTC_THIRD_PARTY_DIR}")
 else()
-  if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/libwebrtc")
+  if(NOT EXISTS "${LIBWEBRTC_THIRD_PARTY_DIR}/libwebrtc")
     message(NOTICE "libwebrtc directory does not exist after extraction.")
-    _libwebrtc_extract_and_normalize("${ZIPFILE}" "${CMAKE_CURRENT_LIST_DIR}")
+    _libwebrtc_extract_and_normalize("${ZIPFILE}" "${LIBWEBRTC_THIRD_PARTY_DIR}")
   endif()
   message(TRACE "libwebrtc already downloaded.")
 endif()
