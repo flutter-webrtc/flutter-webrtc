@@ -5,21 +5,36 @@ import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
 
 import org.webrtc.DataChannel;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 
 class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHandler {
 
+    private static final int MAX_BATCH_SIZE = 32;
+    private static final String BATCH_EVENT_NAME = "dataChannelEventsBatch";
+    private static final int DISPATCH_POOL_SIZE =
+            Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors()));
+    private static final ExecutorService EVENT_DISPATCH_EXECUTOR =
+            Executors.newFixedThreadPool(DISPATCH_POOL_SIZE);
+
     private final String flutterId;
     private final DataChannel dataChannel;
 
     private final EventChannel eventChannel;
-    private EventChannel.EventSink eventSink;
-    private final ArrayList eventQueue = new ArrayList();
+    private volatile EventChannel.EventSink eventSink;
+
+    private final Object queueLock = new Object();
+    private final ArrayDeque<Object> eventQueue = new ArrayDeque<>();
+    private final AtomicBoolean flushScheduled = new AtomicBoolean(false);
 
     DataChannelObserver(BinaryMessenger messenger, String peerConnectionId, String flutterId,
                         DataChannel dataChannel) {
@@ -47,17 +62,14 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     @Override
     public void onListen(Object o, EventChannel.EventSink sink) {
         eventSink = new AnyThreadSink(sink);
-        for(Object event : eventQueue) {
-            eventSink.success(event);
-        }
-        eventQueue.clear();
+        scheduleFlush();
     }
 
     @Override
     public void onCancel(Object o) {
         eventSink = null;
     }
-    
+
     @Override
     public void onBufferedAmountChange(long amount) {
         ConstraintsMap params = new ConstraintsMap();
@@ -103,10 +115,63 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     }
 
     private void sendEvent(ConstraintsMap params) {
-        if (eventSink != null) {
-            eventSink.success(params.toMap());
-        } else {
-            eventQueue.add(params.toMap());
+        enqueueEvent(params.toMap());
+    }
+
+    private void enqueueEvent(Object event) {
+        synchronized (queueLock) {
+            eventQueue.addLast(event);
+        }
+        scheduleFlush();
+    }
+
+    private void scheduleFlush() {
+        if (!flushScheduled.compareAndSet(false, true)) {
+            return;
+        }
+
+        EVENT_DISPATCH_EXECUTOR.execute(this::drainQueuedEvents);
+    }
+
+    private void drainQueuedEvents() {
+        try {
+            while (true) {
+                EventChannel.EventSink sink = eventSink;
+                if (sink == null) {
+                    return;
+                }
+
+                ArrayList<Object> batch = new ArrayList<>(MAX_BATCH_SIZE);
+                synchronized (queueLock) {
+                    while (!eventQueue.isEmpty() && batch.size() < MAX_BATCH_SIZE) {
+                        batch.add(eventQueue.removeFirst());
+                    }
+                }
+
+                if (batch.isEmpty()) {
+                    return;
+                }
+
+                if (batch.size() == 1) {
+                    sink.success(batch.get(0));
+                } else {
+                    Map<String, Object> batchEvent = new HashMap<>();
+                    batchEvent.put("event", BATCH_EVENT_NAME);
+                    batchEvent.put("events", batch);
+                    sink.success(batchEvent);
+                }
+            }
+        } finally {
+            flushScheduled.set(false);
+
+            boolean hasPending;
+            synchronized (queueLock) {
+                hasPending = !eventQueue.isEmpty();
+            }
+
+            if (hasPending && eventSink != null) {
+                scheduleFlush();
+            }
         }
     }
 }
