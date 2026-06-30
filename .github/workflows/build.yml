@@ -59,14 +59,21 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+
       - name: Install project dependencies
         run: flutter pub get
+
+      - name: Clean SPM and Derived Data Caches
+        run: |
+            rm -rf ~/Library/Caches/org.swift.swiftpm
+            rm -rf ~/Library/Developer/Xcode/DerivedData
+
       - name: Build for iOS
         working-directory: ./example
         run: flutter build ios --release --no-codesign
 
   build-for-windows:
-    name: Build for flutter Windows
+    name: Build for Flutter Windows
     runs-on: windows-latest
 
     steps:
@@ -89,8 +96,15 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
+
       - name: Install project dependencies
         run: flutter pub get
+
+      - name: Clean SPM and Derived Data Caches
+        run: |
+            rm -rf ~/Library/Caches/org.swift.swiftpm
+            rm -rf ~/Library/Developer/Xcode/DerivedData
+
       - name: Build for macOS
         working-directory: ./example
         run: flutter build macos --release
