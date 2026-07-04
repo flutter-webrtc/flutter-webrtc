@@ -55,6 +55,10 @@ class WebRTC {
   ///
   /// "bypassVoiceProcessing": a boolean that bypasses the audio processing for the audio device.
   ///
+  /// "androidUseHardwareAudioProcessing": (Android only) defaults to true. Set to false to leave
+  ///                    the platform hardware AEC/NS off and let the WebRTC software APM handle
+  ///                    echo/noise instead (useful when a device's built-in AEC is unreliable).
+  ///
   /// "audioSampleRate": (Android only) Sets both input and output sample rate in Hz (e.g., 48000).
   ///                    If not specified, uses the native device's default sample rate.
   ///
