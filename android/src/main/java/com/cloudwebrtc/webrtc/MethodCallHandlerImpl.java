@@ -130,6 +130,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   private JavaAudioDeviceModule audioDeviceModule;
 
+  // JavaAudioDeviceModule has no mute getter, so mirror the last value set
+  // via the "setMicrophoneMuted" method call.
+  private boolean microphoneMuted = false;
+
   private FlutterRTCFrameCryptor frameCryptor;
 
   private FlutterDataPacketCryptor dataPacketCryptor;
@@ -1143,6 +1147,21 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
             result.success(null);
           });
         });
+        break;
+      }
+      case "setMicrophoneMuted": {
+        boolean muted = call.argument("muted");
+        if (audioDeviceModule == null) {
+          resultError("setMicrophoneMuted", "audioDeviceModule is null", result);
+          break;
+        }
+        audioDeviceModule.setMicrophoneMute(muted);
+        microphoneMuted = muted;
+        result.success(null);
+        break;
+      }
+      case "isMicrophoneMuted": {
+        result.success(microphoneMuted);
         break;
       }
       case "setLogSeverity": {

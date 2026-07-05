@@ -6,6 +6,25 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 import 'media_stream_track_impl.dart';
 import 'utils.dart';
 
+/// Strategy used by the AVAudioEngine-based audio device module to mute
+/// microphone input. iOS/macOS only.
+enum MicrophoneMuteMode {
+  /// Mute using Voice Processing I/O's input mute. Fast and allows muted
+  /// talker detection, but plays the platform's mute/unmute sound effect.
+  voiceProcessing,
+
+  /// Mute by restarting the audio engine without microphone input. Slower,
+  /// but silent and stops microphone input entirely while muted.
+  restartEngine,
+
+  /// Mute by muting the engine's input mixer node. Fast and silent; the
+  /// engine and audio session keep running.
+  inputMixer,
+
+  /// The mode could not be determined (e.g. unsupported platform).
+  unknown,
+}
+
 class NativeAudioManagement {
   static Future<void> selectAudioInput(String deviceId) async {
     await WebRTC.invokeMethod(
@@ -132,6 +151,78 @@ class NativeAudioManagement {
       );
     } on PlatformException catch (e) {
       throw 'Unable to set isVoiceProcessingBypassed: ${e.message}';
+    }
+  }
+
+  /// Returns the current microphone mute mode of the audio device module.
+  /// iOS/macOS only; returns [MicrophoneMuteMode.unknown] elsewhere.
+  static Future<MicrophoneMuteMode> getMicrophoneMuteMode() async {
+    if (!WebRTC.platformIsIOS && !WebRTC.platformIsMacOS) {
+      return MicrophoneMuteMode.unknown;
+    }
+
+    try {
+      final result = await WebRTC.invokeMethod(
+        'getMicrophoneMuteMode',
+        <String, dynamic>{},
+      );
+      return MicrophoneMuteMode.values.firstWhere(
+        (mode) => mode.name == result,
+        orElse: () => MicrophoneMuteMode.unknown,
+      );
+    } on PlatformException catch (e) {
+      throw 'Unable to get microphoneMuteMode: ${e.message}';
+    }
+  }
+
+  /// Sets how the audio device module mutes microphone input.
+  /// iOS/macOS only; no-op elsewhere.
+  static Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) async {
+    if (!WebRTC.platformIsIOS && !WebRTC.platformIsMacOS) return;
+
+    if (mode == MicrophoneMuteMode.unknown) {
+      throw ArgumentError.value(mode, 'mode', 'Not a settable mute mode');
+    }
+
+    try {
+      await WebRTC.invokeMethod(
+        'setMicrophoneMuteMode',
+        <String, dynamic>{'mode': mode.name},
+      );
+    } on PlatformException catch (e) {
+      throw 'Unable to set microphoneMuteMode: ${e.message}';
+    }
+  }
+
+  /// Returns whether microphone input is muted at the audio device module
+  /// level. Unrelated to `MediaStreamTrack.enabled`.
+  static Future<bool> isMicrophoneMuted() async {
+    if (kIsWeb) return false;
+
+    try {
+      final result = await WebRTC.invokeMethod(
+        'isMicrophoneMuted',
+        <String, dynamic>{},
+      );
+      return result as bool;
+    } on PlatformException catch (e) {
+      throw 'Unable to get isMicrophoneMuted: ${e.message}';
+    }
+  }
+
+  /// Mutes or unmutes microphone input at the audio device module level.
+  /// On iOS/macOS the muting strategy is controlled by
+  /// [setMicrophoneMuteMode]. Unrelated to `MediaStreamTrack.enabled`.
+  static Future<void> setMicrophoneMuted(bool muted) async {
+    if (kIsWeb) return;
+
+    try {
+      await WebRTC.invokeMethod(
+        'setMicrophoneMuted',
+        <String, dynamic>{'muted': muted},
+      );
+    } on PlatformException catch (e) {
+      throw 'Unable to set isMicrophoneMuted: ${e.message}';
     }
   }
 }

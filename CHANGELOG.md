@@ -3,6 +3,9 @@
 
 [Unreleased]
 
+* [Darwin] feat: expose the audio device module's microphone mute mode (`Helper.setMicrophoneMuteMode` / `Helper.getMicrophoneMuteMode`). `voiceProcessing` (the default) plays the platform mute tone on mute/unmute; `inputMixer` and `restartEngine` mute silently (#2098).
+* [Darwin/Android] feat: add ADM-level microphone mute (`Helper.setMicrophoneMuted` / `Helper.isMicrophoneMuted`), independent of `MediaStreamTrack.enabled`.
+
 [1.5.2] - 2026-06-20
 
 * [Android] expose the internally managed audio device module to embedders (#2099).

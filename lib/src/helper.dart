@@ -158,6 +158,30 @@ class Helper {
   static Future<void> setMicrophoneMute(bool mute, MediaStreamTrack track) =>
       NativeAudioManagement.setMicrophoneMute(mute, track);
 
+  /// Get how the audio device module mutes microphone input.
+  /// for iOS/macOS only, returns [MicrophoneMuteMode.unknown] elsewhere.
+  static Future<MicrophoneMuteMode> getMicrophoneMuteMode() =>
+      NativeAudioManagement.getMicrophoneMuteMode();
+
+  /// Set how the audio device module mutes microphone input.
+  /// for iOS/macOS only. [MicrophoneMuteMode.voiceProcessing] (the default)
+  /// plays the platform mute sound effect on mute/unmute; use
+  /// [MicrophoneMuteMode.inputMixer] or [MicrophoneMuteMode.restartEngine]
+  /// for silent muting.
+  static Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) =>
+      NativeAudioManagement.setMicrophoneMuteMode(mode);
+
+  /// Get whether microphone input is muted at the audio device module level.
+  /// Unrelated to `MediaStreamTrack.enabled`.
+  static Future<bool> isMicrophoneMuted() =>
+      NativeAudioManagement.isMicrophoneMuted();
+
+  /// Mute or unmute microphone input at the audio device module level,
+  /// honoring the mode set via [setMicrophoneMuteMode] on iOS/macOS.
+  /// Unrelated to `MediaStreamTrack.enabled`.
+  static Future<void> setMicrophoneMuted(bool muted) =>
+      NativeAudioManagement.setMicrophoneMuted(muted);
+
   /// Set the audio configuration to for Android.
   /// Must be set before initiating a WebRTC session and cannot be changed
   /// mid session.

@@ -151,6 +151,30 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
   gAudioSessionManagementEnabled = enabled;
 }
 
++ (NSString*)stringForMuteMode:(RTCAudioEngineMuteMode)mode {
+  switch (mode) {
+    case RTCAudioEngineMuteModeVoiceProcessing:
+      return @"voiceProcessing";
+    case RTCAudioEngineMuteModeRestartEngine:
+      return @"restartEngine";
+    case RTCAudioEngineMuteModeInputMixer:
+      return @"inputMixer";
+    case RTCAudioEngineMuteModeUnknown:
+      return @"unknown";
+  }
+}
+
++ (RTCAudioEngineMuteMode)muteModeForString:(NSString*)mode {
+  if ([mode isEqualToString:@"voiceProcessing"]) {
+    return RTCAudioEngineMuteModeVoiceProcessing;
+  } else if ([mode isEqualToString:@"restartEngine"]) {
+    return RTCAudioEngineMuteModeRestartEngine;
+  } else if ([mode isEqualToString:@"inputMixer"]) {
+    return RTCAudioEngineMuteModeInputMixer;
+  }
+  return RTCAudioEngineMuteModeUnknown;
+}
+
 + (void)setAudioDeviceModuleObserver:(id<RTCAudioDeviceModuleDelegate>)observer {
   gAudioDeviceModuleObserver = observer;
 }
@@ -1744,6 +1768,41 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
       NSNumber* value = call.arguments[@"value"];
       adm.voiceProcessingBypassed = value.boolValue;
       result(nil);
+    } else if ([@"getMicrophoneMuteMode" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      result([FlutterWebRTCPlugin stringForMuteMode:adm.muteMode]);
+    } else if ([@"setMicrophoneMuteMode" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSString* modeString = call.arguments[@"mode"];
+      RTCAudioEngineMuteMode mode = [FlutterWebRTCPlugin muteModeForString:modeString];
+      if (mode == RTCAudioEngineMuteModeUnknown) {
+        result([FlutterError errorWithCode:@"setMicrophoneMuteMode failed"
+                                   message:[NSString stringWithFormat:@"Error: invalid mute mode: %@", modeString]
+                                   details:nil]);
+        return;
+      }
+      NSInteger admResult = [adm setMuteMode:mode];
+      if (admResult == 0) {
+        result(nil);
+      } else {
+        result([FlutterError errorWithCode:@"setMicrophoneMuteMode failed"
+                                   message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld", (long)admResult]
+                                   details:nil]);
+      }
+    } else if ([@"isMicrophoneMuted" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      result([NSNumber numberWithBool:adm.isMicrophoneMuted]);
+    } else if ([@"setMicrophoneMuted" isEqualToString:call.method]) {
+      RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+      NSNumber* muted = call.arguments[@"muted"];
+      NSInteger admResult = [adm setMicrophoneMuted:muted.boolValue];
+      if (admResult == 0) {
+        result(nil);
+      } else {
+        result([FlutterError errorWithCode:@"setMicrophoneMuted failed"
+                                   message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld", (long)admResult]
+                                   details:nil]);
+      }
     } else {
       if([self handleFrameCryptorMethodCall:call result:result]) {
           return;
