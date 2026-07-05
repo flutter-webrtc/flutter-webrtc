@@ -154,10 +154,16 @@ class NativeAudioManagement {
     }
   }
 
+  static bool get _supportsMicrophoneMuteMode =>
+      !kIsWeb && (WebRTC.platformIsIOS || WebRTC.platformIsMacOS);
+
   /// Returns the current microphone mute mode of the audio device module.
-  /// iOS/macOS only; returns [MicrophoneMuteMode.unknown] elsewhere.
+  ///
+  /// iOS/macOS only. On all other platforms (Android, web, desktop) this
+  /// returns [MicrophoneMuteMode.unknown] without calling into native code,
+  /// so it is always safe to call from cross-platform code.
   static Future<MicrophoneMuteMode> getMicrophoneMuteMode() async {
-    if (!WebRTC.platformIsIOS && !WebRTC.platformIsMacOS) {
+    if (!_supportsMicrophoneMuteMode) {
       return MicrophoneMuteMode.unknown;
     }
 
@@ -176,13 +182,19 @@ class NativeAudioManagement {
   }
 
   /// Sets how the audio device module mutes microphone input.
-  /// iOS/macOS only; no-op elsewhere.
+  ///
+  /// iOS/macOS only. On all other platforms (Android, web, desktop) this is
+  /// a no-op that completes normally, so it is always safe to call from
+  /// cross-platform code.
+  ///
+  /// Throws [ArgumentError] if [mode] is [MicrophoneMuteMode.unknown], which
+  /// is a read-only value and not a settable mode.
   static Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) async {
-    if (!WebRTC.platformIsIOS && !WebRTC.platformIsMacOS) return;
-
     if (mode == MicrophoneMuteMode.unknown) {
       throw ArgumentError.value(mode, 'mode', 'Not a settable mute mode');
     }
+
+    if (!_supportsMicrophoneMuteMode) return;
 
     try {
       await WebRTC.invokeMethod(
@@ -196,6 +208,8 @@ class NativeAudioManagement {
 
   /// Returns whether microphone input is muted at the audio device module
   /// level. Unrelated to `MediaStreamTrack.enabled`.
+  ///
+  /// Supported on iOS/macOS and Android; on web this returns `false`.
   static Future<bool> isMicrophoneMuted() async {
     if (kIsWeb) return false;
 
@@ -211,8 +225,10 @@ class NativeAudioManagement {
   }
 
   /// Mutes or unmutes microphone input at the audio device module level.
-  /// On iOS/macOS the muting strategy is controlled by
-  /// [setMicrophoneMuteMode]. Unrelated to `MediaStreamTrack.enabled`.
+  /// Unrelated to `MediaStreamTrack.enabled`.
+  ///
+  /// Supported on iOS/macOS (where the muting strategy is controlled by
+  /// [setMicrophoneMuteMode]) and Android; on web this is a no-op.
   static Future<void> setMicrophoneMuted(bool muted) async {
     if (kIsWeb) return;
 
