@@ -1150,7 +1150,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       case "setMicrophoneMuted": {
-        boolean muted = call.argument("muted");
+        Boolean muted = call.argument("muted");
+        if (muted == null) {
+          resultError("setMicrophoneMuted", "muted is required", result);
+          break;
+        }
         if (audioDeviceModule == null) {
           resultError("setMicrophoneMuted", "audioDeviceModule is null", result);
           break;

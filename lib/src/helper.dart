@@ -173,14 +173,16 @@ class Helper {
   /// [MicrophoneMuteMode.restartEngine] for silent muting.
   ///
   /// iOS/macOS only. On all other platforms this is a no-op that completes
-  /// normally, so it is always safe to call from cross-platform code.
+  /// normally (including for [MicrophoneMuteMode.unknown]), so it is always
+  /// safe to call from cross-platform code.
   static Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) =>
       NativeAudioManagement.setMicrophoneMuteMode(mode);
 
   /// Get whether microphone input is muted at the audio device module level.
   /// Unrelated to `MediaStreamTrack.enabled`.
   ///
-  /// Supported on iOS/macOS and Android; on web this returns `false`.
+  /// Supported on iOS/macOS and Android; on all other platforms this returns
+  /// `false` without calling into native code.
   static Future<bool> isMicrophoneMuted() =>
       NativeAudioManagement.isMicrophoneMuted();
 
@@ -188,7 +190,8 @@ class Helper {
   /// honoring the mode set via [setMicrophoneMuteMode] on iOS/macOS.
   /// Unrelated to `MediaStreamTrack.enabled`.
   ///
-  /// Supported on iOS/macOS and Android; on web this is a no-op.
+  /// Supported on iOS/macOS and Android; on all other platforms this is a
+  /// no-op that completes normally.
   static Future<void> setMicrophoneMuted(bool muted) =>
       NativeAudioManagement.setMicrophoneMuted(muted);
 
