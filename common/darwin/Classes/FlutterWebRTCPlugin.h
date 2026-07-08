@@ -17,6 +17,8 @@ void postEvent(FlutterEventSink _Nullable sink, id _Nullable event);
 
 typedef void (^CompletionHandler)(void);
 
+typedef RTCVideoTrack * _Nullable (^VideoTrackFactory)(NSString * _Nonnull name, RTCPeerConnectionFactory * _Nonnull factory);
+
 typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 
 @interface FlutterWebRTCPlugin : NSObject <FlutterPlugin,
@@ -59,6 +61,7 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 @property(nonatomic, strong) RTCCameraVideoCapturer* _Nullable videoCapturer;
 @property(nonatomic, strong) FlutterRTCFrameCapturer* _Nullable frameCapturer;
 @property(nonatomic, strong) AVAudioSessionPort _Nullable preferredInput;
+@property(nonatomic) VideoTrackFactory _Nullable videoTrackFactory;
 
 @property(nonatomic, strong) NSString* _Nonnull focusMode;
 @property(nonatomic, strong) NSString* _Nonnull exposureMode;

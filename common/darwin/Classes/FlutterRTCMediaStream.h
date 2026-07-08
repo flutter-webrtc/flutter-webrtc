@@ -11,6 +11,9 @@
 
 - (void)createLocalMediaStream:(nonnull FlutterResult)result;
 
+- (void)createLocalMediaStreamWithCustomVideoTrack:(nonnull RTCVideoTrack*)track
+                                            result:(nonnull FlutterResult)result;
+
 - (void)getSources:(nonnull FlutterResult)result;
 
 - (void)mediaStreamTrackCaptureFrame:(nonnull RTCMediaStreamTrack*)track

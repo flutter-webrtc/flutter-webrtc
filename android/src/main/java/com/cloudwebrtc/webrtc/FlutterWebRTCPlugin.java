@@ -21,6 +21,7 @@ import org.webrtc.ExternalAudioProcessingFactory;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.audio.JavaAudioDeviceModule;
+import org.webrtc.VideoTrack;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
@@ -50,11 +51,20 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     // FlutterWebRTCPlugin instance, so for the next instances eventSink will be == null
     public static EventChannel.EventSink eventSink;
 
+    private VideoTrackFactory videoTrackFactory;
+
     public FlutterWebRTCPlugin() {
         sharedSingleton = this;
     }
 
     public static FlutterWebRTCPlugin sharedSingleton;
+
+    public void setVideoTrackFactory(VideoTrackFactory factory) {
+        videoTrackFactory = factory;
+        if (methodCallHandler != null) {
+            methodCallHandler.videoTrackFactory = factory;
+        }
+    }
 
     public AudioProcessingController getAudioProcessingController() {
         return methodCallHandler.audioProcessingController;
@@ -126,6 +136,7 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
                                 TextureRegistry textureRegistry) {
         AudioSwitchManager.instance = new AudioSwitchManager(context);
         methodCallHandler = new MethodCallHandlerImpl(context, messenger, textureRegistry);
+        methodCallHandler.videoTrackFactory = videoTrackFactory;
         methodChannel = new MethodChannel(messenger, "FlutterWebRTC.Method");
         methodChannel.setMethodCallHandler(methodCallHandler);
         eventChannel = new EventChannel( messenger,"FlutterWebRTC.Event");

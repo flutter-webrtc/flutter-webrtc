@@ -142,6 +142,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   public AudioProcessingController audioProcessingController;
 
+  public VideoTrackFactory videoTrackFactory;
+
   public static class LogSink implements Loggable {
     @Override
     public void onLogMessage(String message, Severity sev, String tag) {
@@ -469,6 +471,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       case "createLocalMediaStream":
         createLocalMediaStream(result);
+        break;
+      case "createLocalMediaStreamWithCustomVideoTrack":
+        String customTrackName = call.argument("named");
+        createLocalMediaStreamWithCustomVideoTrack(customTrackName, result);
         break;
       case "getSources":
         getSources(result);
@@ -1746,6 +1752,21 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     result.success(resultMap);
   }
 
+  private void createLocalMediaStreamWithCustomVideoTrack(String name, Result result) {
+    String streamId = getNextStreamUUID();
+    MediaStream mediaStream = mFactory.createLocalMediaStream(streamId);
+    VideoTrack videoTrack = videoTrackFactory.videoTrackNamed(name, mFactory);
+    mediaStream.addTrack(videoTrack);
+    localStreams.put(streamId, mediaStream);
+
+    if (mediaStream == null) {
+      resultError("createLocalMediaStream", "Failed to create new media stream", result);
+      return;
+      }
+      Map<String, Object> resultMap = new HashMap<>();
+      resultMap.put("streamId", mediaStream.getId());
+      result.success(resultMap);
+    }
   public void trackDispose(final String trackId) {
     LocalTrack track;
     synchronized (localTracks) {

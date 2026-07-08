@@ -681,6 +681,17 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
   result(@{@"streamId" : [mediaStream streamId]});
 }
 
+- (void)createLocalMediaStreamWithCustomVideoTrack:(nonnull RTCVideoTrack*)track
+                                            result:(FlutterResult)result {
+  NSString* mediaStreamId = [[NSUUID UUID] UUIDString];
+  RTCMediaStream* mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
+
+  [mediaStream addVideoTrack:track];
+    
+  self.localStreams[mediaStreamId] = mediaStream;
+  result(@{@"streamId" : [mediaStream streamId]});
+}
+
 - (void)getSources:(FlutterResult)result {
   NSMutableArray* sources = [NSMutableArray array];
   NSArray* videoDevices =  [self captureDevices];

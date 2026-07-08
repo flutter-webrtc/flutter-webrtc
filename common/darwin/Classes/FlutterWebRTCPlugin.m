@@ -479,6 +479,11 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
 #endif
   } else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
     [self createLocalMediaStream:result];
+  } else if ([@"createLocalMediaStreamWithCustomVideoTrack" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* customTrackName = argsMap[@"named"];
+    RTCVideoTrack* videoTrack = _videoTrackFactory(customTrackName, _peerConnectionFactory);
+    [self createLocalMediaStreamWithCustomVideoTrack:videoTrack result:result];
   } else if ([@"getSources" isEqualToString:call.method]) {
     [self getSources:result];
   } else if ([@"selectAudioInput" isEqualToString:call.method]) {

@@ -28,6 +28,24 @@ class RTCFactoryNative extends RTCFactory {
     return MediaStreamNative(response['streamId'], label);
   }
 
+  Future<MediaStream> createLocalMediaStreamWithCustomVideoTrack(
+      String label,
+      String name) async {
+    final response = await WebRTC.invokeMethod(
+      'createLocalMediaStreamWithCustomVideoTrack',
+      <String, dynamic>{
+        'named': name,
+      },
+    );
+    if (response == null) {
+      throw Exception('createLocalMediaStreamWithCustomVideoTrack return null, something wrong');
+    }
+
+    final stream = MediaStreamNative(response['streamId'], label);
+    await stream.getMediaTracks();
+    return stream;
+  }
+
   @override
   Future<RTCPeerConnection> createPeerConnection(
       Map<String, dynamic> configuration,
@@ -100,6 +118,10 @@ Future<RTCPeerConnection> createPeerConnection(
 
 Future<MediaStream> createLocalMediaStream(String label) async {
   return RTCFactoryNative.instance.createLocalMediaStream(label);
+}
+
+Future<MediaStream> createLocalMediaStreamWithCustomVideoTrack(String label, String name) async {
+  return RTCFactoryNative.instance.createLocalMediaStreamWithCustomVideoTrack(label, name);
 }
 
 Future<RTCRtpCapabilities> getRtpReceiverCapabilities(String kind) async {
