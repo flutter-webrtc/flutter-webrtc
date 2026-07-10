@@ -10,8 +10,8 @@ import org.webrtc.AudioTrackSink;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * LocalAudioTrack represents an audio track that is sourced from local audio capture.
@@ -22,24 +22,20 @@ public class LocalAudioTrack
         super(audioTrack);
     }
 
-    final List<AudioTrackSink> sinks = new ArrayList<>();
+    final List<AudioTrackSink> sinks = new CopyOnWriteArrayList<>();
 
     /**
      * Add a sink to receive audio data from this track.
      */
     public void addSink(AudioTrackSink sink) {
-        synchronized (sinks) {
-            sinks.add(sink);
-        }
+        sinks.add(sink);
     }
 
     /**
      * Remove a sink for this track.
      */
     public void removeSink(AudioTrackSink sink) {
-        synchronized (sinks) {
-            sinks.remove(sink);
-        }
+        sinks.remove(sink);
     }
 
     private int getBytesPerSample(int audioFormat) {
@@ -62,12 +58,11 @@ public class LocalAudioTrack
         int bitsPerSample = getBytesPerSample(audioSamples.getAudioFormat()) * 8;
         int numFrames = audioSamples.getSampleRate() / 100;
         long timestamp = SystemClock.elapsedRealtime();
-        synchronized (sinks) {
-            for (AudioTrackSink sink : sinks) {
-                ByteBuffer byteBuffer = ByteBuffer.wrap(audioSamples.getData());
-                sink.onData(byteBuffer, bitsPerSample, audioSamples.getSampleRate(),
-                        audioSamples.getChannelCount(), numFrames, timestamp);
-            }
+
+        for (AudioTrackSink sink : sinks) {
+            ByteBuffer byteBuffer = ByteBuffer.wrap(audioSamples.getData());
+            sink.onData(byteBuffer, bitsPerSample, audioSamples.getSampleRate(),
+                    audioSamples.getChannelCount(), numFrames, timestamp);
         }
     }
 }
