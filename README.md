@@ -43,6 +43,12 @@ Additional platform/OS support from the other community
 
 Add `flutter_webrtc` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
 
+### iOS/macOS: Swift Package Manager
+
+The plugin supports both [Swift Package Manager](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers) and CocoaPods on iOS and macOS. With Flutter 3.44 or later, Swift Package Manager is enabled by default and the plugin is consumed as a Swift package automatically. No project changes are needed.
+
+CocoaPods remains fully supported and is used when Swift Package Manager is disabled or on older Flutter versions. The Podfile notes below apply to CocoaPods projects only.
+
 ### iOS
 
 Add the following entry to your _Info.plist_ file, located in `<project root>/ios/Runner/Info.plist`:
