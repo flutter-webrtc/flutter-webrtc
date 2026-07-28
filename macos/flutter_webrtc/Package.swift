@@ -7,7 +7,10 @@ let package = Package(
         .macOS("10.15")
     ],
     products: [
-        .library(name: "flutter-webrtc", targets: ["flutter_webrtc"])
+        .library(name: "flutter-webrtc", targets: ["flutter_webrtc"]),
+        // Lets dependent plugins (e.g. livekit_client) import WebRTC without
+        // declaring a second copy of the binary target.
+        .library(name: "WebRTC", targets: ["WebRTC"])
     ],
     dependencies: [
         .package(name: "FlutterFramework", path: "../FlutterFramework")
