@@ -51,8 +51,13 @@ jobs:
         run: flutter build apk
 
   build-for-ios:
-    name: Build for Flutter iOS
+    name: Build for Flutter iOS (${{ matrix.integration }})
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Build the example with both dependency managers since the plugin supports both
+        integration: [spm, cocoapods]
 
     steps:
       - uses: actions/checkout@v2
@@ -67,6 +72,13 @@ jobs:
         run: |
             rm -rf ~/Library/Caches/org.swift.swiftpm
             rm -rf ~/Library/Developer/Xcode/DerivedData
+
+      # Project-level config is the only override that outranks the global default
+      - name: Disable Swift Package Manager
+        if: matrix.integration == 'cocoapods'
+        working-directory: ./example
+        run: |
+          perl -0pi -e "s/^flutter:/flutter:\n  config:\n    enable-swift-package-manager: false/m" pubspec.yaml
 
       - name: Build for iOS
         working-directory: ./example
@@ -88,8 +100,13 @@ jobs:
         run: flutter build windows --release
 
   build-for-macos:
-    name: Build for flutter macOS
+    name: Build for Flutter macOS (${{ matrix.integration }})
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Build the example with both dependency managers since the plugin supports both
+        integration: [spm, cocoapods]
 
     steps:
       - uses: actions/checkout@v2
@@ -104,6 +121,13 @@ jobs:
         run: |
             rm -rf ~/Library/Caches/org.swift.swiftpm
             rm -rf ~/Library/Developer/Xcode/DerivedData
+
+      # Project-level config is the only override that outranks the global default
+      - name: Disable Swift Package Manager
+        if: matrix.integration == 'cocoapods'
+        working-directory: ./example
+        run: |
+          perl -0pi -e "s/^flutter:/flutter:\n  config:\n    enable-swift-package-manager: false/m" pubspec.yaml
 
       - name: Build for macOS
         working-directory: ./example
