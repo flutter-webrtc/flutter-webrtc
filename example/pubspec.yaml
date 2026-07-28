@@ -15,6 +15,8 @@ dependencies:
   flutter_webrtc:
     path: ../
   path_provider: ^2.0.2
+  # 11.4.0 resolves permission_handler_apple 9.4.10+, which supports Swift Package Manager
+  permission_handler: ^11.4.0
   sdp_transform: ^0.3.2
 
 dev_dependencies:
