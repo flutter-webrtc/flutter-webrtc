@@ -742,7 +742,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           stream = getStreamForId(streamId, ownerTag);
         }
         if (trackId != null && !trackId.equals("0")){
-          render.setStream(stream, trackId, ownerTag);
+          MediaStreamTrack track = getTrackForId(trackId, ownerTag);
+          if (track instanceof VideoTrack) {
+            render.setTrack((VideoTrack) track, streamId, ownerTag);
+          } else {
+            render.setStream(stream, trackId, ownerTag);
+          }
         } else {
           render.setStream(stream, ownerTag);
         }
@@ -1556,10 +1561,27 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
+  @Override
+  public void onRemoteTrackAdded(
+      String peerConnectionId, String streamId, MediaStreamTrack track) {
+    if (!(track instanceof VideoTrack)) {
+      return;
+    }
+    final String trackId = track.id();
+    mainHandler.post(() -> {
+      for (int i = 0; i < renders.size(); i++) {
+        FlutterRTCVideoRenderer renderer = renders.valueAt(i);
+        if (renderer.checkVideoTrack(trackId, peerConnectionId)) {
+          renderer.setTrack((VideoTrack) track, streamId, peerConnectionId);
+        }
+      }
+    });
+  }
+
   public MediaStreamTrack getRemoteTrack(String trackId) {
     for (Entry<String, PeerConnectionObserver> entry : mPeerConnectionObservers.entrySet()) {
       PeerConnectionObserver pco = entry.getValue();
-      MediaStreamTrack track = pco.remoteTracks.get(trackId);
+      MediaStreamTrack track = pco.getRemoteTrack(trackId);
       if (track == null) {
         track = pco.getTransceiversTrack(trackId);
       }
@@ -1660,7 +1682,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           continue;
 
         PeerConnectionObserver pco = entry.getValue();
-        mediaStreamTrack = pco.remoteTracks.get(trackId);
+        mediaStreamTrack = pco.getRemoteTrack(trackId);
 
         if (mediaStreamTrack == null) {
           mediaStreamTrack = pco.getTransceiversTrack(trackId);
