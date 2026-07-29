@@ -20,6 +20,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     private final EventChannel eventChannel;
     private EventChannel.EventSink eventSink;
     private final ArrayList eventQueue = new ArrayList();
+    private final Object eventLock = new Object();
 
     DataChannelObserver(BinaryMessenger messenger, String peerConnectionId, String flutterId,
                         DataChannel dataChannel) {
@@ -46,16 +47,20 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
 
     @Override
     public void onListen(Object o, EventChannel.EventSink sink) {
-        eventSink = new AnyThreadSink(sink);
-        for(Object event : eventQueue) {
-            eventSink.success(event);
+        synchronized (eventLock) {
+            eventSink = new AnyThreadSink(sink);
+            for (Object event : eventQueue) {
+                eventSink.success(event);
+            }
+            eventQueue.clear();
         }
-        eventQueue.clear();
     }
 
     @Override
     public void onCancel(Object o) {
-        eventSink = null;
+        synchronized (eventLock) {
+            eventSink = null;
+        }
     }
     
     @Override
@@ -103,10 +108,12 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     }
 
     private void sendEvent(ConstraintsMap params) {
-        if (eventSink != null) {
-            eventSink.success(params.toMap());
-        } else {
-            eventQueue.add(params.toMap());
+        synchronized (eventLock) {
+            if (eventSink != null) {
+                eventSink.success(params.toMap());
+            } else {
+                eventQueue.add(params.toMap());
+            }
         }
     }
 }

@@ -53,19 +53,21 @@
 #pragma mark - FlutterStreamHandler methods
 
 - (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
-  self.eventSink = nil;
+  @synchronized(self) {
+    self.eventSink = nil;
+  }
   return nil;
 }
 
 - (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
                                        eventSink:(nonnull FlutterEventSink)sink {
-  self.eventSink = sink;
-  NSEnumerator* enumerator = [self.eventQueue objectEnumerator];
-  id event;
-  while ((event = enumerator.nextObject) != nil) {
-    postEvent(sink, event);
-  };
-  self.eventQueue = nil;
+  @synchronized(self) {
+    self.eventSink = sink;
+    for (id event in self.eventQueue) {
+      postEvent(sink, event);
+    }
+    self.eventQueue = nil;
+  }
   return nil;
 }
 @end
@@ -85,8 +87,8 @@
     NSString* flutterId = [[NSUUID UUID] UUIDString];
     peerConnection.dataChannels[flutterId] = dataChannel;
     dataChannel.flutterChannelId = flutterId;
-    dataChannel.delegate = self;
     dataChannel.eventQueue = nil;
+    dataChannel.delegate = self;
 
     FlutterEventChannel* eventChannel = [FlutterEventChannel
         eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/dataChannelEvent%1$@%2$@",
@@ -163,13 +165,14 @@
 }
 
 - (void)sendEvent:(id)event withChannel:(RTCDataChannel*)channel {
-  if (channel.eventSink) {
-    postEvent(channel.eventSink, event);
-  } else {
-    if (!channel.eventQueue) {
-      channel.eventQueue = [NSMutableArray array];
+  @synchronized(channel) {
+    FlutterEventSink eventSink = channel.eventSink;
+    if (eventSink) {
+      postEvent(eventSink, event);
+    } else {
+      NSArray<id>* eventQueue = channel.eventQueue;
+      channel.eventQueue = eventQueue ? [eventQueue arrayByAddingObject:event] : @[ event ];
     }
-    channel.eventQueue = [channel.eventQueue arrayByAddingObject:event];
   }
 }
 
