@@ -31,6 +31,24 @@ jobs:
       - name: Dart Test Check
         run: flutter test
 
+  webrtc-sdk-version-check:
+    name: WebRTC-SDK Version Consistency
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      # The WebRTC-SDK version is pinned in both podspecs and both Package.swift
+      # binary targets. Fail if any of the four drift apart.
+      - name: Check WebRTC-SDK versions match
+        run: |
+          versions=$(
+            grep -h "s.dependency 'WebRTC-SDK'" ios/flutter_webrtc.podspec macos/flutter_webrtc.podspec | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"
+            grep -h "webrtc-sdk/Specs/releases/download" ios/flutter_webrtc/Package.swift macos/flutter_webrtc/Package.swift | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"
+          )
+          echo "$versions"
+          test "$(echo "$versions" | wc -l)" -eq 4
+          test "$(echo "$versions" | sort -u | wc -l)" -eq 1
+
   build-for-android:
     name: Build for Flutter Android
     runs-on: ubuntu-latest
@@ -51,22 +69,41 @@ jobs:
         run: flutter build apk
 
   build-for-ios:
-    name: Build for Flutter iOS
+    name: Build for Flutter iOS (${{ matrix.integration }})
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Build the example with both dependency managers since the plugin supports both
+        integration: [spm, cocoapods]
 
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+
       - name: Install project dependencies
         run: flutter pub get
+
+      - name: Clean SPM and Derived Data Caches
+        run: |
+            rm -rf ~/Library/Caches/org.swift.swiftpm
+            rm -rf ~/Library/Developer/Xcode/DerivedData
+
+      # Project-level config is the only override that outranks the global default
+      - name: Disable Swift Package Manager
+        if: matrix.integration == 'cocoapods'
+        working-directory: ./example
+        run: |
+          perl -0pi -e "s/^flutter:/flutter:\n  config:\n    enable-swift-package-manager: false/m" pubspec.yaml
+
       - name: Build for iOS
         working-directory: ./example
         run: flutter build ios --release --no-codesign
 
   build-for-windows:
-    name: Build for flutter Windows
+    name: Build for Flutter Windows
     runs-on: windows-latest
 
     steps:
@@ -81,16 +118,35 @@ jobs:
         run: flutter build windows --release
 
   build-for-macos:
-    name: Build for flutter macOS
+    name: Build for Flutter macOS (${{ matrix.integration }})
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Build the example with both dependency managers since the plugin supports both
+        integration: [spm, cocoapods]
 
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
+
       - name: Install project dependencies
         run: flutter pub get
+
+      - name: Clean SPM and Derived Data Caches
+        run: |
+            rm -rf ~/Library/Caches/org.swift.swiftpm
+            rm -rf ~/Library/Developer/Xcode/DerivedData
+
+      # Project-level config is the only override that outranks the global default
+      - name: Disable Swift Package Manager
+        if: matrix.integration == 'cocoapods'
+        working-directory: ./example
+        run: |
+          perl -0pi -e "s/^flutter:/flutter:\n  config:\n    enable-swift-package-manager: false/m" pubspec.yaml
+
       - name: Build for macOS
         working-directory: ./example
         run: flutter build macos --release

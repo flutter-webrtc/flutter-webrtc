@@ -14,10 +14,9 @@ dependencies:
   flutter_background: ^1.0.0
   flutter_webrtc:
     path: ../
-  # Required for MediaRecorder example
-  gallery_saver_plus: 3.2.4
   path_provider: ^2.0.2
-  permission_handler: ^11.3.1
+  # 11.4.0 resolves permission_handler_apple 9.4.10+, which supports Swift Package Manager
+  permission_handler: ^11.4.0
   sdp_transform: ^0.3.2
 
 dev_dependencies:

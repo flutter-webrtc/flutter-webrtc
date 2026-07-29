@@ -3,6 +3,7 @@
 
 [Unreleased]
 
+* [Darwin] feat: Swift Package Manager support. Apps with Flutter's SPM integration enabled consume the plugin as a Swift package automatically; CocoaPods remains fully supported (#2062).
 * [Darwin/Android] fix: serialize data channel `eventSink`/`eventQueue` access between the WebRTC signaling thread and the platform thread. On iOS the unsynchronized access could crash with `EXC_BAD_ACCESS` in `objc_retain` inside `-[RTCDataChannel(Flutter) onListenWithArguments:eventSink:]`.
 * [Darwin] feat: expose the audio device module's microphone mute mode (`Helper.setMicrophoneMuteMode` / `Helper.getMicrophoneMuteMode`). `voiceProcessing` (the default) plays the platform mute tone on mute/unmute; `inputMixer` and `restartEngine` mute silently (#2098).
 * [Darwin/Android] feat: add ADM-level microphone mute (`Helper.setMicrophoneMuted` / `Helper.isMicrophoneMuted`), independent of `MediaStreamTrack.enabled`.
