@@ -33,15 +33,16 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
     private final MediaProjection.Callback mediaProjectionCallback;
     private int width;
     private int height;
-    private int oldWidth;
-    private int oldHeight;
+    private volatile int oldWidth;
+    private volatile int oldHeight;
     private VirtualDisplay virtualDisplay;
     private Surface virtualDisplaySurface;
     private SurfaceTextureHelper surfaceTextureHelper;
     private CapturerObserver capturerObserver;
     private long numCapturedFrames = 0;
     private MediaProjection mediaProjection;
-    private boolean isDisposed = false;
+    private volatile boolean isDisposed = false;
+    private volatile boolean isStopped = false;
     private MediaProjectionManager mediaProjectionManager;
     private WindowManager windowManager;
     private boolean isPortrait;
@@ -62,14 +63,18 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
     }
 
     public void onFrame(VideoFrame frame) {
-        checkNotDisposed();
+        // Silently drop in-flight frames that arrive after stop/dispose.
+        // stopCapture() no longer holds the monitor (synchronized removed), so guard explicitly here.
+        if (isDisposed || isStopped) return;
         this.isPortrait = isDeviceOrientationPortrait();
         final int max = Math.max(this.height, this.width);
         final int min = Math.min(this.height, this.width);
-        if (this.isPortrait) {
-            changeCaptureFormat(min, max, 15);
-        } else {
-            changeCaptureFormat(max, min, 15);
+        final int newW = this.isPortrait ? min : max;
+        final int newH = this.isPortrait ? max : min;
+        // Avoid ANR: only enter changeCaptureFormat() (synchronized) when the dimensions actually change.
+        // Previously every frame took the lock, which widened the race window against stopCapture().
+        if (newW != this.oldWidth || newH != this.oldHeight) {
+            changeCaptureFormat(newW, newH, 15);
         }
         capturerObserver.onFrameCaptured(frame);
     }
@@ -135,8 +140,13 @@ public class OrientationAwareScreenCapturer implements VideoCapturer, VideoSink 
     }
 
     @Override
-    public synchronized void stopCapture() {
-        checkNotDisposed();
+    public void stopCapture() {
+        // synchronized removed: stopCapture() used to hold the capturer monitor while
+        // waiting on the SurfaceTextureHelper thread via invokeAtFrontUninterruptibly, while
+        // that same thread's onFrame() -> changeCaptureFormat() (synchronized) tried to
+        // re-enter the same monitor, causing a deadlock (ANR).
+        if (isDisposed || isStopped) return;
+        isStopped = true;
         ThreadUtils.invokeAtFrontUninterruptibly(surfaceTextureHelper.getHandler(), new Runnable() {
             @Override
             public void run() {
