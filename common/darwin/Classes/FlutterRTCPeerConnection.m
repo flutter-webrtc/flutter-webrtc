@@ -574,6 +574,7 @@
   NSString* flutterChannelId = [[NSUUID UUID] UUIDString];
   NSNumber* dataChannelId = [NSNumber numberWithInteger:dataChannel.channelId];
   dataChannel.peerConnectionId = peerConnection.flutterId;
+  dataChannel.eventQueue = nil;
   dataChannel.delegate = self;
   peerConnection.dataChannels[flutterChannelId] = dataChannel;
 
@@ -584,7 +585,6 @@
 
   dataChannel.eventChannel = eventChannel;
   dataChannel.flutterChannelId = flutterChannelId;
-  dataChannel.eventQueue = nil;
 
   dispatch_async(dispatch_get_main_queue(), ^{
     // setStreamHandler on main thread

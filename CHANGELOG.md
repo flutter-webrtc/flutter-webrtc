@@ -3,6 +3,16 @@
 
 [Unreleased]
 
+* [Darwin] feat: Swift Package Manager support. Apps with Flutter's SPM integration enabled consume the plugin as a Swift package automatically; CocoaPods remains fully supported (#2062).
+* [Darwin/Android] fix: serialize data channel `eventSink`/`eventQueue` access between the WebRTC signaling thread and the platform thread. On iOS the unsynchronized access could crash with `EXC_BAD_ACCESS` in `objc_retain` inside `-[RTCDataChannel(Flutter) onListenWithArguments:eventSink:]`.
+* [Darwin] feat: expose the audio device module's microphone mute mode (`Helper.setMicrophoneMuteMode` / `Helper.getMicrophoneMuteMode`). `voiceProcessing` (the default) plays the platform mute tone on mute/unmute; `inputMixer` and `restartEngine` mute silently (#2098).
+* [Darwin/Android] feat: add ADM-level microphone mute (`Helper.setMicrophoneMuted` / `Helper.isMicrophoneMuted`), independent of `MediaStreamTrack.enabled`.
+
+[1.5.2] - 2026-06-20
+
+* [Android] expose the internally managed audio device module to embedders (#2099).
+* [Windows] fix libwebrtc extraction when the plugin is loaded through a symlink (#2100).
+
 [1.5.1] - 2026-06-14
 
 * [Android] fix: recreate the texture surface when the incoming frame size changes, so simulcast layer upgrades no longer stay blurry (#2085).

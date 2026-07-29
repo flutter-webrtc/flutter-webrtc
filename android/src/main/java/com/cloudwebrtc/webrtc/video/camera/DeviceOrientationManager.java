@@ -68,10 +68,29 @@ public class DeviceOrientationManager {
   }
 
 
-  /** @return the last received UI orientation. */
-  @Nullable
+  /**
+   * @return the last received UI orientation, or the current UI orientation computed on demand
+   *     when no orientation change has been received yet.
+   *
+   * <p>{@code start()} is intentionally never called from {@link
+   * com.cloudwebrtc.webrtc.video.camera.CameraUtils} (see the TODO in its constructor), so {@code
+   * lastOrientation} stays {@code null} forever and {@code setFocusPoint}/{@code setExposurePoint}
+   * crashed with a {@code NullPointerException} inside {@code convertPointToMeteringRectangle}
+   * ({@code Enum.ordinal()} on the {@code @NonNull} orientation parameter). Computing the current
+   * orientation on demand fixes tap-to-focus without re-introducing the receiver-registration
+   * problem that {@code start()} was disabled for. {@code PORTRAIT_UP} is only used when no
+   * Activity is attached (backgrounded/terminated), matching the default of {@code
+   * getUIOrientation()}.
+   */
+  @NonNull
   public PlatformChannel.DeviceOrientation getLastUIOrientation() {
-    return this.lastOrientation;
+    if (this.lastOrientation != null) {
+      return this.lastOrientation;
+    }
+    if (this.activity == null) {
+      return PlatformChannel.DeviceOrientation.PORTRAIT_UP;
+    }
+    return getUIOrientation();
   }
 
   /**

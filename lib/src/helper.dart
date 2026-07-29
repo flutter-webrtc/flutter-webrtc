@@ -158,6 +158,43 @@ class Helper {
   static Future<void> setMicrophoneMute(bool mute, MediaStreamTrack track) =>
       NativeAudioManagement.setMicrophoneMute(mute, track);
 
+  /// Get how the audio device module mutes microphone input.
+  ///
+  /// iOS/macOS only. On all other platforms this returns
+  /// [MicrophoneMuteMode.unknown] without calling into native code, so it is
+  /// always safe to call from cross-platform code.
+  static Future<MicrophoneMuteMode> getMicrophoneMuteMode() =>
+      NativeAudioManagement.getMicrophoneMuteMode();
+
+  /// Set how the audio device module mutes microphone input.
+  ///
+  /// [MicrophoneMuteMode.voiceProcessing] (the default) plays the platform
+  /// mute sound effect on mute/unmute; use [MicrophoneMuteMode.inputMixer] or
+  /// [MicrophoneMuteMode.restartEngine] for silent muting.
+  ///
+  /// iOS/macOS only. On all other platforms this is a no-op that completes
+  /// normally (including for [MicrophoneMuteMode.unknown]), so it is always
+  /// safe to call from cross-platform code.
+  static Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) =>
+      NativeAudioManagement.setMicrophoneMuteMode(mode);
+
+  /// Get whether microphone input is muted at the audio device module level.
+  /// Unrelated to `MediaStreamTrack.enabled`.
+  ///
+  /// Supported on iOS/macOS and Android; on all other platforms this returns
+  /// `false` without calling into native code.
+  static Future<bool> isMicrophoneMuted() =>
+      NativeAudioManagement.isMicrophoneMuted();
+
+  /// Mute or unmute microphone input at the audio device module level,
+  /// honoring the mode set via [setMicrophoneMuteMode] on iOS/macOS.
+  /// Unrelated to `MediaStreamTrack.enabled`.
+  ///
+  /// Supported on iOS/macOS and Android; on all other platforms this is a
+  /// no-op that completes normally.
+  static Future<void> setMicrophoneMuted(bool muted) =>
+      NativeAudioManagement.setMicrophoneMuted(muted);
+
   /// Set the audio configuration to for Android.
   /// Must be set before initiating a WebRTC session and cannot be changed
   /// mid session.

@@ -130,6 +130,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   private JavaAudioDeviceModule audioDeviceModule;
 
+  // JavaAudioDeviceModule has no mute getter, so mirror the last value set
+  // via the "setMicrophoneMuted" method call.
+  private boolean microphoneMuted = false;
+
   private FlutterRTCFrameCryptor frameCryptor;
 
   private FlutterDataPacketCryptor dataPacketCryptor;
@@ -205,7 +209,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
     mPeerConnectionObservers.clear();
   }
-  private void initialize(boolean bypassVoiceProcessing, int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
+  private void initialize(boolean bypassVoiceProcessing, boolean androidUseHardwareAudioProcessing, int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
   @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity, @Nullable Integer audioSampleRate, @Nullable Integer audioOutputSampleRate) {
     if (mFactory != null) {
       return;
@@ -256,7 +260,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                         .setUseStereoOutput(true)
                         .setAudioSource(MediaRecorder.AudioSource.MIC);
     } else {
-      boolean useHardwareAudioProcessing = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
+      boolean useHardwareAudioProcessing = androidUseHardwareAudioProcessing && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
       boolean useLowLatency = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
       audioDeviceModuleBuilder.setUseHardwareAcousticEchoCanceler(useHardwareAudioProcessing)
                         .setUseLowLatency(useLowLatency)
@@ -428,6 +432,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           enableBypassVoiceProcessing = (boolean)options.get("bypassVoiceProcessing");
         }
 
+        // Defaults to true, matching the previous behaviour. Set to false to leave the
+        // platform hardware AEC/NS off so the WebRTC software APM handles echo/noise
+        // instead. Useful on devices whose built-in AEC is unreliable (#1433).
+        boolean androidUseHardwareAudioProcessing = true;
+        if(options.get("androidUseHardwareAudioProcessing") != null) {
+          androidUseHardwareAudioProcessing = (boolean)options.get("androidUseHardwareAudioProcessing");
+        }
+
         Severity logSeverity = Severity.LS_NONE;
         if (constraintsMap.hasKey("logSeverity")
                 && constraintsMap.getType("logSeverity") == ObjectType.String) {
@@ -447,7 +459,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           audioOutputSampleRate = constraintsMap.getInt("audioOutputSampleRate");
         }
 
-        initialize(enableBypassVoiceProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate);
+        initialize(enableBypassVoiceProcessing, androidUseHardwareAudioProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate);
         result.success(null);
         break;
       }
@@ -1145,6 +1157,25 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         });
         break;
       }
+      case "setMicrophoneMuted": {
+        Boolean muted = call.argument("muted");
+        if (muted == null) {
+          resultError("setMicrophoneMuted", "muted is required", result);
+          break;
+        }
+        if (audioDeviceModule == null) {
+          resultError("setMicrophoneMuted", "audioDeviceModule is null", result);
+          break;
+        }
+        audioDeviceModule.setMicrophoneMute(muted);
+        microphoneMuted = muted;
+        result.success(null);
+        break;
+      }
+      case "isMicrophoneMuted": {
+        result.success(microphoneMuted);
+        break;
+      }
       case "setLogSeverity": {
         //now it's possible to setup logSeverity only via PeerConnectionFactory.initialize method
         //Log.d(TAG, "no implementation for 'setLogSeverity'");
@@ -1564,6 +1595,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   @Override
   public PeerConnectionFactory getPeerConnectionFactory() {
     return mFactory;
+  }
+
+  @Nullable
+  public JavaAudioDeviceModule getAudioDeviceModule() {
+    return audioDeviceModule;
   }
 
   @Override

@@ -93,11 +93,26 @@
   CGImageRelease(cgImage);
   if (shouldRelease)
     CVPixelBufferRelease(pixelBufferRef);
+
+  // Ensure the parent directory exists before writing the file
+  NSString* parentDir = [_path stringByDeletingLastPathComponent];
+  NSFileManager* fileManager = [NSFileManager defaultManager];
+  if (![fileManager fileExistsAtPath:parentDir]) {
+    NSError* dirError = nil;
+    [fileManager createDirectoryAtPath:parentDir
+           withIntermediateDirectories:YES
+                            attributes:nil
+                                 error:&dirError];
+    if (dirError) {
+      NSLog(@"[CaptureFrame] Failed to create directory: %@, error: %@", parentDir, dirError);
+    }
+  }
+
   if (imageData && [imageData writeToFile:_path atomically:NO]) {
-    NSLog(@"File writed successfully to %@", _path);
     _result(nil);
   } else {
-    NSLog(@"Failed to write to file");
+    NSLog(@"[CaptureFrame] Failed to write file - imageData=%@, path=%@",
+          imageData ? @"not nil" : @"nil", _path);
     _result([FlutterError errorWithCode:@"CaptureFrameFailed"
                                 message:@"Failed to write image data to file"
                                 details:nil]);

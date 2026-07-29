@@ -15,10 +15,12 @@ class RTCVideoPlatFormView extends StatefulWidget {
     required this.onViewReady,
     this.objectFit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirror = false,
+    this.placeholderBuilder,
   });
   final void Function(RTCVideoPlatformViewController)? onViewReady;
   final RTCVideoViewObjectFit objectFit;
   final bool mirror;
+  final WidgetBuilder? placeholderBuilder;
   @override
   NativeVideoPlayerViewState createState() => NativeVideoPlayerViewState();
 }
@@ -45,6 +47,35 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
   }
 
   Widget _buildVideoView(BuildContext context, BoxConstraints constraints) {
+    final nativeView = SizedBox(
+      width: _showVideoView
+          ? widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitCover
+              ? constraints.maxWidth
+              : constraints.maxHeight * (_controller?.value.aspectRatio ?? 1.0)
+          : 0.1,
+      height: _showVideoView ? constraints.maxHeight : 0.1,
+      child: Transform(
+        transform: Matrix4.identity()..rotateY(widget.mirror ? -pi : 0.0),
+        alignment: FractionalOffset.center,
+        child: _buildNativeView(),
+      ),
+    );
+
+    if (!_showVideoView && widget.placeholderBuilder != null) {
+      return Center(
+        child: SizedBox(
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          child: Stack(
+            children: [
+              Positioned.fill(child: nativeView),
+              Positioned.fill(child: widget.placeholderBuilder!(context)),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Center(
       child: FittedBox(
         clipBehavior: Clip.hardEdge,
@@ -52,23 +83,7 @@ class NativeVideoPlayerViewState extends State<RTCVideoPlatFormView> {
                 RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
             ? BoxFit.contain
             : BoxFit.cover,
-        child: Center(
-          child: SizedBox(
-            width: _showVideoView
-                ? widget.objectFit ==
-                        RTCVideoViewObjectFit.RTCVideoViewObjectFitCover
-                    ? constraints.maxWidth
-                    : constraints.maxHeight *
-                        (_controller?.value.aspectRatio ?? 1.0)
-                : 0.1,
-            height: _showVideoView ? constraints.maxHeight : 0.1,
-            child: Transform(
-              transform: Matrix4.identity()..rotateY(widget.mirror ? -pi : 0.0),
-              alignment: FractionalOffset.center,
-              child: _buildNativeView(),
-            ),
-          ),
-        ),
+        child: Center(child: nativeView),
       ),
     );
   }
