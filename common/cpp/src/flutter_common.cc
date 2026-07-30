@@ -32,40 +32,84 @@ std::unique_ptr<MethodCallProxy> MethodCallProxy::Create(
 
 class MethodResultProxyImpl : public MethodResultProxy {
  public:
-  explicit MethodResultProxyImpl(std::unique_ptr<MethodResult> method_result)
-      : method_result_(std::move(method_result)) {}
+  MethodResultProxyImpl(std::unique_ptr<MethodResult> method_result,
+                        TaskRunner* task_runner)
+      : method_result_(std::move(method_result)), task_runner_(task_runner) {}
   ~MethodResultProxyImpl() {}
 
-  // Reports success with no result.
-  void Success() override { method_result_->Success(); }
-
-  // Reports success with a result.
-  void Success(const EncodableValue& result) override {
-    method_result_->Success(result);
+  void Success() override {
+    if (!method_result_)
+      return;
+    if (task_runner_) {
+      std::shared_ptr<MethodResult> result(std::move(method_result_));
+      task_runner_->EnqueueTask([result]() { result->Success(); });
+    } else {
+      method_result_->Success();
+    }
   }
 
-  // Reports an error.
+  void Success(const EncodableValue& val) override {
+    if (!method_result_)
+      return;
+    if (task_runner_) {
+      std::shared_ptr<MethodResult> result(std::move(method_result_));
+      task_runner_->EnqueueTask([result, val]() { result->Success(val); });
+    } else {
+      method_result_->Success(val);
+    }
+  }
+
   void Error(const std::string& error_code,
              const std::string& error_message,
              const EncodableValue& error_details) override {
-    method_result_->Error(error_code, error_message, error_details);
+    if (!method_result_)
+      return;
+    if (task_runner_) {
+      std::shared_ptr<MethodResult> result(std::move(method_result_));
+      task_runner_->EnqueueTask(
+          [result, error_code, error_message, error_details]() {
+            result->Error(error_code, error_message, error_details);
+          });
+    } else {
+      method_result_->Error(error_code, error_message, error_details);
+    }
   }
 
-  // Reports an error with a default error code and no details.
   void Error(const std::string& error_code,
              const std::string& error_message = "") override {
-    method_result_->Error(error_code, error_message);
+    if (!method_result_)
+      return;
+    if (task_runner_) {
+      std::shared_ptr<MethodResult> result(std::move(method_result_));
+      task_runner_->EnqueueTask([result, error_code, error_message]() {
+        result->Error(error_code, error_message);
+      });
+    } else {
+      method_result_->Error(error_code, error_message);
+    }
   }
 
-  void NotImplemented() override { method_result_->NotImplemented(); }
+  void NotImplemented() override {
+    if (!method_result_)
+      return;
+    if (task_runner_) {
+      std::shared_ptr<MethodResult> result(std::move(method_result_));
+      task_runner_->EnqueueTask([result]() { result->NotImplemented(); });
+    } else {
+      method_result_->NotImplemented();
+    }
+  }
 
  private:
   std::unique_ptr<MethodResult> method_result_;
+  TaskRunner* task_runner_;
 };
 
 std::unique_ptr<MethodResultProxy> MethodResultProxy::Create(
-    std::unique_ptr<MethodResult> method_result) {
-  return std::make_unique<MethodResultProxyImpl>(std::move(method_result));
+    std::unique_ptr<MethodResult> method_result,
+    TaskRunner* task_runner) {
+  return std::make_unique<MethodResultProxyImpl>(std::move(method_result),
+                                                 task_runner);
 }
 
 class EventChannelProxyImpl : public EventChannelProxy {
