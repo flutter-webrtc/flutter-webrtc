@@ -100,9 +100,9 @@ class EventChannelProxyImpl : public EventChannelProxy {
  
      channel_->SetStreamHandler(std::move(handler));
    }
- 
-   virtual ~EventChannelProxyImpl() {}
- 
+
+   virtual ~EventChannelProxyImpl() { channel_->SetStreamHandler(nullptr); }
+
    void Success(const EncodableValue& event, bool cache_event = true) override {
      if (on_listen_called_) {
        PostEvent(event);
