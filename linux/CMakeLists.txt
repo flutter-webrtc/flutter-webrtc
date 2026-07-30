@@ -29,6 +29,7 @@ add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/src/flutter_webrtc_base.cc"
   "../common/cpp/src/flutter_common.cc"
   "loopback_capturer_factory.cc"
+  "pulse_loopback_capturer.cc"
   "flutter_webrtc_plugin.cc"
   "flutter/core_implementations.cc"
   "flutter/standard_codec.cc"
@@ -55,6 +56,37 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
 )
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter)
 target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
+
+# GCC 14+ (and notably GCC 16) tightened transitive header inclusion, so the
+# bundled libwebrtc headers (e.g. third_party/libwebrtc/include/rtc_types.h)
+# now fail to compile because they use fixed-width integer types such as
+# uint32_t without including <cstdint>. Force-include <cstdint> for every
+# translation unit of this target so those headers build under strict
+# toolchains, instead of editing the downloaded third-party headers in place.
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(${PLUGIN_NAME} PRIVATE -include cstdint)
+endif()
+
+# ---------------------------------------------------------------------------
+# System-audio (loopback) capture: PulseAudio simple API.
+# Guarded so a host without libpulse dev headers still builds the plugin; in
+# that case pulse_loopback_capturer.cc compiles to nothing and the factory
+# returns nullptr (getDisplayMedia audio degrades to no track), matching the
+# previous Linux stub behaviour rather than breaking the whole plugin build.
+# PipeWire ships a PulseAudio compat layer, so libpulse covers both stacks.
+# On Manjaro/.41 the dev headers come from the base `libpulse` package.
+# ---------------------------------------------------------------------------
+find_package(PkgConfig)
+if(PkgConfig_FOUND)
+  pkg_check_modules(PULSE IMPORTED_TARGET libpulse libpulse-simple)
+endif()
+if(TARGET PkgConfig::PULSE)
+  message(STATUS "flutter_webrtc: libpulse found -- enabling Linux system-audio loopback capture.")
+  target_compile_definitions(${PLUGIN_NAME} PRIVATE HAVE_LIBPULSE)
+  target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::PULSE)
+else()
+  message(WARNING "flutter_webrtc: libpulse NOT found -- Linux system-audio loopback capture disabled (getDisplayMedia({audio:true}) yields no audio track). Install the libpulse dev package to enable it.")
+endif()
 
 
 target_link_libraries(${PLUGIN_NAME} PRIVATE 
