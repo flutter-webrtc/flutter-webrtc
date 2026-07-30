@@ -45,6 +45,9 @@ static gboolean fl_texture_proxy_copy_pixels(FlPixelBufferTexture* texture,
                                              uint32_t* height,
                                              GError** error) {
   FlTextureProxy* proxy = FL_TEXTURE_PROXY(texture);
+  if (proxy->texture == nullptr) {
+    return TRUE;
+  }
   flutter::PixelBufferTexture& pixel_buffer =
       std::get<flutter::PixelBufferTexture>(*proxy->texture);
   const FlutterDesktopPixelBuffer* copy =
@@ -246,6 +249,7 @@ bool TextureRegistrarImpl::UnregisterTexture(int64_t texture_id) {
   if (it != textures_.end()) {
     auto texture = it->second;
     textures_.erase(it);
+    FL_TEXTURE_PROXY(texture)->texture = nullptr;
     bool success = fl_texture_registrar_unregister_texture(
         texture_registrar_ref_, FL_TEXTURE(texture));
     g_object_unref(texture);

@@ -1,5 +1,7 @@
 #include "flutter_screen_capture.h"
 
+#include <stdexcept>
+
 namespace flutter_webrtc_plugin {
 
 FlutterScreenCapture::FlutterScreenCapture(FlutterWebRTCBase* base)
@@ -17,7 +19,6 @@ bool FlutterScreenCapture::BuildDesktopSourcesList(const EncodableList& types,
     } else if (type_str == "window") {
       desktop_type = DesktopType::kWindow;
     } else {
-      // std::cout << "Unknown type " << type_str << std::endl;
       return false;
     }
     scoped_refptr<RTCDesktopMediaList> source_list;
@@ -29,7 +30,15 @@ bool FlutterScreenCapture::BuildDesktopSourcesList(const EncodableList& types,
       source_list->RegisterMediaListObserver(this);
       medialist_[desktop_type] = source_list;
     }
-    source_list->UpdateSourceList(force_reload);
+#ifdef __linux__
+    try {
+      source_list->UpdateSourceList(force_reload, false);
+    } catch (...) {
+      continue;
+    }
+#else
+    source_list->UpdateSourceList(force_reload, false);
+#endif
     int count = source_list->GetSourceCount();
     for (int j = 0; j < count; j++) {
       sources_.push_back(source_list->GetSource(j));
@@ -61,7 +70,6 @@ void FlutterScreenCapture::GetDesktopSources(
     sources.push_back(EncodableValue(info));
   }
 
-  //std::cout << " sources: " << sources.size() << std::endl;
   auto map = EncodableMap();
   map[EncodableValue("sources")] = sources;
   result->Success(EncodableValue(map));
@@ -81,9 +89,6 @@ void FlutterScreenCapture::UpdateDesktopSources(
 
 void FlutterScreenCapture::OnMediaSourceAdded(
     scoped_refptr<MediaSource> source) {
-  std::cout << " OnMediaSourceAdded: " << source->id().std_string()
-            << std::endl;
-
   EncodableMap info;
   info[EncodableValue("event")] = "desktopSourceAdded";
   info[EncodableValue("id")] = EncodableValue(source->id().std_string());
@@ -100,9 +105,6 @@ void FlutterScreenCapture::OnMediaSourceAdded(
 
 void FlutterScreenCapture::OnMediaSourceRemoved(
     scoped_refptr<MediaSource> source) {
-  std::cout << " OnMediaSourceRemoved: " << source->id().std_string()
-            << std::endl;
-
   EncodableMap info;
   info[EncodableValue("event")] = "desktopSourceRemoved";
   info[EncodableValue("id")] = EncodableValue(source->id().std_string());
@@ -111,9 +113,6 @@ void FlutterScreenCapture::OnMediaSourceRemoved(
 
 void FlutterScreenCapture::OnMediaSourceNameChanged(
     scoped_refptr<MediaSource> source) {
-  std::cout << " OnMediaSourceNameChanged: " << source->id().std_string()
-            << std::endl;
-
   EncodableMap info;
   info[EncodableValue("event")] = "desktopSourceNameChanged";
   info[EncodableValue("id")] = EncodableValue(source->id().std_string());
@@ -123,9 +122,6 @@ void FlutterScreenCapture::OnMediaSourceNameChanged(
 
 void FlutterScreenCapture::OnMediaSourceThumbnailChanged(
     scoped_refptr<MediaSource> source) {
-  std::cout << " OnMediaSourceThumbnailChanged: " << source->id().std_string()
-            << std::endl;
-
   EncodableMap info;
   info[EncodableValue("event")] = "desktopSourceThumbnailChanged";
   info[EncodableValue("id")] = EncodableValue(source->id().std_string());
@@ -135,19 +131,12 @@ void FlutterScreenCapture::OnMediaSourceThumbnailChanged(
 }
 
 void FlutterScreenCapture::OnStart(scoped_refptr<RTCDesktopCapturer> capturer) {
-  // std::cout << " OnStart: " << capturer->source()->id().std_string()
-  //          << std::endl;
 }
 
 void FlutterScreenCapture::OnPaused(
-    scoped_refptr<RTCDesktopCapturer> capturer) {
-  // std::cout << " OnPaused: " << capturer->source()->id().std_string()
-  //          << std::endl;
-}
+    scoped_refptr<RTCDesktopCapturer> capturer) {}
 
 void FlutterScreenCapture::OnStop(scoped_refptr<RTCDesktopCapturer> capturer) {
-  // std::cout << " OnStop: " << capturer->source()->id().std_string()
-  //          << std::endl;
   if (loopback_capturer_) {
     loopback_capturer_->Stop();
     loopback_capturer_.reset();
@@ -156,8 +145,6 @@ void FlutterScreenCapture::OnStop(scoped_refptr<RTCDesktopCapturer> capturer) {
 }
 
 void FlutterScreenCapture::OnError(scoped_refptr<RTCDesktopCapturer> capturer) {
-  // std::cout << " OnError: " << capturer->source()->id().std_string()
-  //          << std::endl;
 }
 
 void FlutterScreenCapture::GetDesktopSourceThumbnail(
@@ -177,8 +164,6 @@ void FlutterScreenCapture::GetDesktopSourceThumbnail(
     result->Error("Bad Arguments", "Failed to get desktop source thumbnail");
     return;
   }
-  std::cout << " GetDesktopSourceThumbnail: " << source->id().std_string()
-            << std::endl;
   source->UpdateThumbnail();
   result->Success(EncodableValue(source->thumbnail().std_vector()));
 }
@@ -302,6 +287,29 @@ void FlutterScreenCapture::GetDisplayMedia(
       source = src;
     }
   }
+
+#ifdef __linux__
+  // If the caller didn't specify a source (source_id == "0"), fall back to
+  // the first available screen. When a specific source_id was requested but
+  // isn't in the (possibly stale) cached list, rebuild the list and retry
+  // the match instead of silently capturing the wrong source.
+  if (!source.get() && !sources_.empty() && source_id == "0") {
+    source = sources_.front();
+  }
+  if (!source.get()) {
+    EncodableList types;
+    types.push_back(EncodableValue(std::string("screen")));
+    BuildDesktopSourcesList(types, true);
+    for (auto src : sources_) {
+      if (src->id().std_string() == source_id) {
+        source = src;
+      }
+    }
+    if (!source.get() && !sources_.empty() && source_id == "0") {
+      source = sources_.front();
+    }
+  }
+#endif
 
   if (!source.get()) {
     result->Error("Bad Arguments", "source not found!");
