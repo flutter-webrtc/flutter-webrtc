@@ -148,7 +148,9 @@ NSArray<RTCDesktopSource*>* _captureSources;
     }
   }
   if (useScreenCaptureKit) {
-    if (@available(macOS 12.3, *)) {
+    // ScreenCaptureKit can create a live track without delivering frames on
+    // macOS Monterey. Use the legacy WebRTC capturer on macOS 12.x.
+    if (@available(macOS 13.0, *)) {
       screenCaptureKitCapturer =
           [[FlutterScreenCaptureKitCapturer alloc] initWithDelegate:videoProcessingAdapter];
       [screenCaptureKitCapturer startCaptureWithFPS:fps
@@ -162,7 +164,7 @@ NSArray<RTCDesktopSource*>* _captureSources;
                                             }
                                           }];
     } else {
-      NSLog(@"ScreenCaptureKit not available, falling back to RTCDesktopCapturer");
+      NSLog(@"ScreenCaptureKit unavailable or unsupported, falling back to RTCDesktopCapturer");
       desktopCapturer = [[RTCDesktopCapturer alloc] initWithDefaultScreen:self
                                                           captureDelegate:videoProcessingAdapter];
     }
