@@ -24,6 +24,9 @@ public interface StateProvider {
 
   LocalTrack getLocalTrack(String trackId);
 
+  void onRemoteTrackAdded(
+      String peerConnectionId, String streamId, MediaStreamTrack track);
+
   String getNextStreamUUID();
 
   String getNextTrackUUID();
