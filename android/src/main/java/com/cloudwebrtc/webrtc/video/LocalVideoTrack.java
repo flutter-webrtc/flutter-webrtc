@@ -9,17 +9,15 @@ import org.webrtc.VideoProcessor;
 import org.webrtc.VideoSink;
 import org.webrtc.VideoTrack;
 
+import java.lang.IllegalStateException;
 import java.util.ArrayList;
 import java.util.List;
+import android.util.Log;
 
 public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
-    public interface ExternalVideoFrameProcessing {
-        /**
-         * Process a video frame.
-         * @param frame
-         * @return The processed video frame.
-         */
-        public abstract VideoFrame onFrame(VideoFrame frame);
+    static private final String TAG = "LocalVideoTrack";
+    public interface ExternalVideoFrameProcessing extends VideoSink {
+        void setSink(VideoSink videoSink);
     }
 
     public LocalVideoTrack(VideoTrack videoTrack) {
@@ -29,14 +27,35 @@ public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
     List<ExternalVideoFrameProcessing> processors = new ArrayList<>();
 
     public void addProcessor(ExternalVideoFrameProcessing processor) {
+        Log.i(TAG, "add processor");
         synchronized (processors) {
+            if (!processors.isEmpty()) {
+                processors.get(processors.size()-1).setSink(processor);
+            }
+            processor.setSink(sink);
             processors.add(processor);
         }
     }
 
     public void removeProcessor(ExternalVideoFrameProcessing processor) {
+        Log.i(TAG, "remove processor");
         synchronized (processors) {
-            processors.remove(processor);
+            int toRemove = processors.indexOf(processor);
+            if (toRemove < 0) {
+                throw new IllegalStateException("processor not found");
+            }
+            processors.remove(toRemove);
+            VideoSink next;
+            if (processors.size() >= toRemove) {
+                // removed last processor, next sink is final sink
+                next = sink;
+            } else {
+                next = processors.get(toRemove);
+            }
+            if (toRemove > 0) {
+                // removed processor was not first in line, fix broken sink line
+                processors.get(toRemove-1).setSink(next);
+            }
         }
     }
 
@@ -45,6 +64,9 @@ public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
     @Override
     public void setSink(@Nullable VideoSink videoSink) {
         sink = videoSink;
+        if (!processors.isEmpty()) {
+            processors.get(processors.size()-1).setSink(sink);
+        }
     }
 
     @Override
@@ -57,11 +79,12 @@ public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
     public void onFrameCaptured(VideoFrame videoFrame) {
         if (sink != null) {
             synchronized (processors) {
-                for (ExternalVideoFrameProcessing processor : processors) {
-                    videoFrame = processor.onFrame(videoFrame);
+                if (!processors.isEmpty()) {
+                    processors.get(0).onFrame(videoFrame);
+                } else {
+                    sink.onFrame(videoFrame);
                 }
             }
-            sink.onFrame(videoFrame);
         }
     }
 }
