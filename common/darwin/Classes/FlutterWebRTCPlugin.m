@@ -368,7 +368,7 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
         // iOS devices also require the AudioEngine ADM because the CoreAudio ADM
         // crashes when NSMicrophoneUsageDescription is absent (#2007, #2009).
         RTCAudioDeviceModuleType audioDeviceModuleType = RTCAudioDeviceModuleTypeAudioEngine;
-#if TARGET_OS_IPHONE && TARGET_OS_SIMULATOR
+#if TARGET_OS_IOS && TARGET_OS_SIMULATOR
         // The AudioEngine ADM can expose a zero-rate input on the iOS Simulator.
         audioDeviceModuleType = RTCAudioDeviceModuleTypePlatformDefault;
 #endif
