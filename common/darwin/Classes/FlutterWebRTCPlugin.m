@@ -355,7 +355,7 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
         VideoEncoderFactorySimulcast* simulcastFactory =
             [[VideoEncoderFactorySimulcast alloc] initWithPrimary:encoderFactory fallback:encoderFactory];
 
-        // Use the AVAudioEngine audio device module on both iOS and macOS.
+        // Use the AVAudioEngine audio device module on iOS devices and macOS.
         //
         // macOS previously used the CoreAudio ADM (value 0) to avoid an
         // AVAudioIONodeImpl::SetOutputFormat sample-rate assertion when the
@@ -365,9 +365,13 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
         // state-based voice-processing checks, engine recreate ordering).
         // The AudioEngine ADM enables platform voice processing (Apple
         // AEC/NS/AGC) and the audio processing options API on macOS.
-        // iOS also requires the AudioEngine ADM because the CoreAudio ADM
+        // iOS devices also require the AudioEngine ADM because the CoreAudio ADM
         // crashes when NSMicrophoneUsageDescription is absent (#2007, #2009).
         RTCAudioDeviceModuleType audioDeviceModuleType = RTCAudioDeviceModuleTypeAudioEngine;
+#if TARGET_OS_IOS && TARGET_OS_SIMULATOR
+        // The AudioEngine ADM can expose a zero-rate input on the iOS Simulator.
+        audioDeviceModuleType = RTCAudioDeviceModuleTypePlatformDefault;
+#endif
         _peerConnectionFactory =
             [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:audioDeviceModuleType
                                                       bypassVoiceProcessing:bypassVoiceProcessing
