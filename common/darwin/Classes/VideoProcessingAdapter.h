@@ -1,8 +1,9 @@
 #import <Foundation/Foundation.h>
 #import <WebRTC/WebRTC.h>
 
-@protocol ExternalVideoProcessingDelegate
-- (RTC_OBJC_TYPE(RTCVideoFrame) * _Nonnull)onFrame:(RTC_OBJC_TYPE(RTCVideoFrame) * _Nonnull)frame;
+@protocol ExternalVideoProcessingDelegate <RTCVideoCapturerDelegate>
+// - (RTC_OBJC_TYPE(RTCVideoFrame) * _Nonnull)onFrame:(RTC_OBJC_TYPE(RTCVideoFrame) * _Nonnull)frame;
+- (void)setSink:( _Nonnull id<RTCVideoCapturerDelegate> ) __strong sink;
 @end
 
 @interface VideoProcessingAdapter : NSObject <RTCVideoCapturerDelegate>
