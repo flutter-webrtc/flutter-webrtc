@@ -1,4 +1,5 @@
 #include "flutter_screen_capture.h"
+#include "flutter_utf8_sanitize.h"
 
 #include <stdexcept>
 
@@ -59,7 +60,8 @@ void FlutterScreenCapture::GetDesktopSources(
   for (auto source : sources_) {
     EncodableMap info;
     info[EncodableValue("id")] = EncodableValue(source->id().std_string());
-    info[EncodableValue("name")] = EncodableValue(source->name().std_string());
+    info[EncodableValue("name")] =
+        EncodableValue(SanitizeUtf8ForFlutter(source->name().std_string()));
     info[EncodableValue("type")] =
         EncodableValue(source->type() == kWindow ? "window" : "screen");
     // TODO "thumbnailSize"
@@ -92,7 +94,8 @@ void FlutterScreenCapture::OnMediaSourceAdded(
   EncodableMap info;
   info[EncodableValue("event")] = "desktopSourceAdded";
   info[EncodableValue("id")] = EncodableValue(source->id().std_string());
-  info[EncodableValue("name")] = EncodableValue(source->name().std_string());
+  info[EncodableValue("name")] =
+      EncodableValue(SanitizeUtf8ForFlutter(source->name().std_string()));
   info[EncodableValue("type")] =
       EncodableValue(source->type() == kWindow ? "window" : "screen");
   // TODO "thumbnailSize"
@@ -116,7 +119,8 @@ void FlutterScreenCapture::OnMediaSourceNameChanged(
   EncodableMap info;
   info[EncodableValue("event")] = "desktopSourceNameChanged";
   info[EncodableValue("id")] = EncodableValue(source->id().std_string());
-  info[EncodableValue("name")] = EncodableValue(source->name().std_string());
+  info[EncodableValue("name")] =
+      EncodableValue(SanitizeUtf8ForFlutter(source->name().std_string()));
   base_->event_channel()->Success(EncodableValue(info));
 }
 
