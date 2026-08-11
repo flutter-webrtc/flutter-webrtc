@@ -8,6 +8,23 @@ import '../flutter_webrtc.dart';
 import 'native_logs_listener.dart';
 
 class Helper {
+  /// Whether the sharer's OS mouse cursor is composited into desktop screen
+  /// capture (native getDisplayMedia on Windows/Linux).
+  ///
+  /// Read when a capture starts, so it applies to the NEXT screen share rather
+  /// than one already running. Defaults to `true` — the existing behaviour —
+  /// so nothing changes unless an app opts out. Set it to `false` to avoid the
+  /// "double cursor" viewers see when the sharer's pointer is drawn on top of
+  /// their own. Web is unaffected: the browser owns cursor handling there.
+  static bool screenCaptureShowCursor = true;
+
+  /// Show/hide the broadcaster's mouse cursor in desktop screen capture.
+  /// Applies to the NEXT screen share started via getDisplayMedia; an already
+  /// running capture is unaffected.
+  static void setScreenCaptureCursor(bool show) {
+    screenCaptureShowCursor = show;
+  }
+
   /// Set Logger object for webrtc;
   ///
   /// Params:

@@ -174,6 +174,10 @@ void FlutterScreenCapture::GetDisplayMedia(
   std::string source_id = "0";
   // DesktopType source_type = kScreen;
   double fps = 30.0;
+  // Whether the OS cursor is composited into the captured frames, driven by the
+  // getDisplayMedia "cursor" video constraint. Defaults to true so behaviour is
+  // unchanged when the constraint is absent — that is libwebrtc's own default.
+  bool show_cursor = true;
 
   const EncodableMap video = findMap(constraints, "video");
   if (video != EncodableMap()) {
@@ -194,6 +198,15 @@ void FlutterScreenCapture::GetDisplayMedia(
       if (frameRate != 0.0) {
         fps = frameRate;
       }
+    }
+    // Accept both the spec's string form ("always"/"never") and a plain bool.
+    // Only an explicitly supplied constraint moves off the default, so callers
+    // that pass no "cursor" key keep exactly the behaviour they have today.
+    const std::string cursor = findString(video, "cursor");
+    if (!cursor.empty()) {
+      show_cursor = (cursor == "always");
+    } else if (video.find(EncodableValue("cursor")) != video.end()) {
+      show_cursor = findBoolean(video, "cursor");
     }
   }
 
@@ -317,7 +330,7 @@ void FlutterScreenCapture::GetDisplayMedia(
   }
 
   scoped_refptr<RTCDesktopCapturer> desktop_capturer =
-      base_->desktop_device_->CreateDesktopCapturer(source);
+      base_->desktop_device_->CreateDesktopCapturer(source, show_cursor);
 
   if (!desktop_capturer.get()) {
     result->Error("Bad Arguments", "CreateDesktopCapturer failed!");
