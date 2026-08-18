@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
+import '../helper.dart';
 import 'event_channel.dart';
 import 'media_stream_impl.dart';
 import 'utils.dart';
@@ -52,6 +53,31 @@ class MediaDeviceNative extends MediaDevices {
   @override
   Future<MediaStream> getDisplayMedia(
       Map<String, dynamic> mediaConstraints) async {
+    // Forward Helper.screenCaptureShowCursor to the native capturer as the
+    // getDisplayMedia "cursor" video constraint. Only added when the caller has
+    // not set one itself, so an explicit constraint always wins. Copy-on-write
+    // so the caller's constraints map is never mutated.
+    if (WebRTC.platformIsDesktop) {
+      final cursor = Helper.screenCaptureShowCursor ? 'always' : 'never';
+      final video = mediaConstraints['video'];
+      if (video is Map) {
+        mediaConstraints = <String, dynamic>{
+          ...mediaConstraints,
+          'video': <String, dynamic>{
+            ...Map<String, dynamic>.from(video),
+            if (!video.containsKey('cursor')) 'cursor': cursor,
+          },
+        };
+      } else if (video == true) {
+        // `video: true` carries no source/fps info; the native handler treats
+        // an empty video map identically (same defaults), so it is safe to
+        // upgrade it to a map that only carries the cursor preference.
+        mediaConstraints = <String, dynamic>{
+          ...mediaConstraints,
+          'video': <String, dynamic>{'cursor': cursor},
+        };
+      }
+    }
     try {
       final response = await WebRTC.invokeMethod(
         'getDisplayMedia',
