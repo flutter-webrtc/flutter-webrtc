@@ -3,6 +3,19 @@
 
 #include <memory>
 
+#if defined(_WIN32)
+#include <flutter_messenger.h>
+#endif
+
+// See SetEventChannelHostMessenger() in flutter_common.h. Only ever written
+// from plugin registration, which happens on the platform thread before any
+// event channel exists.
+static void* g_host_messenger = nullptr;
+
+void SetEventChannelHostMessenger(void* messenger_ref) {
+  g_host_messenger = messenger_ref;
+}
+
 class MethodCallProxyImpl : public MethodCallProxy {
  public:
   explicit MethodCallProxyImpl(const MethodCall& method_call)
@@ -122,6 +135,14 @@ class EventChannelProxyImpl : public EventChannelProxy {
              channelName,
              &flutter::StandardMethodCodec::GetInstance())),
              task_runner_(task_runner) {
+#if defined(_WIN32)
+     // Each proxy keeps its own reference so that the handle outlives the
+     // engine it belongs to and the Release() below stays balanced.
+     if (g_host_messenger) {
+       host_messenger_ = FlutterDesktopMessengerAddRef(
+           static_cast<FlutterDesktopMessengerRef>(g_host_messenger));
+     }
+#endif
      auto handler = std::make_unique<
          flutter::StreamHandlerFunctions<EncodableValue>>(
          [&](const EncodableValue* arguments,
@@ -145,7 +166,29 @@ class EventChannelProxyImpl : public EventChannelProxy {
      channel_->SetStreamHandler(std::move(handler));
    }
 
-   virtual ~EventChannelProxyImpl() { channel_->SetStreamHandler(nullptr); }
+   virtual ~EventChannelProxyImpl() {
+     // Unregister the stream handler only while the messenger still
+     // references a running engine. This destructor also runs from
+     // PluginRegistrar::ClearPlugins() during FlutterWindowsEngine teardown,
+     // after the engine has detached itself from the FlutterDesktopMessenger;
+     // an unconditional SetStreamHandler(nullptr) then reaches
+     // FlutterDesktopMessengerSetCallback, which dereferences the detached
+     // engine (its FML_DCHECK is compiled out in release builds): access
+     // violation on the platform thread. The registration dies with the
+     // engine anyway.
+#if defined(_WIN32)
+     if (host_messenger_) {
+       FlutterDesktopMessengerLock(host_messenger_);
+       if (FlutterDesktopMessengerIsAvailable(host_messenger_)) {
+         channel_->SetStreamHandler(nullptr);
+       }
+       FlutterDesktopMessengerUnlock(host_messenger_);
+       FlutterDesktopMessengerRelease(host_messenger_);
+       return;
+     }
+#endif
+     channel_->SetStreamHandler(nullptr);
+   }
 
    void Success(const EncodableValue& event, bool cache_event = true) override {
      if (on_listen_called_) {
@@ -177,6 +220,9 @@ class EventChannelProxyImpl : public EventChannelProxy {
    std::list<EncodableValue> event_queue_;
    bool on_listen_called_ = false;
    TaskRunner* task_runner_;
+#if defined(_WIN32)
+   FlutterDesktopMessengerRef host_messenger_ = nullptr;
+#endif
  };
 
 std::unique_ptr<EventChannelProxy> EventChannelProxy::Create(
