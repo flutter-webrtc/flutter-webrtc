@@ -79,10 +79,9 @@ void FlutterWebRTCPluginRegisterWithRegistrar(
   // Capture the host messenger before creating the plugin, so that the event
   // channels can check whether the engine is still running before they
   // unregister their stream handlers; see ~EventChannelProxyImpl in
-  // common/cpp/src/flutter_common.cc. The AddRef() here keeps the handle
-  // itself valid after the engine is gone.
-  SetEventChannelHostMessenger(FlutterDesktopMessengerAddRef(
-      FlutterDesktopPluginRegistrarGetMessenger(registrar)));
+  // common/cpp/src/flutter_common.cc.
+  SetEventChannelHostMessenger(
+      FlutterDesktopPluginRegistrarGetMessenger(registrar));
   flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
