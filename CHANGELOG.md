@@ -1,6 +1,10 @@
 
 # Changelog
 
+[1.6.0+hotfix.1] - 2026-08-21
+
+* [Darwin] fix: bump Webrtc.xcframework to 144.7559.10 to fix the regression.
+
 [1.6.0] - 2026-07-29
 
 * [Darwin] feat: Swift Package Manager support. Apps with Flutter's SPM integration enabled consume the plugin as a Swift package automatically; CocoaPods remains fully supported (#2062).
