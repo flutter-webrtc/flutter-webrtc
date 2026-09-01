@@ -1,6 +1,10 @@
 
 # Changelog
 
+[1.6.1] - 2026-09-01
+
+* [Darwin/Android/Windows/Linux] feat: upgrade libwebrtc to 150.7871.01.
+
 [1.6.0+hotfix.1] - 2026-08-21
 
 * [Darwin] fix: bump Webrtc.xcframework to 144.7559.10 to fix the regression.

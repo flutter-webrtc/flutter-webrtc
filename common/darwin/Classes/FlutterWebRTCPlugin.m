@@ -2071,6 +2071,11 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
     config.audioJitterBufferMaxPackets = [json[@"audioJitterBufferMaxPackets"] intValue];
   }
 
+  if (json[@"enableSctpSnap"] != nil &&
+      [json[@"enableSctpSnap"] isKindOfClass:[NSNumber class]]) {
+    config.enableSctpSnap = [json[@"enableSctpSnap"] boolValue];
+  }
+
   if (json[@"bundlePolicy"] != nil && [json[@"bundlePolicy"] isKindOfClass:[NSString class]]) {
     NSString* bundlePolicy = json[@"bundlePolicy"];
     if ([bundlePolicy isEqualToString:@"balanced"]) {
@@ -2119,7 +2124,8 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
   }
 
   if (json[@"enableDscp"] != nil && [json[@"enableDscp"] isKindOfClass:[NSNumber class]]) {
-    config.enableDscp = [json[@"enableDscp"] boolValue];
+    NSNumber* enableDscp = json[@"enableDscp"];
+    config.enableDscp = [enableDscp boolValue];
   }
 
   if (json[@"rtcpMuxPolicy"] != nil && [json[@"rtcpMuxPolicy"] isKindOfClass:[NSString class]]) {
