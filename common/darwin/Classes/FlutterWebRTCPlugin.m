@@ -2071,6 +2071,11 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
     config.audioJitterBufferMaxPackets = [json[@"audioJitterBufferMaxPackets"] intValue];
   }
 
+  if (json[@"enableSctpSnap"] != nil &&
+      [json[@"enableSctpSnap"] isKindOfClass:[NSNumber class]]) {
+    config.enableSctpSnap = [json[@"enableSctpSnap"] boolValue];
+  }
+
   if (json[@"bundlePolicy"] != nil && [json[@"bundlePolicy"] isKindOfClass:[NSString class]]) {
     NSString* bundlePolicy = json[@"bundlePolicy"];
     if ([bundlePolicy isEqualToString:@"balanced"]) {
@@ -2119,7 +2124,8 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
   }
 
   if (json[@"enableDscp"] != nil && [json[@"enableDscp"] isKindOfClass:[NSNumber class]]) {
-    config.enableDscp = [json[@"enableDscp"] boolValue];
+    NSNumber* enableDscp = json[@"enableDscp"];
+    config.enableDscp = [enableDscp boolValue];
   }
 
   if (json[@"rtcpMuxPolicy"] != nil && [json[@"rtcpMuxPolicy"] isKindOfClass:[NSString class]]) {
@@ -2237,6 +2243,10 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
     BOOL sframeRequireFrameEncryption = NO;
     BOOL srtpEnableEncryptedRtpHeaderExtensions = NO;
     BOOL srtpEnableAes128Sha1_32CryptoCipher = NO;
+    // Defaults from webrtc::CryptoOptions::Srtp: GCM is offered last unless
+    // preferred, and AES128_CM_SHA1_80 (the mandatory-to-implement cipher) is on.
+    BOOL srtpPreferGcmCryptoSuites = NO;
+    BOOL srtpEnableAes128Sha1_80CryptoCipher = YES;
 
     if (options[@"enableGcmCryptoSuites"] != nil &&
         [options[@"enableGcmCryptoSuites"] isKindOfClass:[NSNumber class]]) {
@@ -2262,11 +2272,25 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
       srtpEnableAes128Sha1_32CryptoCipher = [value boolValue];
     }
 
+    if (options[@"preferGcmCryptoSuites"] != nil &&
+        [options[@"preferGcmCryptoSuites"] isKindOfClass:[NSNumber class]]) {
+      NSNumber* value = options[@"preferGcmCryptoSuites"];
+      srtpPreferGcmCryptoSuites = [value boolValue];
+    }
+
+    if (options[@"enableAes128Sha1_80CryptoCipher"] != nil &&
+        [options[@"enableAes128Sha1_80CryptoCipher"] isKindOfClass:[NSNumber class]]) {
+      NSNumber* value = options[@"enableAes128Sha1_80CryptoCipher"];
+      srtpEnableAes128Sha1_80CryptoCipher = [value boolValue];
+    }
+
     config.cryptoOptions = [[RTCCryptoOptions alloc]
              initWithSrtpEnableGcmCryptoSuites:srtpEnableGcmCryptoSuites
+                     srtpPreferGcmCryptoSuites:srtpPreferGcmCryptoSuites
            srtpEnableAes128Sha1_32CryptoCipher:srtpEnableAes128Sha1_32CryptoCipher
+           srtpEnableAes128Sha1_80CryptoCipher:srtpEnableAes128Sha1_80CryptoCipher
         srtpEnableEncryptedRtpHeaderExtensions:srtpEnableEncryptedRtpHeaderExtensions
-                  sframeRequireFrameEncryption:(BOOL)sframeRequireFrameEncryption];
+                  sframeRequireFrameEncryption:sframeRequireFrameEncryption];
   }
 
   return config;

@@ -1343,6 +1343,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
     }
 
+    if (map.hasKey("enableSctpSnap")
+            && map.getType("enableSctpSnap") == ObjectType.Boolean) {
+      conf.enableSctpSnap = map.getBoolean("enableSctpSnap");
+    }
+
     // rtcpMuxPolicy (public api)
     if (map.hasKey("rtcpMuxPolicy")
             && map.getType("rtcpMuxPolicy") == ObjectType.String) {
