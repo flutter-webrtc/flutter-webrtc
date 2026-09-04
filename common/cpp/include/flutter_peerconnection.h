@@ -42,6 +42,11 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
   std::unique_ptr<EventChannelProxy> event_channel_;
   scoped_refptr<RTCPeerConnection> peerconnection_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> remote_streams_;
+  // Remote tracks indexed by id. `remote_streams_` is only populated by
+  // OnAddStream, which never fires under Unified Plan, so it cannot be used to
+  // resolve receiver tracks. Entries are dropped in OnRemoveTrack and, at the
+  // latest, when this observer is destroyed with the peer connection.
+  std::map<std::string, scoped_refptr<RTCMediaTrack>> remote_tracks_;
   FlutterWebRTCBase* base_;
   std::string id_;
 };
