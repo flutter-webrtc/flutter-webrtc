@@ -146,6 +146,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   public AudioProcessingController audioProcessingController;
 
+  // Field trials are process-global and are read when a peer connection builds its
+  // transports, so they have to be applied before that peer connection is created.
+  // `WebRTC-IceHandshakeDtls` (the DTLS handshake piggybacked on the ICE STUN
+  // binding exchange) is opted into through the `enableDscp` peer connection
+  // configuration flag, which is only known once Dart creates a peer connection —
+  // long after PeerConnectionFactory.initialize() ran, so it cannot be passed
+  // through InitializationOptions.setFieldTrials().
+  private static final String FIELD_TRIAL_ICE_HANDSHAKE_DTLS =
+          "WebRTC-IceHandshakeDtls/Enabled/";
+
+  private static boolean iceHandshakeDtlsEnabled = false;
+
   public static class LogSink implements Loggable {
     @Override
     public void onLogMessage(String message, Severity sev, String tag) {
@@ -1291,6 +1303,19 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     return iceServers;
   }
 
+  /**
+   * Turns on the `WebRTC-IceHandshakeDtls` field trial for the rest of the process.
+   * One-way: peer connections created before this point keep the previous value.
+   */
+  private static void enableIceHandshakeDtlsFieldTrial() {
+    if (iceHandshakeDtlsEnabled) {
+      return;
+    }
+    iceHandshakeDtlsEnabled = true;
+    PeerConnectionFactory.initializeFieldTrials(FIELD_TRIAL_ICE_HANDSHAKE_DTLS);
+    Log.d(TAG, "enabled field trials: " + FIELD_TRIAL_ICE_HANDSHAKE_DTLS);
+  }
+
   private RTCConfiguration parseRTCConfiguration(ConstraintsMap map) {
     ConstraintsArray iceServersArray = null;
     if (map != null) {
@@ -1395,6 +1420,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     if (map.hasKey("enableDscp")
             && map.getType("enableDscp") == ObjectType.Boolean) {
       conf.enableDscp = map.getBoolean("enableDscp");
+      if (conf.enableDscp) {
+        enableIceHandshakeDtlsFieldTrial();
+      }
     }
 
     // maxIPv6Networks

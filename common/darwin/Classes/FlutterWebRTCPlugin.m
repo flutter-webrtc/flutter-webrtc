@@ -139,6 +139,27 @@ static BOOL gAudioSessionManagementEnabled = YES;
 // retains it. See +setAudioDeviceModuleObserver:.
 static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
 
+// Field trials are process-global and are read when a peer connection builds its
+// transports, so they have to be applied before that peer connection is created.
+// `WebRTC-IceHandshakeDtls` (the DTLS handshake piggybacked on the ICE STUN
+// binding exchange) is opted into through the `enableDscp` peer connection
+// configuration flag, which is only known once Dart creates a peer connection —
+// long after the plugin and the factory were initialized. So keep the base set in
+// one place and re-apply it with the extra trial the first time it is asked for.
+static BOOL gIceHandshakeDtlsEnabled = NO;
+
+static void FlutterWebRTCApplyFieldTrials(void) {
+  NSMutableDictionary<NSString*, NSString*>* fieldTrials =
+      [@{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue} mutableCopy];
+  if (gIceHandshakeDtlsEnabled) {
+    fieldTrials[kRTCFieldTrialIceHandshakeDtlsKey] = kRTCFieldTrialEnabledValue;
+  }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+  RTCInitFieldTrialDictionary(fieldTrials);
+#pragma clang diagnostic pop
+}
+
 + (FlutterWebRTCPlugin *)sharedSingleton
 {
   @synchronized(self)
@@ -241,11 +262,7 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
 #endif
   }
 
-  NSDictionary* fieldTrials = @{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue};
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  RTCInitFieldTrialDictionary(fieldTrials);
-#pragma clang diagnostic pop
+  FlutterWebRTCApplyFieldTrials();
 
   self.peerConnections = [NSMutableDictionary new];
   self.localStreams = [NSMutableDictionary new];
@@ -2126,6 +2143,13 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
   if (json[@"enableDscp"] != nil && [json[@"enableDscp"] isKindOfClass:[NSNumber class]]) {
     NSNumber* enableDscp = json[@"enableDscp"];
     config.enableDscp = [enableDscp boolValue];
+    if (config.enableDscp && !gIceHandshakeDtlsEnabled) {
+      // Also opt into the DTLS-in-STUN handshake. The field trial is global and
+      // one-way: peer connections created before this point keep the old value,
+      // and it stays on for the rest of the process.
+      gIceHandshakeDtlsEnabled = YES;
+      FlutterWebRTCApplyFieldTrials();
+    }
   }
 
   if (json[@"rtcpMuxPolicy"] != nil && [json[@"rtcpMuxPolicy"] isKindOfClass:[NSString class]]) {
