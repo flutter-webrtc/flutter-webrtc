@@ -155,6 +155,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   private static final String FIELD_TRIAL_ICE_HANDSHAKE_DTLS =
           "WebRTC-IceHandshakeDtls/Enabled/";
 
+  // `WebRTC-ForcePlayoutDelay` renders every frame as soon as it is decoded instead
+  // of holding it back for the jitter buffer target delay. Opted into through the
+  // `zeroPlayoutDelay` initialize() option, and read at the same moment as the
+  // trial above.
+  private static final String FIELD_TRIAL_FORCE_PLAYOUT_DELAY =
+          "WebRTC-ForcePlayoutDelay/Enabled/";
+
   private static boolean warpEnabled = false;
 
   public static class LogSink implements Loggable {
@@ -221,7 +228,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mPeerConnectionObservers.clear();
   }
   private void initialize(boolean bypassVoiceProcessing, boolean androidUseHardwareAudioProcessing, int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
-  @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity, @Nullable Integer audioSampleRate, @Nullable Integer audioOutputSampleRate, boolean enableWARP) {
+  @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity, @Nullable Integer audioSampleRate, @Nullable Integer audioOutputSampleRate, boolean enableWARP, boolean zeroPlayoutDelay) {
     if (mFactory != null) {
       return;
     }
@@ -233,9 +240,16 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                     .setEnableInternalTracer(true)
                     .setInjectableLogger(logSink, logSeverity);
 
+    String fieldTrials = "";
     if (enableWARP) {
-      initializationOptionsBuilder.setFieldTrials(FIELD_TRIAL_ICE_HANDSHAKE_DTLS);
-      Log.d(TAG, "enabled field trials: " + FIELD_TRIAL_ICE_HANDSHAKE_DTLS);
+      fieldTrials += FIELD_TRIAL_ICE_HANDSHAKE_DTLS;
+    }
+    if (zeroPlayoutDelay) {
+      fieldTrials += FIELD_TRIAL_FORCE_PLAYOUT_DELAY;
+    }
+    if (!fieldTrials.isEmpty()) {
+      initializationOptionsBuilder.setFieldTrials(fieldTrials);
+      Log.d(TAG, "enabled field trials: " + fieldTrials);
     }
 
     PeerConnectionFactory.initialize(initializationOptionsBuilder.createInitializationOptions());
@@ -487,7 +501,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           enableWARP = constraintsMap.getBoolean("enableWARP");
         }
 
-        initialize(enableBypassVoiceProcessing, androidUseHardwareAudioProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate, enableWARP);
+        // Render frames as soon as they are decoded, trading jitter buffer smoothing
+        // for latency. Same timing constraint as WARP: it is a field trial.
+        boolean zeroPlayoutDelay = false;
+        if (constraintsMap.hasKey("zeroPlayoutDelay")
+                && constraintsMap.getType("zeroPlayoutDelay") == ObjectType.Boolean) {
+          zeroPlayoutDelay = constraintsMap.getBoolean("zeroPlayoutDelay");
+        }
+
+        initialize(enableBypassVoiceProcessing, androidUseHardwareAudioProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate, enableWARP, zeroPlayoutDelay);
         result.success(null);
         break;
       }

@@ -65,6 +65,7 @@ class WebRTC {
   /// "audioOutputSampleRate": (Android only) Sets only output sample rate in Hz (e.g., 48000).
   ///                          Takes precedence over audioSampleRate for output.
   ///                          If not specified, uses audioSampleRate or native default.
+  ///
   /// "enableWARP": (Android/iOS/macOS only) a boolean that opts into WARP
   ///               (WebRTC Abridged Roundtrip Protocol, draft-uberti-tsvwg-warp),
   ///               which shortens the ~6 RTT WebRTC setup down to ~2 RTT. It
@@ -77,6 +78,15 @@ class WebRTC {
   ///               here and not in the peer connection configuration: it has to be
   ///               set before the first peer connection is created.
   ///               See https://www.ietf.org/archive/id/draft-uberti-tsvwg-warp-00.html
+  ///
+  /// "zeroPlayoutDelay": (Android/iOS/macOS only) a boolean that plays out every
+  ///                     received frame as soon as it is decoded instead of
+  ///                     holding it back for the jitter buffer target delay (the
+  ///                     `WebRTC-ForcePlayoutDelay` field trial). Trades the
+  ///                     jitter buffer's smoothing for latency, so it is meant
+  ///                     for low latency scenarios on reliable networks. Like
+  ///                     `enableWARP` it is a field trial, so it has to be set
+  ///                     before the first peer connection is created.
   static Future<void> initialize({Map<String, dynamic>? options}) async {
     if (!initialized) {
       await _channel.invokeMethod<void>('initialize', <String, dynamic>{

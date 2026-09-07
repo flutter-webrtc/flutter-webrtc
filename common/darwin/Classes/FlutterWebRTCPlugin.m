@@ -148,6 +148,14 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
 // before the factory and any peer connection exist.
 static BOOL gWarpEnabled = NO;
 
+// `WebRTC-ForcePlayoutDelay` renders every frame as soon as it is decoded instead
+// of holding it back for the jitter buffer target delay. Opted into through the
+// `zeroPlayoutDelay` initialize() option, and read at the same moment as the
+// trials above.
+static NSString* const kFlutterWebRTCFieldTrialForcePlayoutDelay = @"WebRTC-ForcePlayoutDelay";
+
+static BOOL gZeroPlayoutDelayEnabled = NO;
+
 static void FlutterWebRTCApplyFieldTrials(void) {
   // "Key/Value/" pairs. +configureFieldTrials: replaces the whole string and is
   // read when the factory creates its environment, so every trial has to be in
@@ -157,6 +165,10 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   if (gWarpEnabled) {
     [fieldTrials
         appendFormat:@"%@/%@/", kRTCFieldTrialIceHandshakeDtlsKey, kRTCFieldTrialEnabledValue];
+  }
+  if (gZeroPlayoutDelayEnabled) {
+    [fieldTrials appendFormat:@"%@/%@/", kFlutterWebRTCFieldTrialForcePlayoutDelay,
+                              kRTCFieldTrialEnabledValue];
   }
   // Replaces the deprecated RTCInitFieldTrialDictionary(), which set a
   // process-global instead (bugs.webrtc.org/42220378).
@@ -365,15 +377,17 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 - (void)initialize:(NSArray*)networkIgnoreMask
     bypassVoiceProcessing:(BOOL)bypassVoiceProcessing
                  severity:(RTCLoggingSeverity)severity
-              enableWARP:(BOOL)enableWARP {
+              enableWARP:(BOOL)enableWARP
+        zeroPlayoutDelay:(BOOL)zeroPlayoutDelay {
     // RTCSetMinDebugLogLevel(severity);
     [self initLoggerCallback:severity];
 
     if (!_peerConnectionFactory) {
         // Field trials have to be in place before the factory builds its transports,
-        // so a later initialize: call cannot turn WARP on any more.
-        if (enableWARP != gWarpEnabled) {
+        // so a later initialize: call cannot change them any more.
+        if (enableWARP != gWarpEnabled || zeroPlayoutDelay != gZeroPlayoutDelayEnabled) {
           gWarpEnabled = enableWARP;
+          gZeroPlayoutDelayEnabled = zeroPlayoutDelay;
           FlutterWebRTCApplyFieldTrials();
         }
 
@@ -485,9 +499,18 @@ static void FlutterWebRTCApplyFieldTrials(void) {
       enableWARP = ((NSNumber*)options[@"enableWARP"]).boolValue;
     }
 
+    // Render frames as soon as they are decoded, trading jitter buffer smoothing
+    // for latency. Same timing constraint as WARP: it is a field trial.
+    BOOL zeroPlayoutDelay = NO;
+    if (options[@"zeroPlayoutDelay"] != nil &&
+        [options[@"zeroPlayoutDelay"] isKindOfClass:[NSNumber class]]) {
+      zeroPlayoutDelay = ((NSNumber*)options[@"zeroPlayoutDelay"]).boolValue;
+    }
+
     [self initialize:networkIgnoreMask bypassVoiceProcessing:enableBypassVoiceProcessing
                      severity:severity
-                     enableWARP:enableWARP];
+                     enableWARP:enableWARP
+                     zeroPlayoutDelay:zeroPlayoutDelay];
     result(@"");
   } else if ([@"createPeerConnection" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
