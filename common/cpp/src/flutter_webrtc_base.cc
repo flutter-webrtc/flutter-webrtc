@@ -3,28 +3,76 @@
 #include "flutter_data_channel.h"
 #include "flutter_peerconnection.h"
 
+#include <vector>
+
 #include "helper.h"
+#include "rtc_field_trials.h"
 
 namespace flutter_webrtc_plugin {
 
 const char* kEventChannelName = "FlutterWebRTC.Event";
 
+// `WebRTC-ForcePlayoutDelay` renders every frame as soon as it is decoded
+// instead of holding it back for the jitter buffer target delay. Opted into
+// through the `zeroPlayoutDelay` initialize() option, and read at the same
+// moment as `WebRTC-IceHandshakeDtls` below.
+const char kFieldTrialForcePlayoutDelayKey[] = "WebRTC-ForcePlayoutDelay";
+
+// Builds a "Key/Enabled/" field trial entry.
+static std::string EnabledFieldTrial(const std::string& key) {
+  return key + "/" + kRTCFieldTrialEnabledValue + "/";
+}
+
 FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger* messenger,
                                      TextureRegistrar* textures,
                                      TaskRunner *task_runner)
     : messenger_(messenger), task_runner_(task_runner), textures_(textures) {
-  LibWebRTC::Initialize();
+  event_channel_ = EventChannelProxy::Create(messenger_, task_runner_, kEventChannelName);
+}
+
+FlutterWebRTCBase::~FlutterWebRTCBase() {
+  if (webrtc_initialized_) {
+    LibWebRTC::Terminate();
+  }
+}
+
+void FlutterWebRTCBase::EnsureWebRTCInitialized(bool enable_warp,
+                                                bool zero_playout_delay) {
+  if (webrtc_initialized_) {
+    return;
+  }
+  webrtc_initialized_ = true;
+  warp_enabled_ = enable_warp;
+
+  // WARP (WebRTC Abridged Roundtrip Protocol, draft-uberti-tsvwg-warp) is
+  // opted into through the `enableWARP` initialize() option. The part of it
+  // that libwebrtc implements is `WebRTC-IceHandshakeDtls`, the DTLS handshake
+  // piggybacked on the ICE STUN binding exchange. Field trials are process
+  // global and are read when the peer connection factory builds its
+  // environment, which is why the factory is created here instead of in the
+  // constructor: the options only arrive with the initialize() call.
+  std::vector<libwebrtc::string> field_trials;
+  if (enable_warp) {
+    field_trials.push_back(
+        EnabledFieldTrial(kRTCFieldTrialIceHandshakeDtlsKey));
+  }
+  if (zero_playout_delay) {
+    field_trials.push_back(EnabledFieldTrial(kFieldTrialForcePlayoutDelayKey));
+  }
+
+  if (field_trials.empty()) {
+    LibWebRTC::Initialize();
+  } else {
+    LibWebRTC::InitializeWithFieldTrials(
+        libwebrtc::vector<libwebrtc::string>(field_trials));
+  }
+
   factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
   factory_->Initialize();
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
   desktop_device_ = factory_->GetDesktopDevice();
   audio_processing_ = factory_->GetAudioProcessing();
-  event_channel_ = EventChannelProxy::Create(messenger_, task_runner_, kEventChannelName);
-}
-
-FlutterWebRTCBase::~FlutterWebRTCBase() {
-  LibWebRTC::Terminate();
 }
 
 EventChannelProxy* FlutterWebRTCBase::event_channel() {
@@ -244,6 +292,13 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList& iceServersArray,
 
 bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap& map,
                                               RTCConfiguration& conf) {
+  // WARP also marks the packets with DSCP; the field trial that carries the
+  // DTLS handshake in the STUN exchange was applied by
+  // EnsureWebRTCInitialized(). An explicit `enableDscp` below still wins.
+  if (warp_enabled_) {
+    conf.enable_dscp = true;
+  }
+
   auto it = map.find(EncodableValue("iceServers"));
   if (it != map.end()) {
     const EncodableList iceServersArray = GetValue<EncodableList>(it->second);

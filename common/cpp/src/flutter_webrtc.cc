@@ -33,8 +33,20 @@ void FlutterWebRTC::HandleMethodCall(
       RTCLoggingSeverity severity = str2LogSeverity(severityStr);
       initLoggerCallback(severity);
     }
+    // The field trials `enableWARP` and `zeroPlayoutDelay` turn on are read
+    // when the peer connection factory is created, so the factory is built
+    // here rather than in the constructor.
+    EnsureWebRTCInitialized(findBoolean(options, "enableWARP"),
+                            findBoolean(options, "zeroPlayoutDelay"));
     result->Success();
-  } else if (method_call.method_name().compare("createPeerConnection") == 0) {
+    return;
+  }
+
+  // Everything below needs the factory. If the Dart side never called
+  // initialize() with options, fall back to the default field trials.
+  EnsureWebRTCInitialized();
+
+  if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");
       return;

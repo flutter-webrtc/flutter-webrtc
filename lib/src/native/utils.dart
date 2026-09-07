@@ -66,7 +66,7 @@ class WebRTC {
   ///                          Takes precedence over audioSampleRate for output.
   ///                          If not specified, uses audioSampleRate or native default.
   ///
-  /// "enableWARP": (Android/iOS/macOS only) a boolean that opts into WARP
+  /// "enableWARP": (Android/iOS/macOS/Windows/Linux) a boolean that opts into WARP
   ///               (WebRTC Abridged Roundtrip Protocol, draft-uberti-tsvwg-warp),
   ///               which shortens the ~6 RTT WebRTC setup down to ~2 RTT. It
   ///               piggybacks the DTLS handshake on the ICE STUN binding exchange
@@ -79,7 +79,7 @@ class WebRTC {
   ///               set before the first peer connection is created.
   ///               See https://www.ietf.org/archive/id/draft-uberti-tsvwg-warp-00.html
   ///
-  /// "zeroPlayoutDelay": (Android/iOS/macOS only) a boolean that plays out every
+  /// "zeroPlayoutDelay": (Android/iOS/macOS/Windows/Linux) a boolean that plays out every
   ///                     received frame as soon as it is decoded instead of
   ///                     holding it back for the jitter buffer target delay (the
   ///                     `WebRTC-ForcePlayoutDelay` field trial). Trades the
