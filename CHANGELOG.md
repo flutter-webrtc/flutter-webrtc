@@ -1,6 +1,10 @@
 
 # Changelog
 
+[1.6.2] - 2026-09-07
+
+* [Darwin/Android/Windows/Linux] Add WARP support.
+
 [1.6.1] - 2026-09-01
 
 * [Darwin/Android/Windows/Linux] feat: upgrade libwebrtc to 150.7871.01.
