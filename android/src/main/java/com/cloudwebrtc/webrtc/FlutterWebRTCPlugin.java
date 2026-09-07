@@ -86,6 +86,28 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         return methodCallHandler == null ? null : methodCallHandler.getAudioDeviceModule();
     }
 
+    // Forward from Activity#onUserLeaveHint to auto-enter picture-in-picture on Android 8-11.
+    public static void onUserLeaveHint() {
+        if (sharedSingleton != null && sharedSingleton.methodCallHandler != null) {
+            sharedSingleton.methodCallHandler.getPictureInPictureManager().onUserLeaveHint();
+        }
+    }
+
+    // Forward from Activity#onPictureInPictureModeChanged. Optional: the lifecycle
+    // observer below also detects the transition.
+    public static void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
+        if (sharedSingleton != null && sharedSingleton.methodCallHandler != null) {
+            sharedSingleton.methodCallHandler.getPictureInPictureManager()
+                    .onPictureInPictureModeChanged(isInPictureInPictureMode);
+        }
+    }
+
+    private void syncPictureInPictureState() {
+        if (methodCallHandler != null) {
+            methodCallHandler.getPictureInPictureManager().syncState();
+        }
+    }
+
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
         startListening(binding.getApplicationContext(), binding.getBinaryMessenger(),
@@ -194,6 +216,17 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
             if (null != methodCallHandler) {
                 methodCallHandler.reStartCamera();
             }
+            syncPictureInPictureState();
+        }
+
+        @Override
+        public void onPause(LifecycleOwner owner) {
+            syncPictureInPictureState();
+        }
+
+        @Override
+        public void onStop(LifecycleOwner owner) {
+            syncPictureInPictureState();
         }
 
         @Override

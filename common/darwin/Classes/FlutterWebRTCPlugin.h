@@ -52,6 +52,10 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 #if TARGET_OS_IPHONE
 @property(nonatomic, retain)
     UIViewController* _Nullable viewController; /*for broadcast or ReplayKit */
+/// Enables AVCaptureSession.multitaskingCameraAccessEnabled on iOS 16+ so the
+/// camera keeps running in the background. Requires the
+/// com.apple.developer.avfoundation.multitasking-camera-access entitlement.
+@property(nonatomic) BOOL multitaskingCameraAccess;
 #endif
 
 @property(nonatomic, strong) FlutterEventSink _Nullable eventSink;

@@ -11,6 +11,7 @@
 #import "FlutterRTCFrameCryptor.h"
 #if TARGET_OS_IPHONE
 #import "FlutterRTCMediaRecorder.h"
+#import "FlutterRTCPictureInPictureController.h"
 #endif
 #if TARGET_OS_IPHONE || TARGET_OS_OSX
 #import "FlutterRTCVideoPlatformViewFactory.h"
@@ -121,6 +122,9 @@ void postEvent(FlutterEventSink _Nullable sink, id _Nullable event) {
   AudioManager* _audioManager;
 #if TARGET_OS_IPHONE || TARGET_OS_OSX
   FlutterRTCVideoPlatformViewFactory *_platformViewFactory;
+#endif
+#if TARGET_OS_IPHONE
+  FlutterRTCPictureInPictureController* _pipController API_AVAILABLE(ios(15.0));
 #endif
 
   RTC_OBJC_TYPE(RTCCallbackLogger) * loggerCallback;
@@ -273,6 +277,12 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
 }
 
 - (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
+#if TARGET_OS_IPHONE
+  if (@available(iOS 15.0, *)) {
+    [_pipController dispose];
+    _pipController = nil;
+  }
+#endif
   for (RTCPeerConnection* peerConnection in _peerConnections.allValues) {
     for (RTCDataChannel* dataChannel in peerConnection.dataChannels) {
       dataChannel.eventSink = nil;
@@ -431,6 +441,122 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
     }
 }
 
+- (RTCVideoTrack*)videoTrackForStreamId:(NSString*)streamId
+                               ownerTag:(NSString*)ownerTag
+                                trackId:(NSString*)trackId {
+  RTCMediaStream* stream = nil;
+  if ([ownerTag isEqualToString:@"local"]) {
+    stream = _localStreams[streamId];
+  }
+  if (!stream) {
+    stream = [self streamForId:streamId peerConnectionId:ownerTag];
+  }
+  if (!stream) {
+    return nil;
+  }
+  NSArray* videoTracks = stream.videoTracks;
+  RTCVideoTrack* videoTrack = videoTracks.count ? videoTracks[0] : nil;
+  for (RTCVideoTrack* track in videoTracks) {
+    if ([track.trackId isEqualToString:trackId]) {
+      videoTrack = track;
+    }
+  }
+  if (!videoTrack) {
+    NSLog(@"Not found video track for RTCMediaStream: %@", streamId);
+  }
+  return videoTrack;
+}
+
+#if TARGET_OS_IPHONE
+- (UIView*)flutterRootView {
+  UIWindow* window = nil;
+  for (UIScene* scene in UIApplication.sharedApplication.connectedScenes) {
+    if (![scene isKindOfClass:[UIWindowScene class]]) {
+      continue;
+    }
+    UIWindowScene* windowScene = (UIWindowScene*)scene;
+    UIWindow* candidate = nil;
+    for (UIWindow* sceneWindow in windowScene.windows) {
+      if (sceneWindow.isKeyWindow) {
+        candidate = sceneWindow;
+        break;
+      }
+    }
+    if (!candidate) {
+      candidate = windowScene.windows.firstObject;
+    }
+    if (!candidate) {
+      continue;
+    }
+    BOOL foreground = windowScene.activationState == UISceneActivationStateForegroundActive;
+    if (window == nil || foreground) {
+      window = candidate;
+    }
+    if (foreground) {
+      break;
+    }
+  }
+  if (!window) {
+    window = UIApplication.sharedApplication.delegate.window;
+  }
+  return window.rootViewController.view;
+}
+
+- (void)pipConfigure:(NSDictionary*)argsMap API_AVAILABLE(ios(15.0)) {
+  if (!_pipController) {
+    _pipController = [[FlutterRTCPictureInPictureController alloc] init];
+    __weak FlutterWebRTCPlugin* weakSelf = self;
+    _pipController.stateHandler = ^(NSString* state, NSString* error) {
+      FlutterWebRTCPlugin* strongSelf = weakSelf;
+      if (!strongSelf) {
+        return;
+      }
+      postEvent(strongSelf.eventSink, @{
+        @"event" : @"pictureInPictureStateChanged",
+        @"state" : state,
+        @"error" : error ?: [NSNull null],
+      });
+    };
+  }
+
+  NSString* streamId = argsMap[@"streamId"];
+  if ([streamId isKindOfClass:[NSString class]] && streamId.length > 0) {
+    _pipController.videoTrack = [self videoTrackForStreamId:streamId
+                                                   ownerTag:argsMap[@"ownerTag"]
+                                                    trackId:argsMap[@"trackId"]];
+  }
+
+  UIView* sourceView = nil;
+  NSNumber* platformViewId = argsMap[@"platformViewId"];
+  if ([platformViewId isKindOfClass:[NSNumber class]]) {
+    sourceView = [_platformViewFactory.renders[platformViewId] view];
+  }
+  if (!sourceView) {
+    UIView* rootView = [self flutterRootView];
+    CGRect frame = rootView.bounds;
+    NSDictionary* rect = argsMap[@"sourceRect"];
+    if ([rect isKindOfClass:[NSDictionary class]]) {
+      double left = [rect[@"left"] doubleValue];
+      double top = [rect[@"top"] doubleValue];
+      frame = CGRectMake(left, top, [rect[@"right"] doubleValue] - left,
+                         [rect[@"bottom"] doubleValue] - top);
+    }
+    sourceView = [_pipController anchorViewInView:rootView frame:frame];
+  }
+
+  NSNumber* aspectRatio = argsMap[@"aspectRatio"];
+  AVLayerVideoGravity gravity = [argsMap[@"objectFit"] isEqual:@"cover"]
+                                    ? AVLayerVideoGravityResizeAspectFill
+                                    : AVLayerVideoGravityResizeAspect;
+  [_pipController configureWithSourceView:sourceView
+                              aspectRatio:[aspectRatio isKindOfClass:[NSNumber class]]
+                                              ? aspectRatio.doubleValue
+                                              : 0
+                                autoEnter:[argsMap[@"autoEnter"] boolValue]
+                             videoGravity:gravity];
+}
+#endif
+
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
   if ([@"initialize" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
@@ -448,6 +574,11 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
       NSString* severityStr = ((NSString*)options[@"logSeverity"]);
       severity = [self str2LogSeverity:severityStr];
     }
+#if TARGET_OS_IPHONE
+    if (options[@"multitaskingCameraAccess"] != nil) {
+      self.multitaskingCameraAccess = ((NSNumber*)options[@"multitaskingCameraAccess"]).boolValue;
+    }
+#endif
 
     [self initialize:networkIgnoreMask bypassVoiceProcessing:enableBypassVoiceProcessing
                      severity:severity];
@@ -951,26 +1082,9 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
                                  details:nil]);
       return;
     }
-    RTCMediaStream* stream = nil;
-    RTCVideoTrack* videoTrack = nil;
-    if ([ownerTag isEqualToString:@"local"]) {
-      stream = _localStreams[streamId];
-    }
-    if (!stream) {
-      stream = [self streamForId:streamId peerConnectionId:ownerTag];
-    }
-    if (stream) {
-      NSArray* videoTracks = stream ? stream.videoTracks : nil;
-      videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
-      for (RTCVideoTrack* track in videoTracks) {
-        if ([track.trackId isEqualToString:trackId]) {
-          videoTrack = track;
-        }
-      }
-      if (!videoTrack) {
-        NSLog(@"Not found video track for RTCMediaStream: %@", streamId);
-      }
-    }
+    RTCVideoTrack* videoTrack = [self videoTrackForStreamId:streamId
+                                                   ownerTag:ownerTag
+                                                    trackId:trackId];
     [self rendererSetSrcObject:render stream:videoTrack];
     result(nil);
   }
@@ -988,27 +1102,7 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
                                    details:nil]);
         return;
       }
-      RTCMediaStream* stream = nil;
-      RTCVideoTrack* videoTrack = nil;
-      if ([ownerTag isEqualToString:@"local"]) {
-        stream = _localStreams[streamId];
-      }
-      if (!stream) {
-        stream = [self streamForId:streamId peerConnectionId:ownerTag];
-      }
-      if (stream) {
-        NSArray* videoTracks = stream ? stream.videoTracks : nil;
-        videoTrack = videoTracks && videoTracks.count ? videoTracks[0] : nil;
-        for (RTCVideoTrack* track in videoTracks) {
-          if ([track.trackId isEqualToString:trackId]) {
-            videoTrack = track;
-          }
-        }
-        if (!videoTrack) {
-          NSLog(@"Not found video track for RTCMediaStream: %@", streamId);
-        }
-      }
-      render.videoTrack = videoTrack;
+      render.videoTrack = [self videoTrackForStreamId:streamId ownerTag:ownerTag trackId:trackId];
       result(nil);
   } else if ([@"videoPlatformViewRendererDispose" isEqualToString:call.method]) {
       NSDictionary* argsMap = call.arguments;
@@ -1020,6 +1114,47 @@ static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
       }
       result(nil);
     }
+#endif
+#if TARGET_OS_IPHONE
+  else if ([@"pipIsSupported" isEqualToString:call.method]) {
+    BOOL supported = NO;
+    if (@available(iOS 15.0, *)) {
+      supported = [FlutterRTCPictureInPictureController isSupported];
+    }
+    result(@(supported));
+  } else if ([@"pipConfigure" isEqualToString:call.method]) {
+    if (@available(iOS 15.0, *)) {
+      [self pipConfigure:call.arguments];
+      result(nil);
+    } else {
+      result([FlutterError errorWithCode:@"pipUnsupported"
+                                 message:@"Picture in picture requires iOS 15 or newer"
+                                 details:nil]);
+    }
+  } else if ([@"pipStart" isEqualToString:call.method]) {
+    BOOL started = NO;
+    if (@available(iOS 15.0, *)) {
+      started = [_pipController start];
+    }
+    result(@(started));
+  } else if ([@"pipStop" isEqualToString:call.method]) {
+    if (@available(iOS 15.0, *)) {
+      [_pipController stop];
+    }
+    result(nil);
+  } else if ([@"pipIsActive" isEqualToString:call.method]) {
+    BOOL active = NO;
+    if (@available(iOS 15.0, *)) {
+      active = [_pipController isActive];
+    }
+    result(@(active));
+  } else if ([@"pipDispose" isEqualToString:call.method]) {
+    if (@available(iOS 15.0, *)) {
+      [_pipController dispose];
+      _pipController = nil;
+    }
+    result(nil);
+  }
 #endif
      else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
