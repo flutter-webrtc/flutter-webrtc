@@ -65,6 +65,18 @@ class WebRTC {
   /// "audioOutputSampleRate": (Android only) Sets only output sample rate in Hz (e.g., 48000).
   ///                          Takes precedence over audioSampleRate for output.
   ///                          If not specified, uses audioSampleRate or native default.
+  /// "enableWARP": (Android/iOS/macOS only) a boolean that opts into WARP
+  ///               (WebRTC Abridged Roundtrip Protocol, draft-uberti-tsvwg-warp),
+  ///               which shortens the ~6 RTT WebRTC setup down to ~2 RTT. It
+  ///               piggybacks the DTLS handshake on the ICE STUN binding exchange
+  ///               (the `WebRTC-IceHandshakeDtls` field trial) so the DTLS and ICE
+  ///               negotiations run in parallel instead of one after the other,
+  ///               and turns on DSCP marking (`enableDscp`) for every peer
+  ///               connection. Field trials are process global and are read when a
+  ///               peer connection builds its transports, which is why this lives
+  ///               here and not in the peer connection configuration: it has to be
+  ///               set before the first peer connection is created.
+  ///               See https://www.ietf.org/archive/id/draft-uberti-tsvwg-warp-00.html
   static Future<void> initialize({Map<String, dynamic>? options}) async {
     if (!initialized) {
       await _channel.invokeMethod<void>('initialize', <String, dynamic>{

@@ -139,25 +139,28 @@ static BOOL gAudioSessionManagementEnabled = YES;
 // retains it. See +setAudioDeviceModuleObserver:.
 static __weak id<RTCAudioDeviceModuleDelegate> gAudioDeviceModuleObserver = nil;
 
-// Field trials are process-global and are read when a peer connection builds its
-// transports, so they have to be applied before that peer connection is created.
-// `WebRTC-IceHandshakeDtls` (the DTLS handshake piggybacked on the ICE STUN
-// binding exchange) is opted into through the `enableDscp` peer connection
-// configuration flag, which is only known once Dart creates a peer connection —
-// long after the plugin and the factory were initialized. So keep the base set in
-// one place and re-apply it with the extra trial the first time it is asked for.
-static BOOL gIceHandshakeDtlsEnabled = NO;
+// WARP (WebRTC Abridged Roundtrip Protocol, draft-uberti-tsvwg-warp) is opted
+// into through the `enableWARP` initialize() option. The part of it that
+// libwebrtc implements is `WebRTC-IceHandshakeDtls`, the DTLS handshake
+// piggybacked on the ICE STUN binding exchange. The trials end up in the
+// environment the peer connection factory is built with, so the base set is kept
+// in one place and re-applied with the extra trial from -initialize:, which runs
+// before the factory and any peer connection exist.
+static BOOL gWarpEnabled = NO;
 
 static void FlutterWebRTCApplyFieldTrials(void) {
-  NSMutableDictionary<NSString*, NSString*>* fieldTrials =
-      [@{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue} mutableCopy];
-  if (gIceHandshakeDtlsEnabled) {
-    fieldTrials[kRTCFieldTrialIceHandshakeDtlsKey] = kRTCFieldTrialEnabledValue;
+  // "Key/Value/" pairs. +configureFieldTrials: replaces the whole string and is
+  // read when the factory creates its environment, so every trial has to be in
+  // here, and this has to run before the factory is created.
+  NSMutableString* fieldTrials = [NSMutableString
+      stringWithFormat:@"%@/%@/", kRTCFieldTrialUseNWPathMonitor, kRTCFieldTrialEnabledValue];
+  if (gWarpEnabled) {
+    [fieldTrials
+        appendFormat:@"%@/%@/", kRTCFieldTrialIceHandshakeDtlsKey, kRTCFieldTrialEnabledValue];
   }
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  RTCInitFieldTrialDictionary(fieldTrials);
-#pragma clang diagnostic pop
+  // Replaces the deprecated RTCInitFieldTrialDictionary(), which set a
+  // process-global instead (bugs.webrtc.org/42220378).
+  [RTCPeerConnectionFactory configureFieldTrials:fieldTrials];
 }
 
 + (FlutterWebRTCPlugin *)sharedSingleton
@@ -361,11 +364,19 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 
 - (void)initialize:(NSArray*)networkIgnoreMask
     bypassVoiceProcessing:(BOOL)bypassVoiceProcessing
-                 severity:(RTCLoggingSeverity)severity {
+                 severity:(RTCLoggingSeverity)severity
+              enableWARP:(BOOL)enableWARP {
     // RTCSetMinDebugLogLevel(severity);
     [self initLoggerCallback:severity];
 
     if (!_peerConnectionFactory) {
+        // Field trials have to be in place before the factory builds its transports,
+        // so a later initialize: call cannot turn WARP on any more.
+        if (enableWARP != gWarpEnabled) {
+          gWarpEnabled = enableWARP;
+          FlutterWebRTCApplyFieldTrials();
+        }
+
         VideoDecoderFactory* decoderFactory = [[VideoDecoderFactory alloc] init];
         VideoEncoderFactory* encoderFactory = [[VideoEncoderFactory alloc] init];
 
@@ -466,8 +477,17 @@ static void FlutterWebRTCApplyFieldTrials(void) {
       severity = [self str2LogSeverity:severityStr];
     }
 
+    // WARP (draft-uberti-tsvwg-warp): shortens the connection setup by running the
+    // DTLS handshake inside the ICE STUN binding exchange. Has to be known here,
+    // the field trial is read before any peer connection is built.
+    BOOL enableWARP = NO;
+    if (options[@"enableWARP"] != nil && [options[@"enableWARP"] isKindOfClass:[NSNumber class]]) {
+      enableWARP = ((NSNumber*)options[@"enableWARP"]).boolValue;
+    }
+
     [self initialize:networkIgnoreMask bypassVoiceProcessing:enableBypassVoiceProcessing
-                     severity:severity];
+                     severity:severity
+                     enableWARP:enableWARP];
     result(@"");
   } else if ([@"createPeerConnection" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
@@ -2074,6 +2094,13 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 - (nonnull RTCConfiguration*)RTCConfiguration:(id)json {
   RTCConfiguration* config = [[RTCConfiguration alloc] init];
 
+  // WARP also marks the packets with DSCP; the field trial that carries the DTLS
+  // handshake in the STUN exchange was applied in -initialize:. An explicit
+  // `enableDscp` in the configuration below still wins.
+  if (gWarpEnabled) {
+    config.enableDscp = YES;
+  }
+
   if (!json) {
     return config;
   }
@@ -2143,13 +2170,6 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   if (json[@"enableDscp"] != nil && [json[@"enableDscp"] isKindOfClass:[NSNumber class]]) {
     NSNumber* enableDscp = json[@"enableDscp"];
     config.enableDscp = [enableDscp boolValue];
-    if (config.enableDscp && !gIceHandshakeDtlsEnabled) {
-      // Also opt into the DTLS-in-STUN handshake. The field trial is global and
-      // one-way: peer connections created before this point keep the old value,
-      // and it stays on for the rest of the process.
-      gIceHandshakeDtlsEnabled = YES;
-      FlutterWebRTCApplyFieldTrials();
-    }
   }
 
   if (json[@"rtcpMuxPolicy"] != nil && [json[@"rtcpMuxPolicy"] isKindOfClass:[NSString class]]) {
