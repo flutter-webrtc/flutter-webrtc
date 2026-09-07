@@ -153,6 +153,7 @@ static BOOL gWarpEnabled = NO;
 // `zeroPlayoutDelay` initialize() option, and read at the same moment as the
 // trials above.
 static NSString* const kFlutterWebRTCFieldTrialForcePlayoutDelay = @"WebRTC-ForcePlayoutDelay";
+static NSString* const kFlutterWebRTCFieldTrialZeroPlayoutDelayValue = @"min_ms:0,max_ms:0";
 
 static BOOL gZeroPlayoutDelayEnabled = NO;
 
@@ -168,7 +169,7 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   }
   if (gZeroPlayoutDelayEnabled) {
     [fieldTrials appendFormat:@"%@/%@/", kFlutterWebRTCFieldTrialForcePlayoutDelay,
-                              kRTCFieldTrialEnabledValue];
+                              kFlutterWebRTCFieldTrialZeroPlayoutDelayValue];
   }
   // Replaces the deprecated RTCInitFieldTrialDictionary(), which set a
   // process-global instead (bugs.webrtc.org/42220378).

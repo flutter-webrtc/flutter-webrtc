@@ -82,7 +82,8 @@ class WebRTC {
   /// "zeroPlayoutDelay": (Android/iOS/macOS/Windows/Linux) a boolean that plays out every
   ///                     received frame as soon as it is decoded instead of
   ///                     holding it back for the jitter buffer target delay (the
-  ///                     `WebRTC-ForcePlayoutDelay` field trial). Trades the
+  ///                     `WebRTC-ForcePlayoutDelay/min_ms:0,max_ms:0/` field
+  ///                     trial, which pins the playout delay to 0 ms). Trades the
   ///                     jitter buffer's smoothing for latency, so it is meant
   ///                     for low latency scenarios on reliable networks. Like
   ///                     `enableWARP` it is a field trial, so it has to be set

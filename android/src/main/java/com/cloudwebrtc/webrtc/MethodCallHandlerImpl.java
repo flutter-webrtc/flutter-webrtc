@@ -160,7 +160,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   // `zeroPlayoutDelay` initialize() option, and read at the same moment as the
   // trial above.
   private static final String FIELD_TRIAL_FORCE_PLAYOUT_DELAY =
-          "WebRTC-ForcePlayoutDelay/Enabled/";
+          "WebRTC-ForcePlayoutDelay/min_ms:0,max_ms:0/";
 
   private static boolean warpEnabled = false;
 

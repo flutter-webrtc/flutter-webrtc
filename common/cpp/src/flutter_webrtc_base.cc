@@ -18,9 +18,19 @@ const char* kEventChannelName = "FlutterWebRTC.Event";
 // moment as `WebRTC-IceHandshakeDtls` below.
 const char kFieldTrialForcePlayoutDelayKey[] = "WebRTC-ForcePlayoutDelay";
 
+// `WebRTC-ForcePlayoutDelay` is parametrized rather than a plain "Enabled"
+// flag: pin both ends of the playout delay to 0 ms.
+const char kFieldTrialZeroPlayoutDelayValue[] = "min_ms:0,max_ms:0";
+
+// Builds a "Key/Value/" field trial entry.
+static std::string FieldTrial(const std::string& key,
+                              const std::string& value) {
+  return key + "/" + value + "/";
+}
+
 // Builds a "Key/Enabled/" field trial entry.
 static std::string EnabledFieldTrial(const std::string& key) {
-  return key + "/" + kRTCFieldTrialEnabledValue + "/";
+  return FieldTrial(key, kRTCFieldTrialEnabledValue);
 }
 
 FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger* messenger,
@@ -57,7 +67,8 @@ void FlutterWebRTCBase::EnsureWebRTCInitialized(bool enable_warp,
         EnabledFieldTrial(kRTCFieldTrialIceHandshakeDtlsKey));
   }
   if (zero_playout_delay) {
-    field_trials.push_back(EnabledFieldTrial(kFieldTrialForcePlayoutDelayKey));
+    field_trials.push_back(FieldTrial(kFieldTrialForcePlayoutDelayKey,
+                                      kFieldTrialZeroPlayoutDelayValue));
   }
 
   if (field_trials.empty()) {
