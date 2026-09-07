@@ -112,10 +112,9 @@ class RTCPictureInPictureController extends ValueNotifier<bool> {
       if (aspectRatio != null && aspectRatio > 0) 'aspectRatio': aspectRatio,
       'autoEnter': autoEnter,
       'seamlessResize': seamlessResize,
-      'objectFit':
-          objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitCover
-              ? 'cover'
-              : 'contain',
+      'objectFit': objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitCover
+          ? 'cover'
+          : 'contain',
       if (platformViewId != null) 'platformViewId': platformViewId,
     });
   }
@@ -175,7 +174,8 @@ class RTCPictureInPictureController extends ValueNotifier<bool> {
       default:
         break;
     }
-    _events.add(RTCPictureInPictureEvent(state, error: map['error'] as String?));
+    _events
+        .add(RTCPictureInPictureEvent(state, error: map['error'] as String?));
   }
 
   static RTCPictureInPictureState? _stateFromString(String? state) {
