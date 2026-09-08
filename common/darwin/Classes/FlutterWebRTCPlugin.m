@@ -967,6 +967,8 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
     if (peerConnection) {
       [peerConnection close];
+      [peerConnection.eventChannel setStreamHandler:nil];
+      peerConnection.eventChannel = nil;
       [self.peerConnections removeObjectForKey:peerConnectionId];
 
       // Clean up peerConnection's streams and tracks
@@ -977,6 +979,8 @@ static void FlutterWebRTCApplyFieldTrials(void) {
       NSMutableDictionary<NSString*, RTCDataChannel*>* dataChannels = peerConnection.dataChannels;
       for (NSString* dataChannelId in dataChannels) {
         dataChannels[dataChannelId].delegate = nil;
+        [dataChannels[dataChannelId].eventChannel setStreamHandler:nil];
+        dataChannels[dataChannelId].eventChannel = nil;
         // There is no need to close the RTCDataChannel because it is owned by the
         // RTCPeerConnection and the latter will close the former.
       }
