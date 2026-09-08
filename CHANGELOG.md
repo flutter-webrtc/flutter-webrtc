@@ -1,6 +1,10 @@
 
 # Changelog
 
+[1.6.2+hotfix.1] - 2026-09-08
+
+* [Windows/Linux] fix(crash): Do not access the WebRTC API before calling EnsureWebRTCInitialized (#2169)
+
 [1.6.2] - 2026-09-07
 
 * [Darwin/Android/Windows/Linux] Add WARP support.
