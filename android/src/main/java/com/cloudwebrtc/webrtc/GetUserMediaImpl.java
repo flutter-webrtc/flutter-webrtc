@@ -764,12 +764,16 @@ public class GetUserMediaImpl {
         final boolean requestedFacingFront = isFacing;
         for (Map.Entry<String, VideoCapturerInfoEx> entry : mVideoCapturers.entrySet()) {
             VideoCapturerInfoEx existing = entry.getValue();
+            // Screen capturers are registered with a null cameraName, so these
+            // checks must run before cameraName is dereferenced below.
+            if (existing.isScreenCapture || existing.primaryTrackId != null
+                    || existing.videoSource == null || existing.cameraName == null) {
+                continue;
+            }
             boolean sameCamera = (deviceId != null && !deviceId.isEmpty())
                     ? existing.cameraName.equals(deviceId)
                     : cameraEnumerator.isFrontFacing(existing.cameraName) == requestedFacingFront;
-            if (!existing.isScreenCapture && existing.primaryTrackId == null
-                    && existing.videoSource != null && existing.cameraName != null
-                    && sameCamera) {
+            if (sameCamera) {
                 Log.w(TAG, "getUserMedia(video): camera already active (track=" + entry.getKey()
                         + "), reusing VideoSource to prevent concurrent camera access");
                 return buildSharedVideoTrack(existing, entry.getKey(), mediaStream);

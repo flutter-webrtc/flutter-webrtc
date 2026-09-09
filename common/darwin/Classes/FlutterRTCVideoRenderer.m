@@ -63,6 +63,8 @@
 }
 
 - (void)dispose {
+  [_eventChannel setStreamHandler:nil];
+  _eventChannel = nil;
   os_unfair_lock_lock(&_lock);
   [_registry unregisterTexture:_textureId];
   _textureId = -1;

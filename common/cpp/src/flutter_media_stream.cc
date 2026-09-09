@@ -31,11 +31,6 @@ std::string SanitizeDeviceIdFromVideoBuffers(const char* name, const char* guid)
 }  // namespace
 
 FlutterMediaStream::FlutterMediaStream(FlutterWebRTCBase* base) : base_(base) {
-  base_->audio_device_->OnDeviceChange([&] {
-    EncodableMap info;
-    info[EncodableValue("event")] = "onDeviceChange";
-    base_->event_channel()->Success(EncodableValue(info), false);
-  });
 }
 
 void FlutterMediaStream::GetUserMedia(
