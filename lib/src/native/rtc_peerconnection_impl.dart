@@ -293,6 +293,14 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
   @override
   Future<void> dispose() async {
+    // Cancel the event subscription before telling the platform to dispose.
+    // Cancelling sends a `cancel` method call on the event channel, and the
+    // native side releases that channel's stream handler when it handles
+    // peerConnectionDispose. The two messages travel on the same messenger
+    // and the `cancel` is sent synchronously inside the cancel callback, so
+    // it reaches the platform first. Keep this order. Swapping the two
+    // statements makes Flutter report a MissingPluginException for `cancel`
+    // on every teardown. See test/unit/rtc_peerconnection_dispose_order_test.dart.
     await _eventSubscription?.cancel();
     await WebRTC.invokeMethod(
       'peerConnectionDispose',
