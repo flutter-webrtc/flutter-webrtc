@@ -29,7 +29,10 @@ void main() {
   };
 
   final calls = <String>[];
-  var failDataChannelClose = false;
+
+  /// Thrown out of the next dataChannelClose the platform is asked for, so a
+  /// test can pick the failure the teardown has to survive.
+  Object? dataChannelCloseError;
 
   /// Runs once, on the next dataChannelClose the platform is asked for, so a
   /// test can make something happen while dispose() is awaiting that call.
@@ -37,7 +40,7 @@ void main() {
 
   setUp(() {
     calls.clear();
-    failDataChannelClose = false;
+    dataChannelCloseError = null;
     duringDataChannelClose = null;
 
     methodChannel.setMockMethodCallHandler((MethodCall methodCall) async {
@@ -51,9 +54,10 @@ void main() {
           final hook = duringDataChannelClose;
           duringDataChannelClose = null;
           hook?.call();
-          if (failDataChannelClose) {
-            throw PlatformException(
-                code: 'error', message: 'peerConnection is null');
+          final error = dataChannelCloseError;
+          dataChannelCloseError = null;
+          if (error != null) {
+            throw error;
           }
           return null;
         default:
@@ -218,7 +222,31 @@ void main() {
     await pc.createDataChannel('data', RTCDataChannelInit());
     await Future<void>.delayed(Duration.zero);
 
-    failDataChannelClose = true;
+    dataChannelCloseError =
+        PlatformException(code: 'error', message: 'peerConnection is null');
+
+    await pc.dispose();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(calls, contains('dataChannelClose:$createdChannelId'));
+    expect(
+        calls,
+        containsAllInOrder(<String>[
+          'pcEvent:cancel',
+          'peerConnectionDispose',
+        ]));
+  });
+
+  test('dispose completes when the close plugin call is missing', () async {
+    final pc = RTCPeerConnectionNative(peerConnectionId, {});
+    await Future<void>.delayed(Duration.zero);
+
+    await pc.createDataChannel('data', RTCDataChannelInit());
+    await Future<void>.delayed(Duration.zero);
+
+    // MissingPluginException is not a PlatformException, so a catch narrowed
+    // to the latter would let it abort the teardown.
+    dataChannelCloseError = MissingPluginException('dataChannelClose');
 
     await pc.dispose();
     await Future<void>.delayed(Duration.zero);

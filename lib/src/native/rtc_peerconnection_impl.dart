@@ -236,6 +236,9 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         var dataChannel = RTCDataChannelNative(
             _peerConnectionId, label, dataChannelId, flutterId,
             state: RTCDataChannelState.RTCDataChannelOpen);
+        // Channels the app already closed need nothing from dispose(), and
+        // holding them would grow this list for the life of the connection.
+        _dataChannels.removeWhere((dc) => dc.isClosed);
         _dataChannels.add(dataChannel);
         onDataChannel?.call(dataChannel);
         break;
@@ -311,11 +314,16 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       final dataChannel = _dataChannels.removeLast();
       try {
         await dataChannel.close();
-      } on PlatformException catch (e) {
-        // The platform may have dropped the channel already, for instance
-        // when the app called close() on the peer connection first and the
-        // platform released its channels with it. Carry on with the teardown.
-        print('Got exception for RTCPeerConnection::dispose: ${e.message}');
+      } catch (e) {
+        // The channel may no longer be reachable, for instance when the app
+        // called close() on the peer connection first: the desktop plugin
+        // erases the connection from its registry on close, so the lookup
+        // dataChannelClose does by peer connection id finds nothing. Darwin
+        // and Android keep the connection until dispose. Catch everything
+        // here, not just PlatformException, so a MissingPluginException does
+        // not abort the rest of the teardown either.
+        print('Got exception closing data channel on '
+            'RTCPeerConnection::dispose: $e');
       }
     }
 
@@ -527,6 +535,9 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
       var dataChannel = RTCDataChannelNative(
           _peerConnectionId, label, response['id'], response['flutterId']);
+      // Channels the app already closed need nothing from dispose(), and
+      // holding them would grow this list for the life of the connection.
+      _dataChannels.removeWhere((dc) => dc.isClosed);
       _dataChannels.add(dataChannel);
       return dataChannel;
     } on PlatformException catch (e) {

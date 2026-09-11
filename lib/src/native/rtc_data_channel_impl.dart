@@ -41,6 +41,10 @@ class RTCDataChannelNative extends RTCDataChannel {
   StreamSubscription<dynamic>? _eventSubscription;
   bool _closed = false;
 
+  /// Whether close() has run on this channel. Owners use it to drop channels
+  /// they no longer have to close.
+  bool get isClosed => _closed;
+
   @override
   RTCDataChannelState? get state => _state;
 
