@@ -963,12 +963,13 @@ static void FlutterWebRTCApplyFieldTrials(void) {
              [@"peerConnectionDispose" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* peerConnectionId = argsMap[@"peerConnectionId"];
-    BOOL dispose = [@"peerConnectionDispose" isEqualToString:call.method];
+    BOOL isDispose = [@"peerConnectionDispose" isEqualToString:call.method];
 
     RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
     if (peerConnection) {
       // Closing twice is harmless, the native peer connection ignores the second call.
       [peerConnection close];
+      peerConnection.closedByPlugin = YES;
 
       // Clean up peerConnection's streams and tracks
       [peerConnection.remoteStreams removeAllObjects];
@@ -982,14 +983,10 @@ static void FlutterWebRTCApplyFieldTrials(void) {
         dataChannels[dataChannelId].delegate = nil;
       }
 
-      if (dispose) {
-        // Release the event channel stream handlers only on dispose. The Dart
-        // side cancels its event subscription right before it calls dispose, and
-        // that cancel is a method call on the same channel. Releasing the handler
-        // on close would leave that cancel with no handler to answer it, which
-        // surfaces as a MissingPluginException for callers that close first and
-        // dispose later. The peer connection stays registered until dispose so
-        // the handlers can still be released at that point.
+      if (isDispose) {
+        // Dart cancels its event subscriptions before it calls dispose, so this
+        // is the first point where the stream handlers can go without leaving a
+        // pending cancel unanswered. Releasing them on close would do exactly that.
         for (NSString* dataChannelId in dataChannels) {
           [dataChannels[dataChannelId].eventChannel setStreamHandler:nil];
           dataChannels[dataChannelId].eventChannel = nil;
@@ -1952,11 +1949,11 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 }
 
 - (BOOL)hasOpenPeerConnection {
-  // A closed peer connection stays registered until it is disposed so that its
-  // event channel handler can be released at that point. It should not keep the
-  // audio session alive in the meantime.
+  // Closed connections stay registered until dispose but must not keep the
+  // audio session alive. The flag avoids a blocking signalingState read per
+  // connection on the platform thread.
   for (RTCPeerConnection* peerConnection in self.peerConnections.allValues) {
-    if (peerConnection.signalingState != RTCSignalingStateClosed) {
+    if (!peerConnection.closedByPlugin) {
       return YES;
     }
   }

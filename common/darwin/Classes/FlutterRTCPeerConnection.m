@@ -37,6 +37,15 @@
                            OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
+- (BOOL)closedByPlugin {
+  return [objc_getAssociatedObject(self, _cmd) boolValue];
+}
+
+- (void)setClosedByPlugin:(BOOL)closedByPlugin {
+  objc_setAssociatedObject(self, @selector(closedByPlugin), @(closedByPlugin),
+                           OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
 - (NSMutableDictionary<NSString*, RTCDataChannel*>*)dataChannels {
   return objc_getAssociatedObject(self, _cmd);
 }
