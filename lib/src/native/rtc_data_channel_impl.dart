@@ -61,6 +61,14 @@ class RTCDataChannelNative extends RTCDataChannel {
 
   /// RTCDataChannel event listener.
   void eventListener(dynamic event) {
+    // Nothing to report once the channel is closed, and the controllers are
+    // gone by then. An event can still arrive here after close(): the app's
+    // own callback below may close this channel, or close the peer connection
+    // that owns it, and close() runs synchronously up to its first await, so
+    // the controllers are already closed when control comes back.
+    if (_closed) {
+      return;
+    }
     final Map<dynamic, dynamic> map = event;
     switch (map['event']) {
       case 'dataChannelStateChanged':
@@ -68,7 +76,9 @@ class RTCDataChannelNative extends RTCDataChannel {
         _state = rtcDataChannelStateForString(map['state']);
         onDataChannelState?.call(_state!);
 
-        _stateChangeController.add(_state!);
+        if (!_stateChangeController.isClosed) {
+          _stateChangeController.add(_state!);
+        }
         break;
       case 'dataChannelReceiveMessage':
         _dataChannelId = map['id'];
@@ -84,7 +94,9 @@ class RTCDataChannelNative extends RTCDataChannel {
 
         onMessage?.call(message);
 
-        _messageController.add(message);
+        if (!_messageController.isClosed) {
+          _messageController.add(message);
+        }
         break;
 
       case 'dataChannelBufferedAmountChange':

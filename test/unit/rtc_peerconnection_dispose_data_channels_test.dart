@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
+import 'package:flutter_webrtc/src/native/rtc_data_channel_impl.dart';
 import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
 
 /// A peer connection hands out data channel objects that each hold an event
@@ -142,6 +143,36 @@ void main() {
         hasLength(1));
     expect(calls.where((call) => call == 'dcEvent:$createdChannelId:cancel'),
         hasLength(1));
+    expect(calls, contains('peerConnectionDispose'));
+  });
+
+  test('a state callback that disposes the peer connection does not throw',
+      () async {
+    final pc = RTCPeerConnectionNative(peerConnectionId, {});
+    await Future<void>.delayed(Duration.zero);
+
+    final dataChannel = await pc.createDataChannel('data', RTCDataChannelInit())
+        as RTCDataChannelNative;
+    await Future<void>.delayed(Duration.zero);
+
+    // Tearing the connection down from the closed state is a common app
+    // pattern. dispose() closes this channel synchronously up to its first
+    // await, so the stream controllers are gone by the time the callback
+    // returns and the event listener resumes.
+    Future<void>? disposed;
+    dataChannel.onDataChannelState = (state) {
+      disposed ??= pc.dispose();
+    };
+
+    dataChannel.eventListener(<dynamic, dynamic>{
+      'event': 'dataChannelStateChanged',
+      'id': 1,
+      'state': 'closed',
+    });
+
+    await disposed;
+    await Future<void>.delayed(Duration.zero);
+
     expect(calls, contains('peerConnectionDispose'));
   });
 
