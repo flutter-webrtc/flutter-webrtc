@@ -31,9 +31,14 @@ void main() {
   final calls = <String>[];
   var failDataChannelClose = false;
 
+  /// Runs once, on the next dataChannelClose the platform is asked for, so a
+  /// test can make something happen while dispose() is awaiting that call.
+  void Function()? duringDataChannelClose;
+
   setUp(() {
     calls.clear();
     failDataChannelClose = false;
+    duringDataChannelClose = null;
 
     methodChannel.setMockMethodCallHandler((MethodCall methodCall) async {
       switch (methodCall.method) {
@@ -43,6 +48,9 @@ void main() {
         case 'dataChannelClose':
           final arguments = methodCall.arguments as Map<dynamic, dynamic>;
           calls.add('dataChannelClose:${arguments['dataChannelId']}');
+          final hook = duringDataChannelClose;
+          duringDataChannelClose = null;
+          hook?.call();
           if (failDataChannelClose) {
             throw PlatformException(
                 code: 'error', message: 'peerConnection is null');
@@ -143,6 +151,33 @@ void main() {
         hasLength(1));
     expect(calls.where((call) => call == 'dcEvent:$createdChannelId:cancel'),
         hasLength(1));
+    expect(calls, contains('peerConnectionDispose'));
+  });
+
+  test('dispose closes a data channel that arrives during teardown', () async {
+    final pc = RTCPeerConnectionNative(peerConnectionId, {});
+    await Future<void>.delayed(Duration.zero);
+
+    await pc.createDataChannel('data', RTCDataChannelInit());
+    await Future<void>.delayed(Duration.zero);
+
+    // The platform can still deliver a channel while dispose() is awaiting
+    // the close of the previous one. That channel has to be closed too, and
+    // appending to the list must not break the teardown loop.
+    duringDataChannelClose = () {
+      pc.eventListener(<dynamic, dynamic>{
+        'event': 'didOpenDataChannel',
+        'id': 2,
+        'label': 'remote',
+        'flutterId': receivedChannelId,
+      });
+    };
+
+    await pc.dispose();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(calls, contains('dataChannelClose:$createdChannelId'));
+    expect(calls, contains('dataChannelClose:$receivedChannelId'));
     expect(calls, contains('peerConnectionDispose'));
   });
 

@@ -301,7 +301,14 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
     // the channels have to go first while the connection is still registered
     // on the platform side. close() is idempotent, so channels the app already
     // closed are left alone here.
-    for (final dataChannel in _dataChannels) {
+    //
+    // Drain the list rather than iterate it. Every close() awaits, and the
+    // platform can deliver a didOpenDataChannel in that window, which appends
+    // to _dataChannels. Iterating would throw ConcurrentModificationError and
+    // leave the connection undisposed, so take channels off the end until
+    // none are left and a channel that arrives mid-teardown is closed too.
+    while (_dataChannels.isNotEmpty) {
+      final dataChannel = _dataChannels.removeLast();
       try {
         await dataChannel.close();
       } on PlatformException catch (e) {
@@ -311,7 +318,6 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         print('Got exception for RTCPeerConnection::dispose: ${e.message}');
       }
     }
-    _dataChannels.clear();
 
     // Cancel the event subscription before telling the platform to dispose.
     // Cancelling sends a `cancel` method call on the event channel, and the
