@@ -36,14 +36,20 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
      * Stops delivering events for this data channel and releases everything that
      * keeps this observer alive. The binary messenger holds on to a stream
      * handler until it is cleared, so without this the observer and the data
-     * channel it points at stay alive for the whole life of the process.
-     * Calling this more than once does nothing.
+     * channel it points at stay alive for the whole life of the process. The
+     * native observer is unregistered first so that the JNI adapter holding a
+     * global reference to this object is destroyed too. Calling this more than
+     * once does nothing.
+     *
+     * Must be called while the data channel is still valid, so before
+     * DataChannel.dispose().
      */
     void dispose() {
         if (disposed) {
             return;
         }
         disposed = true;
+        dataChannel.unregisterObserver();
         eventChannel.setStreamHandler(null);
         synchronized (eventLock) {
             eventSink = null;

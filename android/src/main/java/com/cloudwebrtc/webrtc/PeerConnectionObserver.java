@@ -111,7 +111,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
   void dispose() {
     this.close();
-    // Release the event channel handlers that close() left registered.
+    // Release the data channels before the peer connection. The Java
+    // DataChannel wrapper owns a reference to the native channel that
+    // PeerConnection.dispose() does not touch, and unregistering the observer
+    // needs the peer connection to still be around.
     for (String dataChannelId : new ArrayList<>(dataChannels.keySet())) {
       disposeDataChannel(dataChannelId);
     }
@@ -173,15 +176,21 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   /**
-   * Releases the observer registered for a data channel and forgets about the
-   * channel.
+   * Releases the observer and the native reference held for a data channel and
+   * forgets about it. The observer goes first because unregistering it needs a
+   * data channel that has not been disposed yet.
    */
   private void disposeDataChannel(String dataChannelId) {
     DataChannelObserver observer = dataChannelObservers.remove(dataChannelId);
     if (observer != null) {
       observer.dispose();
     }
-    dataChannels.remove(dataChannelId);
+    DataChannel dataChannel = dataChannels.remove(dataChannelId);
+    if (dataChannel != null) {
+      // The Java wrapper owns a reference to the native data channel and
+      // PeerConnection.dispose() does not release it, so it is up to us.
+      dataChannel.dispose();
+    }
   }
 
   void dataChannelSend(String dataChannelId, ByteBuffer byteBuffer, Boolean isBinary) {
@@ -596,8 +605,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   private void registerDataChannelObserver(String dcId, DataChannel dataChannel) {
-    // Keep the observer around so that its event channel handler can be
-    // released when the channel goes away.
+    // Keep the observer around so that its event channel handler and the
+    // native observer can be released when the channel goes away.
     DataChannelObserver observer = new DataChannelObserver(messenger, id, dcId, dataChannel);
     dataChannelObservers.put(dcId, observer);
     dataChannel.registerObserver(observer);
