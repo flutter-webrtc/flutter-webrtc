@@ -39,6 +39,11 @@ class RTCDataChannelNative extends RTCDataChannel {
   int? _dataChannelId;
   RTCDataChannelState? _state;
   StreamSubscription<dynamic>? _eventSubscription;
+  bool _isClosed = false;
+
+  /// Whether close() has run on this channel. Owners use it to drop channels
+  /// they no longer have to close.
+  bool get isClosed => _isClosed;
 
   @override
   RTCDataChannelState? get state => _state;
@@ -60,6 +65,12 @@ class RTCDataChannelNative extends RTCDataChannel {
 
   /// RTCDataChannel event listener.
   void eventListener(dynamic event) {
+    // Nothing to report once the channel is closed. The controller guards
+    // below cover the other case, where the app's callback closes this channel
+    // or its peer connection while the event is being delivered.
+    if (_isClosed) {
+      return;
+    }
     final Map<dynamic, dynamic> map = event;
     switch (map['event']) {
       case 'dataChannelStateChanged':
@@ -67,7 +78,9 @@ class RTCDataChannelNative extends RTCDataChannel {
         _state = rtcDataChannelStateForString(map['state']);
         onDataChannelState?.call(_state!);
 
-        _stateChangeController.add(_state!);
+        if (!_stateChangeController.isClosed) {
+          _stateChangeController.add(_state!);
+        }
         break;
       case 'dataChannelReceiveMessage':
         _dataChannelId = map['id'];
@@ -83,7 +96,9 @@ class RTCDataChannelNative extends RTCDataChannel {
 
         onMessage?.call(message);
 
-        _messageController.add(message);
+        if (!_messageController.isClosed) {
+          _messageController.add(message);
+        }
         break;
 
       case 'dataChannelBufferedAmountChange':
@@ -132,6 +147,13 @@ class RTCDataChannelNative extends RTCDataChannel {
 
   @override
   Future<void> close() async {
+    // The first call wins. Owners close their channels on dispose without
+    // knowing whether the app already did, and the platform side only knows
+    // the channel once.
+    if (_isClosed) {
+      return;
+    }
+    _isClosed = true;
     await _stateChangeController.close();
     await _messageController.close();
     await _eventSubscription?.cancel();

@@ -28,7 +28,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   StreamSubscription<dynamic>? _eventSubscription;
   final _localStreams = <MediaStream>[];
   final _remoteStreams = <MediaStream>[];
-  RTCDataChannelNative? _dataChannel;
+  final _dataChannels = <RTCDataChannelNative>[];
   Map<String, dynamic> _configuration;
   RTCSignalingState? _signalingState;
   RTCIceGatheringState? _iceGatheringState;
@@ -233,10 +233,11 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         int dataChannelId = map['id'];
         String label = map['label'];
         String flutterId = map['flutterId'];
-        _dataChannel = RTCDataChannelNative(
+        final dataChannel = RTCDataChannelNative(
             _peerConnectionId, label, dataChannelId, flutterId,
             state: RTCDataChannelState.RTCDataChannelOpen);
-        onDataChannel?.call(_dataChannel!);
+        _trackDataChannel(dataChannel);
+        onDataChannel?.call(dataChannel);
         break;
       case 'onRenegotiationNeeded':
         onRenegotiationNeeded?.call();
@@ -291,8 +292,29 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
     if (obj is Exception) throw obj;
   }
 
+  /// Remembers a channel so dispose() can close it. Channels the app already
+  /// closed are dropped here so the list stays bounded.
+  void _trackDataChannel(RTCDataChannelNative dataChannel) {
+    _dataChannels.removeWhere((dc) => dc.isClosed);
+    _dataChannels.add(dataChannel);
+  }
+
   @override
   Future<void> dispose() async {
+    // Channels first, while the platform can still find them through this
+    // connection. Drain rather than iterate: a channel can arrive during an
+    // awaited close() and must be closed too, not trip the iterator.
+    while (_dataChannels.isNotEmpty) {
+      final dataChannel = _dataChannels.removeLast();
+      try {
+        await dataChannel.close();
+      } catch (e) {
+        // A channel the platform no longer knows must not stop the teardown.
+        print('Got exception closing data channel on '
+            'RTCPeerConnection::dispose: $e');
+      }
+    }
+
     // Cancel the event subscription before telling the platform to dispose.
     // Cancelling sends a `cancel` method call on the event channel, and the
     // native side releases that channel's stream handler when it handles
@@ -499,9 +521,10 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         'dataChannelDict': dataChannelDict.toMap()
       });
 
-      _dataChannel = RTCDataChannelNative(
+      final dataChannel = RTCDataChannelNative(
           _peerConnectionId, label, response['id'], response['flutterId']);
-      return _dataChannel!;
+      _trackDataChannel(dataChannel);
+      return dataChannel;
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::createDataChannel: ${e.message}';
     }
