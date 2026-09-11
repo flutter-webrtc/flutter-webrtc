@@ -21,7 +21,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
     private EventChannel.EventSink eventSink;
     private final ArrayList eventQueue = new ArrayList();
     private final Object eventLock = new Object();
-    private boolean disposed = false;
+    private volatile boolean disposed = false;
 
     DataChannelObserver(BinaryMessenger messenger, String peerConnectionId, String flutterId,
                         DataChannel dataChannel) {
@@ -41,7 +41,7 @@ class DataChannelObserver implements DataChannel.Observer, EventChannel.StreamHa
      * global reference to this object is destroyed too. Calling this more than
      * once does nothing.
      *
-     * Must be called while the data channel is still valid, so before
+     * <p>Must be called while the data channel is still valid, so before
      * DataChannel.dispose().
      */
     void dispose() {

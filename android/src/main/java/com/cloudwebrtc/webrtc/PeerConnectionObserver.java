@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.LinkedHashMap;
@@ -48,8 +49,13 @@ import org.webrtc.VideoTrack;
 
 class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.StreamHandler {
   private final static String TAG = FlutterWebRTCPlugin.TAG;
-  private final Map<String, DataChannel> dataChannels = new HashMap<>();
-  private final Map<String, DataChannelObserver> dataChannelObservers = new HashMap<>();
+  // Remote channels arrive from onDataChannel on the signaling thread while
+  // createDataChannel, dataChannelClose and dispose run on the platform thread,
+  // so both maps must tolerate concurrent access. dispose() also iterates the
+  // channel map, which a plain HashMap would turn into a
+  // ConcurrentModificationException if a channel arrived at the same time.
+  private final Map<String, DataChannel> dataChannels = new ConcurrentHashMap<>();
+  private final Map<String, DataChannelObserver> dataChannelObservers = new ConcurrentHashMap<>();
   private final BinaryMessenger messenger;
   private final String id;
   private PeerConnection peerConnection;
