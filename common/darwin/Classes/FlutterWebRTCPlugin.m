@@ -1951,12 +1951,24 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 #endif
 }
 
+- (BOOL)hasOpenPeerConnection {
+  // A closed peer connection stays registered until it is disposed so that its
+  // event channel handler can be released at that point. It should not keep the
+  // audio session alive in the meantime.
+  for (RTCPeerConnection* peerConnection in self.peerConnections.allValues) {
+    if (peerConnection.signalingState != RTCSignalingStateClosed) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
 - (void)deactiveRtcAudioSession {
 #if TARGET_OS_IPHONE
   if (!self.audioSessionManagementEnabled) {
     return;
   }
-  if (![self hasLocalAudioTrack] && self.peerConnections.count == 0) {
+  if (![self hasLocalAudioTrack] && ![self hasOpenPeerConnection]) {
     [AudioUtils deactiveRtcAudioSession];
   }
 #endif
