@@ -233,13 +233,10 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         int dataChannelId = map['id'];
         String label = map['label'];
         String flutterId = map['flutterId'];
-        var dataChannel = RTCDataChannelNative(
+        final dataChannel = RTCDataChannelNative(
             _peerConnectionId, label, dataChannelId, flutterId,
             state: RTCDataChannelState.RTCDataChannelOpen);
-        // Channels the app already closed need nothing from dispose(), and
-        // holding them would grow this list for the life of the connection.
-        _dataChannels.removeWhere((dc) => dc.isClosed);
-        _dataChannels.add(dataChannel);
+        _trackDataChannel(dataChannel);
         onDataChannel?.call(dataChannel);
         break;
       case 'onRenegotiationNeeded':
@@ -295,33 +292,24 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
     if (obj is Exception) throw obj;
   }
 
+  /// Remembers a channel so dispose() can close it. Channels the app already
+  /// closed are dropped here so the list stays bounded.
+  void _trackDataChannel(RTCDataChannelNative dataChannel) {
+    _dataChannels.removeWhere((dc) => dc.isClosed);
+    _dataChannels.add(dataChannel);
+  }
+
   @override
   Future<void> dispose() async {
-    // Close every data channel this connection created or received before the
-    // connection itself goes away. Each channel keeps its own event channel
-    // subscription and stream controllers alive until it is closed, and the
-    // native lookup for dataChannelClose goes through the peer connection, so
-    // the channels have to go first while the connection is still registered
-    // on the platform side. close() is idempotent, so channels the app already
-    // closed are left alone here.
-    //
-    // Drain the list rather than iterate it. Every close() awaits, and the
-    // platform can deliver a didOpenDataChannel in that window, which appends
-    // to _dataChannels. Iterating would throw ConcurrentModificationError and
-    // leave the connection undisposed, so take channels off the end until
-    // none are left and a channel that arrives mid-teardown is closed too.
+    // Channels first, while the platform can still find them through this
+    // connection. Drain rather than iterate: a channel can arrive during an
+    // awaited close() and must be closed too, not trip the iterator.
     while (_dataChannels.isNotEmpty) {
       final dataChannel = _dataChannels.removeLast();
       try {
         await dataChannel.close();
       } catch (e) {
-        // The channel may no longer be reachable, for instance when the app
-        // called close() on the peer connection first: the desktop plugin
-        // erases the connection from its registry on close, so the lookup
-        // dataChannelClose does by peer connection id finds nothing. Darwin
-        // and Android keep the connection until dispose. Catch everything
-        // here, not just PlatformException, so a MissingPluginException does
-        // not abort the rest of the teardown either.
+        // A channel the platform no longer knows must not stop the teardown.
         print('Got exception closing data channel on '
             'RTCPeerConnection::dispose: $e');
       }
@@ -533,12 +521,9 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         'dataChannelDict': dataChannelDict.toMap()
       });
 
-      var dataChannel = RTCDataChannelNative(
+      final dataChannel = RTCDataChannelNative(
           _peerConnectionId, label, response['id'], response['flutterId']);
-      // Channels the app already closed need nothing from dispose(), and
-      // holding them would grow this list for the life of the connection.
-      _dataChannels.removeWhere((dc) => dc.isClosed);
-      _dataChannels.add(dataChannel);
+      _trackDataChannel(dataChannel);
       return dataChannel;
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::createDataChannel: ${e.message}';

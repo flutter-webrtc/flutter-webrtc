@@ -65,11 +65,9 @@ class RTCDataChannelNative extends RTCDataChannel {
 
   /// RTCDataChannel event listener.
   void eventListener(dynamic event) {
-    // Nothing to report once the channel is closed, and the controllers are
-    // gone by then. An event can still arrive here after close(): the app's
-    // own callback below may close this channel, or close the peer connection
-    // that owns it, and close() runs synchronously up to its first await, so
-    // the controllers are already closed when control comes back.
+    // Nothing to report once the channel is closed. The controller guards
+    // below cover the other case, where the app's callback closes this channel
+    // or its peer connection while the event is being delivered.
     if (_closed) {
       return;
     }
@@ -149,9 +147,9 @@ class RTCDataChannelNative extends RTCDataChannel {
 
   @override
   Future<void> close() async {
-    // Closing twice would close already closed stream controllers and send a
-    // second dataChannelClose for a channel the platform side has forgotten,
-    // so the first call wins and later ones do nothing.
+    // The first call wins. Owners close their channels on dispose without
+    // knowing whether the app already did, and the platform side only knows
+    // the channel once.
     if (_closed) {
       return;
     }
