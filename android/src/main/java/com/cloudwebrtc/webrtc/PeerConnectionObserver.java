@@ -49,6 +49,7 @@ import org.webrtc.VideoTrack;
 class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.StreamHandler {
   private final static String TAG = FlutterWebRTCPlugin.TAG;
   private final Map<String, DataChannel> dataChannels = new HashMap<>();
+  private final Map<String, DataChannelObserver> dataChannelObservers = new HashMap<>();
   private final BinaryMessenger messenger;
   private final String id;
   private PeerConnection peerConnection;
@@ -573,11 +574,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   private void registerDataChannelObserver(String dcId, DataChannel dataChannel) {
-    // DataChannel.registerObserver implementation does not allow to
-    // unregister, so the observer is registered here and is never
-    // unregistered
-    dataChannel.registerObserver(
-        new DataChannelObserver(messenger, id, dcId, dataChannel));
+    // Keep the observer around so that its event channel handler can be
+    // released when the channel goes away.
+    DataChannelObserver observer = new DataChannelObserver(messenger, id, dcId, dataChannel);
+    dataChannelObservers.put(dcId, observer);
+    dataChannel.registerObserver(observer);
   }
 
   @Override
