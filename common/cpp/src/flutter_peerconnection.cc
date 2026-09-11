@@ -409,9 +409,15 @@ void FlutterPeerConnection::RTCPeerConnectionDispose(
     const std::string& uuid,
     std::unique_ptr<MethodResultProxy> result) {
   auto it = base_->peerconnection_observers_.find(uuid);
-  if (it != base_->peerconnection_observers_.end())
+  if (it != base_->peerconnection_observers_.end()) {
+    // Close() can still deliver OnRemoveStream callbacks. Keep the observer
+    // alive until native teardown completes, then detach it before deletion.
+    pc->Close();
+    pc->DeRegisterRTCPeerConnectionObserver();
     base_->peerconnection_observers_.erase(it);
+  }
 
+  // Leave the connection map entry for a subsequent peerConnectionClose call.
   result->Success();
 }
 
