@@ -21,13 +21,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.webrtc.AudioTrack;
 import org.webrtc.CandidatePairChangeEvent;
@@ -49,11 +49,8 @@ import org.webrtc.VideoTrack;
 
 class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.StreamHandler {
   private final static String TAG = FlutterWebRTCPlugin.TAG;
-  // Remote channels arrive from onDataChannel on the signaling thread while
-  // createDataChannel, dataChannelClose and dispose run on the platform thread,
-  // so both maps must tolerate concurrent access. dispose() also iterates the
-  // channel map, which a plain HashMap would turn into a
-  // ConcurrentModificationException if a channel arrived at the same time.
+  // onDataChannel writes from the signaling thread while the method handlers
+  // read, write and iterate from the platform thread.
   private final Map<String, DataChannel> dataChannels = new ConcurrentHashMap<>();
   private final Map<String, DataChannelObserver> dataChannelObservers = new ConcurrentHashMap<>();
   private final BinaryMessenger messenger;
@@ -117,15 +114,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
   void dispose() {
     this.close();
-    // Release the data channels before the peer connection. The Java
-    // DataChannel wrapper owns a reference to the native channel that
-    // PeerConnection.dispose() does not touch, and unregistering the observer
-    // needs the peer connection to still be around.
+    // Data channels go before the peer connection because unregistering an
+    // observer needs a live connection.
     for (String dataChannelId : new ArrayList<>(dataChannels.keySet())) {
       disposeDataChannel(dataChannelId);
     }
-    dataChannels.clear();
-    dataChannelObservers.clear();
     peerConnection.dispose();
     eventChannel.setStreamHandler(null);
   }
@@ -182,9 +175,11 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   /**
-   * Releases the observer and the native reference held for a data channel and
-   * forgets about it. The observer goes first because unregistering it needs a
-   * data channel that has not been disposed yet.
+   * Releases the observer and the Java wrapper for a data channel and forgets
+   * about it. The wrapper owns a reference to the native channel that
+   * PeerConnection.dispose() does not release, so it is disposed here. The
+   * observer goes first because unregistering it needs a wrapper that has not
+   * been disposed yet.
    */
   private void disposeDataChannel(String dataChannelId) {
     DataChannelObserver observer = dataChannelObservers.remove(dataChannelId);
@@ -193,8 +188,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     }
     DataChannel dataChannel = dataChannels.remove(dataChannelId);
     if (dataChannel != null) {
-      // The Java wrapper owns a reference to the native data channel and
-      // PeerConnection.dispose() does not release it, so it is up to us.
       dataChannel.dispose();
     }
   }
