@@ -963,28 +963,39 @@ static void FlutterWebRTCApplyFieldTrials(void) {
              [@"peerConnectionDispose" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+    BOOL isDispose = [@"peerConnectionDispose" isEqualToString:call.method];
 
     RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
     if (peerConnection) {
+      // Closing twice is harmless, the native peer connection ignores the second call.
       [peerConnection close];
-      [peerConnection.eventChannel setStreamHandler:nil];
-      peerConnection.eventChannel = nil;
-      [self.peerConnections removeObjectForKey:peerConnectionId];
+      peerConnection.closedByPlugin = YES;
 
       // Clean up peerConnection's streams and tracks
       [peerConnection.remoteStreams removeAllObjects];
       [peerConnection.remoteTracks removeAllObjects];
 
-      // Clean up peerConnection's dataChannels.
+      // Stop delivering data channel events. There is no need to close the
+      // RTCDataChannel because it is owned by the RTCPeerConnection and the
+      // latter will close the former.
       NSMutableDictionary<NSString*, RTCDataChannel*>* dataChannels = peerConnection.dataChannels;
       for (NSString* dataChannelId in dataChannels) {
         dataChannels[dataChannelId].delegate = nil;
-        [dataChannels[dataChannelId].eventChannel setStreamHandler:nil];
-        dataChannels[dataChannelId].eventChannel = nil;
-        // There is no need to close the RTCDataChannel because it is owned by the
-        // RTCPeerConnection and the latter will close the former.
       }
-      [dataChannels removeAllObjects];
+
+      if (isDispose) {
+        // Dart cancels its event subscriptions before it calls dispose, so this
+        // is the first point where the stream handlers can go without leaving a
+        // pending cancel unanswered. Releasing them on close would do exactly that.
+        for (NSString* dataChannelId in dataChannels) {
+          [dataChannels[dataChannelId].eventChannel setStreamHandler:nil];
+          dataChannels[dataChannelId].eventChannel = nil;
+        }
+        [dataChannels removeAllObjects];
+        [peerConnection.eventChannel setStreamHandler:nil];
+        peerConnection.eventChannel = nil;
+        [self.peerConnections removeObjectForKey:peerConnectionId];
+      }
     }
     [self deactiveRtcAudioSession];
     result(nil);
@@ -1937,12 +1948,24 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 #endif
 }
 
+- (BOOL)hasOpenPeerConnection {
+  // Closed connections stay registered until dispose but must not keep the
+  // audio session alive. The flag avoids a blocking signalingState read per
+  // connection on the platform thread.
+  for (RTCPeerConnection* peerConnection in self.peerConnections.allValues) {
+    if (!peerConnection.closedByPlugin) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
 - (void)deactiveRtcAudioSession {
 #if TARGET_OS_IPHONE
   if (!self.audioSessionManagementEnabled) {
     return;
   }
-  if (![self hasLocalAudioTrack] && self.peerConnections.count == 0) {
+  if (![self hasLocalAudioTrack] && ![self hasOpenPeerConnection]) {
     [AudioUtils deactiveRtcAudioSession];
   }
 #endif
