@@ -39,11 +39,11 @@ class RTCDataChannelNative extends RTCDataChannel {
   int? _dataChannelId;
   RTCDataChannelState? _state;
   StreamSubscription<dynamic>? _eventSubscription;
-  bool _closed = false;
+  bool _isClosed = false;
 
   /// Whether close() has run on this channel. Owners use it to drop channels
   /// they no longer have to close.
-  bool get isClosed => _closed;
+  bool get isClosed => _isClosed;
 
   @override
   RTCDataChannelState? get state => _state;
@@ -68,7 +68,7 @@ class RTCDataChannelNative extends RTCDataChannel {
     // Nothing to report once the channel is closed. The controller guards
     // below cover the other case, where the app's callback closes this channel
     // or its peer connection while the event is being delivered.
-    if (_closed) {
+    if (_isClosed) {
       return;
     }
     final Map<dynamic, dynamic> map = event;
@@ -150,10 +150,10 @@ class RTCDataChannelNative extends RTCDataChannel {
     // The first call wins. Owners close their channels on dispose without
     // knowing whether the app already did, and the platform side only knows
     // the channel once.
-    if (_closed) {
+    if (_isClosed) {
       return;
     }
-    _closed = true;
+    _isClosed = true;
     await _stateChangeController.close();
     await _messageController.close();
     await _eventSubscription?.cancel();
