@@ -39,6 +39,7 @@ class RTCDataChannelNative extends RTCDataChannel {
   int? _dataChannelId;
   RTCDataChannelState? _state;
   StreamSubscription<dynamic>? _eventSubscription;
+  bool _closed = false;
 
   @override
   RTCDataChannelState? get state => _state;
@@ -132,6 +133,13 @@ class RTCDataChannelNative extends RTCDataChannel {
 
   @override
   Future<void> close() async {
+    // Closing twice would close already closed stream controllers and send a
+    // second dataChannelClose for a channel the platform side has forgotten,
+    // so the first call wins and later ones do nothing.
+    if (_closed) {
+      return;
+    }
+    _closed = true;
     await _stateChangeController.close();
     await _messageController.close();
     await _eventSubscription?.cancel();
