@@ -28,7 +28,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   StreamSubscription<dynamic>? _eventSubscription;
   final _localStreams = <MediaStream>[];
   final _remoteStreams = <MediaStream>[];
-  RTCDataChannelNative? _dataChannel;
+  final _dataChannels = <RTCDataChannelNative>[];
   Map<String, dynamic> _configuration;
   RTCSignalingState? _signalingState;
   RTCIceGatheringState? _iceGatheringState;
@@ -233,10 +233,11 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         int dataChannelId = map['id'];
         String label = map['label'];
         String flutterId = map['flutterId'];
-        _dataChannel = RTCDataChannelNative(
+        var dataChannel = RTCDataChannelNative(
             _peerConnectionId, label, dataChannelId, flutterId,
             state: RTCDataChannelState.RTCDataChannelOpen);
-        onDataChannel?.call(_dataChannel!);
+        _dataChannels.add(dataChannel);
+        onDataChannel?.call(dataChannel);
         break;
       case 'onRenegotiationNeeded':
         onRenegotiationNeeded?.call();
@@ -499,9 +500,10 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         'dataChannelDict': dataChannelDict.toMap()
       });
 
-      _dataChannel = RTCDataChannelNative(
+      var dataChannel = RTCDataChannelNative(
           _peerConnectionId, label, response['id'], response['flutterId']);
-      return _dataChannel!;
+      _dataChannels.add(dataChannel);
+      return dataChannel;
     } on PlatformException catch (e) {
       throw 'Unable to RTCPeerConnection::createDataChannel: ${e.message}';
     }
