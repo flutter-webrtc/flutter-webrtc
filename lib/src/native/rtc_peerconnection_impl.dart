@@ -294,6 +294,25 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
   @override
   Future<void> dispose() async {
+    // Close every data channel this connection created or received before the
+    // connection itself goes away. Each channel keeps its own event channel
+    // subscription and stream controllers alive until it is closed, and the
+    // native lookup for dataChannelClose goes through the peer connection, so
+    // the channels have to go first while the connection is still registered
+    // on the platform side. close() is idempotent, so channels the app already
+    // closed are left alone here.
+    for (final dataChannel in _dataChannels) {
+      try {
+        await dataChannel.close();
+      } on PlatformException catch (e) {
+        // The platform may have dropped the channel already, for instance
+        // when the app called close() on the peer connection first and the
+        // platform released its channels with it. Carry on with the teardown.
+        print('Got exception for RTCPeerConnection::dispose: ${e.message}');
+      }
+    }
+    _dataChannels.clear();
+
     // Cancel the event subscription before telling the platform to dispose.
     // Cancelling sends a `cancel` method call on the event channel, and the
     // native side releases that channel's stream handler when it handles
