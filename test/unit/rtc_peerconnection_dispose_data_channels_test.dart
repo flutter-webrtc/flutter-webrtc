@@ -1,0 +1,168 @@
+import 'package:flutter/services.dart';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:webrtc_interface/webrtc_interface.dart';
+
+import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
+
+/// A peer connection hands out data channel objects that each hold an event
+/// channel subscription and two stream controllers. Nothing else closes them,
+/// so dispose() has to, and it has to do that before the peer connection goes
+/// away because the native dataChannelClose looks the channel up through the
+/// connection.
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  const peerConnectionId = 'pc-data-channel-test';
+  const createdChannelId = 'dc-created';
+  const receivedChannelId = 'dc-received';
+
+  final methodChannel = MethodChannel('FlutterWebRTC.Method');
+  final peerConnectionEventChannel =
+      MethodChannel('FlutterWebRTC/peerConnectionEvent$peerConnectionId');
+  final dataChannelEventChannels = <String, MethodChannel>{
+    for (final flutterId in [createdChannelId, receivedChannelId])
+      flutterId: MethodChannel(
+          'FlutterWebRTC/dataChannelEvent$peerConnectionId$flutterId'),
+  };
+
+  final calls = <String>[];
+  var failDataChannelClose = false;
+
+  setUp(() {
+    calls.clear();
+    failDataChannelClose = false;
+
+    methodChannel.setMockMethodCallHandler((MethodCall methodCall) async {
+      switch (methodCall.method) {
+        case 'createDataChannel':
+          calls.add('createDataChannel');
+          return <String, dynamic>{'id': 1, 'flutterId': createdChannelId};
+        case 'dataChannelClose':
+          final arguments = methodCall.arguments as Map<dynamic, dynamic>;
+          calls.add('dataChannelClose:${arguments['dataChannelId']}');
+          if (failDataChannelClose) {
+            throw PlatformException(
+                code: 'error', message: 'peerConnection is null');
+          }
+          return null;
+        default:
+          calls.add(methodCall.method);
+          return null;
+      }
+    });
+
+    peerConnectionEventChannel
+        .setMockMethodCallHandler((MethodCall methodCall) async {
+      calls.add('pcEvent:${methodCall.method}');
+      return null;
+    });
+
+    dataChannelEventChannels.forEach((flutterId, channel) {
+      channel.setMockMethodCallHandler((MethodCall methodCall) async {
+        calls.add('dcEvent:$flutterId:${methodCall.method}');
+        return null;
+      });
+    });
+  });
+
+  tearDown(() {
+    methodChannel.setMockMethodCallHandler(null);
+    peerConnectionEventChannel.setMockMethodCallHandler(null);
+    dataChannelEventChannels.forEach((_, channel) {
+      channel.setMockMethodCallHandler(null);
+    });
+  });
+
+  test('dispose closes a created data channel before the peer connection',
+      () async {
+    final pc = RTCPeerConnectionNative(peerConnectionId, {});
+
+    // Let the constructor's subscription reach the platform side.
+    await Future<void>.delayed(Duration.zero);
+
+    await pc.createDataChannel('data', RTCDataChannelInit());
+    await Future<void>.delayed(Duration.zero);
+
+    await pc.dispose();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(
+        calls,
+        containsAllInOrder(<String>[
+          'dcEvent:$createdChannelId:listen',
+          'dcEvent:$createdChannelId:cancel',
+          'dataChannelClose:$createdChannelId',
+          'pcEvent:cancel',
+          'peerConnectionDispose',
+        ]));
+  });
+
+  test('dispose closes a data channel received from the platform', () async {
+    final pc = RTCPeerConnectionNative(peerConnectionId, {});
+    await Future<void>.delayed(Duration.zero);
+
+    pc.eventListener(<dynamic, dynamic>{
+      'event': 'didOpenDataChannel',
+      'id': 2,
+      'label': 'remote',
+      'flutterId': receivedChannelId,
+    });
+    await Future<void>.delayed(Duration.zero);
+
+    await pc.dispose();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(
+        calls,
+        containsAllInOrder(<String>[
+          'dcEvent:$receivedChannelId:listen',
+          'dcEvent:$receivedChannelId:cancel',
+          'dataChannelClose:$receivedChannelId',
+          'pcEvent:cancel',
+          'peerConnectionDispose',
+        ]));
+  });
+
+  test('dispose does not close a data channel the app already closed',
+      () async {
+    final pc = RTCPeerConnectionNative(peerConnectionId, {});
+    await Future<void>.delayed(Duration.zero);
+
+    final dataChannel =
+        await pc.createDataChannel('data', RTCDataChannelInit());
+    await Future<void>.delayed(Duration.zero);
+
+    await dataChannel.close();
+    await pc.dispose();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(calls.where((call) => call == 'dataChannelClose:$createdChannelId'),
+        hasLength(1));
+    expect(calls.where((call) => call == 'dcEvent:$createdChannelId:cancel'),
+        hasLength(1));
+    expect(calls, contains('peerConnectionDispose'));
+  });
+
+  test('dispose completes when closing a data channel fails', () async {
+    final pc = RTCPeerConnectionNative(peerConnectionId, {});
+    await Future<void>.delayed(Duration.zero);
+
+    await pc.createDataChannel('data', RTCDataChannelInit());
+    await Future<void>.delayed(Duration.zero);
+
+    failDataChannelClose = true;
+
+    await pc.dispose();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(calls, contains('dataChannelClose:$createdChannelId'));
+    expect(
+        calls,
+        containsAllInOrder(<String>[
+          'pcEvent:cancel',
+          'peerConnectionDispose',
+        ]));
+  });
+}
