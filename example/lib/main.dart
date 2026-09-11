@@ -12,6 +12,7 @@ import 'src/get_user_media_sample.dart'
     if (dart.library.js_interop) 'src/get_user_media_sample_web.dart';
 import 'src/loopback_data_channel_sample.dart';
 import 'src/loopback_sample_unified_tracks.dart';
+import 'src/picture_in_picture_sample.dart';
 import 'src/route_item.dart';
 import 'src/screen_capture_api_sample.dart';
 
@@ -154,6 +155,15 @@ class _MyAppState extends State<MyApp> {
                 context,
                 MaterialPageRoute(
                     builder: (BuildContext context) => DataPacketCryptorSample()));
+          }),
+      RouteItem(
+          title: 'Picture in Picture',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) =>
+                        PictureInPictureSample()));
           }),
     ];
   }

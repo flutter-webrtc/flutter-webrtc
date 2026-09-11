@@ -30,6 +30,7 @@ import com.cloudwebrtc.webrtc.audio.AudioUtils;
 import com.cloudwebrtc.webrtc.audio.LocalAudioTrack;
 import com.cloudwebrtc.webrtc.audio.PlaybackSamplesReadyCallbackAdapter;
 import com.cloudwebrtc.webrtc.audio.RecordSamplesReadyCallbackAdapter;
+import com.cloudwebrtc.webrtc.pip.PictureInPictureManager;
 import com.cloudwebrtc.webrtc.record.AudioChannel;
 import com.cloudwebrtc.webrtc.record.FrameCapturer;
 import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
@@ -179,10 +180,21 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   public static LogSink logSink = new LogSink();
 
+  private final PictureInPictureManager pictureInPictureManager;
+
   MethodCallHandlerImpl(Context context, BinaryMessenger messenger, TextureRegistry textureRegistry) {
     this.context = context;
     this.textures = textureRegistry;
     this.messenger = messenger;
+    this.pictureInPictureManager = new PictureInPictureManager(this, event -> {
+      if (FlutterWebRTCPlugin.sharedSingleton != null) {
+        FlutterWebRTCPlugin.sharedSingleton.sendEvent(event);
+      }
+    });
+  }
+
+  public PictureInPictureManager getPictureInPictureManager() {
+    return pictureInPictureManager;
   }
 
   static private void resultError(String method, String error, Result result) {
@@ -192,6 +204,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   void dispose() {
+    pictureInPictureManager.dispose();
     for (final MediaStream mediaStream : localStreams.values()) {
       try {
         streamDispose(mediaStream);
@@ -801,6 +814,33 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         } else {
           render.setStream(stream, ownerTag);
         }
+        result.success(null);
+        break;
+      }
+      case "pipIsSupported": {
+        result.success(pictureInPictureManager.isSupported());
+        break;
+      }
+      case "pipConfigure": {
+        Map<String, Object> args = call.arguments();
+        pictureInPictureManager.configure(new ConstraintsMap(args));
+        result.success(null);
+        break;
+      }
+      case "pipStart": {
+        result.success(pictureInPictureManager.enter());
+        break;
+      }
+      case "pipStop": {
+        result.success(null);
+        break;
+      }
+      case "pipIsActive": {
+        result.success(pictureInPictureManager.isActive());
+        break;
+      }
+      case "pipDispose": {
+        pictureInPictureManager.dispose();
         result.success(null);
         break;
       }
