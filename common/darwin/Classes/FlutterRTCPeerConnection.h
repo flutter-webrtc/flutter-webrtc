@@ -9,6 +9,10 @@
 @property(nonatomic, strong, nonnull) NSString* flutterId;
 @property(nonatomic, strong, nullable) FlutterEventSink eventSink;
 @property(nonatomic, strong, nullable) FlutterEventChannel* eventChannel;
+// Set when the plugin has closed this connection. A closed connection stays
+// registered until it is disposed so that its event channel handler can be
+// released at that point.
+@property(nonatomic, assign) BOOL closedByPlugin;
 @end
 
 @interface FlutterWebRTCPlugin (RTCPeerConnection)

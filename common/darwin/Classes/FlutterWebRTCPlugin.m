@@ -969,6 +969,7 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     if (peerConnection) {
       // Closing twice is harmless, the native peer connection ignores the second call.
       [peerConnection close];
+      peerConnection.closedByPlugin = YES;
 
       // Clean up peerConnection's streams and tracks
       [peerConnection.remoteStreams removeAllObjects];
@@ -1954,9 +1955,12 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 - (BOOL)hasOpenPeerConnection {
   // A closed peer connection stays registered until it is disposed so that its
   // event channel handler can be released at that point. It should not keep the
-  // audio session alive in the meantime.
+  // audio session alive in the meantime. The plugin records the close itself
+  // rather than asking the connection for its signaling state, because that
+  // getter is a blocking hop to the signaling thread for every registered
+  // connection and this runs on the platform thread.
   for (RTCPeerConnection* peerConnection in self.peerConnections.allValues) {
-    if (peerConnection.signalingState != RTCSignalingStateClosed) {
+    if (!peerConnection.closedByPlugin) {
       return YES;
     }
   }
