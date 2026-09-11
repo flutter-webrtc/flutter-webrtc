@@ -10,10 +10,10 @@ import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
 /// close() invokes peerConnectionClose, and dispose() must cancel the
 /// event channel subscription before it invokes peerConnectionDispose.
 /// The darwin plugin only releases the event channel's stream handler
-/// on peerConnectionDispose, so if cancel is sent after (or is skipped
-/// before) that call, the platform side is already gone and Flutter
-/// reports a MissingPluginException for the event channel's cancel
-/// method instead of tearing down cleanly.
+/// on peerConnectionDispose. If cancel reached the platform after that
+/// call, the handler would already be gone and Flutter would report a
+/// MissingPluginException for the event channel's cancel method instead
+/// of tearing down cleanly.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -51,7 +51,8 @@ void main() {
     await pc.close();
     await pc.dispose();
 
-    // Flush again so the async cancel/dispose calls are fully recorded.
+    // Both calls are recorded synchronously by the mock handlers while
+    // dispose() is awaited. Yield once more anyway so nothing is left pending.
     await Future<void>.delayed(Duration.zero);
 
     expect(calls, contains('peerConnectionClose'));
