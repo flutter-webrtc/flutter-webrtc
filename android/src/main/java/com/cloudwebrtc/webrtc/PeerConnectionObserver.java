@@ -104,11 +104,19 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     peerConnection.close();
     remoteStreams.clear();
     remoteTracks.clear();
-    dataChannels.clear();
+    // The data channels stay registered until dispose() so that their event
+    // channel handlers can be released there. Closing the peer connection
+    // already closes them.
   }
 
   void dispose() {
     this.close();
+    // Release the event channel handlers that close() left registered.
+    for (String dataChannelId : new ArrayList<>(dataChannels.keySet())) {
+      disposeDataChannel(dataChannelId);
+    }
+    dataChannels.clear();
+    dataChannelObservers.clear();
     peerConnection.dispose();
     eventChannel.setStreamHandler(null);
   }
@@ -156,10 +164,24 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     DataChannel dataChannel = dataChannels.get(dataChannelId);
     if (dataChannel != null) {
       dataChannel.close();
-      dataChannels.remove(dataChannelId);
+      // The Dart side cancels its event subscription before it calls this, so
+      // nothing is left that needs the event channel handler.
+      disposeDataChannel(dataChannelId);
     } else {
       Log.d(TAG, "dataChannelClose() dataChannel is null");
     }
+  }
+
+  /**
+   * Releases the observer registered for a data channel and forgets about the
+   * channel.
+   */
+  private void disposeDataChannel(String dataChannelId) {
+    DataChannelObserver observer = dataChannelObservers.remove(dataChannelId);
+    if (observer != null) {
+      observer.dispose();
+    }
+    dataChannels.remove(dataChannelId);
   }
 
   void dataChannelSend(String dataChannelId, ByteBuffer byteBuffer, Boolean isBinary) {
