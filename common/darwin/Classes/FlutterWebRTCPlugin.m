@@ -963,28 +963,42 @@ static void FlutterWebRTCApplyFieldTrials(void) {
              [@"peerConnectionDispose" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+    BOOL dispose = [@"peerConnectionDispose" isEqualToString:call.method];
 
     RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
     if (peerConnection) {
+      // Closing twice is harmless, the native peer connection ignores the second call.
       [peerConnection close];
-      [peerConnection.eventChannel setStreamHandler:nil];
-      peerConnection.eventChannel = nil;
-      [self.peerConnections removeObjectForKey:peerConnectionId];
 
       // Clean up peerConnection's streams and tracks
       [peerConnection.remoteStreams removeAllObjects];
       [peerConnection.remoteTracks removeAllObjects];
 
-      // Clean up peerConnection's dataChannels.
+      // Stop delivering data channel events. There is no need to close the
+      // RTCDataChannel because it is owned by the RTCPeerConnection and the
+      // latter will close the former.
       NSMutableDictionary<NSString*, RTCDataChannel*>* dataChannels = peerConnection.dataChannels;
       for (NSString* dataChannelId in dataChannels) {
         dataChannels[dataChannelId].delegate = nil;
-        [dataChannels[dataChannelId].eventChannel setStreamHandler:nil];
-        dataChannels[dataChannelId].eventChannel = nil;
-        // There is no need to close the RTCDataChannel because it is owned by the
-        // RTCPeerConnection and the latter will close the former.
       }
-      [dataChannels removeAllObjects];
+
+      if (dispose) {
+        // Release the event channel stream handlers only on dispose. The Dart
+        // side cancels its event subscription right before it calls dispose, and
+        // that cancel is a method call on the same channel. Releasing the handler
+        // on close would leave that cancel with no handler to answer it, which
+        // surfaces as a MissingPluginException for callers that close first and
+        // dispose later. The peer connection stays registered until dispose so
+        // the handlers can still be released at that point.
+        for (NSString* dataChannelId in dataChannels) {
+          [dataChannels[dataChannelId].eventChannel setStreamHandler:nil];
+          dataChannels[dataChannelId].eventChannel = nil;
+        }
+        [dataChannels removeAllObjects];
+        [peerConnection.eventChannel setStreamHandler:nil];
+        peerConnection.eventChannel = nil;
+        [self.peerConnections removeObjectForKey:peerConnectionId];
+      }
     }
     [self deactiveRtcAudioSession];
     result(nil);
