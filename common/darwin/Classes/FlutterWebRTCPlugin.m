@@ -1091,7 +1091,7 @@ static void FlutterWebRTCApplyFieldTrials(void) {
       NSNumber* viewId = argsMap[@"viewId"];
       FlutterRTCVideoPlatformViewController* render = _platformViewFactory.renders[viewId];
       if(render != nil) {
-        render.videoTrack = nil;
+        [render dispose];
         [_platformViewFactory.renders removeObjectForKey:viewId];
       }
       result(nil);
