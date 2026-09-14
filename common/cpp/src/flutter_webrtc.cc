@@ -491,11 +491,10 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableMap params =
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string peerConnectionId = findString(params, "peerConnectionId");
+    // The connection map entry is gone once Dart close() ran first, which is
+    // the usual order. The observer still has to be released, so do not bail
+    // out here; RTCPeerConnectionDispose finds the connection through it.
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
-    if (pc == nullptr) {
-      result->Success();
-      return;
-    }
     RTCPeerConnectionDispose(pc, peerConnectionId, std::move(result));
   } else if (method_call.method_name().compare("createVideoRenderer") == 0) {
     CreateVideoRendererTexture(std::move(result));

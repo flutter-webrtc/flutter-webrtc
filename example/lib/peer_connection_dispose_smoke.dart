@@ -38,30 +38,47 @@ Future<void> main() async {
     if (!Platform.isLinux && !Platform.isWindows) {
       throw StateError('This regression check requires Linux or Windows');
     }
-    for (var iteration = 1; iteration <= 10; iteration++) {
-      final connection = await createPeerConnection({
-        'iceServers': <Map<String, dynamic>>[],
-        'sdpSemantics': 'unified-plan',
-      });
-      final remoteStreamAdded = Completer<void>();
-      connection.onAddStream = (stream) {
-        if (stream.getAudioTracks().isNotEmpty &&
-            !remoteStreamAdded.isCompleted) {
-          remoteStreamAdded.complete();
-        }
-      };
-      await connection.setRemoteDescription(
-        RTCSessionDescription(_remoteOffer, 'offer'),
-      );
-      await remoteStreamAdded.future.timeout(const Duration(seconds: 5));
+    // Both teardown orders must release the native connection and its
+    // observer. dispose() then close() used to crash on a remaining remote
+    // stream; close() then dispose() used to leave the observer, and with it
+    // the closed connection, retained because dispose could no longer find
+    // the connection map entry.
+    for (final closeFirst in [false, true]) {
+      final order =
+          closeFirst ? 'close() then dispose()' : 'dispose() then close()';
+      for (var iteration = 1; iteration <= 10; iteration++) {
+        final connection = await createPeerConnection({
+          'iceServers': <Map<String, dynamic>>[],
+          'sdpSemantics': 'unified-plan',
+        });
+        final remoteStreamAdded = Completer<void>();
+        connection.onAddStream = (stream) {
+          if (stream.getAudioTracks().isNotEmpty &&
+              !remoteStreamAdded.isCompleted) {
+            remoteStreamAdded.complete();
+          }
+        };
+        await connection.setRemoteDescription(
+          RTCSessionDescription(_remoteOffer, 'offer'),
+        );
+        await remoteStreamAdded.future.timeout(const Duration(seconds: 5));
 
-      // Cancel the Dart subscription first. The native observer must survive
-      // all Close() callbacks even though it is disposed before Dart close().
-      stdout.writeln('Disposing PeerConnection $iteration with remote audio');
-      await connection.dispose();
-      await connection.close();
+        stdout.writeln(
+          'Tearing down PeerConnection $iteration with remote audio, $order',
+        );
+        if (closeFirst) {
+          await connection.close();
+          await connection.dispose();
+        } else {
+          // Cancel the Dart subscription first. The native observer must
+          // survive all Close() callbacks even though it is disposed before
+          // Dart close().
+          await connection.dispose();
+          await connection.close();
+        }
+      }
+      stdout.writeln('PASS: 10 native PeerConnections torn down, $order');
     }
-    stdout.writeln('PASS: 10 native PeerConnections disposed with remote audio');
     watchdog.cancel();
     exit(0);
   } catch (error, stackTrace) {
