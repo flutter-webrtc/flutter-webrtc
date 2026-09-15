@@ -77,7 +77,23 @@ Future<void> main() async {
           await connection.close();
         }
       }
-      stdout.writeln('PASS: 10 native PeerConnections torn down, $order');
+      // The crash was visible from Dart, the leak is not. Ask the plugin how
+      // many native connections and observers it still holds.
+      final counts = await WebRTC.invokeMethod<Map<Object?, Object?>, void>(
+        'peerConnectionCounts',
+      );
+      final connections = counts?['peerConnections'] as int? ?? -1;
+      final observers = counts?['observers'] as int? ?? -1;
+      if (connections != 0 || observers != 0) {
+        throw StateError(
+          'native maps not empty after $order: '
+          'peerConnections=$connections observers=$observers',
+        );
+      }
+      stdout.writeln(
+        'PASS: 10 native PeerConnections torn down, $order, '
+        'native maps empty',
+      );
     }
     watchdog.cancel();
     exit(0);
