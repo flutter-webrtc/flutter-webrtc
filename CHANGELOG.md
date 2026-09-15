@@ -1,6 +1,13 @@
 
 # Changelog
 
+[1.6.2+hotfix.2] - 2026-09-14
+
+* [Darwin] fix: release event channel stream handlers on `peerConnectionDispose` instead of `peerConnectionClose`. `close()` followed by `dispose()` no longer reports `MissingPluginException` for `cancel` on `FlutterWebRTC/peerConnectionEvent` (#2172).
+* [Android] fix: release data channel event channel handlers and dispose the Java `DataChannel` wrapper when a channel is closed or its peer connection is disposed (#2174).
+* [Dart] fix: `RTCPeerConnection.dispose()` closes every data channel the connection created or received. `RTCDataChannel.close()` on native platforms is idempotent (#2175).
+* [Windows/Linux] fix(crash): keep the PeerConnection observer alive during disposal (#2171).
+
 [1.6.2+hotfix.1] - 2026-09-08
 
 * [Windows/Linux] fix(crash): Do not access the WebRTC API before calling EnsureWebRTCInitialized (#2169)
