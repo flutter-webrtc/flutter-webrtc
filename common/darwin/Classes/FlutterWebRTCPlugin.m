@@ -252,7 +252,27 @@ static void FlutterWebRTCApplyFieldTrials(void) {
                    withTextures:(NSObject<FlutterTextureRegistry>*)textures {
 
   self = [super init];
-  sharedSingleton = self;
+  // PICAP: gana el PRIMERO, no el último.
+  //
+  // `sharedSingleton = self` en cada `init` hacía ganar a la ÚLTIMA
+  // instancia. Una app con motores de Flutter en segundo plano registra
+  // este plugin otra vez en cada uno; esas instancias nunca crean peer
+  // connections, así que su `peerConnectionFactory` queda nil. Y
+  // livekit_client lee justamente
+  // `sharedSingleton.peerConnectionFactory.audioDeviceModule`: recibía
+  // nil y fallaba con `platformUnavailable`, dejando la llamada sin
+  // micrófono (de una sola vía) en iOS.
+  //
+  // NO se puede decidir por "el que tenga fábrica": la fábrica se crea
+  // perezosamente al empezar una llamada, así que cuando el motor de
+  // fondo se registra (~3 s tras el arranque) NINGUNA la tiene todavía.
+  // Medido en device: `fabricaInicial=false`.
+  //
+  // El motor de UI registra en `didFinishLaunching`, siempre primero.
+  // Quedarse con el primero lo elige a él sin tener que adivinar.
+  if (sharedSingleton == nil) {
+    sharedSingleton = self;
+  }
 
   FlutterEventChannel* eventChannel =
       [FlutterEventChannel eventChannelWithName:@"FlutterWebRTC.Event" binaryMessenger:messenger];
