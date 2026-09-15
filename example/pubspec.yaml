@@ -65,3 +65,12 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.io/custom-fonts/#from-packages
+
+dependency_overrides:
+  # objective_c 9.6.1 was published with a build hook referencing
+  # `Architecture.arm64e`, which does not exist in any released code_assets
+  # (latest is 2.0.0). Its hook fails to compile, which breaks every build
+  # -- including Android, since Flutter compiles all build hooks regardless
+  # of target. Pin to the last good release.
+  # https://github.com/dart-lang/native/issues
+  objective_c: 9.6.0
