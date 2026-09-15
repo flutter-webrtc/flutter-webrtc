@@ -20,4 +20,6 @@
 
 - (FlutterRTCVideoPlatformNativeView* _Nonnull)view;
 
+- (void)dispose;
+
 @end

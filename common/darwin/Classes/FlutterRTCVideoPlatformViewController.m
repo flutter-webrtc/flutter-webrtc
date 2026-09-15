@@ -38,6 +38,12 @@
   return _videoView;
 }
 
+- (void)dispose {
+  [_eventChannel setStreamHandler:nil];
+  _eventChannel = nil;
+  self.videoTrack = nil;
+}
+
 - (void)setVideoTrack:(RTCVideoTrack*)videoTrack {
   RTCVideoTrack* oldValue = self.videoTrack;
   if (oldValue == videoTrack) {
