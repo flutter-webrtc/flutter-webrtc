@@ -74,3 +74,4 @@ dependency_overrides:
   # of target. Pin to the last good release.
   # https://github.com/dart-lang/native/issues
   objective_c: 9.6.0
+  collection: 1.19.1
