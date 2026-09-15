@@ -1,6 +1,11 @@
 
 # Changelog
 
+
+[1.6.2+hotfix.3] - 2026-09-15
+
+* [Windows/Linux] fix: fixed fieldTrials copy in libwebrtc to fix WARP bug for Windows/Linux.
+
 [1.6.2+hotfix.2] - 2026-09-14
 
 * [Darwin] fix: release event channel stream handlers on `peerConnectionDispose` instead of `peerConnectionClose`. `close()` followed by `dispose()` no longer reports `MissingPluginException` for `cancel` on `FlutterWebRTC/peerConnectionEvent` (#2172).
