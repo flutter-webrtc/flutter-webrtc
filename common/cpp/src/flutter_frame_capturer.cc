@@ -16,8 +16,8 @@ namespace {
 
 // CaptureFrame() blocks the platform thread until the track delivers its next
 // frame, so the wait has to be bounded. A live source delivers well inside
-// this; a track that does not is stalled, muted or ended, and the caller gets
-// an error instead of a method call that never returns.
+// this; a track that does not is stalled or no longer receiving, and the
+// caller gets an error instead of a method call that never returns.
 constexpr std::chrono::milliseconds kFrameTimeout(2000);
 
 }  // namespace
@@ -40,6 +40,10 @@ void FlutterFrameCapturer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
 
 void FlutterFrameCapturer::CaptureFrame(
     std::unique_ptr<MethodResultProxy> result) {
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    frame_ = nullptr;
+  }
   track_->AddRenderer(this);
   bool got_frame = WaitForFrame();
   // RemoveRenderer() returns only once no OnFrame() is in flight, so from
@@ -48,7 +52,8 @@ void FlutterFrameCapturer::CaptureFrame(
 
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
   if (!got_frame) {
-    result_ptr->Error("captureFrame", "Timed out waiting for a video frame");
+    result_ptr->Error("captureFrame",
+                      "captureFrame() timed out waiting for a video frame");
   } else if (SaveFrame()) {
     result_ptr->Success();
   } else {
@@ -62,6 +67,7 @@ bool FlutterFrameCapturer::WaitForFrame() {
                                [this] { return frame_ != nullptr; });
 }
 
+// Reads frame_ without the lock, so it must run after RemoveRenderer().
 bool FlutterFrameCapturer::SaveFrame() {
   if (frame_ == nullptr) {
     return false;

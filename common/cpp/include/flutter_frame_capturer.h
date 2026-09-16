@@ -26,13 +26,15 @@ class FlutterFrameCapturer
  private:
   // Blocks until OnFrame() has stored a frame. Returns false on timeout.
   bool WaitForFrame();
+  // Reads frame_ without the lock; call only after RemoveRenderer().
   bool SaveFrame();
 
   RTCVideoTrack* track_;
   std::string path_;
   std::mutex mutex_;
   std::condition_variable frame_ready_;
-  scoped_refptr<RTCVideoFrame> frame_;  // Guarded by mutex_.
+  // Guarded by mutex_ until RemoveRenderer() returns.
+  scoped_refptr<RTCVideoFrame> frame_;
 };
 
 }  // namespace flutter_webrtc_plugin
