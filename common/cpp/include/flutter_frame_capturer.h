@@ -7,6 +7,7 @@
 #include "rtc_video_frame.h"
 #include "rtc_video_renderer.h"
 
+#include <condition_variable>
 #include <mutex>
 
 namespace flutter_webrtc_plugin {
@@ -23,13 +24,15 @@ class FlutterFrameCapturer
   void CaptureFrame(std::unique_ptr<MethodResultProxy> result);
 
  private:
+  // Blocks until OnFrame() has stored a frame. Returns false on timeout.
+  bool WaitForFrame();
+  bool SaveFrame();
+
   RTCVideoTrack* track_;
   std::string path_;
   std::mutex mutex_;
-  scoped_refptr<RTCVideoFrame> frame_;
-  volatile bool catch_frame_;
-
-  bool SaveFrame();
+  std::condition_variable frame_ready_;
+  scoped_refptr<RTCVideoFrame> frame_;  // Guarded by mutex_.
 };
 
 }  // namespace flutter_webrtc_plugin
