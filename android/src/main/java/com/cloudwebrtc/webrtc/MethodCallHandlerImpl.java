@@ -1349,11 +1349,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     List<IceServer> iceServers = createIceServers(iceServersArray);
     RTCConfiguration conf = new RTCConfiguration(iceServers);
 
-    // WARP also marks the packets with DSCP; the field trial that carries the DTLS
-    // handshake in the STUN exchange was applied at initialize() time. An explicit
-    // `enableDscp` in the configuration below still wins.
+    // Enable SNAP (SCTP INIT in SDP), part of WARP.
+    // see https://www.ietf.org/archive/id/draft-hancke-tsvwg-snap-00.html
     if (warpEnabled) {
-      conf.enableDscp = true;
+      conf.enableSctpSnap = true;
     }
 
     if (map == null) {

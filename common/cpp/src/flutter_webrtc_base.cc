@@ -309,11 +309,10 @@ bool FlutterWebRTCBase::CreateIceServers(const EncodableList& iceServersArray,
 
 bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap& map,
                                               RTCConfiguration& conf) {
-  // WARP also marks the packets with DSCP; the field trial that carries the
-  // DTLS handshake in the STUN exchange was applied by
-  // EnsureWebRTCInitialized(). An explicit `enableDscp` below still wins.
+  // Enable SNAP (SCTP INIT in SDP), part of WARP.
+  // see https://www.ietf.org/archive/id/draft-hancke-tsvwg-snap-00.html
   if (warp_enabled_) {
-    conf.enable_dscp = true;
+    conf.enable_sctp_snap = true;
   }
 
   auto it = map.find(EncodableValue("iceServers"));

@@ -34,3 +34,5 @@ build/
 # (CMakeLists.txt, libwebrtc_version.ini, svpng/) is published with the package.
 third_party/downloads/
 third_party/libwebrtc/
+
+android/.gradle
