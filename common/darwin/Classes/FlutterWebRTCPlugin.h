@@ -110,6 +110,8 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 - (RTCRtpSender* _Nullable)getRtpSenderById:(RTCPeerConnection* _Nonnull)peerConnection
                                          Id:(NSString* _Nonnull)Id;
 
+/// The first registered instance, or the one that created the peer connection
+/// factory once any instance has. Nil before any instance is registered.
 + (FlutterWebRTCPlugin* _Nullable)sharedSingleton;
 
 @end
