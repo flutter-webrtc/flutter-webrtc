@@ -2162,11 +2162,10 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 - (nonnull RTCConfiguration*)RTCConfiguration:(id)json {
   RTCConfiguration* config = [[RTCConfiguration alloc] init];
 
-  // WARP also marks the packets with DSCP; the field trial that carries the DTLS
-  // handshake in the STUN exchange was applied in -initialize:. An explicit
-  // `enableDscp` in the configuration below still wins.
+  // Enable SNAP (SCTP INIT in SDP), part of WARP.
+  // see https://www.ietf.org/archive/id/draft-hancke-tsvwg-snap-00.html
   if (gWarpEnabled) {
-    config.enableDscp = YES;
+    config.enableSctpSnap = YES;
   }
 
   if (!json) {
