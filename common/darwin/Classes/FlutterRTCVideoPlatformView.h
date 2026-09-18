@@ -5,6 +5,8 @@
 
 @interface FlutterRTCVideoPlatformView : FlutterRTCVideoPlatformNativeView
 
+@property(nonatomic, copy, nonnull) AVLayerVideoGravity videoGravity;
+
 - (void)renderFrame:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame;
 
 - (instancetype _Nonnull)initWithFrame:(FlutterRTCVideoPlatformFrame)frame;

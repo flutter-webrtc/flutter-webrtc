@@ -488,7 +488,19 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
       
     VideoProcessingAdapter *videoProcessingAdapter = [[VideoProcessingAdapter alloc] initWithRTCVideoSource:videoSource];
     self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoProcessingAdapter];
-      
+#if TARGET_OS_IPHONE
+    if (self.multitaskingCameraAccess) {
+      if (@available(iOS 16.0, *)) {
+        AVCaptureSession* captureSession = self.videoCapturer.captureSession;
+        if (captureSession.isMultitaskingCameraAccessSupported) {
+          [captureSession beginConfiguration];
+          captureSession.multitaskingCameraAccessEnabled = YES;
+          [captureSession commitConfiguration];
+        }
+      }
+    }
+#endif
+
     AVCaptureDeviceFormat* selectedFormat = [self selectFormatForDevice:videoDevice
                                                             targetWidth:targetWidth
                                                            targetHeight:targetHeight];

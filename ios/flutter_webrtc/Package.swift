@@ -31,7 +31,8 @@ let package = Package(
                 .headerSearchPath("include/flutter_webrtc")
             ],
             linkerSettings: [
-                .linkedLibrary("c++")
+                .linkedLibrary("c++"),
+                .linkedFramework("AVKit")
             ]
         )
     ],

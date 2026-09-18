@@ -63,6 +63,14 @@
   [_videoLayer removeAllAnimations];
 }
 
+- (AVLayerVideoGravity)videoGravity {
+  return _videoLayer.videoGravity;
+}
+
+- (void)setVideoGravity:(AVLayerVideoGravity)videoGravity {
+  _videoLayer.videoGravity = videoGravity;
+}
+
 - (void)setSize:(CGSize)size {
 }
 
