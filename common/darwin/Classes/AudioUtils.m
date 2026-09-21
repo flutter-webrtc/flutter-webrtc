@@ -33,6 +33,18 @@
         if (!success)
           NSLog(@"ensureAudioSessionWithRecording[true]: setMode failed due to: %@", error);
       }
+      // The audio device module reads the input hardware format before it
+      // starts recording, and that format is only available once the session
+      // is active. On the iOS Simulator an inactive session reports a 0 Hz
+      // input, which left the microphone silent. RTCAudioSession counts its
+      // own activations, so only activate when it does not already consider
+      // the session active. That keeps the count balanced with
+      // deactiveRtcAudioSession.
+      if (!session.isActive) {
+        success = [session setActive:YES error:&error];
+        if (!success)
+          NSLog(@"ensureAudioSessionWithRecording[true]: setActive failed due to: %@", error);
+      }
     } else if (session.category == AVAudioSessionCategoryAmbient ||
                session.category == AVAudioSessionCategorySoloAmbient) {
       config.mode = AVAudioSessionModeDefault;
