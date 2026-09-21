@@ -9,32 +9,38 @@
   // we also need to set default WebRTC audio configuration, since it may be activated after
   // this method is called
   RTCAudioSessionConfiguration* config = [RTCAudioSessionConfiguration webRTCConfiguration];
-  // require audio session to be either PlayAndRecord or MultiRoute
-  if (recording && session.category != AVAudioSessionCategoryPlayAndRecord &&
-      session.category != AVAudioSessionCategoryMultiRoute) {
-    config.category = AVAudioSessionCategoryPlayAndRecord;
-    config.categoryOptions =
-        AVAudioSessionCategoryOptionAllowBluetooth |
-        AVAudioSessionCategoryOptionAllowBluetoothA2DP |
-        AVAudioSessionCategoryOptionAllowAirPlay;
-
-    [session lockForConfiguration];
+  // Hold the configuration lock across the whole check and update, so the
+  // category read and the changes based on it cannot interleave with another
+  // RTCAudioSession user. The lock is not reentrant, so the unlock sits in a
+  // finally block to guarantee it runs on every path out of here.
+  [session lockForConfiguration];
+  @try {
     NSError* error = nil;
-    bool success = [session setCategory:config.category withOptions:config.categoryOptions error:&error];
-    if (!success)
-      NSLog(@"ensureAudioSessionWithRecording[true]: setCategory failed due to: %@", error);
-    success = [session setMode:config.mode error:&error];
-    if (!success)
-      NSLog(@"ensureAudioSessionWithRecording[true]: setMode failed due to: %@", error);
-    [session unlockForConfiguration];
-  } else if (!recording && (session.category == AVAudioSessionCategoryAmbient ||
-                            session.category == AVAudioSessionCategorySoloAmbient)) {
-    config.mode = AVAudioSessionModeDefault;
-    [session lockForConfiguration];
-    NSError* error = nil;
-    bool success = [session setMode:config.mode error:&error];
-    if (!success)
-      NSLog(@"ensureAudioSessionWithRecording[false]: setMode failed due to: %@", error);
+    bool success = true;
+    if (recording) {
+      // require audio session to be either PlayAndRecord or MultiRoute
+      if (session.category != AVAudioSessionCategoryPlayAndRecord &&
+          session.category != AVAudioSessionCategoryMultiRoute) {
+        config.category = AVAudioSessionCategoryPlayAndRecord;
+        config.categoryOptions =
+            AVAudioSessionCategoryOptionAllowBluetooth |
+            AVAudioSessionCategoryOptionAllowBluetoothA2DP |
+            AVAudioSessionCategoryOptionAllowAirPlay;
+        success = [session setCategory:config.category withOptions:config.categoryOptions error:&error];
+        if (!success)
+          NSLog(@"ensureAudioSessionWithRecording[true]: setCategory failed due to: %@", error);
+        success = [session setMode:config.mode error:&error];
+        if (!success)
+          NSLog(@"ensureAudioSessionWithRecording[true]: setMode failed due to: %@", error);
+      }
+    } else if (session.category == AVAudioSessionCategoryAmbient ||
+               session.category == AVAudioSessionCategorySoloAmbient) {
+      config.mode = AVAudioSessionModeDefault;
+      success = [session setMode:config.mode error:&error];
+      if (!success)
+        NSLog(@"ensureAudioSessionWithRecording[false]: setMode failed due to: %@", error);
+    }
+  } @finally {
     [session unlockForConfiguration];
   }
 }
