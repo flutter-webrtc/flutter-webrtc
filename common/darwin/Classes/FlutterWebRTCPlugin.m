@@ -1312,6 +1312,17 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     }
     result(nil);
   }
+  else if ([@"setAudioSessionManagementEnabled" isEqualToString:call.method]) {
+    NSNumber* enabled = call.arguments[@"enabled"];
+    if (![enabled isKindOfClass:[NSNumber class]]) {
+      result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
+                                 message:@"Error: enabled is required"
+                                 details:nil]);
+      return;
+    }
+    [FlutterWebRTCPlugin setAudioSessionManagementEnabled:enabled.boolValue];
+    result(nil);
+  }
 #endif
   else if ([@"getLocalDescription" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
