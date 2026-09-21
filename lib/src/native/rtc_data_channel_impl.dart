@@ -137,6 +137,9 @@ class RTCDataChannelNative extends RTCDataChannel {
 
   @override
   Future<void> send(RTCDataChannelMessage message) async {
+    if (_isClosed) {
+      throw Exception('Can\'t send: The RTCDataChannel is closed');
+    }
     await WebRTC.invokeMethod('dataChannelSend', <String, dynamic>{
       'peerConnectionId': _peerConnectionId,
       'dataChannelId': _flutterId,
@@ -154,6 +157,11 @@ class RTCDataChannelNative extends RTCDataChannel {
       return;
     }
     _isClosed = true;
+    _state = RTCDataChannelState.RTCDataChannelClosed;
+    onDataChannelState?.call(_state!);
+    if (!_stateChangeController.isClosed) {
+      _stateChangeController.add(_state!);
+    }
     await _stateChangeController.close();
     await _messageController.close();
     await _eventSubscription?.cancel();
