@@ -40,6 +40,20 @@
       if (!success)
         NSLog(@"ensureAudioSessionWithRecording[false]: setMode failed due to: %@", error);
     }
+    // The audio device module expects the session to be active before it
+    // starts, for playback as well as recording, and leaves activation to the
+    // embedding app. Recording depends on it directly: the module reads the
+    // input hardware format before recording starts, and the simulator only
+    // publishes that format once the session is active, reporting 0 Hz until
+    // then. RTCAudioSession counts its own activations, so only activate when
+    // it does not already consider the session active. That keeps the count
+    // balanced with deactiveRtcAudioSession and leaves a session activated by
+    // someone else untouched.
+    if (!session.isActive) {
+      success = [session setActive:YES error:&error];
+      if (!success)
+        NSLog(@"ensureAudioSessionWithRecording[%d]: setActive failed due to: %@", recording, error);
+    }
   } @finally {
     [session unlockForConfiguration];
   }
