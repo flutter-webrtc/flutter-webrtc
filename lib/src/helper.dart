@@ -230,6 +230,20 @@ class Helper {
       AppleNativeAudioManagement.setAppleAudioConfiguration(
           appleAudioConfiguration);
 
+  /// Enable or disable the plugin's own management of the iOS audio session.
+  ///
+  /// While enabled, the default, the plugin sets the session category and
+  /// mode, activates the session when local or remote audio appears,
+  /// deactivates it once the last audio track and peer connection are gone,
+  /// and applies the speakerphone and [setAppleAudioConfiguration] requests.
+  ///
+  /// Disable it when something else owns the session, for example CallKit or
+  /// another plugin, so the plugin never configures, activates or deactivates
+  /// it. Call this before the first audio operation. The setting is process
+  /// wide and stays in effect until changed. iOS only, a no-op elsewhere.
+  static Future<void> setAudioSessionManagementEnabled(bool enabled) =>
+      AppleNativeAudioManagement.setAudioSessionManagementEnabled(enabled);
+
   /// Set the audio configuration for iOS
   static Future<void> setAppleAudioIOMode(AppleAudioIOMode mode,
           {bool preferSpeakerOutput = false}) =>
