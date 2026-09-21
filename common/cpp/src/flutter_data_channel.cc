@@ -99,21 +99,25 @@ void FlutterDataChannel::DataChannelClose(
     const std::string& data_channel_uuid,
     std::unique_ptr<MethodResultProxy> result) {
   data_channel->Close();
+  base_->lock();
   auto it = base_->data_channel_observers_.find(data_channel_uuid);
   if (it != base_->data_channel_observers_.end())
     base_->data_channel_observers_.erase(it);
+  base_->unlock();
   result->Success();
 }
 
 RTCDataChannel* FlutterDataChannel::DataChannelForId(const std::string& uuid) {
+  base_->lock();
+  RTCDataChannel* result = nullptr;
   auto it = base_->data_channel_observers_.find(uuid);
-
   if (it != base_->data_channel_observers_.end()) {
     FlutterRTCDataChannelObserver* observer = it->second.get();
     scoped_refptr<RTCDataChannel> data_channel = observer->data_channel();
-    return data_channel.get();
+    result = data_channel.get();
   }
-  return nullptr;
+  base_->unlock();
+  return result;
 }
 
 static const char* DataStateString(RTCDataChannelState state) {
