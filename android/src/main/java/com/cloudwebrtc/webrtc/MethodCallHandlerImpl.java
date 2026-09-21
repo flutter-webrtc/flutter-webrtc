@@ -192,6 +192,17 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   void dispose() {
+    for (int i = 0; i < renders.size(); i++) {
+      FlutterRTCVideoRenderer renderer = renders.valueAt(i);
+      if (renderer != null) {
+        try {
+          renderer.Dispose();
+        } catch (Exception e) {
+          Log.w(TAG, "dispose(): error disposing renderer", e);
+        }
+      }
+    }
+    renders.clear();
     for (final MediaStream mediaStream : localStreams.values()) {
       try {
         streamDispose(mediaStream);
