@@ -124,6 +124,11 @@ void postEvent(FlutterEventSink _Nullable sink, id _Nullable event) {
   // instance, the host app and an external call system each hold their own,
   // and this instance releases only its own on teardown.
   BOOL _ownsAudioSessionActivation;
+  // Set between a successful explicit startLocalRecording and the matching
+  // stop. Explicit recording has no track or peer connection of its own, so
+  // without this the teardown of an unrelated stream or peer connection would
+  // release the session while recording is still running.
+  BOOL _explicitRecordingActive;
 #if TARGET_OS_IPHONE || TARGET_OS_OSX
   FlutterRTCVideoPlatformViewFactory *_platformViewFactory;
 #endif
@@ -1316,10 +1321,10 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     _speakerOn = YES;
     _speakerOnButPreferBluetooth = YES;
     if (self.audioSessionManagementEnabled) {
+      // Routing only. The session is already held by the media that made
+      // this call meaningful, and activating here without any media would
+      // hold it until engine detach with nothing to release it sooner.
       [AudioUtils setSpeakerphoneOnButPreferBluetooth];
-      // The routing call used to activate on its own. Take the instance's
-      // counted reference instead so teardown can balance it.
-      [self acquireAudioSessionActivation];
     }
     result(nil);
   }
@@ -1851,6 +1856,9 @@ static void FlutterWebRTCApplyFieldTrials(void) {
       // the session along, and the audio device module needs it configured
       // for recording and active before it starts. Take the instance's
       // reference here and give it back when recording stops or fails.
+      // Marked before the start so a teardown that lands while the module is
+      // still starting keeps the session.
+      _explicitRecordingActive = YES;
       if (self.audioSessionManagementEnabled) {
         [AudioUtils ensureAudioSessionWithRecording:YES];
         [self acquireAudioSessionActivation];
@@ -1865,6 +1873,7 @@ static void FlutterWebRTCApplyFieldTrials(void) {
           if (admResult == 0) {
             result(nil);
           } else {
+            self->_explicitRecordingActive = NO;
             [self deactiveRtcAudioSession];
             result([FlutterError
                 errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
@@ -1884,6 +1893,7 @@ static void FlutterWebRTCApplyFieldTrials(void) {
         dispatch_async(dispatch_get_main_queue(), ^{
           // Release the reference taken by startLocalRecording when nothing
           // else still needs the session.
+          self->_explicitRecordingActive = NO;
           [self deactiveRtcAudioSession];
           if (admResult == 0) {
             result(nil);
@@ -2013,7 +2023,7 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   // Hold an activation only while a local audio track or an open peer
   // connection exists. trackDispose reaches here after removing the last
   // track and releases right after, so it must not acquire first.
-  if (recording || [self hasOpenPeerConnection]) {
+  if (recording || _explicitRecordingActive || [self hasOpenPeerConnection]) {
     [self acquireAudioSessionActivation];
   }
 #endif
@@ -2069,7 +2079,7 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   if (!self.audioSessionManagementEnabled) {
     return;
   }
-  if (![self hasLocalAudioTrack] && ![self hasOpenPeerConnection]) {
+  if (![self hasLocalAudioTrack] && !_explicitRecordingActive && ![self hasOpenPeerConnection]) {
     [self releaseAudioSessionActivation];
   }
 #endif
