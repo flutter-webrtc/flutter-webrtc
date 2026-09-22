@@ -40,23 +40,52 @@
       if (!success)
         NSLog(@"ensureAudioSessionWithRecording[false]: setMode failed due to: %@", error);
     }
+  } @finally {
+    [session unlockForConfiguration];
+  }
+}
+
++ (BOOL)activateAudioSession {
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  BOOL success = NO;
+  [session lockForConfiguration];
+  @try {
     // The audio device module expects the session to be active before it
     // starts, for playback as well as recording, and leaves activation to the
     // embedding app. Recording depends on it directly: the module reads the
     // input hardware format before recording starts, and the simulator only
     // publishes that format once the session is active, reporting 0 Hz until
-    // then. RTCAudioSession counts its own activations, so only activate when
-    // it does not already consider the session active. That keeps the count
-    // balanced with deactiveRtcAudioSession and leaves a session activated by
-    // someone else untouched.
-    if (!session.isActive) {
-      success = [session setActive:YES error:&error];
-      if (!success)
-        NSLog(@"ensureAudioSessionWithRecording[%d]: setActive failed due to: %@", recording, error);
-    }
+    // then. RTCAudioSession only activates the system session on the first
+    // reference and counts the rest, so a session that another user already
+    // activated stays untouched apart from the count.
+    NSError* error = nil;
+    success = [session setActive:YES error:&error];
+    if (!success)
+      NSLog(@"activateAudioSession: setActive failed due to: %@", error);
   } @finally {
     [session unlockForConfiguration];
   }
+  return success;
+}
+
++ (BOOL)deactivateAudioSession {
+  RTCAudioSession* session = [RTCAudioSession sharedInstance];
+  BOOL success = NO;
+  [session lockForConfiguration];
+  @try {
+    // Not guarded on isActive on purpose. An interruption clears isActive
+    // while every reference is still counted, and RTCAudioSession consumes
+    // the reference on this call regardless of the outcome.
+    NSError* error = nil;
+    success = [session setActive:NO error:&error];
+    if (!success)
+      NSLog(@"deactivateAudioSession: setActive failed due to: %@", error);
+    else
+      NSLog(@"RTC AudioSession deactive is successful ");
+  } @finally {
+    [session unlockForConfiguration];
+  }
+  return success;
 }
 
 + (BOOL)selectAudioInput:(AVAudioSessionPort)type {
@@ -138,26 +167,10 @@
                                         error:&error];
   if (!success)
     NSLog(@"setSpeakerphoneOnButPreferBluetooth: Port override failed due to: %@", error);
-
-  success = [session setActive:YES error:&error];
-  if (!success)
-    NSLog(@"setSpeakerphoneOnButPreferBluetooth: Audio session override failed: %@", error);
   else
     NSLog(@"AudioSession override with bluetooth preference via setSpeakerphoneOnButPreferBluetooth successfull ");
-  [session unlockForConfiguration];
-}
-
-+ (void)deactiveRtcAudioSession {
-  NSError* error = nil;
-  RTCAudioSession* session = [RTCAudioSession sharedInstance];
-  [session lockForConfiguration];
-  if ([session isActive]) {
-    BOOL success = [session setActive:NO error:&error];
-    if (!success)
-      NSLog(@"RTC Audio session deactive failed: %@", error);
-    else
-      NSLog(@"RTC AudioSession deactive is successful ");
-  }
+  // Activation is the caller's job. Doing it here added an uncounted
+  // reference that nothing ever released.
   [session unlockForConfiguration];
 }
 
