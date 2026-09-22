@@ -119,6 +119,11 @@ void postEvent(FlutterEventSink _Nullable sink, id _Nullable event) {
   BOOL _speakerOnButPreferBluetooth;
   AVAudioSessionPort _preferredInput;
   AudioManager* _audioManager;
+  // Set while this instance holds the one RTCAudioSession activation it
+  // acquired. RTCAudioSession counts references per acquirer, so every plugin
+  // instance, the host app and an external call system each hold their own,
+  // and this instance releases only its own on teardown.
+  BOOL _ownsAudioSessionActivation;
 #if TARGET_OS_IPHONE || TARGET_OS_OSX
   FlutterRTCVideoPlatformViewFactory *_platformViewFactory;
 #endif
@@ -322,6 +327,10 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     peerConnection.eventSink = nil;
   }
   _eventSink = nil;
+  // The engine is going away and no Dart code can dispose the remaining
+  // tracks and peer connections any more. The shared singleton may keep this
+  // instance alive, so dealloc is not a reliable place for the release.
+  [self releaseAudioSessionActivation];
 }
 
 #pragma mark - FlutterStreamHandler methods
@@ -1308,6 +1317,9 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     _speakerOnButPreferBluetooth = YES;
     if (self.audioSessionManagementEnabled) {
       [AudioUtils setSpeakerphoneOnButPreferBluetooth];
+      // The routing call used to activate on its own. Take the instance's
+      // counted reference instead so teardown can balance it.
+      [self acquireAudioSessionActivation];
     }
     result(nil);
   }
@@ -1951,6 +1963,9 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   }
   [_peerConnections removeAllObjects];
   _peerConnectionFactory = nil;
+  // A Flutter engine torn down without Dart-side disposal never reached
+  // streamDispose or peerConnectionClose, so balance the reference here.
+  [self releaseAudioSessionActivation];
 }
 
 - (BOOL)hasLocalAudioTrack {
@@ -1968,7 +1983,47 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   if (!self.audioSessionManagementEnabled) {
     return;
   }
-  [AudioUtils ensureAudioSessionWithRecording:[self hasLocalAudioTrack]];
+  BOOL recording = [self hasLocalAudioTrack];
+  [AudioUtils ensureAudioSessionWithRecording:recording];
+  // Hold an activation only while a local audio track or an open peer
+  // connection exists. trackDispose reaches here after removing the last
+  // track and releases right after, so it must not acquire first.
+  if (recording || [self hasOpenPeerConnection]) {
+    [self acquireAudioSessionActivation];
+  }
+#endif
+}
+
+// Idempotent per instance: the first call acquires one counted reference,
+// later calls are no-ops until it is released.
+- (void)acquireAudioSessionActivation {
+#if TARGET_OS_IPHONE
+  // Remote track delegates arrive on the signaling thread while method calls
+  // run on the platform thread, so the check and the flag update must be one
+  // step or both sides acquire and only one reference is ever released.
+  @synchronized(self) {
+    if (_ownsAudioSessionActivation) {
+      return;
+    }
+    if ([AudioUtils activateAudioSession]) {
+      _ownsAudioSessionActivation = YES;
+    }
+  }
+#endif
+}
+
+// Releases this instance's reference if it holds one. The reference is
+// consumed by the call whatever the system reports, so the flag clears
+// unconditionally.
+- (void)releaseAudioSessionActivation {
+#if TARGET_OS_IPHONE
+  @synchronized(self) {
+    if (!_ownsAudioSessionActivation) {
+      return;
+    }
+    [AudioUtils deactivateAudioSession];
+    _ownsAudioSessionActivation = NO;
+  }
 #endif
 }
 
@@ -1990,7 +2045,7 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     return;
   }
   if (![self hasLocalAudioTrack] && ![self hasOpenPeerConnection]) {
-    [AudioUtils deactiveRtcAudioSession];
+    [self releaseAudioSessionActivation];
   }
 #endif
 }
