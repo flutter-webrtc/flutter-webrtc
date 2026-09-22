@@ -229,6 +229,13 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
         });
       }
       errorCallback:^(NSString* errorType, NSString* errorMessage) {
+        // Audio is created before the camera permission is requested. When the
+        // video part fails, the audio track already sits in localTracks with
+        // no Dart handle to stop it, and would keep the audio session held.
+        for (RTCAudioTrack* track in mediaStream.audioTracks) {
+          [self.localTracks removeObjectForKey:track.trackId];
+        }
+        [self deactiveRtcAudioSession];
         result([FlutterError errorWithCode:[NSString stringWithFormat:@"Error %@", errorType]
                                    message:errorMessage
                                    details:nil]);

@@ -933,7 +933,10 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   } else if ([@"trackDispose" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];
-    BOOL audioTrack = NO;
+    // Decide the kind from the local track itself. A track that was removed
+    // from its stream before being stopped is no longer in any stream's list,
+    // and its disposal still has to run the audio session teardown.
+    BOOL audioTrack = [self.localTracks[trackId] isKindOfClass:[LocalAudioTrack class]];
     for (NSString* streamId in self.localStreams) {
       RTCMediaStream* stream = [self.localStreams objectForKey:streamId];
       for (RTCAudioTrack* track in stream.audioTracks) {
@@ -958,6 +961,10 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     [_localTracks removeObjectForKey:trackId];
     if (audioTrack) {
       [self ensureAudioSession];
+      // Stopping the last local audio track with no peer connection open
+      // leaves nothing that needs the session, so release it here as
+      // streamDispose and peerConnectionClose already do.
+      [self deactiveRtcAudioSession];
     }
     FlutterRTCVideoRenderer *renderer = [self findRendererByTrackId:trackId];
     if(renderer != nil) {
