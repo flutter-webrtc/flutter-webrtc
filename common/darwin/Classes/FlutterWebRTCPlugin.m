@@ -1835,6 +1835,16 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 #endif
     } else if ([@"startLocalRecording" isEqualToString:call.method]) {
       RTCAudioDeviceModule* adm = _peerConnectionFactory.audioDeviceModule;
+#if TARGET_OS_IPHONE
+      // Explicit recording has no local track or peer connection to bring
+      // the session along, and the audio device module needs it configured
+      // for recording and active before it starts. Take the instance's
+      // reference here and give it back when recording stops or fails.
+      if (self.audioSessionManagementEnabled) {
+        [AudioUtils ensureAudioSessionWithRecording:YES];
+        [self acquireAudioSessionActivation];
+      }
+#endif
       // Run on background queue
       dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         NSInteger admResult = [adm initAndStartRecording];
@@ -1844,6 +1854,7 @@ static void FlutterWebRTCApplyFieldTrials(void) {
           if (admResult == 0) {
             result(nil);
           } else {
+            [self deactiveRtcAudioSession];
             result([FlutterError
                 errorWithCode:[NSString stringWithFormat:@"%@ failed", call.method]
                       message:[NSString stringWithFormat:@"Error: adm api failed with code: %ld",
@@ -1860,6 +1871,9 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 
         // Return to main queue
         dispatch_async(dispatch_get_main_queue(), ^{
+          // Release the reference taken by startLocalRecording when nothing
+          // else still needs the session.
+          [self deactiveRtcAudioSession];
           if (admResult == 0) {
             result(nil);
           } else {
