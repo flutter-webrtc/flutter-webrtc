@@ -2,6 +2,7 @@
 
 #include "flutter_common.h"
 #include "flutter_webrtc.h"
+#include "pulse_device_watcher.h"
 #include "task_runner_linux.h"
 
 const char* kChannelName = "FlutterWebRTC.Method";
@@ -32,7 +33,12 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  virtual ~FlutterWebRTCPluginImpl() {}
+  virtual ~FlutterWebRTCPluginImpl() {
+#if defined(HAVE_LIBPULSE)
+    // Stop PulseAudio callbacks before destroying the Flutter event channel.
+    device_watcher_.reset();
+#endif
+  }
 
   BinaryMessenger* messenger() { return messenger_; }
 
@@ -50,6 +56,11 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
         task_runner_(std::make_unique<TaskRunnerLinux>()) {
     webrtc_ = std::make_unique<FlutterWebRTC>(this);
     g_shared_instance = webrtc_.get();
+#if defined(HAVE_LIBPULSE)
+    device_watcher_ = std::make_unique<PulseDeviceWatcher>(
+        [this]() { webrtc_->NotifyDeviceChange(); });
+    device_watcher_->Start();
+#endif
   }
 
   // Called when a method is called on |channel_|;
@@ -68,6 +79,9 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
   BinaryMessenger* messenger_;
   TextureRegistrar* textures_;
   std::unique_ptr<TaskRunner> task_runner_;
+#if defined(HAVE_LIBPULSE)
+  std::unique_ptr<PulseDeviceWatcher> device_watcher_;
+#endif
 };
 
 }  // namespace flutter_webrtc_plugin
@@ -81,4 +95,4 @@ void flutter_web_r_t_c_plugin_register_with_registrar(
 
 flutter_webrtc_plugin::FlutterWebRTC* flutter_webrtc_plugin_get_shared_instance() {
   return g_shared_instance;
-} 
+}

@@ -56,6 +56,10 @@ class FlutterWebRTCBase {
   void EnsureWebRTCInitialized(bool enable_warp = false,
                                bool zero_playout_delay = false);
 
+  // Delivers a MediaDevices devicechange event to Dart. Platform-specific
+  // device monitors can use this in addition to libwebrtc's audio observer.
+  void NotifyDeviceChange();
+
   virtual scoped_refptr<RTCAudioProcessing> audio_processing() {
     EnsureWebRTCInitialized();
     return audio_processing_;
