@@ -42,8 +42,8 @@ const String _kDefaultErrorMessage =
 class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     implements VideoRenderer, AudioControl {
   RTCVideoRenderer()
-    : _textureId = _textureCounter++,
-      super(RTCVideoValue.empty);
+      : _textureId = _textureCounter++,
+        super(RTCVideoValue.empty);
 
   static const _elementIdForAudioManager = 'html_webrtc_audio_manager_list';
 
@@ -266,7 +266,8 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
         await (element.callMethod(
           'setSinkId'.toJS,
           deviceId.toJS,
-        ) as JSPromise).toDart;
+        ) as JSPromise)
+            .toDart;
 
         return true;
       }
