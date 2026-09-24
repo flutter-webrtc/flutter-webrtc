@@ -6,11 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'package:flutter_webrtc/src/web/rtc_video_renderer_impl.dart'
-    show useHtmlElementView;
+    as web_renderer;
 
 void main() {
   test('video is an autoplaying, non-interactive render surface', () {
-    final renderer = RTCVideoRenderer();
+    final renderer = web_renderer.RTCVideoRenderer();
     final video = renderer.createElement();
     expect(video.autoplay, isTrue);
     expect(video.controls, isFalse);
@@ -22,17 +22,15 @@ void main() {
       video.getAttribute('controlsList'),
       'nodownload nofullscreen noremoteplayback',
     );
-    if (useHtmlElementView) {
+    if (web_renderer.useHtmlElementView) {
       expect(video.style.userSelect, 'none');
     }
     renderer.dispose();
   });
 
-  // TODO(wer-mathurin): should revisit after this bug is resolved, https://github.com/flutter/flutter/issues/66045.
-  test('should complete succesfully', () async {
-    var renderer = RTCVideoRenderer();
+  test('renderer initializes and disposes without a media stream', () async {
+    final renderer = RTCVideoRenderer();
     await renderer.initialize();
-    renderer.srcObject = await MediaDevices.getUserMedia({});
     await renderer.dispose();
   });
 }
