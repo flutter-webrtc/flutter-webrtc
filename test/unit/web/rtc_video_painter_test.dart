@@ -4,6 +4,7 @@ library;
 import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:flutter_webrtc/src/web/rtc_video_view_impl.dart';
 
 void main() {
