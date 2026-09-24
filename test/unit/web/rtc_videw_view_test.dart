@@ -5,12 +5,13 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:web/web.dart' as web;
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 import 'package:flutter_webrtc/src/web/rtc_video_renderer_impl.dart';
 import 'package:flutter_webrtc/src/web/rtc_video_view_impl.dart';
-import 'package:webrtc_interface/webrtc_interface.dart';
-import 'package:web/web.dart' as web;
 
 class TrackingRenderer extends RTCVideoRenderer {
   bool get observed => hasListeners;
