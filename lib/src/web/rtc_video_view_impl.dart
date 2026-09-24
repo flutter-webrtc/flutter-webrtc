@@ -47,87 +47,142 @@ class RTCVideoViewState extends State<RTCVideoView> {
             ? 'contain'
             : 'cover';
 
-    videoElement =
-        web.document.getElementById("video_${videoRenderer.viewType}")
-            as web.HTMLVideoElement?;
-    frameCallback(0.toJS, 0.toJS);
+    if (!useHtmlElementView) {
+      _startCapture();
+    }
   }
 
   void _onRendererListener() {
     if (mounted) setState(() {});
   }
 
+  int _generation = 0;
   int? callbackID;
-
-  void getFrame(web.HTMLVideoElement element) {
-    callbackID =
-        element.requestVideoFrameCallbackWithFallback(frameCallback.toJS);
-  }
-
-  void cancelFrame(web.HTMLVideoElement element) {
-    if (callbackID != null) {
-      element.cancelVideoFrameCallbackWithFallback(callbackID!);
-    }
-  }
-
-  void frameCallback(JSAny now, JSAny metadata) {
-    final web.HTMLVideoElement? element = videoElement;
-    if (element != null) {
-      // only capture frames if video is playing (optimization for RAF)
-      if (element.readyState > 2) {
-        capture().then((_) async {
-          getFrame(element);
-        });
-      } else {
-        getFrame(element);
-      }
-    } else {
-      if (mounted) {
-        Future.delayed(Duration(milliseconds: 100)).then((_) {
-          frameCallback(0.toJS, 0.toJS);
-        });
-      }
-    }
-  }
-
+  Timer? _retryTimer;
   ui.Image? capturedFrame;
   num? lastFrameTime;
-  Future<void> capture() async {
-    final element = videoElement!;
-    if (lastFrameTime != element.currentTime) {
-      lastFrameTime = element.currentTime;
-      try {
-        final ui.Image img = await ui_web.createImageFromTextureSource(element,
-            width: element.videoWidth,
-            height: element.videoHeight,
-            transferOwnership: true);
+  bool _captureFailureLogged = false;
+  web.HTMLVideoElement? videoElement;
 
-        if (mounted) {
-          setState(() {
-            capturedFrame?.dispose();
-            capturedFrame = img;
-          });
-        }
-      } on web.DOMException catch (err) {
-        lastFrameTime = null;
-        if (err.name == 'InvalidStateError') {
-          // We don't have enough data yet, continue on
-        } else {
-          rethrow;
-        }
+  bool _owns(int generation, web.HTMLVideoElement element) =>
+      mounted && generation == _generation && identical(element, videoElement);
+
+  void _stopCapture() {
+    _generation++;
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    final element = videoElement;
+    if (element != null && callbackID != null) {
+      element.cancelVideoFrameCallbackWithFallback(callbackID!);
+    }
+    callbackID = null;
+    videoElement = null;
+    lastFrameTime = null;
+    capturedFrame?.dispose();
+    capturedFrame = null;
+  }
+
+  void _startCapture() {
+    final generation = _generation;
+    _pollForElement(generation);
+  }
+
+  void _pollForElement(int generation) {
+    if (!mounted || generation != _generation) return;
+    final element = videoRenderer.findHtmlView();
+    if (element == null) {
+      _retryTimer = Timer(
+        const Duration(milliseconds: 100),
+        () => _pollForElement(generation),
+      );
+      return;
+    }
+    videoElement = element;
+    updateElement();
+    _scheduleFrame(element, generation);
+  }
+
+  void _scheduleFrame(web.HTMLVideoElement element, int generation) {
+    if (!_owns(generation, element)) return;
+    callbackID = element.requestVideoFrameCallbackWithFallback(
+      ((JSAny now, JSAny metadata) {
+        if (!_owns(generation, element)) return;
+        callbackID = null;
+        _frameCallback(element, generation);
+      }).toJS,
+    );
+  }
+
+  void _frameCallback(web.HTMLVideoElement element, int generation) {
+    if (!_owns(generation, element)) return;
+    if (element.readyState <= 2) {
+      _scheduleFrame(element, generation);
+      return;
+    }
+    _capture(element, generation).then((success) {
+      if (!_owns(generation, element)) return;
+      if (success) {
+        _scheduleFrame(element, generation);
+      } else {
+        _retryTimer = Timer(
+          const Duration(milliseconds: 100),
+          () => _scheduleFrame(element, generation),
+        );
       }
+    });
+  }
+
+  Future<bool> _capture(web.HTMLVideoElement element, int generation) async {
+    if (lastFrameTime == element.currentTime) return true;
+    lastFrameTime = element.currentTime;
+    try {
+      final image = await captureImage(element);
+      if (!_owns(generation, element)) {
+        image.dispose();
+        return true;
+      }
+      setState(() {
+        capturedFrame?.dispose();
+        capturedFrame = image;
+      });
+      _captureFailureLogged = false;
+      return true;
+    } on web.DOMException catch (error) {
+      lastFrameTime = null;
+      if (error.name != 'InvalidStateError' && !_captureFailureLogged) {
+        debugPrint('RTCVideoView: frame capture failed: $error');
+        _captureFailureLogged = true;
+      }
+      return false;
+    } catch (error) {
+      if (!_owns(generation, element)) return false;
+      if (error is Error) rethrow;
+      lastFrameTime = null;
+      if (!_captureFailureLogged) {
+        debugPrint('RTCVideoView: frame capture failed: $error');
+        _captureFailureLogged = true;
+      }
+      return false;
     }
   }
+
+  @visibleForTesting
+  Future<bool> captureFrame() => _capture(videoElement!, _generation);
+
+  @visibleForTesting
+  Future<ui.Image> captureImage(web.HTMLVideoElement element) async =>
+      await ui_web.createImageFromTextureSource(
+        element,
+        width: element.videoWidth,
+        height: element.videoHeight,
+        transferOwnership: true,
+      );
 
   @override
   void dispose() {
-    if (mounted) {
-      super.dispose();
-    }
-    capturedFrame?.dispose();
-    if (videoElement != null) {
-      cancelFrame(videoElement!);
-    }
+    _stopCapture();
+    videoRenderer.removeListener(_onRendererListener);
+    super.dispose();
   }
 
   Size? size;
@@ -142,30 +197,35 @@ class RTCVideoViewState extends State<RTCVideoView> {
   @override
   void didUpdateWidget(RTCVideoView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    Timer(
-        Duration(milliseconds: 10), () => videoRenderer.mirror = widget.mirror);
+    if (!identical(oldWidget._renderer, videoRenderer)) {
+      oldWidget._renderer.removeListener(_onRendererListener);
+      _stopCapture();
+      videoRenderer.addListener(_onRendererListener);
+      if (!useHtmlElementView) _startCapture();
+    }
+    videoRenderer.mirror = widget.mirror;
     videoRenderer.objectFit =
         widget.objectFit == RTCVideoViewObjectFit.RTCVideoViewObjectFitContain
             ? 'contain'
             : 'cover';
   }
 
-  web.HTMLVideoElement? videoElement;
-
   Widget buildVideoElementView() {
     if (useHtmlElementView) {
       return HtmlElementView(viewType: videoRenderer.viewType);
     } else {
-      return LayoutBuilder(builder: (context, constraints) {
-        if (videoElement != null && size != constraints.biggest) {
-          size = constraints.biggest;
-          updateElement();
-        }
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          if (videoElement != null && size != constraints.biggest) {
+            size = constraints.biggest;
+            updateElement();
+          }
 
-        return Stack(children: [
-          if (capturedFrame != null)
-            Positioned.fill(
-                child: FittedBox(
+          return Stack(
+            children: [
+              if (capturedFrame != null)
+                Positioned.fill(
+                  child: FittedBox(
                     fit: switch (widget.objectFit) {
                       RTCVideoViewObjectFit.RTCVideoViewObjectFitContain =>
                         BoxFit.contain,
@@ -174,16 +234,22 @@ class RTCVideoViewState extends State<RTCVideoView> {
                     },
                     clipBehavior: Clip.hardEdge,
                     child: SizedBox(
-                        width: capturedFrame!.width.toDouble(),
-                        height: capturedFrame!.height.toDouble(),
-                        child: CustomPaint(
-                            willChange: true,
-                            painter: _ImageFlipPainter(
-                              capturedFrame!,
-                              widget.mirror,
-                            )))))
-        ]);
-      });
+                      width: capturedFrame!.width.toDouble(),
+                      height: capturedFrame!.height.toDouble(),
+                      child: CustomPaint(
+                        willChange: true,
+                        painter: _ImageFlipPainter(
+                          capturedFrame!,
+                          widget.mirror,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -209,13 +275,16 @@ typedef _VideoFrameRequestCallback = JSFunction;
 
 extension _HTMLVideoElementRequestAnimationFrame on web.HTMLVideoElement {
   int requestVideoFrameCallbackWithFallback(
-      _VideoFrameRequestCallback callback) {
+    _VideoFrameRequestCallback callback,
+  ) {
     if (hasProperty('requestVideoFrameCallback'.toJS).toDart) {
       return requestVideoFrameCallback(callback);
     } else {
-      return web.window.requestAnimationFrame((double num) {
-        callback.callAsFunction(this, 0.toJS, 0.toJS);
-      }.toJS);
+      return web.window.requestAnimationFrame(
+        (double num) {
+          callback.callAsFunction(this, 0.toJS, 0.toJS);
+        }.toJS,
+      );
     }
   }
 
@@ -241,11 +310,17 @@ class _ImageFlipPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (flip) {
       canvas.scale(-1, 1);
-      canvas.drawImage(image, Offset(-size.width, 0),
-          Paint()..filterQuality = ui.FilterQuality.high);
+      canvas.drawImage(
+        image,
+        Offset(-size.width, 0),
+        Paint()..filterQuality = ui.FilterQuality.high,
+      );
     } else {
       canvas.drawImage(
-          image, Offset(0, 0), Paint()..filterQuality = ui.FilterQuality.high);
+        image,
+        Offset(0, 0),
+        Paint()..filterQuality = ui.FilterQuality.high,
+      );
     }
   }
 
