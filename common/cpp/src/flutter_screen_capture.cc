@@ -1,17 +1,119 @@
 #include "flutter_screen_capture.h"
 #include "flutter_utf8_sanitize.h"
 
+#include "task_runner.h"
+
+#include <chrono>
 #include <stdexcept>
 
 namespace flutter_webrtc_plugin {
 
+namespace {
+
+// Waits, for a bounded time, until `capturer` holds the only reference left,
+// so that the capturer is destroyed on the calling thread when this returns
+// rather than on whichever thread happens to let go of it last. Callers move
+// their reference in, so that `capturer` is the caller's only one.
+void ReleaseOnCurrentThread(scoped_refptr<RTCDesktopCapturer> capturer) {
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(2);
+  while (std::chrono::steady_clock::now() < deadline) {
+    // AddRef returns the new count, so 2 means `capturer` is the only owner.
+    const int count = capturer->AddRef();
+    capturer->Release();
+    if (count <= 2) {
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+  }
+}
+
+}  // namespace
+
 FlutterScreenCapture::FlutterScreenCapture(FlutterWebRTCBase* base)
-    : base_(base) {}
+    : base_(base) {
+  // Started here rather than in the initializer list, so that every member
+  // the loop uses is constructed first.
+  worker_thread_ = std::thread([this] { WorkerLoop(); });
+}
+
+FlutterScreenCapture::~FlutterScreenCapture() {
+  {
+    std::lock_guard<std::mutex> lock(worker_mutex_);
+    worker_stopping_ = true;
+    worker_tasks_.clear();
+  }
+  worker_cv_.notify_all();
+  if (worker_thread_.joinable()) {
+    worker_thread_.join();
+  }
+}
+
+void FlutterScreenCapture::PostToWorker(std::function<void()> task) {
+  {
+    std::lock_guard<std::mutex> lock(worker_mutex_);
+    if (worker_stopping_) {
+      return;
+    }
+    worker_tasks_.push_back(std::move(task));
+  }
+  worker_cv_.notify_one();
+}
+
+void FlutterScreenCapture::WorkerLoop() {
+  for (;;) {
+    std::function<void()> task;
+    {
+      std::unique_lock<std::mutex> lock(worker_mutex_);
+      worker_cv_.wait(
+          lock, [this] { return worker_stopping_ || !worker_tasks_.empty(); });
+      if (worker_stopping_) {
+        return;
+      }
+      task = std::move(worker_tasks_.front());
+      worker_tasks_.pop_front();
+    }
+    task();
+  }
+}
+
+void FlutterScreenCapture::PostResult(std::function<void()> reply) {
+  if (base_->task_runner_) {
+    base_->task_runner_->EnqueueTask(std::move(reply));
+  } else {
+    reply();
+  }
+}
+
+std::vector<scoped_refptr<MediaSource>>
+FlutterScreenCapture::SourcesSnapshot() {
+  std::lock_guard<std::mutex> lock(sources_mutex_);
+  return sources_;
+}
+
+scoped_refptr<MediaSource> FlutterScreenCapture::FindSource(
+    const std::string& source_id) {
+  std::lock_guard<std::mutex> lock(sources_mutex_);
+  scoped_refptr<MediaSource> source;
+  for (auto src : sources_) {
+    if (src->id().std_string() == source_id) {
+      source = src;
+    }
+  }
+  return source;
+}
 
 bool FlutterScreenCapture::BuildDesktopSourcesList(const EncodableList& types,
                                                    bool force_reload) {
+  std::lock_guard<std::mutex> build_lock(build_mutex_);
   size_t size = types.size();
-  sources_.clear();
+  std::vector<scoped_refptr<MediaSource>> sources;
+  // Publishes whatever was built so far, also when an unknown type stops the
+  // build early, as the list was always left that way before.
+  auto publish = [this, &sources]() {
+    std::lock_guard<std::mutex> lock(sources_mutex_);
+    sources_ = std::move(sources);
+  };
   for (size_t i = 0; i < size; i++) {
     std::string type_str = GetValue<std::string>(types[i]);
     DesktopType desktop_type = DesktopType::kScreen;
@@ -20,6 +122,7 @@ bool FlutterScreenCapture::BuildDesktopSourcesList(const EncodableList& types,
     } else if (type_str == "window") {
       desktop_type = DesktopType::kWindow;
     } else {
+      publish();
       return false;
     }
     scoped_refptr<RTCDesktopMediaList> source_list;
@@ -42,51 +145,67 @@ bool FlutterScreenCapture::BuildDesktopSourcesList(const EncodableList& types,
 #endif
     int count = source_list->GetSourceCount();
     for (int j = 0; j < count; j++) {
-      sources_.push_back(source_list->GetSource(j));
+      sources.push_back(source_list->GetSource(j));
     }
   }
+  publish();
   return true;
 }
 
 void FlutterScreenCapture::GetDesktopSources(
     const EncodableList& types,
     std::unique_ptr<MethodResultProxy> result) {
-  if (!BuildDesktopSourcesList(types, true)) {
-    result->Error("Bad Arguments", "Failed to get desktop sources");
-    return;
-  }
+  std::shared_ptr<MethodResultProxy> shared_result(std::move(result));
+  PostToWorker([this, types, shared_result]() {
+    if (!BuildDesktopSourcesList(types, true)) {
+      PostResult([shared_result]() {
+        shared_result->Error("Bad Arguments", "Failed to get desktop sources");
+      });
+      return;
+    }
 
-  EncodableList sources;
-  for (auto source : sources_) {
-    EncodableMap info;
-    info[EncodableValue("id")] = EncodableValue(source->id().std_string());
-    info[EncodableValue("name")] =
-        EncodableValue(SanitizeUtf8ForFlutter(source->name().std_string()));
-    info[EncodableValue("type")] =
-        EncodableValue(source->type() == kWindow ? "window" : "screen");
-    // TODO "thumbnailSize"
-    info[EncodableValue("thumbnailSize")] = EncodableMap{
-        {EncodableValue("width"), EncodableValue(0)},
-        {EncodableValue("height"), EncodableValue(0)},
-    };
-    sources.push_back(EncodableValue(info));
-  }
+    EncodableList sources;
+    for (auto source : SourcesSnapshot()) {
+      EncodableMap info;
+      info[EncodableValue("id")] = EncodableValue(source->id().std_string());
+      info[EncodableValue("name")] =
+          EncodableValue(SanitizeUtf8ForFlutter(source->name().std_string()));
+      info[EncodableValue("type")] =
+          EncodableValue(source->type() == kWindow ? "window" : "screen");
+      // TODO "thumbnailSize"
+      info[EncodableValue("thumbnailSize")] = EncodableMap{
+          {EncodableValue("width"), EncodableValue(0)},
+          {EncodableValue("height"), EncodableValue(0)},
+      };
+      sources.push_back(EncodableValue(info));
+    }
 
-  auto map = EncodableMap();
-  map[EncodableValue("sources")] = sources;
-  result->Success(EncodableValue(map));
+    auto map = EncodableMap();
+    map[EncodableValue("sources")] = sources;
+    PostResult([shared_result, map]() {
+      shared_result->Success(EncodableValue(map));
+    });
+  });
 }
 
 void FlutterScreenCapture::UpdateDesktopSources(
     const EncodableList& types,
     std::unique_ptr<MethodResultProxy> result) {
-  if (!BuildDesktopSourcesList(types, false)) {
-    result->Error("Bad Arguments", "Failed to update desktop sources");
-    return;
-  }
-  auto map = EncodableMap();
-  map[EncodableValue("result")] = true;
-  result->Success(EncodableValue(map));
+  std::shared_ptr<MethodResultProxy> shared_result(std::move(result));
+  PostToWorker([this, types, shared_result]() {
+    if (!BuildDesktopSourcesList(types, false)) {
+      PostResult([shared_result]() {
+        shared_result->Error("Bad Arguments",
+                             "Failed to update desktop sources");
+      });
+      return;
+    }
+    auto map = EncodableMap();
+    map[EncodableValue("result")] = true;
+    PostResult([shared_result, map]() {
+      shared_result->Success(EncodableValue(map));
+    });
+  });
 }
 
 void FlutterScreenCapture::OnMediaSourceAdded(
@@ -146,6 +265,27 @@ void FlutterScreenCapture::OnStop(scoped_refptr<RTCDesktopCapturer> capturer) {
     loopback_capturer_.reset();
     loopback_audio_source_ = nullptr;
   }
+
+  // The capturer is stopping, typically from its track source's destructor,
+  // which is about to drop its own reference. Hand ours to the worker thread
+  // so the final release, which joins the capturer's thread, happens there.
+  scoped_refptr<RTCDesktopCapturer> retired;
+  {
+    std::lock_guard<std::mutex> lock(capturers_mutex_);
+    for (auto it = active_capturers_.begin(); it != active_capturers_.end();
+         ++it) {
+      if (it->get() == capturer.get()) {
+        retired = *it;
+        active_capturers_.erase(it);
+        break;
+      }
+    }
+  }
+  if (retired.get()) {
+    PostToWorker([retired]() mutable {
+      ReleaseOnCurrentThread(std::move(retired));
+    });
+  }
 }
 
 void FlutterScreenCapture::OnError(scoped_refptr<RTCDesktopCapturer> capturer) {
@@ -158,18 +298,21 @@ void FlutterScreenCapture::GetDesktopSourceThumbnail(
     std::unique_ptr<MethodResultProxy> result) {
   (void)width;
   (void)height;
-  scoped_refptr<MediaSource> source;
-  for (auto src : sources_) {
-    if (src->id().std_string() == source_id) {
-      source = src;
+  std::shared_ptr<MethodResultProxy> shared_result(std::move(result));
+  PostToWorker([this, source_id, shared_result]() {
+    scoped_refptr<MediaSource> source = FindSource(source_id);
+    if (source.get() == nullptr) {
+      PostResult([shared_result]() {
+        shared_result->Error("Bad Arguments",
+                             "Failed to get desktop source thumbnail");
+      });
+      return;
     }
-  }
-  if (source.get() == nullptr) {
-    result->Error("Bad Arguments", "Failed to get desktop source thumbnail");
-    return;
-  }
-  source->UpdateThumbnail();
-  result->Success(EncodableValue(source->thumbnail().std_vector()));
+    source->UpdateThumbnail();
+    EncodableValue thumbnail(source->thumbnail().std_vector());
+    PostResult(
+        [shared_result, thumbnail]() { shared_result->Success(thumbnail); });
+  });
 }
 
 void FlutterScreenCapture::GetDisplayMedia(
@@ -298,32 +441,29 @@ void FlutterScreenCapture::GetDisplayMedia(
     video_constraints = GetValue<EncodableMap>(it->second);
   }
 
-  scoped_refptr<MediaSource> source;
-  for (auto src : sources_) {
-    if (src->id().std_string() == source_id) {
-      source = src;
-    }
-  }
+  scoped_refptr<MediaSource> source = FindSource(source_id);
 
 #ifdef __linux__
   // If the caller didn't specify a source (source_id == "0"), fall back to
   // the first available screen. When a specific source_id was requested but
   // isn't in the (possibly stale) cached list, rebuild the list and retry
   // the match instead of silently capturing the wrong source.
-  if (!source.get() && !sources_.empty() && source_id == "0") {
-    source = sources_.front();
+  // This fallback builds the list on the platform thread. That is safe on
+  // Linux, where enumerating windows does not wait on their message loops.
+  {
+    auto sources = SourcesSnapshot();
+    if (!source.get() && !sources.empty() && source_id == "0") {
+      source = sources.front();
+    }
   }
   if (!source.get()) {
     EncodableList types;
     types.push_back(EncodableValue(std::string("screen")));
     BuildDesktopSourcesList(types, true);
-    for (auto src : sources_) {
-      if (src->id().std_string() == source_id) {
-        source = src;
-      }
-    }
-    if (!source.get() && !sources_.empty() && source_id == "0") {
-      source = sources_.front();
+    source = FindSource(source_id);
+    auto sources = SourcesSnapshot();
+    if (!source.get() && !sources.empty() && source_id == "0") {
+      source = sources.front();
     }
   }
 #endif
@@ -342,6 +482,10 @@ void FlutterScreenCapture::GetDisplayMedia(
   }
 
   desktop_capturer->RegisterDesktopCapturerObserver(this);
+  {
+    std::lock_guard<std::mutex> lock(capturers_mutex_);
+    active_capturers_.push_back(desktop_capturer);
+  }
 
   const char* video_source_label = "screen_capture_input";
 
