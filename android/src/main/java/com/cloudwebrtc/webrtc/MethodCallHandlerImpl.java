@@ -743,6 +743,19 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         result.success(null);
         break;
       }
+      case "setBitrate": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        PeerConnection pc = getPeerConnection(peerConnectionId);
+        if (pc == null) {
+          resultError("setBitrate", "peerConnection is null", result);
+        } else {
+          Integer min = bitrateArgument(call, "minBitrate");
+          Integer start = bitrateArgument(call, "startBitrate");
+          Integer max = bitrateArgument(call, "maxBitrate");
+          result.success(pc.setBitrate(min, start, max));
+        }
+        break;
+      }
       case "peerConnectionClose": {
         String peerConnectionId = call.argument("peerConnectionId");
         peerConnectionClose(peerConnectionId);
@@ -1297,6 +1310,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   private PeerConnection getPeerConnection(String id) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
     return (pco == null) ? null : pco.getPeerConnection();
+  }
+
+  // The codec sends a Dart int as Long once it exceeds 32 bits.
+  private static Integer bitrateArgument(MethodCall call, String key) {
+    Object value = call.argument(key);
+    return (value instanceof Number) ? ((Number) value).intValue() : null;
   }
 
   private List<IceServer> createIceServers(ConstraintsArray iceServersArray) {
