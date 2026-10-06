@@ -976,6 +976,24 @@ static void FlutterWebRTCApplyFieldTrials(void) {
       [peerConnection restartIce];
       result(nil);
     }
+  } else if ([@"setBitrate" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+    RTCPeerConnection* peerConnection = self.peerConnections[peerConnectionId];
+    if (!peerConnection) {
+      result([FlutterError errorWithCode:@"setBitrate: peerConnection is nil"
+                                 message:nil
+                                 details:nil]);
+    } else {
+      NSNumber* (^bitrate)(NSString*) = ^NSNumber*(NSString* key) {
+        id value = argsMap[key];
+        return [value isKindOfClass:[NSNumber class]] ? value : nil;
+      };
+      BOOL ok = [peerConnection setBweMinBitrateBps:bitrate(@"minBitrate")
+                                  currentBitrateBps:bitrate(@"startBitrate")
+                                      maxBitrateBps:bitrate(@"maxBitrate")];
+      result(@(ok));
+    }
   } else if ([@"peerConnectionClose" isEqualToString:call.method] ||
              [@"peerConnectionDispose" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
