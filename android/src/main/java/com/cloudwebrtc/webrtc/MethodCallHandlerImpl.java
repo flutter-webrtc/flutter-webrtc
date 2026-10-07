@@ -193,12 +193,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  /** Whether any Flutter engine in this process still has a peer connection. */
+  /**
+   * Whether any Flutter engine in this process still has a peer connection. An
+   * entry left by a failed createPeerConnection holds no connection and does not
+   * count, so it can never keep the audio session alive.
+   */
   static boolean hasPeerConnectionsInProcess() {
     synchronized (liveHandlers) {
       for (MethodCallHandlerImpl handler : liveHandlers) {
-        if (!handler.mPeerConnectionObservers.isEmpty()) {
-          return true;
+        for (PeerConnectionObserver observer : handler.mPeerConnectionObservers.values()) {
+          if (observer.getPeerConnection() != null) {
+            return true;
+          }
         }
       }
     }
@@ -2272,10 +2278,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void peerConnectionDispose(final String id) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
     if (pco != null) {
-      if (peerConnectionDispose(pco)) {
-
-        mPeerConnectionObservers.remove(id);
-      }
+      peerConnectionDispose(pco);
+      // Also drops the entry of a failed createPeerConnection, which has no
+      // connection to dispose.
+      mPeerConnectionObservers.remove(id);
     } else {
       Log.d(TAG, "peerConnectionDispose() peerConnectionObserver is null");
     }
