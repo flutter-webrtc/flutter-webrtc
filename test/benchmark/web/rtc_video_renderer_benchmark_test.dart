@@ -8,9 +8,9 @@ import 'dart:js_interop_unsafe';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dart_webrtc/dart_webrtc.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:web/web.dart' as web;
 
 import 'package:flutter_webrtc/src/web/rtc_video_renderer_impl.dart';
