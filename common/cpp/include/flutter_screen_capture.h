@@ -4,6 +4,7 @@
 #include "flutter_common.h"
 #include "flutter_webrtc_base.h"
 
+#include <atomic>
 #include <condition_variable>
 #include <deque>
 #include <functional>
@@ -59,6 +60,8 @@ class FlutterScreenCapture : public MediaListObserver,
   void OnError(scoped_refptr<RTCDesktopCapturer> capturer) override;
 
  private:
+  class ObserverProxy;
+
   bool BuildDesktopSourcesList(const EncodableList& types, bool force_reload);
 
   // Copies of `sources_` and a lookup in it, taken under `sources_mutex_`.
@@ -68,6 +71,7 @@ class FlutterScreenCapture : public MediaListObserver,
   // Runs `task` on `worker_thread_`, in order with the other queued tasks.
   void PostToWorker(std::function<void()> task);
   void WorkerLoop();
+  void StopWorker();
 
   // Answers a method call on the platform thread. The Windows plugin hands
   // over results without a task runner, so a result must not be completed
@@ -76,6 +80,14 @@ class FlutterScreenCapture : public MediaListObserver,
 
  private:
   FlutterWebRTCBase* base_;
+
+  // Set when teardown starts. Worker tasks no longer reply after that.
+  std::atomic<bool> closing_{false};
+
+  // What libwebrtc holds as the media list and capturer observer, in place of
+  // `this`. libwebrtc keeps raw observer pointers and may call them after
+  // this object is gone, so the proxy is never freed. See ObserverProxy.
+  ObserverProxy* observer_proxy_;
 
   // Building the source list blocks the calling thread until libwebrtc has
   // enumerated every window. On Windows that enumeration skips windows whose
@@ -91,6 +103,7 @@ class FlutterScreenCapture : public MediaListObserver,
   std::condition_variable worker_cv_;
   std::deque<std::function<void()>> worker_tasks_;
   bool worker_stopping_ = false;
+  std::atomic<bool> worker_exited_{false};
 
   // Serializes BuildDesktopSourcesList, which owns `medialist_` and the
   // libwebrtc media lists. Never taken on the platform thread on Windows.

@@ -6,6 +6,13 @@
 #include <chrono>
 #include <stdexcept>
 
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
+
 namespace flutter_webrtc_plugin {
 
 namespace {
@@ -30,20 +37,132 @@ void ReleaseOnCurrentThread(scoped_refptr<RTCDesktopCapturer> capturer) {
 
 }  // namespace
 
+// libwebrtc keeps raw pointers to its media list and capturer observers. It
+// checks them on one thread and calls them on the signaling thread, without
+// synchronization, and it can still call them while the plugin is torn down
+// (for example, a thumbnail finishing, or a capturer stopping when the
+// factory is released). Clearing the pointer with DeRegister...Observer() is
+// not safe for the same reason. So libwebrtc is given this proxy instead of
+// the FlutterScreenCapture itself. Detach() turns every later call into a
+// no-op, and the proxy is intentionally never freed.
+class FlutterScreenCapture::ObserverProxy : public MediaListObserver,
+                                            public DesktopCapturerObserver {
+ public:
+  explicit ObserverProxy(FlutterScreenCapture* target) : target_(target) {}
+
+  // Waits for a call in progress to return.
+  void Detach() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    target_ = nullptr;
+  }
+
+  void OnMediaSourceAdded(scoped_refptr<MediaSource> source) override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (target_) {
+      target_->OnMediaSourceAdded(source);
+    }
+  }
+
+  void OnMediaSourceRemoved(scoped_refptr<MediaSource> source) override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (target_) {
+      target_->OnMediaSourceRemoved(source);
+    }
+  }
+
+  void OnMediaSourceNameChanged(scoped_refptr<MediaSource> source) override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (target_) {
+      target_->OnMediaSourceNameChanged(source);
+    }
+  }
+
+  void OnMediaSourceThumbnailChanged(
+      scoped_refptr<MediaSource> source) override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (target_) {
+      target_->OnMediaSourceThumbnailChanged(source);
+    }
+  }
+
+  void OnStart(scoped_refptr<RTCDesktopCapturer> capturer) override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (target_) {
+      target_->OnStart(capturer);
+    }
+  }
+
+  void OnPaused(scoped_refptr<RTCDesktopCapturer> capturer) override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (target_) {
+      target_->OnPaused(capturer);
+    }
+  }
+
+  void OnStop(scoped_refptr<RTCDesktopCapturer> capturer) override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (target_) {
+      target_->OnStop(capturer);
+    }
+  }
+
+  void OnError(scoped_refptr<RTCDesktopCapturer> capturer) override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (target_) {
+      target_->OnError(capturer);
+    }
+  }
+
+ private:
+  std::mutex mutex_;
+  FlutterScreenCapture* target_;
+};
+
 FlutterScreenCapture::FlutterScreenCapture(FlutterWebRTCBase* base)
-    : base_(base) {
+    : base_(base), observer_proxy_(new ObserverProxy(this)) {
   // Started here rather than in the initializer list, so that every member
   // the loop uses is constructed first.
   worker_thread_ = std::thread([this] { WorkerLoop(); });
 }
 
 FlutterScreenCapture::~FlutterScreenCapture() {
+  closing_ = true;
+
+  // From here on libwebrtc callbacks no longer reach this object.
+  observer_proxy_->Detach();
+
+  // Stop the capturers that are still running, so that their capture loops
+  // end now. They are destroyed later, when the factory is released, and
+  // that joins each capture thread.
+  std::vector<scoped_refptr<RTCDesktopCapturer>> capturers;
+  {
+    std::lock_guard<std::mutex> lock(capturers_mutex_);
+    capturers.swap(active_capturers_);
+  }
+  for (auto& capturer : capturers) {
+    capturer->Stop();
+  }
+
+  StopWorker();
+}
+
+void FlutterScreenCapture::StopWorker() {
   {
     std::lock_guard<std::mutex> lock(worker_mutex_);
     worker_stopping_ = true;
-    worker_tasks_.clear();
   }
   worker_cv_.notify_all();
+#ifdef _WIN32
+  // The task in progress may be enumerating or capturing windows of this
+  // process, which sends messages to this thread and waits for the answer.
+  // Keep answering sent messages until the worker is done. Posted messages
+  // are left in the queue.
+  while (!worker_exited_) {
+    MsgWaitForMultipleObjects(0, nullptr, FALSE, 10, QS_SENDMESSAGE);
+    MSG msg;
+    PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE | PM_QS_SENDMESSAGE);
+  }
+#endif
   if (worker_thread_.joinable()) {
     worker_thread_.join();
   }
@@ -68,16 +187,29 @@ void FlutterScreenCapture::WorkerLoop() {
       worker_cv_.wait(
           lock, [this] { return worker_stopping_ || !worker_tasks_.empty(); });
       if (worker_stopping_) {
-        return;
+        break;
       }
       task = std::move(worker_tasks_.front());
       worker_tasks_.pop_front();
     }
     task();
   }
+  // Drop the tasks still queued on this thread rather than the destructor's.
+  // A queued task may hold the last reference to a stopped capturer, and
+  // releasing that reference joins the capturer's thread.
+  std::deque<std::function<void()>> dropped;
+  {
+    std::lock_guard<std::mutex> lock(worker_mutex_);
+    dropped.swap(worker_tasks_);
+  }
+  dropped.clear();
+  worker_exited_ = true;
 }
 
 void FlutterScreenCapture::PostResult(std::function<void()> reply) {
+  if (closing_) {
+    return;
+  }
   if (base_->task_runner_) {
     base_->task_runner_->EnqueueTask(std::move(reply));
   } else {
@@ -131,7 +263,7 @@ bool FlutterScreenCapture::BuildDesktopSourcesList(const EncodableList& types,
       source_list = (*it).second;
     } else {
       source_list = base_->desktop_device_->GetDesktopMediaList(desktop_type);
-      source_list->RegisterMediaListObserver(this);
+      source_list->RegisterMediaListObserver(observer_proxy_);
       medialist_[desktop_type] = source_list;
     }
 #ifdef __linux__
@@ -481,7 +613,7 @@ void FlutterScreenCapture::GetDisplayMedia(
     return;
   }
 
-  desktop_capturer->RegisterDesktopCapturerObserver(this);
+  desktop_capturer->RegisterDesktopCapturerObserver(observer_proxy_);
   {
     std::lock_guard<std::mutex> lock(capturers_mutex_);
     active_capturers_.push_back(desktop_capturer);
