@@ -13,7 +13,15 @@ export 'src/native/factory_impl.dart'
 export 'src/native/rtc_video_renderer_impl.dart'
     if (dart.library.js_interop) 'src/web/rtc_video_renderer_impl.dart';
 export 'src/native/rtc_video_view_impl.dart'
-    if (dart.library.js_interop) 'src/web/rtc_video_view_impl.dart';
+    if (dart.library.js_interop) 'src/web/rtc_video_view_impl.dart'
+    // Internal Web test hooks do not exist in the native implementation.
+    hide
+        // ignore: undefined_hidden_name
+        VideoFrameMetrics,
+        // ignore: undefined_hidden_name
+        VideoFramePainter,
+        // ignore: undefined_hidden_name
+        VideoFrameState;
 export 'src/native/utils.dart'
     if (dart.library.js_interop) 'src/web/utils.dart';
 export 'src/native/adapter_type.dart';
