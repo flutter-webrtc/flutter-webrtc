@@ -186,8 +186,12 @@ public class AudioSwitchManager {
     }
 
     public void stop() {
+        // Cancel queued work even before the first session created the AudioSwitch:
+        // a start() posted from another thread (onAddTrack runs on the signaling
+        // thread) just before this stop() would otherwise activate the session after
+        // it was released.
+        handler.removeCallbacksAndMessages(null);
         if (audioSwitch != null) {
-            handler.removeCallbacksAndMessages(null);
             handler.postAtFrontOfQueue(() -> {
                 if (isActive) {
                     Objects.requireNonNull(audioSwitch).deactivate();
