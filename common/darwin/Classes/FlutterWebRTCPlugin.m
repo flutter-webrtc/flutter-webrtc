@@ -129,8 +129,13 @@ void postEvent(FlutterEventSink _Nullable sink, id _Nullable event) {
 // Each Flutter engine registers its own plugin instance. The first one keeps
 // this slot, and the instance that creates the peer connection factory takes
 // it over, so native callers never end up on an instance without a factory.
+// A detached instance hands it on to another live one.
 // Guarded by @synchronized on the class.
 static FlutterWebRTCPlugin *sharedSingleton;
+
+// Weak on both sides so the map never keeps a messenger or an instance alive.
+// Guarded by @synchronized on the class.
+static NSMapTable<NSObject<FlutterBinaryMessenger>*, FlutterWebRTCPlugin*>* instancesByMessenger;
 
 // Process-global so it can be set from native code (e.g. another plugin) before
 // this plugin is even registered. Defaults to enabled. See
@@ -185,6 +190,12 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   @synchronized(self)
   {
     return sharedSingleton;
+  }
+}
+
++ (FlutterWebRTCPlugin*)instanceForMessenger:(NSObject<FlutterBinaryMessenger>*)messenger {
+  @synchronized([FlutterWebRTCPlugin class]) {
+    return [instancesByMessenger objectForKey:messenger];
   }
 }
 
@@ -245,6 +256,8 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 #endif
                                       withTextures:[registrar textures]];
   [registrar addMethodCallDelegate:instance channel:channel];
+  // The iOS engine only calls -detachFromEngineForRegistrar: on published instances.
+  [registrar publish:instance];
 }
 
 - (instancetype)initWithChannel:(FlutterMethodChannel*)channel
@@ -261,6 +274,14 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     if (sharedSingleton == nil) {
       sharedSingleton = self;
     }
+    if (instancesByMessenger == nil) {
+      instancesByMessenger =
+          [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory |
+                                                 NSPointerFunctionsObjectPointerPersonality
+                                    valueOptions:NSPointerFunctionsWeakMemory
+                                        capacity:0];
+    }
+    [instancesByMessenger setObject:self forKey:messenger];
   }
 
   FlutterEventChannel* eventChannel =
@@ -322,6 +343,20 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     peerConnection.eventSink = nil;
   }
   _eventSink = nil;
+
+  @synchronized([FlutterWebRTCPlugin class]) {
+    [instancesByMessenger removeObjectForKey:_messenger];
+    if (sharedSingleton == self) {
+      // Hand the slot on, preferring an instance that owns a factory.
+      sharedSingleton = nil;
+      for (id messenger in instancesByMessenger) {
+        FlutterWebRTCPlugin* instance = [instancesByMessenger objectForKey:messenger];
+        if (instance != nil && sharedSingleton.peerConnectionFactory == nil) {
+          sharedSingleton = instance;
+        }
+      }
+    }
+  }
 }
 
 #pragma mark - FlutterStreamHandler methods
