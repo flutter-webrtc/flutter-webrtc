@@ -193,6 +193,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
+  /** Whether any Flutter engine in this process is attached. */
+  static boolean hasLiveHandlers() {
+    synchronized (liveHandlers) {
+      return !liveHandlers.isEmpty();
+    }
+  }
+
   /**
    * Whether any Flutter engine in this process still has a peer connection. An
    * entry left by a failed createPeerConnection holds no connection and does not

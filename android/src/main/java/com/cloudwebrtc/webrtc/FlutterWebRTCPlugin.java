@@ -131,10 +131,17 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
                                 TextureRegistry textureRegistry) {
         // Every Flutter engine in the process (a background isolate's included)
         // registers its own plugin instance, but the Android audio session is
-        // process-wide. The first engine creates the manager and later engines
-        // reuse it, so the manager a session activated is the one that stops it.
+        // process-wide. Engines attached at the same time share one manager, so the
+        // manager a session activated is the one that stops it. An engine that
+        // attaches while no other engine is attached (the app's first, or one that
+        // replaces a destroyed engine) gets a fresh manager with the default
+        // routing, as a single-engine app always did.
         synchronized (AudioSwitchManager.class) {
-            if (AudioSwitchManager.instance == null) {
+            AudioSwitchManager previous = AudioSwitchManager.instance;
+            if (previous == null || !MethodCallHandlerImpl.hasLiveHandlers()) {
+                if (previous != null) {
+                    previous.release();
+                }
                 AudioSwitchManager manager = new AudioSwitchManager(context);
                 // Posts to the process-wide sink instead of going through this
                 // instance, so a detached engine's plugin is not kept alive.
