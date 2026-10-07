@@ -129,19 +129,35 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
 
     private void startListening(final Context context, BinaryMessenger messenger,
                                 TextureRegistry textureRegistry) {
-        AudioSwitchManager.instance = new AudioSwitchManager(context);
+        // Every Flutter engine in the process (a background isolate's included)
+        // registers its own plugin instance, but the Android audio session is
+        // process-wide. The first engine creates the manager and later engines
+        // reuse it, so the manager a session activated is the one that stops it.
+        synchronized (AudioSwitchManager.class) {
+            if (AudioSwitchManager.instance == null) {
+                AudioSwitchManager manager = new AudioSwitchManager(context);
+                // Posts to the process-wide sink instead of going through this
+                // instance, so a detached engine's plugin is not kept alive.
+                manager.audioDeviceChangeListener = (devices, currentDevice) -> {
+                    Log.w(TAG, "audioFocusChangeListener " + devices+ " " + currentDevice);
+                    ConstraintsMap params = new ConstraintsMap();
+                    params.putString("event", "onDeviceChange");
+                    EventChannel.EventSink sink = eventSink;
+                    if (sink != null) {
+                        sink.success(params.toMap());
+                    }
+                    return null;
+                };
+                AudioSwitchManager.instance = manager;
+            } else {
+                Log.d(TAG, "Reusing the audio manager created by another engine");
+            }
+        }
         methodCallHandler = new MethodCallHandlerImpl(context, messenger, textureRegistry);
         methodChannel = new MethodChannel(messenger, "FlutterWebRTC.Method");
         methodChannel.setMethodCallHandler(methodCallHandler);
         eventChannel = new EventChannel( messenger,"FlutterWebRTC.Event");
         eventChannel.setStreamHandler(this);
-        AudioSwitchManager.instance.audioDeviceChangeListener = (devices, currentDevice) -> {
-            Log.w(TAG, "audioFocusChangeListener " + devices+ " " + currentDevice);
-            ConstraintsMap params = new ConstraintsMap();
-            params.putString("event", "onDeviceChange");
-            sendEvent(params.toMap());
-            return null;
-        };
     }
 
     private void stopListening() {
@@ -149,7 +165,9 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         methodCallHandler = null;
         methodChannel.setMethodCallHandler(null);
         eventChannel.setStreamHandler(null);
-        if (AudioSwitchManager.instance != null) {
+        // Another engine may still have peer connections on the shared manager.
+        if (AudioSwitchManager.instance != null
+                && !MethodCallHandlerImpl.hasPeerConnectionsInProcess()) {
             Log.d(TAG, "Stopping the audio manager...");
             AudioSwitchManager.instance.stop();
         }

@@ -26,8 +26,13 @@ public class AudioSwitchManager {
 
     public static final String TAG = "AudioSwitchManager";
 
+    /**
+     * Process-wide: created by the first Flutter engine that registers the plugin and
+     * shared by every later one (see FlutterWebRTCPlugin#startListening). Volatile
+     * because it is also read off the main thread (e.g. onAddTrack).
+     */
     @SuppressLint("StaticFieldLeak")
-    public static AudioSwitchManager instance;
+    public static volatile AudioSwitchManager instance;
     @NonNull
     private final Context context;
     @NonNull

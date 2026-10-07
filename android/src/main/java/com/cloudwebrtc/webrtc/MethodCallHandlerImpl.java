@@ -107,6 +107,11 @@ import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
 public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   static public final String TAG = "FlutterWebRTCPlugin";
 
+  // One handler per Flutter engine. The audio session they drive is process-wide
+  // (AudioSwitchManager.instance), so it is stopped only once no engine has a peer
+  // connection left. Guarded by itself.
+  private static final List<MethodCallHandlerImpl> liveHandlers = new ArrayList<>();
+
   private final Map<String, PeerConnectionObserver> mPeerConnectionObservers = new HashMap<>();
   private final BinaryMessenger messenger;
   private final Context context;
@@ -183,6 +188,21 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     this.context = context;
     this.textures = textureRegistry;
     this.messenger = messenger;
+    synchronized (liveHandlers) {
+      liveHandlers.add(this);
+    }
+  }
+
+  /** Whether any Flutter engine in this process still has a peer connection. */
+  static boolean hasPeerConnectionsInProcess() {
+    synchronized (liveHandlers) {
+      for (MethodCallHandlerImpl handler : liveHandlers) {
+        if (!handler.mPeerConnectionObservers.isEmpty()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   static private void resultError(String method, String error, Result result) {
@@ -192,6 +212,9 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   void dispose() {
+    synchronized (liveHandlers) {
+      liveHandlers.remove(this);
+    }
     for (int i = 0; i < renders.size(); i++) {
       FlutterRTCVideoRenderer renderer = renders.valueAt(i);
       if (renderer != null) {
@@ -2256,7 +2279,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     } else {
       Log.d(TAG, "peerConnectionDispose() peerConnectionObserver is null");
     }
-    if (mPeerConnectionObservers.size() == 0) {
+    if (!hasPeerConnectionsInProcess()) {
       AudioSwitchManager.instance.stop();
     }
   }
