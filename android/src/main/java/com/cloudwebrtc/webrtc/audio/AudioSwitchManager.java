@@ -192,6 +192,11 @@ public class AudioSwitchManager {
                 if (isActive) {
                     Objects.requireNonNull(audioSwitch).deactivate();
                     isActive = false;
+                    // deactivate() restores the speakerphone state saved when the session
+                    // started. From API 31 that is the effective communication route, which
+                    // another client may have set, and restoring it registers this app for
+                    // it. Clear it so no route outlives the session.
+                    clearCommunicationDevice();
                 }
             });
         }
