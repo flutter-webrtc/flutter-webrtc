@@ -357,8 +357,11 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 -(void) initLoggerCallback:(RTCLoggingSeverity)severity {
   if(loggerCallback == nil) {
     loggerCallback = [RTC_OBJC_TYPE(RTCCallbackLogger) new];
+    // The logger is an ivar and keeps this block, so a strong self would be a
+    // retain cycle that keeps the plugin alive after its engine is gone.
+    __weak FlutterWebRTCPlugin* weakSelf = self;
     [loggerCallback start:^(NSString *logMessage) {
-      postEvent(self.eventSink, @{
+      postEvent(weakSelf.eventSink, @{
         @"event" : @"onLogData",
         @"data" : logMessage
       });
