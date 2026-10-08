@@ -61,6 +61,7 @@ import org.webrtc.Camera2Enumerator;
 import org.webrtc.Camera2Helper;
 import org.webrtc.CameraEnumerator;
 import org.webrtc.CameraVideoCapturer;
+import org.webrtc.HighSpeedCamera2Capturer;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
@@ -807,9 +808,6 @@ public class GetUserMediaImpl {
             return null;
         }
 
-        videoCapturer.initialize(
-                surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
-
         VideoCapturerInfoEx info = new VideoCapturerInfoEx();
 
         Integer videoWidth = getConstrainInt(videoConstraintsMap, "width");
@@ -832,6 +830,18 @@ public class GetUserMediaImpl {
                 : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minFrameRate")
                 ? videoConstraintsMandatory.getInt("minFrameRate")
                 : DEFAULT_FPS;
+
+        if (videoCapturer instanceof Camera2Capturer
+                && HighSpeedCamera2Capturer.isSupported(
+                applicationContext, deviceId, targetWidth, targetHeight, targetFps)) {
+            Log.i(TAG, "Using constrained high-speed Camera2 capturer for "
+                    + targetWidth + "x" + targetHeight + "@" + targetFps);
+            videoCapturer = new HighSpeedCamera2Capturer(
+                    applicationContext, deviceId, cameraEventsHandler);
+        }
+
+        videoCapturer.initialize(
+                surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
 
         info.width = targetWidth;
         info.height = targetHeight;
