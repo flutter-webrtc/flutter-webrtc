@@ -11,8 +11,10 @@ import 'package:web/web.dart' as web;
 
 import '../video_renderer_extension.dart' show AudioControl;
 
-const bool useHtmlElementView =
-    bool.fromEnvironment("WEBRTC_USE_HTML_ELEMENT_VIEW", defaultValue: false);
+const bool useHtmlElementView = bool.fromEnvironment(
+  "WEBRTC_USE_HTML_ELEMENT_VIEW",
+  defaultValue: false,
+);
 
 // An error code value to error name Map.
 // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
@@ -57,7 +59,14 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
   final int _textureId;
 
-  bool mirror = false;
+  bool _mirror = false;
+
+  bool get mirror => _mirror;
+
+  set mirror(bool value) {
+    _mirror = value;
+    findHtmlView()?.style.transform = value ? 'scaleX(-1)' : '';
+  }
 
   final _subscriptions = <StreamSubscription>[];
 
@@ -236,8 +245,9 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
     element?.removeAttribute('src');
     element?.load();
     _audioElement?.remove();
-    final audioManager = web.document.getElementById(_elementIdForAudioManager)
-        as web.HTMLDivElement?;
+    final audioManager = web.document.getElementById(
+      _elementIdForAudioManager,
+    ) as web.HTMLDivElement?;
     if (audioManager != null && !audioManager.hasChildNodes()) {
       audioManager.remove();
     }
@@ -253,7 +263,10 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       final element = _audioElement;
       if (null != element &&
           element.getProperty('setSinkId'.toJS).isDefinedAndNotNull) {
-        await (element.callMethod('setSinkId'.toJS, deviceId.toJS) as JSPromise)
+        await (element.callMethod(
+          'setSinkId'.toJS,
+          deviceId.toJS,
+        ) as JSPromise)
             .toDart;
 
         return true;
@@ -276,7 +289,11 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       ..controls = false
       ..srcObject = _videoStream
       ..id = _elementIdForVideo
-      ..setAttribute('playsinline', 'true');
+      ..setAttribute('playsinline', 'true')
+      ..setAttribute('controlsList', 'nodownload nofullscreen noremoteplayback')
+      ..setAttribute('disablepictureinpicture', '')
+      ..setAttribute('disableremoteplayback', '')
+      ..setAttribute('x-webkit-airplay', 'deny');
 
     _applyDefaultVideoStyles(element);
 
@@ -332,19 +349,17 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
   }
 
   void _applyDefaultVideoStyles(web.HTMLVideoElement element) {
-    // Flip the video horizontally if is mirrored.
-    if (mirror) {
-      element.style.transform = 'scaleX(-1)';
-    }
+    element.style.transform = mirror ? 'scaleX(-1)' : '';
+    element.style.pointerEvents = 'none';
 
     if (useHtmlElementView) {
+      element.style.userSelect = 'none';
       element
         ..style.objectFit = _objectFit
         ..style.border = 'none'
         ..style.width = '100%'
         ..style.height = '100%';
     } else {
-      element.style.pointerEvents = "none";
       element.style.opacity = "0";
       element.style.position = "absolute";
       element.style.left = "0px";
