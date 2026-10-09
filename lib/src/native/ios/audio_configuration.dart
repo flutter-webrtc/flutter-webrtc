@@ -120,4 +120,13 @@ class AppleNativeAudioManagement {
       );
     }
   }
+
+  static Future<void> setAudioSessionManagementEnabled(bool enabled) async {
+    if (WebRTC.platformIsIOS) {
+      await WebRTC.invokeMethod(
+        'setAudioSessionManagementEnabled',
+        <String, dynamic>{'enabled': enabled},
+      );
+    }
+  }
 }
