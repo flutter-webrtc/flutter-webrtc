@@ -1642,6 +1642,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
     final String trackId = track.id();
     mainHandler.post(() -> {
+      // The peer connection may have been disposed meanwhile (on this
+      // thread), and its tracks with it.
+      if (track.isDisposed()) {
+        return;
+      }
       for (int i = 0; i < renders.size(); i++) {
         FlutterRTCVideoRenderer renderer = renders.valueAt(i);
         if (renderer.checkVideoTrack(trackId, peerConnectionId)) {
