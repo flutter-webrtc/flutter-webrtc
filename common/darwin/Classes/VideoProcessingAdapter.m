@@ -25,6 +25,7 @@
 - (void)addProcessing:(id<ExternalVideoProcessingDelegate>)processor {
   os_unfair_lock_lock(&_lock);
   _processors = [_processors arrayByAddingObject:processor];
+  [self sanitizeProcessingChain];
   os_unfair_lock_unlock(&_lock);
 }
 
@@ -35,6 +36,7 @@
                                                                         NSDictionary* bindings) {
         return evaluatedObject != processor;
       }]];
+  [self sanitizeProcessingChain];
   os_unfair_lock_unlock(&_lock);
 }
 
@@ -45,11 +47,29 @@
 - (void)capturer:(RTC_OBJC_TYPE(RTCVideoCapturer) *)capturer
     didCaptureVideoFrame:(RTC_OBJC_TYPE(RTCVideoFrame) *)frame {
   os_unfair_lock_lock(&_lock);
-  for (id<ExternalVideoProcessingDelegate> processor in _processors) {
-    frame = [processor onFrame:frame];
+  id<ExternalVideoProcessingDelegate> firstProcessor = [_processors firstObject];
+  if (firstProcessor != nil) {
+    [firstProcessor capturer:capturer didCaptureVideoFrame:frame];
+  } else {
+    [_videoSource capturer:capturer didCaptureVideoFrame:frame];
   }
-  [_videoSource capturer:capturer didCaptureVideoFrame:frame];
   os_unfair_lock_unlock(&_lock);
+}
+
+- (void)sanitizeProcessingChain {
+  id<ExternalVideoProcessingDelegate> currentProcessor = nil;
+  for (id<ExternalVideoProcessingDelegate> processor in _processors) {
+    if (currentProcessor == nil) {
+      currentProcessor = processor;
+      continue;
+    }
+    
+    [currentProcessor setSink:processor];
+    currentProcessor = processor;
+  }
+  if (currentProcessor != nil) {
+    [currentProcessor setSink:_videoSource];
+  }
 }
 
 @end
