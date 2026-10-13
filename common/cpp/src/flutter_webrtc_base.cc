@@ -85,11 +85,13 @@ void FlutterWebRTCBase::EnsureWebRTCInitialized(bool enable_warp,
   desktop_device_ = factory_->GetDesktopDevice();
   audio_processing_ = factory_->GetAudioProcessing();
 
-  audio_device_->OnDeviceChange([&] {
-    EncodableMap info;
-    info[EncodableValue("event")] = "onDeviceChange";
-    event_channel()->Success(EncodableValue(info), false);
-  });
+  audio_device_->OnDeviceChange([this] { NotifyDeviceChange(); });
+}
+
+void FlutterWebRTCBase::NotifyDeviceChange() {
+  EncodableMap info;
+  info[EncodableValue("event")] = "onDeviceChange";
+  event_channel()->Success(EncodableValue(info), false);
 }
 
 EventChannelProxy* FlutterWebRTCBase::event_channel() {

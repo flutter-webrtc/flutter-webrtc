@@ -29,6 +29,7 @@ add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/src/flutter_webrtc_base.cc"
   "../common/cpp/src/flutter_common.cc"
   "loopback_capturer_factory.cc"
+  "pulse_device_watcher.cc"
   "pulse_loopback_capturer.cc"
   "flutter_webrtc_plugin.cc"
   "flutter/core_implementations.cc"
@@ -68,11 +69,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 # ---------------------------------------------------------------------------
-# System-audio (loopback) capture: PulseAudio simple API.
+# System-audio capture and device monitoring: PulseAudio APIs.
 # Guarded so a host without libpulse dev headers still builds the plugin; in
-# that case pulse_loopback_capturer.cc compiles to nothing and the factory
-# returns nullptr (getDisplayMedia audio degrades to no track), matching the
-# previous Linux stub behaviour rather than breaking the whole plugin build.
+# that case the PulseAudio implementation files compile to nothing, loopback
+# capture remains unavailable, and MediaDevices devicechange events are not
+# emitted for audio endpoints.
 # PipeWire ships a PulseAudio compat layer, so libpulse covers both stacks.
 # On Manjaro/.41 the dev headers come from the base `libpulse` package.
 # ---------------------------------------------------------------------------
@@ -81,11 +82,11 @@ if(PkgConfig_FOUND)
   pkg_check_modules(PULSE IMPORTED_TARGET libpulse libpulse-simple)
 endif()
 if(TARGET PkgConfig::PULSE)
-  message(STATUS "flutter_webrtc: libpulse found -- enabling Linux system-audio loopback capture.")
+  message(STATUS "flutter_webrtc: libpulse found -- enabling Linux system-audio capture and device monitoring.")
   target_compile_definitions(${PLUGIN_NAME} PRIVATE HAVE_LIBPULSE)
   target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::PULSE)
 else()
-  message(WARNING "flutter_webrtc: libpulse NOT found -- Linux system-audio loopback capture disabled (getDisplayMedia({audio:true}) yields no audio track). Install the libpulse dev package to enable it.")
+  message(WARNING "flutter_webrtc: libpulse NOT found -- Linux system-audio capture and device monitoring disabled. Install the libpulse dev package to enable them.")
 endif()
 
 
