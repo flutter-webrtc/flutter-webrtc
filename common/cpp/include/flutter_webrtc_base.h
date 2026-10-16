@@ -75,7 +75,9 @@ class FlutterWebRTCBase {
   // Call both methods on the platform thread. The caller owns `processor`.
   // Remove it before the track is disposed and before freeing it, and free it
   // only after RemoveVideoProcessor() returns, since removal waits for a
-  // frame that is being processed.
+  // frame that is being processed. If the track is disposed first, the
+  // dispose removes any processor still attached and RemoveVideoProcessor()
+  // returns false from then on.
   //
   // These are virtual so that other plugins can call them through
   // FlutterWebRTCPluginSharedInstance() or
@@ -139,7 +141,7 @@ class FlutterWebRTCBase {
   bool CreateIceServers(const EncodableList& iceServersArray,
                         IceServer* ice_servers);
 
-  // Forgets the source of a local video track.
+  // Detaches the processors of a local video track and forgets its source.
   void RemoveVideoSourceForId(const std::string& track_id);
 
   struct LocalVideoSource {

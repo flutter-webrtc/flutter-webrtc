@@ -169,7 +169,15 @@ bool FlutterWebRTCBase::RemoveVideoProcessor(const std::string& track_id,
 }
 
 void FlutterWebRTCBase::RemoveVideoSourceForId(const std::string& track_id) {
-  video_sources_.erase(track_id);
+  auto it = video_sources_.find(track_id);
+  if (it == video_sources_.end())
+    return;
+  // The source can outlive this entry through a peer connection sender, so
+  // detach the processors here or the source would keep calling them after
+  // their owner frees them.
+  for (auto processor : it->second.processors)
+    it->second.source->RemoveProcessor(processor);
+  video_sources_.erase(it);
 }
 
 FlutterPeerConnectionObserver* FlutterWebRTCBase::PeerConnectionObserversForId(
