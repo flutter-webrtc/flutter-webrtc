@@ -22,6 +22,7 @@
 #include "rtc_peerconnection.h"
 #include "rtc_peerconnection_factory.h"
 #include "rtc_video_device.h"
+#include "rtc_video_source.h"
 
 namespace flutter_webrtc_plugin {
 
@@ -116,6 +117,13 @@ class FlutterWebRTCBase {
   bool CreateIceServers(const EncodableList& iceServersArray,
                         IceServer* ice_servers);
 
+  // Forgets the source of a local video track.
+  void RemoveVideoSourceForId(const std::string& track_id);
+
+  struct LocalVideoSource {
+    scoped_refptr<RTCVideoSource> source;
+  };
+
  protected:
   bool webrtc_initialized_ = false;
   // Whether `enableWARP` was requested; peer connections created afterwards
@@ -133,6 +141,8 @@ class FlutterWebRTCBase {
   std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
   std::map<std::string, scoped_refptr<RTCMediaTrack>> local_tracks_;
   std::map<std::string, scoped_refptr<RTCVideoCapturer>> video_capturers_;
+  // Sources of the local video tracks in `local_tracks_`, keyed by track id.
+  std::map<std::string, LocalVideoSource> video_sources_;
   std::map<int64_t, std::shared_ptr<FlutterVideoRenderer>> renders_;
   std::map<std::string, std::shared_ptr<FlutterRTCDataChannelObserver>>
       data_channel_observers_;

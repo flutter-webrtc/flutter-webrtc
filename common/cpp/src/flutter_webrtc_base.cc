@@ -136,6 +136,11 @@ void FlutterWebRTCBase::RemoveMediaTrackForId(const std::string& id) {
   auto it = local_tracks_.find(id);
   if (it != local_tracks_.end())
     local_tracks_.erase(it);
+  RemoveVideoSourceForId(id);
+}
+
+void FlutterWebRTCBase::RemoveVideoSourceForId(const std::string& track_id) {
+  video_sources_.erase(track_id);
 }
 
 FlutterPeerConnectionObserver* FlutterWebRTCBase::PeerConnectionObserversForId(
@@ -411,6 +416,7 @@ void FlutterWebRTCBase::RemoveTracksForId(const std::string& id) {
   auto it = local_tracks_.find(id);
   if (it != local_tracks_.end())
     local_tracks_.erase(it);
+  RemoveVideoSourceForId(id);
 }
 
 libwebrtc::scoped_refptr<libwebrtc::RTCRtpSender>
