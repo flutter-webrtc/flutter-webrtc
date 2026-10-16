@@ -3,6 +3,7 @@
 #include "flutter_data_channel.h"
 #include "flutter_peerconnection.h"
 
+#include <algorithm>
 #include <vector>
 
 #include "helper.h"
@@ -137,6 +138,34 @@ void FlutterWebRTCBase::RemoveMediaTrackForId(const std::string& id) {
   if (it != local_tracks_.end())
     local_tracks_.erase(it);
   RemoveVideoSourceForId(id);
+}
+
+bool FlutterWebRTCBase::AddVideoProcessor(const std::string& track_id,
+                                          RTCVideoProcessor* processor) {
+  auto it = video_sources_.find(track_id);
+  if (it == video_sources_.end() || !processor)
+    return false;
+  auto& processors = it->second.processors;
+  if (std::find(processors.begin(), processors.end(), processor) ==
+      processors.end()) {
+    processors.push_back(processor);
+    it->second.source->AddProcessor(processor);
+  }
+  return true;
+}
+
+bool FlutterWebRTCBase::RemoveVideoProcessor(const std::string& track_id,
+                                             RTCVideoProcessor* processor) {
+  auto it = video_sources_.find(track_id);
+  if (it == video_sources_.end())
+    return false;
+  auto& processors = it->second.processors;
+  auto found = std::find(processors.begin(), processors.end(), processor);
+  if (found == processors.end())
+    return false;
+  processors.erase(found);
+  it->second.source->RemoveProcessor(processor);
+  return true;
 }
 
 void FlutterWebRTCBase::RemoveVideoSourceForId(const std::string& track_id) {
