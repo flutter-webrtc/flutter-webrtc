@@ -107,6 +107,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     peerConnection.close();
     remoteStreams.clear();
     remoteTracks.clear();
+    receivingTransceivers.clear();
     // The data channels stay registered until dispose() so that their event
     // channel handlers can be released there. Closing the peer connection
     // already closes them.
@@ -506,12 +507,45 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     sendEvent(params);
   }
 
+  /**
+   * Transceivers handed to {@link #onTrack}, keyed by receiver id, until the
+   * matching {@link #onAddTrack} picks them up.
+   *
+   * <p>libwebrtc calls onTrack(transceiver) and then onAddTrack(receiver) for
+   * each new remote track, on the signaling thread. onAddTrack used to find
+   * the transceiver with {@code peerConnection.getTransceivers()} instead —
+   * but that call disposes every wrapper it returned the previous time, and
+   * the plugin also calls it from the platform thread (any lookup of a remote
+   * track by id, e.g. setting a track's volume or binding a renderer). In a
+   * room with many remote tracks the two collide, a disposed wrapper is read,
+   * and the IllegalStateException escapes into JNI, which aborts the process
+   * ("RtpReceiver has been disposed", jvm.cc "Check failed: false"; #2162).
+   * The transceiver passed to onTrack is a wrapper of its own that
+   * getTransceivers() never disposes.
+   */
+  private final Map<String, RtpTransceiver> receivingTransceivers =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
   @Override
   public void onTrack(RtpTransceiver transceiver) {
+    RtpReceiver receiver = transceiver.getReceiver();
+    if (receiver != null) {
+      receivingTransceivers.put(receiver.id(), transceiver);
+    }
   }
 
   @Override
   public void onAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams) {
+    // Runs on the signaling thread: an exception escaping here aborts the
+    // whole app from JNI, so it is logged instead.
+    try {
+      handleAddTrack(receiver, mediaStreams);
+    } catch (RuntimeException e) {
+      Log.e(TAG, "onAddTrack failed", e);
+    }
+  }
+
+  private void handleAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams) {
     Log.d(TAG, "onAddTrack");
     // for plan-b
     for (MediaStream stream : mediaStreams) {
@@ -553,16 +587,27 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     params.putMap("receiver", rtpReceiverToMap(receiver));
 
     if (this.configuration.sdpSemantics == PeerConnection.SdpSemantics.UNIFIED_PLAN) {
-      List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
-      for (RtpTransceiver transceiver : transceivers) {
-        if (transceiver.getReceiver() != null && receiver.id().equals(transceiver.getReceiver().id())) {
-          String transceiverId = transceiver.getMid();
-          if (null == transceiverId) {
-            transceiverId = stateProvider.getNextStreamUUID();
-            this.transceivers.put(transceiverId,transceiver);
+      RtpTransceiver transceiver = receivingTransceivers.remove(receiver.id());
+      if (transceiver == null) {
+        // Not announced through onTrack: fall back to the lookup, and send the
+        // track without its transceiver if that lookup races.
+        try {
+          for (RtpTransceiver t : peerConnection.getTransceivers()) {
+            if (t.getReceiver() != null && receiver.id().equals(t.getReceiver().id())) {
+              transceiver = t;
+            }
           }
-          params.putMap("transceiver", transceiverToMap(transceiverId, transceiver));
+        } catch (IllegalStateException e) {
+          Log.w(TAG, "onAddTrack: transceiver lookup raced, sending the track without it", e);
         }
+      }
+      if (transceiver != null) {
+        String transceiverId = transceiver.getMid();
+        if (null == transceiverId) {
+          transceiverId = stateProvider.getNextStreamUUID();
+          this.transceivers.put(transceiverId,transceiver);
+        }
+        params.putMap("transceiver", transceiverToMap(transceiverId, transceiver));
       }
     }
     sendEvent(params);
@@ -570,7 +615,17 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
   @Override
   public void onRemoveTrack(RtpReceiver rtpReceiver) {
+    // Same as onAddTrack: never let an exception reach JNI.
+    try {
+      handleRemoveTrack(rtpReceiver);
+    } catch (RuntimeException e) {
+      Log.e(TAG, "onRemoveTrack failed", e);
+    }
+  }
+
+  private void handleRemoveTrack(RtpReceiver rtpReceiver) {
     Log.d(TAG, "onRemoveTrack");
+    receivingTransceivers.remove(rtpReceiver.id());
 
     MediaStreamTrack track = rtpReceiver.track();
     String trackId = track.id();
