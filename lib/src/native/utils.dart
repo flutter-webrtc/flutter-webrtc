@@ -37,6 +37,11 @@ class WebRTC {
   }
 
   static bool initialized = false;
+  static bool _externalAudioInputOnly = false;
+  static Future<void>? _initializing;
+
+  /// Whether this factory was initialized for caller-owned audio input.
+  static bool get externalAudioInputOnly => _externalAudioInputOnly;
 
   /// Initialize the WebRTC plugin. If this is not manually called, will be
   /// initialized with default settings.
@@ -88,12 +93,43 @@ class WebRTC {
   ///                     for low latency scenarios on reliable networks. Like
   ///                     `enableWARP` it is a field trial, so it has to be set
   ///                     before the first peer connection is created.
+  /// "externalAudioInputOnly": Windows-only, defaults to false. Disable device
+  /// recording for this factory while accepting custom audio sources. Requires
+  /// a native SDK with the external-input factory policy (libwebrtc #158 and
+  /// core #314). An unsupported SDK rejects the request; it never falls back
+  /// to recording. Set before the first operation; explicit changes are rejected.
+  /// Playout and recording by other factories/plugins are unaffected.
   static Future<void> initialize({Map<String, dynamic>? options}) async {
-    if (!initialized) {
-      await _channel.invokeMethod<void>('initialize', <String, dynamic>{
-        'options': options ?? {},
-      });
+    final requested = options?['externalAudioInputOnly'];
+    if (requested != null && requested is! bool) {
+      throw ArgumentError.value(
+          requested, 'externalAudioInputOnly', 'Expected bool');
+    }
+    if (initialized || _initializing != null) {
+      if (requested != null && requested != _externalAudioInputOnly) {
+        throw StateError(
+            'Set externalAudioInputOnly before factory initialization');
+      }
+      await _initializing;
+      return;
+    }
+    if (requested == true && !Platform.isWindows) {
+      throw UnsupportedError(
+          'externalAudioInputOnly is supported on Windows only');
+    }
+    _externalAudioInputOnly = requested == true;
+    final pending = _channel.invokeMethod<void>('initialize', <String, dynamic>{
+      'options': Map<String, dynamic>.of(options ?? {}),
+    });
+    _initializing = pending;
+    try {
+      await pending;
       initialized = true;
+    } catch (_) {
+      _externalAudioInputOnly = false;
+      rethrow;
+    } finally {
+      _initializing = null;
     }
   }
 }
