@@ -32,7 +32,16 @@ adapter. Capability flags expose this difference; no synthetic reference is used
 
 ## Validation
 
-Dart channel-contract tests cover policy, payload rejection and disposal. macOS
-native debug build and source create/push/flush/dispose smoke pass. Physical
-capture, RTP reception, playout and echo cancellation require separate integration
-validation; a native source smoke is not evidence of those properties.
+Twenty Flutter channel/lifecycle tests and focused Dart analysis pass on macOS.
+Native macOS debug and Windows x64 release builds/source smokes pass. The
+[downstream physical fixture](https://github.com/kiarina/labs/tree/5894f2c/2026/10/20/flutter-fork-external-media-aec)
+feeds one camera/record capture through the public source/bridge and caller-owned
+AEC to an independent receiver. It verifies source capture/DSP continue during
+sender off/on and zero additional SDK microphone input using negotiated positive
+controls (Windows ETW and macOS input-node/audio-unit stacks).
+
+This is not universal AEC/quality acceptance: the Mac participant reports slight
+double-talk loss despite no echo, and Windows has a positive general assessment
+with full-scale peaks remaining. Processing/RAW capture/render-loopback adapters
+belong to that fixture/application, not this API. New-peer reconnect, long sessions,
+permission/device changes and other platforms remain separate validation gates.
