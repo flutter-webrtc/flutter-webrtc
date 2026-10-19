@@ -48,7 +48,8 @@ FlutterWebRTCBase::~FlutterWebRTCBase() {
 }
 
 void FlutterWebRTCBase::EnsureWebRTCInitialized(bool enable_warp,
-                                                bool zero_playout_delay) {
+                                                bool zero_playout_delay,
+                                                bool external_audio_input_only) {
   if (webrtc_initialized_) {
     return;
   }
@@ -79,7 +80,17 @@ void FlutterWebRTCBase::EnsureWebRTCInitialized(bool enable_warp,
         libwebrtc::vector<libwebrtc::string>(field_trials));
   }
 
-  factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
+  external_audio_input_only_ = external_audio_input_only;
+#if defined(FLUTTER_WEBRTC_HAS_EXTERNAL_AUDIO_INPUT_POLICY)
+  if (external_audio_input_only_) {
+    RTCPeerConnectionFactoryOptions options;
+    options.external_audio_input_only = true;
+    factory_ = LibWebRTC::CreateRTCPeerConnectionFactory(options);
+  } else
+#endif
+  {
+    factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
+  }
   factory_->Initialize();
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
