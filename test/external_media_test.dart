@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/src/native/external_media.dart';
@@ -7,6 +8,14 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const channel = MethodChannel('FlutterWebRTC.Method');
   final calls = <MethodCall>[];
+  if (!Platform.isWindows && !Platform.isMacOS) {
+    test('unsupported platforms reject external source creation', () async {
+      await expectLater(
+          RTCExternalMediaSource.create(), throwsUnsupportedError);
+    });
+    return;
+  }
+
   setUp(() {
     WebRTC.initialized = false;
     calls.clear();
