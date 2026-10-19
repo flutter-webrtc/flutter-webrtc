@@ -33,11 +33,28 @@ void FlutterWebRTC::HandleMethodCall(
       RTCLoggingSeverity severity = str2LogSeverity(severityStr);
       initLoggerCallback(severity);
     }
+    const auto policy = options.find(EncodableValue("externalAudioInputOnly"));
+    if (policy != options.end() && !std::holds_alternative<bool>(policy->second)) {
+      result->Error("invalid_audio_input_policy", "externalAudioInputOnly must be a bool");
+      return;
+    }
+    const bool external_only = findBoolean(options, "externalAudioInputOnly");
+    if (webrtc_initialized_ && policy != options.end() &&
+        external_only != external_audio_input_only_) {
+      result->Error("factory_policy_immutable", "Set externalAudioInputOnly before initialization");
+      return;
+    }
+#if !defined(FLUTTER_WEBRTC_HAS_EXTERNAL_AUDIO_INPUT_POLICY)
+    if (external_only) {
+      result->Error("external_input_sdk_required", "This SDK has no external-input factory policy");
+      return;
+    }
+#endif
     // The field trials `enableWARP` and `zeroPlayoutDelay` turn on are read
     // when the peer connection factory is created, so the factory is built
     // here rather than in the constructor.
     EnsureWebRTCInitialized(findBoolean(options, "enableWARP"),
-                            findBoolean(options, "zeroPlayoutDelay"));
+                            findBoolean(options, "zeroPlayoutDelay"), external_only);
     result->Success();
     return;
   }
@@ -64,6 +81,14 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableMap params =
         GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap constraints = findMap(params, "constraints");
+    const auto audio = constraints.find(EncodableValue("audio"));
+    if (external_audio_input_only_ && audio != constraints.end()) {
+      const auto* enabled = std::get_if<bool>(&audio->second);
+      if (!enabled || *enabled) {
+        result->Error("external_audio_only", "Device audio is disabled for this factory");
+        return;
+      }
+    }
     GetUserMedia(constraints, std::move(result));
   } else if (method_call.method_name().compare("getDisplayMedia") == 0) {
     if (!method_call.arguments()) {
