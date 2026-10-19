@@ -367,6 +367,7 @@ void FlutterScreenCapture::GetDisplayMedia(
   stream->AddTrack(track);
 
   base_->local_tracks_[track->id().std_string()] = track;
+  base_->video_sources_[track->id().std_string()] = {video_source};
 
   base_->local_streams_[uuid] = stream;
 

@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "video_processor_channel.h"
 #include "win32_window.h"
 
 // A window that does nothing but host a Flutter view.
@@ -28,6 +29,10 @@ class FlutterWindow : public Win32Window {
 
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
+
+  // Attaches video processors to flutter_webrtc tracks; see
+  // lib/src/video_processor_sample.dart.
+  std::unique_ptr<VideoProcessorChannel> video_processor_channel_;
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_
