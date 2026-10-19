@@ -37,6 +37,7 @@ class FlutterPeerConnectionObserver;
 class FlutterWebRTCBase {
  public:
   friend class FlutterMediaStream;
+  friend class FlutterExternalMedia;
   friend class FlutterPeerConnection;
   friend class FlutterVideoRendererManager;
   friend class FlutterDataChannel;

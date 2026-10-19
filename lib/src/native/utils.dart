@@ -93,7 +93,7 @@ class WebRTC {
   ///                     for low latency scenarios on reliable networks. Like
   ///                     `enableWARP` it is a field trial, so it has to be set
   ///                     before the first peer connection is created.
-  /// "externalAudioInputOnly": Windows-only, defaults to false. Disable device
+  /// "externalAudioInputOnly": Windows/macOS-only, defaults to false. Disable device
   /// recording for this factory while accepting custom audio sources. Requires
   /// a native SDK with the external-input factory policy (libwebrtc #158 and
   /// core #314). An unsupported SDK rejects the request; it never falls back
@@ -113,9 +113,9 @@ class WebRTC {
       await _initializing;
       return;
     }
-    if (requested == true && !Platform.isWindows) {
+    if (requested == true && !Platform.isWindows && !Platform.isMacOS) {
       throw UnsupportedError(
-          'externalAudioInputOnly is supported on Windows only');
+          'externalAudioInputOnly is supported on Windows/macOS only');
     }
     _externalAudioInputOnly = requested == true;
     final pending = _channel.invokeMethod<void>('initialize', <String, dynamic>{

@@ -65,7 +65,7 @@ void main() {
   });
   test('external-only either forwards or rejects before factory creation',
       () async {
-    if (Platform.isWindows) {
+    if (Platform.isWindows || Platform.isMacOS) {
       await WebRTC.initialize(options: {'externalAudioInputOnly': true});
       await WebRTC.initialize();
       expect(calls, hasLength(1));

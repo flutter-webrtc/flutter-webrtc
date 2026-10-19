@@ -17,7 +17,8 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
       FlutterScreenCapture::FlutterScreenCapture(this),
       FlutterDataChannel::FlutterDataChannel(this),
       FlutterFrameCryptor::FlutterFrameCryptor(this),
-      FlutterDataPacketCryptor::FlutterDataPacketCryptor(this) {}
+      FlutterDataPacketCryptor::FlutterDataPacketCryptor(this),
+      FlutterExternalMedia::FlutterExternalMedia(this) {}
 
 FlutterWebRTC::~FlutterWebRTC() {}
 
@@ -62,6 +63,11 @@ void FlutterWebRTC::HandleMethodCall(
   // Everything below needs the factory. If the Dart side never called
   // initialize() with options, fall back to the default field trials.
   EnsureWebRTCInitialized();
+
+  if (method_call.method_name().rfind("externalMedia", 0) == 0) {
+    ExternalMediaMethod(method_call, std::move(result));
+    return;
+  }
 
   if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {

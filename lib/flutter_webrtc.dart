@@ -23,3 +23,5 @@ export 'src/native/android/audio_configuration.dart';
 export 'src/native/ios/audio_configuration.dart';
 export 'src/native/rtc_video_platform_view_controller.dart';
 export 'src/native/rtc_video_platform_view.dart';
+export 'src/native/external_media.dart'
+    if (dart.library.js_interop) 'src/web/external_media.dart';
