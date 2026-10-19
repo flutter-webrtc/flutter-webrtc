@@ -6,13 +6,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 /*
- * Desktop video processor sample.
+ * Video processor sample.
  *
- * The black and white filter runs in native code: the Windows, Linux and
- * eLinux runners register the channel below and attach an RTCVideoProcessor
- * to the camera track through FlutterWebRTCBase::AddVideoProcessor; see
- * cpp/video_processor_sample.cpp. The filter applies to the local preview and
- * to what a peer connection would send.
+ * The black and white filter runs in native code, and the runners register the
+ * channel below:
+ * - Windows, Linux and eLinux attach an RTCVideoProcessor to the camera track
+ *   through FlutterWebRTCBase::AddVideoProcessor; see
+ *   cpp/video_processor_sample.cpp.
+ * - iOS and macOS attach an ExternalVideoProcessingDelegate through
+ *   -[LocalVideoTrack addProcessing:]; see darwin/VideoProcessorSample.m.
+ * - Android attaches an ExternalVideoFrameProcessing through
+ *   LocalVideoTrack.addProcessor; see VideoProcessorSample.java in the
+ *   Android runner.
+ * The filter applies to the local preview and to what a peer connection would
+ * send.
  */
 class VideoProcessorSample extends StatefulWidget {
   static String tag = 'video_processor_sample';
@@ -34,7 +41,10 @@ class _VideoProcessorSampleState extends State<VideoProcessorSample> {
   bool get _supported =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.windows ||
-          defaultTargetPlatform == TargetPlatform.linux);
+          defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
 
   String? get _trackId => _localStream?.getVideoTracks().firstOrNull?.id;
 
@@ -115,7 +125,9 @@ class _VideoProcessorSampleState extends State<VideoProcessorSample> {
       body: !_supported
           ? Center(
               child: Text('This sample needs the native code of the Windows, '
-                  'Linux and eLinux runners (cpp/video_processor_sample.cpp).'))
+                  'Linux, eLinux, Android, iOS and macOS runners '
+                  '(cpp/video_processor_sample.cpp, '
+                  'darwin/VideoProcessorSample.m).'))
           : Column(
               children: [
                 SwitchListTile(

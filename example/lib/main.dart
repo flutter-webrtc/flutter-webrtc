@@ -157,7 +157,7 @@ class _MyAppState extends State<MyApp> {
                     builder: (BuildContext context) => DataPacketCryptorSample()));
           }),
       RouteItem(
-          title: 'Video Processor (Desktop)',
+          title: 'Video Processor',
           push: (BuildContext context) {
             Navigator.push(
                 context,

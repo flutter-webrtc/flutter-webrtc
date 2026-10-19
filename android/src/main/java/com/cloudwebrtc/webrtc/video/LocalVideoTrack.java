@@ -15,9 +15,12 @@ import java.util.List;
 public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
     public interface ExternalVideoFrameProcessing {
         /**
-         * Process a video frame.
+         * Process a video frame. Called on the capture thread.
+         *
+         * Do not release {@code frame}. To replace it, return a new frame:
+         * the track releases that frame once it has been delivered.
          * @param frame
-         * @return The processed video frame.
+         * @return The processed video frame, or {@code frame} itself.
          */
         public abstract VideoFrame onFrame(VideoFrame frame);
     }
@@ -56,12 +59,22 @@ public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
     @Override
     public void onFrameCaptured(VideoFrame videoFrame) {
         if (sink != null) {
+            VideoFrame frame = videoFrame;
             synchronized (processors) {
                 for (ExternalVideoFrameProcessing processor : processors) {
-                    videoFrame = processor.onFrame(videoFrame);
+                    VideoFrame processed = processor.onFrame(frame);
+                    // Release a frame made by an earlier processor once it is
+                    // replaced. The capturer releases the original frame.
+                    if (processed != frame && frame != videoFrame) {
+                        frame.release();
+                    }
+                    frame = processed;
                 }
             }
-            sink.onFrame(videoFrame);
+            sink.onFrame(frame);
+            if (frame != videoFrame) {
+                frame.release();
+            }
         }
     }
 }

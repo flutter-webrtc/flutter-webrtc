@@ -1,5 +1,6 @@
 #import "AppDelegate.h"
 #import "GeneratedPluginRegistrant.h"
+#import "../../darwin/VideoProcessorSample.h"
 
 @implementation AppDelegate
 
@@ -11,6 +12,8 @@
 
 - (void)didInitializeImplicitFlutterEngine:(NSObject<FlutterImplicitEngineBridge>*)engineBridge {
   [GeneratedPluginRegistrant registerWithRegistry:engineBridge.pluginRegistry];
+  [VideoProcessorSample
+      registerWithRegistrar:[engineBridge.pluginRegistry registrarForPlugin:@"VideoProcessorSample"]];
 }
 
 @end
