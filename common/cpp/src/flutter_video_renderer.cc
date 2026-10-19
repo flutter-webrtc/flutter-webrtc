@@ -1,5 +1,4 @@
 #include "flutter_video_renderer.h"
-#include "task_runner.h"
 
 namespace flutter_webrtc_plugin {
 
@@ -94,6 +93,13 @@ void FlutterVideoRenderer::SetVideoTrack(scoped_refptr<RTCVideoTrack> track) {
   }
 }
 
+void FlutterVideoRenderer::Dispose() {
+  // RemoveRenderer() takes the track's broadcaster lock, so once this returns
+  // OnFrame() is not running and will not run again.
+  SetVideoTrack(nullptr);
+  event_channel_.reset();
+}
+
 bool FlutterVideoRenderer::CheckMediaStream(std::string mediaId) {
   if (0 == mediaId.size() || 0 == media_stream_id.size()) {
     return false;
@@ -173,22 +179,17 @@ void FlutterVideoRendererManager::VideoRendererDispose(
     // never touched from another thread.
     scoped_refptr<FlutterVideoRenderer> renderer = it->second;
     renderers_.erase(it);
-    renderer->SetVideoTrack(nullptr);
+    // Close the event channel now, while the texture id still belongs to this
+    // renderer. On Windows the id is the address of the engine's texture and
+    // can go to a new renderer as soon as the texture is released; closing the
+    // channel later would clear the new renderer's handler.
+    renderer->Dispose();
 #if defined(_WINDOWS)
     // The engine may keep calling CopyPixelBuffer() on the raster thread until
-    // the texture is released, and only then runs this callback, also on the
-    // raster thread. Keep the renderer alive until then and drop the last
-    // reference on the platform thread, where its event channel has to be
-    // torn down.
-    FlutterVideoRenderer* released = renderer.release();
-    TaskRunner* task_runner = base_->task_runner_;
-    base_->textures_->UnregisterTexture(texture_id, [released, task_runner] {
-      if (task_runner) {
-        task_runner->EnqueueTask([released] { released->Release(); });
-      } else {
-        released->Release();
-      }
-    });
+    // it has released the texture, and runs this callback after that, also on
+    // the raster thread. Keep the renderer alive until then.
+    base_->textures_->UnregisterTexture(
+        texture_id, [renderer]() mutable { renderer = nullptr; });
 #else
     base_->textures_->UnregisterTexture(texture_id);
 #endif
