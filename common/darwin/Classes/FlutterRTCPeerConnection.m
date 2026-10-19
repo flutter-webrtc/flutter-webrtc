@@ -594,6 +594,7 @@
 
   dataChannel.eventChannel = eventChannel;
   dataChannel.flutterChannelId = flutterChannelId;
+  NSNumber* ffiHandle = FlutterRTCDataChannelRegisterFFI(dataChannel);
 
   dispatch_async(dispatch_get_main_queue(), ^{
     // setStreamHandler on main thread
@@ -604,7 +605,8 @@
         @"event" : @"didOpenDataChannel",
         @"id" : dataChannelId,
         @"label" : dataChannel.label,
-        @"flutterId" : flutterChannelId
+        @"flutterId" : flutterChannelId,
+        @"ffiHandle" : ffiHandle
       });
     }
   });

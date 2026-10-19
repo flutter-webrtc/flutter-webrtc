@@ -1,10 +1,21 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:flutter/services.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
 
+import 'rtc_data_channel_ffi.dart';
 import 'utils.dart';
+
+/// State codes used by the FFI transport, see [DataChannelFfiEvent].
+const _ffiStateCodes = <RTCDataChannelState>[
+  RTCDataChannelState.RTCDataChannelConnecting,
+  RTCDataChannelState.RTCDataChannelOpen,
+  RTCDataChannelState.RTCDataChannelClosing,
+  RTCDataChannelState.RTCDataChannelClosed,
+];
 
 final _typeStringToMessageType = <String, MessageType>{
   'text': MessageType.text,
@@ -16,15 +27,22 @@ final _typeStringToMessageType = <String, MessageType>{
 class RTCDataChannelNative extends RTCDataChannel {
   RTCDataChannelNative(
       this._peerConnectionId, this._label, this._dataChannelId, this._flutterId,
-      {RTCDataChannelState? state}) {
+      {RTCDataChannelState? state, int? ffiHandle})
+      : _ffiHandle = ffiHandle {
     stateChangeStream = _stateChangeController.stream;
     messageStream = _messageController.stream;
     if (state != null) {
       _state = state;
     }
-    _eventSubscription = _eventChannelFor(_peerConnectionId, _flutterId)
-        .receiveBroadcastStream()
-        .listen(eventListener, onError: errorListener);
+    // The platform queues events until one of the transports attaches, so
+    // waiting for the FFI table to load loses nothing.
+    if (_ffiHandle == null ||
+        !DataChannelFfi.enabled ||
+        DataChannelFfi.loaded) {
+      _connectTransport(DataChannelFfi.instance);
+    } else {
+      _ready = DataChannelFfi.load().then(_connectTransport);
+    }
   }
   final String _peerConnectionId;
   final String _label;
@@ -40,6 +58,18 @@ class RTCDataChannelNative extends RTCDataChannel {
   RTCDataChannelState? _state;
   StreamSubscription<dynamic>? _eventSubscription;
   bool _isClosed = false;
+
+  /// Handle for the FFI transport, null when the platform has none.
+  final int? _ffiHandle;
+
+  /// Set once the channel's events arrive through FFI; sends then go through
+  /// FFI too.
+  DataChannelFfi? _ffi;
+  RawReceivePort? _ffiPort;
+
+  /// Completes once the transport is chosen. Sends wait for it so they
+  /// cannot overtake each other across transports.
+  Future<void>? _ready;
 
   /// Whether close() has run on this channel. Owners use it to drop channels
   /// they no longer have to close.
@@ -63,6 +93,73 @@ class RTCDataChannelNative extends RTCDataChannel {
   final _messageController =
       StreamController<RTCDataChannelMessage>.broadcast(sync: true);
 
+  void _connectTransport(DataChannelFfi? ffi) {
+    _ready = null;
+    if (_isClosed) {
+      return;
+    }
+    final handle = _ffiHandle;
+    if (ffi != null && handle != null && DataChannelFfi.enabled) {
+      final port = RawReceivePort(_ffiEventListener, 'RTCDataChannel $_label');
+      if (ffi.attach(handle, port.sendPort)) {
+        _ffi = ffi;
+        _ffiPort = port;
+        return;
+      }
+      port.close();
+    }
+    _eventSubscription = _eventChannelFor(_peerConnectionId, _flutterId)
+        .receiveBroadcastStream()
+        .listen(eventListener, onError: errorListener);
+  }
+
+  void _ffiEventListener(dynamic event) {
+    if (_isClosed) {
+      return;
+    }
+    final list = event as List<dynamic>;
+    _dataChannelId = list[1] as int;
+    switch (list[0] as int) {
+      case DataChannelFfiEvent.kStateChanged:
+        _onStateChanged(_ffiStateCodes[list[2] as int]);
+        break;
+      case DataChannelFfiEvent.kMessage:
+        final bytes = list[3] as Uint8List;
+        _onMessage(list[2] as bool
+            ? RTCDataChannelMessage.fromBinary(bytes)
+            : RTCDataChannelMessage(utf8.decode(bytes, allowMalformed: true)));
+        break;
+      case DataChannelFfiEvent.kBufferedAmount:
+        _onBufferedAmountChange(list[2] as int, list[3] as int);
+        break;
+    }
+  }
+
+  void _onStateChanged(RTCDataChannelState state) {
+    _state = state;
+    onDataChannelState?.call(state);
+    if (!_stateChangeController.isClosed) {
+      _stateChangeController.add(state);
+    }
+  }
+
+  void _onMessage(RTCDataChannelMessage message) {
+    onMessage?.call(message);
+    if (!_messageController.isClosed) {
+      _messageController.add(message);
+    }
+  }
+
+  void _onBufferedAmountChange(int bufferedAmount, int changedAmount) {
+    _bufferedAmount = bufferedAmount;
+    if (bufferedAmountLowThreshold != null) {
+      if (_bufferedAmount < bufferedAmountLowThreshold!) {
+        onBufferedAmountLow?.call(_bufferedAmount);
+      }
+    }
+    onBufferedAmountChange?.call(_bufferedAmount, changedAmount);
+  }
+
   /// RTCDataChannel event listener.
   void eventListener(dynamic event) {
     // Nothing to report once the channel is closed. The controller guards
@@ -75,12 +172,7 @@ class RTCDataChannelNative extends RTCDataChannel {
     switch (map['event']) {
       case 'dataChannelStateChanged':
         _dataChannelId = map['id'];
-        _state = rtcDataChannelStateForString(map['state']);
-        onDataChannelState?.call(_state!);
-
-        if (!_stateChangeController.isClosed) {
-          _stateChangeController.add(_state!);
-        }
+        _onStateChanged(rtcDataChannelStateForString(map['state']));
         break;
       case 'dataChannelReceiveMessage':
         _dataChannelId = map['id'];
@@ -93,22 +185,11 @@ class RTCDataChannelNative extends RTCDataChannel {
         } else {
           message = RTCDataChannelMessage(data);
         }
-
-        onMessage?.call(message);
-
-        if (!_messageController.isClosed) {
-          _messageController.add(message);
-        }
+        _onMessage(message);
         break;
 
       case 'dataChannelBufferedAmountChange':
-        _bufferedAmount = map['bufferedAmount'];
-        if (bufferedAmountLowThreshold != null) {
-          if (_bufferedAmount < bufferedAmountLowThreshold!) {
-            onBufferedAmountLow?.call(_bufferedAmount);
-          }
-        }
-        onBufferedAmountChange?.call(_bufferedAmount, map['changedAmount']);
+        _onBufferedAmountChange(map['bufferedAmount'], map['changedAmount']);
         break;
     }
   }
@@ -126,6 +207,15 @@ class RTCDataChannelNative extends RTCDataChannel {
 
   @override
   Future<int> getBufferedAmount() async {
+    await _ready;
+    final ffi = _ffi;
+    if (ffi != null) {
+      final amount = ffi.bufferedAmount(_ffiHandle!);
+      if (amount >= 0) {
+        _bufferedAmount = amount;
+      }
+      return _bufferedAmount;
+    }
     final Map<dynamic, dynamic> response = await WebRTC.invokeMethod(
         'dataChannelGetBufferedAmount', <String, dynamic>{
       'peerConnectionId': _peerConnectionId,
@@ -139,6 +229,19 @@ class RTCDataChannelNative extends RTCDataChannel {
   Future<void> send(RTCDataChannelMessage message) async {
     if (_isClosed) {
       throw Exception('Can\'t send: The RTCDataChannel is closed');
+    }
+    if (_ready != null) {
+      await _ready;
+    }
+    final ffi = _ffi;
+    if (ffi != null) {
+      // Like the method channel path, a refused send is not reported here;
+      // the channel's state events tell the app what happened.
+      ffi.send(
+          _ffiHandle!,
+          message.isBinary ? message.binary : utf8.encode(message.text),
+          message.isBinary);
+      return;
     }
     await WebRTC.invokeMethod('dataChannelSend', <String, dynamic>{
       'peerConnectionId': _peerConnectionId,
@@ -165,6 +268,12 @@ class RTCDataChannelNative extends RTCDataChannel {
     await _stateChangeController.close();
     await _messageController.close();
     await _eventSubscription?.cancel();
+    if (_ffi != null) {
+      _ffi!.detach(_ffiHandle!);
+      _ffi = null;
+    }
+    _ffiPort?.close();
+    _ffiPort = null;
     await WebRTC.invokeMethod('dataChannelClose', <String, dynamic>{
       'peerConnectionId': _peerConnectionId,
       'dataChannelId': _flutterId

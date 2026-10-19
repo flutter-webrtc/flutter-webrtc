@@ -20,6 +20,6 @@ A new flutter plugin project.
   s.dependency 'WebRTC-SDK', '150.7871.01'
   s.osx.deployment_target = '10.15'
   s.pod_target_xcconfig = {
-    'USER_HEADER_SEARCH_PATHS' => '"${PODS_TARGET_SRCROOT}/flutter_webrtc/Sources/flutter_webrtc/include/flutter_webrtc"'
+    'USER_HEADER_SEARCH_PATHS' => '"${PODS_TARGET_SRCROOT}/flutter_webrtc/Sources/flutter_webrtc/include/flutter_webrtc" "${PODS_TARGET_SRCROOT}/flutter_webrtc/Sources/flutter_webrtc/dart_api"'
   }
 end

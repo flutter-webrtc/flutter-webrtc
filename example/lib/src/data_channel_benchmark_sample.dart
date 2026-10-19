@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+// ignore: implementation_imports
+import 'package:flutter_webrtc/src/native/rtc_data_channel_ffi.dart';
 
 import 'data_channel_benchmark.dart';
 
@@ -77,7 +79,9 @@ class _DataChannelBenchmarkSampleState
             : kProfileMode
                 ? 'profile'
                 : 'debug',
-        'transport': 'method-channel',
+        'transport': DataChannelFfi.enabled && DataChannelFfi.instance != null
+            ? 'ffi'
+            : 'method-channel',
         'timestamp': DateTime.now().toIso8601String(),
         'results': _results.map((r) => r.toJson()).toList(),
       };

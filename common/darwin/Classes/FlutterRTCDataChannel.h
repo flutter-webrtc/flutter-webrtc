@@ -6,7 +6,20 @@
 @property(nonatomic, strong, nullable) FlutterEventSink eventSink;
 @property(nonatomic, strong, nullable) FlutterEventChannel* eventChannel;
 @property(nonatomic, strong, nullable) NSArray<id>* eventQueue;
+/// Handle Dart uses to reach this channel through FFI. See
+/// FlutterRTCDataChannelRegisterFFI.
+@property(nonatomic, strong, nullable) NSNumber* ffiHandle;
+/// Dart port the channel's events are posted to once Dart attaches through
+/// FFI. ILLEGAL_PORT (0) after Dart detached: events are dropped from then on.
+@property(nonatomic, strong, nullable) NSNumber* dartPort;
 @end
+
+/// Registers |dataChannel| for FFI access and returns its handle.
+NSNumber* _Nonnull FlutterRTCDataChannelRegisterFFI(RTCDataChannel* _Nonnull dataChannel);
+
+/// Addresses of the data channel FFI entry points, keyed by name, for the
+/// dataChannelFfiFunctions method call.
+NSDictionary<NSString*, NSNumber*>* _Nonnull FlutterRTCDataChannelFFIFunctions(void);
 
 @interface FlutterWebRTCPlugin (RTCDataChannel) <RTCDataChannelDelegate>
 
