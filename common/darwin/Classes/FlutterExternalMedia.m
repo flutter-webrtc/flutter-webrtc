@@ -6,6 +6,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <stdatomic.h>
 
+// A bounded 200ms capture queue accommodates ~100ms recorder bursts plus jitter.
 // Input is supplied only by the caller. AVAudioEngine is output-only: never
 // create/access its inputNode. The output callback owns the playout clock.
 @interface FlutterExternalAudioDevice : NSObject <RTCAudioDevice> {
@@ -18,7 +19,7 @@
   AVAudioSourceNode *_node;
   int16_t _playout[480];
   NSUInteger _playoutOffset;
-  uint64_t _captureBlocks, _underflows, _captureDropped, _referenceDropped, _referenceSamples;
+  uint64_t _captureBlocks, _underflows, _captureDropped, _captureInactiveDropped, _captureOverflowDropped, _captureFlushed, _capturePeakBytes, _referenceDropped, _referenceSamples;
 }
 @property(nonatomic,strong) id<RTCAudioDeviceDelegate> delegate;
 @property(nonatomic) BOOL isInitialized, isRecordingInitialized, isPlayoutInitialized;
@@ -87,19 +88,19 @@
  if(_thread && NSThread.currentThread!=_thread){while(!_thread.isFinished)[NSThread sleepForTimeInterval:.001];}
  _thread=nil;self.delegate=nil;self.isInitialized=NO;[self clear];return YES;
 }
-- (void)clear{[_lock lock];[_capture setLength:0];[_lock unlock];}
+- (void)clear{[_lock lock];_captureFlushed+=_capture.length;[_capture setLength:0];[_lock unlock];}
 - (void)enqueue:(NSData*)data {
  [_lock lock];
- if(!atomic_load(&_recording)){_captureDropped+=data.length;[_lock unlock];return;}
- if(_capture.length+data.length>9600){NSUInteger drop=_capture.length+data.length-9600;[_capture replaceBytesInRange:NSMakeRange(0,drop) withBytes:NULL length:0];_captureDropped+=drop;}
- [_capture appendData:data];[_lock unlock];
+ if(!atomic_load(&_recording)){_captureDropped+=data.length;_captureInactiveDropped+=data.length;[_lock unlock];return;}
+ if(_capture.length+data.length>19200){NSUInteger drop=_capture.length+data.length-19200;[_capture replaceBytesInRange:NSMakeRange(0,drop) withBytes:NULL length:0];_captureDropped+=drop;_captureOverflowDropped+=drop;}
+ [_capture appendData:data];_capturePeakBytes=MAX(_capturePeakBytes,_capture.length);[_lock unlock];
 }
 - (void)setReferenceEnabled:(BOOL)enabled{atomic_store(&_referenceEnabled,enabled);[_lock lock];[_reference setLength:0];[_lock unlock];}
 - (NSDictionary*)takeReference{
  [_lock lock];NSData *data=[_reference copy];uint64_t index=_referenceSamples-data.length/2;[_reference setLength:0];uint64_t dropped=_referenceDropped;[_lock unlock];
  return @{ @"bytes":[FlutterStandardTypedData typedDataWithBytes:data], @"sampleIndex":@(index),@"sampleRate":@48000,@"channels":@1,@"droppedBytes":@(dropped) };
 }
-- (NSDictionary*)stats{[_lock lock];NSDictionary *s=@{@"audioBlocks":@(_captureBlocks),@"captureUnderflows":@(_underflows),@"captureDroppedBytes":@(_captureDropped),@"renderReferenceDroppedBytes":@(_referenceDropped),@"renderSamples":@(_referenceSamples),@"speakerRunning":@(atomic_load(&_playing))};[_lock unlock];return s;}
+- (NSDictionary*)stats{[_lock lock];NSDictionary *s=@{@"audioBlocks":@(_captureBlocks),@"captureUnderflows":@(_underflows),@"captureDroppedBytes":@(_captureDropped),@"captureInactiveDroppedBytes":@(_captureInactiveDropped),@"captureOverflowDroppedBytes":@(_captureOverflowDropped),@"captureFlushedBytes":@(_captureFlushed),@"captureQueuedBytes":@(_capture.length),@"capturePeakQueuedBytes":@(_capturePeakBytes),@"captureQueueCapacityBytes":@19200,@"captureRecording":@(atomic_load(&_recording)),@"renderReferenceDroppedBytes":@(_referenceDropped),@"renderSamples":@(_referenceSamples),@"speakerRunning":@(atomic_load(&_playing))};[_lock unlock];return s;}
 - (void)pump {
  @autoreleasepool {double next=NSProcessInfo.processInfo.systemUptime;
  while(!atomic_load(&_stop)){

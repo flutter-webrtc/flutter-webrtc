@@ -14,7 +14,10 @@ Processing defaults off because callers supply processed audio. `pushVideo`
 accepts tightly packed BGRA up to 1920x1080 and increasing microsecond timestamps.
 Windows uses the wrapper frame arrival clock; macOS uses the caller timestamp.
 A successful push means submission, not successful RTP delivery. macOS discards
-input while the SDK is not recording and bounds capture buffering to 100 ms.
+input while the SDK is not recording and bounds capture buffering to 200 ms to accommodate 100-ms recorder bursts plus
+jitter. Statistics distinguish inactive input drops, queue overflow and explicit
+flushes; none imply delivery or physical capture. Render-reference buffering
+remains bounded to 100 ms.
 
 Detach senders before disposal. Mute tracks and discard caller queues when ending
 transmission; `flush` cannot retract media already submitted to WebRTC or RTP.
