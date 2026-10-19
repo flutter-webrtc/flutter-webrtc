@@ -9,6 +9,9 @@
 #define FLUTTER_PLUGIN_EXPORT
 #endif
 
+namespace flutter_webrtc_plugin {
+class FlutterWebRTC;
+}  // namespace flutter_webrtc_plugin
 
 #if defined(__cplusplus)
 extern "C" {
@@ -16,6 +19,8 @@ extern "C" {
 
 FLUTTER_PLUGIN_EXPORT void FlutterWebRTCPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
+
+FLUTTER_PLUGIN_EXPORT flutter_webrtc_plugin::FlutterWebRTC* FlutterWebRTCPluginSharedInstance();
 
 #if defined(__cplusplus)
 }  // extern "C"

@@ -80,8 +80,9 @@ class FlutterWebRTCBase {
   // returns false from then on.
   //
   // These are virtual so that other plugins can call them through
-  // FlutterWebRTCPluginSharedInstance() or
-  // flutter_webrtc_plugin_get_shared_instance() without linking to them.
+  // FlutterWebRTCPluginSharedInstance() (Windows, eLinux) or
+  // flutter_webrtc_plugin_get_shared_instance() (Linux) without linking to
+  // them.
   virtual bool AddVideoProcessor(const std::string& track_id,
                                  RTCVideoProcessor* processor);
 
