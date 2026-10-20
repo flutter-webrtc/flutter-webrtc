@@ -605,8 +605,26 @@ void FlutterScreenCapture::GetDisplayMedia(
     return;
   }
 
+#ifdef _WIN32
+  // Capture windows with Windows.Graphics.Capture where the system supports
+  // it (Windows 10 1903 or later): a covered or background window keeps
+  // sending frames, so it isn't brought to the front first, which Windows
+  // may refuse. Windows keeps drawing its capture border. Older systems use
+  // the default window capturer, still without focusing the window.
+  RTCDesktopCapturerOptions capturer_options;
+  capturer_options.show_cursor = show_cursor;
+  if (source->type() == kWindow) {
+    capturer_options.allow_wgc_window_capturer = true;
+    capturer_options.focus_window = false;
+    capturer_options.wgc_border_required = true;
+  }
+  scoped_refptr<RTCDesktopCapturer> desktop_capturer =
+      base_->desktop_device_->CreateDesktopCapturerWithOptions(
+          source, capturer_options);
+#else
   scoped_refptr<RTCDesktopCapturer> desktop_capturer =
       base_->desktop_device_->CreateDesktopCapturer(source, show_cursor);
+#endif
 
   if (!desktop_capturer.get()) {
     result->Error("Bad Arguments", "CreateDesktopCapturer failed!");
