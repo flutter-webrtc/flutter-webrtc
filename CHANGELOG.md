@@ -2,6 +2,16 @@
 # Changelog
 
 
+[1.6.2+hotfix.4] - 2026-10-07
+
+* [Darwin] fix(crash): do not dereference a freed video renderer from the first frame callback. Disposing a renderer while frames are in flight no longer crashes with `EXC_BAD_ACCESS` in `-[FlutterRTCVideoRenderer renderFrame:]` (#2190).
+* [Darwin] fix: keep `sharedSingleton` on the plugin instance that owns the peer connection factory. A second Flutter engine no longer replaces it with an instance that has no factory (#2186).
+* [iOS] refactor: take the audio session configuration lock once in `ensureAudioSession` (#2195).
+* [Android] fix: dispose video renderers when the plugin detaches from the engine (#2192).
+* [Android/Darwin/Windows/Linux] fix: enable SCTP SNAP instead of DSCP marking when WARP is enabled. Windows and Linux move to libwebrtc m150.7871.03 (#2188).
+* [Dart] fix: `RTCDataChannel.close()` moves the channel to the closed state and notifies listeners. `send()` after `close()` throws instead of reaching the platform (#2191).
+* [Windows/Linux] fix: synchronize data channel observer map access across the signaling and platform threads (#2194).
+
 [1.6.2+hotfix.3] - 2026-09-15
 
 * [Windows/Linux] fix: fixed fieldTrials copy in libwebrtc to fix WARP bug for Windows/Linux.

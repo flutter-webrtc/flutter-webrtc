@@ -67,6 +67,31 @@ Future<(TrackingRenderer, CaptureState)> pumpCaptureView(
 }
 
 void main() {
+  test('video is an autoplaying, non-interactive render surface', () async {
+    final renderer = RTCVideoRenderer();
+    final video = renderer.createElement();
+    expect(video.autoplay, isTrue);
+    expect(video.controls, isFalse);
+    expect(video.hasAttribute('playsinline'), isTrue);
+    expect(video.style.pointerEvents, 'none');
+    expect(video.hasAttribute('disablepictureinpicture'), isTrue);
+    expect(video.hasAttribute('disableremoteplayback'), isTrue);
+    expect(
+      video.getAttribute('controlsList'),
+      'nodownload nofullscreen noremoteplayback',
+    );
+    if (useHtmlElementView) {
+      expect(video.style.userSelect, 'none');
+    }
+    await renderer.dispose();
+  });
+
+  test('renderer initializes and disposes without a media stream', () async {
+    final renderer = RTCVideoRenderer();
+    await renderer.initialize();
+    await renderer.dispose();
+  });
+
   testWidgets('frame delivery repaints without rebuilding the video widget',
       (tester) async {
     if (useHtmlElementView) return;

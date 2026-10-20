@@ -300,7 +300,11 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
       ..controls = false
       ..srcObject = _videoStream
       ..id = _elementIdForVideo
-      ..setAttribute('playsinline', 'true');
+      ..setAttribute('playsinline', 'true')
+      ..setAttribute('controlsList', 'nodownload nofullscreen noremoteplayback')
+      ..setAttribute('disablepictureinpicture', '')
+      ..setAttribute('disableremoteplayback', '')
+      ..setAttribute('x-webkit-airplay', 'deny');
     element = createdElement;
 
     _applyDefaultVideoStyles(createdElement);
@@ -361,14 +365,15 @@ class RTCVideoRenderer extends ValueNotifier<RTCVideoValue>
 
   void _applyDefaultVideoStyles(web.HTMLVideoElement element) {
     element.style.transform = mirror ? 'scaleX(-1)' : '';
+    element.style.pointerEvents = 'none';
     if (useHtmlElementView) {
+      element.style.userSelect = 'none';
       element
         ..style.objectFit = _objectFit
         ..style.border = 'none'
         ..style.width = '100%'
         ..style.height = '100%';
     } else {
-      element.style.pointerEvents = 'none';
       element.style.opacity = '0';
       element.style.position = 'absolute';
       element.style.left = '0px';
