@@ -54,11 +54,17 @@
    // Even though it would usually be sufficient to process only a single task
    // whenever we receive the message, if the message queue happens to be full,
    // we might not receive a message for each individual task.
+   //
+   // Hold the lock only to pop, never while a task runs. A task that enqueues
+   // another one would otherwise deadlock on the non-recursive mutex.
    for (;;) {
-     std::lock_guard<std::mutex> lock(tasks_mutex_);
-     if (tasks_.empty()) break;
-     TaskClosure task = tasks_.front();
-     tasks_.pop();
+     TaskClosure task;
+     {
+       std::lock_guard<std::mutex> lock(tasks_mutex_);
+       if (tasks_.empty()) break;
+       task = std::move(tasks_.front());
+       tasks_.pop();
+     }
      task();
    }
  }
