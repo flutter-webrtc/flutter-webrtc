@@ -3,6 +3,8 @@
 
 [1.6.3] - 2026-10-07
 
+* fix(elinux): force-include <cstdint> for the plugin target (#2246)
+* chore: bump WebRTC-SDK to 150.7871.04 (drop compromised eMudhra CA root) (#2245)
 * chore(libwebrtc): bump libwebrtc to m150.7871.04 for apple,android.
 * fix(desktop): write encoding changes back in RtpSender setParameters (#2211)
 * fix(darwin): resolve the plugin instance per engine and free it on engine teardown (#2221)
