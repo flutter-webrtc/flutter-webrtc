@@ -56,13 +56,6 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/libwebrtc.so"
 )
 
-# The bundled libwebrtc headers (e.g. rtc_types.h) use fixed-width integer
-# types such as uint32_t without including <cstdint>, which newer toolchains no
-# longer pull in transitively. Force-include it, as the Linux target does.
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  target_compile_options(${PLUGIN_NAME} PRIVATE -include cstdint)
-endif()
-
 # List of absolute paths to libraries that should be bundled with the plugin
 set(flutter_webrtc_bundled_libraries
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/libwebrtc.so"
