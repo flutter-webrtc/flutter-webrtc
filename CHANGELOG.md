@@ -1,6 +1,24 @@
 
 # Changelog
 
+[1.6.3] - 2026-10-26
+
+* fix(desktop): run task runner tasks without holding the queue lock (#2244)
+* chore: bump WebRTC-SDK to 150.7871.04 (drop compromised eMudhra CA root) (#2245)
+* chore(libwebrtc): bump libwebrtc to m150.7871.07 for Windows/Linux (drop compromised eMudhra CA root).
+* fix(desktop): write encoding changes back in RtpSender setParameters (#2211)
+* fix(darwin): resolve the plugin instance per engine and free it on engine teardown (#2221)
+* fix(windows): list the host app's own windows in desktop sources (#2226)
+* fix(darwin): discover capture devices off the main thread in getSources (#2229)
+* fix(macos): list desktop sources off the main thread (#2228)
+* fix(android): keep remote tracks added in Unified Plan rendering after getTransceivers() (#2230)
+* chore(example): add video processor sample for Android/iOS/macOS. (#2237)
+* feat(desktop): let native plugins attach video processors to local tracks (#2233)
+* fix(windows): stop VideoRendererDispose from releasing a renderer twice (#2235)
+* fix(darwin): duplicate null check for video renderer (#2219)
+* fix(desktop): captureFrame frees its RGBA buffer and no longer busy-waits (#2185)
+* feat(android): support constrained high-speed Camera2 capture (#2213)
+* fix(web): prevent native video interactions in HTML views (#2209)
 
 [1.6.2+hotfix.4] - 2026-10-07
 
