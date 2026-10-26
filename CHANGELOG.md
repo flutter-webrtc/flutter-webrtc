@@ -1,11 +1,11 @@
 
 # Changelog
 
-[1.6.3] - 2026-10-07
+[1.6.3] - 2026-10-26
 
 * fix(desktop): run task runner tasks without holding the queue lock (#2244)
 * chore: bump WebRTC-SDK to 150.7871.04 (drop compromised eMudhra CA root) (#2245)
-* chore(libwebrtc): bump libwebrtc to m150.7871.04 for apple,android.
+* chore(libwebrtc): bump libwebrtc to m150.7871.07 for Windows/Linux (drop compromised eMudhra CA root).
 * fix(desktop): write encoding changes back in RtpSender setParameters (#2211)
 * fix(darwin): resolve the plugin instance per engine and free it on engine teardown (#2221)
 * fix(windows): list the host app's own windows in desktop sources (#2226)
