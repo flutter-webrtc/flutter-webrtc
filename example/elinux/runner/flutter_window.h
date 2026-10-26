@@ -10,6 +10,8 @@
 
 #include <memory>
 
+#include "video_processor_channel.h"
+
 class FlutterWindow {
  public:
   explicit FlutterWindow(
@@ -29,6 +31,10 @@ class FlutterWindow {
   flutter::FlutterViewController::ViewProperties view_properties_;
   flutter::DartProject project_;
   std::unique_ptr<flutter::FlutterViewController> flutter_view_controller_;
+
+  // Attaches video processors to flutter_webrtc tracks; see
+  // lib/src/video_processor_sample.dart.
+  std::unique_ptr<VideoProcessorChannel> video_processor_channel_;
 };
 
 #endif  // FLUTTER_WINDOW_

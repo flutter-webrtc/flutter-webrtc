@@ -9,6 +9,8 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    VideoProcessorSample.register(
+      with: flutterViewController.registrar(forPlugin: "VideoProcessorSample"))
 
     super.awakeFromNib()
   }

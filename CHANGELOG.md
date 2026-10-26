@@ -1,6 +1,34 @@
 
 # Changelog
 
+[1.6.3] - 2026-10-26
+
+* fix(desktop): run task runner tasks without holding the queue lock (#2244)
+* chore: bump WebRTC-SDK to 150.7871.04 (drop compromised eMudhra CA root) (#2245)
+* chore(libwebrtc): bump libwebrtc to m150.7871.07 for Windows/Linux (drop compromised eMudhra CA root).
+* fix(desktop): write encoding changes back in RtpSender setParameters (#2211)
+* fix(darwin): resolve the plugin instance per engine and free it on engine teardown (#2221)
+* fix(windows): list the host app's own windows in desktop sources (#2226)
+* fix(darwin): discover capture devices off the main thread in getSources (#2229)
+* fix(macos): list desktop sources off the main thread (#2228)
+* fix(android): keep remote tracks added in Unified Plan rendering after getTransceivers() (#2230)
+* chore(example): add video processor sample for Android/iOS/macOS. (#2237)
+* feat(desktop): let native plugins attach video processors to local tracks (#2233)
+* fix(windows): stop VideoRendererDispose from releasing a renderer twice (#2235)
+* fix(darwin): duplicate null check for video renderer (#2219)
+* fix(desktop): captureFrame frees its RGBA buffer and no longer busy-waits (#2185)
+* feat(android): support constrained high-speed Camera2 capture (#2213)
+* fix(web): prevent native video interactions in HTML views (#2209)
+
+[1.6.2+hotfix.4] - 2026-10-07
+
+* [Darwin] fix(crash): do not dereference a freed video renderer from the first frame callback. Disposing a renderer while frames are in flight no longer crashes with `EXC_BAD_ACCESS` in `-[FlutterRTCVideoRenderer renderFrame:]` (#2190).
+* [Darwin] fix: keep `sharedSingleton` on the plugin instance that owns the peer connection factory. A second Flutter engine no longer replaces it with an instance that has no factory (#2186).
+* [iOS] refactor: take the audio session configuration lock once in `ensureAudioSession` (#2195).
+* [Android] fix: dispose video renderers when the plugin detaches from the engine (#2192).
+* [Android/Darwin/Windows/Linux] fix: enable SCTP SNAP instead of DSCP marking when WARP is enabled. Windows and Linux move to libwebrtc m150.7871.03 (#2188).
+* [Dart] fix: `RTCDataChannel.close()` moves the channel to the closed state and notifies listeners. `send()` after `close()` throws instead of reaching the platform (#2191).
+* [Windows/Linux] fix: synchronize data channel observer map access across the signaling and platform threads (#2194).
 
 [1.6.2+hotfix.3] - 2026-09-15
 
