@@ -1,6 +1,10 @@
 
 # Changelog
 
+[Unreleased]
+
+* fix(android): apply `kotlin-android` through `pluginManager` so Flutter no longer warns that flutter_webrtc applies KGP when built-in Kotlin is active (#2173)
+
 [1.6.3] - 2026-10-26
 
 * fix(desktop): run task runner tasks without holding the queue lock (#2244)
