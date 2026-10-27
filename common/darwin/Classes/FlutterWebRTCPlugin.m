@@ -9,6 +9,7 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
 #import "FlutterRTCFrameCryptor.h"
+#import "FlutterRTCAudioTrackCapture.h"
 #if TARGET_OS_IPHONE
 #import "FlutterRTCMediaRecorder.h"
 #endif
@@ -319,6 +320,7 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   self.keyProviders = [NSMutableDictionary new];
   self.videoCapturerStopHandlers = [NSMutableDictionary new];
   self.recorders = [NSMutableDictionary new];
+  self.audioCaptures = [NSMutableDictionary new];
 #if TARGET_OS_IPHONE
   self.focusMode = @"locked";
   self.exposureMode = @"locked";
@@ -1818,6 +1820,43 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     NSString* severityStr = argsMap[@"severity"];
     RTCLoggingSeverity severity = [self str2LogSeverity:severityStr];
     [self initLoggerCallback:severity];
+  } else if ([@"startAudioTrackCapture" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSString* trackId = argsMap[@"trackId"];
+    NSString* peerConnectionId = argsMap[@"peerConnectionId"];
+    NSNumber* captureId = argsMap[@"captureId"];
+
+    RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId:peerConnectionId];
+    if (!track || ![track isKindOfClass:[RTCAudioTrack class]]) {
+      result([FlutterError
+          errorWithCode:@"audioTrackCapture"
+                message:[NSString stringWithFormat:@"audio track %@ not found", trackId]
+                details:nil]);
+    } else {
+      // The SDK's RTCAudioTrack renderer is only driven by the remote decode
+      // path; local tracks are tapped through LocalAudioTrack's APM renderer.
+      id<LocalTrack> localTrack = self.localTracks[trackId];
+      FlutterRTCAudioTrackCapture* capture =
+          [localTrack isKindOfClass:[LocalAudioTrack class]]
+          ? [[FlutterRTCAudioTrackCapture alloc]
+                initWithLocalAudioTrack:(LocalAudioTrack*)localTrack]
+          : [[FlutterRTCAudioTrackCapture alloc]
+                initWithAudioTrack:(RTCAudioTrack*)track];
+      self.audioCaptures[captureId] = capture;
+      FlutterEventChannel* channel = [FlutterEventChannel
+          eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/audioTrackCapture%@",
+                                                          captureId]
+           binaryMessenger:self.messenger];
+      [channel setStreamHandler:capture];
+      result(nil);
+    }
+  } else if ([@"stopAudioTrackCapture" isEqualToString:call.method]) {
+    NSDictionary* argsMap = call.arguments;
+    NSNumber* captureId = argsMap[@"captureId"];
+    FlutterRTCAudioTrackCapture* capture = self.audioCaptures[captureId];
+    [capture close];
+    [self.audioCaptures removeObjectForKey:captureId];
+    result(nil);
 #if TARGET_OS_IOS
   } else if ([@"startRecordToFile" isEqualToString:call.method]){
 

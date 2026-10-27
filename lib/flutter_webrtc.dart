@@ -23,3 +23,4 @@ export 'src/native/android/audio_configuration.dart';
 export 'src/native/ios/audio_configuration.dart';
 export 'src/native/rtc_video_platform_view_controller.dart';
 export 'src/native/rtc_video_platform_view.dart';
+export 'src/audio_track_sink.dart' show AudioFrame, audioTrackFrames;
