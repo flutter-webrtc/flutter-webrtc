@@ -457,6 +457,10 @@ void FlutterScreenCapture::GetDisplayMedia(
   // getDisplayMedia "cursor" video constraint. Defaults to true so behaviour is
   // unchanged when the constraint is absent — that is libwebrtc's own default.
   bool show_cursor = true;
+  // Windows window shares: ask for capture without Windows' capture border
+  // (the getDisplayMedia "borderless" video constraint). The track's settings
+  // say whether the border is actually off.
+  bool borderless = false;
 
   const EncodableMap video = findMap(constraints, "video");
   if (video != EncodableMap()) {
@@ -487,6 +491,7 @@ void FlutterScreenCapture::GetDisplayMedia(
     } else if (video.find(EncodableValue("cursor")) != video.end()) {
       show_cursor = findBoolean(video, "cursor");
     }
+    borderless = findBoolean(video, "borderless");
   }
 
   std::string uuid = base_->GenerateUUID();
@@ -605,8 +610,27 @@ void FlutterScreenCapture::GetDisplayMedia(
     return;
   }
 
+#ifdef _WIN32
+  // Capture windows with Windows.Graphics.Capture where the system supports
+  // it (Windows 10 1903 or later): a covered or background window keeps
+  // sending frames, so it isn't brought to the front first, which Windows
+  // may refuse. Windows draws its capture border unless "borderless" asked
+  // otherwise and Windows allows it (Windows 11). Older systems use the
+  // default window capturer, still without focusing the window.
+  RTCDesktopCapturerOptions capturer_options;
+  capturer_options.show_cursor = show_cursor;
+  if (source->type() == kWindow) {
+    capturer_options.allow_wgc_window_capturer = true;
+    capturer_options.focus_window = false;
+    capturer_options.wgc_border_required = !borderless;
+  }
+  scoped_refptr<RTCDesktopCapturer> desktop_capturer =
+      base_->desktop_device_->CreateDesktopCapturerWithOptions(
+          source, capturer_options);
+#else
   scoped_refptr<RTCDesktopCapturer> desktop_capturer =
       base_->desktop_device_->CreateDesktopCapturer(source, show_cursor);
+#endif
 
   if (!desktop_capturer.get()) {
     result->Error("Bad Arguments", "CreateDesktopCapturer failed!");
@@ -637,6 +661,16 @@ void FlutterScreenCapture::GetDisplayMedia(
   info[EncodableValue("label")] = EncodableValue(track->id().std_string());
   info[EncodableValue("kind")] = EncodableValue(track->kind().std_string());
   info[EncodableValue("enabled")] = EncodableValue(track->enabled());
+#ifdef _WIN32
+  if (source->type() == kWindow) {
+    // Whether Windows draws its capture border around the shared window:
+    // MediaStreamTrack.getSettings()["borderless"].
+    EncodableMap settings;
+    settings[EncodableValue("borderless")] =
+        EncodableValue(desktop_capturer->IsCaptureBorderHidden());
+    info[EncodableValue("settings")] = EncodableValue(settings);
+  }
+#endif
   videoTracks.push_back(EncodableValue(info));
   params[EncodableValue("videoTracks")] = EncodableValue(videoTracks);
 
