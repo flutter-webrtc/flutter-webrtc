@@ -28,7 +28,8 @@ let package = Package(
                 .product(name: "FlutterFramework", package: "FlutterFramework")
             ],
             cSettings: [
-                .headerSearchPath("include/flutter_webrtc")
+                .headerSearchPath("include/flutter_webrtc"),
+                .headerSearchPath("dart_api")
             ],
             linkerSettings: [
                 // Ends up weak-linked (LC_LOAD_WEAK_DYLIB) like the podspec's weak_frameworks:
