@@ -410,8 +410,15 @@ void FlutterPeerConnection::RTCPeerConnectionDispose(
     std::unique_ptr<MethodResultProxy> result) {
   auto it = base_->peerconnection_observers_.find(uuid);
   if (it != base_->peerconnection_observers_.end()) {
+    // `pc` is null when Dart close() already ran and removed the connection
+    // map entry. The observer keeps its own reference, so teardown proceeds
+    // the same way in either call order.
+    if (pc == nullptr) {
+      pc = it->second->peerconnection();
+    }
     // Close() can still deliver OnRemoveStream callbacks. Keep the observer
     // alive until native teardown completes, then detach it before deletion.
+    // A second Close() after Dart close() is a no-op.
     pc->Close();
     pc->DeRegisterRTCPeerConnectionObserver();
     base_->peerconnection_observers_.erase(it);

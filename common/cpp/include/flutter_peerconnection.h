@@ -38,6 +38,10 @@ class FlutterPeerConnectionObserver : public RTCPeerConnectionObserver {
 
   void RemoveStreamForId(const std::string& id);
 
+  // The connection this observer is registered on. Lets dispose reach the
+  // connection after close() has already dropped it from the connection map.
+  RTCPeerConnection* peerconnection() const { return peerconnection_.get(); }
+
  private:
   std::unique_ptr<EventChannelProxy> event_channel_;
   scoped_refptr<RTCPeerConnection> peerconnection_;
