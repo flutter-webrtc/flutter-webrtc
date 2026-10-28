@@ -2188,13 +2188,37 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     urls = (NSArray*)json[@"urls"];
   }
 
-  if (json[@"username"] != nil || json[@"credential"] != nil) {
-    return [[RTCIceServer alloc] initWithURLStrings:urls
-                                           username:json[@"username"]
-                                         credential:json[@"credential"]];
+  // `tlsCertPolicy` is libwebrtc's certificate policy for a `turns:` server: `secure` verifies
+  // the server's certificate, `insecure_no_check` skips that check, for a TURN server whose
+  // certificate the device cannot verify, such as a self-signed one. It is not a W3C member and
+  // browsers do not read it. Absent, null, unrecognised or not a string, verification stays on.
+  RTCTlsCertPolicy tlsCertPolicy = RTCTlsCertPolicySecure;
+  id tlsCertPolicyValue = json[@"tlsCertPolicy"];
+  if ([tlsCertPolicyValue isKindOfClass:[NSString class]]) {
+    if ([tlsCertPolicyValue isEqualToString:@"insecure_no_check"]) {
+      NSLog(@"tlsCertPolicy insecure_no_check: the TURN certificate is not verified for %@", urls);
+      tlsCertPolicy = RTCTlsCertPolicyInsecureNoCheck;
+    } else if (![tlsCertPolicyValue isEqualToString:@"secure"]) {
+      NSLog(@"unknown tlsCertPolicy '%@', keeping verification on", tlsCertPolicyValue);
+    }
+  } else if (tlsCertPolicyValue != nil && tlsCertPolicyValue != [NSNull null]) {
+    NSLog(@"tlsCertPolicy is not a string, keeping verification on");
   }
 
-  return [[RTCIceServer alloc] initWithURLStrings:urls];
+  // A null from Dart arrives as NSNull, which RTCIceServer cannot take as a credential. Each
+  // of the two is applied on its own, as before; anything that is not a string is dropped.
+  id usernameValue = json[@"username"];
+  id credentialValue = json[@"credential"];
+  NSString* username = [usernameValue isKindOfClass:[NSString class]] ? usernameValue : nil;
+  NSString* credential = [credentialValue isKindOfClass:[NSString class]] ? credentialValue : nil;
+  if ((username == nil && usernameValue != nil && usernameValue != [NSNull null]) ||
+      (credential == nil && credentialValue != nil && credentialValue != [NSNull null])) {
+    NSLog(@"username and credential must be strings, ignoring a value that is not");
+  }
+  return [[RTCIceServer alloc] initWithURLStrings:urls
+                                         username:username
+                                       credential:credential
+                                    tlsCertPolicy:tlsCertPolicy];
 }
 
 - (nonnull RTCConfiguration*)RTCConfiguration:(id)json {
