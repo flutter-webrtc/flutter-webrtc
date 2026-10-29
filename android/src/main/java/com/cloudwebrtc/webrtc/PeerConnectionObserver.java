@@ -69,6 +69,12 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private final StateProvider stateProvider;
   private final EventChannel eventChannel;
   private EventChannel.EventSink eventSink;
+  // Set by close(). libwebrtc builds a new transceiver's media channel without
+  // checking that the connection is still open, and close() has already freed
+  // the Call that channel is given, so adding a track to a closed connection
+  // can crash. The observer stays registered until dispose(), so those calls
+  // are rejected instead.
+  private boolean closed;
 
   PeerConnectionObserver(PeerConnection.RTCConfiguration configuration, StateProvider stateProvider, BinaryMessenger messenger, String id) {
     this.configuration = configuration;
@@ -109,6 +115,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   void close() {
+    closed = true;
     peerConnection.close();
     remoteStreams.clear();
     remoteTracks.clear();
@@ -1068,6 +1075,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   public void addTrack(MediaStreamTrack track, List<String> streamIds, Result result) {
+    if (closed) {
+      resultError("addTrack", "peerConnection is closed", result);
+      return;
+    }
     RtpSender sender = peerConnection.addTrack(track, streamIds);
     result.success(rtpSenderToMap(sender));
   }
@@ -1085,6 +1096,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   public void addTransceiver(MediaStreamTrack track, Map<String, Object> transceiverInit, Result result) {
+    if (closed) {
+      resultError("addTransceiver", "peerConnection is closed", result);
+      return;
+    }
     RtpTransceiver transceiver;
     if (transceiverInit != null) {
       transceiver = peerConnection.addTransceiver(track, mapToRtpTransceiverInit(transceiverInit));
@@ -1100,6 +1115,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   public void addTransceiverOfType(String mediaType, Map<String, Object> transceiverInit, Result result) {
+    if (closed) {
+      resultError("addTransceiverOfType", "peerConnection is closed", result);
+      return;
+    }
     RtpTransceiver transceiver;
     if (transceiverInit != null) {
       transceiver = peerConnection.addTransceiver(stringToMediaType(mediaType), mapToRtpTransceiverInit(transceiverInit));
