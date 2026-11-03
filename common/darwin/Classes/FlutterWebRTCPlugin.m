@@ -1844,8 +1844,16 @@ static void FlutterWebRTCApplyFieldTrials(void) {
                 NSNumber* recorderId = argsMap[@"recorderId"];
                 FlutterRTCMediaRecorder* recorder = self.recorders[recorderId];
                 if (recorder != nil) {
-                    [recorder stop:result];
-                    [self.recorders removeObjectForKey:recorderId];
+                    @try {
+                        [recorder stop:^(id res) {
+                            [self.recorders removeObjectForKey:recorderId];
+                            result(res);
+                        }];
+                    } @catch (NSException *e) {
+                        NSLog(@"[FlutterWebRTCPlugin] Exception stopping recorder: %@", e);
+                        [self.recorders removeObjectForKey:recorderId];
+                        result(nil);
+                    }
                 } else {
                     result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@ failed",call.method]
                                               message:[NSString stringWithFormat:@"Error: recorder with id %@ not found!",recorderId]
