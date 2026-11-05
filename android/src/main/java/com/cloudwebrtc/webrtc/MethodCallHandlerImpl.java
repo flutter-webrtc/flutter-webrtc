@@ -1902,10 +1902,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     if (track == null) {
       Log.d(TAG, "mediaStreamTrackSetEnabled() track is null");
       return;
-    } else if (track.enabled() == enabled) {
-      return;
     }
-    track.setEnabled(enabled);
+    try {
+      if (track.enabled() == enabled) {
+        return;
+      }
+      track.setEnabled(enabled);
+    } catch (IllegalStateException e) {
+      Log.w(TAG, "mediaStreamTrackSetEnabled(): track already disposed: " + e.getMessage());
+    }
   }
 
   public void mediaStreamTrackSetVolume(final String id, final double volume, String peerConnectionId) {
