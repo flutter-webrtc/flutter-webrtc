@@ -9,6 +9,8 @@
 #include <iostream>
 #include <thread>
 
+#include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
+
 #include "flutter/generated_plugin_registrant.h"
 
 FlutterWindow::FlutterWindow(
@@ -28,11 +30,16 @@ bool FlutterWindow::OnCreate() {
 
   // Register Flutter plugins.
   RegisterPlugins(flutter_view_controller_->engine());
+  video_processor_channel_ = std::make_unique<VideoProcessorChannel>(
+      flutter_view_controller_->engine()->messenger(),
+      &FlutterWebRTCPluginSharedInstance);
 
   return true;
 }
 
 void FlutterWindow::OnDestroy() {
+  // Detach the processors while the flutter_webrtc plugin is still alive.
+  video_processor_channel_ = nullptr;
   if (flutter_view_controller_) {
     flutter_view_controller_ = nullptr;
   }

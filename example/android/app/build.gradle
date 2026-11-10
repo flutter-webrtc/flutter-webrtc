@@ -42,3 +42,10 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // flutter_webrtc keeps the WebRTC SDK as an implementation dependency, so
+    // VideoProcessorSample needs it to see org.webrtc. Keep the version in step
+    // with android/build.gradle.
+    implementation 'io.github.webrtc-sdk:android:150.7871.04'
+}

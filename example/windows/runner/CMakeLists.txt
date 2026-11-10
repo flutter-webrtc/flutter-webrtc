@@ -12,6 +12,7 @@ add_executable(${BINARY_NAME} WIN32
   "utils.cpp"
   "win32_window.cpp"
   "${FLUTTER_MANAGED_DIR}/generated_plugin_registrant.cc"
+  "${CMAKE_SOURCE_DIR}/../cpp/video_processor_sample.cpp"
   "Runner.rc"
   "runner.exe.manifest"
 )
@@ -35,6 +36,17 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
+
+# The video processor sample in ../cpp, shared with the Linux and eLinux
+# runners, uses the flutter_webrtc C++ API and libwebrtc directly. The
+# flutter_webrtc_plugin target, linked in generated_plugins.cmake, provides
+# their include paths; libwebrtc and the defines are added here so that the
+# headers match how the plugin was built.
+target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/../cpp")
+target_compile_definitions(${BINARY_NAME} PRIVATE
+  LIB_WEBRTC_API_DLL RTC_DESKTOP_DEVICE)
+target_link_libraries(${BINARY_NAME} PRIVATE
+  "${CMAKE_SOURCE_DIR}/flutter/ephemeral/.plugin_symlinks/flutter_webrtc/third_party/libwebrtc/lib/libwebrtc.dll.lib")
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)

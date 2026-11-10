@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #include "libwebrtc.h"
 
@@ -22,6 +23,8 @@
 #include "rtc_peerconnection.h"
 #include "rtc_peerconnection_factory.h"
 #include "rtc_video_device.h"
+#include "rtc_video_processor.h"
+#include "rtc_video_source.h"
 
 namespace flutter_webrtc_plugin {
 
@@ -62,6 +65,29 @@ class FlutterWebRTCBase {
   }
 
   virtual scoped_refptr<RTCMediaTrack> MediaTrackForId(const std::string& id);
+
+  // Runs `processor` on every frame of the local video track `track_id`
+  // before the frame is encoded or rendered. This is the desktop counterpart
+  // of Android's LocalVideoTrack.addProcessor and Darwin's addProcessing, and
+  // works for camera and screen capture tracks. Returns false if `track_id`
+  // is not a local video track created by this plugin.
+  //
+  // Call both methods on the platform thread. The caller owns `processor`.
+  // Remove it before the track is disposed and before freeing it, and free it
+  // only after RemoveVideoProcessor() returns, since removal waits for a
+  // frame that is being processed. If the track is disposed first, the
+  // dispose removes any processor still attached and RemoveVideoProcessor()
+  // returns false from then on.
+  //
+  // These are virtual so that other plugins can call them through
+  // FlutterWebRTCPluginSharedInstance() (Windows, eLinux) or
+  // flutter_webrtc_plugin_get_shared_instance() (Linux) without linking to
+  // them.
+  virtual bool AddVideoProcessor(const std::string& track_id,
+                                 RTCVideoProcessor* processor);
+
+  virtual bool RemoveVideoProcessor(const std::string& track_id,
+                                    RTCVideoProcessor* processor);
 
   std::string GenerateUUID();
 
@@ -116,6 +142,14 @@ class FlutterWebRTCBase {
   bool CreateIceServers(const EncodableList& iceServersArray,
                         IceServer* ice_servers);
 
+  // Detaches the processors of a local video track and forgets its source.
+  void RemoveVideoSourceForId(const std::string& track_id);
+
+  struct LocalVideoSource {
+    scoped_refptr<RTCVideoSource> source;
+    std::vector<RTCVideoProcessor*> processors;
+  };
+
  protected:
   bool webrtc_initialized_ = false;
   // Whether `enableWARP` was requested; peer connections created afterwards
@@ -133,6 +167,8 @@ class FlutterWebRTCBase {
   std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
   std::map<std::string, scoped_refptr<RTCMediaTrack>> local_tracks_;
   std::map<std::string, scoped_refptr<RTCVideoCapturer>> video_capturers_;
+  // Sources of the local video tracks in `local_tracks_`, keyed by track id.
+  std::map<std::string, LocalVideoSource> video_sources_;
   std::map<int64_t, std::shared_ptr<FlutterVideoRenderer>> renders_;
   std::map<std::string, std::shared_ptr<FlutterRTCDataChannelObserver>>
       data_channel_observers_;

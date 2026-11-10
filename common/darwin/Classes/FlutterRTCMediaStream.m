@@ -682,69 +682,76 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 }
 
 - (void)getSources:(FlutterResult)result {
-  NSMutableArray* sources = [NSMutableArray array];
-  NSArray* videoDevices =  [self captureDevices];
-  for (AVCaptureDevice* device in videoDevices) {
-    [sources addObject:@{
-      @"facing" : device.positionString,
-      @"deviceId" : device.uniqueID,
-      @"label" : device.localizedName,
-      @"kind" : @"videoinput",
-    }];
-  }
-#if TARGET_OS_IPHONE
-
-  RTCAudioSession* session = [RTCAudioSession sharedInstance];
-  for (AVAudioSessionPortDescription* port in session.session.availableInputs) {
-    // NSLog(@"input portName: %@, type %@", port.portName,port.portType);
-    [sources addObject:@{
-      @"deviceId" : port.UID,
-      @"label" : port.portName,
-      @"groupId" : port.portType,
-      @"kind" : @"audioinput",
-    }];
-  }
-
-  for (AVAudioSessionPortDescription* port in session.currentRoute.outputs) {
-    // NSLog(@"output portName: %@, type %@", port.portName,port.portType);
-    if (session.currentRoute.outputs.count == 1 && ![port.UID isEqualToString:@"Speaker"]) {
+  // The first camera discovery in a process loads the system's camera
+  // extensions and waits on the camera daemon, about a second on a Mac. Off
+  // the main thread, which is Flutter's UI thread on macOS.
+#if TARGET_OS_OSX
+  RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
+#endif
+  dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+    NSMutableArray* sources = [NSMutableArray array];
+    NSArray* videoDevices = [self captureDevices];
+    for (AVCaptureDevice* device in videoDevices) {
       [sources addObject:@{
-        @"deviceId" : @"Speaker",
-        @"label" : @"Speaker",
-        @"groupId" : @"Speaker",
+        @"facing" : device.positionString,
+        @"deviceId" : device.uniqueID,
+        @"label" : device.localizedName,
+        @"kind" : @"videoinput",
+      }];
+    }
+#if TARGET_OS_OSX
+    NSArray* inputDevices = [audioDeviceModule inputDevices];
+    for (RTCIODevice* device in inputDevices) {
+      [sources addObject:@{
+        @"deviceId" : device.deviceId,
+        @"label" : device.name,
+        @"kind" : @"audioinput",
+      }];
+    }
+
+    NSArray* outputDevices = [audioDeviceModule outputDevices];
+    for (RTCIODevice* device in outputDevices) {
+      [sources addObject:@{
+        @"deviceId" : device.deviceId,
+        @"label" : device.name,
         @"kind" : @"audiooutput",
       }];
     }
-    [sources addObject:@{
-      @"deviceId" : port.UID,
-      @"label" : port.portName,
-      @"groupId" : port.portType,
-      @"kind" : @"audiooutput",
-    }];
-  }
 #endif
-#if TARGET_OS_OSX
-  RTCAudioDeviceModule* audioDeviceModule = [self.peerConnectionFactory audioDeviceModule];
+    dispatch_async(dispatch_get_main_queue(), ^{
+#if TARGET_OS_IPHONE
+      RTCAudioSession* session = [RTCAudioSession sharedInstance];
+      for (AVAudioSessionPortDescription* port in session.session.availableInputs) {
+        // NSLog(@"input portName: %@, type %@", port.portName,port.portType);
+        [sources addObject:@{
+          @"deviceId" : port.UID,
+          @"label" : port.portName,
+          @"groupId" : port.portType,
+          @"kind" : @"audioinput",
+        }];
+      }
 
-  NSArray* inputDevices = [audioDeviceModule inputDevices];
-  for (RTCIODevice* device in inputDevices) {
-    [sources addObject:@{
-      @"deviceId" : device.deviceId,
-      @"label" : device.name,
-      @"kind" : @"audioinput",
-    }];
-  }
-
-  NSArray* outputDevices = [audioDeviceModule outputDevices];
-  for (RTCIODevice* device in outputDevices) {
-    [sources addObject:@{
-      @"deviceId" : device.deviceId,
-      @"label" : device.name,
-      @"kind" : @"audiooutput",
-    }];
-  }
+      for (AVAudioSessionPortDescription* port in session.currentRoute.outputs) {
+        // NSLog(@"output portName: %@, type %@", port.portName,port.portType);
+        if (session.currentRoute.outputs.count == 1 && ![port.UID isEqualToString:@"Speaker"]) {
+          [sources addObject:@{
+            @"deviceId" : @"Speaker",
+            @"label" : @"Speaker",
+            @"groupId" : @"Speaker",
+            @"kind" : @"audiooutput",
+          }];
+        }
+        [sources addObject:@{
+          @"deviceId" : port.UID,
+          @"label" : port.portName,
+          @"groupId" : port.portType,
+          @"kind" : @"audiooutput",
+        }];
+      }
 #endif
-  result(@{@"sources" : sources});
+      result(@{@"sources" : sources});
+    });
+  });
 }
 
 - (void)selectAudioInput:(NSString*)deviceId result:(FlutterResult)result {

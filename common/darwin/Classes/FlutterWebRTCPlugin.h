@@ -110,8 +110,17 @@ typedef void (^CapturerStopHandler)(CompletionHandler _Nonnull handler);
 - (RTCRtpSender* _Nullable)getRtpSenderById:(RTCPeerConnection* _Nonnull)peerConnection
                                          Id:(NSString* _Nonnull)Id;
 
-/// The first registered instance, or the one that created the peer connection
-/// factory once any instance has. Nil before any instance is registered.
+/// Process-wide. The first registered instance, or the one that created the
+/// peer connection factory once any instance has. Nil when no instance is
+/// registered. With more than one Flutter engine this can belong to another
+/// engine, so a caller that knows its engine should prefer
+/// +instanceForMessenger:.
 + (FlutterWebRTCPlugin* _Nullable)sharedSingleton;
+
+/// The instance registered with the engine that owns `messenger` (any
+/// registrar's messenger from that engine works). Nil if that engine has no
+/// instance or has been detached.
++ (FlutterWebRTCPlugin* _Nullable)instanceForMessenger:
+    (NSObject<FlutterBinaryMessenger>* _Nonnull)messenger;
 
 @end

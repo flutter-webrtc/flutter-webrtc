@@ -5,14 +5,72 @@
 #include <gdk/gdkx.h>
 #endif
 
+#include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
+
+#include <cstring>
+
 #include "flutter/generated_plugin_registrant.h"
+#include "video_processor_sample.h"
 
 struct _MyApplication {
   GtkApplication parent_instance;
   char** dart_entrypoint_arguments;
+  // Attaches video processors to flutter_webrtc tracks; see
+  // lib/src/video_processor_sample.dart.
+  VideoProcessorSample* video_processor_sample;
+  FlMethodChannel* video_processor_channel;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
+
+// Forwards the "flutter_webrtc_example/video_processor" method channel to the
+// VideoProcessorSample shared with the Windows and eLinux runners.
+static void video_processor_method_call_cb(FlMethodChannel* channel,
+                                           FlMethodCall* method_call,
+                                           gpointer user_data) {
+  auto* sample = static_cast<VideoProcessorSample*>(user_data);
+  const gchar* method = fl_method_call_get_name(method_call);
+  FlValue* args = fl_method_call_get_args(method_call);
+  FlValue* track_id = nullptr;
+  if (args && fl_value_get_type(args) == FL_VALUE_TYPE_MAP)
+    track_id = fl_value_lookup_string(args, "trackId");
+
+  g_autoptr(FlMethodResponse) response = nullptr;
+  if (!track_id || fl_value_get_type(track_id) != FL_VALUE_TYPE_STRING) {
+    response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+        "bad_args", "trackId is required", nullptr));
+  } else if (strcmp(method, "setGrayscale") == 0) {
+    FlValue* enabled = fl_value_lookup_string(args, "enabled");
+    if (!enabled || fl_value_get_type(enabled) != FL_VALUE_TYPE_BOOL) {
+      response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+          "bad_args", "enabled is required", nullptr));
+    } else if (!sample->SetGrayscale(fl_value_get_string(track_id),
+                                     fl_value_get_bool(enabled))) {
+      response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+          "no_track", "not a local video track of flutter_webrtc", nullptr));
+    } else {
+      response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+    }
+  } else if (strcmp(method, "remove") == 0) {
+    g_autoptr(FlValue) removed =
+        fl_value_new_bool(sample->Remove(fl_value_get_string(track_id)));
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(removed));
+  } else {
+    response = FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
+  }
+  fl_method_call_respond(method_call, response, nullptr);
+}
+
+// Detaches the processors while the flutter_webrtc plugin is still alive.
+static void video_processor_teardown(MyApplication* self) {
+  if (self->video_processor_channel) {
+    fl_method_channel_set_method_call_handler(self->video_processor_channel,
+                                              nullptr, nullptr, nullptr);
+    g_clear_object(&self->video_processor_channel);
+  }
+  delete self->video_processor_sample;
+  self->video_processor_sample = nullptr;
+}
 
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
@@ -59,6 +117,19 @@ static void my_application_activate(GApplication* application) {
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
+  self->video_processor_sample =
+      new VideoProcessorSample(&flutter_webrtc_plugin_get_shared_instance);
+  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
+  self->video_processor_channel = fl_method_channel_new(
+      fl_engine_get_binary_messenger(fl_view_get_engine(view)),
+      "flutter_webrtc_example/video_processor", FL_METHOD_CODEC(codec));
+  fl_method_channel_set_method_call_handler(
+      self->video_processor_channel, video_processor_method_call_cb,
+      self->video_processor_sample, nullptr);
+  // The plugin goes away with the view, so tear the sample down first.
+  g_signal_connect_swapped(view, "destroy",
+                           G_CALLBACK(video_processor_teardown), self);
+
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }
 
@@ -84,6 +155,7 @@ static gboolean my_application_local_command_line(GApplication* application, gch
 // Implements GObject::dispose.
 static void my_application_dispose(GObject* object) {
   MyApplication* self = MY_APPLICATION(object);
+  video_processor_teardown(self);
   g_clear_pointer(&self->dart_entrypoint_arguments, g_strfreev);
   G_OBJECT_CLASS(my_application_parent_class)->dispose(object);
 }
