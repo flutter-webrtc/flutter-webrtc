@@ -79,7 +79,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
 #endif
         ];
         
-#if !defined(TARGET_OS_IPHONE)
+#if TARGET_OS_OSX
         if (@available(macOS 13.0, *)) {
             deviceTypes = [deviceTypes arrayByAddingObject:AVCaptureDeviceTypeDeskViewCamera];
         }
@@ -150,7 +150,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
       rtcConstraints = [self parseMediaConstraints:[self defaultAudioConstraints]];
   }
 
-#if !defined(TARGET_OS_IPHONE)
+#if TARGET_OS_OSX
   if (audioDeviceId != nil) {
     [self selectAudioInput:audioDeviceId result:nil];
   }
