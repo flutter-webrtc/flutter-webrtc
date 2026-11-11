@@ -36,6 +36,8 @@ class MediaStreamTrackNative extends MediaStreamTrack {
       'trackId': _trackId,
       'enabled': enabled,
       'peerConnectionId': _peerConnectionId
+    }).catchError((e) {
+      print('MediaStreamTrack::setEnabled: $e');
     });
     _enabled = enabled;
 

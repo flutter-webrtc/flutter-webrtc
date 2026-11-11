@@ -1275,16 +1275,23 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       return null;
     }
     MediaStreamTrack track = null;
-    List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
-    for (RtpTransceiver transceiver : transceivers) {
-      RtpReceiver receiver = transceiver.getReceiver();
-      if (receiver != null) {
-        MediaStreamTrack receiverTrack = receiver.track();
-        if (receiverTrack != null && receiverTrack.id().equals(trackId)) {
-          track = receiverTrack;
-          break;
+    try {
+      List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
+      for (RtpTransceiver transceiver : transceivers) {
+        RtpReceiver receiver = transceiver.getReceiver();
+        if (receiver != null) {
+          MediaStreamTrack receiverTrack = receiver.track();
+          if (receiverTrack != null && receiverTrack.id().equals(trackId)) {
+            track = receiverTrack;
+            break;
+          }
         }
       }
+    } catch (IllegalStateException e) {
+      // The peer connection or one of its transceivers was already disposed,
+      // so it can no longer own the requested track.
+      Log.w(TAG, "getTransceiversTrack(): " + e.getMessage());
+      return null;
     }
     return track;
   }
