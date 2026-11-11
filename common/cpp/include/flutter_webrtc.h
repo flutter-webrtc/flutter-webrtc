@@ -8,6 +8,7 @@
 #include "flutter_frame_cryptor.h"
 #include "flutter_media_stream.h"
 #include "flutter_peerconnection.h"
+#include "flutter_remote_audio_tap.h"
 #include "flutter_screen_capture.h"
 #include "flutter_video_renderer.h"
 
@@ -34,7 +35,8 @@ class FlutterWebRTC : public FlutterWebRTCBase,
                       public FlutterScreenCapture,
                       public FlutterDataChannel,
                       public FlutterFrameCryptor,
-                      public FlutterDataPacketCryptor {
+                      public FlutterDataPacketCryptor,
+                      public FlutterRemoteAudioTap {
  public:
   FlutterWebRTC(FlutterWebRTCPlugin* plugin);
   virtual ~FlutterWebRTC();
