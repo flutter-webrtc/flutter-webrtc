@@ -547,6 +547,23 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
   }
 
   @override
+  Future<bool> setBitrate(
+      {int? minBitrate, int? startBitrate, int? maxBitrate}) async {
+    try {
+      final result = await WebRTC.invokeMethod<bool, dynamic>(
+          'setBitrate', <String, dynamic>{
+        'peerConnectionId': _peerConnectionId,
+        if (minBitrate != null) 'minBitrate': minBitrate,
+        if (startBitrate != null) 'startBitrate': startBitrate,
+        if (maxBitrate != null) 'maxBitrate': maxBitrate,
+      });
+      return result ?? false;
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCPeerConnection::setBitrate: ${e.message}';
+    }
+  }
+
+  @override
   Future<void> close() async {
     try {
       await WebRTC.invokeMethod('peerConnectionClose', <String, dynamic>{
