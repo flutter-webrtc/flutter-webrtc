@@ -22,6 +22,7 @@ add_library(${PLUGIN_NAME} SHARED
   "../common/cpp/src/flutter_data_packet_cryptor.cc"
   "../common/cpp/src/flutter_frame_cryptor.cc"
   "../common/cpp/src/flutter_media_stream.cc"
+  "../common/cpp/src/flutter_external_media.cc"
   "../common/cpp/src/flutter_utf8_sanitize.cc"
   "../common/cpp/src/flutter_peerconnection.cc"
   "../common/cpp/src/flutter_frame_capturer.cc"
@@ -43,6 +44,9 @@ include_directories(
 )
 
 apply_standard_settings(${PLUGIN_NAME})
+if(MSVC)
+  target_compile_options(${PLUGIN_NAME} PRIVATE /utf-8)
+endif()
 set_target_properties(${PLUGIN_NAME} PROPERTIES
   CXX_VISIBILITY_PRESET hidden)
 target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
@@ -69,3 +73,7 @@ set(flutter_webrtc_bundled_libraries
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/libwebrtc.dll"
   PARENT_SCOPE
 )
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/external_audio_input_policy.cmake")
+flutter_webrtc_configure_external_input(${PLUGIN_NAME}
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/include")

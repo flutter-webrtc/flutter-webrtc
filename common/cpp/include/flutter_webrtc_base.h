@@ -37,6 +37,7 @@ class FlutterPeerConnectionObserver;
 class FlutterWebRTCBase {
  public:
   friend class FlutterMediaStream;
+  friend class FlutterExternalMedia;
   friend class FlutterPeerConnection;
   friend class FlutterVideoRendererManager;
   friend class FlutterDataChannel;
@@ -57,7 +58,8 @@ class FlutterWebRTCBase {
   // `initialize()` options ask for. Field trials are read when the factory is
   // created, so only the first call decides them; later calls are no-ops.
   void EnsureWebRTCInitialized(bool enable_warp = false,
-                               bool zero_playout_delay = false);
+                               bool zero_playout_delay = false,
+                               bool external_audio_input_only = false);
 
   virtual scoped_refptr<RTCAudioProcessing> audio_processing() {
     EnsureWebRTCInitialized();
@@ -152,6 +154,7 @@ class FlutterWebRTCBase {
 
  protected:
   bool webrtc_initialized_ = false;
+  bool external_audio_input_only_ = false;
   // Whether `enableWARP` was requested; peer connections created afterwards
   // default to DSCP marking. See EnsureWebRTCInitialized().
   bool warp_enabled_ = false;

@@ -1,4 +1,5 @@
 #import "FlutterWebRTCPlugin.h"
+#import "FlutterExternalMedia.h"
 #import "AudioUtils.h"
 #import "CameraUtils.h"
 
@@ -119,6 +120,10 @@ void postEvent(FlutterEventSink _Nullable sink, id _Nullable event) {
   BOOL _speakerOnButPreferBluetooth;
   AVAudioSessionPort _preferredInput;
   AudioManager* _audioManager;
+  BOOL _externalAudioInputOnly;
+#if TARGET_OS_OSX
+  FlutterExternalMedia* _externalMedia;
+#endif
 #if TARGET_OS_IPHONE || TARGET_OS_OSX
   FlutterRTCVideoPlatformViewFactory *_platformViewFactory;
 #endif
@@ -343,6 +348,9 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     peerConnection.eventSink = nil;
   }
   _eventSink = nil;
+#if TARGET_OS_OSX
+  [_externalMedia close];_externalMedia=nil;
+#endif
 
   @synchronized([FlutterWebRTCPlugin class]) {
     [instancesByMessenger removeObjectForKey:_messenger];
@@ -426,7 +434,8 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     bypassVoiceProcessing:(BOOL)bypassVoiceProcessing
                  severity:(RTCLoggingSeverity)severity
               enableWARP:(BOOL)enableWARP
-        zeroPlayoutDelay:(BOOL)zeroPlayoutDelay {
+        zeroPlayoutDelay:(BOOL)zeroPlayoutDelay
+   externalAudioInputOnly:(BOOL)externalAudioInputOnly {
     // RTCSetMinDebugLogLevel(severity);
     [self initLoggerCallback:severity];
 
@@ -462,12 +471,23 @@ static void FlutterWebRTCApplyFieldTrials(void) {
         // The AudioEngine ADM can expose a zero-rate input on the iOS Simulator.
         audioDeviceModuleType = RTCAudioDeviceModuleTypePlatformDefault;
 #endif
+        _externalAudioInputOnly = externalAudioInputOnly;
+#if TARGET_OS_OSX
+        if (externalAudioInputOnly) {
+          _externalMedia = [[FlutterExternalMedia alloc] initWithPlugin:self messenger:_messenger];
+          _peerConnectionFactory = [[RTCPeerConnectionFactory alloc]
+              initWithEncoderFactory:simulcastFactory decoderFactory:decoderFactory
+              audioDevice:_externalMedia.audioDevice];
+        } else
+#endif
+        {
         _peerConnectionFactory =
             [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:audioDeviceModuleType
                                                       bypassVoiceProcessing:bypassVoiceProcessing
                                                              encoderFactory:simulcastFactory
                                                              decoderFactory:decoderFactory
                                                       audioProcessingModule:_audioManager.audioProcessingModule];
+        }
 
         // Take the sharedSingleton slot over from an instance that never
         // created a factory.
@@ -563,11 +583,31 @@ static void FlutterWebRTCApplyFieldTrials(void) {
       zeroPlayoutDelay = ((NSNumber*)options[@"zeroPlayoutDelay"]).boolValue;
     }
 
+    id policy = options[@"externalAudioInputOnly"];
+    if (policy && (![policy isKindOfClass:NSNumber.class] ||
+        CFGetTypeID((__bridge CFTypeRef)policy) != CFBooleanGetTypeID())) {
+      result([FlutterError errorWithCode:@"invalid_audio_input_policy" message:@"Expected bool" details:nil]);return;
+    }
+    BOOL externalOnly = [policy boolValue];
+    if (_peerConnectionFactory && policy && externalOnly != _externalAudioInputOnly) {
+      result([FlutterError errorWithCode:@"factory_policy_immutable" message:@"Set externalAudioInputOnly before initialization" details:nil]);return;
+    }
+#if !TARGET_OS_OSX
+    if (externalOnly) { result([FlutterError errorWithCode:@"external_input_unsupported" message:@"External input policy is not implemented on this platform" details:nil]);return; }
+#endif
     [self initialize:networkIgnoreMask bypassVoiceProcessing:enableBypassVoiceProcessing
                      severity:severity
                      enableWARP:enableWARP
-                     zeroPlayoutDelay:zeroPlayoutDelay];
+                     zeroPlayoutDelay:zeroPlayoutDelay
+                     externalAudioInputOnly:externalOnly];
     result(@"");
+#if TARGET_OS_OSX
+  } else if ([call.method hasPrefix:@"externalMedia"]) {
+    if (!_externalAudioInputOnly || !_externalMedia) { result([FlutterError errorWithCode:@"external_input_required" message:@"Initialize externalAudioInputOnly before creating the factory" details:nil]);return; }
+    [_externalMedia handleCall:call result:result];
+  } else if (_externalAudioInputOnly && [call.method isEqualToString:@"selectAudioOutput"]) {
+    result([FlutterError errorWithCode:@"external_output_route" message:@"Custom output follows the macOS system default output" details:nil]);
+#endif
   } else if ([@"createPeerConnection" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSDictionary* configuration = argsMap[@"configuration"];
@@ -597,6 +637,11 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   } else if ([@"getUserMedia" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSDictionary* constraints = argsMap[@"constraints"];
+    id audio = constraints[@"audio"];
+    if (_externalAudioInputOnly && audio &&
+        (![audio isKindOfClass:NSNumber.class] || [audio boolValue])) {
+      result([FlutterError errorWithCode:@"external_audio_only" message:@"Device audio is disabled for this factory" details:nil]);return;
+    }
     [self getUserMedia:constraints result:result];
   } else if ([@"getDisplayMedia" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
@@ -1981,6 +2026,9 @@ static void FlutterWebRTCApplyFieldTrials(void) {
     [peerConnection close];
   }
   [_peerConnections removeAllObjects];
+#if TARGET_OS_OSX
+  [_externalMedia close];_externalMedia=nil;
+#endif
   _peerConnectionFactory = nil;
 }
 
