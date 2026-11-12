@@ -20,7 +20,7 @@ A new flutter plugin project.
   s.static_framework = true
   s.pod_target_xcconfig = {
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++14',
-    'USER_HEADER_SEARCH_PATHS' => '"${PODS_TARGET_SRCROOT}/flutter_webrtc/Sources/flutter_webrtc/include/flutter_webrtc"'
+    'USER_HEADER_SEARCH_PATHS' => '"${PODS_TARGET_SRCROOT}/flutter_webrtc/Sources/flutter_webrtc/include/flutter_webrtc" "${PODS_TARGET_SRCROOT}/flutter_webrtc/Sources/flutter_webrtc/dart_api"'
   }
   s.libraries = 'c++'
 end

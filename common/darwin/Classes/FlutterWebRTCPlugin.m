@@ -857,6 +857,8 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 
     [self dataChannelSend:peerConnectionId dataChannelId:dataChannelId data:data type:type];
     result(nil);
+  } else if ([@"dataChannelFfiFunctions" isEqualToString:call.method]) {
+    result(FlutterRTCDataChannelFFIFunctions());
   }  else if ([@"dataChannelGetBufferedAmount" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* peerConnectionId = argsMap[@"peerConnectionId"];

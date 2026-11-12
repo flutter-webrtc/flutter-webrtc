@@ -28,7 +28,8 @@ let package = Package(
                 .product(name: "FlutterFramework", package: "FlutterFramework")
             ],
             cSettings: [
-                .headerSearchPath("include/flutter_webrtc")
+                .headerSearchPath("include/flutter_webrtc"),
+                .headerSearchPath("dart_api")
             ],
             linkerSettings: [
                 .linkedLibrary("c++")

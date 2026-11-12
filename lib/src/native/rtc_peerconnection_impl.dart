@@ -235,7 +235,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         String flutterId = map['flutterId'];
         final dataChannel = RTCDataChannelNative(
             _peerConnectionId, label, dataChannelId, flutterId,
-            state: RTCDataChannelState.RTCDataChannelOpen);
+            state: RTCDataChannelState.RTCDataChannelOpen,
+            ffiHandle: map['ffiHandle']);
         _trackDataChannel(dataChannel);
         onDataChannel?.call(dataChannel);
         break;
@@ -522,7 +523,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       });
 
       final dataChannel = RTCDataChannelNative(
-          _peerConnectionId, label, response['id'], response['flutterId']);
+          _peerConnectionId, label, response['id'], response['flutterId'],
+          ffiHandle: response['ffiHandle']);
       _trackDataChannel(dataChannel);
       return dataChannel;
     } on PlatformException catch (e) {
