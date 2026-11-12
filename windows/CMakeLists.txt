@@ -69,3 +69,7 @@ set(flutter_webrtc_bundled_libraries
   "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/lib/libwebrtc.dll"
   PARENT_SCOPE
 )
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/external_audio_input_policy.cmake")
+flutter_webrtc_configure_external_input(${PLUGIN_NAME}
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/libwebrtc/include")
