@@ -179,7 +179,7 @@ public class CameraUtils {
     String mode = call.argument("mode");
     VideoCapturerInfo info = getUserMediaImpl.getCapturerInfo(trackId);
     if (info == null) {
-      resultError("setFocusMode", "Video capturer not found for id: " + trackId, result);
+      resultError("setFocusPoint", "Video capturer not found for id: " + trackId, result);
       return;
     }
 
@@ -212,7 +212,7 @@ public class CameraUtils {
                 (Handler) getPrivateProperty(session.getClass(), session, "cameraThreadHandler");
       } catch (NoSuchFieldWithNameException e) {
         // Most likely the upstream Camera2Capturer class have changed
-        resultError("setFocusMode", "[FocusMode] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
+        resultError("setFocusPoint", "[setFocusPoint] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
         return;
       }
 
@@ -251,7 +251,7 @@ public class CameraUtils {
         camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
       } catch (NoSuchFieldWithNameException e) {
         // Most likely the upstream Camera1Capturer class have changed
-        resultError("setFocusMode", "[FocusMode] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
+        resultError("setFocusPoint", "[setFocusPoint] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
         return;
       }
 
@@ -263,7 +263,7 @@ public class CameraUtils {
       result.success(null);
       return;
     }
-    resultError("setFocusMode", "[FocusMode] Video capturer not compatible", result);
+    resultError("setFocusPoint", "[setFocusPoint] Video capturer not compatible", result);
   }
 
   public void setExposureMode(MethodCall call, AnyThreadResult result) {}
@@ -355,7 +355,7 @@ public class CameraUtils {
         camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
       } catch (NoSuchFieldWithNameException e) {
         // Most likely the upstream Camera1Capturer class have changed
-        resultError("setFocusMode", "[FocusMode] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
+        resultError("setExposurePoint", "[setExposurePoint] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
         return;
       }
 
@@ -363,8 +363,11 @@ public class CameraUtils {
       params.setFlashMode(
               isTorchOn ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF);
       params.setFocusAreas(null);
+
+      result.success(null);
+      return;
     }
-    resultError("setFocusMode", "[FocusMode] Video capturer not compatible", result);
+    resultError("setExposurePoint", "[setExposurePoint] Video capturer not compatible", result);
   }
 
   public void hasTorch(String trackId, MethodChannel.Result result) {
