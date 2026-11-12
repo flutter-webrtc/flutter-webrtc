@@ -185,6 +185,23 @@ static void FlutterWebRTCApplyFieldTrials(void) {
   [RTCPeerConnectionFactory configureFieldTrials:fieldTrials];
 }
 
+// libwebrtc builds a new transceiver's media channel without checking that the
+// connection is still open, and Close() has already freed the Call that channel
+// is given, so adding a track to a closed connection crashes (EXC_BAD_ACCESS in
+// WebRtcVoiceSendChannel). A closed connection stays registered until
+// peerConnectionDispose, so the call is rejected instead.
+static BOOL FlutterWebRTCRejectClosedPeerConnection(RTCPeerConnection* peerConnection,
+                                                    NSString* method,
+                                                    FlutterResult result) {
+  if (!peerConnection.closedByPlugin) {
+    return NO;
+  }
+  result([FlutterError errorWithCode:[NSString stringWithFormat:@"%@Failed", method]
+                             message:@"Error: peerConnection is closed!"
+                             details:nil]);
+  return YES;
+}
+
 + (FlutterWebRTCPlugin *)sharedSingleton
 {
   @synchronized(self)
@@ -1415,6 +1432,9 @@ static void FlutterWebRTCApplyFieldTrials(void) {
                 details:nil]);
       return;
     }
+    if (FlutterWebRTCRejectClosedPeerConnection(peerConnection, call.method, result)) {
+      return;
+    }
 
     RTCMediaStreamTrack* track = [self trackForId:trackId peerConnectionId:nil];
     if (track == nil) {
@@ -1465,6 +1485,9 @@ static void FlutterWebRTCApplyFieldTrials(void) {
           errorWithCode:[NSString stringWithFormat:@"%@Failed", call.method]
                 message:[NSString stringWithFormat:@"Error: peerConnection not found!"]
                 details:nil]);
+      return;
+    }
+    if (FlutterWebRTCRejectClosedPeerConnection(peerConnection, call.method, result)) {
       return;
     }
     RTCRtpTransceiver* transceiver = nil;
