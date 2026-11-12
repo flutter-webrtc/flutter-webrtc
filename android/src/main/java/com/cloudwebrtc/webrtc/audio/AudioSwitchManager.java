@@ -26,8 +26,14 @@ public class AudioSwitchManager {
 
     public static final String TAG = "AudioSwitchManager";
 
+    /**
+     * Process-wide: shared by the Flutter engines attached at the same time, and
+     * replaced by a fresh one when an engine attaches while none is (see
+     * FlutterWebRTCPlugin#startListening). Volatile because it is also read off
+     * the main thread (e.g. onAddTrack).
+     */
     @SuppressLint("StaticFieldLeak")
-    public static AudioSwitchManager instance;
+    public static volatile AudioSwitchManager instance;
     @NonNull
     private final Context context;
     @NonNull
@@ -35,6 +41,9 @@ public class AudioSwitchManager {
 
     public boolean loggingEnabled;
     private boolean isActive = false;
+    // Set by release(). A caller on another thread that read `instance` just before
+    // it was replaced must not bring the released manager back to life.
+    private volatile boolean released = false;
     @NonNull
     public Function2<
             ? super List<? extends AudioDevice>,
@@ -142,7 +151,7 @@ public class AudioSwitchManager {
 
     @Nullable
     private AudioSwitch getOrCreateAudioSwitch() {
-        if (!audioSessionManagementEnabled) {
+        if (!audioSessionManagementEnabled || released) {
             return null;
         }
 
@@ -167,7 +176,7 @@ public class AudioSwitchManager {
     }
 
     public void start() {
-        if (!audioSessionManagementEnabled) {
+        if (!audioSessionManagementEnabled || released) {
             return;
         }
         handler.removeCallbacksAndMessages(null);
@@ -181,14 +190,43 @@ public class AudioSwitchManager {
     }
 
     public void stop() {
+        // Cancel queued work even before the first session created the AudioSwitch:
+        // a start() posted from another thread (onAddTrack runs on the signaling
+        // thread) just before this stop() would otherwise activate the session after
+        // it was released.
+        handler.removeCallbacksAndMessages(null);
         if (audioSwitch != null) {
-            handler.removeCallbacksAndMessages(null);
             handler.postAtFrontOfQueue(() -> {
                 if (isActive) {
                     Objects.requireNonNull(audioSwitch).deactivate();
                     isActive = false;
+                    // deactivate() restores the speakerphone state saved when the session
+                    // started. From API 31 that is the effective communication route, which
+                    // another client may have set, and restoring it registers this app for
+                    // it. Clear it so no route outlives the session.
+                    clearCommunicationDevice();
                 }
             });
+        }
+    }
+
+    /**
+     * Ends this manager for good: drops queued work, ends a session that is still
+     * active and stops the AudioSwitch, which unregisters its device listeners.
+     * Main thread only. Called when a fresh manager replaces this one while no
+     * engine is attached.
+     */
+    public void release() {
+        released = true;
+        handler.removeCallbacksAndMessages(null);
+        if (audioSwitch != null) {
+            if (isActive) {
+                audioSwitch.deactivate();
+                isActive = false;
+                clearCommunicationDevice();
+            }
+            audioSwitch.stop();
+            audioSwitch = null;
         }
     }
 
