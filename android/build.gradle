@@ -32,8 +32,11 @@ def agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0
 def builtInKotlinActive = agpMajor >= 9 &&
     (!project.hasProperty('android.builtInKotlin') ||
         Boolean.parseBoolean(project.property('android.builtInKotlin').toString()))
+// pluginManager.apply, not `apply plugin:`: Flutter's KGP detection greps the
+// build file for a literal `apply plugin: 'kotlin-android'` line and would
+// report it even when this guard skips it.
 if (!builtInKotlinActive) {
-    apply plugin: 'kotlin-android'
+    pluginManager.apply('kotlin-android')
 }
 
 android {
