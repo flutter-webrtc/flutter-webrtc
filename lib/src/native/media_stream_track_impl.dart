@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../helper.dart';
+import 'event_channel.dart';
 import 'utils.dart';
 
 class MediaStreamTrackNative extends MediaStreamTrack {
@@ -27,6 +28,42 @@ class MediaStreamTrackNative extends MediaStreamTrack {
   bool _enabled;
 
   bool _muted = false;
+
+  // onEnded fires when the native side reports that the track ended by
+  // itself (`mediaStreamTrackEnded`, sent on Android when the system stops a
+  // screen capture). The track listens to the event channel only while a
+  // handler is set and until the track is stopped.
+  StreamTrackCallback? _onEnded;
+  StreamSubscription<Map<String, dynamic>>? _endedSubscription;
+
+  @override
+  StreamTrackCallback? get onEnded => _onEnded;
+
+  @override
+  set onEnded(StreamTrackCallback? callback) {
+    _onEnded = callback;
+    if (callback == null) {
+      _stopWatchingEnded();
+    } else {
+      _endedSubscription ??= FlutterWebRTCEventChannel
+          .instance.handleEvents.stream
+          .listen(_onNativeEvent);
+    }
+  }
+
+  void _onNativeEvent(Map<String, dynamic> event) {
+    final ended = event['mediaStreamTrackEnded'];
+    if (ended is Map && ended['trackId'] == _trackId) {
+      final callback = _onEnded;
+      _stopWatchingEnded();
+      callback?.call();
+    }
+  }
+
+  void _stopWatchingEnded() {
+    unawaited(_endedSubscription?.cancel());
+    _endedSubscription = null;
+  }
 
   String get peerConnectionId => _peerConnectionId;
 
@@ -124,6 +161,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
 
   @override
   Future<void> stop() async {
+    _stopWatchingEnded();
     await WebRTC.invokeMethod(
       'trackDispose',
       <String, dynamic>{'trackId': _trackId},
