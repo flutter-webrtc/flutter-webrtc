@@ -533,6 +533,8 @@ public class GetUserMediaImpl {
         /* Create ScreenCapture */
         VideoTrack displayTrack = null;
         VideoCapturer videoCapturer = null;
+        // Id of the screen track, set once the track is created below.
+        final String[] screenTrackId = new String[1];
         videoCapturer =
                 new OrientationAwareScreenCapturer(
                         mediaProjectionData,
@@ -543,6 +545,19 @@ public class GetUserMediaImpl {
                                 // After Huawei P30 and Android 10 version test, the onstop method is called, which will not affect the next process,
                                 // and there is no need to call the resulterror method
                                 //resultError("MediaProjection.Callback()", "User revoked permission to capture the screen.", result);
+
+                                // The system stopped the capture (the user tapped its stop control,
+                                // another app started a capture, or the screen locked). Report that
+                                // the screen track ended. stopCapture() unregisters this callback
+                                // first, so a stop requested by the app is not reported.
+                                String trackId = screenTrackId[0];
+                                FlutterWebRTCPlugin plugin = FlutterWebRTCPlugin.sharedSingleton;
+                                if (trackId != null && plugin != null) {
+                                    ConstraintsMap params = new ConstraintsMap();
+                                    params.putString("event", "mediaStreamTrackEnded");
+                                    params.putString("trackId", trackId);
+                                    plugin.sendEvent(params.toMap());
+                                }
                             }
                         });
         if (videoCapturer == null) {
@@ -578,6 +593,9 @@ public class GetUserMediaImpl {
 
         String trackId = stateProvider.getNextTrackUUID();
         mVideoCapturers.put(trackId, info);
+        // Registered so that removeVideoCapturer() stops and disposes it with the capturer.
+        mSurfaceTextureHelpers.put(trackId, surfaceTextureHelper);
+        screenTrackId[0] = trackId;
 
         displayTrack = pcFactory.createVideoTrack(trackId, videoSource);
 
