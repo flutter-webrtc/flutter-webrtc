@@ -1,9 +1,12 @@
 package com.cloudwebrtc.webrtc.video;
 
+import android.graphics.Matrix;
+
 import androidx.annotation.Nullable;
 
 import com.cloudwebrtc.webrtc.LocalTrack;
 
+import org.webrtc.TextureBufferImpl;
 import org.webrtc.VideoFrame;
 import org.webrtc.VideoProcessor;
 import org.webrtc.VideoSink;
@@ -56,10 +59,26 @@ public class LocalVideoTrack extends LocalTrack implements VideoProcessor {
     @Override
     public void onCapturerStopped() {}
 
+    /** Bake rotation into the texture transform so source rotation need not convert it to I420. */
+    @Nullable
+    private static VideoFrame upright(VideoFrame frame) {
+        int rotation = frame.getRotation();
+        if (rotation == 0 || !(frame.getBuffer() instanceof TextureBufferImpl)) return null;
+        TextureBufferImpl buffer = (TextureBufferImpl) frame.getBuffer();
+        Matrix turn = new Matrix();
+        turn.preTranslate(0.5f, 0.5f);
+        turn.preRotate(rotation);
+        turn.preTranslate(-0.5f, -0.5f);
+        return new VideoFrame(
+                buffer.applyTransformMatrix(turn, frame.getRotatedWidth(), frame.getRotatedHeight()),
+                0, frame.getTimestampNs());
+    }
+
     @Override
     public void onFrameCaptured(VideoFrame videoFrame) {
         if (sink != null) {
-            VideoFrame frame = videoFrame;
+            VideoFrame turned = upright(videoFrame);
+            VideoFrame frame = turned != null ? turned : videoFrame;
             synchronized (processors) {
                 for (ExternalVideoFrameProcessing processor : processors) {
                     VideoFrame processed = processor.onFrame(frame);
