@@ -10,6 +10,7 @@ import org.webrtc.FrameCryptorFactory;
 import org.webrtc.FrameCryptorKeyProvider;
 import org.webrtc.FrameCryptorKeyDerivationAlgorithm;
 import org.webrtc.RtpReceiver;
+import org.webrtc.RtpTransceiver;
 import org.webrtc.RtpSender;
 
 import java.util.ArrayList;
@@ -205,7 +206,12 @@ public class FlutterRTCFrameCryptor {
             paramsResult.putString("frameCryptorId", frameCryptorId);
             result.success(paramsResult.toMap());
         } else if(type.equals("receiver")) {
-            RtpReceiver rtpReceiver = pco.getRtpReceiverById(rtpReceiverId);
+            // By transceiver if known: two receivers (one track on two transceivers) can share an id.
+            String rtpTransceiverId = (String) params.get("rtpTransceiverId");
+            RtpTransceiver rtpTransceiver = rtpTransceiverId != null ? pco.getRtpTransceiverById(rtpTransceiverId) : null;
+            RtpReceiver rtpReceiver = rtpTransceiver != null
+                    ? rtpTransceiver.getReceiver()
+                    : pco.getRtpReceiverById(rtpReceiverId);
 
             FrameCryptor frameCryptor = FrameCryptorFactory.createFrameCryptorForRtpReceiver(stateProvider.getPeerConnectionFactory(),
                     rtpReceiver,

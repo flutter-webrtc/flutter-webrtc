@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_webrtc/src/native/rtc_data_channel_impl.dart';
 import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
+import 'package:flutter_webrtc/src/native/rtc_rtp_receiver_impl.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -80,5 +81,63 @@ void main() {
         'flutterId': '',
       });
     }
+  });
+
+  group('onTrack receiver', () {
+    final parameters = {
+      'encodings': [],
+      'headerExtensions': [],
+      'codecs': [],
+      'rtcp': {'cname': '', 'reducedSize': false},
+    };
+    final track = {'id': 'TR_a', 'label': '', 'kind': 'video', 'enabled': true};
+    final receiver = {
+      'receiverId': 'TR_a',
+      'track': track,
+      'rtpParameters': parameters,
+    };
+
+    String? receivedTransceiverId(Map<String, dynamic> event) {
+      final pc = RTCPeerConnectionNative('', {});
+      String? id;
+      pc.onTrack =
+          (e) => id = (e.receiver as RTCRtpReceiverNative).transceiverId;
+      pc.eventListener(event);
+      return id;
+    }
+
+    test('carries the transceiver id of its event', () {
+      expect(
+          receivedTransceiverId({
+            'event': 'onTrack',
+            'streams': [],
+            'track': track,
+            'receiver': receiver,
+            'transceiver': {
+              'transceiverId': 'transceiver-1',
+              'direction': 'recvonly',
+              'mid': '1',
+              'sender': {
+                'senderId': 's',
+                'track': {},
+                'rtpParameters': parameters,
+                'ownsTrack': false,
+              },
+              'receiver': receiver,
+            },
+          }),
+          'transceiver-1');
+    });
+
+    test('has none without a transceiver', () {
+      expect(
+          receivedTransceiverId({
+            'event': 'onTrack',
+            'streams': [],
+            'track': track,
+            'receiver': receiver,
+          }),
+          isNull);
+    });
   });
 }
