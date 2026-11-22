@@ -2,6 +2,8 @@ package com.cloudwebrtc.webrtc;
 
 import android.util.Log;
 
+import com.cloudwebrtc.webrtc.video.VideoCapturerInfo;
+
 import org.webrtc.CameraVideoCapturer;
 
 class CameraEventsHandler implements CameraVideoCapturer.CameraEventsHandler {
@@ -68,11 +70,17 @@ class CameraEventsHandler implements CameraVideoCapturer.CameraEventsHandler {
         state = CameraState.OPENING;
     }
 
+    // The capturer this handler belongs to, set before capture starts.
+    volatile VideoCapturerInfo info;
+
     // Callback invoked when first camera frame is available after camera is opened.
     @Override
     public void onFirstFrameAvailable() {
         Log.d(TAG, "CameraEventsHandler.onFirstFrameAvailable");
         state = CameraState.OPENED;
+        FlutterWebRTCPlugin plugin = FlutterWebRTCPlugin.sharedSingleton;
+        FlutterWebRTCPlugin.CameraStartedListener listener = plugin == null ? null : plugin.cameraStartedListener;
+        if (listener != null && info != null) listener.onCameraStarted(info);
     }
 
     // Callback invoked when camera closed.
