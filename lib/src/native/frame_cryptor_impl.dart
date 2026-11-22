@@ -181,6 +181,7 @@ class FrameCryptorFactoryImpl implements FrameCryptorFactory {
           'frameCryptorFactoryCreateFrameCryptor', <String, dynamic>{
         'peerConnectionId': nativeReceiver.peerConnectionId,
         'rtpReceiverId': nativeReceiver.receiverId,
+        'rtpTransceiverId': nativeReceiver.transceiverId,
         'participantId': participantId,
         'keyProviderId': keyProvider.id,
         'algorithm': algorithm.index,

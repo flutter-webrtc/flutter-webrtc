@@ -7,14 +7,16 @@ import 'utils.dart';
 
 class RTCRtpReceiverNative extends RTCRtpReceiver {
   RTCRtpReceiverNative(
-      this._id, this._track, this._parameters, this._peerConnectionId);
+      this._id, this._track, this._parameters, this._peerConnectionId,
+      {this.transceiverId});
 
   factory RTCRtpReceiverNative.fromMap(Map<dynamic, dynamic> map,
-      {required String peerConnectionId}) {
+      {required String peerConnectionId, String? transceiverId}) {
     var track = MediaStreamTrackNative.fromMap(map['track'], peerConnectionId);
     var parameters = RTCRtpParameters.fromMap(map['rtpParameters']);
     return RTCRtpReceiverNative(
-        map['receiverId'], track, parameters, peerConnectionId);
+        map['receiverId'], track, parameters, peerConnectionId,
+        transceiverId: transceiverId);
   }
 
   static List<RTCRtpReceiverNative> fromMaps(List<dynamic> map,
@@ -65,4 +67,8 @@ class RTCRtpReceiverNative extends RTCRtpReceiver {
   String get receiverId => _id;
 
   String get peerConnectionId => _peerConnectionId;
+
+  /// The transceiver this receiver came with, if known. Receivers of one track on
+  /// two transceivers share their id, so a frame cryptor finds its receiver by this instead.
+  final String? transceiverId;
 }
