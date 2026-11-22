@@ -16,6 +16,7 @@ import com.cloudwebrtc.webrtc.audio.AudioProcessingController;
 import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
+import com.cloudwebrtc.webrtc.video.VideoCapturerInfo;
 
 import org.webrtc.ExternalAudioProcessingFactory;
 import org.webrtc.MediaStream;
@@ -31,6 +32,9 @@ import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.view.TextureRegistry;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * FlutterWebRTCPlugin
@@ -84,6 +88,26 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     @Nullable
     public JavaAudioDeviceModule getAudioDeviceModule() {
         return methodCallHandler == null ? null : methodCallHandler.getAudioDeviceModule();
+    }
+
+    /** Called on the camera's thread at each camera session's first frame. */
+    public interface CameraStartedListener {
+        void onCameraStarted(VideoCapturerInfo capturer);
+    }
+
+    @Nullable
+    volatile CameraStartedListener cameraStartedListener;
+
+    /** The listener for camera sessions that can take capture requests; null removes it. Cleared on detach. */
+    public void setCameraStartedListener(@Nullable CameraStartedListener listener) {
+        cameraStartedListener = listener;
+    }
+
+    /** A snapshot of the running video capturers by track id; empty before initialization. */
+    public Map<String, VideoCapturerInfo> getVideoCapturers() {
+        MethodCallHandlerImpl handler = methodCallHandler;
+        if (handler == null || handler.getUserMediaImpl == null) return Collections.emptyMap();
+        return handler.getUserMediaImpl.videoCapturers();
     }
 
     @Override
@@ -145,6 +169,7 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     }
 
     private void stopListening() {
+        cameraStartedListener = null;
         methodCallHandler.dispose();
         methodCallHandler = null;
         methodChannel.setMethodCallHandler(null);

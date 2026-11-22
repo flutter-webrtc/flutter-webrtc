@@ -78,6 +78,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +107,15 @@ public class GetUserMediaImpl {
 
     static final String TAG = FlutterWebRTCPlugin.TAG;
 
-    private final Map<String, VideoCapturerInfoEx> mVideoCapturers = new HashMap<>();
+    // Written on the platform thread; synchronized for videoCapturers() on other threads.
+    private final Map<String, VideoCapturerInfoEx> mVideoCapturers =
+            Collections.synchronizedMap(new HashMap<>());
+
+    Map<String, VideoCapturerInfo> videoCapturers() {
+        synchronized (mVideoCapturers) {
+            return new HashMap<>(mVideoCapturers);
+        }
+    }
     private final Map<String, SurfaceTextureHelper> mSurfaceTextureHelpers = new HashMap<>();
     private final StateProvider stateProvider;
     private final Context applicationContext;
@@ -865,6 +874,7 @@ public class GetUserMediaImpl {
         }
 
         info.cameraEventsHandler = cameraEventsHandler;
+        cameraEventsHandler.info = info;
         info.videoSource = videoSource;
         info.facingMode = facingMode;
         videoCapturer.startCapture(targetWidth, targetHeight, targetFps);
@@ -986,6 +996,7 @@ public class GetUserMediaImpl {
             promoted.primaryTrackId = null;
             promoted.capturer = info.capturer;
             promoted.cameraEventsHandler = info.cameraEventsHandler;
+            if (promoted.cameraEventsHandler != null) promoted.cameraEventsHandler.info = promoted;
 
             SurfaceTextureHelper helper = mSurfaceTextureHelpers.remove(id);
             if (helper != null) mSurfaceTextureHelpers.put(newPrimaryId, helper);

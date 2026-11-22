@@ -124,7 +124,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
    * The implementation of {@code getUserMedia} extracted into a separate file in order to reduce
    * complexity and to (somewhat) separate concerns.
    */
-  private GetUserMediaImpl getUserMediaImpl;
+  // Package-private for FlutterWebRTCPlugin.getVideoCapturers().
+  volatile GetUserMediaImpl getUserMediaImpl;
 
   private CameraUtils cameraUtils;
 
