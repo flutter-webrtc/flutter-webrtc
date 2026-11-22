@@ -36,6 +36,7 @@ import com.cloudwebrtc.webrtc.utils.AnyThreadResult;
 import com.cloudwebrtc.webrtc.utils.Callback;
 import com.cloudwebrtc.webrtc.utils.ConstraintsArray;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
+import com.cloudwebrtc.webrtc.utils.FieldTrials;
 import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
@@ -239,9 +240,22 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mPeerConnectionObservers.clear();
   }
   private void initialize(boolean bypassVoiceProcessing, boolean androidUseHardwareAudioProcessing, int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
-  @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity, @Nullable Integer audioSampleRate, @Nullable Integer audioOutputSampleRate, boolean enableWARP, boolean zeroPlayoutDelay) {
+  @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity, @Nullable Integer audioSampleRate, @Nullable Integer audioOutputSampleRate, boolean enableWARP, boolean zeroPlayoutDelay,
+  @Nullable String extraFieldTrials) {
     if (mFactory != null) {
       return;
+    }
+
+    String fieldTrials = "";
+    if (enableWARP) {
+      fieldTrials += FIELD_TRIAL_ICE_HANDSHAKE_DTLS;
+    }
+    if (zeroPlayoutDelay) {
+      fieldTrials += FIELD_TRIAL_FORCE_PLAYOUT_DELAY;
+    }
+    if (extraFieldTrials != null) {
+      // Throws IllegalArgumentException before anything is set up.
+      fieldTrials = FieldTrials.merge(fieldTrials, extraFieldTrials);
     }
 
     warpEnabled = enableWARP;
@@ -251,13 +265,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                     .setEnableInternalTracer(true)
                     .setInjectableLogger(logSink, logSeverity);
 
-    String fieldTrials = "";
-    if (enableWARP) {
-      fieldTrials += FIELD_TRIAL_ICE_HANDSHAKE_DTLS;
-    }
-    if (zeroPlayoutDelay) {
-      fieldTrials += FIELD_TRIAL_FORCE_PLAYOUT_DELAY;
-    }
     if (!fieldTrials.isEmpty()) {
       initializationOptionsBuilder.setFieldTrials(fieldTrials);
       Log.d(TAG, "enabled field trials: " + fieldTrials);
@@ -520,7 +527,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           zeroPlayoutDelay = constraintsMap.getBoolean("zeroPlayoutDelay");
         }
 
-        initialize(enableBypassVoiceProcessing, androidUseHardwareAudioProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate, enableWARP, zeroPlayoutDelay);
+        String fieldTrials = null;
+        if (constraintsMap.hasKey("fieldTrials")
+                && constraintsMap.getType("fieldTrials") == ObjectType.String) {
+          fieldTrials = constraintsMap.getString("fieldTrials");
+        }
+
+        try {
+          initialize(enableBypassVoiceProcessing, androidUseHardwareAudioProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate, enableWARP, zeroPlayoutDelay, fieldTrials);
+        } catch (IllegalArgumentException e) {
+          resultError("initialize", e.getMessage(), result);
+          break;
+        }
         result.success(null);
         break;
       }
