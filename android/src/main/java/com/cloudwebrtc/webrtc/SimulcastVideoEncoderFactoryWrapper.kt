@@ -1,9 +1,14 @@
 package com.cloudwebrtc.webrtc
 
+import android.os.SystemClock
+import android.util.Log
 import org.webrtc.*
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 
 /*
 Copyright 2017, Lyo Kato <lyo.kato at gmail.com> (Original Author)
@@ -80,18 +85,56 @@ internal class SimulcastVideoEncoderFactoryWrapper(
      * - When the width/height from [initEncode] doesn't match the frame buffer's,
      *   scales the frame prior to encoding.
      * - Always calls the encoder on the thread.
+     * - Releases the encoder after [IDLE_MS] without a frame and sets it up again on the next
+     *   one, since WebRTC keeps the encoders of layers that send no frames.
      */
     private class StreamEncoderWrapper(private val encoder: VideoEncoder) : VideoEncoder {
 
         val executor: ExecutorService = Executors.newSingleThreadExecutor()
         var streamSettings: VideoEncoder.Settings? = null
 
+        // Touched only on [executor]: what setting the encoder up again needs.
+        private var callback: VideoEncoder.Callback? = null
+        private var rates: VideoEncoder.RateControlParameters? = null
+        private var initialized = false
+        private var idle = false
+        private var lastFrameMs = 0L
+        private var idleCheck: ScheduledFuture<*>? = null
+
+        private fun releaseIfIdle() {
+            if (!initialized || idle || SystemClock.elapsedRealtime() - lastFrameMs < IDLE_MS) return
+            val status = encoder.release()
+            if (status != VideoCodecStatus.OK) {
+                // The encoder's state is unknown: keep it as it is and stop checking.
+                Log.w(TAG, "idle encoder release failed: $status")
+                idleCheck?.cancel(false)
+                return
+            }
+            idle = true
+            Log.d(TAG, "idle encoder released: ${streamSettings!!.width}x${streamSettings!!.height}")
+        }
+
+        private fun wake(): VideoCodecStatus {
+            // Stays idle on failure, so the next frame tries again.
+            val status = encoder.initEncode(streamSettings!!, callback)
+            if (status != VideoCodecStatus.OK) return status
+            idle = false
+            Log.d(TAG, "idle encoder set up again")
+            return rates?.let { encoder.setRates(it) } ?: VideoCodecStatus.OK
+        }
+
         override fun initEncode(
             settings: VideoEncoder.Settings,
             callback: VideoEncoder.Callback?
         ): VideoCodecStatus {
             streamSettings = settings
+            idleCheck?.cancel(false)
+            idleCheck = idleChecks.scheduleWithFixedDelay(
+                { executor.execute(::releaseIfIdle) }, IDLE_MS, IDLE_MS / 2, TimeUnit.MILLISECONDS)
             val future = executor.submit(Callable {
+                this.callback = callback
+                idle = false
+                lastFrameMs = SystemClock.elapsedRealtime()
             //     LKLog.i {
             //         """initEncode() thread=${Thread.currentThread().name} [${Thread.currentThread().id}]
             //     |  encoder=${encoder.implementationName}
@@ -106,13 +149,25 @@ internal class SimulcastVideoEncoderFactoryWrapper(
             //     |    lossNotification=${settings.capabilities.lossNotification}
             // """.trimMargin()
             //     }
-                return@Callable encoder.initEncode(settings, callback)
+                val status = encoder.initEncode(settings, callback)
+                initialized = status == VideoCodecStatus.OK
+                return@Callable status
             })
             return future.get()
         }
 
         override fun release(): VideoCodecStatus {
-            val future = executor.submit(Callable { return@Callable encoder.release() })
+            idleCheck?.cancel(false)
+            idleCheck = null
+            val future = executor.submit(Callable {
+                // A releaseIfIdle() queued before this one then does nothing.
+                initialized = false
+                if (idle) {
+                    idle = false
+                    return@Callable VideoCodecStatus.OK
+                }
+                return@Callable encoder.release()
+            })
             return future.get()
         }
 
@@ -123,6 +178,11 @@ internal class SimulcastVideoEncoderFactoryWrapper(
             val future = executor.submit(Callable {
                 //LKLog.d { "encode() buffer=${frame.buffer}, thread=${Thread.currentThread().name} " +
                 //        "[${Thread.currentThread().id}]" }
+                lastFrameMs = SystemClock.elapsedRealtime()
+                if (idle) {
+                    val status = wake()
+                    if (status != VideoCodecStatus.OK) return@Callable status
+                }
                 if (streamSettings == null) {
                     return@Callable encoder.encode(frame, encodeInfo)
                 } else if (frame.buffer.width == streamSettings!!.width) {
@@ -179,7 +239,12 @@ internal class SimulcastVideoEncoderFactoryWrapper(
         }
 
         override fun setRates(rcParameters: VideoEncoder.RateControlParameters?): VideoCodecStatus {
-            val future = executor.submit(Callable { return@Callable encoder.setRates(rcParameters) })
+            val future = executor.submit(Callable {
+                rates = rcParameters
+                // A released encoder takes these when it is set up again.
+                if (idle) return@Callable VideoCodecStatus.OK
+                return@Callable encoder.setRates(rcParameters)
+            })
             return future.get()
         }
 
@@ -192,6 +257,12 @@ internal class SimulcastVideoEncoderFactoryWrapper(
             val future = executor.submit(Callable { return@Callable encoder.encoderInfo })
             return future.get()
         }
+    }
+
+    private companion object {
+        const val TAG = "SimulcastEncoder"
+        const val IDLE_MS = 10_000L
+        val idleChecks: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
     }
 
     private class StreamEncoderWrapperFactory(private val factory: VideoEncoderFactory) :
