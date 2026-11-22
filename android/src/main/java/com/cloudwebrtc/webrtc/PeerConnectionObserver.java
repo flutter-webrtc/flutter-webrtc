@@ -66,6 +66,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private final Map<String, MediaStreamTrack> remoteTracksByReceiver =
       new ConcurrentHashMap<>();
   final Map<String, RtpTransceiver> transceivers = new HashMap<>();
+  // Each transceiver's sender id, to find it again once disposed. Written from the platform and
+  // signaling threads.
+  private final Map<String, String> transceiverSenders = new ConcurrentHashMap<>();
   private final StateProvider stateProvider;
   private final EventChannel eventChannel;
   private EventChannel.EventSink eventSink;
@@ -220,8 +223,34 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     }
   }
 
+  // Remember sender IDs so sequential lookups can refresh wrappers invalidated by getTransceivers().
+  private void putTransceiver(String id, RtpTransceiver transceiver) {
+    transceivers.put(id, transceiver);
+    transceiverSenders.put(id, transceiver.getSender().id());
+  }
+
+  // libwebrtc has no isDisposed(): every getter of a disposed transceiver throws IllegalStateException.
+  private static boolean disposed(RtpTransceiver transceiver) {
+    try {
+      transceiver.getMid();
+      return false;
+    } catch (IllegalStateException e) {
+      return true;
+    }
+  }
+
   RtpTransceiver getRtpTransceiverById(String id) {
     RtpTransceiver transceiver = transceivers.get(id);
+    if (transceiver != null && disposed(transceiver)) {
+      transceiver = null;
+      String senderId = transceiverSenders.get(id);
+      for (RtpTransceiver t : peerConnection.getTransceivers()) {
+        if (t.getSender().id().equals(senderId)) {
+          transceiver = t;
+          putTransceiver(id, t);
+        }
+      }
+    }
     if (null == transceiver) {
       List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
       for (RtpTransceiver t : transceivers) {
@@ -581,7 +610,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           String transceiverId = transceiver.getMid();
           if (null == transceiverId) {
             transceiverId = stateProvider.getNextStreamUUID();
-            this.transceivers.put(transceiverId,transceiver);
+            putTransceiver(transceiverId, transceiver);
           }
           params.putMap("transceiver", transceiverToMap(transceiverId, transceiver));
         }
@@ -1095,7 +1124,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     if (null == transceiverId) {
       transceiverId = stateProvider.getNextStreamUUID();
     }
-    transceivers.put(transceiverId, transceiver);
+    putTransceiver(transceiverId, transceiver);
     result.success(transceiverToMap(transceiverId, transceiver));
   }
 
@@ -1110,7 +1139,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     if (null == transceiverId) {
       transceiverId = stateProvider.getNextStreamUUID();
     }
-    transceivers.put(transceiverId, transceiver);
+    putTransceiver(transceiverId, transceiver);
     result.success(transceiverToMap(transceiverId, transceiver));
   }
 
@@ -1261,7 +1290,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       String transceiverId = transceiver.getMid();
       if (null == transceiverId) {
         transceiverId = stateProvider.getNextStreamUUID();
-        this.transceivers.put(transceiverId,transceiver);
+        putTransceiver(transceiverId, transceiver);
       }
       transceiversParams.pushMap(new ConstraintsMap(transceiverToMap(transceiverId, transceiver)));
     }
