@@ -59,6 +59,11 @@ class WebRTC {
   ///                    the platform hardware AEC/NS off and let the WebRTC software APM handle
   ///                    echo/noise instead (useful when a device's built-in AEC is unreliable).
   ///
+  /// "androidLowLatencyAudio": (Android only) defaults to true. Set to false to build the audio
+  ///                    device module without low latency on Android 8+: the output AudioTrack
+  ///                    keeps a larger buffer, which adds a few tens of ms of playout delay and
+  ///                    saves CPU.
+  ///
   /// "audioSampleRate": (Android only) Sets both input and output sample rate in Hz (e.g., 48000).
   ///                    If not specified, uses the native device's default sample rate.
   ///
