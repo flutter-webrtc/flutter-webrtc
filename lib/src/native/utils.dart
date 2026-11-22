@@ -88,6 +88,13 @@ class WebRTC {
   ///                     for low latency scenarios on reliable networks. Like
   ///                     `enableWARP` it is a field trial, so it has to be set
   ///                     before the first peer connection is created.
+  ///
+  /// "fieldTrials": (Android only) extra WebRTC field trials in libwebrtc's
+  ///                "Name/Value/Name/Value/" form, such as
+  ///                "WebRTC-Bwe-LossBasedBweV2/Enabled:false/", added to those set by
+  ///                enableWARP and zeroPlayoutDelay. Read once, before the first peer
+  ///                connection is created. A malformed string, or a trial given two
+  ///                different values, fails initialize with a PlatformException.
   static Future<void> initialize({Map<String, dynamic>? options}) async {
     if (!initialized) {
       await _channel.invokeMethod<void>('initialize', <String, dynamic>{
