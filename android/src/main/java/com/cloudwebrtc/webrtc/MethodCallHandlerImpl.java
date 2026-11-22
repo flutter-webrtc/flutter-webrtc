@@ -239,7 +239,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     mPeerConnectionObservers.clear();
   }
   private void initialize(boolean bypassVoiceProcessing, boolean androidUseHardwareAudioProcessing, int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
-  @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity, @Nullable Integer audioSampleRate, @Nullable Integer audioOutputSampleRate, boolean enableWARP, boolean zeroPlayoutDelay) {
+  @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity, @Nullable Integer audioSampleRate, @Nullable Integer audioOutputSampleRate, boolean enableWARP, boolean zeroPlayoutDelay,
+  boolean androidLowLatencyAudio) {
     if (mFactory != null) {
       return;
     }
@@ -305,7 +306,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
                         .setAudioSource(MediaRecorder.AudioSource.MIC);
     } else {
       boolean useHardwareAudioProcessing = androidUseHardwareAudioProcessing && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
-      boolean useLowLatency = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+      boolean useLowLatency = androidLowLatencyAudio && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
       audioDeviceModuleBuilder.setUseHardwareAcousticEchoCanceler(useHardwareAudioProcessing)
                         .setUseLowLatency(useLowLatency)
                         .setUseHardwareNoiseSuppressor(useHardwareAudioProcessing);
@@ -520,7 +521,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           zeroPlayoutDelay = constraintsMap.getBoolean("zeroPlayoutDelay");
         }
 
-        initialize(enableBypassVoiceProcessing, androidUseHardwareAudioProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate, enableWARP, zeroPlayoutDelay);
+        // Defaults to true, as before.
+        boolean androidLowLatencyAudio = true;
+        if (constraintsMap.hasKey("androidLowLatencyAudio")
+                && constraintsMap.getType("androidLowLatencyAudio") == ObjectType.Boolean) {
+          androidLowLatencyAudio = constraintsMap.getBoolean("androidLowLatencyAudio");
+        }
+
+        initialize(enableBypassVoiceProcessing, androidUseHardwareAudioProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate, enableWARP, zeroPlayoutDelay, androidLowLatencyAudio);
         result.success(null);
         break;
       }
