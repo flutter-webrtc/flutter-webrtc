@@ -73,6 +73,10 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
         return methodCallHandler.getLocalTrack(trackId);
     }
 
+    public boolean putLocalTrack(String trackId, LocalTrack track) {
+        return methodCallHandler != null && methodCallHandler.putLocalTrack(trackId, track);
+    }
+
     public MediaStreamTrack getRemoteTrack(String trackId) {
         return methodCallHandler.getRemoteTrack(trackId);
     }
