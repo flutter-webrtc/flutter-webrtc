@@ -38,6 +38,8 @@ void main() {
     expect(pair!.local.candidate, _local);
     expect(pair.local.sdpMid, '0');
     expect(pair.remote.candidate, _remote);
+    expect(pair.local.usernameFragment, 'AbCd');
+    expect(pair.remote.usernameFragment, 'RemoteUfrag');
     expect(pair.reason, 'candidate pair state changed');
     expect(pair.lastDataReceivedMs, 1234);
   }
