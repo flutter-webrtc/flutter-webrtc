@@ -826,6 +826,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         cameraUtils.setTorch(trackId, torch, result);
         break;
       }
+      case "mediaStreamTrackSetCameraCaptureOrientation": {
+        getUserMediaImpl.setCameraCaptureOrientation(
+            call.argument("trackId"), call.argument("orientation"), result);
+        break;
+      }
       case "mediaStreamTrackSetZoom": {
         String trackId = call.argument("trackId");
         double zoomLevel = call.argument("zoomLevel");

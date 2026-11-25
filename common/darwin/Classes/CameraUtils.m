@@ -1,4 +1,7 @@
 #import "CameraUtils.h"
+#if TARGET_OS_IOS
+#import "VideoProcessingAdapter.h"
+#endif
 
 @implementation FlutterWebRTCPlugin (CameraUtils)
 
@@ -276,13 +279,22 @@
     NSLog(@"Video capturer is null. Can't switch camera");
     return;
   }
-#if TARGET_OS_IPHONE
-  [self.videoCapturer stopCapture];
-#endif
   self._usingFrontCamera = !self._usingFrontCamera;
   AVCaptureDevicePosition position =
       self._usingFrontCamera ? AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
   AVCaptureDevice* videoDevice = [self findDeviceForPosition:position];
+#if TARGET_OS_IOS
+  // stop and start run in order on WebRTC's capture-session queue. Install the
+  // new lens position between them on this capturer's own processing adapter.
+  id delegate = self.videoCapturer.delegate;
+  [self.videoCapturer stopCaptureWithCompletionHandler:^{
+    if ([delegate isKindOfClass:[CameraVideoProcessingAdapter class]]) {
+      ((CameraVideoProcessingAdapter *)delegate).cameraPosition = videoDevice.position;
+    }
+  }];
+#elif TARGET_OS_IPHONE
+  [self.videoCapturer stopCapture];
+#endif
   AVCaptureDeviceFormat* selectedFormat = [self selectFormatForDevice:videoDevice
                                                           targetWidth:self._lastTargetWidth
                                                          targetHeight:self._lastTargetHeight];

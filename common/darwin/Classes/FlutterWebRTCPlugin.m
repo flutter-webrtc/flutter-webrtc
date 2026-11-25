@@ -1187,6 +1187,29 @@ static void FlutterWebRTCApplyFieldTrials(void) {
                                    details:nil]);
       }
     }
+#if TARGET_OS_IOS
+  } else if ([@"mediaStreamTrackSetCameraCaptureOrientation" isEqualToString:call.method]) {
+    NSString *trackId = call.arguments[@"trackId"];
+    id track = trackId ? self.localTracks[trackId] : nil;
+    VideoProcessingAdapter *processing = [track isKindOfClass:[LocalVideoTrack class]]
+        ? ((LocalVideoTrack *)track).processing : nil;
+    if (![processing isKindOfClass:[CameraVideoProcessingAdapter class]] ||
+        processing != self.videoCapturer.delegate) {
+      result([FlutterError errorWithCode:@"camera_not_found"
+                                 message:@"Expected an active local camera track"
+                                 details:trackId]);
+      return;
+    }
+    id orientation = call.arguments[@"orientation"];
+    CameraVideoProcessingAdapter *adapter = (CameraVideoProcessingAdapter *)processing;
+    if (![adapter setCaptureOrientationNamed:orientation == [NSNull null] ? nil : orientation]) {
+      result([FlutterError errorWithCode:@"invalid_orientation"
+                                 message:@"Unknown camera capture orientation"
+                                 details:orientation]);
+      return;
+    }
+    result(nil);
+#endif
   } else if ([@"mediaStreamTrackSetZoom" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSString* trackId = argsMap[@"trackId"];

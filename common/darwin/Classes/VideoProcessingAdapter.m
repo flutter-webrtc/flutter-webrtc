@@ -1,5 +1,8 @@
 #import "VideoProcessingAdapter.h"
 #import <os/lock.h>
+#if TARGET_OS_IOS
+#import <UIKit/UIKit.h>
+#endif
 
 @implementation VideoProcessingAdapter {
   RTCVideoSource* _videoSource;
@@ -53,3 +56,60 @@
 }
 
 @end
+
+#if TARGET_OS_IOS
+@interface CameraVideoProcessingAdapter ()
+@property(atomic, assign) UIInterfaceOrientation lockedOrientation;
+@end
+
+@implementation CameraVideoProcessingAdapter
+
+- (BOOL)setCaptureOrientationNamed:(NSString *)name {
+  if (!name) {
+    self.lockedOrientation = UIInterfaceOrientationUnknown;
+  } else if ([name isEqual:@"portraitUp"]) {
+    self.lockedOrientation = UIInterfaceOrientationPortrait;
+  } else if ([name isEqual:@"portraitDown"]) {
+    self.lockedOrientation = UIInterfaceOrientationPortraitUpsideDown;
+  } else if ([name isEqual:@"landscapeLeft"]) {
+    self.lockedOrientation = UIInterfaceOrientationLandscapeLeft;
+  } else if ([name isEqual:@"landscapeRight"]) {
+    self.lockedOrientation = UIInterfaceOrientationLandscapeRight;
+  } else {
+    return NO;
+  }
+  return YES;
+}
+
+- (void)capturer:(RTCVideoCapturer *)capturer didCaptureVideoFrame:(RTCVideoFrame *)frame {
+  // Use RTCCameraVideoCapturer's lens-dependent interface orientation mapping.
+  // While unlocked, pass through the SDK's original frame and orientation.
+  RTCVideoRotation rotation = frame.rotation;
+  switch (self.lockedOrientation) {
+    case UIInterfaceOrientationPortrait:
+      rotation = RTCVideoRotation_90;
+      break;
+    case UIInterfaceOrientationPortraitUpsideDown:
+      rotation = RTCVideoRotation_270;
+      break;
+    case UIInterfaceOrientationLandscapeLeft:
+      rotation = self.cameraPosition == AVCaptureDevicePositionFront ? RTCVideoRotation_0 : RTCVideoRotation_180;
+      break;
+    case UIInterfaceOrientationLandscapeRight:
+      rotation = self.cameraPosition == AVCaptureDevicePositionFront ? RTCVideoRotation_180 : RTCVideoRotation_0;
+      break;
+    case UIInterfaceOrientationUnknown:
+      break;
+  }
+  if (rotation != frame.rotation) {
+    RTCVideoFrame *oriented = [[RTCVideoFrame alloc] initWithBuffer:frame.buffer
+                                                           rotation:rotation
+                                                        timeStampNs:frame.timeStampNs];
+    oriented.timeStamp = frame.timeStamp;
+    frame = oriented;
+  }
+  [super capturer:capturer didCaptureVideoFrame:frame];
+}
+
+@end
+#endif

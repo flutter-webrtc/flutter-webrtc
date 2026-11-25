@@ -486,7 +486,13 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     }
 #endif
       
+#if TARGET_OS_IOS
+    CameraVideoProcessingAdapter *videoProcessingAdapter =
+        [[CameraVideoProcessingAdapter alloc] initWithRTCVideoSource:videoSource];
+    videoProcessingAdapter.cameraPosition = videoDevice.position;
+#else
     VideoProcessingAdapter *videoProcessingAdapter = [[VideoProcessingAdapter alloc] initWithRTCVideoSource:videoSource];
+#endif
     self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoProcessingAdapter];
       
     AVCaptureDeviceFormat* selectedFormat = [self selectFormatForDevice:videoDevice
