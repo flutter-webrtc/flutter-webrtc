@@ -6,9 +6,22 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 import 'package:flutter_webrtc/src/native/rtc_peerconnection_impl.dart';
 
 const _local =
-    'candidate:1 1 udp 2122260223 192.0.2.1 50000 typ host generation 1 ufrag AbCd network-id 1';
+    'candidate:1 1 udp 2122260223 192.0.2.1 50000 typ host generation 1 network-id 1';
 const _remote =
-    'candidate:2 1 udp 2130706431 198.51.100.1 7882 typ host generation 1 ufrag RemoteUfrag';
+    'candidate:2 1 udp 2130706431 198.51.100.1 7882 typ host generation 1';
+
+const _localMap = {
+  'candidate': _local,
+  'sdpMLineIndex': -1,
+  'sdpMid': '0',
+  'usernameFragment': 'AbCd'
+};
+const _remoteMap = {
+  'candidate': _remote,
+  'sdpMLineIndex': -1,
+  'sdpMid': '0',
+  'usernameFragment': 'RemoteUfrag'
+};
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -47,8 +60,8 @@ void main() {
   test('reads the pair iOS and macOS send at the top level of the event', () {
     expectPair(deliver(<String, dynamic>{
       'event': 'onSelectedCandidatePairChanged',
-      'local': {'candidate': _local, 'sdpMLineIndex': -1, 'sdpMid': '0'},
-      'remote': {'candidate': _remote, 'sdpMLineIndex': -1, 'sdpMid': '0'},
+      'local': {..._localMap},
+      'remote': {..._remoteMap},
       'reason': 'candidate pair state changed',
       'lastDataReceivedMs': 1234,
     }));
@@ -59,18 +72,33 @@ void main() {
       'event': 'onSelectedCandidatePairChanged',
       'candidate': {
         'lastDataReceivedMs': 1234,
-        'local': {'candidate': _local, 'sdpMLineIndex': -1, 'sdpMid': '0'},
-        'remote': {'candidate': _remote, 'sdpMLineIndex': -1, 'sdpMid': '0'},
+        'local': {..._localMap},
+        'remote': {..._remoteMap},
         'reason': 'candidate pair state changed',
       },
     }));
+  });
+
+  test('leaves usernameFragment null when the platform does not send it', () {
+    final pair = deliver(<String, dynamic>{
+      'event': 'onSelectedCandidatePairChanged',
+      'local': {
+        'candidate': '$_local ufrag AbCd',
+        'sdpMLineIndex': -1,
+        'sdpMid': '0'
+      },
+      'remote': {..._remoteMap, 'usernameFragment': null},
+    });
+    expect(pair, isNotNull);
+    expect(pair!.local.usernameFragment, isNull);
+    expect(pair.remote.usernameFragment, isNull);
   });
 
   test('drops an event without both candidates', () {
     expect(
         deliver(<String, dynamic>{
           'event': 'onSelectedCandidatePairChanged',
-          'local': {'candidate': _local, 'sdpMLineIndex': -1, 'sdpMid': '0'},
+          'local': {..._localMap},
         }),
         isNull);
   });

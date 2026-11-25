@@ -568,7 +568,8 @@
       @"candidate" : @{
         @"candidate" : candidate.sdp,
         @"sdpMLineIndex" : @(candidate.sdpMLineIndex),
-        @"sdpMid" : candidate.sdpMid
+        @"sdpMid" : candidate.sdpMid,
+        @"usernameFragment" : candidate.usernameFragment ?: [NSNull null]
       }
     });
   }
@@ -684,12 +685,14 @@
       @"local" : @{
         @"candidate" : local.sdp,
         @"sdpMLineIndex" : @(local.sdpMLineIndex),
-        @"sdpMid" : local.sdpMid
+        @"sdpMid" : local.sdpMid,
+        @"usernameFragment" : local.usernameFragment ?: [NSNull null]
       },
       @"remote" : @{
         @"candidate" : remote.sdp,
         @"sdpMLineIndex" : @(remote.sdpMLineIndex),
-        @"sdpMid" : remote.sdpMid
+        @"sdpMid" : remote.sdpMid,
+        @"usernameFragment" : remote.usernameFragment ?: [NSNull null]
       },
       @"reason" : reason,
       @"lastDataReceivedMs" : @(lastDataReceivedMs)

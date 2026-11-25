@@ -159,7 +159,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       case 'onCandidate':
         Map<dynamic, dynamic> cand = map['candidate'];
         var candidate = RTCIceCandidate(
-            cand['candidate'], cand['sdpMid'], cand['sdpMLineIndex']);
+            cand['candidate'], cand['sdpMid'], cand['sdpMLineIndex'],
+            usernameFragment: cand['usernameFragment'] as String?);
         onIceCandidate?.call(candidate);
         break;
       case 'onAddStream':
@@ -279,7 +280,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       return null;
     }
     RTCIceCandidate candidate(Map<dynamic, dynamic> c) =>
-        RTCIceCandidate(c['candidate'], c['sdpMid'], c['sdpMLineIndex']);
+        RTCIceCandidate(c['candidate'], c['sdpMid'], c['sdpMLineIndex'],
+            usernameFragment: c['usernameFragment'] as String?);
     var lastDataReceivedMs = pair['lastDataReceivedMs'];
     return RTCIceCandidatePair(
         candidate(pair['local']), candidate(pair['remote']),
