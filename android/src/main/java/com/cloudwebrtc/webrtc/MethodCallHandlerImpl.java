@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.util.LongSparseArray;
+import android.util.Size;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
@@ -238,8 +239,24 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
     mPeerConnectionObservers.clear();
   }
+  // Read once at initialization, e.g. androidH264AdaptivePlaybackMaxSize = {width: 1920, height: 1080}.
+  // A missing or non-positive dimension means the decoder starts with the size of the stream.
+  private static Size adaptivePlaybackMaxSize(Object option) {
+    if (option instanceof Map) {
+      Map<?, ?> size = (Map<?, ?>) option;
+      Object width = size.get("width");
+      Object height = size.get("height");
+      if (width instanceof Integer && height instanceof Integer
+              && (int) width > 0 && (int) height > 0) {
+        return new Size((int) width, (int) height);
+      }
+    }
+    return new Size(0, 0);
+  }
+
   private void initialize(boolean bypassVoiceProcessing, boolean androidUseHardwareAudioProcessing, int networkIgnoreMask, boolean forceSWCodec, List<String> forceSWCodecList,
-  @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity, @Nullable Integer audioSampleRate, @Nullable Integer audioOutputSampleRate, boolean enableWARP, boolean zeroPlayoutDelay) {
+  Size preferredH264MaxSize, @Nullable ConstraintsMap androidAudioConfiguration, Severity logSeverity,
+  @Nullable Integer audioSampleRate, @Nullable Integer audioOutputSampleRate, boolean enableWARP, boolean zeroPlayoutDelay) {
     if (mFactory != null) {
       return;
     }
@@ -389,7 +406,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
 
     videoEncoderFactory = new CustomVideoEncoderFactory(eglContext, true, true);
-    videoDecoderFactory = new CustomVideoDecoderFactory(eglContext);
+    videoDecoderFactory = new CustomVideoDecoderFactory(
+            eglContext, preferredH264MaxSize.getWidth(), preferredH264MaxSize.getHeight());
 
     factoryBuilder
             .setVideoEncoderFactory(videoEncoderFactory)
@@ -520,7 +538,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           zeroPlayoutDelay = constraintsMap.getBoolean("zeroPlayoutDelay");
         }
 
-        initialize(enableBypassVoiceProcessing, androidUseHardwareAudioProcessing, networkIgnoreMask, forceSWCodec, forceSWCodecList, androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate, enableWARP, zeroPlayoutDelay);
+        Size preferredH264MaxSize = adaptivePlaybackMaxSize(options.get("androidH264AdaptivePlaybackMaxSize"));
+        initialize(enableBypassVoiceProcessing, androidUseHardwareAudioProcessing, networkIgnoreMask,
+                forceSWCodec, forceSWCodecList, preferredH264MaxSize,
+                androidAudioConfiguration, logSeverity, audioSampleRate, audioOutputSampleRate, enableWARP, zeroPlayoutDelay);
         result.success(null);
         break;
       }

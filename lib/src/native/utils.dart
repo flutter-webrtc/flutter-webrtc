@@ -51,6 +51,21 @@ class WebRTC {
   ///
   /// "forceSWCodecList": a list of strings of software codecs that should use software.
   ///
+  /// `androidH264AdaptivePlaybackMaxSize` is an optional size hint for incoming
+  /// H.264 video on Android 10 and later. Set it before the first WebRTC operation.
+  ///
+  /// ```dart
+  /// await WebRTC.initialize(options: {
+  ///   'androidH264AdaptivePlaybackMaxSize': {'width': 1920, 'height': 1080},
+  /// });
+  /// ```
+  ///
+  /// A compatible hardware decoder can reserve buffers for that size when it
+  /// starts, allowing it to reuse them when the stream changes resolution.
+  /// Larger buffers can use more memory. By default the decoder starts with
+  /// the size of the stream. Both dimensions must be positive integers.
+  /// A missing or invalid dimension causes the entire hint to be ignored.
+  ///
   /// "androidAudioConfiguration": an AndroidAudioConfiguration object mapped with toMap()
   ///
   /// "bypassVoiceProcessing": a boolean that bypasses the audio processing for the audio device.

@@ -2,6 +2,7 @@ package org.webrtc.video;
 
 import androidx.annotation.Nullable;
 
+import org.webrtc.AdaptiveH264DecoderFactory;
 import org.webrtc.EglBase;
 import org.webrtc.SoftwareVideoDecoderFactory;
 import org.webrtc.VideoCodecInfo;
@@ -21,8 +22,14 @@ public class CustomVideoDecoderFactory implements VideoDecoderFactory {
 
     private List<String> forceSWCodecs = new ArrayList<>();
 
-    public  CustomVideoDecoderFactory(EglBase.Context sharedContext) {
-        this.wrappedVideoDecoderFactory = new WrappedVideoDecoderFactory(sharedContext);
+    public CustomVideoDecoderFactory(EglBase.Context sharedContext) {
+        this(sharedContext, 0, 0);
+    }
+
+    public CustomVideoDecoderFactory(EglBase.Context sharedContext,
+            int preferredMaxWidth, int preferredMaxHeight) {
+        this.wrappedVideoDecoderFactory = new AdaptiveH264DecoderFactory(
+                sharedContext, softwareVideoDecoderFactory, preferredMaxWidth, preferredMaxHeight);
     }
 
     public void setForceSWCodec(boolean forceSWCodec) {
