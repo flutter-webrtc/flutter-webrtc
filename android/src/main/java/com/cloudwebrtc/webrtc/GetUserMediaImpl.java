@@ -677,8 +677,6 @@ public class GetUserMediaImpl {
         result.success(successResult.toMap());
     }
 
-    private boolean isFacing = true;
-
     /**
      * @return Returns the integer at the key, or the `ideal` property if it is a map.
      */
@@ -746,7 +744,7 @@ public class GetUserMediaImpl {
         }
 
         String facingMode = getFacingMode(videoConstraintsMap);
-        isFacing = facingMode == null || !facingMode.equals("environment");
+        boolean isFacing = facingMode == null || !facingMode.equals("environment");
         String deviceId = getSourceIdConstraint(videoConstraintsMap);
 
         // If a camera is already active for the same facing direction, reuse its VideoSource
@@ -762,22 +760,25 @@ public class GetUserMediaImpl {
         // This is reproducible on stock AOSP (Pixel) and any Android device: it is a bug in the
         // Android Camera2 framework (CameraCaptureSessionImpl.onDisconnected does not guard
         // against ENOSYS from cancelRequest), not an OEM-specific issue.
-        final boolean requestedFacingFront = isFacing;
         for (Map.Entry<String, VideoCapturerInfoEx> entry : mVideoCapturers.entrySet()) {
             VideoCapturerInfoEx existing = entry.getValue();
-            // Screen capturers are registered with a null cameraName, so these
-            // checks must run before cameraName is dereferenced below.
+            // Only the primary camera track owns a capture session.
             if (existing.isScreenCapture || existing.primaryTrackId != null
-                    || existing.videoSource == null || existing.cameraName == null) {
+                    || existing.videoSource == null || existing.cameraEventsHandler == null) {
                 continue;
             }
+            String activeCamera = existing.cameraEventsHandler.cameraName;
+            if (activeCamera == null) continue;
+            boolean activeFront = cameraEnumerator.isFrontFacing(activeCamera);
             boolean sameCamera = (deviceId != null && !deviceId.isEmpty())
-                    ? existing.cameraName.equals(deviceId)
-                    : cameraEnumerator.isFrontFacing(existing.cameraName) == requestedFacingFront;
+                    ? deviceId.equals(activeCamera)
+                    : activeFront == isFacing;
             if (sameCamera) {
                 Log.w(TAG, "getUserMedia(video): camera already active (track=" + entry.getKey()
                         + "), reusing VideoSource to prevent concurrent camera access");
-                return buildSharedVideoTrack(existing, entry.getKey(), mediaStream);
+                String activeFacing = activeFront ? "user" :
+                        cameraEnumerator.isBackFacing(activeCamera) ? "environment" : null;
+                return buildSharedVideoTrack(existing, entry.getKey(), mediaStream, activeCamera, activeFacing);
             }
         }
         CameraEventsHandler cameraEventsHandler = new CameraEventsHandler();
@@ -788,6 +789,7 @@ public class GetUserMediaImpl {
         }
 
         deviceId = result.first;
+        cameraEventsHandler.cameraName = deviceId;
         VideoCapturer videoCapturer = result.second;
 
         if (facingMode == null && cameraEnumerator.isFrontFacing(deviceId)) {
@@ -913,7 +915,8 @@ public class GetUserMediaImpl {
      * The returned entry in mVideoCapturers has primaryTrackId set so that removeVideoCapturer
      * knows not to stop the underlying capturer when only this secondary track is removed.
      */
-    private ConstraintsMap buildSharedVideoTrack(VideoCapturerInfoEx primary, String primaryTrackId, MediaStream mediaStream) {
+    private ConstraintsMap buildSharedVideoTrack(VideoCapturerInfoEx primary, String primaryTrackId,
+                                                MediaStream mediaStream, String cameraName, @Nullable String facingMode) {
         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
         String trackId = stateProvider.getNextTrackUUID();
 
@@ -921,8 +924,8 @@ public class GetUserMediaImpl {
         sharedInfo.width = primary.width;
         sharedInfo.height = primary.height;
         sharedInfo.fps = primary.fps;
-        sharedInfo.cameraName = primary.cameraName;
-        sharedInfo.facingMode = primary.facingMode;
+        sharedInfo.cameraName = cameraName;
+        sharedInfo.facingMode = facingMode;
         sharedInfo.isScreenCapture = false;
         sharedInfo.capturer = null;
         sharedInfo.videoSource = primary.videoSource;
@@ -944,12 +947,12 @@ public class GetUserMediaImpl {
 
         // TODO: extract into a helper method - same block (deviceId, kind, width, height, frameRate) repeated in getUserVideo()
         ConstraintsMap settings = new ConstraintsMap();
-        settings.putString("deviceId", primary.cameraName != null ? primary.cameraName : "");
+        settings.putString("deviceId", cameraName);
         settings.putString("kind", "videoinput");
         settings.putInt("width", primary.width);
         settings.putInt("height", primary.height);
         settings.putInt("frameRate", primary.fps);
-        if (primary.facingMode != null) settings.putString("facingMode", primary.facingMode);
+        if (facingMode != null) settings.putString("facingMode", facingMode);
         trackParams.putMap("settings", settings.toMap());
 
         Log.d(TAG, "buildSharedVideoTrack: created shared track " + trackId
@@ -1076,7 +1079,7 @@ public class GetUserMediaImpl {
             if (primary != null) info = primary;
         }
         VideoCapturer videoCapturer = info.capturer;
-        if (videoCapturer == null) {
+        if (!(videoCapturer instanceof CameraVideoCapturer) || info.cameraEventsHandler == null) {
             resultError("switchCamera", "Video capturer not found for id: " + id, result);
             return;
         }
@@ -1092,14 +1095,19 @@ public class GetUserMediaImpl {
         }
         // if sourceId given, use specified sourceId first
         final String[] deviceNames = cameraEnumerator.getDeviceNames();
+        String activeCamera = info.cameraEventsHandler.cameraName;
+        if (activeCamera == null) {
+            resultError("switchCamera", "Active camera unavailable for id: " + id, result);
+            return;
+        }
+        boolean currentFront = cameraEnumerator.isFrontFacing(activeCamera);
         for (String name : deviceNames) {
-            if (cameraEnumerator.isFrontFacing(name) == !isFacing) {
+            if (cameraEnumerator.isFrontFacing(name) != currentFront) {
                 CameraVideoCapturer cameraVideoCapturer = (CameraVideoCapturer) videoCapturer;
                 cameraVideoCapturer.switchCamera(
                         new CameraVideoCapturer.CameraSwitchHandler() {
                             @Override
                             public void onCameraSwitchDone(boolean b) {
-                                isFacing = !isFacing;
                                 result.success(b);
                             }
 
