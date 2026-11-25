@@ -16,3 +16,10 @@
 - (RTCVideoSource* _Nonnull) source;
 
 @end
+
+#if TARGET_OS_IOS
+@interface CameraVideoProcessingAdapter : VideoProcessingAdapter
+@property(atomic, assign) AVCaptureDevicePosition cameraPosition;
+- (BOOL)setCaptureOrientationNamed:(nullable NSString *)name;
+@end
+#endif

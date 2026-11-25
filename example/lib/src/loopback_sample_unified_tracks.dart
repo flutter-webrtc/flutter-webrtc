@@ -28,6 +28,14 @@ const List<String> videoCodecList = <String>[
 ];
 
 class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
+  static const _captureOrientations = <String, DeviceOrientation?>{
+    'Follow device': null,
+    'Portrait up': DeviceOrientation.portraitUp,
+    'Landscape left': DeviceOrientation.landscapeLeft,
+    'Portrait down': DeviceOrientation.portraitDown,
+    'Landscape right': DeviceOrientation.landscapeRight,
+  };
+
   String audioDropdownValue = audioCodecList.first;
   String videoDropdownValue = videoCodecList.first;
   RTCRtpCapabilities? acaps;
@@ -434,6 +442,25 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     await dtmfSender?.insertDTMF('123#');
   }
 
+  Future<void> _setCaptureOrientation(
+      MediaStreamTrack track, DeviceOrientation? orientation) async {
+    try {
+      if (orientation == null) {
+        await Helper.unlockCameraCaptureOrientation(track);
+      } else {
+        await Helper.lockCameraCaptureOrientation(track, orientation);
+      }
+    } on PlatformException catch (error) {
+      if (!mounted ||
+          _localStream?.getVideoTracks().firstOrNull?.id != track.id) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message ?? error.code)),
+      );
+    }
+  }
+
   void _startVideo() async {
     var newStream = await navigator.mediaDevices
         .getUserMedia(_getMediaConstraints(audio: false, video: true));
@@ -675,6 +702,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
   @override
   Widget build(BuildContext context) {
+    final cameraTrack = _localStream?.getVideoTracks().firstOrNull;
     var widgets = <Widget>[
       Expanded(
         child: Container(
@@ -806,6 +834,18 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       appBar: AppBar(
         title: Text('LoopBack Unified Tracks example'),
         actions: [
+          if (WebRTC.platformIsMobile && _cameraOn && cameraTrack != null)
+            PopupMenuButton<String>(
+              key: ValueKey(cameraTrack.id),
+              tooltip: 'Camera capture orientation',
+              icon: const Icon(Icons.screen_rotation),
+              onSelected: (label) => _setCaptureOrientation(
+                  cameraTrack, _captureOrientations[label]),
+              itemBuilder: (_) => [
+                for (final label in _captureOrientations.keys)
+                  PopupMenuItem(value: label, child: Text(label)),
+              ],
+            ),
           IconButton(
             icon: Icon(Icons.keyboard),
             onPressed: _sendDtmf,

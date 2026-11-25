@@ -1,10 +1,12 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show DeviceOrientation;
 
 import 'package:logger/logger.dart';
 
 import '../flutter_webrtc.dart';
+import 'native/media_stream_track_impl.dart';
 import 'native_logs_listener.dart';
 
 class Helper {
@@ -99,6 +101,41 @@ class Helper {
 
   static Future<void> setZoom(MediaStreamTrack videoTrack, double zoomLevel) =>
       CameraUtils.setZoom(videoTrack, zoomLevel);
+
+  /// Locks a local camera's capture orientation on Android and iOS.
+  ///
+  /// Pass a camera track from `getUserMedia`. The camera uses [orientation]
+  /// as its device orientation until unlocked, including when the phone turns.
+  /// On Android, tracks sharing the same camera source share its lock.
+  /// The lock affects captured video and leaves the app's screen orientation
+  /// and WebRTC's video format negotiation intact.
+  static Future<void> lockCameraCaptureOrientation(
+          MediaStreamTrack track, DeviceOrientation orientation) =>
+      _setCameraCaptureOrientation(track, orientation);
+
+  /// Restores the local camera's normal device-orientation updates.
+  static Future<void> unlockCameraCaptureOrientation(MediaStreamTrack track) =>
+      _setCameraCaptureOrientation(track, null);
+
+  static Future<void> _setCameraCaptureOrientation(
+      MediaStreamTrack track, DeviceOrientation? orientation) async {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS)) {
+      throw UnsupportedError('Camera orientation requires Android or iOS');
+    }
+    // A loopback receiver can have the same track ID as its sender.
+    if (track is! MediaStreamTrackNative ||
+        track.peerConnectionId != 'local' ||
+        track.kind != 'video') {
+      throw ArgumentError.value(
+          track, 'track', 'Expected a camera track from getUserMedia');
+    }
+    await WebRTC.invokeMethod<void, void>(
+      'mediaStreamTrackSetCameraCaptureOrientation',
+      {'trackId': track.id, 'orientation': orientation?.name},
+    );
+  }
 
   static Future<void> setFocusMode(
           MediaStreamTrack videoTrack, CameraFocusMode focusMode) =>

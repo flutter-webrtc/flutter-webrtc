@@ -780,7 +780,15 @@ public class GetUserMediaImpl {
                 return buildSharedVideoTrack(existing, entry.getKey(), mediaStream);
             }
         }
-        CameraEventsHandler cameraEventsHandler = new CameraEventsHandler();
+        VideoCapturerInfoEx info = new VideoCapturerInfoEx();
+        CameraEventsHandler cameraEventsHandler = new CameraEventsHandler() {
+            @Override
+            public void onCameraOpening(String name) {
+                super.onCameraOpening(name);
+                info.orientation.setMount(CameraCaptureOrientation.Mount.read(
+                        applicationContext, cameraEnumerator, name));
+            }
+        };
         Pair<String, VideoCapturer> result = createVideoCapturer(cameraEnumerator, isFacing, deviceId, cameraEventsHandler);
 
         if (result == null) {
@@ -807,8 +815,6 @@ public class GetUserMediaImpl {
             Log.e(TAG, "surfaceTextureHelper is null");
             return null;
         }
-
-        VideoCapturerInfoEx info = new VideoCapturerInfoEx();
 
         Integer videoWidth = getConstrainInt(videoConstraintsMap, "width");
         int targetWidth = videoWidth != null
@@ -840,8 +846,8 @@ public class GetUserMediaImpl {
                     applicationContext, deviceId, cameraEventsHandler);
         }
 
-        videoCapturer.initialize(
-                surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
+        info.orientation = new CameraCaptureOrientation(videoSource.getCapturerObserver());
+        videoCapturer.initialize(surfaceTextureHelper, applicationContext, info.orientation);
 
         info.width = targetWidth;
         info.height = targetHeight;
@@ -926,6 +932,7 @@ public class GetUserMediaImpl {
         sharedInfo.isScreenCapture = false;
         sharedInfo.capturer = null;
         sharedInfo.videoSource = primary.videoSource;
+        sharedInfo.orientation = primary.orientation;
         sharedInfo.primaryTrackId = primaryTrackId;
         mVideoCapturers.put(trackId, sharedInfo);
 
@@ -1064,6 +1071,28 @@ public class GetUserMediaImpl {
                 permissions.toArray(new String[permissions.size()]), callback);
     }
 
+    void setCameraCaptureOrientation(Object trackId, @Nullable Object orientation, Result result) {
+        VideoCapturerInfoEx info = mVideoCapturers.get(trackId);
+        if (info == null || info.orientation == null) {
+            result.error("camera_not_found", "Expected an active local camera track: " + trackId, null);
+            return;
+        }
+        if (orientation != null && !(orientation instanceof String)) {
+            result.error("invalid_orientation", "Expected a camera orientation name or null", null);
+            return;
+        }
+        try {
+            boolean landscapeNative = orientation != null
+                    && CameraCaptureOrientation.isLandscapeNative(applicationContext);
+            info.orientation.setOrientation((String) orientation, landscapeNative);
+            result.success(null);
+        } catch (IllegalArgumentException e) {
+            result.error("invalid_orientation", e.getMessage(), null);
+        } catch (IllegalStateException e) {
+            result.error("orientation_unavailable", e.getMessage(), null);
+        }
+    }
+
     void switchCamera(String id, Result result) {
         VideoCapturerInfoEx info = mVideoCapturers.get(id);
         if (info == null) {
@@ -1166,6 +1195,7 @@ public class GetUserMediaImpl {
     }
 
     public static class VideoCapturerInfoEx extends VideoCapturerInfo  {
+        private CameraCaptureOrientation orientation;
         public CameraEventsHandler cameraEventsHandler;
         /** The VideoSource used to create the VideoTrack for this capturer. */
         public VideoSource videoSource;
