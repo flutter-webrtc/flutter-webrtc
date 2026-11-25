@@ -122,6 +122,36 @@ If necessary, in the same `build.gradle` you will need to increase `minSdkVersio
 When you compile the release apk, you need to add the following operations,
 [Setup Proguard Rules](https://github.com/flutter-webrtc/flutter-webrtc/blob/main/android/proguard-rules.pro)
 
+### Camera frame output on Android and iOS
+
+Set `normalizeCaptureOrientation` to `true` in the camera constraints to apply
+the frame rotation to its pixels. This is useful when the consumer receives raw
+video without WebRTC's rotation metadata.
+
+```dart
+final stream = await navigator.mediaDevices.getUserMedia({
+  'audio': false,
+  'video': {
+    'width': 1280,
+    'height': 720,
+    'normalizeCaptureOrientation': true,
+  },
+});
+final track = stream.getVideoTracks().first;
+final settings = track.getSettings(); // width: 1280, height: 720
+```
+
+With both dimensions specified, the camera uses a supported capture format and
+the plugin center-crops and scales the image to fill the requested size. For
+example, an upright 640×480 frame is cropped to 640×360 and scaled to
+1280×720. The output frame has zero rotation and retains the capture timestamp.
+These dimensions describe frames delivered to WebRTC before encoding. On Android,
+tracks sharing a camera source must request the same normalization mode and,
+when normalized, the same output size.
+
+Omit either dimension to keep the rotated frame's natural size. Omitting
+`normalizeCaptureOrientation` keeps the default camera behavior.
+
 ## Contributing
 
 The project is inseparable from the contributors of the community.

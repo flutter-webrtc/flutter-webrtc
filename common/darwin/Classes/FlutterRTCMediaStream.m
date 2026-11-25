@@ -486,7 +486,17 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
     }
 #endif
       
+#if TARGET_OS_IOS
+    VideoProcessingAdapter *videoProcessingAdapter = [[VideoProcessingAdapter alloc]
+        initWithRTCVideoSource:videoSource cameraConstraints:videoConstraints];
+#else
     VideoProcessingAdapter *videoProcessingAdapter = [[VideoProcessingAdapter alloc] initWithRTCVideoSource:videoSource];
+#endif
+    // The fixed output size, when configured, is also the preferred capture size.
+    CMVideoDimensions preferredDimensions = [videoProcessingAdapter trackDimensionsForCaptureDimensions:
+        (CMVideoDimensions){(int32_t)targetWidth, (int32_t)targetHeight}];
+    targetWidth = preferredDimensions.width;
+    targetHeight = preferredDimensions.height;
     self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoProcessingAdapter];
       
     AVCaptureDeviceFormat* selectedFormat = [self selectFormatForDevice:videoDevice
@@ -544,11 +554,12 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream* mediaStream);
                                                                           : @"unspecified";
     }
 
+    CMVideoDimensions trackDimensions = [videoProcessingAdapter trackDimensionsForCaptureDimensions:selectedDimension];
     videoTrack.settings = @{
       @"deviceId" : videoDeviceId,
       @"kind" : @"videoinput",
-      @"width" : [NSNumber numberWithInteger:selectedWidth],
-      @"height" : [NSNumber numberWithInteger:selectedHeight],
+      @"width" : @(trackDimensions.width),
+      @"height" : @(trackDimensions.height),
       @"frameRate" : [NSNumber numberWithInteger:selectedFps],
       @"facingMode" : facingMode,
     };
