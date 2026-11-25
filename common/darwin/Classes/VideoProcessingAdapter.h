@@ -9,6 +9,13 @@
 
 - (_Nonnull instancetype)initWithRTCVideoSource:(RTCVideoSource* _Nonnull)source;
 
+#if TARGET_OS_IOS
+// Camera-only opt-in. With both dimensions set, output has that fixed size.
+- (nonnull instancetype)initWithRTCVideoSource:(RTCVideoSource *_Nonnull)source
+                             cameraConstraints:(NSDictionary *_Nonnull)constraints;
+#endif
+- (CMVideoDimensions)trackDimensionsForCaptureDimensions:(CMVideoDimensions)captureDimensions;
+
 - (void)addProcessing:(_Nonnull id<ExternalVideoProcessingDelegate>)processor;
 
 - (void)removeProcessing:(_Nonnull id<ExternalVideoProcessingDelegate>)processor;

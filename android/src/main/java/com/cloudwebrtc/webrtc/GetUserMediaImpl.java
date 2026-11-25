@@ -49,6 +49,7 @@ import com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
 import com.cloudwebrtc.webrtc.video.LocalVideoTrack;
+import com.cloudwebrtc.webrtc.video.NormalizedCameraVideoTrack;
 import com.cloudwebrtc.webrtc.video.VideoCapturerInfo;
 
 import org.webrtc.AudioSource;
@@ -64,7 +65,6 @@ import org.webrtc.CameraVideoCapturer;
 import org.webrtc.HighSpeedCamera2Capturer;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
-import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.Size;
 import org.webrtc.SurfaceTextureHelper;
@@ -399,8 +399,6 @@ public class GetUserMediaImpl {
         AudioTrack track = pcFactory.createAudioTrack(trackId, audioSource);
         stream.addTrack(track);
 
-        stateProvider.putLocalTrack(track.id(), new LocalAudioTrack(track));
-
         ConstraintsMap trackParams = new ConstraintsMap();
         trackParams.putBoolean("enabled", track.enabled());
         trackParams.putString("id", track.id());
@@ -630,25 +628,24 @@ public class GetUserMediaImpl {
         ConstraintsMap[] trackParams = new ConstraintsMap[2];
 
         // If we fail to create either, destroy the other one and fail.
-        if ((grantedPermissions.contains(PERMISSION_AUDIO)
-                && (trackParams[0] = getUserAudio(constraints, mediaStream)) == null)
-                || (grantedPermissions.contains(PERMISSION_VIDEO)
-                && (trackParams[1] = getUserVideo(constraints, mediaStream)) == null)) {
-            for (MediaStreamTrack track : mediaStream.audioTracks) {
-                if (track != null) {
-                    track.dispose();
-                }
+        String trackError = null;
+        try {
+            if ((grantedPermissions.contains(PERMISSION_AUDIO)
+                    && (trackParams[0] = getUserAudio(constraints, mediaStream)) == null)
+                    || (grantedPermissions.contains(PERMISSION_VIDEO)
+                    && (trackParams[1] = getUserVideo(constraints, mediaStream)) == null)) {
+                trackError = "Failed to create new track.";
             }
-            for (MediaStreamTrack track : mediaStream.videoTracks) {
-                if (track != null) {
-                    track.dispose();
-                }
-            }
+        } catch (NormalizedCameraVideoTrack.CameraLayoutConflict conflict) {
+            trackError = conflict.getMessage();
+        }
+        if (trackError != null) {
+            mediaStream.dispose();
             // XXX The following does not follow the getUserMedia() algorithm
             // specified by
             // https://www.w3.org/TR/mediacapture-streams/#dom-mediadevices-getusermedia
             // with respect to distinguishing the various causes of failure.
-            resultError("getUserMedia", "Failed to create new track.", result);
+            resultError("getUserMedia", trackError, result);
             return;
         }
 
@@ -667,6 +664,10 @@ public class GetUserMediaImpl {
             }
         }
 
+        // Register audio only after the entire request succeeds. A camera can reject sharing.
+        for (AudioTrack track : mediaStream.audioTracks) {
+            stateProvider.putLocalTrack(track.id(), new LocalAudioTrack(track));
+        }
         String streamId = mediaStream.getId();
         Log.d(TAG, "MediaStream id: " + streamId);
         stateProvider.putLocalStream(streamId, mediaStream);
@@ -716,6 +717,17 @@ public class GetUserMediaImpl {
         return null;
     }
 
+    @Nullable
+    private Integer cameraDimension(@Nullable ConstraintsMap constraints, String key, boolean normalize) {
+        if (constraints == null || !normalize) return getConstrainInt(constraints, key);
+        if (constraints.getType(key) == ObjectType.Map) {
+            constraints = constraints.getMap(key);
+            key = constraints.isNull("exact") ? "ideal" : "exact";
+        }
+        Integer dimension = getConstrainInt(constraints, key);
+        return dimension != null && dimension > 0 ? dimension : null;
+    }
+
     private ConstraintsMap getUserVideo(ConstraintsMap constraints, MediaStream mediaStream) {
         ConstraintsMap videoConstraintsMap = null;
         ConstraintsMap videoConstraintsMandatory = null;
@@ -749,6 +761,13 @@ public class GetUserMediaImpl {
         isFacing = facingMode == null || !facingMode.equals("environment");
         String deviceId = getSourceIdConstraint(videoConstraintsMap);
 
+        final boolean normalize = videoConstraintsMap != null
+                && Boolean.TRUE.equals(videoConstraintsMap.toMap().get("normalizeCaptureOrientation"));
+        Integer videoWidth = cameraDimension(videoConstraintsMap, "width", normalize);
+        Integer videoHeight = cameraDimension(videoConstraintsMap, "height", normalize);
+        Size outputSize = normalize && videoWidth != null && videoHeight != null
+                ? new Size(videoWidth, videoHeight) : null;
+
         // If a camera is already active for the same facing direction, reuse its VideoSource
         // instead of opening a second Camera2 session for the same camera device.
         //
@@ -775,9 +794,11 @@ public class GetUserMediaImpl {
                     ? existing.cameraName.equals(deviceId)
                     : cameraEnumerator.isFrontFacing(existing.cameraName) == requestedFacingFront;
             if (sameCamera) {
+                NormalizedCameraVideoTrack.requireCompatibleOutput(
+                        stateProvider.getLocalTrack(entry.getKey()), normalize, outputSize);
                 Log.w(TAG, "getUserMedia(video): camera already active (track=" + entry.getKey()
                         + "), reusing VideoSource to prevent concurrent camera access");
-                return buildSharedVideoTrack(existing, entry.getKey(), mediaStream);
+                return buildSharedVideoTrack(existing, entry.getKey(), mediaStream, outputSize);
             }
         }
         CameraEventsHandler cameraEventsHandler = new CameraEventsHandler();
@@ -810,14 +831,12 @@ public class GetUserMediaImpl {
 
         VideoCapturerInfoEx info = new VideoCapturerInfoEx();
 
-        Integer videoWidth = getConstrainInt(videoConstraintsMap, "width");
         int targetWidth = videoWidth != null
                 ? videoWidth
                 : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minWidth")
                 ? videoConstraintsMandatory.getInt("minWidth")
                 : DEFAULT_WIDTH;
 
-        Integer videoHeight = getConstrainInt(videoConstraintsMap, "height");
         int targetHeight = videoHeight != null
                 ? videoHeight
                 : videoConstraintsMandatory != null && videoConstraintsMandatory.hasKey("minHeight")
@@ -867,23 +886,27 @@ public class GetUserMediaImpl {
         info.cameraEventsHandler = cameraEventsHandler;
         info.videoSource = videoSource;
         info.facingMode = facingMode;
-        videoCapturer.startCapture(targetWidth, targetHeight, targetFps);
-
-        cameraEventsHandler.waitForCameraOpen();
-
 
         String trackId = stateProvider.getNextTrackUUID();
+        VideoTrack track = pcFactory.createVideoTrack(trackId, videoSource);
+        LocalVideoTrack localVideoTrack = normalize
+                ? new NormalizedCameraVideoTrack(track, outputSize) : new LocalVideoTrack(track);
+        videoSource.setVideoProcessor(localVideoTrack);
+        try {
+            videoCapturer.startCapture(targetWidth, targetHeight, targetFps);
+            cameraEventsHandler.waitForCameraOpen();
+        } catch (RuntimeException failure) {
+            videoSource.setVideoProcessor(null);
+            track.dispose();
+            throw failure;
+        }
+
         mVideoCapturers.put(trackId, info);
         mSurfaceTextureHelpers.put(trackId, surfaceTextureHelper);
 
         Log.d(TAG, "Target: " + targetWidth + "x" + targetHeight + "@" + targetFps + ", Actual: " + info.width + "x" + info.height + "@" + info.fps);
 
-        VideoTrack track = pcFactory.createVideoTrack(trackId, videoSource);
         mediaStream.addTrack(track);
-
-        LocalVideoTrack localVideoTrack = new LocalVideoTrack(track);
-        videoSource.setVideoProcessor(localVideoTrack);
-
         stateProvider.putLocalTrack(track.id(),localVideoTrack);
 
         ConstraintsMap trackParams = new ConstraintsMap();
@@ -895,16 +918,21 @@ public class GetUserMediaImpl {
         trackParams.putString("readyState", track.state().toString());
         trackParams.putBoolean("remote", false);
 
+        trackParams.putMap("settings", cameraTrackSettings(info, deviceId, facingMode, outputSize).toMap());
+
+        return trackParams;
+    }
+
+    static ConstraintsMap cameraTrackSettings(VideoCapturerInfo capture, String deviceId,
+                                              @Nullable String facingMode, @Nullable Size outputSize) {
         ConstraintsMap settings = new ConstraintsMap();
         settings.putString("deviceId", deviceId);
         settings.putString("kind", "videoinput");
-        settings.putInt("width", info.width);
-        settings.putInt("height", info.height);
-        settings.putInt("frameRate", info.fps);
+        settings.putInt("width", outputSize == null ? capture.width : outputSize.width);
+        settings.putInt("height", outputSize == null ? capture.height : outputSize.height);
+        settings.putInt("frameRate", capture.fps);
         if (facingMode != null) settings.putString("facingMode", facingMode);
-        trackParams.putMap("settings", settings.toMap());
-
-        return trackParams;
+        return settings;
     }
 
     /**
@@ -913,7 +941,8 @@ public class GetUserMediaImpl {
      * The returned entry in mVideoCapturers has primaryTrackId set so that removeVideoCapturer
      * knows not to stop the underlying capturer when only this secondary track is removed.
      */
-    private ConstraintsMap buildSharedVideoTrack(VideoCapturerInfoEx primary, String primaryTrackId, MediaStream mediaStream) {
+    private ConstraintsMap buildSharedVideoTrack(VideoCapturerInfoEx primary, String primaryTrackId,
+                                                MediaStream mediaStream, @Nullable Size outputSize) {
         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
         String trackId = stateProvider.getNextTrackUUID();
 
@@ -931,7 +960,9 @@ public class GetUserMediaImpl {
 
         VideoTrack track = pcFactory.createVideoTrack(trackId, primary.videoSource);
         mediaStream.addTrack(track);
-        stateProvider.putLocalTrack(track.id(), new LocalVideoTrack(track));
+        // The secondary shares the primary processor. Preserve its mode if promoted to primary.
+        stateProvider.putLocalTrack(track.id(), NormalizedCameraVideoTrack.forSharedCamera(
+                track, stateProvider.getLocalTrack(primaryTrackId)));
 
         // TODO: extract into a helper method - same block (enabled, id, kind, label, readyState, remote) repeated in getUserAudio() and getUserVideo()
         ConstraintsMap trackParams = new ConstraintsMap();
@@ -942,15 +973,8 @@ public class GetUserMediaImpl {
         trackParams.putString("readyState", track.state().toString());
         trackParams.putBoolean("remote", false);
 
-        // TODO: extract into a helper method - same block (deviceId, kind, width, height, frameRate) repeated in getUserVideo()
-        ConstraintsMap settings = new ConstraintsMap();
-        settings.putString("deviceId", primary.cameraName != null ? primary.cameraName : "");
-        settings.putString("kind", "videoinput");
-        settings.putInt("width", primary.width);
-        settings.putInt("height", primary.height);
-        settings.putInt("frameRate", primary.fps);
-        if (primary.facingMode != null) settings.putString("facingMode", primary.facingMode);
-        trackParams.putMap("settings", settings.toMap());
+        trackParams.putMap("settings", cameraTrackSettings(
+                primary, primary.cameraName != null ? primary.cameraName : "", primary.facingMode, outputSize).toMap());
 
         Log.d(TAG, "buildSharedVideoTrack: created shared track " + trackId
                 + " from primary " + primaryTrackId);
