@@ -53,8 +53,19 @@
 
       SCContentFilter *filter = [[SCContentFilter alloc] initWithDisplay:display excludingWindows:@[]];
       SCStreamConfiguration *config = [SCStreamConfiguration new];
-      config.width = display.width;
-      config.height = display.height;
+      // SCDisplay.width/height are in points. Capture at the display's pixel
+      // size, as RTCDesktopCapturer does, so Retina screens are not halved.
+      double scale = 1;
+      CGDisplayModeRef mode = CGDisplayCopyDisplayMode(display.displayID);
+      if (mode != NULL) {
+        size_t pointWidth = CGDisplayModeGetWidth(mode);
+        if (pointWidth > 0) {
+          scale = (double)CGDisplayModeGetPixelWidth(mode) / pointWidth;
+        }
+        CGDisplayModeRelease(mode);
+      }
+      config.width = (size_t)lround(display.width * scale);
+      config.height = (size_t)lround(display.height * scale);
       config.minimumFrameInterval = CMTimeMake(1, (int32_t)MAX(1, fps));
       config.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
       if (@available(macOS 13.0, *)) {
