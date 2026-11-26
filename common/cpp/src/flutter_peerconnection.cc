@@ -1277,6 +1277,13 @@ void FlutterPeerConnectionObserver::OnIceConnectionState(
   event_channel_->Success(EncodableValue(params));
 }
 
+// The ICE username fragment of a candidate, null when it has none.
+static EncodableValue UsernameFragmentValue(
+    scoped_refptr<RTCIceCandidate> candidate) {
+  std::string ufrag = candidate->username_fragment().std_string();
+  return ufrag.empty() ? EncodableValue() : EncodableValue(ufrag);
+}
+
 void FlutterPeerConnectionObserver::OnIceCandidate(
     scoped_refptr<RTCIceCandidate> candidate) {
   EncodableMap params;
@@ -1288,6 +1295,7 @@ void FlutterPeerConnectionObserver::OnIceCandidate(
       EncodableValue(candidate->sdp_mline_index());
   cand[EncodableValue("sdpMid")] =
       EncodableValue(candidate->sdp_mid().std_string());
+  cand[EncodableValue("usernameFragment")] = UsernameFragmentValue(candidate);
   params[EncodableValue("candidate")] = EncodableValue(cand);
   event_channel_->Success(EncodableValue(params));
 }
@@ -1490,6 +1498,7 @@ void FlutterPeerConnectionObserver::OnIceSelectedCandidatePairChanged(
         EncodableValue(candidate->sdp_mline_index());
     cand[EncodableValue("sdpMid")] =
         EncodableValue(candidate->sdp_mid().std_string());
+    cand[EncodableValue("usernameFragment")] = UsernameFragmentValue(candidate);
     return cand;
   };
   EncodableMap params;
