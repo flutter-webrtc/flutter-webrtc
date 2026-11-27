@@ -8,13 +8,13 @@ environment:
 
 dependencies:
   collection: ^1.17.0
-  dart_webrtc: ^1.8.0
+  dart_webrtc: ^1.9.0
   flutter:
     sdk: flutter
   logger: ^2.0.2+1
   path_provider: ^2.0.2
   web: ^1.0.0
-  webrtc_interface: ^1.5.1
+  webrtc_interface: ^1.6.0
 
 dev_dependencies:
   flutter_test:
