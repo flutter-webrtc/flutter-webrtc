@@ -1,6 +1,11 @@
 
 # Changelog
 
+[Unreleased]
+
+* [Android] chore: migrate to built-in Kotlin and stop applying the Kotlin Gradle Plugin.
+* [Android] chore: raise the minimum supported SDK to Flutter 3.44 / Dart 3.12.
+
 [1.7.0] - 2026-11-27
 
 * feat: forward the selected candidate pair change on native platforms, with usernameFragment on ICE candidates (#2292)
