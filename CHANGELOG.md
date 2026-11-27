@@ -1,6 +1,14 @@
 
 # Changelog
 
+[1.7.0] - 2026-11-27
+
+* feat: forward the selected candidate pair change on native platforms, with usernameFragment on ICE candidates (#2292)
+* chore: update WebRTC to 150.7871.09 on all platforms (#2296)
+* chore: require webrtc_interface 1.6.0 and dart_webrtc 1.9.0 (#2295)
+* fix(macos): capture ScreenCaptureKit screens at their pixel size (#2242)
+* ci: build with the current Flutter stable (#2294)
+
 [1.6.3] - 2026-10-26
 
 * fix(desktop): run task runner tasks without holding the queue lock (#2244)
