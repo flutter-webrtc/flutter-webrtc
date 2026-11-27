@@ -70,6 +70,7 @@ import org.webrtc.PeerConnection.RTCConfiguration;
 import org.webrtc.PeerConnection.RtcpMuxPolicy;
 import org.webrtc.PeerConnection.SdpSemantics;
 import org.webrtc.PeerConnection.TcpCandidatePolicy;
+import org.webrtc.PeerConnection.TlsCertPolicy;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.PeerConnectionFactory.InitializationOptions;
 import org.webrtc.PeerConnectionFactory.Options;
@@ -1304,28 +1305,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     List<IceServer> iceServers = new ArrayList<>(size);
     for (int i = 0; i < size; i++) {
       ConstraintsMap iceServerMap = iceServersArray.getMap(i);
-      boolean hasUsernameAndCredential =
-              iceServerMap.hasKey("username") && iceServerMap.hasKey("credential");
       if (iceServerMap.hasKey("url")) {
-        if (hasUsernameAndCredential) {
-          iceServers.add(IceServer.builder(iceServerMap.getString("url"))
-                  .setUsername(iceServerMap.getString("username"))
-                  .setPassword(iceServerMap.getString("credential")).createIceServer());
-        } else {
-          iceServers.add(
-                  IceServer.builder(iceServerMap.getString("url")).createIceServer());
-        }
+        // 'url' in the singular is non-standard, kept for the entries that still ship it.
+        iceServers.add(buildIceServer(IceServer.builder(iceServerMap.getString("url")), iceServerMap));
       } else if (iceServerMap.hasKey("urls")) {
         switch (iceServerMap.getType("urls")) {
           case String:
-            if (hasUsernameAndCredential) {
-              iceServers.add(IceServer.builder(iceServerMap.getString("urls"))
-                      .setUsername(iceServerMap.getString("username"))
-                      .setPassword(iceServerMap.getString("credential")).createIceServer());
-            } else {
-              iceServers.add(IceServer.builder(iceServerMap.getString("urls"))
-                      .createIceServer());
-            }
+            iceServers.add(buildIceServer(IceServer.builder(iceServerMap.getString("urls")), iceServerMap));
             break;
           case Array:
             ConstraintsArray urls = iceServerMap.getArray("urls");
@@ -1335,21 +1321,56 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
               urlsList.add(urls.getString(j));
             }
 
-            Builder builder = IceServer.builder(urlsList);
-
-            if (hasUsernameAndCredential) {
-              builder
-                      .setUsername(iceServerMap.getString("username"))
-                      .setPassword(iceServerMap.getString("credential"));
-            }
-
-            iceServers.add(builder.createIceServer());
+            iceServers.add(buildIceServer(IceServer.builder(urlsList), iceServerMap));
 
             break;
         }
       }
     }
     return iceServers;
+  }
+
+  /**
+   * Applies the optional members of one RTCIceServer entry and builds it.
+   *
+   * <p>Credentials are written only when BOTH are strings: a TURN server registered with
+   * one half of the pair authenticates nothing and then silently relays nothing.
+   *
+   * <p>`tlsCertPolicy` is libwebrtc's certificate policy for a `turns:` server: `secure`
+   * verifies the server's certificate, `insecure_no_check` skips that check, for a TURN server
+   * whose certificate the device cannot verify, such as a self-signed one. It is not a W3C
+   * member and browsers do not read it.
+   *
+   * <p>Absent, null, unrecognised or not a string, verification stays on.
+   *
+   * <p>Values are read from the raw map rather than through ConstraintsMap.getType, which
+   * throws on types it does not know, such as the byte[] a Dart Uint8List arrives as.
+   */
+  static IceServer buildIceServer(Builder builder, ConstraintsMap iceServerMap) {
+    Map<String, Object> entry = iceServerMap.toMap();
+
+    // A null from Dart arrives as a present key with a null value, and the builder throws on
+    // a null username or password, so only strings count as credentials.
+    Object username = entry.get("username");
+    Object credential = entry.get("credential");
+    if (username instanceof String && credential instanceof String) {
+      builder.setUsername((String) username).setPassword((String) credential);
+    } else if (username != null || credential != null) {
+      Log.w(TAG, "username and credential must both be strings, ICE server added without them");
+    }
+
+    Object tlsCertPolicy = entry.get("tlsCertPolicy");
+    if ("insecure_no_check".equals(tlsCertPolicy)) {
+      Log.w(TAG, "tlsCertPolicy insecure_no_check: the TURN certificate is not verified for "
+              + (entry.containsKey("urls") ? entry.get("urls") : entry.get("url")));
+      builder.setTlsCertPolicy(TlsCertPolicy.TLS_CERT_POLICY_INSECURE_NO_CHECK);
+    } else if ("secure".equals(tlsCertPolicy)) {
+      builder.setTlsCertPolicy(TlsCertPolicy.TLS_CERT_POLICY_SECURE);
+    } else if (tlsCertPolicy != null) {
+      Log.w(TAG, "unknown tlsCertPolicy '" + tlsCertPolicy + "', keeping verification on");
+    }
+
+    return builder.createIceServer();
   }
 
   private RTCConfiguration parseRTCConfiguration(ConstraintsMap map) {

@@ -91,6 +91,13 @@ class RTCFactoryNative extends RTCFactory {
   }
 }
 
+/// Creates a peer connection from a W3C-shaped [configuration] map.
+///
+/// Beyond the W3C dictionary, an entry of `iceServers` may carry
+/// `tlsCertPolicy` (Android, iOS and macOS): `'secure'`, the default, verifies
+/// the certificate of a `turns:` server; `'insecure_no_check'` skips that
+/// check, for a TURN server whose certificate the device cannot verify, such
+/// as a self-signed one. Other platforms ignore it.
 Future<RTCPeerConnection> createPeerConnection(
     Map<String, dynamic> configuration,
     [Map<String, dynamic> constraints = const {}]) async {

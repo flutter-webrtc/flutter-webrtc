@@ -56,6 +56,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    testOptions {
+        // android.util.Log is a stub on the JVM; let the code under test log.
+        unitTests.returnDefaultValues = true
+    }
 }
 
 // Configure the Kotlin JVM target. The compilerOptions DSL requires KGP 1.9+ or
