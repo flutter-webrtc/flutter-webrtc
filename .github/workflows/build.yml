@@ -27,7 +27,9 @@ jobs:
       - name: Import Sorter Check
         run: flutter pub run import_sorter:main --no-comments --exit-if-changed
       - name: Dart Analyze Check
-        run: flutter analyze
+        # Infos are reported but do not fail the job, so a deprecation in a new
+        # Flutter stable does not turn CI red on its own.
+        run: flutter analyze --no-fatal-infos
       - name: Dart Test Check
         run: flutter test
 
