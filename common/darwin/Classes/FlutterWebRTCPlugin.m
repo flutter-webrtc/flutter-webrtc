@@ -9,6 +9,7 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRTCVideoRenderer.h"
 #import "FlutterRTCFrameCryptor.h"
+#import "FlutterRemoteAudioTap.h"
 #if TARGET_OS_IPHONE
 #import "FlutterRTCMediaRecorder.h"
 #endif
@@ -119,6 +120,7 @@ void postEvent(FlutterEventSink _Nullable sink, id _Nullable event) {
   BOOL _speakerOnButPreferBluetooth;
   AVAudioSessionPort _preferredInput;
   AudioManager* _audioManager;
+  FlutterRemoteAudioTaps* _remoteAudioTaps;
 #if TARGET_OS_IPHONE || TARGET_OS_OSX
   FlutterRTCVideoPlatformViewFactory *_platformViewFactory;
 #endif
@@ -530,6 +532,13 @@ static void FlutterWebRTCApplyFieldTrials(void) {
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
+  if ([call.method hasPrefix:@"remoteAudioTap"]) {
+    if (!_remoteAudioTaps) {
+      _remoteAudioTaps = [[FlutterRemoteAudioTaps alloc] initWithPlugin:self messenger:_messenger];
+    }
+    [_remoteAudioTaps handleCall:call result:result];
+    return;
+  }
   if ([@"initialize" isEqualToString:call.method]) {
     NSDictionary* argsMap = call.arguments;
     NSDictionary* options = argsMap[@"options"];
