@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 
 import 'package:webrtc_interface/webrtc_interface.dart';
@@ -158,7 +159,8 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       case 'onCandidate':
         Map<dynamic, dynamic> cand = map['candidate'];
         var candidate = RTCIceCandidate(
-            cand['candidate'], cand['sdpMid'], cand['sdpMLineIndex']);
+            cand['candidate'], cand['sdpMid'], cand['sdpMLineIndex'],
+            usernameFragment: cand['usernameFragment'] as String?);
         onIceCandidate?.call(candidate);
         break;
       case 'onAddStream':
@@ -262,30 +264,30 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
       /// Other
       case 'onSelectedCandidatePairChanged':
-
-        /// class RTCIceCandidatePair {
-        ///   RTCIceCandidatePair(this.local, this.remote, this.lastReceivedMs, this.reason);
-        ///   factory RTCIceCandidatePair.fromMap(Map<dynamic, dynamic> map) {
-        ///      return RTCIceCandidatePair(
-        ///             RTCIceCandidate.fromMap(map['local']),
-        ///             RTCIceCandidate.fromMap(map['remote']),
-        ///             map['lastReceivedMs'],
-        ///             map['reason']);
-        ///   }
-        ///   RTCIceCandidate local;
-        ///   RTCIceCandidate remote;
-        ///   int lastReceivedMs;
-        ///   String reason;
-        /// }
-        ///
-        /// typedef SelectedCandidatePairChangedCallback = void Function(RTCIceCandidatePair pair);
-        /// SelectedCandidatePairChangedCallback onSelectedCandidatePairChanged;
-        ///
-        /// RTCIceCandidatePair iceCandidatePair = RTCIceCandidatePair.fromMap(map);
-        /// onSelectedCandidatePairChanged?.call(iceCandidatePair);
-
+        var pair = iceCandidatePairFromMap(map);
+        if (pair != null) onSelectedCandidatePairChanged?.call(pair);
         break;
     }
+  }
+
+  /// Reads the event of [onSelectedCandidatePairChanged]. iOS and macOS send
+  /// the pair at the top level of the event, Android under 'candidate'.
+  @visibleForTesting
+  static RTCIceCandidatePair? iceCandidatePairFromMap(
+      Map<dynamic, dynamic> map) {
+    var pair = map['local'] != null ? map : map['candidate'];
+    if (pair is! Map || pair['local'] is! Map || pair['remote'] is! Map) {
+      return null;
+    }
+    RTCIceCandidate candidate(Map<dynamic, dynamic> c) =>
+        RTCIceCandidate(c['candidate'], c['sdpMid'], c['sdpMLineIndex'],
+            usernameFragment: c['usernameFragment'] as String?);
+    var lastDataReceivedMs = pair['lastDataReceivedMs'];
+    return RTCIceCandidatePair(
+        candidate(pair['local']), candidate(pair['remote']),
+        reason: pair['reason'] as String?,
+        lastDataReceivedMs:
+            lastDataReceivedMs is num ? lastDataReceivedMs.toInt() : null);
   }
 
   void errorListener(Object obj) {

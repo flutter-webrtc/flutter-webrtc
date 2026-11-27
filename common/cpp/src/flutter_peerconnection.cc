@@ -1277,6 +1277,13 @@ void FlutterPeerConnectionObserver::OnIceConnectionState(
   event_channel_->Success(EncodableValue(params));
 }
 
+// The ICE username fragment of a candidate, null when it has none.
+static EncodableValue UsernameFragmentValue(
+    scoped_refptr<RTCIceCandidate> candidate) {
+  std::string ufrag = candidate->username_fragment().std_string();
+  return ufrag.empty() ? EncodableValue() : EncodableValue(ufrag);
+}
+
 void FlutterPeerConnectionObserver::OnIceCandidate(
     scoped_refptr<RTCIceCandidate> candidate) {
   EncodableMap params;
@@ -1288,6 +1295,7 @@ void FlutterPeerConnectionObserver::OnIceCandidate(
       EncodableValue(candidate->sdp_mline_index());
   cand[EncodableValue("sdpMid")] =
       EncodableValue(candidate->sdp_mid().std_string());
+  cand[EncodableValue("usernameFragment")] = UsernameFragmentValue(candidate);
   params[EncodableValue("candidate")] = EncodableValue(cand);
   event_channel_->Success(EncodableValue(params));
 }
@@ -1472,6 +1480,34 @@ void FlutterPeerConnectionObserver::OnDataChannel(
 void FlutterPeerConnectionObserver::OnRenegotiationNeeded() {
   EncodableMap params;
   params[EncodableValue("event")] = "onRenegotiationNeeded";
+  event_channel_->Success(EncodableValue(params));
+}
+
+void FlutterPeerConnectionObserver::OnIceSelectedCandidatePairChanged(
+    scoped_refptr<RTCIceCandidate> local,
+    scoped_refptr<RTCIceCandidate> remote,
+    int64_t last_data_received_ms,
+    const string reason,
+    int64_t estimated_disconnected_time_ms) {
+  // Same shape as the iOS and macOS event.
+  auto candidate_map = [](scoped_refptr<RTCIceCandidate> candidate) {
+    EncodableMap cand;
+    cand[EncodableValue("candidate")] =
+        EncodableValue(candidate->candidate().std_string());
+    cand[EncodableValue("sdpMLineIndex")] =
+        EncodableValue(candidate->sdp_mline_index());
+    cand[EncodableValue("sdpMid")] =
+        EncodableValue(candidate->sdp_mid().std_string());
+    cand[EncodableValue("usernameFragment")] = UsernameFragmentValue(candidate);
+    return cand;
+  };
+  EncodableMap params;
+  params[EncodableValue("event")] = "onSelectedCandidatePairChanged";
+  params[EncodableValue("local")] = EncodableValue(candidate_map(local));
+  params[EncodableValue("remote")] = EncodableValue(candidate_map(remote));
+  params[EncodableValue("reason")] = EncodableValue(reason.std_string());
+  params[EncodableValue("lastDataReceivedMs")] =
+      EncodableValue(last_data_received_ms);
   event_channel_->Success(EncodableValue(params));
 }
 
